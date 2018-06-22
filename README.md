@@ -1,5 +1,7 @@
 # Weave Kubernetes Subscription (WKS)
 
+![Service description diagram](https://www.weave.works/assets/images/blt1670b4d9d8010619/KB_support_diagram.jpg)
+
 ## Purpose
 This repository is to keep together work done on the Weaveworks Kubernetes Subscription. Track the progress in the [Github project](https://github.com/weaveworks/wks/projects/1).
 
