@@ -5,7 +5,7 @@ This repository is to keep together work done on the Weaveworks Kubernetes Subsc
 
 ## important documents
 See:
-- [Meeting Notes]https://drive.google.com/open?id=1wfN4V6T9t1-eapXGabFZqkBCxyKW3uVZzz-cBCosgxs)
+- [Meeting Notes](https://drive.google.com/open?id=1wfN4V6T9t1-eapXGabFZqkBCxyKW3uVZzz-cBCosgxs)
 - [Phase 1 Plan](https://docs.google.com/document/d/1q3y0jDrzNKpTxPUi5JYf8vaPDTLV9_Ur65lxZFElDSo/edit)
 - [WKS manifest draft](https://docs.google.com/document/d/1WtIE11RC-6f4mhp2Krsf1AsNCNEHcSuEQNp12nV0mDU/edit#)
 - [Press release](https://www.weave.works/press/releases/weaveworks-launches-enterprise-gitops-services/)
