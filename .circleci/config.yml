@@ -22,3 +22,11 @@ jobs:
       - checkout
       - run:
           command: make binaries
+
+  smoke-test:
+    <<: *defaults
+    steps:
+      - checkout
+      # kick off creation of test VMs
+      - run:
+          command: bin/provision_test_vms.sh
