@@ -15,3 +15,8 @@ See:
 - [Press release](https://www.weave.works/press/releases/weaveworks-launches-enterprise-gitops-services/)
 - [Product Page](https://www.weave.works/product/enterprise-kubernetes-support/)
 - [Theory of Gitops](https://docs.google.com/document/d/1Y8kr3gROHUnFuGR3h4adjwWH6E3ttGHIYwVuWWVv2VE/edit)
+
+## Notes
+
+The `tools` directory is copied via `git subtree` from the
+[build-tools](https://github.com/weaveworks/build-tools) repo.
