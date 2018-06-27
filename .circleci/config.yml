@@ -28,6 +28,9 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      # kick off creation of test VMs
       - run:
+          name: Create VMs
           command: bin/provision_test_vms.sh
+      - run:
+          name: Destroy VMs
+          command: bin/circle-destroy-vms
