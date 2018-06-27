@@ -14,6 +14,7 @@ workflows:
   test-build-deploy:
     jobs:
     - build
+    - smoke-test
 
 jobs:
   build:
@@ -22,3 +23,14 @@ jobs:
       - checkout
       - run:
           command: make binaries
+
+  smoke-test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Create VMs
+          command: bin/provision_test_vms.sh
+      - run:
+          name: Destroy VMs
+          command: bin/circle-destroy-vms
