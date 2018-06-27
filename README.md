@@ -9,6 +9,8 @@ This repository is to keep together work done on the Weaveworks Kubernetes Subsc
 See:
 - [Meeting Notes](https://drive.google.com/open?id=1wfN4V6T9t1-eapXGabFZqkBCxyKW3uVZzz-cBCosgxs)
 - [Phase 1 Plan](https://docs.google.com/document/d/1q3y0jDrzNKpTxPUi5JYf8vaPDTLV9_Ur65lxZFElDSo/edit)
+  - [Pharos/WKS analysis](https://docs.google.com/document/d/1FRJd5Uj0CuHPwHbqXooIpUF1UKTy9tjsBaNqAA5BtrQ/edit)
+  - [Test plan](https://docs.google.com/spreadsheets/d/1EdSdbdbFrYrjLwr33qAMF31n_g2hrSgogljen8RBHj4/edit)
 - [WKS manifest draft](https://docs.google.com/document/d/1WtIE11RC-6f4mhp2Krsf1AsNCNEHcSuEQNp12nV0mDU/edit#)
 - [Press release](https://www.weave.works/press/releases/weaveworks-launches-enterprise-gitops-services/)
 - [Product Page](https://www.weave.works/product/enterprise-kubernetes-support/)
