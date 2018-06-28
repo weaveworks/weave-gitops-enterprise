@@ -22,7 +22,9 @@ jobs:
     steps:
       - checkout
       - run:
-          command: make binaries
+          command: |
+            make lint
+            make binaries
 
   smoke-test:
     <<: *defaults
