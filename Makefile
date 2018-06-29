@@ -62,4 +62,3 @@ clean:
 	rm -rf $(UPTODATE_FILES)
 	go clean
 	rm -f cmd/wksctl/wksctl
-	rm -rf ./build
