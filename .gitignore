@@ -1,3 +1,4 @@
-/build/.uptodate
 /cmd/wksctl/wksctl
 /examples/.vagrant
+.uptodate
+/cmd/k8s-krb5-server/server

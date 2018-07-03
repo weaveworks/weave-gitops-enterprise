@@ -3,7 +3,7 @@
 
 # Boiler plate for bulding Docker containers.
 # All this must go at top of file I'm afraid.
-IMAGE_PREFIX := weaveworks/wks-
+IMAGE_PREFIX := quay.io/weaveworks/wks-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git symbolic-ref --short HEAD)-$(shell git rev-parse --short HEAD)
@@ -53,6 +53,10 @@ DEPS=$(call godeps,./cmd/wksctl)
 cmd/wksctl/wksctl: $(DEPS)
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wksctl/*.go
+
+cmd/k8s-krb5-server/.uptodate: cmd/k8s-krb5-server/server cmd/k8s-krb5-server/Dockerfile
+cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/k8s-krb5-server/*.go
 
 lint:
 	@bin/go-lint
