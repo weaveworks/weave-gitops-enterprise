@@ -34,5 +34,10 @@ jobs:
           name: Create VMs
           command: bin/provision_test_vms.sh
       - run:
+          name: Run integration tests
+          command: |
+            make binaries
+            go test -v ./test -args -run.interactive -cmd $PWD/cmd/wksctl/wksctl
+      - run:
           name: Destroy VMs
           command: bin/circle-destroy-vms
