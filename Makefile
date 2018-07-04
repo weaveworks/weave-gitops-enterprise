@@ -1,4 +1,4 @@
-.PHONY: all clean images
+.PHONY: all clean gen images lint
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -56,6 +56,13 @@ cmd/wksctl/wksctl: cmd/wksctl/*.go
 
 lint:
 	@bin/go-lint
+
+gen:
+	go build -o $$GOPATH/bin/deepcopy-gen vendor/k8s.io/code-generator/cmd/deepcopy-gen/main.go
+	deepcopy-gen \
+		-i ./pkg/baremetalproviderconfig/v1alpha1,./pkg/baremetalproviderconfig \
+		-O zz_generated.deepcopy \
+		-h boilerplate.go.txt
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true

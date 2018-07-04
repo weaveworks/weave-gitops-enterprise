@@ -18,5 +18,14 @@ See:
 
 ## Notes
 
+**`tools/`**
+
 The `tools` directory is copied via `git subtree` from the
 [build-tools](https://github.com/weaveworks/build-tools) repo.
+
+**code-generator**
+
+```
+$ make gen
+
+```
