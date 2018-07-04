@@ -45,6 +45,7 @@ jobs:
       - run:
           name: Run integration tests
           command: |
+            docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD" quay.io
             make binaries
             go test -v ./test -args -run.interactive -cmd $PWD/cmd/wksctl/wksctl
       - run:
