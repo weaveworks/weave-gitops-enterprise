@@ -1,2 +1,2 @@
-cmd/wksctl/wksctl
-examples/.vagrant
+/cmd/wksctl/wksctl
+/examples/.vagrant
