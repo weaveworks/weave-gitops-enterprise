@@ -58,6 +58,9 @@ cmd/k8s-krb5-server/.uptodate: cmd/k8s-krb5-server/server cmd/k8s-krb5-server/Do
 cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/k8s-krb5-server/*.go
 
+cmd/k8s-krb5-client/client: cmd/k8s-krb5-client/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/k8s-krb5-client/*.go
+
 lint:
 	@bin/go-lint
 
