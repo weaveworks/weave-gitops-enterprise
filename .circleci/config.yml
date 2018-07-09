@@ -14,7 +14,9 @@ workflows:
   test-build-deploy:
     jobs:
     - build
-    - smoke-test
+    - smoke-test:
+        requires:
+        - build
 
 jobs:
   build:
@@ -25,29 +27,33 @@ jobs:
           command: |
             make lint
             make binaries
+      - persist_to_workspace:
+          root: .
+          paths:
+          - cmd/wksctl/wksctl
 
   smoke-test:
-    <<: *defaults
+    machine:
+      docker_layer_caching: true
+    environment:
+      GOPATH: /home/circleci/go
+      SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
+    working_directory: /home/circleci/go/src/github.com/weaveworks/wks
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="17.09.0-ce"
-            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
-            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            mv /tmp/docker/* /usr/bin
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: /tmp/workspace/cmd/wksctl/wksctl version
+      - run: env
       - run:
           name: Create VMs
-          command: bin/provision_test_vms.sh
+          command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/provision_test_vms.sh weaveworks/wks-build:latest
+      - run: sudo find / -name .ssh
       - run:
           name: Run integration tests
           command: |
             docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD" quay.io
-            make binaries
-            go test -v ./test -args -run.interactive -cmd $PWD/cmd/wksctl/wksctl
+            go test -v ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl
       - run:
           name: Destroy VMs
-          command: bin/circle-destroy-vms
+          command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/circle-destroy-vms weaveworks/wks-build:latest
