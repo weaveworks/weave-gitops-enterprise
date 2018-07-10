@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Create VMs
           command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/provision_test_vms.sh weaveworks/wks-build:latest
-      - run: sudo find / -name .ssh
+      - run: sudo chown -R circleci:circleci /root # Make the VM SSH keys readable to the circleci user
       - run:
           name: Run integration tests
           command: |
