@@ -41,7 +41,7 @@ $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
 all: $(UPTODATE_FILES) binaries
 
-binaries: cmd/wksctl/wksctl
+binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/k8s-krb5-client/client
 
 godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   grep -v /vendor/ | \
