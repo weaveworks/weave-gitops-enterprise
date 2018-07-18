@@ -15,6 +15,7 @@ See:
 - [Press release](https://www.weave.works/press/releases/weaveworks-launches-enterprise-gitops-services/)
 - [Product Page](https://www.weave.works/product/enterprise-kubernetes-support/)
 - [Theory of Gitops](https://docs.google.com/document/d/1Y8kr3gROHUnFuGR3h4adjwWH6E3ttGHIYwVuWWVv2VE/edit)
+- [WKS Future](https://docs.google.com/document/d/1HK6r5CA0ZlUQT3PmFWVQ_93TlPz31nHdx13-pve1S4U/edit#)
 
 ## Notes
 
