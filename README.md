@@ -17,6 +17,12 @@ See:
 - [Theory of Gitops](https://docs.google.com/document/d/1Y8kr3gROHUnFuGR3h4adjwWH6E3ttGHIYwVuWWVv2VE/edit)
 - [WKS Future](https://docs.google.com/document/d/1HK6r5CA0ZlUQT3PmFWVQ_93TlPz31nHdx13-pve1S4U/edit#)
 
+## Kerberos
+
+- [Explain like I'm 5: Kerberos](http://www.roguelynn.com/words/explain-like-im-5-kerberos/)
+- [About Kerberos Principals and Keys](https://ssimo.org/blog/id_016.html)
+- [MIT Kerberos Documentation](http://web.mit.edu/kerberos/krb5-1.12/doc/index.html)
+
 ## Notes
 
 **`tools/`**
