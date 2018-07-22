@@ -32,6 +32,7 @@ jobs:
           root: .
           paths:
           - cmd/wksctl/wksctl
+          - cmd/k8s-krb5-client/client
       - run: docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" quay.io
       - run: make push
 
