@@ -81,3 +81,6 @@ push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
 		docker push $$IMAGE_NAME:$(IMAGE_TAG); \
 	done
+
+integration-test:
+	go test -v -timeout 1h ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl -tags.wks-k8s-krb5-server=$(IMAGE_TAG)
