@@ -76,3 +76,8 @@ clean:
 	rm -rf $(UPTODATE_FILES)
 	go clean
 	rm -f cmd/wksctl/wksctl
+
+push:
+	for IMAGE_NAME in $(IMAGE_NAMES); do \
+		docker push $$IMAGE_NAME:$(IMAGE_TAG); \
+	done

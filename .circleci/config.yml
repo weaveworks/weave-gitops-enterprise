@@ -3,7 +3,7 @@ version: 2
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
-    - image: weaveworks/wks-build:ci-cf3a6fc
+    - image: weaveworks/wks-build:ci-8ea9db6
       environment:
         GOPATH: /go/
         SRCDIR: /go/src/github.com/weaveworks/wks
@@ -23,14 +23,17 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           command: |
             make lint
-            make binaries
+            make
       - persist_to_workspace:
           root: .
           paths:
           - cmd/wksctl/wksctl
+      - run: docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" quay.io
+      - run: make push
 
   smoke-test:
     machine:
