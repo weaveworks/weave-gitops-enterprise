@@ -28,6 +28,16 @@ jobs:
           command: |
             make lint
             make
+      - deploy:
+          name: Push wksctl to S3
+          command: |
+            TAG=${CIRCLE_TAG}
+            if [ -z "$TAG" ]; then
+              TAG=$(./tools/image-tag)
+            fi
+            if [ "${CI_BRANCH}" == "master" ]; then
+              aws s3 cp cmd/wksctl/wksctl s3://weaveworks-wks/wksctl-${TAG}
+            fi
       - persist_to_workspace:
           root: .
           paths:
