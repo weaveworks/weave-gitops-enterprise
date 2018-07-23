@@ -41,7 +41,7 @@ $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
 all: $(UPTODATE_FILES) binaries
 
-binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/k8s-krb5-client/client
+binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/k8s-krb5-client/client cmd/mock-authz-server/server
 
 godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   grep -v /vendor/ | \
@@ -60,6 +60,10 @@ cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go
 
 cmd/k8s-krb5-client/client: cmd/k8s-krb5-client/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/k8s-krb5-client/*.go
+
+cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-server/Dockerfile
+cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-authz-server/*.go
 
 lint:
 	@bin/go-lint
@@ -83,4 +87,6 @@ push:
 	done
 
 integration-test:
-	go test -v -timeout 1h ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl -tags.wks-k8s-krb5-server=$(IMAGE_TAG)
+	go test -v -timeout 1h ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl \
+			-tags.wks-k8s-krb5-server=$(IMAGE_TAG) \
+			-tags.wks-mock-authz-server=$(IMAGE_TAG)
