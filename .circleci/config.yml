@@ -3,7 +3,7 @@ version: 2
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
-    - image: weaveworks/wks-build:ci-cf3a6fc
+    - image: weaveworks/wks-build:ci-8ea9db6
       environment:
         GOPATH: /go/
         SRCDIR: /go/src/github.com/weaveworks/wks
@@ -23,14 +23,18 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           command: |
             make lint
-            make binaries
+            make
       - persist_to_workspace:
           root: .
           paths:
           - cmd/wksctl/wksctl
+          - cmd/k8s-krb5-client/client
+      - run: docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" quay.io
+      - run: make push
 
   smoke-test:
     machine:
@@ -41,6 +45,7 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/weaveworks/wks
     steps:
       - checkout
+
       - attach_workspace:
           at: /tmp/workspace
       - run: /tmp/workspace/cmd/wksctl/wksctl version
@@ -49,11 +54,20 @@ jobs:
           name: Create VMs
           command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/provision_test_vms.sh weaveworks/wks-build:latest
       - run: sudo chown -R circleci:circleci /root # Make the VM SSH keys readable to the circleci user
+
+      - run:
+          name: Initialise Kerberos
+          command: |
+            KERBEROS_IP=$(jq -r '.public_ips.value[0]' /tmp/terraform_output.json)
+            sed -e s/KERBEROS_IP/$KERBEROS_IP/g test/krb5.conf.template | sudo tee /etc/krb5.conf
+            sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y krb5-user
+
       - run:
           name: Run integration tests
           command: |
             docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD" quay.io
-            go test -v -timeout 1h ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl
+            make integration-test
+
       - run:
           name: Destroy VMs
           command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/circle-destroy-vms weaveworks/wks-build:latest
