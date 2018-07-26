@@ -36,6 +36,8 @@ jobs:
               TAG=$(./tools/image-tag)
             fi
             if [ "${CI_BRANCH}" == "master" ]; then
+              # aws gets its credential through the AWS_ACCESS_KEY_ID and
+              # AWS_SECRET_ACCESS_KEY environment variables.
               aws s3 cp cmd/wksctl/wksctl s3://weaveworks-wks/wksctl-${TAG}
             fi
       - persist_to_workspace:
