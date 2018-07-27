@@ -13,10 +13,13 @@ workflows:
   version: 2
   test-build-deploy:
     jobs:
-    - build
-    - smoke-test:
-        requires:
-        - build
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - smoke-test:
+          requires:
+            - build
 
 jobs:
   build:
