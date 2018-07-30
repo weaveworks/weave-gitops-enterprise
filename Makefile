@@ -41,7 +41,7 @@ $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
 all: $(UPTODATE_FILES) binaries
 
-binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/k8s-krb5-client/client cmd/mock-authz-server/server
+binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/mock-authz-server/server
 
 godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   grep -v /vendor/ | \
@@ -57,9 +57,6 @@ cmd/wksctl/wksctl: cmd/wksctl/*.go
 cmd/k8s-krb5-server/.uptodate: cmd/k8s-krb5-server/server cmd/k8s-krb5-server/Dockerfile
 cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/k8s-krb5-server/*.go
-
-cmd/k8s-krb5-client/client: cmd/k8s-krb5-client/*.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/k8s-krb5-client/*.go
 
 cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-server/Dockerfile
 cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
