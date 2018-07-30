@@ -25,6 +25,14 @@ See:
 
 ## Notes
 
+**Releasing**
+
+To release a new version of the project:
+  - Create a new tag: `git tag -a 1.0.1`
+  - Push tag: `git tag --push`
+  - CI will push binary to weaveworks-wks.s3.amazonaws.com/wksctl-1.0.1
+  - Edit release notes https://github.com/weaveworks/wks/releases/edit/1.0.1
+
 **`tools/`**
 
 The `tools` directory is copied via `git subtree` from the
