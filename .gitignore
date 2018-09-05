@@ -3,3 +3,4 @@
 .uptodate
 /cmd/k8s-krb5-server/server
 /cmd/k8s-krb5-client/client
+/rpm/output
