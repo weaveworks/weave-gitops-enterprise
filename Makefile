@@ -3,7 +3,7 @@
 
 # Boiler plate for bulding Docker containers.
 # All this must go at top of file I'm afraid.
-IMAGE_PREFIX := quay.io/weaveworks/wks-
+IMAGE_PREFIX := quay.io/wks/
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git symbolic-ref --short HEAD)-$(shell git rev-parse --short HEAD)
