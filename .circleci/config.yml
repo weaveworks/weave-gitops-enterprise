@@ -29,8 +29,8 @@ jobs:
       - setup_remote_docker
       - run:
           command: |
-            make lint
             make
+            make lint
       - deploy:
           name: Push wksctl to S3
           command: |
