@@ -66,7 +66,7 @@ lint:
 	@bin/go-lint
 
 gen:
-	go build -o $$GOPATH/bin/deepcopy-gen vendor/k8s.io/code-generator/cmd/deepcopy-gen/main.go
+	go install ./vendor/k8s.io/code-generator/cmd/deepcopy-gen
 	deepcopy-gen \
 		-i ./pkg/baremetalproviderconfig/v1alpha1,./pkg/baremetalproviderconfig \
 		-O zz_generated.deepcopy \
