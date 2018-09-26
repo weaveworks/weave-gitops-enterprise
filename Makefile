@@ -69,6 +69,10 @@ cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-ser
 cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-authz-server/*.go
 
+EMBEDMD_FILES = \
+	docs/entitlements.md \
+	$(NULL)
+
 lint:
 	@bin/go-lint
 
@@ -78,6 +82,7 @@ gen:
 		-i ./pkg/baremetalproviderconfig/v1alpha1,./pkg/baremetalproviderconfig \
 		-O zz_generated.deepcopy \
 		-h boilerplate.go.txt
+	bin/embedmd.sh $(EMBEDMD_FILES)
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
