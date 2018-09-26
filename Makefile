@@ -50,7 +50,14 @@ godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 
 DEPS=$(call godeps,./cmd/wksctl)
 
-cmd/wksctl/wksctl: $(DEPS)
+USER_GUIDE_SOURCES=$(shell find user-guide/ -name public -prune -o -print)
+user-guide/public: $(USER_GUIDE_SOURCES)
+	cd user-guide && ./make-static.sh
+
+pkg/guide: user-guide/public
+	statik -dest pkg -p guide -src user-guide/public
+
+cmd/wksctl/wksctl: $(DEPS) pkg/guide
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wksctl/*.go
 
