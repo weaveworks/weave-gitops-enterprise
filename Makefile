@@ -75,6 +75,7 @@ EMBEDMD_FILES = \
 
 lint:
 	@bin/go-lint
+	@bin/check-embedmd.sh $(EMBEDMD_FILES)
 
 gen:
 	go install ./vendor/k8s.io/code-generator/cmd/deepcopy-gen
