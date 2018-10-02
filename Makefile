@@ -54,10 +54,10 @@ USER_GUIDE_SOURCES=$(shell find user-guide/ -name public -prune -o -print)
 user-guide/public: $(USER_GUIDE_SOURCES)
 	cd user-guide && ./make-static.sh
 
-pkg/guide: user-guide/public
-	statik -dest pkg -p guide -src user-guide/public
+pkg/guide/assets_vfsdata.go: user-guide/public
+	go generate ./pkg/guide
 
-cmd/wksctl/wksctl: $(DEPS) pkg/guide
+cmd/wksctl/wksctl: $(DEPS) pkg/guide/assets_vfsdata.go
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wksctl/*.go
 

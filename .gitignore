@@ -4,4 +4,4 @@
 /cmd/k8s-krb5-server/server
 /rpm/output
 /user-guide/public
-/pkg/guide
+*_vfsdata.go
