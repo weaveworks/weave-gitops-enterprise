@@ -2,6 +2,7 @@
 /examples/.vagrant
 .uptodate
 /cmd/k8s-krb5-server/server
+/cmd/mock-authz-server/server
 /rpm/output
 /user-guide/public
 *_vfsdata.go
