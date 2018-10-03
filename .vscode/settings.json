@@ -1,0 +1,3 @@
+{
+    "jsonnet.libPaths": ["addons", "addons/vendor"]
+}
