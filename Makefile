@@ -57,7 +57,11 @@ user-guide/public: $(USER_GUIDE_SOURCES)
 pkg/guide/assets_vfsdata.go: user-guide/public
 	go generate ./pkg/guide
 
-cmd/wksctl/wksctl: $(DEPS) pkg/guide/assets_vfsdata.go
+ADDONS_SOURCES=$(shell find addons/ -print)
+pkg/addons/assets/assets_vfsdata.go: $(ADDONS_SOURCES)
+	go generate ./pkg/addons/assets
+
+cmd/wksctl/wksctl: $(DEPS) pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wksctl/*.go
 
