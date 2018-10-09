@@ -32,6 +32,12 @@ To release a new version of the project:
   - Push tag: `git tag --push`
   - CI will push binary to weaveworks-wks.s3.amazonaws.com/wksctl-1.0.1
   - Edit release notes https://github.com/weaveworks/wks/releases/edit/1.0.1
+  - Update rpm/wksctl.spec version and changelog
+  - Build an rpm `cd rpm && ./build wksctl.spec`
+  - Sign rpm: `rpm --addsign output/x86_64/wksctl-1.1.0-0.x86_64.rpm`
+  - Publish rpm to our yum repo https://github.com/weaveworks/rpm
+    - Copy rpm in `wks/rhel/7`
+    - `cd wks/rhel/7 && createrepo .`
 
 **`tools/`**
 
