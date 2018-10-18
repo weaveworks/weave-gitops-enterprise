@@ -56,3 +56,9 @@ $ make gen
 ### Dependencies
 
 - [`hugo`](https://gohugo.io/getting-started/quick-start/)
+
+### Build
+
+```
+$ make
+```
