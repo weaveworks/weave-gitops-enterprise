@@ -50,3 +50,9 @@ The `tools` directory is copied via `git subtree` from the
 $ make gen
 
 ```
+
+## Development
+
+### Dependencies
+
+- [`hugo`](https://gohugo.io/getting-started/quick-start/)
