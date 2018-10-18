@@ -62,3 +62,12 @@ $ make gen
 ```
 $ make
 ```
+
+### Documentation
+
+Run:
+```
+$ ./cmd/wksctl/wksctl user-guide --entitlements ./entitlements/2018-08-31-weaveworks.entitlements
+INFO[0000] User guide server from :8080
+```
+Go to: [http://localhost:8080](http://localhost:8080)
