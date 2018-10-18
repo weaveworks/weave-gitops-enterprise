@@ -63,7 +63,7 @@ pkg/addons/assets/assets_vfsdata.go: $(ADDONS_SOURCES)
 
 cmd/wksctl/wksctl: $(DEPS) pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go
 cmd/wksctl/wksctl: cmd/wksctl/*.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wksctl/*.go
+	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wksctl/*.go
 
 cmd/k8s-krb5-server/.uptodate: cmd/k8s-krb5-server/server cmd/k8s-krb5-server/Dockerfile
 cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go

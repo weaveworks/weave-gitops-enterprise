@@ -50,3 +50,26 @@ The `tools` directory is copied via `git subtree` from the
 $ make gen
 
 ```
+
+## Development
+
+### Dependencies
+
+- [`dep`](https://golang.github.io/dep/docs/installation.html)
+- [`hugo`](https://gohugo.io/getting-started/quick-start/)
+
+### Build
+
+```
+$ dep ensure
+$ make
+```
+
+### Documentation
+
+Run:
+```
+$ ./cmd/wksctl/wksctl user-guide --entitlements ./entitlements/2018-08-31-weaveworks.entitlements
+INFO[0000] User guide server from :8080
+```
+Go to: [http://localhost:8080](http://localhost:8080)
