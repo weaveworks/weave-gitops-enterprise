@@ -55,11 +55,13 @@ $ make gen
 
 ### Dependencies
 
+- [`dep`](https://golang.github.io/dep/docs/installation.html)
 - [`hugo`](https://gohugo.io/getting-started/quick-start/)
 
 ### Build
 
 ```
+$ dep ensure
 $ make
 ```
 
