@@ -57,6 +57,7 @@ $ make gen
 
 - [`dep`](https://golang.github.io/dep/docs/installation.html)
 - [`hugo`](https://gohugo.io/getting-started/quick-start/)
+- [`embedmd`](https://github.com/campoy/embedmd)
 
 ### Build
 
