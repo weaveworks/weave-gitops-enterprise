@@ -3,10 +3,13 @@
 ![Service description diagram](https://www.weave.works/assets/images/blt1670b4d9d8010619/KB_support_diagram.jpg)
 
 ## Purpose
+
 This repository is to keep together work done on the Weaveworks Kubernetes Subscription. Track the progress in the [Github project](https://github.com/weaveworks/wks/projects/1).
 
 ## Important documents
+
 See:
+
 - [Meeting Notes](https://drive.google.com/open?id=1wfN4V6T9t1-eapXGabFZqkBCxyKW3uVZzz-cBCosgxs)
 - [Phase 1 Plan](https://docs.google.com/document/d/1q3y0jDrzNKpTxPUi5JYf8vaPDTLV9_Ur65lxZFElDSo/edit)
   - [Pharos/WKS analysis](https://docs.google.com/document/d/1FRJd5Uj0CuHPwHbqXooIpUF1UKTy9tjsBaNqAA5BtrQ/edit)
@@ -25,30 +28,30 @@ See:
 
 ## Notes
 
-**Releasing**
+### Releasing
 
 To release a new version of the project:
-  - Create a new tag: `git tag -a 1.0.1`
-  - Push tag: `git tag --push`
-  - CI will push binary to weaveworks-wks.s3.amazonaws.com/wksctl-1.0.1
-  - Edit release notes https://github.com/weaveworks/wks/releases/edit/1.0.1
-  - Update rpm/wksctl.spec version and changelog
-  - Build an rpm `cd rpm && ./build wksctl.spec`
-  - Sign rpm: `rpm --addsign output/x86_64/wksctl-1.1.0-0.x86_64.rpm`
-  - Publish rpm to our yum repo https://github.com/weaveworks/rpm
-    - Copy rpm in `wks/rhel/7`
-    - `cd wks/rhel/7 && createrepo .`
 
-**`tools/`**
+- Create a new tag: `git tag -a 1.0.1`
+- Push tag: `git tag --push`
+- CI will push binary to weaveworks-wks.s3.amazonaws.com/wksctl-1.0.1
+- Edit release notes https://github.com/weaveworks/wks/releases/edit/1.0.1
+- Update rpm/wksctl.spec version and changelog
+- Build an rpm `cd rpm && ./build wksctl.spec`
+- Sign rpm: `rpm --addsign output/x86_64/wksctl-1.1.0-0.x86_64.rpm`
+- Publish rpm to our yum repo https://github.com/weaveworks/rpm
+  - Copy rpm in `wks/rhel/7`
+  - `cd wks/rhel/7 && createrepo .`
+
+### `tools/`
 
 The `tools` directory is copied via `git subtree` from the
 [build-tools](https://github.com/weaveworks/build-tools) repo.
 
-**code-generator**
+### code-generator
 
-```
-$ make gen
-
+```console
+make gen
 ```
 
 ## Development
@@ -61,16 +64,18 @@ $ make gen
 
 ### Build
 
-```
-$ dep ensure
-$ make
+```console
+dep ensure
+make
 ```
 
 ### Documentation
 
 Run:
-```
+
+```console
 $ ./cmd/wksctl/wksctl user-guide --entitlements ./entitlements/2018-08-31-weaveworks.entitlements
 INFO[0000] User guide server now running. Please open the following address in your browser: http://localhost:8080
 ```
+
 Go to: [http://localhost:8080](http://localhost:8080)
