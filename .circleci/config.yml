@@ -66,7 +66,7 @@ jobs:
       - run: env
       - run:
           name: Create VMs
-          command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/provision_test_vms.sh weaveworks/wks-build:latest
+          command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/provision_test_vms.sh quay.io/wks/build:latest
       - run: sudo chown -R circleci:circleci /root # Make the VM SSH keys readable to the circleci user
 
       - run:
@@ -90,4 +90,4 @@ jobs:
 
       - run:
           name: Destroy VMs
-          command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/circle-destroy-vms weaveworks/wks-build:latest
+          command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/circle-destroy-vms quay.io/wks/build:latest
