@@ -1,4 +1,4 @@
-.PHONY: all clean gen images lint
+.PHONY: all clean gen images lint unit-tests
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -99,6 +99,11 @@ push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
 		docker push $$IMAGE_NAME:$(IMAGE_TAG); \
 	done
+
+# We select which directory we want to descend into to not execute integration
+# tests here.
+unit-tests:
+	go test -v ./cmd/... ./pkg/...
 
 integration-test:
 	go test -v -timeout 1h ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl \
