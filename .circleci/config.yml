@@ -28,9 +28,19 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          name: Install kubectl
+          command: |
+            sudo curl -o kubectl https://storage.googleapis.com/kubernetes-release/release/v1.10.5/bin/linux/amd64/kubectl
+            sudo chmod +x kubectl
+            sudo cp kubectl /usr/local/bin
+
+      - run:
           command: |
             make
             make lint
+      - run:
+          name: Run unit tests
+          command: make unit-tests
       - deploy:
           name: Push wksctl to S3
           command: |
@@ -46,6 +56,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
+          - kubectl
           - cmd/wksctl/wksctl
       - run: docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" quay.io
       - run: make push
@@ -77,10 +88,9 @@ jobs:
             sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y krb5-user
 
       - run:
-          name: Install kubectl
+          name: Install kubectl (from workspace)
           command: |
-            sudo curl -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.10.5/bin/linux/amd64/kubectl
-            sudo chmod +x /usr/bin/kubectl
+            sudo cp /tmp/workspace/kubectl /usr/bin/kubectl
 
       - run:
           name: Run integration tests
