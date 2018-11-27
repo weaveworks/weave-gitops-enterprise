@@ -106,6 +106,6 @@ unit-tests:
 	go test -v ./cmd/... ./pkg/...
 
 integration-test:
-	go test -v -timeout 1h ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl \
+	go test -failfast -v -timeout 1h ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl \
 			-tags.wks-k8s-krb5-server=$(IMAGE_TAG) \
 			-tags.wks-mock-authz-server=$(IMAGE_TAG)
