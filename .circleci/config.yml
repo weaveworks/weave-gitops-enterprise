@@ -65,6 +65,7 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
+      GOVERSION: 1.11.2
       GOPATH: /home/circleci/go
       SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
     working_directory: /home/circleci/go/src/github.com/weaveworks/wks
@@ -75,6 +76,13 @@ jobs:
           at: /tmp/workspace
       - run: /tmp/workspace/cmd/wksctl/wksctl version
       - run: env
+
+      - run:
+          name: Install go ${GOVERSION}
+          command: |
+            (cd ~ && curl -O https://dl.google.com/go/go${GOVERSION}.linux-amd64.tar.gz)
+            mkdir ~/go-${GOVERSION} && tar xf ~/go${GOVERSION}.linux-amd64.tar.gz -C ~/go-${GOVERSION} --strip-components 1
+
       - run:
           name: Create VMs
           command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/bin/provision_test_vms.sh quay.io/wks/build:latest
@@ -96,6 +104,8 @@ jobs:
           name: Run integration tests
           command: |
             docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD" quay.io
+            export GOROOT=/home/circleci/go-${GOVERSION}
+            export PATH=~/go-${GOVERSION}/bin:$PATH
             make integration-test
 
       - run:
