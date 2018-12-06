@@ -106,6 +106,9 @@ jobs:
             docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD" quay.io
             export GOROOT=/home/circleci/go-${GOVERSION}
             export PATH=~/go-${GOVERSION}/bin:$PATH
+            # Work around for broken docker package in RHEL
+            # See https://github.com/weaveworks/wks/issues/235
+            export DOCKER_VERSION='1.13.1-75*'
             make integration-test
 
       - run:
