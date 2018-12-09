@@ -1,4 +1,4 @@
-.PHONY: all clean gen images lint unit-tests
+.PHONY: all install clean gen images lint unit-tests
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -72,6 +72,9 @@ cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go
 cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-server/Dockerfile
 cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-authz-server/*.go
+
+install: cmd/wksctl/wksctl
+	cp $^ `go env GOPATH`/bin
 
 EMBEDMD_FILES = \
 	docs/entitlements.md \
