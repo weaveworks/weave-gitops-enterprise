@@ -87,7 +87,7 @@ lint:
 gen:
 	go install ./vendor/k8s.io/code-generator/cmd/deepcopy-gen
 	deepcopy-gen \
-		-i ./pkg/baremetalproviderconfig/v1alpha1,./pkg/baremetalproviderconfig \
+		-i ./pkg/baremetalproviderspec/v1alpha1,./pkg/baremetalproviderspec \
 		-O zz_generated.deepcopy \
 		-h boilerplate.go.txt
 	bin/embedmd.sh $(EMBEDMD_FILES)
