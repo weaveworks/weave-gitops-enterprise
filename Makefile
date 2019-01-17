@@ -41,7 +41,7 @@ $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
 all: $(UPTODATE_FILES) binaries
 
-binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/mock-authz-server/server
+binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/mock-authz-server/server cmd/controller/controller
 
 godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   grep -v /vendor/ | \
@@ -64,6 +64,11 @@ pkg/addons/assets/assets_vfsdata.go: $(ADDONS_SOURCES)
 cmd/wksctl/wksctl: $(DEPS) pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wksctl/*.go
+
+cmd/controller/.uptodate: cmd/controller/controller cmd/controller/Dockerfile
+cmd/controller/controller: $(DEPS) pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go
+cmd/controller/controller: cmd/controller/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/controller/*.go
 
 cmd/k8s-krb5-server/.uptodate: cmd/k8s-krb5-server/server cmd/k8s-krb5-server/Dockerfile
 cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go
@@ -97,6 +102,7 @@ clean:
 	rm -rf $(UPTODATE_FILES)
 	go clean
 	rm -f cmd/wksctl/wksctl
+	rm -f cmd/controller/controller
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
