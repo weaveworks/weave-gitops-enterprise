@@ -20,7 +20,7 @@ workflows:
       - container-tests:
           requires:
             - build
-      - smoke-test:
+      - integration-tests:
           requires:
             - build
 
@@ -87,7 +87,7 @@ jobs:
             export PATH=~/go-${GOVERSION}/bin:$PATH
             make container-tests
 
-  smoke-test:
+  integration-tests:
     machine:
       docker_layer_caching: true
     environment:
