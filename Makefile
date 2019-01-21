@@ -18,7 +18,7 @@ UPTODATE := .uptodate
 	touch $@
 
 # Get a list of directories containing Dockerfiles
-DOCKERFILES := $(shell find . -name tools -prune -o -name vendor -prune -o -name rpm -prune -o -name build -prune -o -name environments -prune -o -type f -name 'Dockerfile' -print)
+DOCKERFILES := $(shell find . -name tools -prune -o -name vendor -prune -o -name rpm -prune -o -name build -prune -o -name environments -prune -o -name test -prune -o -type f -name 'Dockerfile' -print)
 UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
 DOCKER_IMAGE_DIRS := $(patsubst %/Dockerfile,%,$(DOCKERFILES))
 IMAGE_NAMES := $(foreach dir,$(DOCKER_IMAGE_DIRS),$(patsubst %,$(IMAGE_PREFIX)%,$(shell basename $(dir))))
@@ -114,7 +114,17 @@ push:
 unit-tests:
 	go test -v ./cmd/... ./pkg/...
 
+# Tests running in containers
+test/step/tests: FORCE
+	go test -c -o $@ ./test/step
+
+container-tests:  test/step/tests test/images/centos7/.uptodate
+	./test/run-in-docker.sh $< -test.v
+
+# Integration tests, requiring to provision VMs
 integration-test:
 	go test -failfast -v -timeout 1h ./test -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl \
 			-tags.wks-k8s-krb5-server=$(IMAGE_TAG) \
 			-tags.wks-mock-authz-server=$(IMAGE_TAG)
+
+FORCE:
