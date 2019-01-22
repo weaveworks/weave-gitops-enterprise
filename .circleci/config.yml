@@ -17,7 +17,10 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - smoke-test:
+      - container-tests:
+          requires:
+            - build
+      - integration-tests:
           requires:
             - build
 
@@ -61,7 +64,30 @@ jobs:
       - run: docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" quay.io
       - run: make push
 
-  smoke-test:
+  container-tests:
+    machine:
+      docker_layer_caching: true
+    environment:
+      GOVERSION: 1.11.2
+      GOPATH: /home/circleci/go
+      SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
+    working_directory: /home/circleci/go/src/github.com/weaveworks/wks
+    steps:
+      - checkout
+      - run:
+          name: Install go ${GOVERSION}
+          command: |
+            (cd ~ && curl -O https://dl.google.com/go/go${GOVERSION}.linux-amd64.tar.gz)
+            mkdir ~/go-${GOVERSION} && tar xf ~/go${GOVERSION}.linux-amd64.tar.gz -C ~/go-${GOVERSION} --strip-components 1
+
+      - run:
+          name: Run container tests
+          command: |
+            export GOROOT=/home/circleci/go-${GOVERSION}
+            export PATH=~/go-${GOVERSION}/bin:$PATH
+            make container-tests
+
+  integration-tests:
     machine:
       docker_layer_caching: true
     environment:
