@@ -125,7 +125,7 @@ test/resource/tests: FORCE
 	go test -c -o $@ ./test/resource
 
 container-tests:  test/resource/tests test/images/centos7/.uptodate
-	./test/run-in-docker.sh $< -test.v
+	./test/run-in-docker.sh --workdir $(shell dirname $<) ./$(shell basename $<) -test.v
 
 # Integration tests, requiring to provision VMs
 integration-test:
