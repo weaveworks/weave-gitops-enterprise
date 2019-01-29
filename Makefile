@@ -61,12 +61,18 @@ ADDONS_SOURCES=$(shell find addons/ -print)
 pkg/addons/assets/assets_vfsdata.go: $(ADDONS_SOURCES)
 	go generate ./pkg/addons/assets
 
-cmd/wksctl/wksctl: $(DEPS) pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go
+SCRIPTS=$(shell find pkg/apis/wksprovider/machine/scripts/all -name '*.sh' -print)
+pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go: $(SCRIPTS)
+	go generate ./pkg/apis/wksprovider/machine/scripts
+
+ALL_ASSETS = pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go
+
+cmd/wksctl/wksctl: $(DEPS) $(ALL_ASSETS)
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wksctl/*.go
 
 cmd/controller/.uptodate: cmd/controller/controller cmd/controller/Dockerfile
-cmd/controller/controller: $(DEPS) pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go
+cmd/controller/controller: $(DEPS) $(ALL_ASSETS)
 cmd/controller/controller: cmd/controller/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/controller/*.go
 
