@@ -121,10 +121,10 @@ unit-tests:
 	go test -v ./cmd/... ./pkg/...
 
 # Tests running in containers
-test/step/tests: FORCE
-	go test -c -o $@ ./test/step
+test/resource/tests: FORCE
+	go test -c -o $@ ./test/resource
 
-container-tests:  test/step/tests test/images/centos7/.uptodate
+container-tests:  test/resource/tests test/images/centos7/.uptodate
 	./test/run-in-docker.sh $< -test.v
 
 # Integration tests, requiring to provision VMs
