@@ -5,6 +5,6 @@
 /cmd/k8s-krb5-server/server
 /cmd/mock-authz-server/server
 /rpm/output
-/test/step/tests
+/test/resource/tests
 /user-guide/public
 *_vfsdata.go
