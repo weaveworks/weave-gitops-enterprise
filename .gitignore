@@ -13,3 +13,6 @@
 cluster-key
 cluster-key.pub
 footloose.yaml
+
+# OS-specific files:
+.DS_Store
