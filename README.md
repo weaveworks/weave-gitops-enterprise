@@ -65,7 +65,6 @@ make gen
 ### Build
 
 ```console
-dep ensure
 make
 ```
 
