@@ -121,7 +121,7 @@ unit-tests:
 	go test -v ./cmd/... ./pkg/...
 
 # Tests running in containers
-test/resource/tests: FORCE
+test/resource/tests: FORCE pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go
 	go test -c -o $@ ./test/resource
 
 container-tests:  test/resource/tests test/images/centos7/.uptodate
