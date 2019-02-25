@@ -65,7 +65,11 @@ SCRIPTS=$(shell find pkg/apis/wksprovider/machine/scripts/all -name '*.sh' -prin
 pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go: $(SCRIPTS)
 	go generate ./pkg/apis/wksprovider/machine/scripts
 
-ALL_ASSETS = pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go
+MANIFESTS=$(shell find pkg/apis/wksprovider/controller/manifests/yaml -name '*.yaml' -print)
+pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go: $(MANIFESTS)
+	go generate ./pkg/apis/wksprovider/controller/manifests
+
+ALL_ASSETS = pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go
 
 cmd/wksctl/wksctl: $(DEPS) $(ALL_ASSETS)
 cmd/wksctl/wksctl: cmd/wksctl/*.go
@@ -121,7 +125,7 @@ unit-tests:
 	go test -v ./cmd/... ./pkg/...
 
 # Tests running in containers
-test/resource/tests: FORCE pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go
+test/resource/tests: FORCE pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go
 	go test -c -o $@ ./test/resource
 
 container-tests:  test/resource/tests test/images/centos7/.uptodate
