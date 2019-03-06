@@ -13,7 +13,7 @@ UPTODATE := .uptodate
 # $(IMAGE_PREFIX)<dirname>. Dependencies (i.e. things that go in the image)
 # still need to be explicitly declared.
 %/$(UPTODATE): %/Dockerfile %/*
-	$(SUDO) docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)$(shell basename $(@D)) $(@D)/
+	$(SUDO) docker build --no-cache --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)$(shell basename $(@D)) $(@D)/
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
 
@@ -125,11 +125,11 @@ unit-tests:
 	go test -v ./cmd/... ./pkg/...
 
 # Tests running in containers
-test/resource/tests: FORCE pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go
-	go test -c -o $@ ./test/resource
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+mkfile_dir := $(dir $(mkfile_path))
 
-container-tests:  test/resource/tests test/images/centos7/.uptodate
-	./test/run-in-docker.sh --workdir $(shell dirname $<) ./$(shell basename $<) -test.v
+container-tests:  test/images/centos7/.uptodate
+	go run $(mkfile_dir)test/run_container_tests.go --parallel=true --repo-dir=$(mkfile_dir) --test-dir=$(mkfile_dir)test/resource
 
 # Integration tests, requiring to provision VMs
 integration-test:
