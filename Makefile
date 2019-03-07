@@ -129,7 +129,7 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir := $(dir $(mkfile_path))
 
 container-tests:  test/images/centos7/.uptodate pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go
-	go run $(mkfile_dir)test/run_container_tests.go --parallel=true --repo-dir=$(mkfile_dir) --test-dir=$(mkfile_dir)test/resource
+	go run $(mkfile_dir)test/util/run_container_tests.go --parallel=true --repo-dir=$(mkfile_dir) --test-dir=$(mkfile_dir)test/resource
 
 # Integration tests, requiring to provision VMs
 integration-test:
