@@ -106,3 +106,27 @@ INFO[0000] User guide server now running. Please open the following address in y
 ```
 
 Go to: [http://localhost:8080](http://localhost:8080)
+
+# Using with a config repo instead of cluster and machine yaml files
+We will create a cluster by pulling the cluster and machine yaml from git.  We perform all the master node setup of today.  
+
+The following are new commandline arguments to `wksctl apply` which will result in a cluster being created.
+
+- **git-url** The git repo url containing the cluster and machine yaml
+- **git-branch**  The branch within the repo to pull the cluster info from
+- **git-deploy-key** The deploy key configured for the GitHub repo
+
+The new commandline arguments will be passed instead of --cluster and --machines.  
+
+```console
+$ wksctl apply
+  --git-url git@github.com:meseeks/config-repo.git \
+  --git-branch dev \
+  --git-deloy-key-path ./deploy-key 
+```
+Using the url, branch, and deploy key, we will clone the repo - if we can't clone the repo we will error out.
+
+In the future, we will use the same git arguments to configure Flux so it has access to the cluster configuration.
+
+We will rely on the user installing [fluxctl](https://github.com/weaveworks/flux/blob/master/site/fluxctl.md) to interact with flux directly instead of trying to replicate the functionality within `wksctl`
+
