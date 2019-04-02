@@ -12,8 +12,8 @@ import (
 	"github.com/weaveworks/footloose/pkg/cluster"
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/wks/pkg/apis/wksprovider/machine/scripts"
-	"github.com/weaveworks/wks/pkg/apis/wksprovider/machine/ssh"
 	"github.com/weaveworks/wks/pkg/plan"
+	"github.com/weaveworks/wks/pkg/plan/runners/ssh"
 )
 
 type Operation struct {
