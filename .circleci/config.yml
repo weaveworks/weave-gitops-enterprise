@@ -118,7 +118,7 @@ jobs:
           name: Initialise Kerberos
           command: |
             KERBEROS_IP=$(jq -r '.public_ips.value[0]' /tmp/terraform_output.json)
-            sed -e s/KERBEROS_IP/$KERBEROS_IP/g test/krb5.conf.template | sudo tee /etc/krb5.conf
+            sed -e s/KERBEROS_IP/$KERBEROS_IP/g test/integration/krb5.conf.template | sudo tee /etc/krb5.conf
             sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y krb5-user
 
       - run:
