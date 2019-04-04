@@ -73,7 +73,7 @@ CRDS=$(shell find pkg/apis/cluster-api/config/crds -name '*.yaml' -print)
 pkg/apis/wksprovider/machine/os/crds_vfsdata.go: $(CRDS)
 	go generate ./pkg/apis/wksprovider/machine/crds
 
-ALL_ASSETS = pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go
+ALL_ASSETS = pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go
 
 cmd/wksctl/wksctl: $(DEPS) $(ALL_ASSETS)
 cmd/wksctl/wksctl: cmd/wksctl/*.go
