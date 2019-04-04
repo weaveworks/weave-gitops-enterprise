@@ -1,11 +1,17 @@
 package testutils
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/weaveworks/footloose/pkg/cluster"
+	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/wks/pkg/apis/wksprovider/machine/scripts"
+	"github.com/weaveworks/wks/pkg/apis/wksprovider/machine/ssh"
 	"github.com/weaveworks/wks/pkg/plan"
 )
 
@@ -81,6 +87,122 @@ func (r *TestRunner) Operation(i int) Operation {
 		return r.ops[i]
 	}
 	return r.ops[len(r.ops)+i]
+}
+
+type FootlooseRunner struct {
+	Name    string
+	SSHPort uint16
+	Image   string
+
+	cluster *cluster.Cluster
+	ssh     *ssh.Client
+}
+
+func (r *FootlooseRunner) makeCluster() (*cluster.Cluster, error) {
+	footlooseCfg := config.Config{
+		Cluster: config.Cluster{Name: "cluster", PrivateKey: "cluster-key"},
+		Machines: []config.MachineReplicas{
+			{
+				Count: 1,
+				Spec: config.Machine{
+					Name:  r.Name + "-%d",
+					Image: r.Image,
+					//Privileged: true,
+					Volumes: []config.Volume{
+						//{Type: "volume", Destination: "/var/lib/docker"},
+						//{Type: "volume", Destination: "/out"},
+						//{Type: "bind", Source: srcDir, Destination: "/go/src/github.com/weaveworks/wks"},
+					},
+					PortMappings: []config.PortMapping{
+						{ContainerPort: 22, HostPort: r.SSHPort},
+					},
+				},
+			},
+		},
+	}
+
+	c := cluster.New(footlooseCfg)
+	if err := c.Create(); err != nil {
+		return nil, fmt.Errorf("footloose cluster Create(): %v", err)
+	}
+	return c, nil
+}
+
+func (r *FootlooseRunner) makeSSHClientWithRetries(numRetries int) (*ssh.Client, error) {
+	host := "localhost"
+	for i := 1; i <= numRetries; i++ {
+		client, err := ssh.NewClient(ssh.ClientParams{
+			User:           "root",
+			Host:           host,
+			Port:           r.SSHPort,
+			PrivateKeyPath: "cluster-key",
+			Verbose:        true,
+		})
+
+		if err == nil {
+			log.Printf("ssh.NewClient: successfully connected to %s:%d", host, r.SSHPort)
+			return client, nil
+		}
+
+		log.Printf("ssh.NewClient (try %d of %d): %v", i, numRetries, err)
+
+		if i < numRetries {
+			time.Sleep(time.Second)
+		}
+	}
+	return nil, fmt.Errorf("failed %d times to connect over ssh to %s:%d", numRetries, host, r.SSHPort)
+}
+
+func (r *FootlooseRunner) Close() {
+	_ = r.ssh.Close() // TODO fix
+	_ = r.cluster.Delete()
+}
+
+func (r *FootlooseRunner) Start() error {
+	var err error
+	r.cluster, err = r.makeCluster()
+	if err != nil {
+		return err
+	}
+
+	r.ssh, err = r.makeSSHClientWithRetries(30)
+	if err != nil {
+		r.cluster.Delete()
+		return err
+	}
+
+	return nil
+}
+
+func (r *FootlooseRunner) RunCommand(command string) (string, error) {
+	return r.ssh.RunCommand(command)
+}
+
+func (r *FootlooseRunner) RunScript(path string, args interface{}) (stdouterr string, err error) {
+	return r.ssh.RunScript(path, args)
+}
+
+func (r *FootlooseRunner) WriteFile(content []byte, dstPath string, perm os.FileMode) error {
+	return r.ssh.WriteFile(content, dstPath, perm)
+}
+
+func MakeFootlooseTestRunner(t *testing.T, name, image string, sshPort uint16) (*TestRunner, func()) {
+	f := FootlooseRunner{
+		Name:    name,
+		Image:   image,
+		SSHPort: sshPort,
+	}
+	if err := f.Start(); err != nil {
+		t.Fatalf("MakeFootlooseTestRunner: %v", err)
+	}
+	return f.WrapInTestRunner(t), f.Close
+}
+
+func (r *FootlooseRunner) WrapInTestRunner(t *testing.T) *TestRunner {
+	return &TestRunner{
+		T:      t,
+		Runner: r,
+	}
 }
 
 // Other utilities
