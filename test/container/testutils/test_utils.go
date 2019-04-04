@@ -89,6 +89,8 @@ func (r *TestRunner) Operation(i int) Operation {
 	return r.ops[len(r.ops)+i]
 }
 
+var _ plan.Runner = &FootlooseRunner{}
+
 type FootlooseRunner struct {
 	Name    string
 	SSHPort uint16
@@ -107,12 +109,6 @@ func (r *FootlooseRunner) makeCluster() (*cluster.Cluster, error) {
 				Spec: config.Machine{
 					Name:  r.Name + "-%d",
 					Image: r.Image,
-					//Privileged: true,
-					Volumes: []config.Volume{
-						//{Type: "volume", Destination: "/var/lib/docker"},
-						//{Type: "volume", Destination: "/out"},
-						//{Type: "bind", Source: srcDir, Destination: "/go/src/github.com/weaveworks/wks"},
-					},
 					PortMappings: []config.PortMapping{
 						{ContainerPort: 22, HostPort: r.SSHPort},
 					},
@@ -154,7 +150,7 @@ func (r *FootlooseRunner) makeSSHClientWithRetries(numRetries int) (*ssh.Client,
 }
 
 func (r *FootlooseRunner) Close() {
-	_ = r.ssh.Close() // TODO fix
+	_ = r.ssh.Close()
 	_ = r.cluster.Delete()
 }
 
