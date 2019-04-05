@@ -193,9 +193,9 @@ func (r *FootlooseRunner) WriteFile(content []byte, dstPath string, perm os.File
 	return r.ssh.WriteFile(content, dstPath, perm)
 }
 
-func MakeFootlooseTestRunner(t *testing.T, name, image string, sshPort uint16) (*TestRunner, func()) {
+func MakeFootlooseTestRunner(t *testing.T, image string, sshPort uint16) (*TestRunner, func()) {
 	f := FootlooseRunner{
-		Name:    name,
+		Name:    t.Name(),
 		Image:   image,
 		SSHPort: sshPort,
 	}
