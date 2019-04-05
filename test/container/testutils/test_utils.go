@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -118,8 +119,7 @@ func (r *FootlooseRunner) makeCluster() (*cluster.Cluster, error) {
 			{
 				Count: 1,
 				Spec: config.Machine{
-					Name:  r.Name + "-%d",
-					Image: r.Image,
+					Name: r.Name + "-%d", Image: r.Image,
 					PortMappings: []config.PortMapping{
 						{ContainerPort: 22, HostPort: r.SSHPort},
 					},
@@ -210,6 +210,20 @@ func (r *FootlooseRunner) WrapInTestRunner(t *testing.T) *TestRunner {
 		T:      t,
 		Runner: r,
 	}
+}
+
+type PortAllocator struct {
+	mtx  sync.Mutex
+	Next uint16
+}
+
+func (pa *PortAllocator) Allocate() uint16 {
+	pa.mtx.Lock()
+	defer pa.mtx.Unlock()
+
+	result := pa.Next
+	pa.Next++
+	return result
 }
 
 // Other utilities
