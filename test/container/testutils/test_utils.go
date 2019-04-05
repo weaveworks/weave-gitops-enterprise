@@ -100,9 +100,20 @@ type FootlooseRunner struct {
 	ssh     *ssh.Client
 }
 
+func (r *FootlooseRunner) clusterName() string {
+	return "cluster-" + r.Name
+}
+
+func (r *FootlooseRunner) sshPrivateKeyPath() string {
+	return ".tmp-key-" + r.Name
+}
+
 func (r *FootlooseRunner) makeCluster() (*cluster.Cluster, error) {
 	footlooseCfg := config.Config{
-		Cluster: config.Cluster{Name: "cluster", PrivateKey: "cluster-key"},
+		Cluster: config.Cluster{
+			Name:       r.clusterName(),
+			PrivateKey: r.sshPrivateKeyPath(),
+		},
 		Machines: []config.MachineReplicas{
 			{
 				Count: 1,
@@ -131,7 +142,7 @@ func (r *FootlooseRunner) makeSSHClientWithRetries(numRetries int) (*ssh.Client,
 			User:           "root",
 			Host:           host,
 			Port:           r.SSHPort,
-			PrivateKeyPath: "cluster-key",
+			PrivateKeyPath: r.sshPrivateKeyPath(),
 			Verbose:        true,
 		})
 
