@@ -205,6 +205,12 @@ func MakeFootlooseTestRunner(t *testing.T, image string, sshPort uint16) (*TestR
 	return f.WrapInTestRunner(t), f.Close
 }
 
+func ConnectSSH(t *testing.T, r *FootlooseRunner) *ssh.Client {
+	c, err := r.makeSSHClientWithRetries(1)
+	assert.NoError(t, err)
+	return c
+}
+
 func (r *FootlooseRunner) WrapInTestRunner(t *testing.T) *TestRunner {
 	return &TestRunner{
 		T:      t,
