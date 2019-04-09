@@ -1,0 +1,78 @@
+image:
+  repository: ""
+  tag: ""
+  pullSecrets: []
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+args:
+  grafanalibExec: "generate-dashboards"
+  grafanalibEnv:
+  - "DATA_SOURCE=Prometheus"
+  dashboard:
+    configPrefix: "{{ .Release.Name }}-"
+    configLabels: "grafana_dashboard,{{ .Release.Name }}-grafana-dashboard"
+    configNamespace: "{{ .Release.Namespace }}"
+
+ingress:
+  enabled: false
+  # TODO more config
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+grafana:
+  enabled: true
+  grafana.ini:
+    analytics:
+      reporting_enabled: false
+    paths:
+      # TODO: Consider removing this as it 1) overlaps with the default setting and 2) gets overriden in the process
+      # See http://docs.grafana.org/installation/docker/#default-paths
+      provisioning: /etc/grafana/provisioning
+    auth:
+      disable_login_form: true
+      disable_signout_menu: true
+    auth.anonymous:
+      enabled: true
+      org_role: Admin
+    users:
+      default_theme: light
+  # Pull our own image of Grafana as it contains all our extra plugins
+  image:
+    repository: quay.io/weaveworks/wkp-grafana
+    tag: master-0b54feb
+    pullSecrets:
+      - quay-secret
+  env:
+    # Override the default path because that dir gets cleaned up by Grafana Helm Chart.
+    # Also, we use env var to do that because of http://docs.grafana.org/installation/docker/#default-paths
+    GF_PATHS_PLUGINS: /etc/grafana/plugins
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      deleteDatasources:
+      - name: Prometheus
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        # The Prometheus Helm release needs to be named prometheus running in `monitoring`
+        url: http://prometheus-operator-prometheus.monitoring.svc:9090
+        editable: false
+        version: 1
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+    datasources:
+      enabled: true
+      label: grafana_datasource

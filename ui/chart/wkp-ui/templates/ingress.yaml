@@ -1,0 +1,19 @@
+{{- if .Values.ingress.enabled -}}
+# TODO make annotations and path configurable, allow configuring the service type
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "wkp-ui.fullname" . }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: "/"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Release.Name }}-grafana
+          servicePort: {{ .Values.grafana.service.port }}
+{{- end }}
