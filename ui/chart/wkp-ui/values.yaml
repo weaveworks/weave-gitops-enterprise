@@ -1,6 +1,6 @@
 image:
-  repository: ""
-  tag: ""
+  repository: quay.io/weaveworks/wkp-grafana-sync
+  tag: master-24ccacd
   pullSecrets: []
   pullPolicy: IfNotPresent
 
@@ -49,7 +49,7 @@ grafana:
   # Pull our own image of Grafana as it contains all our extra plugins
   image:
     repository: quay.io/weaveworks/wkp-grafana
-    tag: master-0b54feb
+    tag: master-24ccacd
     pullSecrets:
       - quay-secret
   env:
