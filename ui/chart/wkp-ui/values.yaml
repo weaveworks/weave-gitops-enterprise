@@ -8,7 +8,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 args:
-  grafanalibExec: "generate-dashboards"
+  grafanalibExec: "generate-dashboard"
   grafanalibEnv:
   - "DATA_SOURCE=Prometheus"
   dashboard:
