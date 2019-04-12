@@ -8,3 +8,4 @@ metadata:
     "helm.sh/hook-delete-policy": "hook-succeeded,hook-failed"
 data:
   {{- (.Files.Glob "grafana/dashboards/*.py").AsConfig | nindent 2 }}
+  {{- (.Files.Glob "grafana/dashboards/*.json").AsConfig | nindent 2 }}
