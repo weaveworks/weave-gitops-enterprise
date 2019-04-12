@@ -7,10 +7,12 @@ image:
 nameOverride: ""
 fullnameOverride: ""
 
+dashboards:
+  # Passed through tpl
+  configMap: '{{ include "wkp-ui.fullname" . }}'
+
 args:
   grafanalibExec: "generate-dashboard"
-  grafanalibEnv:
-  - "DATA_SOURCE=Prometheus"
   dashboard:
     configPrefix: "{{ .Release.Name }}-"
     configLabels: "grafana_dashboard,{{ .Release.Name }}-grafana-dashboard"
