@@ -9,10 +9,11 @@ fullnameOverride: ""
 
 dashboards:
   # Passed through tpl
-  configMap: '{{ include "wkp-ui.fullname" . }}'
+  grafanalibConfigMap: '{{ include "wkp-ui.fullname" . }}-grafanalib'
+  jsonConfigMap: '{{ include "wkp-ui.fullname" . }}-json'
 
 args:
-  grafanalibExec: "generate-dashboard"
+  grafanalibExec: "generate-dashboards"
   dashboard:
     configPrefix: "{{ .Release.Name }}-"
     configLabels: "grafana_dashboard,{{ .Release.Name }}-grafana-dashboard"
