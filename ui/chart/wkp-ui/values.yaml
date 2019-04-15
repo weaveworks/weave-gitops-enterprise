@@ -1,6 +1,6 @@
 image:
   repository: quay.io/weaveworks/wkp-grafana-sync
-  tag: master-24ccacd
+  tag: master-4f7a721
   pullSecrets: []
   pullPolicy: IfNotPresent
 
