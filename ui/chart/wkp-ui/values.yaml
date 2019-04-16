@@ -7,6 +7,9 @@ image:
 nameOverride: ""
 fullnameOverride: ""
 
+syncJob:
+  backoffLimit: 0
+
 dashboards:
   # Passed through tpl
   grafanalibConfigMap: '{{ include "wkp-ui.fullname" . }}-grafanalib'
