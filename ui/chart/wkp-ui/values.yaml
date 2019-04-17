@@ -1,6 +1,6 @@
 image:
   repository: weaveworks/wkp-grafana-sync
-  tag: from-quayio-to-dockerhub-46c55e5
+  tag: master-444b812
   pullSecrets: []
   pullPolicy: IfNotPresent
 
@@ -55,9 +55,8 @@ grafana:
   # Pull our own image of Grafana as it contains all our extra plugins
   image:
     repository: weaveworks/wkp-grafana
-    tag: from-quayio-to-dockerhub-46c55e5
-    pullSecrets:
-      - dockerhub-secret
+    tag: master-444b812
+    pullSecrets: []
   env:
     # Override the default path because that dir gets cleaned up by Grafana Helm Chart.
     # Also, we use env var to do that because of http://docs.grafana.org/installation/docker/#default-paths
