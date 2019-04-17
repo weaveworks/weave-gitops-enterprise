@@ -139,6 +139,7 @@ container-tests:  test/container/images/centos7/.uptodate pkg/apis/wksprovider/m
 integration-test:
 	go test -failfast -v -timeout 1h ./test/integration -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl \
 			-tags.wks-k8s-krb5-server=$(IMAGE_TAG) \
-			-tags.wks-mock-authz-server=$(IMAGE_TAG)
+			-tags.wks-mock-authz-server=$(IMAGE_TAG) \
+			-tags.wks-controller-server=$(IMAGE_TAG) \
 
 FORCE:
