@@ -1,4 +1,4 @@
-.PHONY: all install clean gen images lint unit-tests
+.PHONY: all install clean gen images lint unit-tests check
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -40,6 +40,8 @@ endef
 $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
 all: $(UPTODATE_FILES) binaries
+
+check: all lint unit-tests container-tests
 
 binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/mock-authz-server/server cmd/controller/controller
 
