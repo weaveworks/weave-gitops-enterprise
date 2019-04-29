@@ -43,7 +43,7 @@ all: $(UPTODATE_FILES) binaries
 
 check: all lint unit-tests container-tests
 
-binaries: cmd/wksctl/wksctl cmd/k8s-krb5-server/server cmd/mock-authz-server/server cmd/controller/controller
+binaries: cmd/wksctl/wksctl cmd/wks-entitle/wks-entitle cmd/k8s-krb5-server/server cmd/mock-authz-server/server cmd/controller/controller
 
 godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   grep -v /vendor/ | \
@@ -81,6 +81,11 @@ cmd/wksctl/wksctl: $(DEPS) $(ALL_ASSETS)
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION) -X main.imageTag=$(IMAGE_TAG)" -o $@ cmd/wksctl/*.go
 
+ENTITLE_DEPS=$(call godeps,./cmd/wks-entitle)
+
+cmd/wks-entitle/wks-entitle: $(ENTITLE_DEPS)
+	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-entitle/*.go
+
 cmd/controller/.uptodate: cmd/controller/controller cmd/controller/Dockerfile
 cmd/controller/controller: $(DEPS) $(ALL_ASSETS)
 cmd/controller/controller: cmd/controller/*.go
@@ -94,7 +99,7 @@ cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-ser
 cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-authz-server/*.go
 
-install: cmd/wksctl/wksctl
+install: cmd/wksctl/wksctl cmd/wks-entitle/wks-entitle
 	cp $^ `go env GOPATH`/bin
 
 EMBEDMD_FILES = \
