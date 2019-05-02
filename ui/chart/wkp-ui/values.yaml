@@ -1,6 +1,6 @@
 image:
   repository: weaveworks/wkp-grafana-sync
-  tag: master-8acac03
+  tag: master-67603b4
   pullSecrets: []
   pullPolicy: IfNotPresent
 
@@ -56,7 +56,7 @@ grafana:
   # Pull our own image of Grafana as it contains all our extra plugins
   image:
     repository: weaveworks/wkp-grafana
-    tag: master-8acac03
+    tag: master-67603b4
     pullSecrets: []
   env:
     # Override the default path because that dir gets cleaned up by Grafana Helm Chart.
