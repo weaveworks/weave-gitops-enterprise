@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/footloose/pkg/cluster"
 	"github.com/weaveworks/footloose/pkg/config"
-	"github.com/weaveworks/wks/pkg/apis/wksprovider/machine/scripts"
 	"github.com/weaveworks/wks/pkg/plan"
 	"github.com/weaveworks/wks/pkg/plan/runners/ssh"
 )
@@ -38,15 +37,6 @@ func (r *TestRunner) RunCommand(cmd string) (stdouterr string, err error) {
 	r.T.Logf("Output:\n%s", stdouterr)
 
 	r.pushRunCommand(cmd, stdouterr)
-	return
-}
-
-// RunScript implements Runner.
-func (r *TestRunner) RunScript(path string, args interface{}) (stdouterr string, err error) {
-	r.T.Log("RunScript:", path)
-	stdouterr, err = scripts.Run(path, args, r)
-	r.T.Logf("Output:\n%s", stdouterr)
-	r.pushRunCommand(path, stdouterr)
 	return
 }
 
@@ -183,10 +173,6 @@ func (r *FootlooseRunner) Start() error {
 
 func (r *FootlooseRunner) RunCommand(command string) (string, error) {
 	return r.ssh.RunCommand(command)
-}
-
-func (r *FootlooseRunner) RunScript(path string, args interface{}) (stdouterr string, err error) {
-	return r.ssh.RunScript(path, args)
 }
 
 func (r *FootlooseRunner) WriteFile(content []byte, dstPath string, perm os.FileMode) error {
