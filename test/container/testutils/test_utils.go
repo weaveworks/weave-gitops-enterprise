@@ -2,8 +2,8 @@ package testutils
 
 import (
 	"fmt"
+	"io"
 	"log"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -31,21 +31,13 @@ type TestRunner struct {
 var _ plan.Runner = &TestRunner{}
 
 // RunCommand implements plan.Runner.
-func (r *TestRunner) RunCommand(cmd string) (stdouterr string, err error) {
+func (r *TestRunner) RunCommand(cmd string, stdin io.Reader) (stdouterr string, err error) {
 	r.T.Log("RunCommand:", cmd)
-	stdouterr, err = r.Runner.RunCommand(cmd)
+	stdouterr, err = r.Runner.RunCommand(cmd, stdin)
 	r.T.Logf("Output:\n%s", stdouterr)
 
 	r.pushRunCommand(cmd, stdouterr)
 	return
-}
-
-// WriteFile implements plan.Runner.
-func (r *TestRunner) WriteFile(content []byte, path string, perm os.FileMode) error {
-	r.pushWriteFile(path)
-
-	r.T.Log("WriteFile:", path)
-	return r.Runner.WriteFile(content, path, perm)
 }
 
 // Give tests visibility on the operations done by a applying a resource.
@@ -63,13 +55,6 @@ func (r *TestRunner) pushRunCommand(cmd string, output string) {
 		Kind:   "RunCommand",
 		Arg:    cmd,
 		Output: output,
-	})
-}
-
-func (r *TestRunner) pushWriteFile(path string) {
-	r.ops = append(r.ops, Operation{
-		Kind: "WriteFile",
-		Arg:  path,
 	})
 }
 
@@ -171,12 +156,8 @@ func (r *FootlooseRunner) Start() error {
 	return nil
 }
 
-func (r *FootlooseRunner) RunCommand(command string) (string, error) {
-	return r.ssh.RunCommand(command)
-}
-
-func (r *FootlooseRunner) WriteFile(content []byte, dstPath string, perm os.FileMode) error {
-	return r.ssh.WriteFile(content, dstPath, perm)
+func (r *FootlooseRunner) RunCommand(command string, stdin io.Reader) (string, error) {
+	return r.ssh.RunCommand(command, stdin)
 }
 
 func MakeFootlooseTestRunner(t *testing.T, image string, sshPort uint16) (*TestRunner, func()) {
