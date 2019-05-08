@@ -99,8 +99,9 @@ cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-ser
 cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-authz-server/*.go
 
-install: cmd/wksctl/wksctl cmd/wks-entitle/wks-entitle
-	cp $^ `go env GOPATH`/bin
+install: all
+	cp cmd/wksctl/wksctl `go env GOPATH`/bin
+	cp cmd/wks-entitle/wks-entitle `go env GOPATH`/bin
 
 EMBEDMD_FILES = \
 	docs/entitlements.md \
