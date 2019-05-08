@@ -16,3 +16,7 @@ footloose.yaml
 
 # OS-specific files:
 .DS_Store
+
+# Ignore direnv's .envrc files, as they should not be shared and may contain
+# sensitive information:
+.envrc
