@@ -2,6 +2,7 @@
 /cmd/controller/controller
 /examples/.vagrant
 .uptodate
+/cmd/wks-entitle/wks-entitle
 /cmd/k8s-krb5-server/server
 /cmd/mock-authz-server/server
 /rpm/output
