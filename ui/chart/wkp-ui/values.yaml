@@ -81,6 +81,11 @@ grafana:
         url: http://prometheus-operator-alertmanager.monitoring.svc:9093
         editable: false
         version: 1
+        jsonData:
+          severity_critical: critical
+          severity_high: high
+          severity_warning: warning
+          severity_info: none
   sidecar:
     dashboards:
       enabled: true
