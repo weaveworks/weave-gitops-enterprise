@@ -75,6 +75,12 @@ grafana:
         url: http://prometheus-operator-prometheus.monitoring.svc:9090
         editable: false
         version: 1
+      - name: Prometheus Alert Manager
+        type: camptocamp-prometheus-alertmanager-datasource
+        access: proxy
+        url: http://prometheus-operator-alertmanager.monitoring.svc:9093
+        editable: false
+        version: 1
   sidecar:
     dashboards:
       enabled: true
