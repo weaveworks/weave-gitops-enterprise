@@ -168,7 +168,7 @@ jobs:
 
       - run:
           name: Create VMs
-          command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=/bin/bash quay.io/wks/build:latest -c "echo hello world"
+          command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/test/integration/bin/provision_test_vms.sh quay.io/wks/build:latest
       - run: sudo chown -R circleci:circleci /root # Make the VM SSH keys readable to the circleci user
 
       - run:
@@ -192,7 +192,7 @@ jobs:
             # Work around for broken docker package in RHEL
             # See https://github.com/weaveworks/wks/issues/235
             export DOCKER_VERSION='1.13.1-75*'
-            make integration-test
+            go test -failfast -v -timeout 1h ./test/integration -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl -tags.wks-k8s-krb5-server=$(./tools/image-tag) -tags.wks-mock-authz-server=$(./tools/image-tag)
 
       - run:
           name: Destroy VMs
