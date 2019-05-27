@@ -143,10 +143,4 @@ mkfile_dir := $(dir $(mkfile_path))
 container-tests:  test/container/images/centos7/.uptodate pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go
 	go test -count=1 ./test/container/...
 
-# Integration tests, requiring to provision VMs
-integration-test:
-	go test -failfast -v -timeout 1h ./test/integration -args -run.interactive -cmd /tmp/workspace/cmd/wksctl/wksctl \
-			-tags.wks-k8s-krb5-server=$(IMAGE_TAG) \
-			-tags.wks-mock-authz-server=$(IMAGE_TAG)
-
 FORCE:
