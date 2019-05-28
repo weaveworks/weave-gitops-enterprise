@@ -145,15 +145,16 @@ jobs:
           command: docker run --env-file <(env|grep -E 'CIRCLE|SECRET|SRCDIR') -v /root:/root -v /tmp:/tmp -v /home/circleci:/home/circleci --entrypoint=$SRCDIR/test/integration/bin/circle-destroy-vms quay.io/wks/build:latest
 
   integration-tests-simplified:
-    machine:
-      docker_layer_caching: true
-    environment:
-      GOVERSION: 1.11.2
-      GOPATH: /home/circleci/go
-      SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
-    working_directory: /home/circleci/go/src/github.com/weaveworks/wks
+    docker:
+      - image: quay.io/wks/build:master-7421a07b
+        environment:
+          GOVERSION: 1.11.2
+          GOPATH: /go/
+          SRCDIR: /go/src/github.com/weaveworks/wks
+    working_directory: /go/src/github.com/weaveworks/wks
     steps:
       - checkout
+      - setup_remote_docker
 
       - attach_workspace:
           at: /tmp/workspace
