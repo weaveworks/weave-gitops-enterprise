@@ -17,9 +17,7 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - container-tests:
-          requires:
-            - build
+      - container-tests: {}
       - integration-tests:
           requires:
             - build
