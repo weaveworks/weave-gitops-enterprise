@@ -1,4 +1,4 @@
-.PHONY: all install clean gen images lint unit-tests check
+.PHONY: all install clean generated images lint unit-tests check
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -75,9 +75,9 @@ CRDS=$(shell find pkg/apis/cluster-api/config/crds -name '*.yaml' -print)
 pkg/apis/wksprovider/machine/os/crds_vfsdata.go: $(CRDS)
 	go generate ./pkg/apis/wksprovider/machine/crds
 
-ALL_ASSETS = pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go
+generated: pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go
 
-cmd/wksctl/wksctl: $(DEPS) $(ALL_ASSETS)
+cmd/wksctl/wksctl: $(DEPS) generated
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION) -X main.imageTag=$(IMAGE_TAG)" -o $@ cmd/wksctl/*.go
 
@@ -87,7 +87,7 @@ cmd/wks-entitle/wks-entitle: $(ENTITLE_DEPS)
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-entitle/*.go
 
 cmd/controller/.uptodate: cmd/controller/controller cmd/controller/Dockerfile
-cmd/controller/controller: $(DEPS) $(ALL_ASSETS)
+cmd/controller/controller: $(DEPS) generated
 cmd/controller/controller: cmd/controller/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/controller/*.go
 
@@ -111,14 +111,6 @@ lint:
 	@bin/go-lint
 	@bin/check-embedmd.sh $(EMBEDMD_FILES)
 
-gen:
-	go install ./vendor/k8s.io/code-generator/cmd/deepcopy-gen
-	deepcopy-gen \
-		-i ./pkg/baremetalproviderspec/v1alpha1,./pkg/baremetalproviderspec \
-		-O zz_generated.deepcopy \
-		-h boilerplate.go.txt
-	bin/embedmd.sh $(EMBEDMD_FILES)
-
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
 	rm -rf $(UPTODATE_FILES)
@@ -133,7 +125,7 @@ push:
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
-unit-tests:
+unit-tests: generated
 	go test -v ./cmd/... ./pkg/...
 
 # Tests running in containers
