@@ -161,28 +161,8 @@ jobs:
       - run: env
 
       - run:
-          name: Install go ${GOVERSION}
-          command: |
-            (cd ~ && curl -O https://dl.google.com/go/go${GOVERSION}.linux-amd64.tar.gz)
-            mkdir ~/go-${GOVERSION} && tar xf ~/go${GOVERSION}.linux-amd64.tar.gz -C ~/go-${GOVERSION} --strip-components 1
-
-      - run:
           name: Create VMs
           command: $SRCDIR/test/integration/bin/up.sh
-
-      - run: sudo chown -R circleci:circleci /root # Make the VM SSH keys readable to the circleci user
-
-      - run:
-          name: Initialise Kerberos
-          command: |
-            KERBEROS_IP=$(jq -r '.public_ips.value[0]' /tmp/terraform_output.json)
-            sed -e s/KERBEROS_IP/$KERBEROS_IP/g test/integration/krb5.conf.template | sudo tee /etc/krb5.conf
-            sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y krb5-user
-
-      - run:
-          name: Install kubectl (from workspace)
-          command: |
-            sudo cp /tmp/workspace/kubectl /usr/bin/kubectl
 
       - run:
           name: Run integration tests
