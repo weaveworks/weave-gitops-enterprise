@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Install go
 (cd ~ && curl -O https://dl.google.com/go/go${GOVERSION}.linux-amd64.tar.gz)
 mkdir ~/go-${GOVERSION} && tar xf ~/go${GOVERSION}.linux-amd64.tar.gz -C ~/go-${GOVERSION} --strip-components 1
