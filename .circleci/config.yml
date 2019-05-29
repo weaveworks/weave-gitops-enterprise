@@ -58,6 +58,8 @@ jobs:
     docker:
       - image: quay.io/wks/build:master-7421a07b
         environment:
+          GOVERSION: 1.11.2
+          GOROOT: /goroot
           GOPATH: /go
           SRCDIR: /go/src/github.com/weaveworks/wks
     working_directory: /go/src/github.com/weaveworks/wks
@@ -76,19 +78,26 @@ jobs:
             make unit-tests
 
   container-tests:
-    docker:
-      - image: quay.io/wks/build:master-7421a07b
-        environment:
-          GOPATH: /go
-          SRCDIR: /go/src/github.com/weaveworks/wks
-    working_directory: /go/src/github.com/weaveworks/wks
+    machine:
+      docker_layer_caching: true
+    environment:
+      GOPATH: /home/circleci/go
+      SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
+    working_directory: /home/circleci/go/src/github.com/weaveworks/wks
     steps:
       - checkout
-      - setup_remote_docker
+      - run:
+          name: Install go ${GOVERSION}
+          command: |
+            (cd ~ && curl -O https://dl.google.com/go/go${GOVERSION}.linux-amd64.tar.gz)
+            mkdir ~/go-${GOVERSION} && tar xf ~/go${GOVERSION}.linux-amd64.tar.gz -C ~/go-${GOVERSION} --strip-components 1
+>>>>>>> parent of 939c1617... no longer install go
 
       - run:
           name: Run container tests
           command: |
+            export GOROOT=/home/circleci/go-${GOVERSION}
+            export PATH=~/go-${GOVERSION}/bin:$PATH
             go version
             make container-tests
 
