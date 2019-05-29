@@ -19,7 +19,9 @@ workflows:
               only: /.*/
       - container-tests: {}
       - unit-tests: {}
-      - integration-tests: {}
+      - integration-tests:
+          requires:
+            - build
 
 jobs:
   build:
