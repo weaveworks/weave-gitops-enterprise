@@ -133,3 +133,5 @@ jobs:
       - run:
           name: Destroy VMs
           command: $SRCDIR/test/integration/bin/down.sh
+          background: true
+          when: always
