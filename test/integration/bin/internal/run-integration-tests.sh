@@ -225,8 +225,8 @@ function provision() {
             provision_remotely "$1" "$2"
             ;;
         'gcp')
-					  export PATH="$PATH:/opt/google-cloud-sdk/bin"
-					  export CLOUDSDK_CORE_DISABLE_PROMPTS=1
+            export PATH="$PATH:/opt/google-cloud-sdk/bin"
+            export CLOUDSDK_CORE_DISABLE_PROMPTS=1
             gcp_on
             [[ "$1" == "on" ]] && [[ "$USE_IMAGE" == 1 ]] && use_or_create_image
             provision_remotely "$1" "$2"
