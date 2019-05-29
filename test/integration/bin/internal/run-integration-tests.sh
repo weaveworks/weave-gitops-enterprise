@@ -17,8 +17,8 @@ set -e
 
 INT_TEST_DIR="$(dirname "$0")/../.."
 REPO_ROOT_DIR="$INT_TEST_DIR/../.."
-TOOLS_DIR="$REPO_ROOT_DIR/tools"
-. "$TOOLS_DIR/provisioning/setup.sh" # Import gcp_on, do_on, and aws_on.
+PROVISIONING_DIR="$(dirname $0)/provisioning"
+. "$PROVISIONING_DIR/setup.sh" # Import gcp_on, do_on, and aws_on.
 . "$INT_TEST_DIR/config.sh"                      # Import greenly.
 
 # Variables:
@@ -144,7 +144,7 @@ function create_image() {
         greenly echo "> Creating GCP image $IMAGE_NAME..."
         local begin_img=$(date +%s)
         local num_hosts=1
-        terraform apply -input=false -auto-approve -var "app=$APP" -var "gcp_image=centos-cloud/centos-7" -var "name=$NAME" -var "num_hosts=$num_hosts" "$TOOLS_DIR/provisioning/gcp"
+        terraform apply -input=false -auto-approve -var "app=$APP" -var "gcp_image=centos-cloud/centos-7" -var "name=$NAME" -var "num_hosts=$num_hosts" "$PROVISIONING_DIR/gcp"
         configure_with_ansible "$(terraform output username)" "$(terraform output public_ips)," "$(terraform output private_key_path)" $num_hosts
         local zone=$(terraform output zone)
         local name=$(terraform output instances_names)
@@ -152,7 +152,7 @@ function create_image() {
         gcloud compute images create "$IMAGE_NAME" --source-disk "$name" --source-disk-zone "$zone" \
             --description "Testing image for WKS based on $(terraform output image) and Docker $DOCKER_VERSION."
         gcloud compute disks delete "$name" --zone "$zone"
-        terraform destroy -force "$TOOLS_DIR/provisioning/gcp"
+        terraform destroy -force "$PROVISIONING_DIR/gcp"
         rm terraform.tfstate*
         echo
         local end_img=$(date +%s)
@@ -175,13 +175,13 @@ function set_hosts() {
 }
 
 function terraform_init() {
-    terraform init "$TOOLS_DIR/provisioning/$PROVIDER"
+    terraform init "$PROVISIONING_DIR/$PROVIDER"
 }
 
 function provision_remotely() {
     case "$1" in
         on)
-            terraform apply -input=false -auto-approve -parallelism="$NUM_HOSTS" -var "app=$APP" -var "name=$NAME" -var "num_hosts=$NUM_HOSTS" "$TOOLS_DIR/provisioning/$2"
+            terraform apply -input=false -auto-approve -parallelism="$NUM_HOSTS" -var "app=$APP" -var "name=$NAME" -var "num_hosts=$NUM_HOSTS" "$PROVISIONING_DIR/$2"
             local status=$?
             ssh_user=$(terraform output username)
             ssh_id_file=$(terraform output private_key_path)
@@ -195,7 +195,7 @@ function provision_remotely() {
             return $status
             ;;
         off)
-            terraform destroy -force "$TOOLS_DIR/provisioning/$2"
+            terraform destroy -force "$PROVISIONING_DIR/$2"
             ;;
         *)
             echo >&2 "Unknown command $1. Usage: {on|off}."
