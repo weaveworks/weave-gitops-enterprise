@@ -76,14 +76,15 @@ jobs:
             make unit-tests
 
   container-tests:
-    machine:
-      docker_layer_caching: true
-    environment:
-      GOPATH: /home/circleci/go
-      SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
-    working_directory: /home/circleci/go/src/github.com/weaveworks/wks
+    docker:
+      - image: quay.io/wks/build:master-7421a07b
+        environment:
+          GOPATH: /go
+          SRCDIR: /go/src/github.com/weaveworks/wks
+    working_directory: /go/src/github.com/weaveworks/wks
     steps:
       - checkout
+      - setup_remote_docker
 
       - run:
           name: Run container tests
