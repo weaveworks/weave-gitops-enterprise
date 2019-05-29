@@ -72,7 +72,7 @@ jobs:
       - run:
           name: Run container tests
           command: |
-            export PATH=$GOROOT/bin:$PATH
+            go version
             make unit-tests
 
   container-tests:
@@ -87,7 +87,9 @@ jobs:
 
       - run:
           name: Run container tests
-          command: make container-tests
+          command: |
+            go version
+            make container-tests
 
   integration-tests:
     docker:
