@@ -1,3 +1,3 @@
 #!/bin/bash
 
-$SRCDIR/test/integration/bin/circle-destroy-vms
+./bin/run-integration-tests.sh destroy
