@@ -103,7 +103,6 @@ jobs:
     docker:
       - image: quay.io/wks/build:master-7421a07b
         environment:
-          GOVERSION: 1.11.2
           GOPATH: /go/
           SRCDIR: /go/src/github.com/weaveworks/wks
     working_directory: /go/src/github.com/weaveworks/wks

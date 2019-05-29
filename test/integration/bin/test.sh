@@ -2,17 +2,9 @@
 
 set -e
 
-# Install go
-export GOROOT=$HOME/go-$GOVERSION
-(cd ~ && curl -O https://dl.google.com/go/go${GOVERSION}.linux-amd64.tar.gz)
-mkdir ~/go-${GOVERSION} && tar xf ~/go${GOVERSION}.linux-amd64.tar.gz -C $GOROOT --strip-components 1
-
 # Initialise Kerberos
 KERBEROS_IP=$(jq -r '.public_ips.value[0]' /tmp/terraform_output.json)
 $(dirname $0)/../kerberos/install_kerberos.sh "$KERBEROS_IP"
-
-# Install Kubectl
-sudo cp /tmp/workspace/kubectl /usr/bin/kubectl
 
 # Run integration tests
 IMGTAG=$(./tools/image-tag)
