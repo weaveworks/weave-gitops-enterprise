@@ -70,7 +70,7 @@ jobs:
             sudo chmod +x kubectl
             sudo cp kubectl /usr/local/bin
       - run:
-          name: Run container tests
+          name: Run unit tests
           command: |
             go version
             make unit-tests
