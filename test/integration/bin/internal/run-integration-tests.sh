@@ -19,7 +19,7 @@ INT_TEST_DIR="$(dirname "$0")/../.."
 REPO_ROOT_DIR="$INT_TEST_DIR/../.."
 PROVISIONING_DIR="$(dirname $0)/provisioning"
 . "$PROVISIONING_DIR/setup.sh" # Import gcp_on, do_on, and aws_on.
-. "$INT_TEST_DIR/config.sh"                      # Import greenly.
+. "$(dirname $0)/colourise.sh"                      # Import greenly.
 
 # Variables:
 APP="wks"
