@@ -60,15 +60,19 @@ jobs:
         environment:
           GOPATH: /go
           SRCDIR: /go/src/github.com/weaveworks/wks
+          KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
+          KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
     working_directory: /go/src/github.com/weaveworks/wks
     steps:
       - checkout
       - run:
           name: Install kubectl
           command: |
-            sudo curl -o kubectl https://storage.googleapis.com/kubernetes-release/release/v1.10.5/bin/linux/amd64/kubectl
-            sudo chmod +x kubectl
-            sudo cp kubectl /usr/local/bin
+            curl -L $KUBECTL_URL -o kubectl.tar.gz
+            echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
+            tar xvzf kubectl.tar.gz --strip-components=3
+            sudo mv kubectl /usr/local/bin
+
       - run:
           name: Run unit tests
           command: |
@@ -79,7 +83,8 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
-      GOVERSION: 1.11.2
+      GOURL: https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz
+      GOCHECKSUM: 1dfe664fa3d8ad714bbd15a36627992effd150ddabd7523931f077b3926d736d
       GOROOT: /home/circleci/goroot
       GOPATH: /home/circleci/go
       SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
@@ -87,10 +92,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install go ${GOVERSION}
+          name: Install go
           command: |
-            (cd ~ && curl -O https://dl.google.com/go/go${GOVERSION}.linux-amd64.tar.gz)
-            mkdir -p $GOROOT && tar xf ~/go${GOVERSION}.linux-amd64.tar.gz -C $GOROOT --strip-components 1
+            (cd ~ && curl -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
+            mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
 
       - run:
           name: Run container tests
@@ -105,6 +110,8 @@ jobs:
         environment:
           GOPATH: /go/
           SRCDIR: /go/src/github.com/weaveworks/wks
+          KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
+          KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
     working_directory: /go/src/github.com/weaveworks/wks
     steps:
       - checkout
@@ -118,9 +125,10 @@ jobs:
       - run:
           name: Install kubectl
           command: |
-            sudo curl -o kubectl https://storage.googleapis.com/kubernetes-release/release/v1.10.5/bin/linux/amd64/kubectl
-            sudo chmod +x kubectl
-            sudo cp kubectl /usr/local/bin
+            curl -L $KUBECTL_URL -o kubectl.tar.gz
+            echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
+            tar xvzf kubectl.tar.gz --strip-components=3
+            sudo mv kubectl /usr/local/bin
 
       - run:
           name: Create VMs
