@@ -132,7 +132,7 @@ jobs:
 
       - run:
           name: Create VMs
-          command: IMAGE_NAME=ubuntu-os-cloud/ubuntu-1804-bionic-v20190530 $SRCDIR/test/integration/bin/up.sh
+          command: CREATE_IMAGE=0 IMAGE_NAME=ubuntu-os-cloud/ubuntu-1804-bionic-v20190530 $SRCDIR/test/integration/bin/up.sh
 
       - run:
           name: Run integration tests
