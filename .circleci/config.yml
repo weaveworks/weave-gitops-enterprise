@@ -19,10 +19,10 @@ workflows:
               only: /.*/
       - container-tests: {}
       - unit-tests: {}
-      - integration-tests-baremetal-centos:
+      - integration-tests-gcp-centos:
           requires:
             - build
-      - integration-tests-baremetal-ubuntu:
+      - integration-tests-gcp-ubuntu:
           requires:
             - build
 
@@ -107,7 +107,7 @@ jobs:
             go version
             make container-tests
 
-  integration-tests-baremetal-centos:
+  integration-tests-gcp-centos:
     docker:
       - image: quay.io/wks/build:master-7421a07b
         environment:
@@ -149,7 +149,7 @@ jobs:
           command: $SRCDIR/test/integration/bin/down.sh
           when: always
 
-  integration-tests-baremetal-ubuntu:
+  integration-tests-gcp-ubuntu:
     docker:
       - image: quay.io/wks/build:master-7421a07b
         environment:
