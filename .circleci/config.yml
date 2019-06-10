@@ -136,7 +136,7 @@ jobs:
 
       - run:
           name: Run integration tests
-          command: $SRCDIR/test/integration/bin/test.sh
+          command: IMAGE_NAME=ubuntu-os-cloud/ubuntu-1804-bionic-v20190530 $SRCDIR/test/integration/bin/test.sh
 
       - run:
           name: Destroy VMs
