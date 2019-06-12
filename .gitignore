@@ -21,3 +21,10 @@ footloose.yaml
 # Ignore direnv's .envrc files, as they should not be shared and may contain
 # sensitive information:
 .envrc
+
+# Ignore Terraform state files & working directories:
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.tfstate.lock.info
+tf.json
