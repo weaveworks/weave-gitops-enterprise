@@ -164,7 +164,6 @@ jobs:
           command: |
             export PATH=$GOROOT/bin:$PATH
             go version
-            make
             make integration-tests-container
       - save_cache:
           key: local-docker-registry-images
