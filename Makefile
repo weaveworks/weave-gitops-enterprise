@@ -43,7 +43,16 @@ all: $(UPTODATE_FILES) binaries
 
 check: all lint unit-tests container-tests
 
-binaries: cmd/wksctl/wksctl cmd/wks-entitle/wks-entitle cmd/k8s-krb5-server/server cmd/mock-authz-server/server cmd/mock-https-authz-server/server cmd/controller/controller
+BINARIES = \
+	cmd/wksctl/wksctl \
+	cmd/wks-entitle/wks-entitle \
+        cmd/wks-ci/wks-ci \
+	cmd/k8s-krb5-server/server \
+	cmd/mock-authz-server/server \
+	cmd/mock-https-authz-server/server \
+	cmd/controller/controller \
+	$(NULL)
+binaries: $(BINARIES)
 
 godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   grep -v /vendor/ | \
@@ -82,9 +91,12 @@ cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION) -X main.imageTag=$(IMAGE_TAG)" -o $@ cmd/wksctl/*.go
 
 ENTITLE_DEPS=$(call godeps,./cmd/wks-entitle)
-
 cmd/wks-entitle/wks-entitle: $(ENTITLE_DEPS)
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-entitle/*.go
+
+CI_DEPS=$(call godeps,./cmd/wks-ci)
+cmd/wks-ci/wks-ci: $(CI_DEPS) cmd/wks-ci/*.go
+	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
 
 cmd/controller/.uptodate: cmd/controller/controller cmd/controller/Dockerfile
 cmd/controller/controller: $(DEPS) generated
@@ -106,6 +118,7 @@ cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
 install: all
 	cp cmd/wksctl/wksctl `go env GOPATH`/bin
 	cp cmd/wks-entitle/wks-entitle `go env GOPATH`/bin
+	cp cmd/wks-ci/wks-ci `go env GOPATH`/bin
 
 EMBEDMD_FILES = \
 	docs/entitlements.md \
