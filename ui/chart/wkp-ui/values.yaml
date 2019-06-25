@@ -34,6 +34,17 @@ tolerations: []
 
 affinity: {}
 
+# TODO: Make sure these values are passed to JS in wkp-ui-server
+alertmanagerUrl: http://prometheus-operator-alertmanager.monitoring.svc:9093
+prometheusUrl: http://prometheus-operator-prometheus.monitoring.svc:9090
+cluster:
+  name: WKP/My Cluster
+  provider: ''
+  regions: ''
+dashboardUrl:
+  alerts: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
+  allNodes: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+  singleNode: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
 
 grafana:
   enabled: true
