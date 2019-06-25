@@ -12,6 +12,11 @@ spec:
   rules:
   - http:
       paths:
+      # TODO: Use wkp-ui-server for the root path and /grafana path for all the dashboards
+      - path: /homepage
+        backend:
+          serviceName: {{ .Release.Name }}-server
+          servicePort: 80
       - path: /
         backend:
           serviceName: {{ .Release.Name }}-grafana

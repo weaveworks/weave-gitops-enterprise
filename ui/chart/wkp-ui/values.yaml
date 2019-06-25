@@ -34,7 +34,9 @@ tolerations: []
 
 affinity: {}
 
-# TODO: Make sure these values are passed to JS in wkp-ui-server
+# TODO:
+#   * Make sure these values are passed to JS in wkp-ui-server
+#   * Move `cluster` and `dashboardUrl` values to `wkp-core` for greater configurability
 alertmanagerUrl: http://prometheus-operator-alertmanager.monitoring.svc:9093
 prometheusUrl: http://prometheus-operator-prometheus.monitoring.svc:9090
 cluster:
