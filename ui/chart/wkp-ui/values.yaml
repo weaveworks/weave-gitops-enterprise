@@ -19,6 +19,14 @@ dashboardUrl:
   allNodes: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
   singleNode: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
 
+uiServer:
+  image:
+    repository: weaveworks/wkp-ui-server
+    tag: master-97d4d9b
+    imagePullPolicy: IfNotPresent
+  service:
+    port: 80
+
 grafanaSync:
   image:
     repository: weaveworks/wkp-grafana-sync

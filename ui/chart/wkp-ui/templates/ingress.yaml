@@ -16,7 +16,7 @@ spec:
       - path: /homepage
         backend:
           serviceName: {{ .Release.Name }}-server
-          servicePort: 80
+          servicePort: {{ .Values.uiServer.service.port }}
       - path: /
         backend:
           serviceName: {{ .Release.Name }}-grafana
