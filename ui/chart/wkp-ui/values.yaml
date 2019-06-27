@@ -9,7 +9,7 @@ uiServer:
   image:
     repository: weaveworks/wkp-ui-server
     tag: master-9b164d3
-    imagePullPolicy: IfNotPresent
+    pullPolicy: IfNotPresent
   service:
     port: 80
   config:
