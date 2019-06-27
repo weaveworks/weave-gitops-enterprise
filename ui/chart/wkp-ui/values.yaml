@@ -6,6 +6,7 @@ ingress:
   # TODO more config
 
 uiServer:
+  enabled: true
   image:
     repository: weaveworks/wkp-ui-server
     tag: master-9b164d3
