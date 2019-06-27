@@ -1,17 +1,21 @@
 nameOverride: ""
 fullnameOverride: ""
 
-ingress:
-  enabled: false
-  # TODO more config
-
 uiServer:
   enabled: true
   image:
     repository: weaveworks/wkp-ui-server
-    tag: master-9b164d3
+    tag: master-8da7475
     pullSecrets: []
     pullPolicy: IfNotPresent
+  ingress:
+    enabled: false
+    annotations: {}
+    labels: {}
+    path: /
+    hosts:
+      - chart-example.local
+    tls: []
   service:
     port: 80
   config:
@@ -30,7 +34,7 @@ grafanaSync:
   enabled: true
   image:
     repository: weaveworks/wkp-grafana-sync
-    tag: master-9b164d3
+    tag: master-8da7475
     pullSecrets: []
     pullPolicy: IfNotPresent
   job:
@@ -70,7 +74,7 @@ grafana:
   # Pull our own image of Grafana as it contains all our extra plugins
   image:
     repository: weaveworks/wkp-grafana
-    tag: master-9b164d3
+    tag: master-8da7475
     pullSecrets: []
   env:
     # Override the default path because that dir gets cleaned up by Grafana Helm Chart.
