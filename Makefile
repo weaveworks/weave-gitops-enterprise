@@ -43,7 +43,7 @@ all: $(UPTODATE_FILES) binaries
 
 check: all lint unit-tests container-tests
 
-binaries: cmd/wksctl/wksctl cmd/wks-entitle/wks-entitle cmd/k8s-krb5-server/server cmd/mock-authz-server/server cmd/mock-https-authz-server/server cmd/controller/controller
+binaries: cmd/wksctl/wksctl cmd/wks-entitle/wks-entitle cmd/k8s-krb5-server/server cmd/mock-authz-server/server cmd/mock-https-authz-server/server cmd/controller/controller cmd/policy/policy
 
 godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   grep -v /vendor/ | \
@@ -75,11 +75,20 @@ CRDS=$(shell find pkg/apis/cluster-api/config/crds -name '*.yaml' -print)
 pkg/apis/wksprovider/machine/os/crds_vfsdata.go: $(CRDS)
 	go generate ./pkg/apis/wksprovider/machine/crds
 
-generated: pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go
+POLICIES=$(shell find pkg/opa/policy/rego -name '*.rego' -print)
+pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
+	go generate ./pkg/opa/policy
+
+generated: pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go pkg/opa/policy/policy_vfsdata.go
 
 cmd/wksctl/wksctl: $(DEPS) generated
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION) -X main.imageTag=$(IMAGE_TAG)" -o $@ cmd/wksctl/*.go
+
+
+cmd/policy/.uptodate: cmd/policy/policy
+cmd/policy/policy: cmd/policy/*.go
+	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/policy/*.go
 
 ENTITLE_DEPS=$(call godeps,./cmd/wks-entitle)
 
