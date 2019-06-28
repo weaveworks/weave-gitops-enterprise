@@ -5,7 +5,7 @@ uiServer:
   enabled: true
   image:
     repository: weaveworks/wkp-ui-server
-    tag: master-8da7475
+    tag: master-7804c3c
     pullSecrets: []
     pullPolicy: IfNotPresent
   ingress:
@@ -34,7 +34,7 @@ grafanaSync:
   enabled: true
   image:
     repository: weaveworks/wkp-grafana-sync
-    tag: master-8da7475
+    tag: master-7804c3c
     pullSecrets: []
     pullPolicy: IfNotPresent
   job:
@@ -74,7 +74,7 @@ grafana:
   # Pull our own image of Grafana as it contains all our extra plugins
   image:
     repository: weaveworks/wkp-grafana
-    tag: master-8da7475
+    tag: master-7804c3c
     pullSecrets: []
   env:
     # Override the default path because that dir gets cleaned up by Grafana Helm Chart.
