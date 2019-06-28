@@ -19,8 +19,8 @@ uiServer:
   service:
     port: 80
   config:
-    alertmanagerUrl: http://prometheus-operator-alertmanager.monitoring.svc:9093
-    prometheusUrl: http://prometheus-operator-prometheus.monitoring.svc:9090
+    alertmanagerUrl: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
+    prometheusUrl: http://prometheus-operator-prometheus.monitoring.svc:9090/api/v1
     cluster:
       name: WKP/My Cluster
       provider: ''
