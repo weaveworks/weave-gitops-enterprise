@@ -26,13 +26,28 @@ uiServer:
       name: WKP/My Cluster
       provider: ''
       regions: ''
-    dashboardUrl:
-      alerts: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
-      allNodes: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
-      singleNode: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
+    alerts:
+      displayLimit: 1
+      rotationInterval: 5s
+      datasource:
+        url: http://localhost:9093/api/v1
+        # url: http://prometheus-operator-alertmanager.monitoring.svc:9093
+        pollInterval: 15s
+    prometheus:
+      timeRange: 1h
+      datasource:
+        url: http://localhost:9090/api/v1
+        # url: http://prometheus-operator-prometheus.monitoring.svc:9090
+        pollInterval: 15s
+    grafana:
+      url: http://wkp-ui-grafana.monitoring.svc:80
+      dashboards:
+        alerts: alerts/prometheus-alertmanager
+        clusterResources: all-nodes-resources/kubernetes-all-nodes-resources
+        nodeResources: single-node-resources/kubernetes-single-node-resources
 
 grafanaSync:
-  enabled: true
+  enabled: false
   image:
     repository: weaveworks/wkp-grafana-sync
     tag: master-1f41890
@@ -57,7 +72,7 @@ grafanaSync:
   resources: {}
 
 grafana:
-  enabled: true
+  enabled: false
   grafana.ini:
     analytics:
       reporting_enabled: false
