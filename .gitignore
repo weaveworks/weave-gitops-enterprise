@@ -1,4 +1,5 @@
 /cmd/wksctl/wksctl
+/cmd/wks-ci/wks-ci
 /cmd/controller/controller
 /examples/.vagrant
 .uptodate
