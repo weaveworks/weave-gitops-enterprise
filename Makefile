@@ -46,7 +46,7 @@ check: all lint unit-tests container-tests
 BINARIES = \
 	cmd/wksctl/wksctl \
 	cmd/wks-entitle/wks-entitle \
-        cmd/wks-ci/wks-ci \
+	cmd/wks-ci/wks-ci \
 	cmd/k8s-krb5-server/server \
 	cmd/mock-authz-server/server \
 	cmd/mock-https-authz-server/server \
@@ -95,6 +95,8 @@ cmd/wks-entitle/wks-entitle: $(ENTITLE_DEPS)
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-entitle/*.go
 
 CI_DEPS=$(call godeps,./cmd/wks-ci)
+
+cmd/wks-ci/.uptodate: cmd/wks-ci/wks-ci cmd/wks-ci/Dockerfile
 cmd/wks-ci/wks-ci: $(CI_DEPS) cmd/wks-ci/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
 
@@ -134,6 +136,7 @@ clean:
 	go clean
 	rm -f cmd/wksctl/wksctl
 	rm -f cmd/controller/controller
+	rm -f cmd/wks-ci/wks-ci
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
