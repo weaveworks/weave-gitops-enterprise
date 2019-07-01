@@ -43,7 +43,6 @@ all: $(UPTODATE_FILES) binaries
 
 check: all lint unit-tests container-tests
 
-<<<<<<< HEAD
 BINARIES = \
 	cmd/wksctl/wksctl \
 	cmd/wks-entitle/wks-entitle \
