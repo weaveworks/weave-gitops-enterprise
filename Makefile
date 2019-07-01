@@ -54,6 +54,8 @@ BINARIES = \
 	cmd/policy/policy \
 	$(NULL)
 
+binaries: $(BINARIES)
+
 godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   grep -v /vendor/ | \
 	   xargs go list -f \
