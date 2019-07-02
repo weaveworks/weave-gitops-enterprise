@@ -147,6 +147,7 @@ clean:
 	go clean
 	rm -f cmd/wksctl/wksctl
 	rm -f cmd/controller/controller
+	rm -f cmd/policy/policy
 	rm -f cmd/wks-ci/wks-ci
 
 push:
