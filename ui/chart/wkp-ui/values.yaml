@@ -29,7 +29,7 @@ uiServer:
       regions: ''
     homepage:
       alertNotifications:
-        enabled: true
+        enabled: false
         rotate: true
         rotationInterval: 5s
         pollInterval: 15s
@@ -37,7 +37,7 @@ uiServer:
         drilldownLink:
           url: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
       clusterResources:
-        enabled: true
+        enabled: false
         pollInterval: 15s
         cpu:
           query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
