@@ -17,6 +17,7 @@ uiServer:
       - chart-example.local
     tls: []
   service:
+    name: wkp-ui-server
     port: 80
   config:
     alertmanagerUrl: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
@@ -40,9 +41,10 @@ grafanaSync:
   job:
     backoffLimit: 0
   dashboards:
-    # Passed through tpl
-    grafanalibConfigMap: '{{ include "wkp-ui.fullname" . }}-grafanalib'
-    jsonConfigMap: '{{ include "wkp-ui.fullname" . }}-json'
+    # Hardcode names of configmaps.
+    # Don't use release name as parent chart will have trouble replicating it.
+    grafanalibConfigMap: 'wkp-ui-grafanalib'
+    jsonConfigMap: 'wkp-ui-json'
   args:
     grafanalibExec: "generate-dashboards"
     dashboard:
