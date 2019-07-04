@@ -21,15 +21,15 @@ uiServer:
     port: 80
   config:
     datasources:
-      alertmanager: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
-      prometheus: http://prometheus-operator-prometheus.monitoring.svc:9090/api/v1
+      alertmanager: http://localhost:9093/api/v1
+      prometheus: http://localhost:9090/api/v1
     clusterInfo:
       name: WKP/My Cluster
       provider: ''
       regions: ''
     homepage:
       alertNotifications:
-        enabled: false
+        enabled: true
         rotate: true
         rotationInterval: 5s
         pollInterval: 15s
@@ -37,7 +37,7 @@ uiServer:
         drilldownLink:
           url: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
       clusterResources:
-        enabled: false
+        enabled: true
         pollInterval: 15s
         cpu:
           query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
