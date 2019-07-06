@@ -5,7 +5,7 @@ uiServer:
   enabled: true
   image:
     repository: weaveworks/wkp-ui-server
-    tag: master-7804c3c
+    tag: master-1f41890
     pullSecrets: []
     pullPolicy: IfNotPresent
   ingress:
@@ -39,11 +39,12 @@ uiServer:
       clusterResources:
         enabled: true
         pollInterval: 15s
-        cpu:
+        dials:
+        - name: CPU
           query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
           drilldownLink:
             url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
-        memory:
+        - name: Memory
           query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
           drilldownLink:
             url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
@@ -51,11 +52,11 @@ uiServer:
         enabled: true
         title: All Nodes
         pollInterval: 15s
-        sparkline1:
-          name: CPU
+        # Must have at most 2 sparklines for the good looks
+        sparklines:
+        - name: CPU
           query: node:node_cpu_utilisation:avg1m
-        sparkline2:
-          name: Memory
+        - name: Memory
           query: node:node_memory_utilisation:ratio
         singlestat:
           name: Pods
