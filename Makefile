@@ -103,10 +103,10 @@ cmd/wks-ci/.uptodate: cmd/wks-ci/wks-ci cmd/wks-ci/checks/policy/policy cmd/wks-
 cmd/wks-ci/wks-ci: $(CI_DEPS) cmd/wks-ci/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
 
-cmd/controller/.uptodate: cmd/controller/controller cmd/controller/Dockerfile
-cmd/controller/controller: $(DEPS) generated
-cmd/controller/controller: cmd/controller/*.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/controller/*.go
+cmd/wks-controller/.uptodate: cmd/wks-controller/controller cmd/wks-controller/Dockerfile
+cmd/wks-controller/controller: $(DEPS) generated
+cmd/wks-controller/controller: cmd/wks-controller/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-controller/*.go
 
 cmd/k8s-krb5-server/.uptodate: cmd/k8s-krb5-server/server cmd/k8s-krb5-server/Dockerfile
 cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go
@@ -159,7 +159,7 @@ mkfile_dir := $(dir $(mkfile_path))
 container-tests:  test/container/images/centos7/.uptodate pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go
 	go test -count=1 ./test/container/...
 
-integration-tests-container: cmd/wksctl/wksctl cmd/controller/.uptodate
+integration-tests-container: cmd/wksctl/wksctl cmd/wks-controller/.uptodate
 	IMAGE_TAG=$(IMAGE_TAG) go test -v -timeout 20m ./test/integration/container/...
 
 FORCE:
