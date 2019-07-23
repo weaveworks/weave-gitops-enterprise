@@ -1,149 +1,65 @@
 nameOverride: ""
 fullnameOverride: ""
 
-uiServer:
-  enabled: true
-  image:
-    repository: weaveworks/wkp-ui-server
-    tag: master-a3e7465
-    pullSecrets: []
-    pullPolicy: IfNotPresent
-  ingress:
-    enabled: false
-    annotations: {}
-    labels: {}
-    path: /
-    hosts:
-      - chart-example.local
-    tls: []
-  service:
-    name: wkp-ui-server
-    port: 80
-  config:
-    datasources:
-      alertmanager: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
-      prometheus: http://prometheus-operator-prometheus.monitoring.svc:9090/api/v1
-    clusterInfo:
-      name: WKP/My Cluster
-      provider: ''
-      regions: ''
-    homepage:
-      alertNotifications:
-        enabled: true
-        rotate: true
-        rotationInterval: 5s
-        pollInterval: 15s
-        displayLimit: 1
-        drilldownLink:
-          url: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
-      clusterResources:
-        enabled: true
-        pollInterval: 15s
-        dials:
-        - name: CPU
-          query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
-          drilldownLink:
-            url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
-        - name: Memory
-          query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
-          drilldownLink:
-            url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
-      nodesOverview:
-        enabled: true
-        title: All Nodes
-        pollInterval: 15s
-        # Must have at most 2 sparklines for the good looks
-        sparklines:
-        - name: CPU
-          query: node:node_cpu_utilisation:avg1m
-        - name: Memory
-          query: node:node_memory_utilisation:ratio
-        singlestat:
-          name: Pods
-          query: sum (kube_pod_info) by (__name__,node)
-        drilldownLink:
-          nodeQueryParam: instance
-          url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
-
-grafanaSync:
-  enabled: true
-  image:
-    repository: weaveworks/wkp-grafana-sync
-    tag: master-a3e7465
-    pullSecrets: []
-    pullPolicy: IfNotPresent
-  job:
-    backoffLimit: 0
-  dashboards:
-    # Hardcode names of configmaps.
-    # Don't use release name as parent chart will have trouble replicating it.
-    grafanalibConfigMap: 'wkp-ui-grafanalib'
-    jsonConfigMap: 'wkp-ui-json'
-  args:
-    grafanalibExec: "generate-dashboards"
-    dashboard:
-      configPrefix: "{{ .Release.Name }}-"
-      configLabels: "grafana_dashboard,{{ .Release.Name }}-grafana-dashboard"
-      configNamespace: "{{ .Release.Namespace }}"
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-  resources: {}
-
-grafana:
-  enabled: true
-  grafana.ini:
-    analytics:
-      reporting_enabled: false
-    paths:
-      # TODO: Consider removing this as it 1) overlaps with the default setting and 2) gets overriden in the process
-      # See http://docs.grafana.org/installation/docker/#default-paths
-      provisioning: /etc/grafana/provisioning
-    auth:
-      disable_login_form: true
-      disable_signout_menu: true
-    auth.anonymous:
-      enabled: true
-      org_role: Admin
-    users:
-      default_theme: light
-  # Pull our own image of Grafana as it contains all our extra plugins
-  image:
-    repository: weaveworks/wkp-grafana
-    tag: master-a3e7465
-    pullSecrets: []
-  env:
-    # Override the default path because that dir gets cleaned up by Grafana Helm Chart.
-    # Also, we use env var to do that because of http://docs.grafana.org/installation/docker/#default-paths
-    GF_PATHS_PLUGINS: /etc/grafana/plugins
+enabled: true
+image:
+  repository: weaveworks/wkp-ui-server
+  tag: master-a3e7465
+  pullSecrets: []
+  pullPolicy: IfNotPresent
+ingress:
+  enabled: false
+  annotations: {}
+  labels: {}
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+service:
+  name: wkp-ui-server
+  port: 80
+config:
   datasources:
-    datasources.yaml:
-      apiVersion: 1
-      deleteDatasources:
-      - name: Prometheus
-      datasources:
-      - name: Prometheus
-        type: prometheus
-        access: proxy
-        # The Prometheus Helm release needs to be named prometheus running in `monitoring`
-        url: http://prometheus-operator-prometheus.monitoring.svc:9090
-        editable: false
-        version: 1
-      - name: Prometheus Alert Manager
-        type: camptocamp-prometheus-alertmanager-datasource
-        access: proxy
-        url: http://prometheus-operator-alertmanager.monitoring.svc:9093
-        editable: false
-        version: 1
-        jsonData:
-          severity_critical: critical
-          severity_high: high
-          severity_warning: warning
-          severity_info: none
-  sidecar:
-    dashboards:
+    alertmanager: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
+    prometheus: http://prometheus-operator-prometheus.monitoring.svc:9090/api/v1
+  clusterInfo:
+    name: WKP/My Cluster
+    provider: ''
+    regions: ''
+  homepage:
+    alertNotifications:
       enabled: true
-      label: grafana_dashboard
-    datasources:
+      rotate: true
+      rotationInterval: 5s
+      pollInterval: 15s
+      displayLimit: 1
+      drilldownLink:
+        url: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
+    clusterResources:
       enabled: true
-      label: grafana_datasource
+      pollInterval: 15s
+      dials:
+      - name: CPU
+        query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
+        drilldownLink:
+          url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+      - name: Memory
+        query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
+        drilldownLink:
+          url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+    nodesOverview:
+      enabled: true
+      title: All Nodes
+      pollInterval: 15s
+      # Must have at most 2 sparklines for the good looks
+      sparklines:
+      - name: CPU
+        query: node:node_cpu_utilisation:avg1m
+      - name: Memory
+        query: node:node_memory_utilisation:ratio
+      singlestat:
+        name: Pods
+        query: sum (kube_pod_info) by (__name__,node)
+      drilldownLink:
+        nodeQueryParam: instance
+        url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources

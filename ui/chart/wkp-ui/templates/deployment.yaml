@@ -1,0 +1,41 @@
+{{- if .Values.enabled }}
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ include "wkp-ui.fullname" . }}-server
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  minReadySeconds: 30
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "wkp-ui.fullname" . }}-server
+      annotations:
+        # TODO(fbarl): Consider https://github.com/weaveworks/wkp-ui/issues/165 instead.
+        prometheus.io.scrape: "false"
+    spec:
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ include "wkp-ui.fullname" . }}-config
+      imagePullSecrets:
+      {{- range .Values.image.pullSecrets }}
+      - name: {{ . }}
+      {{- end}}
+      containers:
+      - name: {{ include "wkp-ui.fullname" . }}-server
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        volumeMounts:
+        - name: config-volume
+          mountPath: /usr/share/nginx/html/config/
+
+{{- end }}
