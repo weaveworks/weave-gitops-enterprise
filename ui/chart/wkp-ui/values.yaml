@@ -63,26 +63,22 @@ config:
       drilldownLink:
         nodeQueryParam: instance
         url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
-    wkp:
-      config:
-        components:
-          - name: wkp-flux-bootstrap
-            params:
-              git:
-                url: git@github.com:weaveworks/wkp-core # GIT URL PLACEHOLDER
-                branch: master # GIT BRANCH PLACEHOLDER
-                deploy_key: derp # GIT KEY PLACEHOLDER
-          - name: wkp-flux-helm-operator
-          - name: wkp-tiller
-          - name: wkp-external-dns
-          - name: wkp-prometheus
-            endpoints:
-              alertmanager: '/alertmanager'
-              prometheus: '/prometheus'
-          - name: wkp-ui
-          - name: wkp-grafana
-            endpoints:
-              grafana: '/grafana'
-            params:
-              dashboards-path: ./grafana-dashboards
+    clusterComponents:
+      enabled: true
+      components:
+      - name: wkp-flux-bootstrap
+      - name: wkp-flux-helm-operator
+      - name: wkp-tiller
+      - name: wkp-external-dns
+      - name: wkp-prometheus
+        endpoints:
+        - name: 'Prometheus'
+          url: '/prometheus'
+        - name: 'Alert manager'
+          url: '/alertmanager'
+      - name: wkp-ui
+      - name: wkp-grafana
+        endpoints:
+        - name: 'Grafana'
+          url: '/grafana'
 
