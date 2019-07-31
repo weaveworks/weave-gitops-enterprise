@@ -72,10 +72,10 @@ config:
       - name: wkp-external-dns
       - name: wkp-prometheus
         endpoints:
-        - name: 'Prometheus'
-          url: '/prometheus'
         - name: 'Alert manager'
           url: '/alertmanager'
+        - name: 'Prometheus'
+          url: '/prometheus'
       - name: wkp-ui
       - name: wkp-grafana
         endpoints:
