@@ -1,4 +1,5 @@
 {{- if .Values.enabled }}
+{{- $configMapName := .Values.config.homepage.clusterComponents.configMap.name -}}
 
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -21,12 +22,14 @@ spec:
         prometheus.io.scrape: "false"
     spec:
       volumes:
-      - name: config-volume
+      - name: ui-config-volume
         configMap:
           name: {{ include "wkp-ui.fullname" . }}-config
+      {{- if $configMapName }}
       - name: cluster-components-config-volume
         configMap:
-          name: {{ .Values.clusterComponentsConfigMap }}
+          name: {{ $configMapName }}
+      {{- end }}
       imagePullSecrets:
       {{- range .Values.image.pullSecrets }}
       - name: {{ . }}
@@ -38,9 +41,11 @@ spec:
         ports:
         - containerPort: {{ .Values.service.port }}
         volumeMounts:
-        - name: config-volume
-          mountPath: /usr/share/nginx/html/config/
+        - name: ui-config-volume
+          mountPath: /usr/share/nginx/html/ui-config/
+        {{- if $configMapName }}
         - name: cluster-components-config-volume
           mountPath: /usr/share/nginx/html/cluster-components-config/
+        {{- end }}
 
 {{- end }}
