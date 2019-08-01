@@ -18,10 +18,16 @@ ingress:
 service:
   name: wkp-ui-server
   port: 80
+clusterComponentsConfigMap:
+  name: wkp-ui-cluster-components-config-map
 config:
   datasources:
     alertmanager: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
     prometheus: http://prometheus-operator-prometheus.monitoring.svc:9090/api/v1
+    # - 'cluster-components-config' path is defined in nginx deployment volume mount
+    # - 'components.json' should be a key in clusterComponentsConfigMap.
+    #   If it is something else then this path should be modified.
+    clusterComponents: cluster-components-config/components.json
   clusterInfo:
     name: WKP/My Cluster
     provider: ''
@@ -65,20 +71,3 @@ config:
         url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
     clusterComponents:
       enabled: true
-      components:
-      - name: wkp-flux-bootstrap
-      - name: wkp-flux-helm-operator
-      - name: wkp-tiller
-      - name: wkp-external-dns
-      - name: wkp-prometheus
-        endpoints:
-        - name: 'Alert manager'
-          url: '/alertmanager'
-        - name: 'Prometheus'
-          url: '/prometheus'
-      - name: wkp-ui
-      - name: wkp-grafana
-        endpoints:
-        - name: 'Grafana'
-          url: '/grafana'
-

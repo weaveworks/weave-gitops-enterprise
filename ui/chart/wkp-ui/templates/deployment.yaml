@@ -24,6 +24,9 @@ spec:
       - name: config-volume
         configMap:
           name: {{ include "wkp-ui.fullname" . }}-config
+      - name: cluster-components-config-volume
+        configMap:
+          name: {{ .Values.clusterComponentsConfigMap }}
       imagePullSecrets:
       {{- range .Values.image.pullSecrets }}
       - name: {{ . }}
@@ -37,5 +40,7 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /usr/share/nginx/html/config/
+        - name: cluster-components-config-volume
+          mountPath: /usr/share/nginx/html/cluster-components-config/
 
 {{- end }}
