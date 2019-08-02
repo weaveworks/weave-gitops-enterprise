@@ -51,7 +51,7 @@ BINARIES = \
 	cmd/mock-authz-server/server \
 	cmd/mock-https-authz-server/server \
 	cmd/controller/controller \
-	cmd/policy/policy \
+	cmd/wks-ci/checks/policy/policy \
 	$(NULL)
 
 binaries: $(BINARIES)
@@ -96,10 +96,9 @@ cmd/wksctl/wksctl: $(DEPS) generated
 cmd/wksctl/wksctl: cmd/wksctl/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION) -X main.imageTag=$(IMAGE_TAG)" -o $@ cmd/wksctl/*.go
 
-
-cmd/policy/.uptodate: cmd/policy/policy
-cmd/policy/policy: cmd/policy/*.go
-	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/policy/*.go
+cmd/wks-ci/checks/policy/.uptodate: cmd/policy/policy
+cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go generated
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/checks/policy/*.go
 
 ENTITLE_DEPS=$(call godeps,./cmd/wks-entitle)
 cmd/wks-entitle/wks-entitle: $(ENTITLE_DEPS)
@@ -107,9 +106,9 @@ cmd/wks-entitle/wks-entitle: $(ENTITLE_DEPS)
 
 CI_DEPS=$(call godeps,./cmd/wks-ci)
 
-cmd/wks-ci/.uptodate: cmd/wks-ci/wks-ci cmd/wks-ci/Dockerfile
+cmd/wks-ci/.uptodate: cmd/wks-ci/wks-ci cmd/wks-ci/checks/policy/policy cmd/wks-ci/Dockerfile
 cmd/wks-ci/wks-ci: $(CI_DEPS) cmd/wks-ci/*.go
-	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
 
 cmd/controller/.uptodate: cmd/controller/controller cmd/controller/Dockerfile
 cmd/controller/controller: $(DEPS) generated
@@ -147,7 +146,7 @@ clean:
 	go clean
 	rm -f cmd/wksctl/wksctl
 	rm -f cmd/controller/controller
-	rm -f cmd/policy/policy
+	rm -f cmd/wks-ci/checks/policy/policy
 	rm -f cmd/wks-ci/wks-ci
 
 push:

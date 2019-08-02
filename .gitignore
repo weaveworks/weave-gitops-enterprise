@@ -1,7 +1,7 @@
 /cmd/wksctl/wksctl
 /cmd/wks-ci/wks-ci
 /cmd/controller/controller
-/cmd/policy/policy
+/cmd/wks-ci/checks/policy/policy
 /examples/.vagrant
 .uptodate
 /cmd/wks-entitle/wks-entitle
