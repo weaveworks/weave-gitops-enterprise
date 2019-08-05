@@ -65,6 +65,7 @@ config:
         url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
     clusterComponents:
       enabled: true
+      pollInterval: 5s
       configMap:
         name: ""
         key: components.json
