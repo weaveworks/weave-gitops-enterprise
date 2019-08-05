@@ -22,6 +22,26 @@ config:
   datasources:
     alertmanager: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
     prometheus: http://prometheus-operator-prometheus.monitoring.svc:9090/api/v1
+  resources:
+    cluster_cpu_utilisation:
+      label: CPU
+      query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
+      drilldownLink:
+        url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+    cluster_memory_utilisation:
+      label: Memory
+      query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
+      drilldownLink:
+        url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+    node_cpu_utilisation:
+      label: CPU
+      query: node:node_cpu_utilisation:avg1m
+    node_memory_utilisation:
+      label: Memory
+      query: node:node_memory_utilisation:ratio
+    node_pods_count:
+      label: Pods
+      query: sum (kube_pod_info) by (__name__,node)
   clusterInfo:
     name: WKP/My Cluster
     provider: ''
@@ -39,27 +59,17 @@ config:
       enabled: true
       pollInterval: 15s
       dials:
-      - name: CPU
-        query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
-        drilldownLink:
-          url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
-      - name: Memory
-        query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
-        drilldownLink:
-          url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+      - resource: cluster_cpu_utilisation
+      - resource: cluster_memory_utilisation
     nodesOverview:
       enabled: true
       title: All Nodes
       pollInterval: 15s
       # Must have at most 2 sparklines for the good looks
       sparklines:
-      - name: CPU
-        query: node:node_cpu_utilisation:avg1m
-      - name: Memory
-        query: node:node_memory_utilisation:ratio
-      singlestat:
-        name: Pods
-        query: sum (kube_pod_info) by (__name__,node)
+      - resource: node_cpu_utilisation
+      - resource: node_memory_utilisation
+      singlestat: node_pods_count
       drilldownLink:
         nodeQueryParam: instance
         url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
