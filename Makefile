@@ -151,7 +151,6 @@ lint:
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
 	rm -rf $(UPTODATE_FILES)
-	go clean
 	rm -f cmd/wksctl/wksctl
 	rm -f cmd/controller/controller
 	rm -f cmd/wks-ci/checks/policy/policy
