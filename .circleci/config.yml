@@ -6,8 +6,8 @@ defaults: &defaults
     - image: quay.io/wks/build:master-7421a07b
       environment:
         GOPATH: /go/
-        SRCDIR: /go/src/github.com/weaveworks/wks
-  working_directory: /go/src/github.com/weaveworks/wks
+        SRCDIR: /src/github.com/weaveworks/wks
+  working_directory: /src/github.com/weaveworks/wks
 
 workflows:
   version: 2
@@ -66,10 +66,10 @@ jobs:
       - image: quay.io/wks/build:master-7421a07b
         environment:
           GOPATH: /go
-          SRCDIR: /go/src/github.com/weaveworks/wks
+          SRCDIR: /src/github.com/weaveworks/wks
           KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
           KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
-    working_directory: /go/src/github.com/weaveworks/wks
+    working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
       - run:
@@ -94,8 +94,8 @@ jobs:
       GOCHECKSUM: 1dfe664fa3d8ad714bbd15a36627992effd150ddabd7523931f077b3926d736d
       GOROOT: /home/circleci/goroot
       GOPATH: /home/circleci/go
-      SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
-    working_directory: /home/circleci/go/src/github.com/weaveworks/wks
+      SRCDIR: /home/circleci/src/github.com/weaveworks/wks
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
       - run:
@@ -119,14 +119,14 @@ jobs:
       GOCHECKSUM: 1dfe664fa3d8ad714bbd15a36627992effd150ddabd7523931f077b3926d736d
       GOROOT: /home/circleci/goroot
       GOPATH: /home/circleci/go
-      SRCDIR: /home/circleci/go/src/github.com/weaveworks/wks
+      SRCDIR: /home/circleci/src/github.com/weaveworks/wks
       HUGO_URL: https://github.com/gohugoio/hugo/releases/download/v0.55.6/hugo_0.55.6_Linux-64bit.tar.gz
       HUGO_CHECKSUM: 39d3119cdb9ba5d6f1f1b43693e707937ce851791a2ea8d28003f49927c428f4
       FOOTLOOSE_URL: https://github.com/weaveworks/footloose/releases/download/0.5.0/footloose-0.5.0-linux-x86_64
       FOOTLOOSE_CHECKSUM: 0e4e49e81940c5876eafa26607154acd788d9979e9f4a4215f17532a3ea5429a
       KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
       KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
-    working_directory: /home/circleci/go/src/github.com/weaveworks/wks
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
       - run:
@@ -177,13 +177,13 @@ jobs:
       - image: quay.io/wks/build:master-7421a07b
         environment:
           GOPATH: /go/
-          SRCDIR: /go/src/github.com/weaveworks/wks
+          SRCDIR: /src/github.com/weaveworks/wks
           KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
           KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
           CREATE_IMAGE: 0
           USE_IMAGE: 0
           IMAGE_NAME: centos-cloud/centos-7
-    working_directory: /go/src/github.com/weaveworks/wks
+    working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
       - setup_remote_docker
@@ -219,13 +219,13 @@ jobs:
       - image: quay.io/wks/build:master-7421a07b
         environment:
           GOPATH: /go/
-          SRCDIR: /go/src/github.com/weaveworks/wks
+          SRCDIR: /src/github.com/weaveworks/wks
           KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
           KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
           CREATE_IMAGE: 0
           USE_IMAGE: 0
           IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-bionic-v20190530
-    working_directory: /go/src/github.com/weaveworks/wks
+    working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
       - setup_remote_docker
