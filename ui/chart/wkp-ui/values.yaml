@@ -23,13 +23,14 @@ config:
     alertmanager: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
     prometheus: http://prometheus-operator-prometheus.monitoring.svc:9090/api/v1
   drilldownLinks:
+    # Set the url values to make the drilldown links work
     cluster_resources:
-      url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+      url: ''
     node_resources:
       queryParam: instance
-      url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
+      url: ''
     alertmanager_dashboard:
-      url: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
+      url: http://prometheus-operator-alertmanager.monitoring.svc:9093/#/alerts
   resources:
     cluster_cpu_utilisation:
       label: CPU
