@@ -22,17 +22,23 @@ config:
   datasources:
     alertmanager: http://prometheus-operator-alertmanager.monitoring.svc:9093/api/v1
     prometheus: http://prometheus-operator-prometheus.monitoring.svc:9090/api/v1
+  drilldownLinks:
+    cluster_resources:
+      url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+    node_resources:
+      queryParam: instance
+      url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
+    alertmanager_dashboard:
+      url: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
   resources:
     cluster_cpu_utilisation:
       label: CPU
       query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
-      drilldownLink:
-        url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+      drilldownLink: cluster_resources
     cluster_memory_utilisation:
       label: Memory
       query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
-      drilldownLink:
-        url: http://wkp-ui-grafana.monitoring.svc:80/d/all-nodes-resources/kubernetes-all-nodes-resources
+      drilldownLink: cluster_resources
     node_cpu_utilisation:
       label: CPU
       query: node:node_cpu_utilisation:avg1m
@@ -53,8 +59,7 @@ config:
       rotationInterval: 5s
       pollInterval: 15s
       displayLimit: 1
-      drilldownLink:
-        url: http://wkp-ui-grafana.monitoring.svc:80/d/alerts/prometheus-alertmanager
+      drilldownLink: alertmanager_dashboard
     clusterResources:
       enabled: true
       pollInterval: 15s
@@ -70,9 +75,7 @@ config:
       - resource: node_cpu_utilisation
       - resource: node_memory_utilisation
       singlestat: node_pods_count
-      drilldownLink:
-        nodeQueryParam: instance
-        url: http://wkp-ui-grafana.monitoring.svc:80/d/single-node-resources/kubernetes-single-node-resources
+      drilldownLink: node_resources
     clusterComponents:
       enabled: true
       pollInterval: 5s
