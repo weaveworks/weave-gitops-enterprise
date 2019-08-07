@@ -9,6 +9,16 @@ defaults: &defaults
         SRCDIR: /src/github.com/weaveworks/wks
   working_directory: /src/github.com/weaveworks/wks
 
+checkoutWithSSH: &checkoutWithSSH
+  - add_ssh_keys:
+      # With the switch go modules we need to pull some private
+      # Weaveworks repositories - specifically gokrb5.  We need to use
+      # an ssh key configured in Circle and Github.  The deploy key
+      # CircleCI adds is specific to a repository and doesn't work
+      # for fetching other private repos.
+      fingerprints:
+        - "cc:e8:46:28:c2:af:5e:30:cc:01:59:ab:9b:ad:45:5c"
+
 workflows:
   version: 2
   test-build-deploy:
@@ -34,8 +44,8 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - <<: *checkoutWithSSH
       - setup_remote_docker
-
       - run:
           command: |
             make
@@ -72,6 +82,7 @@ jobs:
     working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
+      - <<: *checkoutWithSSH
       - run:
           name: Install kubectl
           command: |
@@ -98,6 +109,7 @@ jobs:
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
+      - <<: *checkoutWithSSH
       - run:
           name: Install go
           command: |
@@ -129,6 +141,7 @@ jobs:
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
+      - <<: *checkoutWithSSH
       - run:
           name: Install go
           command: |
@@ -186,6 +199,7 @@ jobs:
     working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
+      - <<: *checkoutWithSSH
       - setup_remote_docker
 
       - attach_workspace:
@@ -228,6 +242,7 @@ jobs:
     working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
+      - <<: *checkoutWithSSH
       - setup_remote_docker
 
       - attach_workspace:
