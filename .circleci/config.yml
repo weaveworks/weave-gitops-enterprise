@@ -46,10 +46,8 @@ jobs:
       - checkout
       - <<: *checkoutWithSSH
       - setup_remote_docker
-      - run:
-          command: |
-            make
-            make lint
+      - run: make
+      - run: make lint
       - deploy:
           name: Push wksctl to S3
           command: |
