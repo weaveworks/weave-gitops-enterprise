@@ -2,6 +2,7 @@
 /cmd/wks-ci/wks-ci
 /cmd/controller/controller
 /cmd/wks-ci/checks/policy/policy
+/cmd/mock-https-authz-server/server
 /examples/.vagrant
 .uptodate
 /cmd/wks-entitle/wks-entitle
