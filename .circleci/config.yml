@@ -66,7 +66,11 @@ jobs:
           - kubectl
           - cmd/wksctl/wksctl
           - cmd/mock-https-authz-server/server
-      - run: docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" quay.io
+      - run:
+          name: Log in to Docker registries
+          command: |
+            docker login -u "$QUAY_IO_USER" -p "$QUAY_IO_PASSWORD" quay.io
+            docker login -u "$DOCKER_IO_USER" -p "$DOCKER_IO_PASSWORD" docker.io
       - run: make push
 
   unit-tests:
