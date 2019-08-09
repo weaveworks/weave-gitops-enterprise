@@ -4,7 +4,7 @@ fullnameOverride: ""
 enabled: true
 image:
   repository: weaveworks/wkp-ui-server
-  tag: master-330d142
+  tag: master-89debc7
   pullSecrets: []
   pullPolicy: IfNotPresent
 ingress:
