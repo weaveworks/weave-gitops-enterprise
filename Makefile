@@ -9,28 +9,27 @@ GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe)
 UPTODATE := .uptodate
 
-# Every directory with a Dockerfile in it builds an image called
-# $(IMAGE_PREFIX)<dirname>. Dependencies (i.e. things that go in the image)
-# still need to be explicitly declared.
-%/$(UPTODATE): %/Dockerfile %/*
-	$(SUDO) docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)$(shell basename $(@D)) $(@D)/
-	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
+# Every directory with a docker-push.conf in it builds an image with repository name equal to the contents
+# of docker-push.conf.
+# Dependencies (i.e. things that go in the image) still need to be explicitly declared.
+%/$(UPTODATE): %/docker-push.conf %/*
+	$(SUDO) docker build --build-arg=revision=$(GIT_REVISION) -t $(shell cat $(@D)/docker-push.conf):$(IMAGE_TAG) $(@D)/
+	$(SUDO) docker tag $(shell cat $(@D)/docker-push.conf):$(IMAGE_TAG) $(shell cat $(@D)/docker-push.conf):latest
 	touch $@
 
-# Get a list of directories containing Dockerfiles
-DOCKERFILES := $(shell find . \
+# Get a list of directories containing docker-push.conf
+DOCKER_PUSH_FILES := $(shell find . \
  -name tools        -prune -o \
  -name rpm          -prune -o \
  -name build        -prune -o \
  -name environments -prune -o \
  -name test         -prune -o \
  -name examples     -prune -o \
- -type f -name 'Dockerfile' \
+ -type f -name 'docker-push.conf' \
  -print \
 )
-UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
-DOCKER_IMAGE_DIRS := $(patsubst %/Dockerfile,%,$(DOCKERFILES))
-IMAGE_NAMES := $(foreach dir,$(DOCKER_IMAGE_DIRS),$(patsubst %,$(IMAGE_PREFIX)%,$(shell basename $(dir))))
+UPTODATE_FILES := $(patsubst %/docker-push.conf,%/$(UPTODATE),$(DOCKER_PUSH_FILES))
+IMAGE_NAMES := $(foreach push,$(DOCKER_PUSH_FILES),$(shell cat $(push)))
 images:
 	$(info $(IMAGE_NAMES))
 	@echo > /dev/null
