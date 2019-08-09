@@ -149,6 +149,7 @@ lint:
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
+	$(SUDO) docker rmi $(patsubst %, %:$(IMAGE_TAG), $(IMAGE_NAMES)) >/dev/null 2>&1 || true
 	rm -rf $(UPTODATE_FILES)
 	rm -f cmd/wksctl/wksctl
 	rm -f cmd/controller/controller
