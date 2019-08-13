@@ -87,7 +87,7 @@ generated: pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/a
 
 cmd/wksctl/wksctl: $(DEPS) generated
 cmd/wksctl/wksctl: cmd/wksctl/*.go
-	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION) -X main.imageTag=$(IMAGE_TAG)" -o $@ cmd/wksctl/*.go
+	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wksctl/*.go
 
 cmd/wks-ci/checks/policy/.uptodate: cmd/policy/policy
 cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go generated
