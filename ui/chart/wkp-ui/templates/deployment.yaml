@@ -42,10 +42,10 @@ spec:
         - containerPort: {{ .Values.service.port }}
         volumeMounts:
         - name: ui-config-volume
-          mountPath: /usr/share/nginx/html/ui-config/
+          mountPath: /html/ui-config/
         {{- if $configMapName }}
         - name: cluster-components-config-volume
-          mountPath: /usr/share/nginx/html/cluster-components-config/
+          mountPath: /html/cluster-components-config/
         {{- end }}
 
 {{- end }}
