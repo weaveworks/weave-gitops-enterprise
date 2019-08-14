@@ -88,7 +88,7 @@ jobs:
       - run:
           name: Install kubectl
           command: |
-            curl -L $KUBECTL_URL -o kubectl.tar.gz
+            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
             echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
             tar xvzf kubectl.tar.gz --strip-components=3
             sudo mv kubectl /usr/local/bin
@@ -115,7 +115,7 @@ jobs:
       - run:
           name: Install go
           command: |
-            (cd ~ && curl -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
+            (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
             mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
 
       - run:
@@ -147,12 +147,12 @@ jobs:
       - run:
           name: Install go
           command: |
-            (cd ~ && curl -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
+            (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
             mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
       - run:
           name: Install hugo
           command: |
-            curl -L $HUGO_URL -o hugo.tar.gz
+            curl --silent -L $HUGO_URL -o hugo.tar.gz
             echo "$HUGO_CHECKSUM hugo.tar.gz" | sha256sum -c
             tar xzf hugo.tar.gz hugo
             chmod +x hugo
@@ -160,14 +160,14 @@ jobs:
       - run:
           name: Install footloose
           command: |
-            curl -L $FOOTLOOSE_URL -o footloose
+            curl --silent -L $FOOTLOOSE_URL -o footloose
             echo "$FOOTLOOSE_CHECKSUM footloose" | sha256sum -c
             chmod +x footloose
             sudo mv footloose /usr/local/bin
       - run:
           name: Install kubectl
           command: |
-            curl -L $KUBECTL_URL -o kubectl.tar.gz
+            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
             echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
             tar xvzf kubectl.tar.gz --strip-components=3
             sudo mv kubectl /usr/local/bin
@@ -212,7 +212,7 @@ jobs:
       - run:
           name: Install kubectl
           command: |
-            curl -L $KUBECTL_URL -o kubectl.tar.gz
+            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
             echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
             tar xvzf kubectl.tar.gz --strip-components=3
             sudo mv kubectl /usr/local/bin
@@ -255,7 +255,7 @@ jobs:
       - run:
           name: Install kubectl
           command: |
-            curl -L $KUBECTL_URL -o kubectl.tar.gz
+            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
             echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
             tar xvzf kubectl.tar.gz --strip-components=3
             sudo mv kubectl /usr/local/bin
