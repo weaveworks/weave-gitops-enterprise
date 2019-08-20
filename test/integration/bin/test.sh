@@ -9,7 +9,7 @@ $(dirname $0)/../kerberos/install_kerberos.sh "$KERBEROS_IP"
 # Run integration tests
 IMGTAG=$(./tools/image-tag)
 
-docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD" quay.io
+docker login -u="$DOCKER_IO_USER" -p="$DOCKER_IO_PASSWORD" docker.io
 export PATH=$GOROOT/bin:$PATH
 # Work around for broken docker package in RHEL
 # See https://github.com/weaveworks/wks/issues/235

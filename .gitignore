@@ -6,7 +6,7 @@
 /user-guide/public
 
 # Ignore generated binaries
-/cmd/controller/controller
+/cmd/wks-controller/controller
 /cmd/k8s-krb5-server/server
 /cmd/mock-authz-server/server
 /cmd/mock-https-authz-server/server

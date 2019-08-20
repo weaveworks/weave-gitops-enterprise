@@ -87,10 +87,10 @@ $ rm build/.uptodate
 $ make !$
 [...]
 Successfully built deadbeefcafe
-Successfully tagged quay.io/wks/build:latest
-docker tag quay.io/wks/build quay.io/wks/build:master-XXXXXXX
+Successfully tagged docker.io/weaveworks/wks-build:latest
+docker tag docker.io/weaveworks/wks-build docker.io/weaveworks/wks-build:master-XXXXXXX
 touch build/.uptodate
-$ docker push quay.io/wks/build:$(tools/image-tag)
+$ docker push docker.io/weaveworks/wks-build:$(tools/image-tag)
 ```
 
 - Update `.circleci/config.yml` to use the newly pushed image.
