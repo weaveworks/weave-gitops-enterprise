@@ -20,8 +20,8 @@ service:
   port: 80
 config:
   datasources:
-    alertmanager: ''
-    prometheus: ''
+    alertmanager: 'http://localhost:9093/api/v1'
+    prometheus: 'http://localhost:9090/api/v1'
   drilldownLinks:
     # Set the url values to make the drilldown links work
     cluster_resources:
@@ -81,5 +81,5 @@ config:
       enabled: true
       pollInterval: 5s
       configMap:
-        name: ''
+        name: 'Foo or Bar'
         key: components.json
