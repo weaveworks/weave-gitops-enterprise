@@ -305,6 +305,7 @@ github.com/weaveworks/common v0.0.0-20180717091316-5d6891c6875f h1:Edev+ahdK/TQp
 github.com/weaveworks/common v0.0.0-20180717091316-5d6891c6875f/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
 github.com/weaveworks/footloose v0.0.0-20190319145146-5253a0748898 h1:8Xq5BvFpvJOXiQFjQDcFTAtDvUY2OAAfqo6e1wyaN/U=
 github.com/weaveworks/footloose v0.0.0-20190319145146-5253a0748898/go.mod h1:+K2EIyjFgVUyN0n6PjgU2vf648xFbRP/IMuC55/kHlk=
+github.com/weaveworks/footloose v0.0.0-20190819181735-d2487e1ace83 h1:ImYskBUWpwzAv84psqMMS0j/SMxQxy980TwBsWaVPpE=
 github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2 h1:agQMkKaEwVZ0BkFvmqQ4bkuM+5UcPwAKD7s9nnwlG5M=
 github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2/go.mod h1:w71L8jQE+JbvgoFozS5vHDJKIu/Rq5TVH8czB7FbxC4=
 github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c h1:YTNC1c2AM3xjrL6DM4vuq0HNJ79GFR8ScT+QKWadFUw=
@@ -388,9 +389,9 @@ golang.org/x/tools v0.0.0-20190614205625-5aca471b1d59/go.mod h1:/rFqwRUd4F7ZHNgw
 golang.org/x/tools v0.0.0-20190617190820-da514acc4774 h1:CQVOmarCBFzTx0kbOU0ru54Cvot8SdSrNYjZPhQl+gk=
 golang.org/x/tools v0.0.0-20190617190820-da514acc4774/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
 gomodules.xyz/jsonpatch/v2 v2.0.0+incompatible h1:/5U+rwN6awI6kctzQHJw7uQDimOwO+v/LsLPQDfcLuM=
-gomodules.xyz/jsonpatch/v2 v2.0.0 h1:OyHbl+7IOECpPKfVK42oFr6N7+Y2dR+Jsb/IiDV3hOo=
 gomodules.xyz/jsonpatch/v2 v2.0.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
 gomodules.xyz/jsonpatch/v2 v2.0.0+incompatible/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
+gomodules.xyz/jsonpatch/v2 v2.0.0 h1:OyHbl+7IOECpPKfVK42oFr6N7+Y2dR+Jsb/IiDV3hOo=
 gonum.org/v1/gonum v0.0.0-20190331200053-3d26580ed485/go.mod h1:2ltnJ7xHfj0zHS40VVPYEAAMTa3ZGguvHGBSJeRWqE0=
 gonum.org/v1/netlib v0.0.0-20190313105609-8cb42192e0e0/go.mod h1:wa6Ws7BG/ESfp6dHfk7C6KdzKA7wR7u/rKwOGE66zvw=
 gonum.org/v1/netlib v0.0.0-20190331212654-76723241ea4e/go.mod h1:kS+toOQn6AQKjmKJ7gzohV1XkqsFehRA2FbsbkopSuQ=
