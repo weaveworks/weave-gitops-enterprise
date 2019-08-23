@@ -18,10 +18,7 @@ ingress:
 service:
   name: wkp-ui-server
   port: 80
-
-// remember to consult `app/ui/src/entities/config.ts` before making any changes to this file.
-// see https://github.com/weaveworks/wkp-ui/issues/200
-config:
+config: # remember to consult `app/ui/src/entities/config.ts` before making any changes to this file. (see see https://github.com/weaveworks/wkp-ui/issues/200)
   datasources:
     alertmanager: 'http://localhost:9093/api/v1'
     prometheus: 'http://localhost:9090/api/v1'
