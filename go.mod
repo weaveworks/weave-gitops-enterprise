@@ -17,9 +17,9 @@ require (
 	github.com/gliderlabs/ssh v0.1.4 // indirect
 	github.com/go-logr/logr v0.1.0 // indirect
 	github.com/go-logr/zapr v0.1.1 // indirect
-	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
+	github.com/golangci/golangci-lint v1.17.1 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-cmp v0.3.0
 	github.com/google/go-github/v26 v26.1.3
@@ -32,7 +32,6 @@ require (
 	github.com/jcmturner/gofork v0.0.0-20180107083740-2aebee971930 // indirect
 	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/oleiade/reflections v1.0.0 // indirect
@@ -57,7 +56,7 @@ require (
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
-	golang.org/x/tools v0.0.0-20190617190820-da514acc4774
+	golang.org/x/tools v0.0.0-20190816200558-6889da9d5479
 	gomodules.xyz/jsonpatch/v2 v2.0.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
