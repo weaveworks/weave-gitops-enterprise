@@ -20,8 +20,8 @@ service:
   port: 80
 config: # remember to consult `app/ui/src/entities/config.ts` before making any changes to this file. (see see https://github.com/weaveworks/wkp-ui/issues/200)
   datasources:
-    alertmanager: 'http://localhost:9093/api/v1'
-    prometheus: 'http://localhost:9090/api/v1'
+    alertmanager: ''
+    prometheus: ''
   drilldownLinks:
     # Set the url values to make the drilldown links work
     cluster_resources:
@@ -81,5 +81,5 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       enabled: true
       pollInterval: 5s
       configMap:
-        name: 'Foo or Bar'
+        name: ''
         key: components.json
