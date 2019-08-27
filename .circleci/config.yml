@@ -77,6 +77,8 @@ jobs:
           SRCDIR: /src/github.com/weaveworks/wks
           KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
           KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
+          JK_URL: https://github.com/jkcfg/jk/releases/download/0.2.10/jk-linux-amd64
+          JK_CHECKSUM: 2d4cc6bb9609c8e0f9f36d8bdf27ae45617a922572d187196b5141dd79490357
     working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
@@ -89,6 +91,27 @@ jobs:
             tar xvzf kubectl.tar.gz --strip-components=3
             sudo mv kubectl /usr/local/bin
 
+      - run:
+          name: Install jk
+          command: |
+            curl --silent -L $JK_URL -o jk
+            echo "$JK_CHECKSUM jk" | sha256sum -c
+            chmod a+x jk
+            sudo mv jk /usr/local/bin
+
+      - run:
+          name: Install git
+          command: |
+            os=$(for f in $(find /etc -type f -maxdepth 1 \( ! -wholename /etc/os-release ! -wholename /etc/lsb-release -wholename /etc/\*release -o -wholename /etc/\*version \) 2> /dev/null); do echo ${f:5:${#f}-13}; done)
+            if [ $os = "centos" ]; then
+              sudo yum update -y
+              sudo yum install -y git
+            else
+              sudo apt-get update -y
+              sudo apt-get install -y git
+            fi
+            git config --global user.email "test@wkp.org"
+            git config --global user.name "Test Wkp"
       - run:
           name: Run unit tests
           command: |
