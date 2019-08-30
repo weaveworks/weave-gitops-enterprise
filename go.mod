@@ -50,7 +50,7 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/thanhpk/randstr v0.0.0-20190104161604-ac5b2d62bffb
 	github.com/weaveworks/common v0.0.0-20180717091316-5d6891c6875f
-	github.com/weaveworks/footloose v0.0.0-20190319145146-5253a0748898
+	github.com/weaveworks/footloose v0.0.0-20190829132911-7b086e71ef8b
 	github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
@@ -79,6 +79,7 @@ require (
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a
 	sigs.k8s.io/cluster-api v0.0.0-20181211193542-3547f8dd9307
 	sigs.k8s.io/controller-runtime v0.1.12
+	sigs.k8s.io/kind v0.0.0-20190204012257-d1773a79317d // indirect
 	sigs.k8s.io/testing_frameworks v0.1.1 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )
