@@ -48,6 +48,7 @@ spec:
         args:
         - --git-url={{ .Values.config.git.url }}
         - --git-private-key-file=/etc/wkp-ui/ssh/{{ .Values.config.git.deployKeySecret.key }}
+        - --git-poll-interval=15s
         ports:
         - containerPort: {{ .Values.service.port }}
         volumeMounts:
