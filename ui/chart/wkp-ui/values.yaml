@@ -20,7 +20,8 @@ service:
   port: 80
 config: # remember to consult `app/ui/src/entities/config.ts` before making any changes to this file. (see see https://github.com/weaveworks/wkp-ui/issues/200)
   git:
-    url: git@github.com:foot/wkp-core.git
+    # e.g. git@github.com:weaveworks/wkp-core.git
+    url: ''
     deployKeySecret:
       name: 'wkp-ui-git-deploy-key'
       key: 'identity'
