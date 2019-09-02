@@ -25,6 +25,10 @@ spec:
       - name: ui-config-volume
         configMap:
           name: {{ include "wkp-ui.fullname" . }}-config
+      - name: git-deploy-key
+        secret:
+          secretName: {{ .Values.config.git.deployKeySecret.name }}
+          defaultMode: 0400
       {{- if $configMapName }}
       - name: cluster-components-config-volume
         configMap:
@@ -38,11 +42,20 @@ spec:
       - name: {{ include "wkp-ui.fullname" . }}-server
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: SSH_KNOWN_HOSTS
+          value: /etc/ssh/ssh_known_hosts
+        args:
+        - --git-url={{ .Values.config.git.url }}
+        - --git-private-key-file=/etc/wkp-ui/ssh/{{ .Values.config.git.deployKeySecret.key }}
         ports:
         - containerPort: {{ .Values.service.port }}
         volumeMounts:
         - name: ui-config-volume
           mountPath: /html/ui-config/
+        - name: git-deploy-key
+          mountPath: /etc/wkp-ui/ssh # to match location given in image's /etc/ssh/config
+          readOnly: true # this will be the case perforce in K8s >=1.10
         {{- if $configMapName }}
         - name: cluster-components-config-volume
           mountPath: /html/cluster-components-config/
