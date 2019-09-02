@@ -4,7 +4,7 @@ fullnameOverride: ""
 enabled: true
 image:
   repository: weaveworks/wkp-ui-server
-  tag: latest
+  tag: master-89debc7
   pullSecrets: []
   pullPolicy: IfNotPresent
 ingress:
@@ -84,15 +84,6 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       dials:
       - resource: cluster_cpu_utilisation
       - resource: cluster_memory_utilisation
-    clusterComponents:
-      enabled: true
-      pollInterval: 5s
-      configMap:
-        name: 'foo'
-        key: components.json
-    repoBranches:
-      enabled: true
-      pollInterval: 10s
     nodesOverview:
       enabled: true
       title: All Nodes
@@ -103,3 +94,12 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       - resource: node_memory_utilisation
       singlestat: node_pods_count
       drilldownLink: node_resources
+    clusterComponents:
+      enabled: true
+      pollInterval: 5s
+      configMap:
+        name: ''
+        key: components.json
+    gitBranches:
+      enabled: true
+      pollInterval: 10s
