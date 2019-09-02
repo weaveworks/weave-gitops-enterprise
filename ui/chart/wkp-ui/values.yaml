@@ -22,6 +22,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
   gitRepo:
     # e.g. git@github.com:weaveworks/wkp-core.git
     url: ''
+    branch: ''
     deployKeySecret:
       name: 'wkp-ui-git-deploy-key'
       key: 'identity'
