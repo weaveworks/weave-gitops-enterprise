@@ -27,7 +27,7 @@ spec:
           name: {{ include "wkp-ui.fullname" . }}-config
       - name: git-deploy-key
         secret:
-          secretName: {{ .Values.config.git.deployKeySecret.name }}
+          secretName: {{ .Values.config.gitRepo.deployKeySecret.name }}
           defaultMode: 0400
       {{- if $configMapName }}
       - name: cluster-components-config-volume
@@ -46,8 +46,8 @@ spec:
         - name: SSH_KNOWN_HOSTS
           value: /etc/ssh/ssh_known_hosts
         args:
-        - --git-url={{ .Values.config.git.url }}
-        - --git-private-key-file=/etc/wkp-ui/ssh/{{ .Values.config.git.deployKeySecret.key }}
+        - --git-url={{ .Values.config.gitRepo.url }}
+        - --git-private-key-file=/etc/wkp-ui/ssh/{{ .Values.config.gitRepo.deployKeySecret.key }}
         - --git-poll-interval=15s
         ports:
         - containerPort: {{ .Values.service.port }}
