@@ -4,7 +4,7 @@ fullnameOverride: ""
 enabled: true
 image:
   repository: weaveworks/wkp-ui-server
-  tag: master-89debc7
+  tag: latest
   pullSecrets: []
   pullPolicy: IfNotPresent
 ingress:
@@ -15,7 +15,7 @@ ingress:
   hosts:
     - chart-example.local
   tls: []
-service:
+service:4
   name: wkp-ui-server
   port: 80
 config: # remember to consult `app/ui/src/entities/config.ts` before making any changes to this file. (see see https://github.com/weaveworks/wkp-ui/issues/200)
@@ -26,6 +26,16 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
     deployKeySecret:
       name: 'wkp-ui-git-deploy-key'
       key: 'gitDeployKey'
+    # Provide overrides to drilldownlinks, these are automatically
+    # calculated for known providers like GitHub
+    drilldownLinks:
+      repo: ''
+      # Handlebar template that will be provided with {{ branch }}
+      # E.g. https://mygit.com/foo/branches/{{ branch }}
+      branch: ''
+      # Handlebar template that will be provided with {{ commit }}
+      # E.g. https://mygit.com/foo/commits/{{ commit }}
+      commit: ''
   datasources:
     alertmanager: ''
     prometheus: ''
@@ -74,6 +84,15 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       dials:
       - resource: cluster_cpu_utilisation
       - resource: cluster_memory_utilisation
+    clusterComponents:
+      enabled: true
+      pollInterval: 5s
+      configMap:
+        name: 'foo'
+        key: components.json
+    repoBranches:
+      enabled: true
+      pollInterval: 10s
     nodesOverview:
       enabled: true
       title: All Nodes
@@ -84,9 +103,3 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       - resource: node_memory_utilisation
       singlestat: node_pods_count
       drilldownLink: node_resources
-    clusterComponents:
-      enabled: true
-      pollInterval: 5s
-      configMap:
-        name: ''
-        key: components.json
