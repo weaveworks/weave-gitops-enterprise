@@ -23,7 +23,9 @@ func main() {
 
 	// Serve up the branch list!
 	handleBranchesRequest, pollGitBranches := BranchesRequestHandler(params.gitURL, params.privKeyFile)
-	go pollGitBranches()
+	if params.gitURL != "" {
+		go pollGitBranches()
+	}
 	http.HandleFunc("/api/repo/branches", handleBranchesRequest)
 
 	// Serve the UI
