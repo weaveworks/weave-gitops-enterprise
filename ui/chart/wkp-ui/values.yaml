@@ -25,7 +25,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
     branch: ''
     deployKeySecret:
       name: 'wkp-ui-git-deploy-key'
-      key: 'identity'
+      key: 'gitDeployKey'
   datasources:
     alertmanager: ''
     prometheus: ''

@@ -47,7 +47,7 @@ spec:
           value: /etc/ssh/ssh_known_hosts
         args:
         - --git-url={{ .Values.config.gitRepo.url }}
-        - --git-private-key-file=/etc/wkp-ui/ssh/{{ .Values.config.gitRepo.deployKeySecret.key }}
+        - --git-deploy-key-file=/etc/wkp-ui/ssh/{{ .Values.config.gitRepo.deployKeySecret.key }}
         - --git-poll-interval=15s
         ports:
         - containerPort: {{ .Values.service.port }}
