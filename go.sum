@@ -445,6 +445,8 @@ github.com/weaveworks/footloose v0.0.0-20190826160039-44d691056282 h1:bg24kDR/Vg
 github.com/weaveworks/footloose v0.0.0-20190826160039-44d691056282/go.mod h1:YrBzt9KM6ZnJU265h7Uu5kaHyIUMkvCLyHHa3exfU1w=
 github.com/weaveworks/footloose v0.0.0-20190829132911-7b086e71ef8b h1:EjKY/vYajXyShl2zCf0y0Bd4D7fbX3R9NRGr1kzPUI0=
 github.com/weaveworks/footloose v0.0.0-20190829132911-7b086e71ef8b/go.mod h1:nOh5HQLDNC5MgZTPXbfnp+ChzAGRSkKopJmSNIGvi6w=
+github.com/weaveworks/footloose v0.0.0-20190829132911-efbcbb7a6390 h1:+eeBhTQ/e64tnpCm2fQa2lanFJPKzBq5de6ApW6rDdc=
+github.com/weaveworks/footloose v0.0.0-20190829132911-efbcbb7a6390/go.mod h1:nOh5HQLDNC5MgZTPXbfnp+ChzAGRSkKopJmSNIGvi6w=
 github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2 h1:agQMkKaEwVZ0BkFvmqQ4bkuM+5UcPwAKD7s9nnwlG5M=
 github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2/go.mod h1:w71L8jQE+JbvgoFozS5vHDJKIu/Rq5TVH8czB7FbxC4=
 github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c h1:YTNC1c2AM3xjrL6DM4vuq0HNJ79GFR8ScT+QKWadFUw=
