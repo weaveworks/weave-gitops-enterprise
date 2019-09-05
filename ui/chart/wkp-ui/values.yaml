@@ -84,6 +84,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       dials:
       - resource: cluster_cpu_utilisation
       - resource: cluster_memory_utilisation
+      drilldownLink: cluster_resources
     nodesOverview:
       enabled: true
       title: All Nodes
