@@ -4,7 +4,7 @@ fullnameOverride: ""
 enabled: true
 image:
   repository: weaveworks/wkp-ui-server
-  tag: bind-to-all-interfaces-7736b2b
+  tag: bind-to-all-interfaces-63aa892
   pullSecrets: []
   pullPolicy: IfNotPresent
 ingress:
