@@ -36,5 +36,5 @@ func main() {
 	http.Handle("/", http.StripPrefix("/", fs))
 
 	log.Println("Listening on", params.port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("localhost:%d", params.port), nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", params.port), nil))
 }
