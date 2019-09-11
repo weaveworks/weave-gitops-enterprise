@@ -7,13 +7,28 @@ image:
   tag: master-0c09b34
   pullSecrets: []
   pullPolicy: IfNotPresent
+nginx-ingress:
+  enabled: true
+  controller:
+    ingressClass: wkp-nginx
+    service:
+      type: ClusterIP
+      enableHttps: false
+    #
+    # More config values from:
+    # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/configmap.md
+    #
+    config:
+      ssl-redirect: "false"
 ingress:
-  enabled: false
-  annotations: {}
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: 'wkp-nginx'
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
   labels: {}
-  path: /
+  path: '/?(.*)'
   hosts:
-    - chart-example.local
+    - ''
   tls: []
 service:
   name: wkp-ui-server
