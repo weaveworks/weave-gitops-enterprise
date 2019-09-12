@@ -48,6 +48,9 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       # Handlebar template that will be provided with {{ branch }}
       # E.g. https://mygit.com/foo/branches/{{ branch }}
       branch: ''
+      # Handlebar template that will be provided with {{ branch }}
+      # E.g. https://mygit.com/foo/compare/master...{{ branch }}
+      compare: ''
       # Handlebar template that will be provided with {{ commit }}
       # E.g. https://mygit.com/foo/commits/{{ commit }}
       commit: ''
