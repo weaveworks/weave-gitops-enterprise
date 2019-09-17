@@ -45,7 +45,7 @@ all: $(UPTODATE_FILES) binaries
 check: all lint unit-tests container-tests
 
 BINARIES = \
-	cmd/wksctl/wksctl \
+	cmd/wk/wk \
 	cmd/wks-entitle/wks-entitle \
 	cmd/wks-ci/wks-ci \
 	cmd/k8s-krb5-server/server \
@@ -61,7 +61,7 @@ godeps=$(shell go list -f '{{join .Deps "\n"}}' $1 | \
 	   xargs go list -f \
 	   '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}')
 
-DEPS=$(call godeps,./cmd/wksctl)
+DEPS=$(call godeps,./cmd/wk)
 
 USER_GUIDE_SOURCES=$(shell find user-guide/ -name public -prune -o -print)
 user-guide/public: $(USER_GUIDE_SOURCES)
@@ -92,9 +92,9 @@ pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
 
 generated: pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go pkg/opa/policy/policy_vfsdata.go
 
-cmd/wksctl/wksctl: $(DEPS) generated
-cmd/wksctl/wksctl: cmd/wksctl/*.go
-	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wksctl/*.go
+cmd/wk/wk: $(DEPS) generated
+cmd/wk/wk: cmd/wk/*.go
+	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wk/*.go
 
 cmd/wks-ci/checks/policy/.uptodate: cmd/policy/policy
 cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go generated
@@ -128,7 +128,7 @@ cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-https-authz-server/*.go
 
 install: all
-	cp cmd/wksctl/wksctl `go env GOPATH`/bin
+	cp cmd/wk/wk `go env GOPATH`/bin
 	cp cmd/wks-entitle/wks-entitle `go env GOPATH`/bin
 	cp cmd/wks-ci/wks-ci `go env GOPATH`/bin
 
@@ -144,7 +144,7 @@ clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
 	$(SUDO) docker rmi $(patsubst %, %:$(IMAGE_TAG), $(IMAGE_NAMES)) >/dev/null 2>&1 || true
 	rm -rf $(UPTODATE_FILES)
-	rm -f cmd/wksctl/wksctl
+	rm -f cmd/wk/wk
 	rm -f cmd/wks-controller/controller
 	rm -f cmd/wks-ci/checks/policy/policy
 	rm -f cmd/wks-ci/wks-ci
@@ -166,7 +166,7 @@ mkfile_dir := $(dir $(mkfile_path))
 container-tests:  test/container/images/centos7/.uptodate pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go
 	go test -count=1 ./test/container/...
 
-integration-tests-container: cmd/wksctl/wksctl cmd/wks-controller/.uptodate
+integration-tests-container: cmd/wk/wk cmd/wks-controller/.uptodate
 	IMAGE_TAG=$(IMAGE_TAG) go test -v -timeout 20m ./test/integration/container/...
 
 FORCE:
