@@ -14,7 +14,7 @@ require (
 	github.com/fatih/structs v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/gliderlabs/ssh v0.1.4 // indirect
-	github.com/golangci/golangci-lint v1.17.1 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/google/go-cmp v0.3.0
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-jsonnet v0.11.2
@@ -22,8 +22,10 @@ require (
 	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c
 	github.com/jcmturner/gofork v0.0.0-20180107083740-2aebee971930 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
+	github.com/onsi/gomega v1.4.2 // indirect
 	github.com/open-policy-agent/opa v0.12.2
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v0.9.4 // indirect
@@ -37,7 +39,6 @@ require (
 	github.com/thanhpk/randstr v0.0.0-20190104161604-ac5b2d62bffb
 	github.com/weaveworks/common v0.0.0-20180717091316-5d6891c6875f
 	github.com/weaveworks/footloose v0.0.0-20190829132911-efbcbb7a6390
-	github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c
 	github.com/weaveworks/wksctl v0.0.0-20190918123603-5db57021892c
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
@@ -61,7 +62,6 @@ require (
 	k8s.io/utils v0.0.0-20190801114015-581e00157fb1
 	sigs.k8s.io/cluster-api v0.0.0-20181211193542-3547f8dd9307
 	sigs.k8s.io/controller-runtime v0.1.12
-	sigs.k8s.io/kind v0.0.0-20190204012257-d1773a79317d // indirect
 	sigs.k8s.io/yaml v1.1.0
 )
 
