@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/footloose/pkg/cluster"
 	"github.com/weaveworks/footloose/pkg/config"
-	"github.com/weaveworks/wks/pkg/plan"
-	"github.com/weaveworks/wks/pkg/plan/runners/ssh"
+	"github.com/weaveworks/wksctl/pkg/plan"
+	"github.com/weaveworks/wksctl/pkg/plan/runners/ssh"
 )
 
 type Operation struct {

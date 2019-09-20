@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/pkg/plan"
-	"github.com/weaveworks/wks/pkg/plan/resource"
+	"github.com/weaveworks/wksctl/pkg/plan"
+	"github.com/weaveworks/wksctl/pkg/plan/resource"
 	"github.com/weaveworks/wks/pkg/utilities/object"
 	"github.com/weaveworks/wks/test/container/images"
 	"github.com/weaveworks/wks/test/container/testutils"
