@@ -69,10 +69,6 @@ user-guide/public: $(USER_GUIDE_SOURCES)
 pkg/guide/assets_vfsdata.go: user-guide/public
 	go generate ./pkg/guide
 
-ADDONS_SOURCES=$(shell find addons/ -print)
-pkg/addons/assets/assets_vfsdata.go: $(ADDONS_SOURCES)
-	go generate ./pkg/addons/assets
-
 SCRIPTS=$(shell find pkg/apis/wksprovider/machine/scripts/all -name '*.sh' -print)
 pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go: $(SCRIPTS)
 	go generate ./pkg/apis/wksprovider/machine/scripts
@@ -89,7 +85,7 @@ POLICIES=$(shell find pkg/opa/policy/rego -name '*.rego' -print)
 pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
 	go generate ./pkg/opa/policy
 
-generated: pkg/guide/assets_vfsdata.go pkg/addons/assets/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go pkg/opa/policy/policy_vfsdata.go
+generated: pkg/guide/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go pkg/opa/policy/policy_vfsdata.go
 
 cmd/wk/wk: $(DEPS) generated
 cmd/wk/wk: cmd/wk/*.go
