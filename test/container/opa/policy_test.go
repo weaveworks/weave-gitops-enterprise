@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/test/container/images"
-	"github.com/weaveworks/wks/test/container/testutils"
 	"github.com/weaveworks/wksctl/pkg/plan"
 	"github.com/weaveworks/wksctl/pkg/plan/resource"
 	"github.com/weaveworks/wksctl/pkg/utilities/object"
+	"github.com/weaveworks/wksctl/test/container/images"
+	"github.com/weaveworks/wksctl/test/container/testutils"
 )
 
 var sshPort = testutils.PortAllocator{Next: 2422}
