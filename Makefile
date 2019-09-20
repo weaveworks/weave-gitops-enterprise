@@ -69,23 +69,11 @@ user-guide/public: $(USER_GUIDE_SOURCES)
 pkg/guide/assets_vfsdata.go: user-guide/public
 	go generate ./pkg/guide
 
-SCRIPTS=$(shell find pkg/apis/wksprovider/machine/scripts/all -name '*.sh' -print)
-pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go: $(SCRIPTS)
-	go generate ./pkg/apis/wksprovider/machine/scripts
-
-MANIFESTS=$(shell find pkg/apis/wksprovider/controller/manifests/yaml -name '*.yaml' -print)
-pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go: $(MANIFESTS)
-	go generate ./pkg/apis/wksprovider/controller/manifests
-
-CRDS=$(shell find pkg/apis/cluster-api/config/crds -name '*.yaml' -print)
-pkg/apis/wksprovider/machine/os/crds_vfsdata.go: $(CRDS)
-	go generate ./pkg/apis/wksprovider/machine/crds
-
 POLICIES=$(shell find pkg/opa/policy/rego -name '*.rego' -print)
 pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
 	go generate ./pkg/opa/policy
 
-generated: pkg/guide/assets_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/machine/os/crds_vfsdata.go pkg/opa/policy/policy_vfsdata.go
+generated: pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go
 
 cmd/wk/wk: $(DEPS) generated
 cmd/wk/wk: cmd/wk/*.go
@@ -152,7 +140,7 @@ unit-tests: generated
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir := $(dir $(mkfile_path))
 
-container-tests:  test/container/images/centos7/.uptodate pkg/apis/wksprovider/machine/scripts/scripts_vfsdata.go pkg/apis/wksprovider/controller/manifests/manifests_vfsdata.go
+container-tests:  test/container/images/centos7/.uptodate
 	go test -count=1 ./test/container/...
 
 integration-tests-container: cmd/wk/wk
