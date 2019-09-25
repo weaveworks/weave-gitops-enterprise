@@ -15,6 +15,11 @@ import (
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
+const (
+	DefaultAuthor = "Weaveworks Kubernetes Platform"
+	DefaultEmail  = "support@weave.works"
+)
+
 type GitRepo struct {
 	worktreeDir string
 	repo        *git.Repository
@@ -81,7 +86,7 @@ func NewGithubRepoToTempDir(parentDir, repoName string) (*GitRepo, *ssh.KeyPair,
 	}
 
 	log.Infof("Pushing an initial (empty) commit to the Git repository %q...", repoName)
-	if err := gr.CommitAll("Weaveworks Kubernetes Platform", "support@weave.works", "initial commit"); err != nil {
+	if err := gr.CommitAll(DefaultAuthor, DefaultEmail, "initial commit"); err != nil {
 		return nil, nil, errors.Wrap(err, "initial commit")
 	}
 
