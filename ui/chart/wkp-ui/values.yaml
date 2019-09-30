@@ -57,7 +57,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
   datasources:
     alertmanager: ''
     prometheus: ''
-  drilldownLinks:
+  drilldownLinksById:
     # Set the url values to make the drilldown links work
     cluster_resources:
       url: ''
@@ -70,11 +70,11 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
     cluster_cpu_utilisation:
       label: CPU
       query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
-      drilldownLink: cluster_resources
+      drilldownLinkId: cluster_resources
     cluster_memory_utilisation:
       label: Memory
       query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
-      drilldownLink: cluster_resources
+      drilldownLinkId: cluster_resources
     node_cpu_utilisation:
       label: CPU
       query: node:node_cpu_utilisation:avg1m
@@ -95,14 +95,14 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       rotationInterval: 5s
       pollInterval: 15s
       displayLimit: 1
-      drilldownLink: alertmanager_dashboard
+      drilldownLinkId: alertmanager_dashboard
     clusterResources:
       enabled: true
       pollInterval: 15s
       dials:
       - resource: cluster_cpu_utilisation
       - resource: cluster_memory_utilisation
-      drilldownLink: cluster_resources
+      drilldownLinkId: cluster_resources
     nodesOverview:
       enabled: true
       title: All Nodes
@@ -112,7 +112,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       - resource: node_cpu_utilisation
       - resource: node_memory_utilisation
       singlestat: node_pods_count
-      drilldownLink: node_resources
+      drilldownLinkId: node_resources
     clusterComponents:
       enabled: true
       pollInterval: 5s
