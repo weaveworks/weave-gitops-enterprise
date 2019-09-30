@@ -66,7 +66,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       url: ''
     alertmanager_dashboard:
       url: ''
-  resources:
+  resourcesById:
     cluster_cpu_utilisation:
       label: CPU
       query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
@@ -100,8 +100,8 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       enabled: true
       pollInterval: 15s
       dials:
-      - resource: cluster_cpu_utilisation
-      - resource: cluster_memory_utilisation
+      - resourceId: cluster_cpu_utilisation
+      - resourceId: cluster_memory_utilisation
       drilldownLinkId: cluster_resources
     nodesOverview:
       enabled: true
@@ -109,8 +109,8 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       pollInterval: 15s
       # Must have at most 2 sparklines for the good looks
       sparklines:
-      - resource: node_cpu_utilisation
-      - resource: node_memory_utilisation
+      - resourceId: node_cpu_utilisation
+      - resourceId: node_memory_utilisation
       singlestat: node_pods_count
       drilldownLinkId: node_resources
     clusterComponents:
