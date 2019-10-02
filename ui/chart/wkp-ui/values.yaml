@@ -55,8 +55,8 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       # E.g. https://mygit.com/foo/commits/{{ commit }}
       commit: ''
   datasources:
-    alertmanager: ''
-    prometheus: ''
+    alertmanager: "http://localhost:9093/api/v1"
+    prometheus: "http://localhost:9090/api/v1"
   drilldownLinksById:
     # Set the url values to make the drilldown links work
     cluster_resources:
@@ -73,7 +73,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       drilldownLinkId: cluster_resources
     cluster_memory_utilisation:
       label: Memory
-      query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
+      query: sum (rate (container_memory_working_set_bytes{id="/"}[5m])) / sum (machine_memory_bytes)
       drilldownLinkId: cluster_resources
     node_cpu_utilisation:
       label: CPU
