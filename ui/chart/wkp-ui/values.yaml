@@ -99,7 +99,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
     clusterResources:
       enabled: true
       pollInterval: 15s
-      dials:
+      charts:
       - resourceId: cluster_cpu_utilisation
       - resourceId: cluster_memory_utilisation
       drilldownLinkId: cluster_resources
