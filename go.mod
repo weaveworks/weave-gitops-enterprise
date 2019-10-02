@@ -39,7 +39,7 @@ require (
 	github.com/thanhpk/randstr v0.0.0-20190104161604-ac5b2d62bffb
 	github.com/weaveworks/common v0.0.0-20180717091316-5d6891c6875f
 	github.com/weaveworks/footloose v0.0.0-20190829132911-efbcbb7a6390
-	github.com/weaveworks/wksctl v0.0.0-20190918123603-5db57021892c
+	github.com/weaveworks/wksctl v0.0.0-20191001112524-9d38d9e2d69d
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56

@@ -343,6 +343,8 @@ github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c h1:YTNC1c2AM3x
 github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/wksctl v0.0.0-20190918123603-5db57021892c h1:rB0qFe+bqw1rXcQa2fSNXJcoD6MnjwsHeVIQjyNxQag=
 github.com/weaveworks/wksctl v0.0.0-20190918123603-5db57021892c/go.mod h1:A2NJgPVQQFO8Bu6sErBAK6PrKwHKMNGBWrQScSPEKhU=
+github.com/weaveworks/wksctl v0.0.0-20191001112524-9d38d9e2d69d h1:9KyeIU58N1SKSoVFCBJ3iWJM0UCkm4vOVkFPT228QN8=
+github.com/weaveworks/wksctl v0.0.0-20191001112524-9d38d9e2d69d/go.mod h1:A2NJgPVQQFO8Bu6sErBAK6PrKwHKMNGBWrQScSPEKhU=
 github.com/xanzy/ssh-agent v0.2.0/go.mod h1:0NyE30eGUDliuLEHJgYte/zncp2zdTStcOnWhgSqHD8=
 github.com/xanzy/ssh-agent v0.2.1 h1:TCbipTQL2JiiCprBWx9frJ2eJlCYT00NmctrHxVAr70=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
