@@ -22,6 +22,7 @@ require (
 	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c
 	github.com/jcmturner/gofork v0.0.0-20180107083740-2aebee971930 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
