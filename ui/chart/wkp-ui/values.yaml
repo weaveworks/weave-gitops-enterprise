@@ -70,11 +70,21 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
     cluster_cpu_utilisation:
       label: CPU
       query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
-      drilldownLinkId: cluster_resources
+    cluster_cpu_limits:
+      label: CPU Limit
+      query: sum(kube_pod_container_resource_limits_cpu_cores) / sum (machine_cpu_cores)
+    cluster_cpu_requests:
+      label: CPU Reqest
+      query: sum(kube_pod_container_resource_requests_cpu_cores) / sum (machine_cpu_cores)
     cluster_memory_utilisation:
       label: Memory
       query: sum (rate (container_memory_working_set_bytes{id="/"}[5m])) / sum (machine_memory_bytes)
-      drilldownLinkId: cluster_resources
+    cluster_memory_limits:
+      label: Memory Limit
+      query: sum(kube_pod_container_resource_limits_memory_bytes) / sum (machine_memory_bytes)
+    cluster_memory_requests:
+      label: Memory Request
+      query: sum(kube_pod_container_resource_requests_memory_bytes) / sum (machine_memory_bytes)
     node_cpu_utilisation:
       label: CPU
       query: node:node_cpu_utilisation:avg1m
@@ -97,12 +107,26 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       displayLimit: 1
       drilldownLinkId: alertmanager_dashboard
     clusterResources:
+      charts:
+      - name: CPU
+        drilldownLinkId: cluster_resources
+        limits:
+          resourceId: cluster_cpu_limits
+        requests:
+          resourceId: cluster_cpu_requests
+        utilization:
+          resourceId: cluster_cpu_utilisation
+      - name: Memory
+        drilldownLinkId: cluster_resources
+        limits:
+          resourceId: cluster_memory_limits
+        requests:
+          resourceId: cluster_memory_requests
+        utilization:
+          resourceId: cluster_memory_utilisation
+      drilldownLinkId: cluster_resources
       enabled: true
       pollInterval: 15s
-      charts:
-      - resourceId: cluster_cpu_utilisation
-      - resourceId: cluster_memory_utilisation
-      drilldownLinkId: cluster_resources
     nodesOverview:
       enabled: true
       title: All Nodes
