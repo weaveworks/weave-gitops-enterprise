@@ -71,19 +71,19 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       label: CPU
       query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
     cluster_cpu_limits:
-      label: CPU Limit
+      label: CPU Limits
       query: sum(kube_pod_container_resource_limits_cpu_cores) / sum (machine_cpu_cores)
     cluster_cpu_requests:
-      label: CPU Reqest
+      label: CPU Requests
       query: sum(kube_pod_container_resource_requests_cpu_cores) / sum (machine_cpu_cores)
     cluster_memory_utilisation:
       label: Memory
       query: sum (rate (container_memory_working_set_bytes{id="/"}[5m])) / sum (machine_memory_bytes)
     cluster_memory_limits:
-      label: Memory Limit
+      label: Memory Limits
       query: sum(kube_pod_container_resource_limits_memory_bytes) / sum (machine_memory_bytes)
     cluster_memory_requests:
-      label: Memory Request
+      label: Memory Requests
       query: sum(kube_pod_container_resource_requests_memory_bytes) / sum (machine_memory_bytes)
     node_cpu_utilisation:
       label: CPU
