@@ -135,7 +135,8 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       sparklines:
       - resourceId: node_cpu_utilisation
       - resourceId: node_memory_utilisation
-      singlestat: node_pods_count
+      singlestat:
+        resourceId: node_pods_count
       drilldownLinkId: node_resources
     clusterComponents:
       enabled: true
