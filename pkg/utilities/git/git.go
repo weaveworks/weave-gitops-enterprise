@@ -215,6 +215,16 @@ func ExecError(err error) error {
 	return errors.New(string(err.(*exec.ExitError).Stderr))
 }
 
+func WithoutGenerationFiles(files Set) Set {
+	result := Set{}
+	for file := range files {
+		if file != GeneratorScriptName && file != ComponentsFileName {
+			result[file] = true
+		}
+	}
+	return result
+}
+
 func GeneratorCmd(srcDir string) []string {
 	return []string{"jk", "generate", "-o", srcDir, "-f", filepath.Join(srcDir, ComponentsFileName),
 		filepath.Join(srcDir, GeneratorScriptName)}
