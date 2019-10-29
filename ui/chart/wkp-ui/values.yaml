@@ -36,7 +36,8 @@ service:
 config: # remember to consult `app/ui/src/entities/config.ts` before making any changes to this file. (see see https://github.com/weaveworks/wkp-ui/issues/200)
   gitRepo:
     # e.g. git@github.com:weaveworks/wkp-core.git
-    url: ''
+    # TODO(fbarl): Remove this before merging.
+    url: 'git@github.com:fbarl/wkp-core.git'
     branch: 'master'
     deployKeySecret:
       name: 'wkp-ui-git-deploy-key'
@@ -145,5 +146,8 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
         name: ''
         key: components.json
     gitBranches:
+      enabled: true
+      pollInterval: 10s
+    workspaces:
       enabled: true
       pollInterval: 10s
