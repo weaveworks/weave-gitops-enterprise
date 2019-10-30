@@ -52,6 +52,7 @@ BINARIES = \
 	cmd/mock-authz-server/server \
 	cmd/mock-https-authz-server/server \
 	cmd/wks-ci/checks/policy/policy \
+	cmd/github-service/github-service \
 	$(NULL)
 
 binaries: $(BINARIES)
@@ -105,6 +106,10 @@ cmd/mock-https-authz-server/.uptodate: cmd/mock-https-authz-server/server cmd/mo
 cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-https-authz-server/*.go
 
+cmd/github-service/.uptodate: cmd/github-service/github-service cmd/github-service/Dockerfile
+cmd/github-service/github-service: cmd/github-service/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/github-service
+
 install: all
 	cp cmd/wk/wk `go env GOPATH`/bin
 	cp cmd/wks-entitle/wks-entitle `go env GOPATH`/bin
@@ -122,9 +127,7 @@ clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
 	$(SUDO) docker rmi $(patsubst %, %:$(IMAGE_TAG), $(IMAGE_NAMES)) >/dev/null 2>&1 || true
 	rm -rf $(UPTODATE_FILES)
-	rm -f cmd/wk/wk
-	rm -f cmd/wks-ci/checks/policy/policy
-	rm -f cmd/wks-ci/wks-ci
+	rm -f $(BINARIES)
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
