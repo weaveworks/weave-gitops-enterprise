@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
+	github.com/alioygur/gores v1.2.1
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitnami-labs/sealed-secrets v0.7.0
@@ -18,6 +19,7 @@ require (
 	github.com/google/go-cmp v0.3.0
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-jsonnet v0.11.2
+	github.com/gorilla/mux v1.7.3
 	github.com/hashicorp/go-uuid v0.0.0-20180228145832-27454136f036 // indirect
 	github.com/howeyc/gopass v0.0.0-20170109162249-bf9dde6d0d2c
 	github.com/jcmturner/gofork v0.0.0-20180107083740-2aebee971930 // indirect
