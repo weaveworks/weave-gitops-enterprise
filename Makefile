@@ -53,6 +53,7 @@ BINARIES = \
 	cmd/mock-https-authz-server/server \
 	cmd/wks-ci/checks/policy/policy \
 	cmd/github-service/github-service \
+	cmd/gitops-repo-broker/gitops-repo-broker \
 	$(NULL)
 
 binaries: $(BINARIES)
@@ -109,6 +110,10 @@ cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
 cmd/github-service/.uptodate: cmd/github-service/github-service cmd/github-service/Dockerfile
 cmd/github-service/github-service: cmd/github-service/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/github-service
+
+cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/gitops-repo-broker/Dockerfile
+cmd/gitops-repo-broker/gitops-repo-broker: cmd/gitops-repo-broker/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/gitops-repo-broker
 
 install: all
 	cp cmd/wk/wk `go env GOPATH`/bin
