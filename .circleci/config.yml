@@ -77,8 +77,8 @@ jobs:
           SRCDIR: /src/github.com/weaveworks/wks
           KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
           KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
-          JK_URL: https://github.com/jkcfg/jk/releases/download/0.2.10/jk-linux-amd64
-          JK_CHECKSUM: 2d4cc6bb9609c8e0f9f36d8bdf27ae45617a922572d187196b5141dd79490357
+          JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
+          JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
     working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
