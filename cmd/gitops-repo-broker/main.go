@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -27,5 +26,5 @@ func main() {
 	}
 
 	logrus.Info("Server listening...")
-	log.Fatal(srv.ListenAndServe())
+	logrus.Fatal(srv.ListenAndServe())
 }
