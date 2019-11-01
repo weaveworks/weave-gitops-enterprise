@@ -11,6 +11,7 @@
 /cmd/mock-authz-server/server
 /cmd/mock-https-authz-server/server
 /cmd/policy/policy
+/cmd/update-manifest/update-manifest
 /cmd/wks-ci/checks/policy/policy
 /cmd/wks-ci/wks-ci
 /cmd/wks-entitle/wks-entitle

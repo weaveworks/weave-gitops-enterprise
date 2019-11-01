@@ -1,11 +1,14 @@
 package git
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,6 +20,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -176,6 +180,143 @@ func (gr *GitRepo) Push() error {
 func (gr *GitRepo) Close() error {
 	log.Infof("Deleting the temp directory %q...", gr.worktreeDir)
 	return gerrors.Wrapf(os.RemoveAll(gr.worktreeDir), "deleting directory %q", gr.worktreeDir)
+}
+
+// Support for updating manifest files in git
+
+type objectInfo struct {
+	filePath   string
+	filePerms  os.FileMode
+	fileNode   *yaml.Node
+	objectNode *yaml.Node
+}
+
+func findNestedField(data *yaml.Node, path ...string) *yaml.Node {
+	current := data
+	for _, elem := range path {
+		intval, err := strconv.ParseInt(elem, 10, 64)
+		if err == nil {
+			current = current.Content[intval]
+			continue
+		}
+		if current.Kind != 0x4 {
+			// path went past end of structure
+			return nil
+		}
+		isKey := true
+		for idx, entry := range current.Content {
+			if isKey && entry.Value == elem {
+				current = current.Content[idx+1]
+				break
+			}
+			isKey = !isKey
+		}
+	}
+	return current
+}
+
+func updateNestedField(data *yaml.Node, value interface{}, path ...string) error {
+	if fieldNode := findNestedField(data, path...); fieldNode != nil {
+		fieldNode.Value = fmt.Sprintf("%v", value)
+		return nil
+	}
+	return fmt.Errorf("Could not locate field: %s in object", strings.Join(path, "."))
+}
+
+func findObjectNode(top *yaml.Node, namespace, name string) *yaml.Node {
+	objects := top.Content
+	for _, object := range objects {
+		ns := findNestedField(object, "metadata", "namespace")
+		if (ns.Value == "" && namespace != "default") || (ns.Value != "" && ns.Value != namespace) {
+			continue
+		}
+		n := findNestedField(object, "metadata", "name")
+		if n == nil || n.Value == "" || n.Value != name {
+			continue
+		}
+		return object
+	}
+	return nil
+}
+
+func findObject(dir, kind, namespace, name string) (*objectInfo, error) {
+	var info *objectInfo
+	filepath.Walk(dir, func(path string, _ os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !IsYAMLFile(path) {
+			return nil
+		}
+		stats, err := os.Stat(path)
+		if err != nil {
+			return nil
+		}
+		perms := stats.Mode() | os.ModePerm
+		filebytes, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil
+		}
+		var top yaml.Node
+		err = yaml.Unmarshal(filebytes, &top)
+		if err != nil {
+			return nil
+		}
+		localNode := findObjectNode(&top, namespace, name)
+		if localNode == nil {
+			return nil
+		}
+		info = &objectInfo{filePath: path, filePerms: perms, fileNode: &top, objectNode: localNode}
+		// After finding the object, return an error to stop the file walk
+		return gerrors.New("STOP")
+	})
+	if info != nil {
+		return info, nil
+	}
+	return nil, fmt.Errorf("Could not find %s: %s/%s", kind, namespace, name)
+}
+
+func performManifestUpdate(repo *GitRepo, info *objectInfo, fieldPath string, value interface{}) error {
+	err := updateNestedField(info.objectNode, value, strings.Split(fieldPath, ".")...)
+	if err != nil {
+		return err
+	}
+	var out bytes.Buffer
+	encoder := yaml.NewEncoder(&out)
+	defer encoder.Close()
+	encoder.SetIndent(2)
+	err = encoder.Encode(info.fileNode)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(info.filePath, out.Bytes(), info.filePerms)
+	if err != nil {
+		return nil
+	}
+	err = repo.CommitAll(DefaultAuthor, DefaultEmail, "updated by WKP UI")
+	if err != nil {
+		return nil
+	}
+	err = repo.Push()
+	if err != nil {
+		return nil
+	}
+	log.Infof("Updated repo...")
+	return nil
+}
+
+// Update a manifest in git; used to write back changes for gitops
+func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name, fieldPath string, value interface{}) error {
+	repo, err := CloneToTempDir("", gitURL, gitBranch, key)
+	if err != nil {
+		return err
+	}
+	defer repo.Close()
+	cluster, err := findObject(repo.WorktreeDir(), kind, namespace, name)
+	if err != nil {
+		return err
+	}
+	return performManifestUpdate(repo, cluster, fieldPath, value)
 }
 
 // Operations used in git actions for policy checking
