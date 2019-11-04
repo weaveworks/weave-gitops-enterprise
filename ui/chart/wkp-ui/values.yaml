@@ -55,8 +55,8 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       # E.g. https://mygit.com/foo/commits/{{ commit }}
       commit: ''
   datasources:
-    alertmanager: ''
-    prometheus: ''
+    alertmanager: 'alertmanager/api/v1'
+    prometheus: 'prometheus/api/v1'
   services:
     gitopsRepoBroker: ''
   drilldownLinksById:
