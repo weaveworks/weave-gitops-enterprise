@@ -59,6 +59,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
     prometheus: 'prometheus/api/v1'
   services:
     gitopsRepoBroker: ''
+    github: ''
   drilldownLinksById:
     # Set the url values to make the drilldown links work
     cluster_resources:
