@@ -64,7 +64,13 @@ func runServer(params paramSet) error {
 		privKey,
 		params.gitPath,
 	)).Methods("GET")
-	r.HandleFunc("/gitops/workspaces", workspaces.Create).Methods("POST")
+
+	r.HandleFunc("/gitops/workspaces", workspaces.MakeCreateHandler(
+		params.gitURL,
+		params.gitBranch,
+		privKey,
+		params.gitPath,
+	)).Methods("POST")
 
 	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Update(params.gitURL, params.gitBranch, privKey)).Methods("POST")
 	r.HandleFunc("/gitops/clusters", clusters.List).Methods("GET")

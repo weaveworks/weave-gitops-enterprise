@@ -11,6 +11,7 @@ require (
 	github.com/bitnami-labs/sealed-secrets v0.7.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/cavaliercoder/go-rpm v0.0.0-20190131055624-7a9c54e3d83e
+	github.com/cloudflare/cfssl v1.4.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20180712150055-7eab798dff48
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/structs v1.1.0
