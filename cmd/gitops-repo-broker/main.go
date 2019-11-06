@@ -77,7 +77,12 @@ func runServer(params paramSet) error {
 
 	r.HandleFunc("/gitops/repo/branches", branches.List(params.gitURL, privKey)).Methods("GET")
 
-	r.HandleFunc("/gitops/permissions", permissions.Create).Methods("POST")
+	r.HandleFunc("/gitops/permissions", permissions.MakeCreateHandler(
+		params.gitURL,
+		params.gitBranch,
+		privKey,
+		params.gitPath,
+	)).Methods("POST")
 
 	srv := &http.Server{
 		Handler: r,
