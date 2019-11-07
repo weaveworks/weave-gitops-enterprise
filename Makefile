@@ -97,8 +97,7 @@ cmd/wks-ci/wks-ci: $(CI_DEPS) cmd/wks-ci/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
 
 UPDATE_MANIFEST_DEPS=$(call godeps,./cmd/update-manifest)
-
-cmd/update-manifest/update-manifest: $(CI_DEPS) cmd/update-manifest/*.go
+cmd/update-manifest/update-manifest: $(UPDATE_MANIFEST_DEPS) cmd/update-manifest/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/update-manifest/*.go
 
 

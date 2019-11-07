@@ -9,6 +9,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/branches"
+	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/permissions"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/workspaces"
 )
@@ -63,6 +65,11 @@ func runServer(params paramSet) error {
 		params.gitPath,
 	)).Methods("GET")
 	r.HandleFunc("/gitops/workspaces", workspaces.Create).Methods("POST")
+
+	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Update(params.gitURL, params.gitBranch, privKey)).Methods("POST")
+	r.HandleFunc("/gitops/clusters", clusters.List).Methods("GET")
+
+	r.HandleFunc("/gitops/repo/branches", branches.List(params.gitURL, privKey)).Methods("GET")
 
 	r.HandleFunc("/gitops/permissions", permissions.Create).Methods("POST")
 
