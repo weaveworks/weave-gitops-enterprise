@@ -60,6 +60,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
   services:
     gitopsRepoBroker: ''
     github: ''
+    multiClusterManagement: ''
   drilldownLinksById:
     # Set the url values to make the drilldown links work
     cluster_resources:
