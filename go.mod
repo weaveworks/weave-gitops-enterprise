@@ -41,6 +41,7 @@ require (
 	github.com/golang/gddo v0.0.0-20190312205958-5a2505f3dbf0 // indirect
 	github.com/google/go-cmp v0.3.0
 	github.com/google/go-github/v26 v26.1.3
+	github.com/google/go-github/v28 v28.1.1
 	github.com/google/go-jsonnet v0.11.2
 	github.com/gophercloud/gophercloud v0.0.0-20190410012400-2c55d17f707c // indirect
 	github.com/gorilla/mux v1.7.3
