@@ -151,14 +151,7 @@ push:
 unit-tests: generated
 	go test -v ./cmd/... ./pkg/...
 
-# Tests running in containers
-mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
-mkfile_dir := $(dir $(mkfile_path))
-
 container-tests:  test/container/images/centos7/.uptodate
 	go test -count=1 ./test/container/...
-
-integration-tests-container: cmd/wk/wk
-	IMAGE_TAG=$(IMAGE_TAG) go test -v -timeout 20m ./test/integration/container/...
 
 FORCE:

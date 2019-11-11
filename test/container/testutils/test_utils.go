@@ -121,7 +121,6 @@ func (r *FootlooseRunner) makeSSHClientWithRetries(numRetries int) (*ssh.Client,
 			Host:           host,
 			Port:           r.SSHPort,
 			PrivateKeyPath: r.sshPrivateKeyPath(),
-			Verbose:        true,
 		})
 
 		if err == nil {
