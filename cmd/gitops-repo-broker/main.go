@@ -59,8 +59,10 @@ func runServer(params paramSet) error {
 
 	r := mux.NewRouter()
 
+	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Get).Methods("GET")
 	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Update(params.gitURL, params.gitBranch, privKey)).Methods("POST")
 	r.HandleFunc("/gitops/clusters", clusters.List).Methods("GET")
+	r.HandleFunc("/gitops/clusters", clusters.Create).Methods("POST")
 
 	r.HandleFunc("/gitops/repo/branches", branches.List(params.gitURL, privKey)).Methods("GET")
 
