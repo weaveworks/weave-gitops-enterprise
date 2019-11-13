@@ -49,7 +49,7 @@ BINARIES = \
 	cmd/wks-entitle/wks-entitle \
 	cmd/update-manifest/update-manifest \
 	cmd/wks-ci/wks-ci \
-	cmd/k8s-krb5-server/server \
+	kerberos/cmd/k8s-krb5-server/server \
 	cmd/mock-authz-server/server \
 	cmd/mock-https-authz-server/server \
 	cmd/wks-ci/checks/policy/policy \
@@ -101,9 +101,10 @@ cmd/update-manifest/update-manifest: $(UPDATE_MANIFEST_DEPS) cmd/update-manifest
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/update-manifest/*.go
 
 
-cmd/k8s-krb5-server/.uptodate: cmd/k8s-krb5-server/server cmd/k8s-krb5-server/Dockerfile
-cmd/k8s-krb5-server/server: cmd/k8s-krb5-server/*.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/k8s-krb5-server/*.go
+kerberos/cmd/k8s-krb5-server/.uptodate: kerberos/cmd/k8s-krb5-server/server kerberos/cmd/k8s-krb5-server/Dockerfile
+kerberos/cmd/k8s-krb5-server/server: kerberos/cmd/k8s-krb5-server/*.go
+	# Without "cd kerberos" the outer "wks" module is used.
+	cd kerberos; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o cmd/k8s-krb5-server/server cmd/k8s-krb5-server/*.go
 
 cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-server/Dockerfile
 cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
