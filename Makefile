@@ -49,12 +49,13 @@ BINARIES = \
 	cmd/wks-entitle/wks-entitle \
 	cmd/update-manifest/update-manifest \
 	cmd/wks-ci/wks-ci \
-	kerberos/cmd/k8s-krb5-server/server \
 	cmd/mock-authz-server/server \
 	cmd/mock-https-authz-server/server \
 	cmd/wks-ci/checks/policy/policy \
 	cmd/github-service/github-service \
 	cmd/gitops-repo-broker/gitops-repo-broker \
+	kerberos/cmd/k8s-krb5-server/server \
+	kerberos/cmd/wk-kerberos/wk-kerberos \
 	$(NULL)
 
 binaries: $(BINARIES)
@@ -100,6 +101,10 @@ UPDATE_MANIFEST_DEPS=$(call godeps,./cmd/update-manifest)
 cmd/update-manifest/update-manifest: $(UPDATE_MANIFEST_DEPS) cmd/update-manifest/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/update-manifest/*.go
 
+
+kerberos/cmd/wk-kerberos/wk-kerberos: $(shell find kerberos/cmd/wk-kerberos/ -type f -name '*.go')
+	# Without "cd kerberos" the outer "wks" module is used.
+	cd kerberos; CGO_ENABLED=0 GOARCH=amd64 go build -o cmd/wk-kerberos/wk-kerberos ./cmd/wk-kerberos
 
 kerberos/cmd/k8s-krb5-server/.uptodate: kerberos/cmd/k8s-krb5-server/server kerberos/cmd/k8s-krb5-server/Dockerfile
 kerberos/cmd/k8s-krb5-server/server: kerberos/cmd/k8s-krb5-server/*.go
