@@ -99,9 +99,11 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
       label: Pods
       query: sum (kube_pod_info) by (__name__,node)
   clusterInfo:
-    name: WKP/My Cluster
+    name: My Cluster
     provider: ''
     regions: ''
+    # Hardcoded for the Kubecon demo - this should be passed as an external argument.
+    managementClusterLink: http://d89b23d5-wkpui-wkpuialbing-603e-1976046370.eu-west-2.elb.amazonaws.com
   homepage:
     alertNotifications:
       enabled: true
