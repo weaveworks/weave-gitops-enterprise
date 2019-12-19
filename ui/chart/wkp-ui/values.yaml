@@ -102,6 +102,7 @@ config: # remember to consult `app/ui/src/entities/config.ts` before making any 
     name: My Cluster
     provider: ''
     regions: ''
+    isManagementCluster: false
     managementClusterLink: ''
   homepage:
     alertNotifications:
