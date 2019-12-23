@@ -130,3 +130,14 @@ These `--git` arguments are then used to setup and configure [flux](https://www.
 
 We will rely on the user installing [fluxctl](https://github.com/weaveworks/flux/blob/master/site/fluxctl.md) to interact with flux directly instead of trying to replicate the functionality within `wk`
 
+# Running an end-to-end test against EKS using Quickstart
+
+To run a test that uses the `wk-quickstart-eks` repo to construct a cluster and ensure that the correct pods are running, go to the `test/integration/test` directory and type: `go test --timeout=99999s`. The test will run for 20-25 minutes and then delete the cluster and any repositories (local and GitHub) created during the test.
+
+The following environment variables must be set before running the test:
+
+* GITHUB_USER (username used to determine where to create empty repo)
+* GIT_DEPLOY_KEY (private key that will be used to access the GitHub repo)
+* DOCKER_IO_USER (for fetching images)
+* DOCKER_IO_PASSWORD (for fetching images)
+* WKP_CLUSTER_COMPONENTS_IMAGE (used to manage components)
