@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/branches"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters"
+	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/upgrades"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/permissions"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/workspaces"
 )
@@ -59,6 +60,9 @@ func runServer(params paramSet) error {
 
 	r := mux.NewRouter()
 
+	r.HandleFunc("/gitops/clusters/upgrades", upgrades.List).Methods("GET")
+
+	// These endpoints assume EKSCluster CRDs being present in git
 	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Get).Methods("GET")
 	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Update(params.gitURL, params.gitBranch, privKey)).Methods("POST")
 	r.HandleFunc("/gitops/clusters", clusters.List).Methods("GET")
