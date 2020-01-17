@@ -60,7 +60,8 @@ func runServer(params paramSet) error {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/gitops/clusters/upgrades", upgrades.List).Methods("GET")
+	// These endpoints assume WKS single cluster (no multi-cluster support)
+	r.HandleFunc("/gitops/cluster/upgrades", upgrades.List).Methods("GET")
 
 	// These endpoints assume EKSCluster CRDs being present in git
 	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Get).Methods("GET")
