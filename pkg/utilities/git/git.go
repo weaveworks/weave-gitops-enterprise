@@ -371,21 +371,59 @@ func GetMachinesK8sVersions(repo *GitRepo) ([]string, error) {
 	return versions, nil
 }
 
-// func UpdateClusterK8sVersion(gitURL, gitBranch string, key []byte, version string) error {
-// 	repo, err := CloneToTempDir("", gitURL, gitBranch, key)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	log.Infof("%v", *repo)
-// 	defer repo.Close()
-// 	versions, err := findMachinesVersions(repo.WorktreeDir() + "/setup/machines.yaml")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	log.Infof("%v", versions)
-// 	return nil
-// 	// return performManifestUpdate(repo, machine, "spec.versions.kubelet", version)
-// }
+// UpdateMachinesK8sVersions updates all machines in machines.yaml to the same K8s version
+func UpdateMachinesK8sVersions(repo *GitRepo, version string) error {
+	path := repo.WorktreeDir() + "/setup/machines.yaml"
+	if !IsYAMLFile(path) {
+		return fmt.Errorf("Not a YAML file")
+	}
+	stats, err := os.Stat(path)
+	if err != nil {
+		return nil
+	}
+	perms := stats.Mode() | os.ModePerm
+	filebytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	var fileNode yaml.Node
+	err = yaml.Unmarshal(filebytes, &fileNode)
+	if err != nil {
+		return err
+	}
+	machineNodes := findNestedField(&fileNode, "0", "items")
+	if machineNodes == nil {
+		return fmt.Errorf("Machine descriptions not found in machines.yaml")
+	}
+	for _, machineNode := range machineNodes.Content {
+		err := updateNestedField(machineNode, version, "spec", "versions", "kubelet")
+		if err != nil {
+			return err
+		}
+	}
+	var out bytes.Buffer
+	encoder := yaml.NewEncoder(&out)
+	defer encoder.Close()
+	encoder.SetIndent(2)
+	err = encoder.Encode(findNestedField(&fileNode, "0"))
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(path, out.Bytes(), perms)
+	if err != nil {
+		return nil
+	}
+	err = repo.CommitAll(DefaultAuthor, DefaultEmail, "updated by WKP UI")
+	if err != nil {
+		return nil
+	}
+	err = repo.Push()
+	if err != nil {
+		return nil
+	}
+	log.Infof("Updated repo...")
+	return nil
+}
 
 // Operations used in git actions for policy checking
 func MakeErrorWrapper(context string) func(error) error {
