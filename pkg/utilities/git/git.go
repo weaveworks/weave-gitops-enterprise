@@ -15,12 +15,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/pkg/github/hub"
 	"github.com/weaveworks/wksctl/pkg/utilities/ssh"
-	"gopkg.in/src-d/go-git.v4"
+	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 const (
@@ -337,6 +337,55 @@ func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name,
 	}
 	return performManifestUpdate(repo, cluster, fieldPath, value)
 }
+
+// GetMachinesK8sVersions gets a list of unique K8s versions for all cluster machines
+func GetMachinesK8sVersions(repo *GitRepo) ([]string, error) {
+	path := repo.WorktreeDir() + "/setup/machines.yaml"
+	if !IsYAMLFile(path) {
+		return nil, fmt.Errorf("Not a YAML file")
+	}
+	filebytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var fileNode yaml.Node
+	err = yaml.Unmarshal(filebytes, &fileNode)
+	if err != nil {
+		return nil, err
+	}
+	machineNodes := findNestedField(&fileNode, "0", "items")
+	if machineNodes == nil {
+		return nil, fmt.Errorf("Machines description not found in machines.yaml")
+	}
+	versionMap := map[string]bool{}
+	for _, machineNode := range machineNodes.Content {
+		version := findNestedField(machineNode, "spec", "versions", "kubelet")
+		if version != nil && version.Value != "" {
+			versionMap[version.Value] = true
+		}
+	}
+	versions := []string{}
+	for version := range versionMap {
+		versions = append(versions, version)
+	}
+	return versions, nil
+}
+
+// func UpdateClusterK8sVersion(gitURL, gitBranch string, key []byte, version string) error {
+// 	repo, err := CloneToTempDir("", gitURL, gitBranch, key)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	log.Infof("%v", *repo)
+// 	defer repo.Close()
+// 	versions, err := findMachinesVersions(repo.WorktreeDir() + "/setup/machines.yaml")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	log.Infof("%v", versions)
+// 	return nil
+// 	// return performManifestUpdate(repo, machine, "spec.versions.kubelet", version)
+// }
 
 // Operations used in git actions for policy checking
 func MakeErrorWrapper(context string) func(error) error {
