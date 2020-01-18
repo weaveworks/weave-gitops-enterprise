@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -383,11 +384,12 @@ func GetMachinesK8sVersions(path string) ([]string, error) {
 			versionMap[version.Value] = true
 		}
 	}
-	// Return a list of unique versions
+	// Return a sorted list of unique versions
 	versions := []string{}
 	for version := range versionMap {
 		versions = append(versions, version)
 	}
+	sort.Sort(sort.StringSlice(versions))
 	return versions, nil
 }
 
