@@ -380,9 +380,10 @@ func GetMachinesK8sVersions(path string) ([]string, error) {
 	versionMap := map[string]bool{}
 	for _, machineNode := range machineNodes.Content {
 		version := findNestedField(machineNode, "spec", "versions", "kubelet")
-		if version != nil && version.Value != "" {
-			versionMap[version.Value] = true
+		if version == nil || version.Value == "" {
+			return nil, fmt.Errorf("Kubelet version missing for a node in %s", path)
 		}
+		versionMap[version.Value] = true
 	}
 	// Return a sorted list of unique versions
 	versions := []string{}

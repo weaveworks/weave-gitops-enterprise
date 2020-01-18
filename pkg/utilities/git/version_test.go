@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -8,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var machinesPrevNoVersions = `apiVersion: v1
+var machinesPrevNoVersion = `apiVersion: v1
 items:
 - apiVersion: cluster.k8s.io/v1alpha1
   kind: Machine
@@ -18,6 +19,8 @@ items:
     name: master-0
     namespace: weavek8sops
   spec:
+    versions:
+      kubelet: 1.14.1
     providerSpec:
       value:
         apiVersion: baremetalproviderspec/v1alpha1
@@ -170,14 +173,13 @@ func TestGetMachinesK8sVersions_Standard(t *testing.T) {
 	assert.Equal(t, []string{"1.14.1", "1.14.10"}, versions)
 }
 
-func TestGetMachinesK8sVersions_NoVersions(t *testing.T) {
-	fileName, err := writeMachinesConfig(machinesPrevNoVersions)
+func TestGetMachinesK8sVersions_NoVersion(t *testing.T) {
+	fileName, err := writeMachinesConfig(machinesPrevNoVersion)
 	assert.NoError(t, err)
 	defer os.Remove(fileName)
 
-	versions, err := GetMachinesK8sVersions(fileName)
-	assert.NoError(t, err)
-	assert.Equal(t, []string{}, versions)
+	_, err = GetMachinesK8sVersions(fileName)
+	assert.Equal(t, fmt.Errorf("Kubelet version missing for a node in %s", fileName), err)
 }
 
 func TestUpdateMachinesK8sVersions_Standard(t *testing.T) {
