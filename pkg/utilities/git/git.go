@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -15,12 +17,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/pkg/github/hub"
 	"github.com/weaveworks/wksctl/pkg/utilities/ssh"
-	"gopkg.in/src-d/go-git.v4"
+	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 const (
@@ -201,6 +203,60 @@ func (gr *GitRepo) Close() error {
 	return errors.Wrapf(os.RemoveAll(gr.worktreeDir), "deleting directory %q", gr.worktreeDir)
 }
 
+// PushAllChanges commits and pushes all the file changes to a git repo
+func PushAllChanges(repo *GitRepo) error {
+	err := repo.CommitAll(DefaultAuthor, DefaultEmail, "updated by WKP UI")
+	if err != nil {
+		return err
+	}
+	err = repo.Push()
+	if err != nil {
+		return err
+	}
+	log.Infof("Updated repo...")
+	return nil
+}
+
+// YAML file <-> node helpers
+
+func readYamlNodeFromFile(path string) (yaml.Node, os.FileMode, error) {
+	var fileNode yaml.Node
+	var filePerms os.FileMode
+	if !IsYAMLFile(path) {
+		return fileNode, filePerms, fmt.Errorf("Not a YAML file")
+	}
+	stats, err := os.Stat(path)
+	if err != nil {
+		return fileNode, filePerms, err
+	}
+	filePerms = stats.Mode() | os.ModePerm
+	fileBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return fileNode, filePerms, err
+	}
+	err = yaml.Unmarshal(fileBytes, &fileNode)
+	if err != nil {
+		return fileNode, filePerms, err
+	}
+	return fileNode, filePerms, nil
+}
+
+func writeYamlNodeToFile(path string, fileNode *yaml.Node, filePerms os.FileMode) error {
+	var out bytes.Buffer
+	encoder := yaml.NewEncoder(&out)
+	defer encoder.Close()
+	encoder.SetIndent(2)
+	err := encoder.Encode(fileNode)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(path, out.Bytes(), filePerms)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Support for updating manifest files in git
 
 type objectInfo struct {
@@ -264,28 +320,15 @@ func findObject(dir, kind, namespace, name string) (*objectInfo, error) {
 		if err != nil {
 			return nil
 		}
-		if !IsYAMLFile(path) {
-			return nil
-		}
-		stats, err := os.Stat(path)
+		fileNode, filePerms, err := readYamlNodeFromFile(path)
 		if err != nil {
 			return nil
 		}
-		perms := stats.Mode() | os.ModePerm
-		filebytes, err := ioutil.ReadFile(path)
-		if err != nil {
-			return nil
-		}
-		var top yaml.Node
-		err = yaml.Unmarshal(filebytes, &top)
-		if err != nil {
-			return nil
-		}
-		localNode := findObjectNode(&top, namespace, name)
+		localNode := findObjectNode(&fileNode, namespace, name)
 		if localNode == nil {
 			return nil
 		}
-		info = &objectInfo{filePath: path, filePerms: perms, fileNode: &top, objectNode: localNode}
+		info = &objectInfo{filePath: path, filePerms: filePerms, fileNode: &fileNode, objectNode: localNode}
 		// After finding the object, return an error to stop the file walk
 		return errors.New("STOP")
 	})
@@ -300,27 +343,11 @@ func performManifestUpdate(repo *GitRepo, info *objectInfo, fieldPath string, va
 	if err != nil {
 		return err
 	}
-	var out bytes.Buffer
-	encoder := yaml.NewEncoder(&out)
-	defer encoder.Close()
-	encoder.SetIndent(2)
-	err = encoder.Encode(info.fileNode)
+	err = writeYamlNodeToFile(info.filePath, info.fileNode, info.filePerms)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(info.filePath, out.Bytes(), info.filePerms)
-	if err != nil {
-		return nil
-	}
-	err = repo.CommitAll(DefaultAuthor, DefaultEmail, "updated by WKP UI")
-	if err != nil {
-		return nil
-	}
-	err = repo.Push()
-	if err != nil {
-		return nil
-	}
-	log.Infof("Updated repo...")
+	_ = PushAllChanges(repo)
 	return nil
 }
 
@@ -336,6 +363,61 @@ func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name,
 		return err
 	}
 	return performManifestUpdate(repo, cluster, fieldPath, value)
+}
+
+// GetMachinesK8sVersions gets a list of unique K8s versions for all cluster machines
+func GetMachinesK8sVersions(repoPath, fileSubPath string) ([]string, error) {
+	// Parse the YAML file
+	path := path.Join(repoPath, fileSubPath)
+	fileNode, _, err := readYamlNodeFromFile(path)
+	if err != nil {
+		return nil, err
+	}
+	// Look at the machine descriptions
+	machineNodes := findNestedField(&fileNode, "0", "items")
+	if machineNodes == nil {
+		return nil, fmt.Errorf("Machine items not found in %s", fileSubPath)
+	}
+	// Iterate through all the machines and collect their kubelet versions in a map
+	versionMap := map[string]bool{}
+	for _, machineNode := range machineNodes.Content {
+		version := findNestedField(machineNode, "spec", "versions", "kubelet")
+		if version == nil || version.Value == "" {
+			return nil, fmt.Errorf("Kubelet version missing for a node in %s", fileSubPath)
+		}
+		versionMap[version.Value] = true
+	}
+	// Return a sorted list of unique versions
+	versions := []string{}
+	for version := range versionMap {
+		versions = append(versions, version)
+	}
+	sort.Strings(versions)
+	return versions, nil
+}
+
+// UpdateMachinesK8sVersions updates all machines in machines.yaml to the same K8s version
+func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) error {
+	// Parse the YAML file
+	path := path.Join(repoPath, fileSubPath)
+	fileNode, filePerms, err := readYamlNodeFromFile(path)
+	if err != nil {
+		return err
+	}
+	// Look at the machine descriptions
+	machineNodes := findNestedField(&fileNode, "0", "items")
+	if machineNodes == nil {
+		return fmt.Errorf("Machine items not found in %s", fileSubPath)
+	}
+	// Iterate through all the machines and update their kubelet versions
+	for _, machineNode := range machineNodes.Content {
+		err := updateNestedField(machineNode, version, "spec", "versions", "kubelet")
+		if err != nil {
+			return err
+		}
+	}
+	// Write the updated results back to the file with same permissions
+	return writeYamlNodeToFile(path, findNestedField(&fileNode, "0"), filePerms)
 }
 
 // Operations used in git actions for policy checking
