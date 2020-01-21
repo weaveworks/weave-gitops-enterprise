@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -365,8 +366,9 @@ func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name,
 }
 
 // GetMachinesK8sVersions gets a list of unique K8s versions for all cluster machines
-func GetMachinesK8sVersions(path string) ([]string, error) {
+func GetMachinesK8sVersions(repoPath, fileSubPath string) ([]string, error) {
 	// Parse the YAML file
+	path := path.Join(repoPath, fileSubPath)
 	fileNode, _, err := readYamlNodeFromFile(path)
 	if err != nil {
 		return nil, err
@@ -374,14 +376,14 @@ func GetMachinesK8sVersions(path string) ([]string, error) {
 	// Look at the machine descriptions
 	machineNodes := findNestedField(&fileNode, "0", "items")
 	if machineNodes == nil {
-		return nil, fmt.Errorf("Machine items not found in %s", path)
+		return nil, fmt.Errorf("Machine items not found in %s", fileSubPath)
 	}
 	// Iterate through all the machines and collect their kubelet versions in a map
 	versionMap := map[string]bool{}
 	for _, machineNode := range machineNodes.Content {
 		version := findNestedField(machineNode, "spec", "versions", "kubelet")
 		if version == nil || version.Value == "" {
-			return nil, fmt.Errorf("Kubelet version missing for a node in %s", path)
+			return nil, fmt.Errorf("Kubelet version missing for a node in %s", fileSubPath)
 		}
 		versionMap[version.Value] = true
 	}
@@ -395,8 +397,9 @@ func GetMachinesK8sVersions(path string) ([]string, error) {
 }
 
 // UpdateMachinesK8sVersions updates all machines in machines.yaml to the same K8s version
-func UpdateMachinesK8sVersions(path string, version string) error {
+func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) error {
 	// Parse the YAML file
+	path := path.Join(repoPath, fileSubPath)
 	fileNode, filePerms, err := readYamlNodeFromFile(path)
 	if err != nil {
 		return err
@@ -404,7 +407,7 @@ func UpdateMachinesK8sVersions(path string, version string) error {
 	// Look at the machine descriptions
 	machineNodes := findNestedField(&fileNode, "0", "items")
 	if machineNodes == nil {
-		return fmt.Errorf("Machine items not found in %s", path)
+		return fmt.Errorf("Machine items not found in %s", fileSubPath)
 	}
 	// Iterate through all the machines and update their kubelet versions
 	for _, machineNode := range machineNodes.Content {

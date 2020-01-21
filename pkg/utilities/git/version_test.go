@@ -168,7 +168,7 @@ func TestGetMachinesK8sVersions_Standard(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.Remove(fileName)
 
-	versions, err := GetMachinesK8sVersions(fileName)
+	versions, err := GetMachinesK8sVersions("", fileName)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"1.14.1", "1.14.10"}, versions)
 }
@@ -178,7 +178,7 @@ func TestGetMachinesK8sVersions_NoVersion(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.Remove(fileName)
 
-	_, err = GetMachinesK8sVersions(fileName)
+	_, err = GetMachinesK8sVersions("", fileName)
 	assert.Equal(t, fmt.Errorf("Kubelet version missing for a node in %s", fileName), err)
 }
 
@@ -187,7 +187,7 @@ func TestUpdateMachinesK8sVersions_Standard(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.Remove(fileName)
 
-	err = UpdateMachinesK8sVersions(fileName, "1.15.7")
+	err = UpdateMachinesK8sVersions("", fileName, "1.15.7")
 	assert.NoError(t, err)
 
 	content, err := readMachinesConfig(fileName)
