@@ -390,7 +390,7 @@ func GetMachinesK8sVersions(path string) ([]string, error) {
 	for version := range versionMap {
 		versions = append(versions, version)
 	}
-	sort.Sort(sort.StringSlice(versions))
+	sort.Strings(versions)
 	return versions, nil
 }
 
