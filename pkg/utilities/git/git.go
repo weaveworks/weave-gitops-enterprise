@@ -218,7 +218,7 @@ func PushAllChanges(repo *GitRepo) error {
 
 // YAML file <-> node helpers
 
-func readNodeFromFile(path string) (yaml.Node, os.FileMode, error) {
+func readYamlNodeFromFile(path string) (yaml.Node, os.FileMode, error) {
 	var fileNode yaml.Node
 	var filePerms os.FileMode
 	if !IsYAMLFile(path) {
@@ -240,7 +240,7 @@ func readNodeFromFile(path string) (yaml.Node, os.FileMode, error) {
 	return fileNode, filePerms, nil
 }
 
-func writeNodeToFile(path string, fileNode *yaml.Node, filePerms os.FileMode) error {
+func writeYamlNodeToFile(path string, fileNode *yaml.Node, filePerms os.FileMode) error {
 	var out bytes.Buffer
 	encoder := yaml.NewEncoder(&out)
 	defer encoder.Close()
@@ -319,7 +319,7 @@ func findObject(dir, kind, namespace, name string) (*objectInfo, error) {
 		if err != nil {
 			return nil
 		}
-		fileNode, filePerms, err := readNodeFromFile(path)
+		fileNode, filePerms, err := readYamlNodeFromFile(path)
 		if err != nil {
 			return nil
 		}
@@ -342,7 +342,7 @@ func performManifestUpdate(repo *GitRepo, info *objectInfo, fieldPath string, va
 	if err != nil {
 		return err
 	}
-	err = writeNodeToFile(info.filePath, info.fileNode, info.filePerms)
+	err = writeYamlNodeToFile(info.filePath, info.fileNode, info.filePerms)
 	if err != nil {
 		return err
 	}
@@ -367,7 +367,7 @@ func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name,
 // GetMachinesK8sVersions gets a list of unique K8s versions for all cluster machines
 func GetMachinesK8sVersions(path string) ([]string, error) {
 	// Parse the YAML file
-	fileNode, _, err := readNodeFromFile(path)
+	fileNode, _, err := readYamlNodeFromFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +397,7 @@ func GetMachinesK8sVersions(path string) ([]string, error) {
 // UpdateMachinesK8sVersions updates all machines in machines.yaml to the same K8s version
 func UpdateMachinesK8sVersions(path string, version string) error {
 	// Parse the YAML file
-	fileNode, filePerms, err := readNodeFromFile(path)
+	fileNode, filePerms, err := readYamlNodeFromFile(path)
 	if err != nil {
 		return err
 	}
@@ -414,7 +414,7 @@ func UpdateMachinesK8sVersions(path string, version string) error {
 		}
 	}
 	// Write the updated results back to the file with same permissions
-	return writeNodeToFile(path, findNestedField(&fileNode, "0"), filePerms)
+	return writeYamlNodeToFile(path, findNestedField(&fileNode, "0"), filePerms)
 }
 
 // Operations used in git actions for policy checking
