@@ -259,50 +259,165 @@ func writeYamlNodeToFile(path string, fileNode *yaml.Node, filePerms os.FileMode
 
 // Support for updating manifest files in git
 
-type objectInfo struct {
-	filePath   string
-	filePerms  os.FileMode
-	fileNode   *yaml.Node
-	objectNode *yaml.Node
+type ObjectInfo struct {
+	FilePath   string
+	FilePerms  os.FileMode
+	FileNode   *yaml.Node
+	ObjectNode *yaml.Node
 }
 
-func findNestedField(data *yaml.Node, path ...string) *yaml.Node {
-	current := data
-	for _, elem := range path {
-		intval, err := strconv.ParseInt(elem, 10, 64)
-		if err == nil {
-			current = current.Content[intval]
-			continue
+// Update a manifest in a local git repository and push the results
+func (gr *GitRepo) PerformManifestUpdate(kind, namespace, name, fieldPath string, value interface{}) error {
+	info, err := findObject(gr.WorktreeDir(), kind, namespace, name)
+	if err != nil {
+		return err
+	}
+	err = gr.UpdateYAMLFile(info, value, fieldPath)
+	if err != nil {
+		return err
+	}
+	err = PushAllChanges(gr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (gr *GitRepo) UpdateYAMLFile(info *ObjectInfo, value interface{}, fieldPath string) error {
+	err := UpdateNestedFields(info.ObjectNode, value, strings.Split(fieldPath, ".")...)
+	if err != nil {
+		return err
+	}
+	err = writeYamlNodeToFile(info.FilePath, info.FileNode, info.FilePerms)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func findNestedFields(data *yaml.Node, path ...string) []*yaml.Node {
+	if len(path) == 0 {
+		return []*yaml.Node{data}
+	}
+
+	if data == nil {
+		return []*yaml.Node{}
+	}
+
+	result := []*yaml.Node{}
+	elem := path[0]
+	pathTail := path[1:]
+
+	intval, err := strconv.ParseInt(elem, 10, 64)
+	if err == nil {
+		result = append(result, findNestedFields(data.Content[intval], pathTail...)...)
+	} else if elem == "*" {
+		for _, item := range data.Content {
+			result = append(result, findNestedFields(item, pathTail...)...)
 		}
-		if current.Kind != 0x4 {
-			// path went past end of structure
-			return nil
-		}
+	} else if data.Kind == yaml.DocumentNode {
+		// Top level document just hods a single map node
+		return findNestedFields(data.Content[0], path...)
+	} else if data.Kind == yaml.MappingNode {
 		isKey := true
-		for idx, entry := range current.Content {
+		for idx, entry := range data.Content {
 			if isKey && entry.Value == elem {
-				current = current.Content[idx+1]
+				result = append(result, findNestedFields(data.Content[idx+1], pathTail...)...)
 				break
 			}
 			isKey = !isKey
 		}
 	}
-	return current
+	return result
 }
 
-func updateNestedField(data *yaml.Node, value interface{}, path ...string) error {
-	if fieldNode := findNestedField(data, path...); fieldNode != nil {
-		fieldNode.Value = fmt.Sprintf("%v", value)
+func findNestedField(data *yaml.Node, path ...string) *yaml.Node {
+	nodes := findNestedFields(data, path...)
+	nodeCount := len(nodes)
+	if nodeCount == 0 || nodeCount > 1 {
 		return nil
 	}
-	return fmt.Errorf("Could not locate field: %s in object", strings.Join(path, "."))
+	return nodes[0]
 }
 
-func findObjectNode(top *yaml.Node, namespace, name string) *yaml.Node {
+func UpdateNestedFields(data *yaml.Node, val interface{}, path ...string) error {
+	vals, ok := val.([]interface{})
+	if !ok {
+		vals = []interface{}{val}
+	}
+	if len(vals) == 0 {
+		return fmt.Errorf("Missing value for field: %s", strings.Join(path, "."))
+	}
+	fieldNodes := findNestedFields(data, path...)
+	if len(fieldNodes) == 0 {
+		return fmt.Errorf("Could not locate fields: %s in object", strings.Join(path, "."))
+	}
+	if len(vals) == 1 {
+		for _, fieldNode := range fieldNodes {
+			fieldNode.Value = fmt.Sprintf("%v", val)
+		}
+		return nil
+	}
+
+	// We're inserting into an existing structure. If the following index is a number, it's a sequence node; otherwise scalar
+	// We know "values" contains at least two entries at this point.
+	subNode := createSubNode(vals[1:])
+	value := vals[0]
+	intVal, ok := value.(int)
+	for _, fieldNode := range fieldNodes {
+		if ok {
+			if err := insertNodeIntoSequence(fieldNode, intVal, subNode); err != nil {
+				return err
+			}
+		} else {
+			insertNodeIntoMap(fieldNode, value.(string), subNode)
+		}
+	}
+	return nil
+}
+
+func insertNodeIntoSequence(data *yaml.Node, idx int, subNode *yaml.Node) error {
+	seq := data.Content
+	if len(seq) < idx {
+		return fmt.Errorf("Sequence not large enough to insert value at index: %d", idx)
+	}
+	data.Content = append(append(seq[0:idx], subNode), seq[idx:]...)
+	return nil
+}
+
+func insertNodeIntoMap(data *yaml.Node, key string, subNode *yaml.Node) {
+	keyNode := &yaml.Node{Kind: yaml.ScalarNode, Value: key}
+	data.Content = append(data.Content, keyNode, subNode)
+}
+
+func createSubNode(vals []interface{}) *yaml.Node {
+	val := vals[0]
+	tag := "!!str"
+	if _, isInt := val.(int); isInt {
+		tag = "!!int"
+	}
+
+	if len(vals) == 1 {
+		return &yaml.Node{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%v", val), Tag: tag}
+	}
+
+	subNode := createSubNode(vals[1:])
+	keyNode := &yaml.Node{Kind: yaml.ScalarNode, Value: val.(string)}
+	return &yaml.Node{Kind: yaml.MappingNode, Value: "", Content: []*yaml.Node{keyNode, subNode}}
+}
+
+func findObjectNode(top *yaml.Node, kind, namespace, name string) *yaml.Node {
 	objects := top.Content
+	if kind == "List" {
+		return objects[0]
+	}
 	for _, object := range objects {
 		ns := findNestedField(object, "metadata", "namespace")
-		if (ns.Value == "" && namespace != "default") || (ns.Value != "" && ns.Value != namespace) {
+		if ns == nil {
+			if namespace != "default" {
+				continue
+			}
+		} else if (ns.Value == "" && namespace != "default") || (ns.Value != "" && ns.Value != namespace) {
 			continue
 		}
 		n := findNestedField(object, "metadata", "name")
@@ -314,8 +429,8 @@ func findObjectNode(top *yaml.Node, namespace, name string) *yaml.Node {
 	return nil
 }
 
-func findObject(dir, kind, namespace, name string) (*objectInfo, error) {
-	var info *objectInfo
+func findObject(dir, kind, namespace, name string) (*ObjectInfo, error) {
+	var info *ObjectInfo
 	filepath.Walk(dir, func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return nil
@@ -324,11 +439,11 @@ func findObject(dir, kind, namespace, name string) (*objectInfo, error) {
 		if err != nil {
 			return nil
 		}
-		localNode := findObjectNode(&fileNode, namespace, name)
+		localNode := findObjectNode(&fileNode, kind, namespace, name)
 		if localNode == nil {
 			return nil
 		}
-		info = &objectInfo{filePath: path, filePerms: filePerms, fileNode: &fileNode, objectNode: localNode}
+		info = &ObjectInfo{FilePath: path, FilePerms: filePerms, FileNode: &fileNode, ObjectNode: localNode}
 		// After finding the object, return an error to stop the file walk
 		return errors.New("STOP")
 	})
@@ -338,19 +453,6 @@ func findObject(dir, kind, namespace, name string) (*objectInfo, error) {
 	return nil, fmt.Errorf("Could not find %s: %s/%s", kind, namespace, name)
 }
 
-func performManifestUpdate(repo *GitRepo, info *objectInfo, fieldPath string, value interface{}) error {
-	err := updateNestedField(info.objectNode, value, strings.Split(fieldPath, ".")...)
-	if err != nil {
-		return err
-	}
-	err = writeYamlNodeToFile(info.filePath, info.fileNode, info.filePerms)
-	if err != nil {
-		return err
-	}
-	_ = PushAllChanges(repo)
-	return nil
-}
-
 // Update a manifest in git; used to write back changes for gitops
 func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name, fieldPath string, value interface{}) error {
 	repo, err := CloneToTempDir("", gitURL, gitBranch, key)
@@ -358,11 +460,7 @@ func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name,
 		return err
 	}
 	defer repo.Close()
-	cluster, err := findObject(repo.WorktreeDir(), kind, namespace, name)
-	if err != nil {
-		return err
-	}
-	return performManifestUpdate(repo, cluster, fieldPath, value)
+	return repo.PerformManifestUpdate(kind, namespace, name, fieldPath, value)
 }
 
 // GetMachinesK8sVersions gets a list of unique K8s versions for all cluster machines
@@ -411,7 +509,7 @@ func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) err
 	}
 	// Iterate through all the machines and update their kubelet versions
 	for _, machineNode := range machineNodes.Content {
-		err := updateNestedField(machineNode, version, "spec", "versions", "kubelet")
+		err := UpdateNestedFields(machineNode, version, "spec", "versions", "kubelet")
 		if err != nil {
 			return err
 		}

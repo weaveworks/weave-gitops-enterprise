@@ -158,12 +158,12 @@ spec:
 `
 
 type testdata struct {
-	namespace, name, before, after, path, value string
+	kind, namespace, name, before, after, path, value string
 }
 
 var tests = []testdata{
-	{"default", "foo", crbPrev, crbNext, "metadata.name", "bar"},
-	{"system", "wks-controller", elaboratePrev, elaborateNext, "spec.template.spec.containers.0.resources.limits.cpu", "200m"},
+	{"ClusterRoleBinding", "default", "foo", crbPrev, crbNext, "metadata.name", "bar"},
+	{"Deployment", "system", "wks-controller", elaboratePrev, elaborateNext, "spec.template.spec.containers.0.resources.limits.cpu", "200m"},
 }
 
 func TestUpdate(t *testing.T) {
@@ -171,10 +171,10 @@ func TestUpdate(t *testing.T) {
 		var input yaml.Node
 		err := yaml.Unmarshal([]byte(data.before), &input)
 		assert.NoError(t, err)
-		objectNode := findObjectNode(&input, data.namespace, data.name)
+		objectNode := findObjectNode(&input, data.kind, data.namespace, data.name)
 		assert.NotNil(t, objectNode)
 		path := strings.Split(data.path, ".")
-		err = updateNestedField(objectNode, data.value, path...)
+		err = UpdateNestedFields(objectNode, data.value, path...)
 		assert.NoError(t, err)
 		var output bytes.Buffer
 		encoder := yaml.NewEncoder(&output)
