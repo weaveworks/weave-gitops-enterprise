@@ -12,6 +12,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/gliderlabs/ssh v0.1.4 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/google/go-cmp v0.3.0
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-github/v28 v28.1.1
@@ -48,6 +49,7 @@ require (
 	k8s.io/api v0.0.0-20190831074750-7364b6bdad65
 	k8s.io/apimachinery v0.0.0-20190831074630-461753078381
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/klog v1.0.0 // indirect
 )
 
 replace (
