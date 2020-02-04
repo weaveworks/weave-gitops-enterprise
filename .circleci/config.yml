@@ -49,7 +49,9 @@ jobs:
             if [ -z "${CI_BRANCH}" -o "${CI_BRANCH}" == "master" ]; then
               # aws gets its credential through the AWS_ACCESS_KEY_ID and
               # AWS_SECRET_ACCESS_KEY environment variables.
-              aws s3 cp cmd/wk/wk s3://weaveworks-wks/wk-${TAG}
+              export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
+              export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
+              aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-${TAG}
             fi
       - persist_to_workspace:
           root: .
