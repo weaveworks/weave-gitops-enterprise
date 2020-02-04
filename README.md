@@ -34,7 +34,7 @@ To release a new version of the project:
 
 - Create a new tag: `git tag -a 1.0.1`
 - Push tag: `git tag --push`
-- CI will push binary to weaveworks-wks.s3.amazonaws.com/wk-1.0.1
+- CI will push binary to weaveworks-wkp.s3.amazonaws.com/wk-1.0.1
 - Edit release notes https://github.com/weaveworks/wks/releases/edit/1.0.1
 - Update rpm/wk.spec version and changelog
 - Build an rpm `cd rpm && ./build wk.spec`
