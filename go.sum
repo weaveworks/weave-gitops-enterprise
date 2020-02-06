@@ -368,6 +368,8 @@ github.com/weaveworks/wksctl v0.0.0-20191029044407-dbf21d24b94e h1:GO1zvL3btdt8i
 github.com/weaveworks/wksctl v0.0.0-20191029044407-dbf21d24b94e/go.mod h1:Kb3g0lW0CVBqqAvEMYiSzShzyBHtIbv/Pki9llCp1DE=
 github.com/weaveworks/wksctl v0.0.0-20200129165359-f7220fb8eb36 h1:tvU8kpZmHBz5UVql3sFgiuZMWknpzpIOY1BHVWFSE58=
 github.com/weaveworks/wksctl v0.0.0-20200129165359-f7220fb8eb36/go.mod h1:FqnfUED7lJMvTnUTtehDNsg09yjBDVgluvfZeEnHmQU=
+github.com/weaveworks/wksctl v0.0.0-20200205205816-684a8fb5bb72 h1:xmkiNapvb5678uqD9LfMHNK8YXk041vpbm9UaBFQiCU=
+github.com/weaveworks/wksctl v0.0.0-20200205205816-684a8fb5bb72/go.mod h1:CdZ0Zr7LC8okZoXm2vGmPWlP6G8Gjpz3EmUHqV+P7Aw=
 github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa h1:rW+Lu6281ed/4XGuVIa4/YebTRNvoUJlfJ44ktEVwZk=
 github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/xanzy/ssh-agent v0.2.0/go.mod h1:0NyE30eGUDliuLEHJgYte/zncp2zdTStcOnWhgSqHD8=
