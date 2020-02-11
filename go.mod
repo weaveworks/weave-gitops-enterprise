@@ -33,7 +33,7 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/stretchr/testify v1.4.0
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
-	github.com/weaveworks/footloose v0.0.0-20190829132911-efbcbb7a6390
+	github.com/weaveworks/footloose v0.0.0-20190903132036-efbcbb7a6390
 	github.com/weaveworks/wksctl v0.0.0-20200205205816-684a8fb5bb72
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
