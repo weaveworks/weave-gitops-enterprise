@@ -66,6 +66,66 @@ func (gr *GitRepo) DeleteRemote(name string) error {
 	return gr.repo.DeleteRemote(name)
 }
 
+func TarballToGithubRepo(user, repoName, tarPath, repoDir string, privKey []byte) (*GitRepo, error) {
+	log.Infof("Creating a temp directory...")
+	tmpDir, err := ioutil.TempDir("", "git-")
+	if err != nil {
+		return nil, errors.Wrap(err, "TempDir")
+	}
+	log.Infof("Temp directory %q created.", tmpDir)
+	gitDir := filepath.Join(tmpDir, repoDir)
+	repo, err := git.PlainInit(gitDir, false)
+	if err != nil {
+		return nil, errors.Wrap(err, "git init")
+	}
+
+	log.Infof("Creating the GitHub repository %q...", repoName)
+	if _, err := hub.CreateEmpty(user, repoName, true); err != nil {
+		return nil, errors.Wrap(err, "create github repo")
+	}
+
+	auth, err := gitssh.NewPublicKeys("git", privKey, "")
+	if err != nil {
+		return nil, errors.Wrap(err, "private key read")
+	}
+
+	gr := &GitRepo{
+		worktreeDir: gitDir,
+		repo:        repo,
+		auth:        auth,
+	}
+
+	log.Infof("Unrolling tar ball into local git repo")
+	cmdstr := fmt.Sprintf("cd %q && tar xz --exclude='.git' -f %q", tmpDir, tarPath)
+	cmd := exec.Command("sh", "-c", cmdstr)
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	log.Info("Updating git remote to point to new repo...")
+	if err := gr.CreateRemote("origin", fmt.Sprintf("git@github.com:%s/%s.git", user, repoName)); err != nil {
+		return nil, errors.Wrap(err, "create remote")
+	}
+
+	log.Info("Set up master branch")
+	if err := gr.repo.CreateBranch(&config.Branch{Name: "master", Remote: "origin", Merge: "refs/heads/master"}); err != nil {
+		return nil, errors.Wrap(err, "create branch")
+	}
+
+	log.Infof("Creating initial commit for the Git repository %q...", repoName)
+	if err := gr.CommitAll(user, "nobody@weave.works", "initial commit"); err != nil {
+		return nil, errors.Wrap(err, "initial commit")
+	}
+
+	log.Infof("Pushing initial commit to the Git repository %q...", repoName)
+
+	if err := gr.Push(); err != nil {
+		return nil, errors.Wrap(err, "git push")
+	}
+
+	return gr, nil
+}
+
 func NewGithubRepoToTempDir(parentDir, repoName string) (*GitRepo, *ssh.KeyPair, error) {
 	log.Infof("Creating a temp directory...")
 	gitDir, err := ioutil.TempDir(parentDir, "git-")
@@ -183,6 +243,17 @@ func (gr *GitRepo) CommitAll(name, email, msg string) error {
 func (gr *GitRepo) Push() error {
 	log.Infof("Pushing local commits to the Git remote...")
 	po := git.PushOptions{Auth: gr.auth}
+	if err := po.Validate(); err != nil {
+		return errors.Wrap(err, "push options validate")
+	}
+	return errors.Wrap(gr.repo.Push(&po), "git push")
+}
+
+func (gr *GitRepo) PushWithOptions(po git.PushOptions) error {
+	log.Infof("Pushing local commits to the Git remote...")
+	if po.Auth == nil {
+		po.Auth = gr.auth
+	}
 	if err := po.Validate(); err != nil {
 		return errors.Wrap(err, "push options validate")
 	}
