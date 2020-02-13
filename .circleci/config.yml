@@ -23,12 +23,13 @@ workflows:
   version: 2
   test-build-deploy:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /.*/
-      - container-tests: {}
-      - unit-tests: {}
+      # - build:
+          # filters:
+            # tags:
+              # only: /.*/
+      # - container-tests: {}
+      # - unit-tests: {}
+      - integration-tests: {}
 
 jobs:
   build:
@@ -147,3 +148,74 @@ jobs:
             export PATH=$GOROOT/bin:$PATH
             go version
             make container-tests
+
+  integration-tests:
+    machine:
+      docker_layer_caching: true
+    environment:
+      GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+      GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
+      GOROOT: /home/circleci/goroot
+      GOPATH: /home/circleci/go
+      SRCDIR: /home/circleci/src/github.com/weaveworks/wks
+      KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
+      KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - checkout
+      - <<: *checkoutWithSSH
+      - run:
+          name: Install go
+          command: |
+            (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
+            mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
+      - run:
+          name: Install kubectl
+          command: |
+            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
+            echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
+            tar xvzf kubectl.tar.gz --strip-components=3
+            sudo mv kubectl /usr/local/bin
+      - run:
+          name: Install hub
+          command: |
+            curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
+            sudo mv bin/hub /usr/local/bin
+      - restore_cache:
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+          name: Go get
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            go get
+      - save_cache:
+          key: go-mod-v2-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod
+      - run:
+          name: Run container tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            # remove the circle config which locks down github keys
+            mv ~/.ssh/config{,.old}
+
+            eval "$(ssh-agent -s)"
+            ssh-keygen -N "" -q -f gitops-repo-key
+            ssh-add gitops-repo-key
+            export GIT_DEPLOY_KEY=$PWD/gitops-repo-key
+
+            curl -o wkp.tar.gz https://weaveworks-wkp.s3.amazonaws.com/wk-quickstart-use-bundled-bins-in-cleanup-061f1a1a.tar.gz
+            export WKP_BUNDLE=$PWD/wkp.tar.gz
+
+            export SKIP_COMPONENTS=true
+            export TRACK=wks-footloose
+            export UPGRADE_VERSION=1.14.10
+            export WKP_CLUSTER_COMPONENTS_IMAGE=docker.io/weaveworks/wkp-cluster-components:master-1093c037
+            export GITHUB_ORG=wkp-example-org
+
+            export GITHUB_USER=wkp-workspace-admin
+            export GITHUB_TOKEN=$WKP_EXAMPLE_ORG_GITHUB_TOKEN
+
+            cd test/integration/test
+            go test -v -run TestUpgrade --timeout=99999s
