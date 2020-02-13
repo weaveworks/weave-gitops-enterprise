@@ -23,12 +23,12 @@ workflows:
   version: 2
   test-build-deploy:
     jobs:
-      # - build:
-          # filters:
-            # tags:
-              # only: /.*/
-      # - container-tests: {}
-      # - unit-tests: {}
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - container-tests: {}
+      - unit-tests: {}
       - integration-tests: {}
 
 jobs:
