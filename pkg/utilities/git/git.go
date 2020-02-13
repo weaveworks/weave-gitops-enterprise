@@ -73,10 +73,18 @@ func TarballToGithubRepo(user, repoName, tarPath, repoDir string, privKey []byte
 		return nil, errors.Wrap(err, "TempDir")
 	}
 	log.Infof("Temp directory %q created.", tmpDir)
+
+	log.Infof("Unrolling tar ball into local git repo")
+	cmdstr := fmt.Sprintf("cd %q && tar xz -f %q", tmpDir, tarPath)
+	cmd := exec.Command("sh", "-c", cmdstr)
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+
 	gitDir := filepath.Join(tmpDir, repoDir)
-	repo, err := git.PlainInit(gitDir, false)
+	repo, err := git.PlainOpen(gitDir)
 	if err != nil {
-		return nil, errors.Wrap(err, "git init")
+		return nil, errors.Wrap(err, "git open")
 	}
 
 	log.Infof("Creating the GitHub repository %q...", repoName)
@@ -95,13 +103,6 @@ func TarballToGithubRepo(user, repoName, tarPath, repoDir string, privKey []byte
 		auth:        auth,
 	}
 
-	log.Infof("Unrolling tar ball into local git repo")
-	cmdstr := fmt.Sprintf("cd %q && tar xz --exclude='.git' -f %q", tmpDir, tarPath)
-	cmd := exec.Command("sh", "-c", cmdstr)
-	if err := cmd.Run(); err != nil {
-		return nil, err
-	}
-
 	log.Info("Updating git remote to point to new repo...")
 	if err := gr.CreateRemote("origin", fmt.Sprintf("git@github.com:%s/%s.git", user, repoName)); err != nil {
 		return nil, errors.Wrap(err, "create remote")
@@ -112,13 +113,7 @@ func TarballToGithubRepo(user, repoName, tarPath, repoDir string, privKey []byte
 		return nil, errors.Wrap(err, "create branch")
 	}
 
-	log.Infof("Creating initial commit for the Git repository %q...", repoName)
-	if err := gr.CommitAll(user, "nobody@weave.works", "initial commit"); err != nil {
-		return nil, errors.Wrap(err, "initial commit")
-	}
-
 	log.Infof("Pushing initial commit to the Git repository %q...", repoName)
-
 	if err := gr.Push(); err != nil {
 		return nil, errors.Wrap(err, "git push")
 	}
@@ -217,13 +212,19 @@ func CloneToTempDir(parentDir, gitURL, branch string, privKey []byte) (*GitRepo,
 }
 
 func (gr *GitRepo) CommitAll(name, email, msg string) error {
+	return gr.CommitPath(name, email, msg, []string{"."})
+}
+
+func (gr *GitRepo) CommitPath(name, email, msg string, paths []string) error {
 	wt, err := gr.repo.Worktree()
 	if err != nil {
 		return errors.Wrap(err, "worktree")
 	}
 
-	if _, err := wt.Add("."); err != nil {
-		return errors.Wrap(err, "git add")
+	for _, path := range paths {
+		if _, err := wt.Add(path); err != nil {
+			return errors.Wrap(err, "git add")
+		}
 	}
 
 	co := git.CommitOptions{
