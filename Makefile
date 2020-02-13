@@ -46,6 +46,7 @@ check: all lint unit-tests container-tests
 
 BINARIES = \
 	cmd/wk/wk \
+	cmd/wk/wk-darwin-amd64 \
 	cmd/wks-entitle/wks-entitle \
 	cmd/update-manifest/update-manifest \
 	cmd/wks-ci/wks-ci \
@@ -82,6 +83,10 @@ generated: pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go
 cmd/wk/wk: $(DEPS) generated
 cmd/wk/wk: cmd/wk/*.go
 	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wk/*.go
+
+cmd/wk/wk-darwin-amd64: $(DEPS) generated
+cmd/wk/wk-darwin-amd64: cmd/wk/*.go
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wk/*.go
 
 cmd/wks-ci/checks/policy/.uptodate: cmd/policy/policy
 cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go generated

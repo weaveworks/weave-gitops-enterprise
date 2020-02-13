@@ -51,7 +51,13 @@ jobs:
               # AWS_SECRET_ACCESS_KEY environment variables.
               export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
               export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
+
+              # legacy binary name
               aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-${TAG}
+
+              # publish linux and darwin binaries
+              aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-${TAG}-linux-amd64
+              aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-${TAG}-darwin-amd64
             fi
       - persist_to_workspace:
           root: .
