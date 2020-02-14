@@ -8,6 +8,8 @@ IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe --always)
 UPTODATE := .uptodate
+# The GOOS to use for local binaries that we `make install`
+LOCAL_BINARIES_GOOS ?= $(GOOS)
 
 # Every directory with a Dockerfile in it builds an image called
 # $(IMAGE_PREFIX)<dirname>. Dependencies (i.e. things that go in the image)
@@ -44,11 +46,14 @@ all: $(UPTODATE_FILES) binaries
 
 check: all lint unit-tests container-tests
 
-BINARIES = \
+LOCAL_BINARIES = \
 	cmd/wk/wk \
 	cmd/wks-entitle/wks-entitle \
 	cmd/update-manifest/update-manifest \
 	cmd/wks-ci/wks-ci \
+
+BINARIES = \
+	$(LOCAL_BINARIES) \
 	cmd/mock-authz-server/server \
 	cmd/mock-https-authz-server/server \
 	cmd/wks-ci/checks/policy/policy \
@@ -81,7 +86,7 @@ generated: pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go
 
 cmd/wk/wk: $(DEPS) generated
 cmd/wk/wk: cmd/wk/*.go
-	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wk/*.go
+	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wk/*.go
 
 cmd/wks-ci/checks/policy/.uptodate: cmd/policy/policy
 cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go generated
@@ -89,18 +94,17 @@ cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go generated
 
 ENTITLE_DEPS=$(call godeps,./cmd/wks-entitle)
 cmd/wks-entitle/wks-entitle: $(ENTITLE_DEPS)
-	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-entitle/*.go
+	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-entitle/*.go
 
 CI_DEPS=$(call godeps,./cmd/wks-ci)
 
 cmd/wks-ci/.uptodate: cmd/wks-ci/wks-ci cmd/wks-ci/checks/policy/policy cmd/wks-ci/Dockerfile
 cmd/wks-ci/wks-ci: $(CI_DEPS) cmd/wks-ci/*.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
+	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
 
 UPDATE_MANIFEST_DEPS=$(call godeps,./cmd/update-manifest)
 cmd/update-manifest/update-manifest: $(UPDATE_MANIFEST_DEPS) cmd/update-manifest/*.go
-	CGO_ENABLED=0 GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/update-manifest/*.go
-
+	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/update-manifest/*.go
 
 kerberos/cmd/wk-kerberos/wk-kerberos: $(shell find kerberos/cmd/wk-kerberos/ -type f -name '*.go')
 	# Without "cd kerberos" the outer "wks" module is used.
@@ -127,11 +131,8 @@ cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/
 cmd/gitops-repo-broker/gitops-repo-broker: cmd/gitops-repo-broker/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/gitops-repo-broker
 
-install: all
-	cp cmd/wk/wk `go env GOPATH`/bin
-	cp cmd/wks-entitle/wks-entitle `go env GOPATH`/bin
-	cp cmd/wks-ci/wks-ci `go env GOPATH`/bin
-	cp cmd/update-manifest/update-manifest `go env GOPATH`/bin
+install: $(LOCAL_BINARIES)
+	cp $(LOCAL_BINARIES) `go env GOPATH`/bin
 
 EMBEDMD_FILES = \
 	docs/entitlements.md \
