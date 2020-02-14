@@ -214,8 +214,9 @@ jobs:
             export WKP_CLUSTER_COMPONENTS_IMAGE=docker.io/weaveworks/wkp-cluster-components:master-1093c037
             export GITHUB_ORG=wkp-example-org
 
-            export GITHUB_USER=wkp-workspace-admin
-            export GITHUB_TOKEN=$WKP_EXAMPLE_ORG_GITHUB_TOKEN
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_USER=$WKP_GITHUB_USER
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
 
             cd test/integration/test
             go test -v -run TestUpgrade --timeout=99999s
