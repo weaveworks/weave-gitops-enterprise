@@ -40,7 +40,7 @@ jobs:
       - run:
           name: Build darwin binaries
           command: |
-            BIN_GOOS=darwin make cmd/wk/wk
+            LOCAL_BINARIES_GOOS=darwin make cmd/wk/wk
             mv cmd/wk/wk cmd/wk/wk-darwin-amd64
       - run: make
       - run: make lint
