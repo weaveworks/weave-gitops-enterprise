@@ -213,7 +213,7 @@ jobs:
             export TRACK=wks-footloose
             export UPGRADE_VERSION=1.14.10
             export WKP_CLUSTER_COMPONENTS_IMAGE=docker.io/weaveworks/wkp-cluster-components:master-1093c037
-            export GITHUB_ORG=wkp-ci-test-bot
+            export GITHUB_ORG=foot
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_USER=$WKP_GITHUB_USER
