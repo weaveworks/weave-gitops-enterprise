@@ -200,8 +200,9 @@ jobs:
             # remove the circle config which locks down github keys
             mv ~/.ssh/config{,.old}
 
-            eval "$(ssh-agent -s)"
             ssh-keygen -N "" -q -f gitops-repo-key
+            eval "$(ssh-agent -s)"
+            ssh-add -D
             ssh-add gitops-repo-key
             export GIT_DEPLOY_KEY=$PWD/gitops-repo-key
 
