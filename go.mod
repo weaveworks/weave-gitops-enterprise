@@ -7,10 +7,10 @@ require (
 	github.com/alioygur/gores v1.2.1
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/davecgh/go-spew v1.1.1
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/gliderlabs/ssh v0.1.4 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golangci/golangci-lint v1.17.1 // indirect
 	github.com/google/go-cmp v0.3.0
@@ -43,7 +43,7 @@ require (
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
 	golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3 // indirect
-	golang.org/x/tools v0.0.0-20190816200558-6889da9d5479
+	golang.org/x/tools v0.0.0-20190909030654-5b82db07426d
 	google.golang.org/appengine v1.5.0 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
