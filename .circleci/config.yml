@@ -210,7 +210,7 @@ jobs:
             ssh-add gitops-repo-key
             export GIT_DEPLOY_KEY=$PWD/gitops-repo-key
 
-            curl -o wkp.tar.gz https://weaveworks-wkp.s3.amazonaws.com/wk-quickstart-use-bundled-bins-in-cleanup-061f1a1a.tar.gz
+            curl -o wkp.tar.gz https://weaveworks-wkp.s3.amazonaws.com/wk-quickstart-v2.0.0-rc4.tar.gz
             export WKP_BUNDLE=$PWD/wkp.tar.gz
 
             export SKIP_COMPONENTS=true
