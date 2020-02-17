@@ -17,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/pkg/github/hub"
 	"github.com/weaveworks/wksctl/pkg/utilities/ssh"
+	cryptossh "golang.org/x/crypto/ssh"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -66,7 +67,7 @@ func (gr *GitRepo) DeleteRemote(name string) error {
 	return gr.repo.DeleteRemote(name)
 }
 
-func TarballToGithubRepo(user, repoName, tarPath, repoDir string, privKey []byte) (*GitRepo, error) {
+func TarballToGithubRepo(org, repoName, tarPath, repoDir string, privKey []byte) (*GitRepo, error) {
 	log.Infof("Creating a temp directory...")
 	tmpDir, err := ioutil.TempDir("", "git-")
 	if err != nil {
@@ -88,13 +89,20 @@ func TarballToGithubRepo(user, repoName, tarPath, repoDir string, privKey []byte
 	}
 
 	log.Infof("Creating the GitHub repository %q...", repoName)
-	if _, err := hub.CreateEmpty(user, repoName, true); err != nil {
+	if _, err := hub.CreateEmpty(org, repoName, true); err != nil {
 		return nil, errors.Wrap(err, "create github repo")
 	}
 
 	auth, err := gitssh.NewPublicKeys("git", privKey, "")
 	if err != nil {
 		return nil, errors.Wrap(err, "private key read")
+	}
+
+	pubKey := cryptossh.MarshalAuthorizedKey(auth.Signer.PublicKey())
+	log.Infof("Adding Deploy key to the GitHub repository %q: %q", repoName, pubKey)
+	fullRepoName := fmt.Sprintf("%s/%s", org, repoName)
+	if err := hub.RegisterDeployKey(fullRepoName, "wkp-gitops-key", string(pubKey), false); err != nil {
+		return nil, errors.Wrap(err, "register deploy key")
 	}
 
 	gr := &GitRepo{
@@ -104,7 +112,7 @@ func TarballToGithubRepo(user, repoName, tarPath, repoDir string, privKey []byte
 	}
 
 	log.Info("Updating git remote to point to new repo...")
-	if err := gr.CreateRemote("origin", fmt.Sprintf("git@github.com:%s/%s.git", user, repoName)); err != nil {
+	if err := gr.CreateRemote("origin", fmt.Sprintf("git@github.com:%s/%s.git", org, repoName)); err != nil {
 		return nil, errors.Wrap(err, "create remote")
 	}
 
