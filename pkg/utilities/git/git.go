@@ -663,13 +663,9 @@ func CopyRepoAtCommit(targetDir, repoDir, commit string) error {
 func ListTree(repoDir, commit string) (Set, error) {
 	wrap := MakeErrorWrapper("gitListTree")
 	empty := Set{}
-	existingDir, err := os.Getwd()
-	if err != nil {
-		return empty, wrap(err)
-	}
-	defer func() { os.Chdir(existingDir) }()
-	os.Chdir(repoDir)
-	out, err := exec.Command("git", "ls-tree", "--name-only", "-r", commit).Output()
+	cmd := exec.Command("git", "ls-tree", "--name-only", "-r", commit)
+	cmd.Dir = repoDir
+	out, err := cmd.Output()
 	if err != nil {
 		return empty, wrap(ExecError(err))
 	}
@@ -689,14 +685,9 @@ func DiffTree(repoDir, oldCommit, newCommit string) (Set, error) {
 
 func ReadFile(repoDir, filePath, commit string) ([]byte, error) {
 	log.Debugf("Reading file %q from git commit %q...", filePath, commit)
-	wrap := MakeErrorWrapper("gitReadFile")
-	existingDir, err := os.Getwd()
-	if err != nil {
-		return nil, wrap(err)
-	}
-	defer func() { os.Chdir(existingDir) }()
-	os.Chdir(repoDir)
-	data, err := exec.Command("git", "show", commit+":"+filePath).Output()
+	cmd := exec.Command("git", "show", commit+":"+filePath)
+	cmd.Dir = repoDir
+	data, err := cmd.Output()
 	if err != nil {
 		if !CheckExist(filePath, commit) {
 			return []byte(""), nil
