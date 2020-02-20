@@ -2,13 +2,13 @@
 
 set -e
 
-if [ ! $(command -v golangci-lint) ]
+if [ ! -x "${GOPATH}/bin/golangci-lint" ]
 then
-    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/bin v1.17.1
+    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b "${GOPATH}/bin" v1.17.1
 fi
 
 
-golangci-lint run --tests --disable-all --deadline=600s \
+"${GOPATH}/bin/golangci-lint" run --tests --disable-all --deadline=600s \
     --enable=misspell \
     --enable=vet \
     --enable=ineffassign \
