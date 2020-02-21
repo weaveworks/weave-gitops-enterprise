@@ -12,7 +12,6 @@ require (
 	github.com/gliderlabs/ssh v0.1.4 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
-	github.com/golangci/golangci-lint v1.17.1 // indirect
 	github.com/google/go-cmp v0.3.0
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-github/v28 v28.1.1
