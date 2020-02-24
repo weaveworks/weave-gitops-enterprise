@@ -8,10 +8,9 @@ then
 fi
 
 
-"${GOPATH}/bin/golangci-lint" run --tests --disable-all --deadline=600s \
+"${GOPATH}/bin/golangci-lint" run --tests --deadline=600s \
+    --disable=errcheck \
     --enable=misspell \
-    --enable=vet \
-    --enable=ineffassign \
     --enable=gofmt \
    --skip-dirs=pkg/guide \
    --skip-dirs=pkg/addons/assets \
