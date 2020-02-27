@@ -3,6 +3,9 @@ module github.com/weaveworks/wks
 go 1.12
 
 require (
+	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/alioygur/gores v1.2.1
 	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5
@@ -18,12 +21,14 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
+	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/jcmturner/gofork v1.0.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-colorable v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
+	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/open-policy-agent/opa v0.12.2
@@ -64,6 +69,8 @@ replace (
 	github.com/dlespiau/kube-test-harness => github.com/dlespiau/kube-test-harness v0.0.0-20180712150055-7eab798dff48
 	github.com/docker/distribution => github.com/2opremio/distribution v0.0.0-20190419185413-6c9727e5e5de
 	github.com/json-iterator/go => github.com/json-iterator/go v0.0.0-20180612202835-f2b4162afba3
+	github.com/weaveworks/wks => /Users/jerry/src/github.com/weaveworks/wks
+	github.com/weaveworks/wks/pkg/utilities/config => /Users/jerry/src/github.com/weaveworks/wks/pkg/config
 	gopkg.in/jcmturner/gokrb5.v6 => github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2
 	k8s.io/api => k8s.io/api v0.0.0-20190704094930-781da4e7b28a
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190704094625-facf06a8f4b8

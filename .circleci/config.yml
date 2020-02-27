@@ -38,6 +38,7 @@ workflows:
 jobs:
   build:
     <<: *defaults
+    resource_class: medium+
     steps:
       - checkout
       - <<: *checkoutWithSSH
