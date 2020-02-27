@@ -4,7 +4,7 @@ set -e
 
 if [ ! -x "${GOPATH}/bin/golangci-lint" ]
 then
-    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b "${GOPATH}/bin" v1.17.1
+    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b "${GOPATH}/bin" v1.23.6
 fi
 
 
