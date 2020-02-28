@@ -67,25 +67,21 @@ func (gr *GitRepo) DeleteRemote(name string) error {
 	return gr.repo.DeleteRemote(name)
 }
 
-func TarballToGithubRepo(org, repoName, tarPath, repoDir string, privKey []byte) (*GitRepo, error) {
-	log.Infof("Creating a temp directory...")
-	tmpDir, err := ioutil.TempDir("", "git-")
-	if err != nil {
-		return nil, errors.Wrap(err, "TempDir")
-	}
-	log.Infof("Temp directory %q created.", tmpDir)
+// CreateGithubRepoWithDeployKey creates a remote GitHub repository with a deploy key and either
+// updates a local repository to set its origin to the new repository or creates a new local repository
+// with an origin of the new GitHub repository
+func CreateGithubRepoWithDeployKey(
+	org,
+	repoName,
+	gitDir string,
+	setupLocalRepo func() (*git.Repository, bool, error),
+	privKey []byte) (*GitRepo, error) {
+	existingRepo := false
 
-	log.Infof("Unrolling tar ball into local git repo")
-	cmdstr := fmt.Sprintf("cd %q && tar xz -f %q", tmpDir, tarPath)
-	cmd := exec.Command("sh", "-c", cmdstr)
-	if err := cmd.Run(); err != nil {
+	log.Infof("Initializing local repository %q...", repoName)
+	repo, existingRepo, err := setupLocalRepo()
+	if err != nil {
 		return nil, err
-	}
-
-	gitDir := filepath.Join(tmpDir, repoDir)
-	repo, err := git.PlainOpen(gitDir)
-	if err != nil {
-		return nil, errors.Wrap(err, "git open")
 	}
 
 	log.Infof("Creating the GitHub repository %q...", repoName)
@@ -112,13 +108,50 @@ func TarballToGithubRepo(org, repoName, tarPath, repoDir string, privKey []byte)
 	}
 
 	log.Info("Updating git remote to point to new repo...")
-	if err := gr.CreateRemote("origin", fmt.Sprintf("git@github.com:%s/%s.git", org, repoName)); err != nil {
-		return nil, errors.Wrap(err, "create remote")
+	if existingRepo {
+		if err := gr.CreateRemote("origin", fmt.Sprintf("git@github.com:%s/%s.git", org, repoName)); err != nil {
+			return nil, errors.Wrap(err, "create remote")
+		}
 	}
 
 	log.Info("Set up master branch")
 	if err := gr.repo.CreateBranch(&config.Branch{Name: "master", Remote: "origin", Merge: "refs/heads/master"}); err != nil {
 		return nil, errors.Wrap(err, "create branch")
+	}
+
+	return gr, nil
+}
+
+// TarballToGithubRepo unrolls a wkp release tar, creates a remote GitHub repository, sets up
+// a deployment key and sets the local repository's remote to point to the new repository.
+func TarballToGithubRepo(org, repoName, tarPath, repoDir string, privKey []byte) (*GitRepo, error) {
+	log.Infof("Creating a temp directory...")
+	tmpDir, err := ioutil.TempDir("", "git-")
+	if err != nil {
+		return nil, errors.Wrap(err, "TempDir")
+	}
+	log.Infof("Temp directory %q created.", tmpDir)
+
+	log.Infof("Unrolling tar ball into local git repo")
+	cmdstr := fmt.Sprintf("cd %q && tar xz -f %q", tmpDir, tarPath)
+	cmd := exec.Command("sh", "-c", cmdstr)
+	if err := cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	gitDir := filepath.Join(tmpDir, repoDir)
+
+	processLocalRepo := func() (*git.Repository, bool, error) {
+		r, err := git.PlainOpen(gitDir)
+		if err != nil {
+			return nil, false, errors.Wrap(err, "set up local repo")
+		}
+		return r, true, nil
+	}
+
+	gr, err := CreateGithubRepoWithDeployKey(org, repoName, gitDir, processLocalRepo, privKey)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Infof("Pushing initial commit to the Git repository %q...", repoName)

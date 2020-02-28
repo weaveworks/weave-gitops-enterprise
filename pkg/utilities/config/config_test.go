@@ -14,6 +14,7 @@ import (
 const validTrackEKS = `
 track: "eks"
 clusterName: ""
+gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "/tmp/foo"
 `
@@ -21,6 +22,7 @@ dockerIOPasswordFile: "/tmp/foo"
 const validTrackSSH = `
 track: "wks-ssh"
 clusterName: ""
+gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "/tmp/foo"
 `
@@ -28,6 +30,7 @@ dockerIOPasswordFile: "/tmp/foo"
 const validTrackFootloose = `
 track: "wks-footloose"
 clusterName: ""
+gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "/tmp/foo"
 `
@@ -35,6 +38,7 @@ dockerIOPasswordFile: "/tmp/foo"
 const invalidTrack = `
 track: "footlose"
 clusterName: ""
+gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "/tmp/foo"
 `
@@ -42,6 +46,7 @@ dockerIOPasswordFile: "/tmp/foo"
 const missingTrack = `
 track: ""
 clusterName: ""
+gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "/tmp/foo"
 `
@@ -49,13 +54,22 @@ dockerIOPasswordFile: "/tmp/foo"
 const missingUser = `
 track: "wks-ssh"
 clusterName: ""
+gitHubOrg: "WyldStallyns"
 dockerIOUser: ""
+dockerIOPasswordFile: "/tmp/foo"
+`
+
+const missingOrg = `
+track: "wks-ssh"
+clusterName: ""
+dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "/tmp/foo"
 `
 
 const missingPasswordFile = `
 track: "wks-ssh"
 clusterName: ""
+gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: ""
 `
@@ -70,6 +84,7 @@ func TestRequiredGlobals(t *testing.T) {
 		{validTrackFootloose, "<nil>"},
 		{invalidTrack, "track must be one of: 'eks', 'wks-ssh', or 'wks-footloose'"},
 		{missingTrack, "track must be specified"},
+		{missingOrg, "gitHubOrg must be specified"},
 		{missingUser, "dockerIOUser must be specified"},
 		{missingPasswordFile, "dockerIOPasswordFile must be specified"}}
 

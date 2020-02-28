@@ -16,6 +16,7 @@ import (
 type WKPConfig struct {
 	Track                string    `yaml:"track"`
 	ClusterName          string    `yaml:"clusterName"`
+	GitHubOrg            string    `yaml:"gitHubOrg"`
 	DockerIOUser         string    `yaml:"dockerIOUser"`
 	DockerIOPasswordFile string    `yaml:"dockerIOPasswordFile"`
 	EKSConfig            EKSConfig `yaml:"eksConfig"`
@@ -195,6 +196,10 @@ func createClusterName() string {
 
 // Global values
 func checkRequiredGlobalValues(config *WKPConfig) error {
+	if config.GitHubOrg == "" {
+		return fmt.Errorf("gitHubOrg must be specified")
+	}
+
 	if config.DockerIOUser == "" {
 		return fmt.Errorf("dockerIOUser must be specified")
 	}
@@ -468,6 +473,7 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 
 	str.WriteString(fmt.Sprintf("export TRACK=%s\n", config.Track))
 	str.WriteString(fmt.Sprintf("export CLUSTER_NAME=%s\n", config.ClusterName))
+	str.WriteString(fmt.Sprintf("export GITHUB_ORG=%s\n", config.GitHubOrg))
 	str.WriteString(fmt.Sprintf("export DOCKER_IO_USER=%s\n", config.DockerIOUser))
 	str.WriteString(fmt.Sprintf("export DOCKER_IO_PASSWORD=%s\n", config.DockerIOPasswordFile))
 	if config.Track == "eks" {
