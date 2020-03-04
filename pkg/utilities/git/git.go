@@ -67,6 +67,27 @@ func (gr *GitRepo) DeleteRemote(name string) error {
 	return gr.repo.DeleteRemote(name)
 }
 
+// CreateLocalRepo returns a *GitRepo based on a local git repository, and a private key. It's assumed
+// that the local directory already has a default remote.
+func CreateLocalRepo(gitDir string, privKey []byte) (*GitRepo, error) {
+	log.Infof("Initializing local repository...")
+	repo, err := git.PlainOpen(gitDir)
+	if err != nil {
+		return nil, errors.Wrap(err, "set up local repo")
+	}
+
+	auth, err := gitssh.NewPublicKeys("git", privKey, "")
+	if err != nil {
+		return nil, errors.Wrap(err, "private key read")
+	}
+
+	return &GitRepo{
+		worktreeDir: gitDir,
+		repo:        repo,
+		auth:        auth,
+	}, nil
+}
+
 // CreateGithubRepoWithDeployKey creates a remote GitHub repository with a deploy key and either
 // updates a local repository to set its origin to the new repository or creates a new local repository
 // with an origin of the new GitHub repository
@@ -74,14 +95,12 @@ func CreateGithubRepoWithDeployKey(
 	org,
 	repoName,
 	gitDir string,
-	setupLocalRepo func() (*git.Repository, bool, error),
 	privKey []byte) (*GitRepo, error) {
-	existingRepo := false
 
 	log.Infof("Initializing local repository %q...", repoName)
-	repo, existingRepo, err := setupLocalRepo()
+	repo, err := git.PlainOpen(gitDir)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "set up local repo")
 	}
 
 	log.Infof("Creating the GitHub repository %q...", repoName)
@@ -105,13 +124,6 @@ func CreateGithubRepoWithDeployKey(
 		worktreeDir: gitDir,
 		repo:        repo,
 		auth:        auth,
-	}
-
-	log.Info("Updating git remote to point to new repo...")
-	if existingRepo {
-		if err := gr.CreateRemote("origin", fmt.Sprintf("git@github.com:%s/%s.git", org, repoName)); err != nil {
-			return nil, errors.Wrap(err, "create remote")
-		}
 	}
 
 	log.Info("Set up master branch")
@@ -141,15 +153,7 @@ func TarballToGithubRepo(org, repoName, tarPath, repoDir string, privKey []byte)
 
 	gitDir := filepath.Join(tmpDir, repoDir)
 
-	processLocalRepo := func() (*git.Repository, bool, error) {
-		r, err := git.PlainOpen(gitDir)
-		if err != nil {
-			return nil, false, errors.Wrap(err, "set up local repo")
-		}
-		return r, true, nil
-	}
-
-	gr, err := CreateGithubRepoWithDeployKey(org, repoName, gitDir, processLocalRepo, privKey)
+	gr, err := CreateGithubRepoWithDeployKey(org, repoName, gitDir, privKey)
 	if err != nil {
 		return nil, err
 	}

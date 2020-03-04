@@ -159,6 +159,22 @@ spec:
   version: {{ .KubernetesVersion }}
 `
 
+const footlooseTemplate = `# This file contains high level configuration parameters. The setup.sh script
+# takes this file as input and creates lower level manifests.
+# backend defines how the machines underpinning Kubernetes nodes are created.
+#  - docker: use containers as "VMs" using footloose:
+#            https://github.com/weaveworks/footloose
+#  - ignite: use footloose with ignite and firecracker to create real VMs using:
+#            the ignite backend only works on linux as it requires KVM.
+#            https://github.com/weaveworks/ignite.
+backend: {{ .Backend }}
+# Number of nodes allocated for the Kubernetes control plane and workers.
+controlPlane:
+  nodes: {{ .ControlPlaneNodes }}
+workers:
+  nodes: {{ .WorkerNodes }}
+`
+
 var (
 	cidrRegexp       = regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`)
 	k8sVersionRegexp = regexp.MustCompile(`^([1][.](14|15)[.][0-9][0-9]?)$`)
@@ -475,7 +491,7 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 	str.WriteString(fmt.Sprintf("export CLUSTER_NAME=%s\n", config.ClusterName))
 	str.WriteString(fmt.Sprintf("export GITHUB_ORG=%s\n", config.GitHubOrg))
 	str.WriteString(fmt.Sprintf("export DOCKER_IO_USER=%s\n", config.DockerIOUser))
-	str.WriteString(fmt.Sprintf("export DOCKER_IO_PASSWORD=%s\n", config.DockerIOPasswordFile))
+	str.WriteString(fmt.Sprintf("export DOCKER_IO_PASSWORD_FILE=%s\n", config.DockerIOPasswordFile))
 	if config.Track == "eks" {
 		str.WriteString(fmt.Sprintf("export REGION=%s\n", config.EKSConfig.ClusterRegion))
 	} else {
@@ -608,6 +624,29 @@ func GenerateEKSClusterSpecFromConfig(config *WKPConfig) (string, error) {
 		config.EKSConfig.ClusterRegion,
 		config.EKSConfig.KubernetesVersion,
 		ngroups})
+
+	if err != nil {
+		return "", err
+	}
+	return populated.String(), nil
+}
+
+// GenerateFootlooseSpecFromConfig creates a config file that the footloose command can use to generate
+// an underlying footloose machine specification.
+func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
+	t, err := template.New("footloose-config").Parse(footlooseTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	var populated bytes.Buffer
+	err = t.Execute(&populated, struct {
+		Backend           string
+		ControlPlaneNodes int64
+		WorkerNodes       int64
+	}{config.WKSConfig.FootlooseConfig.Backend,
+		config.WKSConfig.FootlooseConfig.ControlPlaneNodes,
+		config.WKSConfig.FootlooseConfig.WorkerNodes})
 
 	if err != nil {
 		return "", err

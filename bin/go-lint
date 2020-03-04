@@ -7,11 +7,24 @@ then
     curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b "${GOPATH}/bin" v1.23.6
 fi
 
-
 "${GOPATH}/bin/golangci-lint" run --tests --deadline=600s \
     --disable=errcheck \
     --enable=misspell \
     --enable=gofmt \
-   --skip-dirs=pkg/guide \
-   --skip-dirs=pkg/addons/assets \
-    ./...
+	./addons/... \
+	./cluster-components/... \
+	./cmd/... \
+	./kerberos/... \
+	./pkg/addons/... \
+	./pkg/apis/... \
+	./pkg/check/... \
+	./pkg/cri/... \
+	./pkg/diff/... \
+	./pkg/github/... \
+	./pkg/gitops/... \
+	./pkg/opa/... \
+	./pkg/provisioning/... \
+	./pkg/security/... \
+	./pkg/utilities/... \
+	./pkg/version/... \
+	./wkp-cluster-components/...

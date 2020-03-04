@@ -7,6 +7,7 @@ IMAGE_PREFIX := docker.io/weaveworks/
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe --always)
+CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 # The GOOS to use for local binaries that we `make install`
 LOCAL_BINARIES_GOOS ?= $(GOOS)
@@ -82,7 +83,13 @@ POLICIES=$(shell find pkg/opa/policy/rego -name '*.rego' -print)
 pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
 	go generate ./pkg/opa/policy
 
-generated: pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go
+SETUP=$(shell find setup/ ! -perm -a+x -print)
+pkg/setup/setup_vfsdata.go: $(SETUP)
+	bash -x ./tools/build/setup/build-release.sh $(CURRENT_DIR)/setup $(CURRENT_DIR)/setup/wk-quickstart/setup/dependencies.toml
+	go generate ./pkg/setup
+	@rm -rf $(CURRENT_DIR)/setup/wk-quickstart/.git
+
+generated: pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
 
 cmd/wk/wk: $(DEPS) generated
 cmd/wk/wk: cmd/wk/*.go

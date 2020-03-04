@@ -23,6 +23,7 @@ require (
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/jcmturner/gofork v1.0.0 // indirect
+	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-colorable v0.1.0 // indirect
