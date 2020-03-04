@@ -204,6 +204,15 @@ jobs:
             # remove the circle config which locks down github keys
             mv ~/.ssh/config{,.old}
 
+            # pull down a wk binary to use in the integration test
+            export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
+            TAG=${CIRCLE_TAG}
+            if [ -z "$TAG" ]; then
+              TAG=$(./tools/image-tag)
+            fi
+            aws s3 cp s3://weaveworks-wkp/wk-${TAG}-linux-amd64 cmd/wk/wk
+
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSION=1.14.10
             cd test/integration/test
