@@ -161,7 +161,7 @@ push:
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
-unit-tests: generated
+unit-tests: $(GENERATED)
 	go test -v ./cmd/... ./pkg/...
 
 container-tests:  test/container/images/centos7/.uptodate
