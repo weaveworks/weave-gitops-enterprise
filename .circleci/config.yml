@@ -30,6 +30,8 @@ workflows:
       - container-tests: {}
       - unit-tests: {}
       - integration-tests:
+          requires:
+            - build
           filters:
             branches:
               only:
@@ -213,6 +215,12 @@ jobs:
             export UPGRADE_VERSION=1.14.10
             cd test/integration/test
             sed -i "s/gitHubOrg:.*/gitHubOrg: $WKP_GITHUB_USER/" config.yaml
+
+            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
+            chmod 600 user-ssh-key
+            eval "$(ssh-agent -s)"
+            ssh-add -D
+            ssh-add user-ssh-key
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN

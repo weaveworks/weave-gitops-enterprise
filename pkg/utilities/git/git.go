@@ -126,6 +126,13 @@ func CreateGithubRepoWithDeployKey(
 		auth:        auth,
 	}
 
+	log.Info("Updating git remote to point to new repo...")
+	gr.DeleteRemote("origin") // okay if not present
+
+	if err := gr.CreateRemote("origin", fmt.Sprintf("git@github.com:%s/%s.git", org, repoName)); err != nil {
+		return nil, errors.Wrap(err, "create remote")
+	}
+
 	log.Info("Set up master branch")
 	if err := gr.repo.CreateBranch(&config.Branch{Name: "master", Remote: "origin", Merge: "refs/heads/master"}); err != nil {
 		return nil, errors.Wrap(err, "create branch")

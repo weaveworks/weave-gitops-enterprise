@@ -85,7 +85,7 @@ pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
 
 SETUP=$(shell find setup/ ! -perm -a+x -print)
 pkg/setup/setup_vfsdata.go: $(SETUP)
-	bash -x ./tools/build/setup/build-release.sh $(CURRENT_DIR)/setup $(CURRENT_DIR)/setup/wk-quickstart/setup/dependencies.toml
+	./tools/build/setup/build-release.sh $(CURRENT_DIR)/setup $(CURRENT_DIR)/setup/wk-quickstart/setup/dependencies.toml
 	go generate ./pkg/setup
 	@rm -rf $(CURRENT_DIR)/setup/wk-quickstart/.git
 

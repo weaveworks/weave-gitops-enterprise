@@ -45,12 +45,12 @@ track: wks-footloose
 # Name of the cluster being created. If left blank, defaults to: "wk-${USER}"
 # Value must be 1-100 characters matching the pattern:
 #   '^[0-9A-Za-z][A-Za-z0-9\-_]*'
-clusterName: "example"
+clusterName: "upgrade-test"
 
 # GitHub Id of organization that will be used to create new repository
 # and deploy key. The user doing the install should have her ssh key
 # associated with the organization. (required)
-gitHubOrg: "jrryjcksn"
+gitHubOrg: ""
 
 # Name of docker hub user for fetching images (required)
 dockerIOUser: "dummy"
