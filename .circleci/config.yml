@@ -49,6 +49,8 @@ jobs:
           command: |
             LOCAL_BINARIES_GOOS=darwin make cmd/wk/wk
             mv cmd/wk/wk cmd/wk/wk-darwin-amd64
+            # tidy up generated files and what not
+            make clean
       - run: make
       - run: make lint
       - deploy:
