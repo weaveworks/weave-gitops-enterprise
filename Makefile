@@ -1,4 +1,4 @@
-.PHONY: all install clean generated images lint unit-tests check
+.PHONY: all install clean images lint unit-tests check
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -85,18 +85,18 @@ pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
 
 SETUP=$(shell find setup/ ! -perm -a+x -print)
 pkg/setup/setup_vfsdata.go: $(SETUP)
-	./tools/build/setup/build-release.sh $(CURRENT_DIR)/setup $(CURRENT_DIR)/setup/wk-quickstart/setup/dependencies.toml
+	RELEASE_GOOS=$(LOCAL_BINARIES_GOOS) ./tools/build/setup/build-release.sh $(CURRENT_DIR)/setup $(CURRENT_DIR)/setup/wk-quickstart/setup/dependencies.toml
 	go generate ./pkg/setup
 	@rm -rf $(CURRENT_DIR)/setup/wk-quickstart/.git
 
-generated: pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
+GENERATED = pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
 
-cmd/wk/wk: $(DEPS) generated
+cmd/wk/wk: $(DEPS) $(GENERATED)
 cmd/wk/wk: cmd/wk/*.go
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wk/*.go
 
 cmd/wks-ci/checks/policy/.uptodate: cmd/policy/policy
-cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go generated
+cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go $(GENERATED)
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/checks/policy/*.go
 
 ENTITLE_DEPS=$(call godeps,./cmd/wks-entitle)
@@ -152,6 +152,7 @@ clean:
 	$(SUDO) docker rmi $(patsubst %, %:$(IMAGE_TAG), $(IMAGE_NAMES)) >/dev/null 2>&1 || true
 	rm -rf $(UPTODATE_FILES)
 	rm -f $(BINARIES)
+	rm -f $(GENERATED)
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
@@ -160,7 +161,7 @@ push:
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
-unit-tests: generated
+unit-tests: $(GENERATED)
 	go test -v ./cmd/... ./pkg/...
 
 container-tests:  test/container/images/centos7/.uptodate
