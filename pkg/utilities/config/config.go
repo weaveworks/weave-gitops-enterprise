@@ -42,13 +42,14 @@ type WKSConfig struct {
 	ServiceCIDRBlocks []string        `yaml:"serviceCIDRBlocks"`
 	PodCIDRBlocks     []string        `yaml:"podCIDRBlocks"`
 	SSHConfig         SSHConfig       `yaml:"sshConfig"`
-	SSHKeyFile        string          `yaml:"sshKeyFile"`
 	FootlooseConfig   FootlooseConfig `yaml:"footlooseConfig"`
 }
 
 // Parameters specific to ssh
 type SSHConfig struct {
-	Machines []MachineSpec `yaml:"machines"`
+	SSHUser    string        `yaml:"sshUser"`
+	SSHKeyFile string        `yaml:"sshKeyFile"`
+	Machines   []MachineSpec `yaml:"machines"`
 }
 
 type MachineSpec struct {
@@ -83,7 +84,7 @@ spec:
     value:
       apiVersion: baremetalproviderspec/v1alpha1
       kind: BareMetalClusterProviderSpec
-      user: root
+      user: {{ .SSHUser }}
       os:
         files:
         - source:
@@ -288,13 +289,6 @@ func setDefaultEKSValues(eksConfig *EKSConfig) {
 
 // values shared between ssh and footloose
 func checkRequiredWKSValues(wksConfig *WKSConfig) error {
-	if wksConfig.SSHKeyFile == "" {
-		homedir := os.Getenv("HOME")
-		if homedir == "" {
-			return fmt.Errorf("No ssh key file specified and no home directory information available.")
-		}
-	}
-
 	if wksConfig.KubernetesVersion == "" {
 		return fmt.Errorf("A Kubernetes version must be specified")
 	}
@@ -328,14 +322,15 @@ func checkRequiredWKSValues(wksConfig *WKSConfig) error {
 	return nil
 }
 
-func setDefaultWKSValues(wksConfig *WKSConfig) {
-	if wksConfig.SSHKeyFile == "" {
-		wksConfig.SSHKeyFile = fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
-	}
-}
-
 // ssh values
 func checkRequiredSSHValues(sshConfig *SSHConfig) error {
+	if sshConfig.SSHKeyFile == "" {
+		homedir := os.Getenv("HOME")
+		if homedir == "" {
+			return fmt.Errorf("No ssh key file specified and no home directory information available.")
+		}
+	}
+
 	if len(sshConfig.Machines) == 0 {
 		return fmt.Errorf("No machine information provided")
 	}
@@ -370,6 +365,14 @@ func checkRequiredSSHValues(sshConfig *SSHConfig) error {
 }
 
 func setDefaultSSHValues(sshConfig *SSHConfig) {
+	if sshConfig.SSHUser == "" {
+		sshConfig.SSHUser = "root"
+	}
+
+	if sshConfig.SSHKeyFile == "" {
+		sshConfig.SSHKeyFile = fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
+	}
+
 	for idx := range sshConfig.Machines {
 		machine := &sshConfig.Machines[idx]
 		if machine.Name == "" {
@@ -445,12 +448,8 @@ func addDefaultValues(config *WKPConfig) {
 
 	if config.Track == "eks" {
 		setDefaultEKSValues(&config.EKSConfig)
-	} else {
-		setDefaultWKSValues(&config.WKSConfig)
-
-		if config.Track == "wks-ssh" {
-			setDefaultSSHValues(&config.WKSConfig.SSHConfig)
-		}
+	} else if config.Track == "wks-ssh" {
+		setDefaultSSHValues(&config.WKSConfig.SSHConfig)
 	}
 }
 
@@ -495,7 +494,7 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 	if config.Track == "eks" {
 		str.WriteString(fmt.Sprintf("export REGION=%s\n", config.EKSConfig.ClusterRegion))
 	} else {
-		str.WriteString(fmt.Sprintf("export SSH_KEY_FILE=%s\n", config.WKSConfig.SSHKeyFile))
+		str.WriteString(fmt.Sprintf("export SSH_KEY_FILE=%s\n", config.WKSConfig.SSHConfig.SSHKeyFile))
 	}
 
 	return str.String()
@@ -562,9 +561,11 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig) (string, error) {
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
 		ClusterName       string
+		SSHUser           string
 		ServiceCIDRBlocks string
 		PodCIDRBlocks     string
 	}{config.ClusterName,
+		config.WKSConfig.SSHConfig.SSHUser,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
 		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks)})
 	if err != nil {

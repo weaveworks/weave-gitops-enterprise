@@ -445,17 +445,12 @@ func TestDefaultEKSValues(t *testing.T) {
 	assert.Equal(t, int64(1), ng1.DesiredCapacity)
 }
 
-func TestDefaultWKSValues(t *testing.T) {
-	conf, err := unmarshalConfig([]byte(validWKS))
-	require.NoError(t, err)
-	setDefaultWKSValues(&conf.WKSConfig)
-	assert.Equal(t, fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME")), conf.WKSConfig.SSHKeyFile)
-}
-
 func TestDefaultSSHValues(t *testing.T) {
 	conf, err := unmarshalConfig([]byte(validSSH))
 	require.NoError(t, err)
 	setDefaultSSHValues(&conf.WKSConfig.SSHConfig)
+	assert.Equal(t, "root", conf.WKSConfig.SSHConfig.SSHUser)
+	assert.Equal(t, fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME")), conf.WKSConfig.SSHConfig.SSHKeyFile)
 	machines := conf.WKSConfig.SSHConfig.Machines
 	m0 := machines[0]
 	assert.Equal(t, int64(22), m0.PublicPort)

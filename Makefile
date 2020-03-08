@@ -83,7 +83,7 @@ POLICIES=$(shell find pkg/opa/policy/rego -name '*.rego' -print)
 pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
 	go generate ./pkg/opa/policy
 
-SETUP=$(shell find setup/ ! -perm -a+x -print)
+SETUP=$(shell find setup -name bin -prune -o -print)
 pkg/setup/setup_vfsdata.go: $(SETUP)
 	RELEASE_GOOS=$(LOCAL_BINARIES_GOOS) ./tools/build/setup/build-release.sh $(CURRENT_DIR)/setup $(CURRENT_DIR)/setup/wk-quickstart/setup/dependencies.toml
 	go generate ./pkg/setup

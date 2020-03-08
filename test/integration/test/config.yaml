@@ -94,15 +94,20 @@ wksConfig:
   # CIDRs (required)
   podCIDRBlocks: [192.168.0.0/16]
 
-  # Path to SSH key file containing private key which provides access to
-  # the cluster machines. The key must correspond to a user with sudo
-  # permission. If left blank, defaults to: "${HOME}/.ssh/id_rsa"
-  sshKeyFile: ""
-
   #
   # SSH-specific configuration (only required for "ssh" clusters)
   #
   sshConfig:
+    # User name to be used when accessing cluster machines via
+    # ssh. The user must have 'sudo' privileges on each machine in the
+    # cluster. If left blank, defaults to: "root"
+    sshUser: "root"
+
+    # Path to SSH key file containing private key which provides access to
+    # the cluster machines. The key must correspond to a user with sudo
+    # permission. If left blank, defaults to: "${HOME}/.ssh/id_rsa"
+    sshKeyFile: ""
+
     # Descriptions for all machines provided to the cluster. A machine
     # spec consists of:
     #   - name: "<1-253 characters matching the pattern:
