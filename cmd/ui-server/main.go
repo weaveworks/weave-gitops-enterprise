@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -14,6 +15,18 @@ type paramSet struct {
 	gitDeployKeyFile string
 	gitURL           string
 	gitPollInterval  time.Duration
+}
+
+type spaFileSystem struct {
+	root http.FileSystem
+}
+
+func (fs *spaFileSystem) Open(name string) (http.File, error) {
+	f, err := fs.root.Open(name)
+	if os.IsNotExist(err) {
+		return fs.root.Open("index.html")
+	}
+	return f, err
 }
 
 func main() {
@@ -32,7 +45,7 @@ func main() {
 	http.HandleFunc("/api/repo/branches", handleBranchesRequest)
 
 	// Serve the UI
-	fs := http.FileServer(http.Dir("html"))
+	fs := http.FileServer(&spaFileSystem{http.Dir("html")})
 	http.Handle("/", http.StripPrefix("/", fs))
 
 	log.Println("Listening on", params.port)
