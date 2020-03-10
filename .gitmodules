@@ -1,0 +1,3 @@
+[submodule "user-guide/themes/book"]
+	path = user-guide/themes/book
+	url = https://github.com/alex-shpak/hugo-book
