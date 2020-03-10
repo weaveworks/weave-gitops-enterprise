@@ -144,8 +144,11 @@ EMBEDMD_FILES = \
 	$(NULL)
 
 lint:
+	mv pkg/setup/setup_vfsdata.go pkg/setup/setup_vfsdata.go.actual
+	cat pkg/setup/assets_dev.go | grep -v "+build dev" > pkg/setup/setup_vfsdata.go
 	bin/go-lint
 	bin/check-embedmd.sh $(EMBEDMD_FILES)
+	mv pkg/setup/setup_vfsdata.go.actual pkg/setup/setup_vfsdata.go
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true

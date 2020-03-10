@@ -11,7 +11,6 @@ fi
     --disable=errcheck \
     --enable=misspell \
     --verbose \
-    --mem-profile-path=foo-mem-profile \
     --enable=gofmt \
 	./addons/... \
 	./cluster-components/... \
