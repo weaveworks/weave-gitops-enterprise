@@ -52,6 +52,18 @@ jobs:
             # tidy up generated files and what not
             make clean
       - run: make
+      - deploy:
+          name: Compress and push user guide to S3
+          command: |
+            if [ -z "${CI_BRANCH}" -o "${CI_BRANCH}" == "master" ]; then
+              # Compress built user guide into a single file
+              cd user-guide/public && tar -zcvf /tmp/user-guide.tar.gz *
+
+              # Override user guide in S3 for WKP UI to pick it up
+              export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
+              export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
+              aws s3 cp /tmp/user-guide.tar.gz s3://weaveworks-wkp/
+            fi
       - run: make lint
       - deploy:
           name: Push wk to S3
