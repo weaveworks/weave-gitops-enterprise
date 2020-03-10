@@ -62,7 +62,7 @@ jobs:
               # Override user guide in S3 for WKP UI to pick it up
               export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
               export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
-              aws s3 cp /tmp/user-guide.tar.gz s3://weaveworks-wkp/user-guide
+              aws s3 cp /tmp/user-guide.tar.gz s3://weaveworks-wkp/
             fi
       - run: make lint
       - deploy:
