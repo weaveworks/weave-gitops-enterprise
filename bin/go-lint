@@ -11,6 +11,7 @@ fi
     --disable=errcheck \
     --enable=misspell \
     --verbose \
+    --build-tags=dev \
     --enable=gofmt \
 	./addons/... \
 	./cluster-components/... \
