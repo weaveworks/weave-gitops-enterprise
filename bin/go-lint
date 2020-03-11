@@ -19,20 +19,6 @@ fi
     --verbose \
     --build-tags=dev \
     --enable=gofmt \
-	./addons/... \
-	./cluster-components/... \
-	./cmd/... \
-	./kerberos/... \
-	./pkg/addons/... \
-	./pkg/apis/... \
-	./pkg/check/... \
-	./pkg/cri/... \
-	./pkg/diff/... \
-	./pkg/github/... \
-	./pkg/gitops/... \
-	./pkg/opa/... \
-	./pkg/provisioning/... \
-	./pkg/security/... \
-	./pkg/utilities/... \
-	./pkg/version/... \
-	./wkp-cluster-components/...
+    --skip-dirs=pkg/guide \
+    --skip-dirs=pkg/addons/assets \
+    ./...
