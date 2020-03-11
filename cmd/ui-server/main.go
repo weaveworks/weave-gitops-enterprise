@@ -37,13 +37,6 @@ func main() {
 	flag.DurationVar(&params.gitPollInterval, "git-poll-interval", 15*time.Second, "")
 	flag.Parse()
 
-	// Serve up the branch list!
-	handleBranchesRequest, pollGitBranches := BranchesRequestHandler(params.gitURL, params.gitDeployKeyFile, params.gitPollInterval)
-	if params.gitURL != "" {
-		go pollGitBranches()
-	}
-	http.HandleFunc("/api/repo/branches", handleBranchesRequest)
-
 	// Serve the UI
 	fs := http.FileServer(&spaFileSystem{http.Dir("html")})
 	http.Handle("/", http.StripPrefix("/", fs))
