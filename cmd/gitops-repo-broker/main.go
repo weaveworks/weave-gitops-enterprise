@@ -72,7 +72,7 @@ func runServer(params paramSet) error {
 	r.HandleFunc("/gitops/clusters", clusters.List).Methods("GET")
 	r.HandleFunc("/gitops/clusters", clusters.Create).Methods("POST")
 
-	r.HandleFunc("/gitops/repo/branches", branches.List(params.gitURL, privKey)).Methods("GET")
+	r.HandleFunc("/gitops/repo/branches", branches.List(params.gitURL, params.privKeyFile)).Methods("GET")
 
 	r.HandleFunc("/gitops/workspaces", workspaces.MakeListHandler(
 		params.gitURL, params.gitBranch, privKey, params.gitPath)).Methods("GET")
