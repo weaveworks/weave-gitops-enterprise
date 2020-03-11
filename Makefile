@@ -144,8 +144,8 @@ EMBEDMD_FILES = \
 	$(NULL)
 
 lint:
-	@bin/go-lint
-	@bin/check-embedmd.sh $(EMBEDMD_FILES)
+	bin/go-lint
+	bin/check-embedmd.sh $(EMBEDMD_FILES)
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
