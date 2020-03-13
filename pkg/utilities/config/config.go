@@ -285,7 +285,7 @@ func checkRequiredEKSValues(eksConfig *EKSConfig) error {
 
 func setDefaultEKSValues(eksConfig *EKSConfig) {
 	if len(eksConfig.NodeGroups) == 0 {
-		eksConfig.NodeGroups = []NodeGroupConfig{{Name: "ng-0", InstanceType: "m5.large", DesiredCapacity: 1}}
+		eksConfig.NodeGroups = []NodeGroupConfig{{Name: "ng-0", InstanceType: "m5.large", DesiredCapacity: 3}}
 		return
 	}
 
@@ -302,7 +302,7 @@ func setDefaultEKSValues(eksConfig *EKSConfig) {
 		}
 
 		if group.DesiredCapacity == 0 {
-			group.DesiredCapacity = 1
+			group.DesiredCapacity = 3
 		}
 	}
 }

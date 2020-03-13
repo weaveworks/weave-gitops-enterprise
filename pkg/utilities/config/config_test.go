@@ -455,7 +455,7 @@ func TestDefaultEKSValues(t *testing.T) {
 	ng := conf.EKSConfig.NodeGroups[0]
 	assert.Equal(t, "ng-0", ng.Name)
 	assert.Equal(t, "m5.large", ng.InstanceType)
-	assert.Equal(t, int64(1), ng.DesiredCapacity)
+	assert.Equal(t, int64(3), ng.DesiredCapacity)
 
 	conf, err = unmarshalConfig([]byte(nodeGroupNeedsDefaults))
 	require.NoError(t, err)
@@ -463,11 +463,11 @@ func TestDefaultEKSValues(t *testing.T) {
 	ng0 := conf.EKSConfig.NodeGroups[0]
 	assert.Equal(t, "ng-0", ng0.Name)
 	assert.Equal(t, "m5.small", ng0.InstanceType)
-	assert.Equal(t, int64(1), ng0.DesiredCapacity)
+	assert.Equal(t, int64(3), ng0.DesiredCapacity)
 	ng1 := conf.EKSConfig.NodeGroups[1]
 	assert.Equal(t, "ng-1", ng1.Name)
 	assert.Equal(t, "m5.large", ng1.InstanceType)
-	assert.Equal(t, int64(1), ng1.DesiredCapacity)
+	assert.Equal(t, int64(3), ng1.DesiredCapacity)
 }
 
 func TestDefaultSSHValues(t *testing.T) {
