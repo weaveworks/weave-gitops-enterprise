@@ -4,6 +4,7 @@
 /rpm/output
 /test/resource/tests
 /user-guide/public
+/user-guide/resources/_gen
 
 # Ignore generated binaries
 /cmd/wks-controller/controller
