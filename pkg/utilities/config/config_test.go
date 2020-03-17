@@ -16,7 +16,7 @@ track: "eks"
 clusterName: ""
 gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
-dockerIOPasswordFile: "/tmp/foo"
+dockerIOPasswordFile: "testdata/passwordFile"
 `
 
 const validTrackSSH = `
@@ -24,7 +24,7 @@ track: "wks-ssh"
 clusterName: ""
 gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
-dockerIOPasswordFile: "/tmp/foo"
+dockerIOPasswordFile: "testdata/passwordFile"
 `
 
 const validTrackFootloose = `
@@ -32,7 +32,7 @@ track: "wks-footloose"
 clusterName: ""
 gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
-dockerIOPasswordFile: "/tmp/foo"
+dockerIOPasswordFile: "testdata/passwordFile"
 `
 
 const invalidTrack = `
@@ -40,7 +40,7 @@ track: "footlose"
 clusterName: ""
 gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
-dockerIOPasswordFile: "/tmp/foo"
+dockerIOPasswordFile: "testdata/passwordFile"
 `
 
 const missingTrack = `
@@ -48,7 +48,7 @@ track: ""
 clusterName: ""
 gitHubOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
-dockerIOPasswordFile: "/tmp/foo"
+dockerIOPasswordFile: "testdata/passwordFile"
 `
 
 const missingUser = `
@@ -56,14 +56,14 @@ track: "wks-ssh"
 clusterName: ""
 gitHubOrg: "WyldStallyns"
 dockerIOUser: ""
-dockerIOPasswordFile: "/tmp/foo"
+dockerIOPasswordFile: "testdata/passwordFile"
 `
 
 const missingOrg = `
 track: "wks-ssh"
 clusterName: ""
 dockerIOUser: "TheodoreLogan"
-dockerIOPasswordFile: "/tmp/foo"
+dockerIOPasswordFile: "testdata/passwordFile"
 `
 
 const missingPasswordFile = `
@@ -100,6 +100,7 @@ const validEKS = `
 eksConfig:
   kubernetesVersion: "1.14"
   clusterRegion: "eu-north-1"
+  managedNodeGroupFile: "testdata/managedNodeGroups.yaml"
 `
 
 const validEKSWithNodeGroups = `
@@ -144,6 +145,13 @@ eksConfig:
   clusterRegion: "eu-north-1"
 `
 
+const invalidManagedNodeGroupFile = `
+eksConfig:
+  kubernetesVersion: "1.14"
+  clusterRegion: "eu-north-1"
+  managedNodeGroupFile: "628wanda496"
+`
+
 func TestRequiredEKSValues(t *testing.T) {
 	testinput := []struct {
 		config   string
@@ -154,8 +162,8 @@ func TestRequiredEKSValues(t *testing.T) {
 		{invalidNodeGroup, "A node group must have a capacity of at least 1"},
 		{missingK8sVersion, "A Kubernetes version must be specified"},
 		{missingClusterRegion, "clusterRegion must be specified"},
-		{invalidK8sVersion, `Kubernetes version must be one of: "1.14" or "1.15"`}}
-
+		{invalidK8sVersion, `Kubernetes version must be one of: "1.14" or "1.15"`},
+		{invalidManagedNodeGroupFile, `no file found at path: "628wanda496" for field: "managedNodeGroupFile"`}}
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
 		require.NoError(t, err)
@@ -169,28 +177,24 @@ wksConfig:
   kubernetesVersion: "1.14.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
-  sshKeyFile: ""
 `
 
 const missingWKSK8sVersion = `
 wksConfig:
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
-  sshKeyFile: ""
 `
 
 const missingServiceCIDRBlocks = `
 wksConfig:
   kubernetesVersion: "1.14.1"
   podCIDRBlocks: [192.168.1.0/16]
-  sshKeyFile: ""
 `
 
 const missingPodCIDRBlocks = `
 wksConfig:
   kubernetesVersion: "1.14.1"
   serviceCIDRBlocks: [10.96.0.0/12]
-  sshKeyFile: ""
 `
 
 const invalidWKSK8sVersion = `
@@ -198,7 +202,6 @@ wksConfig:
   kubernetesVersion: "1.16.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
-  sshKeyFile: ""
 `
 
 const invalidServiceCIDRBlock = `
@@ -206,7 +209,6 @@ wksConfig:
   kubernetesVersion: "1.14.1"
   serviceCIDRBlocks: [1000.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
-  sshKeyFile: ""
 `
 
 const invalidPodCIDRBlock = `
@@ -214,7 +216,6 @@ wksConfig:
   kubernetesVersion: "1.14.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.1680.1.0/16]
-  sshKeyFile: ""
 `
 
 func TestRequiredWKSValues(t *testing.T) {
@@ -242,6 +243,17 @@ func TestRequiredWKSValues(t *testing.T) {
 const validSSH = `
 wksConfig:
   sshConfig:
+    machines:
+    - role: master
+      publicAddress: 172.17.20.5
+    - role: worker
+      publicAddress: 172.17.20.6
+`
+
+const validSSHWithKey = `
+wksConfig:
+  sshConfig:
+    sshKeyFile: "testdata/sshKey"
     machines:
     - role: master
       publicAddress: 172.17.20.5
@@ -289,12 +301,24 @@ wksConfig:
       publicAddress: 172.17.20.6
 `
 
+const invalidSSHKeyFile = `
+wksConfig:
+  sshConfig:
+    sshKeyFile: "8128goober"
+    machines:
+    - role: master
+      publicAddress: 172.17.20.5
+    - role: worker
+      publicAddress: 172.17.20.6
+`
+
 func TestRequiredSSHValues(t *testing.T) {
 	testinput := []struct {
 		config   string
 		errorMsg string
 	}{
 		{validSSH, "<nil>"},
+		{validSSHWithKey, "<nil>"},
 		{missingMachines, "No machine information provided"},
 		{missingWorker,
 			"Invalid machine set. At least one master and one worker must be specified."},
@@ -303,7 +327,8 @@ func TestRequiredSSHValues(t *testing.T) {
 		{missingRole,
 			"A role ('master' or 'worker') must be specified for each machine"},
 		{invalidRole,
-			"Invalid machine role: 'supervisor'. Only 'master' and 'worker' are valid."}}
+			"Invalid machine role: 'supervisor'. Only 'master' and 'worker' are valid."},
+		{invalidSSHKeyFile, `no file found at path: "8128goober" for field: "sshKeyFile"`}}
 
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))

@@ -25,9 +25,10 @@ type WKPConfig struct {
 
 // Parameters specific to eks
 type EKSConfig struct {
-	ClusterRegion     string            `yaml:"clusterRegion"`
-	KubernetesVersion string            `yaml:"kubernetesVersion"`
-	NodeGroups        []NodeGroupConfig `yaml:"nodeGroups"`
+	ClusterRegion        string            `yaml:"clusterRegion"`
+	KubernetesVersion    string            `yaml:"kubernetesVersion"`
+	NodeGroups           []NodeGroupConfig `yaml:"nodeGroups"`
+	ManagedNodeGroupFile string            `yaml:"managedNodeGroupFile"`
 }
 
 type NodeGroupConfig struct {
@@ -157,6 +158,7 @@ spec:
     withOIDC: true
   nodeGroups:
 {{ .NodeGroups }}
+  managedNodeGroupFile: {{ .ManagedNodeGroupFile }}
   version: {{ .KubernetesVersion }}
 `
 
@@ -187,7 +189,6 @@ func unmarshalConfig(configBytes []byte) (*WKPConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &config, nil
 }
 
@@ -209,6 +210,15 @@ func createClusterName() string {
 	return "wk-" + name
 }
 
+// Check if file exists at specified path
+func checkValidPath(field, path string) error {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("no file found at path: %q for field: %q", path, field)
+	}
+	return err
+}
+
 // The following functions come in pairs to check values and set defaults
 
 // Global values
@@ -223,6 +233,10 @@ func checkRequiredGlobalValues(config *WKPConfig) error {
 
 	if config.DockerIOPasswordFile == "" {
 		return fmt.Errorf("dockerIOPasswordFile must be specified")
+	}
+
+	if err := checkValidPath("dockerIOPasswordFile", config.DockerIOPasswordFile); err != nil {
+		return err
 	}
 
 	switch config.Track {
@@ -250,6 +264,12 @@ func checkRequiredEKSValues(eksConfig *EKSConfig) error {
 	for _, ng := range eksConfig.NodeGroups {
 		if ng.DesiredCapacity < 0 {
 			return fmt.Errorf("A node group must have a capacity of at least 1")
+		}
+	}
+
+	if eksConfig.ManagedNodeGroupFile != "" {
+		if err := checkValidPath("managedNodeGroupFile", eksConfig.ManagedNodeGroupFile); err != nil {
+			return err
 		}
 	}
 
@@ -329,6 +349,8 @@ func checkRequiredSSHValues(sshConfig *SSHConfig) error {
 		if homedir == "" {
 			return fmt.Errorf("No ssh key file specified and no home directory information available.")
 		}
+	} else if err := checkValidPath("sshKeyFile", sshConfig.SSHKeyFile); err != nil {
+		return err
 	}
 
 	if len(sshConfig.Machines) == 0 {
@@ -617,14 +639,16 @@ func GenerateEKSClusterSpecFromConfig(config *WKPConfig) (string, error) {
 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
-		ClusterName       string
-		ClusterRegion     string
-		KubernetesVersion string
-		NodeGroups        string
+		ClusterName          string
+		ClusterRegion        string
+		KubernetesVersion    string
+		NodeGroups           string
+		ManagedNodeGroupFile string
 	}{config.ClusterName,
 		config.EKSConfig.ClusterRegion,
 		config.EKSConfig.KubernetesVersion,
-		ngroups})
+		ngroups,
+		config.EKSConfig.ManagedNodeGroupFile})
 
 	if err != nil {
 		return "", err

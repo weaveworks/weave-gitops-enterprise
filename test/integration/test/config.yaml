@@ -78,6 +78,12 @@ eksConfig:
   #  capacity of 1 and an instanceType of "m5.large" will be created.
   nodeGroups: []
 
+  # Path to a file containing a managed node group specification
+  # The file will be included verbatim in the generated EKS config.
+  # No validity checking will be performed prior to invoking "eksctl".
+  # If left blank, no managed node groups wil be created.
+  managedNodeGroupFile: ""
+
 #
 # Configuration for clusters not hosted in EKS
 #
