@@ -56,7 +56,7 @@ gitHubOrg: ""
 dockerIOUser: "dummy"
 
 # Path to a file containing password for docker hub user account (required)
-dockerIOPasswordFile: "dummy"
+dockerIOPasswordFile: "/etc/passwd"
 
 #
 # EKS-specific configuration (only required for "eks" clusters)
