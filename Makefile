@@ -159,6 +159,9 @@ push:
 		docker push $$IMAGE_NAME:$(IMAGE_TAG); \
 	done
 
+generate-manifests:
+	cd wkp-cluster-components && yarn && yarn generate-manifests
+
 # We select which directory we want to descend into to not execute integration
 # tests here.
 unit-tests: $(GENERATED)
