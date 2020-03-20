@@ -32,6 +32,10 @@ workflows:
       - integration-tests:
           requires:
             - build
+          filters:
+            branches:
+              only:
+                - master
 
 jobs:
   build:
