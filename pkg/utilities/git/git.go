@@ -588,24 +588,25 @@ func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name,
 }
 
 // GetMachinesK8sVersions gets a list of unique K8s versions for all cluster machines
-func GetMachinesK8sVersions(repoPath, fileSubPath string) ([]string, error) {
-	// Parse the YAML file
-	path := path.Join(repoPath, fileSubPath)
-	fileNode, _, err := readYamlNodeFromFile(path)
+func GetMachinesK8sVersions(repoPath, machinesConfigPath string) ([]string, error) {
+	// Parse the machines.yaml file
+	machinesFilePath := path.Join(repoPath, machinesConfigPath)
+	fileNode, _, err := readYamlNodeFromFile(machinesFilePath)
 	if err != nil {
 		return nil, err
 	}
+
 	// Look at the machine descriptions
 	machineNodes := findNestedField(&fileNode, "0", "items")
 	if machineNodes == nil {
-		return nil, fmt.Errorf("Machine items not found in %s", fileSubPath)
+		return nil, fmt.Errorf("Machine items not found in %s", machinesConfigPath)
 	}
 	// Iterate through all the machines and collect their kubelet versions in a map
 	versionMap := map[string]bool{}
 	for _, machineNode := range machineNodes.Content {
 		version := findNestedField(machineNode, "spec", "versions", "kubelet")
 		if version == nil || version.Value == "" {
-			return nil, fmt.Errorf("Kubelet version missing for a node in %s", fileSubPath)
+			return nil, fmt.Errorf("Kubelet version missing for a node in %s", machinesConfigPath)
 		}
 		versionMap[version.Value] = true
 	}
@@ -615,6 +616,34 @@ func GetMachinesK8sVersions(repoPath, fileSubPath string) ([]string, error) {
 		versions = append(versions, version)
 	}
 	sort.Strings(versions)
+	return versions, nil
+}
+
+// GetEKSClusterVersion reads the cluster version from the wk-cluster.yaml file
+func GetEKSClusterVersion(repoPath, wkClusterConfigPath string) ([]string, error) {
+	// Parse the wk-cluster.yaml file
+	wkClusterConfigPath = path.Join(repoPath, wkClusterConfigPath)
+	fileNode, _, err := readYamlNodeFromFile(wkClusterConfigPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find the spec node in the YAML file
+	specNode := findNestedField(&fileNode, "0", "spec")
+	if specNode == nil {
+		return nil, fmt.Errorf("Spec item not found in %s", wkClusterConfigPath)
+	}
+
+	// Read the version field in the spec node
+	version := findNestedField(specNode, "version")
+	if version == nil || version.Value == "" {
+		return nil, fmt.Errorf("Cluster version missing in %s", wkClusterConfigPath)
+	}
+
+	// Return value is an array to match the other tracks,
+	// where the version of the kubelet of each node is returned.
+	versions := []string{}
+	versions = append(versions, version.Value)
 	return versions, nil
 }
 
