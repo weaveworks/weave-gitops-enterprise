@@ -253,7 +253,7 @@ jobs:
             cd test/integration/test
             sed -i "s/gitHostOrg:.*/gitHostOrg: $WKP_GIT_HOST_USER/" config.yaml
 
-            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
+            echo $WKP_GIT_HOST_PRIVATE_KEY | base64 -d > user-ssh-key
             chmod 600 user-ssh-key
             eval "$(ssh-agent -s)"
             ssh-add -D
