@@ -137,7 +137,7 @@ To run a test that uses the `wk-quickstart-eks` repo to construct a cluster and 
 The following environment variables must be set before running the test:
 
 * GIT_HOST_USER (username used to determine where to create empty repo)
-* GIT_DEPLOY_KEY (private key that will be used to access the GitHub repo)
+* GIT_DEPLOY_KEY (private key that will be used to access the git repo)
 * DOCKER_IO_USER (for fetching images)
 * DOCKER_IO_PASSWORD (for fetching images)
 * WKP_CLUSTER_COMPONENTS_IMAGE (used to manage components)
