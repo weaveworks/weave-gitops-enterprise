@@ -142,8 +142,39 @@ items:
 kind: List
 `
 
-func writeMachinesConfig(data string) (string, error) {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "machines-*.yaml")
+var wkClusterYaml = `apiVersion: infrastructure.eksctl.io/v1alpha5
+kind: EKSCluster
+metadata:
+  name: eks-cluster
+spec:
+  region: eu-west-3
+  cloudWatch:
+    clusterLogging:
+      enableTypes:
+      - audit
+      - authenticator
+      - controllerManager
+  iam:
+    serviceAccounts:
+    - attachPolicyARNs:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+      metadata:
+        name: ekscontroller
+        namespace: wkp-eks-controller
+    withOIDC: true
+  nodeGroups:
+  - desiredCapacity: 3
+    iam:
+      withAddonPolicies:
+        albIngress: true
+    instanceType: m5.large
+    name: ng-0
+  managedNodeGroupFile: 
+  version: 1.14
+`
+
+func writeFile(data string, filename string) (string, error) {
+	tmpFile, err := ioutil.TempFile(os.TempDir(), filename)
 	if err != nil {
 		return "", err
 	}
@@ -155,7 +186,7 @@ func writeMachinesConfig(data string) (string, error) {
 	return tmpFile.Name(), nil
 }
 
-func readMachinesConfig(fileName string) (string, error) {
+func readFile(fileName string) (string, error) {
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return "", err
@@ -164,7 +195,7 @@ func readMachinesConfig(fileName string) (string, error) {
 }
 
 func TestGetMachinesK8sVersions_Standard(t *testing.T) {
-	fileName, err := writeMachinesConfig(machinesPrev)
+	fileName, err := writeFile(machinesPrev, "machines-*.yaml")
 	assert.NoError(t, err)
 	defer os.Remove(fileName)
 
@@ -174,7 +205,7 @@ func TestGetMachinesK8sVersions_Standard(t *testing.T) {
 }
 
 func TestGetMachinesK8sVersions_NoVersion(t *testing.T) {
-	fileName, err := writeMachinesConfig(machinesPrevNoVersion)
+	fileName, err := writeFile(machinesPrevNoVersion, "machines-*.yaml")
 	assert.NoError(t, err)
 	defer os.Remove(fileName)
 
@@ -183,14 +214,24 @@ func TestGetMachinesK8sVersions_NoVersion(t *testing.T) {
 }
 
 func TestUpdateMachinesK8sVersions_Standard(t *testing.T) {
-	fileName, err := writeMachinesConfig(machinesPrev)
+	fileName, err := writeFile(machinesPrev, "machines-*.yaml")
 	assert.NoError(t, err)
 	defer os.Remove(fileName)
 
 	err = UpdateMachinesK8sVersions("", fileName, "1.15.7")
 	assert.NoError(t, err)
 
-	content, err := readMachinesConfig(fileName)
+	content, err := readFile(fileName)
 	assert.NoError(t, err)
 	assert.Equal(t, content, machinesNext)
+}
+
+func TestGetK8sVersionEKS(t *testing.T) {
+	fileName, err := writeFile(wkClusterYaml, "wk-cluster-*.yaml")
+	assert.NoError(t, err)
+	defer os.Remove(fileName)
+
+	versions, err := GetEKSClusterVersion("", fileName)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"1.14"}, versions)
 }
