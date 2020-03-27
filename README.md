@@ -114,7 +114,7 @@ The following are new commandline arguments to `wk apply` which will result in a
 
 - **git-url** The git repo url containing the cluster and machine yaml
 - **git-branch**  The branch within the repo to pull the cluster info from
-- **git-deploy-key** The deploy key configured for the GitHub repo
+- **git-deploy-key** The deploy key configured for the write access to the git repo
 
 The new commandline arguments will be passed instead of --cluster and --machines.
 
@@ -132,7 +132,7 @@ We will rely on the user installing [fluxctl](https://github.com/weaveworks/flux
 
 # Running an end-to-end test against EKS using Quickstart
 
-To run a test that uses the `wk-quickstart-eks` repo to construct a cluster and ensure that the correct pods are running, go to the `test/integration/test` directory and type: `go test --timeout=99999s`. The test will run for 20-25 minutes and then delete the cluster and any repositories (local and GitHub) created during the test.
+To run a test that uses the `wk-quickstart-eks` repo to construct a cluster and ensure that the correct pods are running, go to the `test/integration/test` directory and type: `go test --timeout=99999s`. The test will run for 20-25 minutes and then delete the cluster and any repositories (local and remote) created during the test.
 
 The following environment variables must be set before running the test:
 
