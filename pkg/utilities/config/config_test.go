@@ -105,6 +105,52 @@ func TestRequiredGlobals(t *testing.T) {
 	}
 }
 
+const noKeyNoCert = `
+sealedSecretsCertificate: ""
+sealedSecretsPrivateKey: ""
+`
+
+const KeyNoCert = `
+sealedSecretsCertificate: ""
+sealedSecretsPrivateKey: "testdata/sealedSecretsKey"
+`
+
+const noKeyCert = `
+sealedSecretsCertificate: "testdata/sealedSecretsCert.crt"
+sealedSecretsPrivateKey: ""
+`
+
+const matchingKeyCert = `
+sealedSecretsCertificate: "testdata/sealedSecretsCert.crt"
+sealedSecretsPrivateKey: "testdata/sealedSecretsKey"
+`
+
+const nonMatchingKeyCert = `
+sealedSecretsCertificate: "testdata/nonMatchingCert.crt"
+sealedSecretsPrivateKey: "testdata/sealedSecretsKey"
+`
+
+func TestValidateSealedSecretsValues(t *testing.T) {
+	testinput := []struct {
+		config   string
+		errorMsg string
+	}{
+		{noKeyNoCert, "<nil>"},
+		{KeyNoCert, "please provide both the private key and certificate for the sealed secrets controller"},
+		{noKeyCert, "please provide both the private key and certificate for the sealed secrets controller"},
+		{matchingKeyCert,
+			"<nil>"},
+		{nonMatchingKeyCert,
+			"could not load key and certificate pair"}}
+
+	for _, testvals := range testinput {
+		conf, err := unmarshalConfig([]byte(testvals.config))
+		require.NoError(t, err)
+		err = validateSealedSecretsValues(conf)
+		assert.Equal(t, testvals.errorMsg, fmt.Sprintf("%v", err))
+	}
+}
+
 const validEKS = `
 eksConfig:
   kubernetesVersion: "1.14"

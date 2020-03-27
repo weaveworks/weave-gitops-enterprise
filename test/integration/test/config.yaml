@@ -57,6 +57,14 @@ dockerIOUser: 'dummy'
 # Path to a file containing password for docker hub user account (required)
 dockerIOPasswordFile: '/etc/passwd'
 
+# Path to a certificate used to encrypt sealed secrets.
+# If left blank a self signed certificate will be created.
+sealedSecretsCertificate: ""
+
+# Path to a private key used to decrypt sealed secrets.
+# If left blank a new private key will be created.
+sealedSecretsPrivateKey: ""
+
 #
 # EKS-specific configuration (only required for "eks" clusters)
 #
