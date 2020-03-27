@@ -47,10 +47,10 @@ track: wks-footloose
 #   '^[0-9A-Za-z][A-Za-z0-9\-_]*'
 clusterName: "upgrade-test"
 
-# GitHub Id of organization that will be used to create new repository
+# Git Host Id of organization that will be used to create new repository
 # and deploy key. The user doing the install should have her ssh key
 # associated with the organization. (required)
-gitHubOrg: ""
+gitHostOrg: ""
 
 # Name of docker hub user for fetching images (required)
 dockerIOUser: "dummy"

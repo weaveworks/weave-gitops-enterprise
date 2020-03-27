@@ -14,7 +14,7 @@ import (
 const validTrackEKS = `
 track: "eks"
 clusterName: ""
-gitHubOrg: "WyldStallyns"
+gitHostOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -30,7 +30,7 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const validTrackSSH = `
 track: "wks-ssh"
 clusterName: ""
-gitHubOrg: "WyldStallyns"
+gitHostOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -38,7 +38,7 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const validTrackFootloose = `
 track: "wks-footloose"
 clusterName: ""
-gitHubOrg: "WyldStallyns"
+gitHostOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -46,7 +46,7 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const invalidTrack = `
 track: "footlose"
 clusterName: ""
-gitHubOrg: "WyldStallyns"
+gitHostOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -54,7 +54,7 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const missingTrack = `
 track: ""
 clusterName: ""
-gitHubOrg: "WyldStallyns"
+gitHostOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -62,7 +62,7 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const missingUser = `
 track: "wks-ssh"
 clusterName: ""
-gitHubOrg: "WyldStallyns"
+gitHostOrg: "WyldStallyns"
 dockerIOUser: ""
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -77,7 +77,7 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const missingPasswordFile = `
 track: "wks-ssh"
 clusterName: ""
-gitHubOrg: "WyldStallyns"
+gitHostOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: ""
 `
@@ -93,7 +93,7 @@ func TestRequiredGlobals(t *testing.T) {
 		{validTrackFootloose, "<nil>"},
 		{invalidTrack, "track must be one of: 'eks', 'wks-ssh', or 'wks-footloose'"},
 		{missingTrack, "track must be specified"},
-		{missingOrgAndUrl, "Either gitHubOrg or gitUrl must be specified"},
+		{missingOrgAndUrl, "Either gitHostOrg or gitUrl must be specified"},
 		{missingUser, "dockerIOUser must be specified"},
 		{missingPasswordFile, "dockerIOPasswordFile must be specified"}}
 
