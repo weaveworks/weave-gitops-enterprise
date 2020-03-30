@@ -138,6 +138,12 @@ cmd/gitops-repo-broker/gitops-repo-broker: cmd/gitops-repo-broker/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/gitops-repo-broker
 
 # UI
+cmd/ui-server/html: ui/build
+	cp -r ui/build $@
+cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
+cmd/ui-server/ui-server: cmd/ui-server/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/ui-server/*.go
+
 UI_CODE_DEPS = $(shell find ui/src -name '*.jsx' -or -name '*.json')
 UI_BUILD_DEPS = \
 	ui/.babelrc.js \
@@ -150,10 +156,6 @@ UI_DEPS = $(UI_CODE_DEPS) $(UI_BUILD_DEPS)
 ui/build: $(UI_DEPS) user-guide/public
 	cd ui && yarn install --frozen-lockfile && yarn lint && yarn build
 	cp -r user-guide/public ui/build/docs
-
-ui/.uptodate: ui-server/ui-server ui/Dockerfile ui/build
-ui-server/ui-server: $(SERVER_DEPS)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ ui-server/*.go
 
 install: $(LOCAL_BINARIES)
 	cp $(LOCAL_BINARIES) `go env GOPATH`/bin
@@ -173,6 +175,7 @@ clean:
 	rm -f $(BINARIES)
 	rm -f $(GENERATED)
 	rm -rf ui/build
+	rm -rf cmd/ui-server/html
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \

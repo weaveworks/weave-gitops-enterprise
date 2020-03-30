@@ -18,6 +18,9 @@
 /cmd/wks-entitle/wks-entitle
 /cmd/wk/wk
 
+# build step for the ui server
+/cmd/ui-server/html
+
 # Ignore binary dependencies
 /setup/wk-quickstart/bin/
 
