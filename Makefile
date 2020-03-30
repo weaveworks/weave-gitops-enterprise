@@ -51,15 +51,16 @@ LOCAL_BINARIES = \
 	cmd/wk/wk \
 	cmd/wks-entitle/wks-entitle \
 	cmd/update-manifest/update-manifest \
-	cmd/wks-ci/wks-ci \
+	cmd/wks-ci/wks-ci
 
 BINARIES = \
 	$(LOCAL_BINARIES) \
-	cmd/mock-authz-server/server \
-	cmd/mock-https-authz-server/server \
-	cmd/wks-ci/checks/policy/policy \
 	cmd/github-service/github-service \
 	cmd/gitops-repo-broker/gitops-repo-broker \
+	cmd/mock-authz-server/server \
+	cmd/mock-https-authz-server/server \
+	cmd/ui-server/ui-server \
+	cmd/wks-ci/checks/policy/policy \
 	kerberos/cmd/k8s-krb5-server/server \
 	kerberos/cmd/wk-kerberos/wk-kerberos \
 	$(NULL)
@@ -136,6 +137,26 @@ cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/
 cmd/gitops-repo-broker/gitops-repo-broker: cmd/gitops-repo-broker/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/gitops-repo-broker
 
+# UI
+cmd/ui-server/html: ui/build
+	cp -r ui/build $@
+cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
+cmd/ui-server/ui-server: cmd/ui-server/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/ui-server/*.go
+
+UI_CODE_DEPS = $(shell find ui/src -name '*.jsx' -or -name '*.json')
+UI_BUILD_DEPS = \
+	ui/.babelrc.js \
+	ui/.eslintrc.js \
+	ui/server.js \
+	ui/yarn.lock \
+	ui/webpack.common.js \
+	ui/webpack.production.js
+UI_DEPS = $(UI_CODE_DEPS) $(UI_BUILD_DEPS)
+ui/build: $(UI_DEPS) user-guide/public
+	cd ui && yarn install --frozen-lockfile && yarn lint && yarn build
+	cp -r user-guide/public ui/build/docs
+
 install: $(LOCAL_BINARIES)
 	cp $(LOCAL_BINARIES) `go env GOPATH`/bin
 
@@ -153,6 +174,8 @@ clean:
 	rm -rf $(UPTODATE_FILES)
 	rm -f $(BINARIES)
 	rm -f $(GENERATED)
+	rm -rf ui/build
+	rm -rf cmd/ui-server/html
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
