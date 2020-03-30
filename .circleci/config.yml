@@ -40,6 +40,9 @@ workflows:
 jobs:
   build:
     <<: *defaults
+    # For nvm stuff
+    environment:
+      BASH_ENV: ~/.bashrc
     steps:
       - checkout
       - <<: *checkoutWithSSH
@@ -52,19 +55,23 @@ jobs:
             mv cmd/wk/wk cmd/wk/wk-darwin-amd64
             # tidy up generated files and what not
             make clean
-      - run: make
-      - deploy:
-          name: Compress and push user guide to S3
+      - run:
+          # FIXME: move this to the build image
+          name: Install node and yarn
           command: |
-            if [ -z "${CI_BRANCH}" -o "${CI_BRANCH}" == "master" ]; then
-              # Compress built user guide into a single file
-              cd user-guide/public && tar -zcvf /tmp/user-guide.tar.gz *
-
-              # Override user guide in S3 for WKP UI to pick it up
-              export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
-              export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
-              aws s3 cp /tmp/user-guide.tar.gz s3://weaveworks-wkp/
-            fi
+            # Install node@12.9.0
+            set +e
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+            export NVM_DIR="/root/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install v12.9.0
+            nvm use v12.9.0
+            npm install -g yarn
+            # install helm
+            curl -L https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz | tar xvz
+            sudo mv linux-amd64/helm /usr/bin/helm
+            sudo chmod +x /usr/bin/helm
+      - run: make
       - deploy:
           name: Push wk to S3
           command: |
@@ -85,6 +92,22 @@ jobs:
               aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-${TAG}-linux-amd64
               aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-${TAG}-darwin-amd64
             fi
+      - run:
+          name: Publish helm chart
+          command: |
+            export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
+
+            TAG=${CIRCLE_TAG}
+            if [ -z "$TAG" ]; then
+              TAG=$(git describe --always)
+            fi
+            IMAGE_TAG=$(./tools/image-tag)
+
+            cd ui
+            ./tools/publish-chart-to-s3.sh $TAG $IMAGE_TAG
+            aws s3 cp pkg/index.yaml s3://weaveworks-wkp/charts/
+            aws s3 cp pkg/*.tgz s3://weaveworks-wkp/charts/
       - persist_to_workspace:
           root: .
           paths:
