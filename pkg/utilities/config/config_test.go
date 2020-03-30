@@ -19,6 +19,14 @@ dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
 
+const validTrackEKSWithGitURL = `
+track: "eks"
+clusterName: ""
+gitUrl: "git@git.acme.org:app-team/cluster-1"
+dockerIOUser: "TheodoreLogan"
+dockerIOPasswordFile: "testdata/passwordFile"
+`
+
 const validTrackSSH = `
 track: "wks-ssh"
 clusterName: ""
@@ -59,7 +67,7 @@ dockerIOUser: ""
 dockerIOPasswordFile: "testdata/passwordFile"
 `
 
-const missingOrg = `
+const missingOrgAndUrl = `
 track: "wks-ssh"
 clusterName: ""
 dockerIOUser: "TheodoreLogan"
@@ -80,11 +88,12 @@ func TestRequiredGlobals(t *testing.T) {
 		errorMsg string
 	}{
 		{validTrackEKS, "<nil>"},
+		{validTrackEKSWithGitURL, "<nil>"},
 		{validTrackSSH, "<nil>"},
 		{validTrackFootloose, "<nil>"},
 		{invalidTrack, "track must be one of: 'eks', 'wks-ssh', or 'wks-footloose'"},
 		{missingTrack, "track must be specified"},
-		{missingOrg, "gitHubOrg must be specified"},
+		{missingOrgAndUrl, "Either gitHubOrg or gitUrl must be specified"},
 		{missingUser, "dockerIOUser must be specified"},
 		{missingPasswordFile, "dockerIOPasswordFile must be specified"}}
 
