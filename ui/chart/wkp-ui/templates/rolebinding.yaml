@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "wkp-ui.fullname" . }}
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade,pre-delete"
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": "hook-succeeded,hook-failed"
+roleRef:
+  kind: Role
+  name: {{ include "wkp-ui.fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  namespace: {{ .Release.Namespace | quote }}
+  name: {{ include "wkp-ui.fullname" . }}
