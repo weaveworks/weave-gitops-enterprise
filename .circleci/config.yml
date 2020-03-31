@@ -262,6 +262,6 @@ jobs:
             go test -v -run TestEntitlements
 
             # e.g. wkp-ci-test-bot from 1passwords
-            export GIT_PROVIDER_TOKEN=$WKP_GIT_PROVIDER_TOKEN
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
 
             go test -v -run TestUpgrade --timeout=99999s
