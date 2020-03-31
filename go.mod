@@ -21,11 +21,7 @@ require (
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lithammer/dedent v1.1.0
-	github.com/mattn/go-colorable v0.1.0 // indirect
-	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
-	github.com/onsi/ginkgo v1.7.0 // indirect
-	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/open-policy-agent/opa v0.12.2
 	github.com/pkg/errors v0.8.1
 	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
@@ -36,11 +32,11 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20190903132036-efbcbb7a6390
+	github.com/weaveworks/wks/cmd/repository-controller v0.0.0-20200331224001-2a52c5f29ad7 // indirect
 	github.com/weaveworks/wksctl v0.0.0-20200212145116-2ea3f8101ecf
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
 	golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3 // indirect
 	golang.org/x/tools v0.0.0-20190909030654-5b82db07426d
 	google.golang.org/appengine v1.5.0 // indirect
@@ -52,7 +48,7 @@ require (
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/src-d/go-git.v4 v4.10.0
 	gopkg.in/yaml.v2 v2.2.4
-	gopkg.in/yaml.v3 v3.0.0-20191026110619-0b21df46bc1d
+	gopkg.in/yaml.v3 v3.0.0-20191106092431-e228e37189d3
 	k8s.io/api v0.0.0-20190831074750-7364b6bdad65
 	k8s.io/apimachinery v0.0.0-20190831074630-461753078381
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
@@ -66,6 +62,7 @@ replace (
 	github.com/json-iterator/go => github.com/json-iterator/go v0.0.0-20180612202835-f2b4162afba3
 	github.com/weaveworks/wks => /Users/jerry/src/github.com/weaveworks/wks
 	github.com/weaveworks/wks/pkg/utilities/config => /Users/jerry/src/github.com/weaveworks/wks/pkg/config
+	github.com/weaveworks/wksctl v0.0.0-20200212145116-2ea3f8101ecf => ../wksctl
 	gopkg.in/jcmturner/gokrb5.v6 => github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2
 	k8s.io/api => k8s.io/api v0.0.0-20190704094930-781da4e7b28a
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190704094625-facf06a8f4b8

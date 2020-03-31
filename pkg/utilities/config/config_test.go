@@ -273,7 +273,43 @@ wksConfig:
   podCIDRBlocks: [192.1680.1.0/16]
 `
 
-func TestRequiredWKSValues(t *testing.T) {
+// invalid ipv4 address
+const invalidControlPlanLbAddress1 = `
+wksConfig:
+  kubernetesVersion: "1.14.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+  controlPlaneLbAddress: 192.1680.1.0
+`
+
+// valid ipv4 address
+const validControlPlanLbAddress1 = `
+wksConfig:
+  kubernetesVersion: "1.14.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+  controlPlaneLbAddress: 192.168.1.0
+`
+
+// invalid domain
+const invalidControlPlanLbAddress2 = `
+wksConfig:
+  kubernetesVersion: "1.14.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+  controlPlaneLbAddress: "hello-World-.com"
+`
+
+// valid domain
+const validControlPlanLbAddress2 = `
+wksConfig:
+  kubernetesVersion: "1.14.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+  controlPlaneLbAddress: "hello-World.com"
+`
+
+func TestInvalidWKSValues(t *testing.T) {
 	testinput := []struct {
 		config   string
 		errorMsg string
@@ -285,13 +321,32 @@ func TestRequiredWKSValues(t *testing.T) {
 		{invalidWKSK8sVersion,
 			"1.16.1 is not a valid Kubernetes version; must be 1.14.x-1.15.x"},
 		{invalidServiceCIDRBlock, "1000.96.0.0/12 is not a valid CIDR specification"},
-		{invalidPodCIDRBlock, "192.1680.1.0/16 is not a valid CIDR specification"}}
+		{invalidPodCIDRBlock, "192.1680.1.0/16 is not a valid CIDR specification"},
+		{invalidControlPlanLbAddress1, "192.1680.1.0 is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
+		{invalidControlPlanLbAddress2, "hello-World-.com is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
+	}
 
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
 		require.NoError(t, err)
 		err = checkRequiredWKSValues(&conf.WKSConfig)
 		assert.Equal(t, testvals.errorMsg, fmt.Sprintf("%v", err))
+	}
+}
+
+func TestValidWKSValues(t *testing.T) {
+	testinput := []struct {
+		config string
+	}{
+		{validControlPlanLbAddress1},
+		{validControlPlanLbAddress2},
+	}
+
+	for _, testvals := range testinput {
+		conf, err := unmarshalConfig([]byte(testvals.config))
+		require.NoError(t, err)
+		err = checkRequiredWKSValues(&conf.WKSConfig)
+		require.NoError(t, err)
 	}
 }
 
