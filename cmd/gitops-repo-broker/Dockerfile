@@ -1,6 +1,6 @@
 FROM docker.io/governmentpaas/git-ssh
 
-# Add git hosts to known hosts file so we can use
+# Add git provider hostnames to known hosts file so we can use
 # StrickHostKeyChecking with git+ssh
 ADD ./known_hosts.sh /home/wkp/known_hosts.sh
 RUN bash /home/wkp/known_hosts.sh /etc/ssh/ssh_known_hosts && \

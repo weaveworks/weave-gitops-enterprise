@@ -103,9 +103,9 @@ func CreateGithubRepoWithDeployKey(
 		return nil, errors.Wrap(err, "set up local repo")
 	}
 
-	log.Infof("Creating the GitHub repository %q...", repoName)
+	log.Infof("Creating the remote git repository %q...", repoName)
 	if _, err := hub.CreateEmpty(org, repoName, true); err != nil {
-		return nil, errors.Wrap(err, "create github repo")
+		return nil, errors.Wrap(err, "create remote git repo")
 	}
 
 	auth, err := gitssh.NewPublicKeys("git", privKey, "")
@@ -114,7 +114,7 @@ func CreateGithubRepoWithDeployKey(
 	}
 
 	pubKey := cryptossh.MarshalAuthorizedKey(auth.Signer.PublicKey())
-	log.Infof("Adding Deploy key to the GitHub repository %q: %q", repoName, pubKey)
+	log.Infof("Adding Deploy key to the remote git repository %q: %q", repoName, pubKey)
 	fullRepoName := fmt.Sprintf("%s/%s", org, repoName)
 	if err := hub.RegisterDeployKey(fullRepoName, "wkp-gitops-key", string(pubKey), false); err != nil {
 		return nil, errors.Wrap(err, "register deploy key")
@@ -187,10 +187,10 @@ func NewGithubRepoToTempDir(parentDir, repoName string) (*GitRepo, *ssh.KeyPair,
 		return nil, nil, errors.Wrap(err, "git init")
 	}
 
-	log.Infof("Creating the GitHub repository %q...", repoName)
+	log.Infof("Creating the remote git repository %q...", repoName)
 	// XXX: hub.Create succeeds if the remote repo already exists.
 	if _, err := hub.Create(gitDir, true, repoName); err != nil {
-		return nil, nil, errors.Wrap(err, "create github repo")
+		return nil, nil, errors.Wrap(err, "create remote git repo")
 	}
 
 	bits := 4096
@@ -200,7 +200,7 @@ func NewGithubRepoToTempDir(parentDir, repoName string) (*GitRepo, *ssh.KeyPair,
 		return nil, nil, errors.Wrap(err, "ssh generate key pair")
 	}
 
-	log.Infof("Registering the SSH deploy key with the GitHub repository %q...", repoName)
+	log.Infof("Registering the SSH deploy key with the remote git repository %q...", repoName)
 	if err := hub.RegisterDeployKey(repoName, "wkp-gitops-key", string(keyPair.PublicRSA), false); err != nil {
 		return nil, nil, errors.Wrap(err, "register deploy key")
 	}

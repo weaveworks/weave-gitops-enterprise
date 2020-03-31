@@ -7,16 +7,17 @@
 /user-guide/resources/_gen
 
 # Ignore generated binaries
-/cmd/wks-controller/controller
 /cmd/k8s-krb5-server/server
 /cmd/mock-authz-server/server
 /cmd/mock-https-authz-server/server
 /cmd/policy/policy
+/cmd/ui-server/ui-server
 /cmd/update-manifest/update-manifest
+/cmd/wk/wk
 /cmd/wks-ci/checks/policy/policy
 /cmd/wks-ci/wks-ci
+/cmd/wks-controller/controller
 /cmd/wks-entitle/wks-entitle
-/cmd/wk/wk
 
 # build step for the ui server
 /cmd/ui-server/html

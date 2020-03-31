@@ -32,7 +32,7 @@ See:
 
 To release a new version of the project:
 
-- Create a new tag: `git tag -a 1.0.1`  The -a is important as it creates an annotated tag which is then used as a version number for builds.
+- Create a new tag: `git tag -a 1.0.1` The -a is important as it creates an annotated tag which is then used as a version number for builds.
 - Push tag: `git push origin 1.0.1`
 - CI will push binary to weaveworks-wkp.s3.amazonaws.com/wk-1.0.1
 - Edit release notes https://github.com/weaveworks/wks/releases/edit/1.0.1
@@ -108,13 +108,14 @@ INFO[0000] User guide server now running. Please open the following address in y
 Go to: [http://localhost:8080](http://localhost:8080)
 
 # Using with a config repo instead of cluster and machine yaml files
-We will create a cluster by pulling the cluster and machine yaml from git.  We perform all the master node setup of today.
+
+We will create a cluster by pulling the cluster and machine yaml from git. We perform all the master node setup of today.
 
 The following are new commandline arguments to `wk apply` which will result in a cluster being created.
 
 - **git-url** The git repo url containing the cluster and machine yaml
-- **git-branch**  The branch within the repo to pull the cluster info from
-- **git-deploy-key** The deploy key configured for the GitHub repo
+- **git-branch** The branch within the repo to pull the cluster info from
+- **git-deploy-key** The deploy key configured for the write access to the git repo
 
 The new commandline arguments will be passed instead of --cluster and --machines.
 
@@ -124,6 +125,7 @@ $ wk apply
   --git-branch dev \
   --git-deloy-key-path ./deploy-key
 ```
+
 Using the url, branch, and deploy key, we will clone the repo - if we can't clone the repo we will error out.
 
 These `--git` arguments are then used to setup and configure [flux](https://www.weave.works/oss/flux/) to automate cluster management.
@@ -132,12 +134,12 @@ We will rely on the user installing [fluxctl](https://github.com/weaveworks/flux
 
 # Running an end-to-end test against EKS using Quickstart
 
-To run a test that uses the `wk-quickstart-eks` repo to construct a cluster and ensure that the correct pods are running, go to the `test/integration/test` directory and type: `go test --timeout=99999s`. The test will run for 20-25 minutes and then delete the cluster and any repositories (local and GitHub) created during the test.
+To run a test that uses the `wk-quickstart-eks` repo to construct a cluster and ensure that the correct pods are running, go to the `test/integration/test` directory and type: `go test --timeout=99999s`. The test will run for 20-25 minutes and then delete the cluster and any repositories (local and remote) created during the test.
 
 The following environment variables must be set before running the test:
 
-* GITHUB_USER (username used to determine where to create empty repo)
-* GIT_DEPLOY_KEY (private key that will be used to access the GitHub repo)
-* DOCKER_IO_USER (for fetching images)
-* DOCKER_IO_PASSWORD (for fetching images)
-* WKP_CLUSTER_COMPONENTS_IMAGE (used to manage components)
+- GIT_PROVIDER_USER (username used to determine where to create an empty remote git repo)
+- GIT_DEPLOY_KEY (private key that will be used to access the git repo)
+- DOCKER_IO_USER (for fetching images)
+- DOCKER_IO_PASSWORD (for fetching images)
+- WKP_CLUSTER_COMPONENTS_IMAGE (used to manage components)

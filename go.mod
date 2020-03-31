@@ -3,12 +3,8 @@ module github.com/weaveworks/wks
 go 1.12
 
 require (
-	github.com/Masterminds/goutils v1.1.0 // indirect
-	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/alioygur/gores v1.2.1
-	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/ghodss/yaml v1.0.0
@@ -21,7 +17,6 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
-	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/jcmturner/gofork v1.0.0 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
@@ -29,7 +24,6 @@ require (
 	github.com/mattn/go-colorable v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
-	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/open-policy-agent/opa v0.12.2
