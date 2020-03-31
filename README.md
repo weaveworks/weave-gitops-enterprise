@@ -58,9 +58,9 @@ make gen
 
 ### Dependencies
 
-- [`dep`](https://golang.github.io/dep/docs/installation.html)
 - [`hugo`](https://gohugo.io/getting-started/quick-start/)
 - [`embedmd`](https://github.com/campoy/embedmd)
+- [`yarn`](https://classic.yarnpkg.com/en/docs/install)
 
 ### Build
 
