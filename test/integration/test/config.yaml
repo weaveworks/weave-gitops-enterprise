@@ -12,7 +12,6 @@
 # footloose development or test cluster with 1 master and 1 worker
 # running on docker containers.
 
-
 #
 # General configuration
 #
@@ -45,29 +44,29 @@ track: wks-footloose
 # Name of the cluster being created. If left blank, defaults to: "wk-${USER}"
 # Value must be 1-100 characters matching the pattern:
 #   '^[0-9A-Za-z][A-Za-z0-9\-_]*'
-clusterName: "upgrade-test"
+clusterName: 'upgrade-test'
 
-# Git Host Id of organization that will be used to create new repository
+# Git Provider Id of organization that will be used to create new repository
 # and deploy key. The user doing the install should have her ssh key
 # associated with the organization. (required)
-gitHostOrg: ""
+gitProviderOrg: ''
 
 # Name of docker hub user for fetching images (required)
-dockerIOUser: "dummy"
+dockerIOUser: 'dummy'
 
 # Path to a file containing password for docker hub user account (required)
-dockerIOPasswordFile: "/etc/passwd"
+dockerIOPasswordFile: '/etc/passwd'
 
 #
 # EKS-specific configuration (only required for "eks" clusters)
 #
 eksConfig:
   # AWS region in which to create the cluster (required)
-  clusterRegion: "eu-west-3"
+  clusterRegion: 'eu-west-3'
 
   # Defines the version of Kubernetes installed on each node.
   # Must be: 1.14 or 1.15 (required)
-  kubernetesVersion: "1.14"
+  kubernetesVersion: '1.14'
 
   # Description of the desired node groups. Each node group spec consists of:
   #   - name: <string>. If unspecified, defaults to "ng-<node group index>"
@@ -82,7 +81,7 @@ eksConfig:
   # The file will be included verbatim in the generated EKS config.
   # No validity checking will be performed prior to invoking "eksctl".
   # If left blank, no managed node groups wil be created.
-  managedNodeGroupFile: ""
+  managedNodeGroupFile: ''
 
 #
 # Configuration for clusters not hosted in EKS
@@ -90,7 +89,7 @@ eksConfig:
 wksConfig:
   # Defines the version of Kubernetes installed on each node.
   # Must be: 1.14.x-1.15.x (required).
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: '1.14.1'
 
   # Specifies the range of address available for services. Value is an array of
   # CIDRs (required)
@@ -107,12 +106,12 @@ wksConfig:
     # User name to be used when accessing cluster machines via
     # ssh. The user must have 'sudo' privileges on each machine in the
     # cluster. If left blank, defaults to: "root"
-    sshUser: "root"
+    sshUser: 'root'
 
     # Path to SSH key file containing private key which provides access to
     # the cluster machines. The key must correspond to a user with sudo
     # permission. If left blank, defaults to: "${HOME}/.ssh/id_rsa"
-    sshKeyFile: ""
+    sshKeyFile: ''
 
     # Descriptions for all machines provided to the cluster. A machine
     # spec consists of:

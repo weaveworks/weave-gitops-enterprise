@@ -16,7 +16,7 @@ import (
 type WKPConfig struct {
 	Track                string    `yaml:"track"`
 	ClusterName          string    `yaml:"clusterName"`
-	GitHostOrg           string    `yaml:"gitHostOrg"`
+	GitProviderOrg       string    `yaml:"gitProviderOrg"`
 	GitURL               string    `yaml:"gitUrl"`
 	DockerIOUser         string    `yaml:"dockerIOUser"`
 	DockerIOPasswordFile string    `yaml:"dockerIOPasswordFile"`
@@ -224,8 +224,8 @@ func checkValidPath(field, path string) error {
 
 // Global values
 func checkRequiredGlobalValues(config *WKPConfig) error {
-	if config.GitHostOrg == "" && config.GitURL == "" {
-		return fmt.Errorf("Either gitHostOrg or gitUrl must be specified")
+	if config.GitProviderOrg == "" && config.GitURL == "" {
+		return fmt.Errorf("Either gitProviderOrg or gitUrl must be specified")
 	}
 
 	if config.DockerIOUser == "" {
@@ -511,7 +511,7 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 
 	str.WriteString(fmt.Sprintf("export TRACK=%s\n", config.Track))
 	str.WriteString(fmt.Sprintf("export CLUSTER_NAME=%s\n", config.ClusterName))
-	str.WriteString(fmt.Sprintf("export GIT_HOST_ORG=%s\n", config.GitHostOrg))
+	str.WriteString(fmt.Sprintf("export GIT_PROVIDER_ORG=%s\n", config.GitProviderOrg))
 	str.WriteString(fmt.Sprintf("export GIT_URL=%s\n", config.GitURL))
 	str.WriteString(fmt.Sprintf("export DOCKER_IO_USER=%s\n", config.DockerIOUser))
 	str.WriteString(fmt.Sprintf("export DOCKER_IO_PASSWORD_FILE=%s\n", config.DockerIOPasswordFile))
