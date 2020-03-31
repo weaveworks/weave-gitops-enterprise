@@ -251,9 +251,9 @@ jobs:
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSION=1.14.10
             cd test/integration/test
-            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GIT_PROVIDER_USER/" config.yaml
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
 
-            echo $WKP_GIT_PROVIDER_PRIVATE_KEY | base64 -d > user-ssh-key
+            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
             chmod 600 user-ssh-key
             eval "$(ssh-agent -s)"
             ssh-add -D
