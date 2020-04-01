@@ -13,19 +13,26 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
+type GitProvider string
+
+const (
+	GitHubProvider GitProvider = "github"
+	GitLabProvider GitProvider = "gitlab"
+)
+
 // Top-level config parameters
 type WKPConfig struct {
-	Track                string    `yaml:"track"`
-	ClusterName          string    `yaml:"clusterName"`
-	GitProvider          string    `yaml:"gitProvider"`
-	GitProviderOrg       string    `yaml:"gitProviderOrg"`
-	GitURL               string    `yaml:"gitUrl"`
-	DockerIOUser         string    `yaml:"dockerIOUser"`
-	DockerIOPasswordFile string    `yaml:"dockerIOPasswordFile"`
-	SealedSecretsCert    string    `yaml:"sealedSecretsCertificate"`
-	SealedSecretsKey     string    `yaml:"sealedSecretsPrivateKey"`
-	EKSConfig            EKSConfig `yaml:"eksConfig"`
-	WKSConfig            WKSConfig `yaml:"wksConfig"`
+	Track                string      `yaml:"track"`
+	ClusterName          string      `yaml:"clusterName"`
+	GitProvider          GitProvider `yaml:"gitProvider"`
+	GitProviderOrg       string      `yaml:"gitProviderOrg"`
+	GitURL               string      `yaml:"gitUrl"`
+	DockerIOUser         string      `yaml:"dockerIOUser"`
+	DockerIOPasswordFile string      `yaml:"dockerIOPasswordFile"`
+	SealedSecretsCert    string      `yaml:"sealedSecretsCertificate"`
+	SealedSecretsKey     string      `yaml:"sealedSecretsPrivateKey"`
+	EKSConfig            EKSConfig   `yaml:"eksConfig"`
+	WKSConfig            WKSConfig   `yaml:"wksConfig"`
 }
 
 // Parameters specific to eks
@@ -263,18 +270,22 @@ func setDefaultGlobalValues(config *WKPConfig) {
 }
 
 func checkRequiredGitValues(config *WKPConfig) error {
+	if config.GitProvider != GitHubProvider && config.GitProvider != GitLabProvider {
+		return fmt.Errorf("gitProvider must be one of: 'github' or 'gitlab'")
+	}
+
 	// All good.
 	if config.GitURL != "" {
 		return nil
 	}
 
 	// We don't actually support creating gitlab repos right now.
-	if config.GitProvider == "gitlab" {
+	if config.GitProvider == GitLabProvider {
 		return fmt.Errorf("Please provide the url to your gitlab git repository in: gitUrl")
 	}
 
 	// Want us to create a github repo tell us the org
-	if config.GitProvider == "github" && config.GitProviderOrg == "" {
+	if config.GitProvider == GitHubProvider && config.GitProviderOrg == "" {
 		return fmt.Errorf("Please provide the gitProviderOrg where the repository will be created")
 	}
 

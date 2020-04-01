@@ -111,16 +111,27 @@ const githubNoOrg = `
 gitProvider: "github"
 `
 
+const badGitProvider = `
+gitProvider: "bitbucket"
+`
+
+const emptyGitProvider = `
+gitProvider: ""
+`
+
 func TestValidateGitValues(t *testing.T) {
 	testinput := []struct {
 		config   string
 		errorMsg string
 	}{
-		{gitUrl, "<nil>"},
+		{gitUrl, "gitProvider must be one of: 'github' or 'gitlab'"},
 		{gitlabWithUrl, "<nil>"},
 		{githubWithOrg, "<nil>"},
 		{gitlabNoUrl, "Please provide the url to your gitlab git repository in: gitUrl"},
-		{githubNoOrg, "Please provide the gitProviderOrg where the repository will be created"}}
+		{githubNoOrg, "Please provide the gitProviderOrg where the repository will be created"},
+		{badGitProvider, "gitProvider must be one of: 'github' or 'gitlab'"},
+		{emptyGitProvider, "gitProvider must be one of: 'github' or 'gitlab'"},
+	}
 
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
