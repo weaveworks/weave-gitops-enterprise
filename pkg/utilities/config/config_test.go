@@ -274,7 +274,7 @@ wksConfig:
 `
 
 // invalid ipv4 address
-const invalidControlPlanLbAddress1 = `
+const invalidControlPlaneLbAddress1 = `
 wksConfig:
   kubernetesVersion: "1.14.1"
   serviceCIDRBlocks: [10.96.0.0/12]
@@ -283,7 +283,7 @@ wksConfig:
 `
 
 // valid ipv4 address
-const validControlPlanLbAddress1 = `
+const validControlPlaneLbAddress1 = `
 wksConfig:
   kubernetesVersion: "1.14.1"
   serviceCIDRBlocks: [10.96.0.0/12]
@@ -292,7 +292,7 @@ wksConfig:
 `
 
 // invalid domain
-const invalidControlPlanLbAddress2 = `
+const invalidControlPlaneLbAddress2 = `
 wksConfig:
   kubernetesVersion: "1.14.1"
   serviceCIDRBlocks: [10.96.0.0/12]
@@ -301,7 +301,7 @@ wksConfig:
 `
 
 // valid domain
-const validControlPlanLbAddress2 = `
+const validControlPlaneLbAddress2 = `
 wksConfig:
   kubernetesVersion: "1.14.1"
   serviceCIDRBlocks: [10.96.0.0/12]
@@ -322,8 +322,8 @@ func TestInvalidWKSValues(t *testing.T) {
 			"1.16.1 is not a valid Kubernetes version; must be 1.14.x-1.15.x"},
 		{invalidServiceCIDRBlock, "1000.96.0.0/12 is not a valid CIDR specification"},
 		{invalidPodCIDRBlock, "192.1680.1.0/16 is not a valid CIDR specification"},
-		{invalidControlPlanLbAddress1, "192.1680.1.0 is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
-		{invalidControlPlanLbAddress2, "hello-World-.com is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
+		{invalidControlPlaneLbAddress1, "192.1680.1.0 is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
+		{invalidControlPlaneLbAddress2, "hello-World-.com is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
 	}
 
 	for _, testvals := range testinput {
@@ -338,8 +338,8 @@ func TestValidWKSValues(t *testing.T) {
 	testinput := []struct {
 		config string
 	}{
-		{validControlPlanLbAddress1},
-		{validControlPlanLbAddress2},
+		{validControlPlaneLbAddress1},
+		{validControlPlaneLbAddress2},
 	}
 
 	for _, testvals := range testinput {
