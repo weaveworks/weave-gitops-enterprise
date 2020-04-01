@@ -89,11 +89,11 @@ metadata:
   name: {{ .ClusterName }}
 spec:
   clusterNetwork:
-    services:
-      cidrBlocks: {{ .ServiceCIDRBlocks }}
-    pods:
-      cidrBlocks: {{ .PodCIDRBlocks }}
-    serviceDomain: cluster.local
+	services:
+	  cidrBlocks: {{ .ServiceCIDRBlocks }}
+	pods:
+	  cidrBlocks: {{ .PodCIDRBlocks }}
+	serviceDomain: cluster.local
   providerSpec:
     value:
       apiVersion: baremetalproviderspec/v1alpha1
@@ -126,31 +126,31 @@ spec:
 const machineTemplate = `- apiVersion: cluster.k8s.io/v1alpha1
   kind: Machine
   metadata:
-    labels:
-      set: {{ .Role }}
-    name: {{ .Name }}
-    namespace: weavek8sops
+	labels:
+	  set: {{ .Role }}
+	name: {{ .Name }}
+	namespace: weavek8sops
   spec:
-    versions:
-      kubelet: {{ .KubernetesVersion }}
-    providerSpec:
-      value:
-        apiVersion: baremetalproviderspec/v1alpha1
-        kind: BareMetalMachineProviderSpec
-        private:
-          address: {{ .PrivateAddress }}
-          port: {{ .PrivatePort }}
-        public:
-          address: {{ .PublicAddress }}
-          port: {{ .PublicPort }}
+	versions:
+	  kubelet: {{ .KubernetesVersion }}
+	providerSpec:
+	  value:
+		apiVersion: baremetalproviderspec/v1alpha1
+		kind: BareMetalMachineProviderSpec
+		private:
+		  address: {{ .PrivateAddress }}
+		  port: {{ .PrivatePort }}
+		public:
+		  address: {{ .PublicAddress }}
+		  port: {{ .PublicPort }}
 `
 
 const nodeGroupTemplate = `  - desiredCapacity: {{ .DesiredCapacity }}
-    iam:
-      withAddonPolicies:
-        albIngress: true
-    instanceType: {{ .InstanceType }}
-    name: {{ .Name }}`
+	iam:
+	  withAddonPolicies:
+		albIngress: true
+	instanceType: {{ .InstanceType }}
+	name: {{ .Name }}`
 
 const eksTemplate = `apiVersion: infrastructure.eksctl.io/v1alpha5
 kind: EKSCluster
@@ -159,20 +159,20 @@ metadata:
 spec:
   region: {{ .ClusterRegion }} # set the AWS region here
   cloudWatch:
-    clusterLogging:
-      enableTypes:
-      - audit
-      - authenticator
-      - controllerManager
+	clusterLogging:
+	  enableTypes:
+	  - audit
+	  - authenticator
+	  - controllerManager
   iam:
-    serviceAccounts:
-    - attachPolicyARNs:
-      # FIXME: https://github.com/weaveworks/wk-quickstart-eks/issues/56 "Default cluster-config.js creates a ServiceAccount with AWS AdministratorAccess"
-      - arn:aws:iam::aws:policy/AdministratorAccess
-      metadata:
-        name: ekscontroller
-        namespace: wkp-eks-controller
-    withOIDC: true
+	serviceAccounts:
+	- attachPolicyARNs:
+	  # FIXME: https://github.com/weaveworks/wk-quickstart-eks/issues/56 "Default cluster-config.js creates a ServiceAccount with AWS AdministratorAccess"
+	  - arn:aws:iam::aws:policy/AdministratorAccess
+	  metadata:
+		name: ekscontroller
+		namespace: wkp-eks-controller
+	withOIDC: true
   nodeGroups:
 {{ .NodeGroups }}
   managedNodeGroupFile: {{ .ManagedNodeGroupFile }}
@@ -604,6 +604,7 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 	str.WriteString(fmt.Sprintf("export SEALED_SECRETS_KEY=%s\n", config.SealedSecretsKey))
 	if config.Track == "eks" {
 		str.WriteString(fmt.Sprintf("export REGION=%s\n", config.EKSConfig.ClusterRegion))
+		// } else if config.Track == "wks-ssh" {
 	} else {
 		str.WriteString(fmt.Sprintf("export KUBERNETES_VERSION=%s\n", config.WKSConfig.KubernetesVersion))
 		str.WriteString(fmt.Sprintf("export SSH_KEY_FILE=%s\n", config.WKSConfig.SSHConfig.SSHKeyFile))
