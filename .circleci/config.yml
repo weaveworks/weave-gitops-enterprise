@@ -123,8 +123,8 @@ jobs:
         environment:
           GOPATH: /go
           SRCDIR: /src/github.com/weaveworks/wks
-          KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
-          KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
+          KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
+          KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
           JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
           JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
     working_directory: /src/github.com/weaveworks/wks
@@ -201,8 +201,8 @@ jobs:
       GOROOT: /home/circleci/goroot
       GOPATH: /home/circleci/go
       SRCDIR: /home/circleci/src/github.com/weaveworks/wks
-      KUBECTL_URL: https://dl.k8s.io/v1.10.5/kubernetes-client-linux-amd64.tar.gz
-      KUBECTL_CHECKSUM: da9d557989a0b9671a610f21642052febb8f70c3cf144c98a8a4f7ecab6bafe2
+      KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
+      KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
