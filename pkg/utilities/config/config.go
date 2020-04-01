@@ -619,14 +619,18 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig) (string, error) {
 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
-		ClusterName       string
-		SSHUser           string
-		ServiceCIDRBlocks string
-		PodCIDRBlocks     string
+		ClusterName           string
+		SSHUser               string
+		ServiceCIDRBlocks     string
+		PodCIDRBlocks         string
+		ControlPlaneLbAddress string
 	}{config.ClusterName,
 		config.WKSConfig.SSHConfig.SSHUser,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
-		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks)})
+		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks),
+		config.WKSConfig.ControlPlaneLbAddress,
+	})
+
 	if err != nil {
 		return "", err
 	}
