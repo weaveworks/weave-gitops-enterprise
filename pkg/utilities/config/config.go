@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -20,6 +21,8 @@ type WKPConfig struct {
 	GitURL               string    `yaml:"gitUrl"`
 	DockerIOUser         string    `yaml:"dockerIOUser"`
 	DockerIOPasswordFile string    `yaml:"dockerIOPasswordFile"`
+	SealedSecretsCert    string    `yaml:"sealedSecretsCertificate"`
+	SealedSecretsKey     string    `yaml:"sealedSecretsPrivateKey"`
 	EKSConfig            EKSConfig `yaml:"eksConfig"`
 	WKSConfig            WKSConfig `yaml:"wksConfig"`
 }
@@ -256,6 +259,20 @@ func setDefaultGlobalValues(config *WKPConfig) {
 	}
 }
 
+func validateSealedSecretsValues(config *WKPConfig) error {
+	// Check that if both certificate and private key they match, or both are left blank
+	if config.SealedSecretsCert != "" && config.SealedSecretsKey == "" ||
+		config.SealedSecretsCert == "" && config.SealedSecretsKey != "" {
+		return fmt.Errorf("please provide both the private key and certificate for the sealed secrets controller")
+	} else if config.SealedSecretsCert != "" && config.SealedSecretsKey != "" {
+		_, err := tls.LoadX509KeyPair(config.SealedSecretsCert, config.SealedSecretsKey)
+		if err != nil {
+			return fmt.Errorf("could not load key and certificate pair")
+		}
+	}
+	return nil
+}
+
 // eks values
 func checkRequiredEKSValues(eksConfig *EKSConfig) error {
 	if eksConfig.ClusterRegion == "" {
@@ -482,6 +499,10 @@ func processConfig(config *WKPConfig) error {
 	}
 
 	addDefaultValues(config)
+	err := validateSealedSecretsValues(config)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -515,6 +536,8 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 	str.WriteString(fmt.Sprintf("export GIT_URL=%s\n", config.GitURL))
 	str.WriteString(fmt.Sprintf("export DOCKER_IO_USER=%s\n", config.DockerIOUser))
 	str.WriteString(fmt.Sprintf("export DOCKER_IO_PASSWORD_FILE=%s\n", config.DockerIOPasswordFile))
+	str.WriteString(fmt.Sprintf("export SEALED_SECRETS_CERT=%s\n", config.SealedSecretsCert))
+	str.WriteString(fmt.Sprintf("export SEALED_SECRETS_KEY=%s\n", config.SealedSecretsKey))
 	if config.Track == "eks" {
 		str.WriteString(fmt.Sprintf("export REGION=%s\n", config.EKSConfig.ClusterRegion))
 	} else {
