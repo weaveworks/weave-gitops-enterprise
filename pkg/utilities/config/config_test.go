@@ -89,13 +89,18 @@ func TestRequiredGlobals(t *testing.T) {
 	}
 }
 
-const gitUrl = `
-gitUrl: "foo"
+const missingGitProvider = `
+gitUrl: "git@git.acme.io/foo/bar.git"
+`
+
+const badGitUrl = `
+gitProvider: "gitlab"
+gitUrl: "https://git.acme.io/foo/bar.git"
 `
 
 const gitlabWithUrl = `
 gitProvider: "gitlab"
-gitUrl: "foo"
+gitUrl: "git@git.acme.io/foo/bar.git"
 `
 
 const githubWithOrg = `
@@ -124,7 +129,8 @@ func TestValidateGitValues(t *testing.T) {
 		config   string
 		errorMsg string
 	}{
-		{gitUrl, "gitProvider must be one of: 'github' or 'gitlab'"},
+		{missingGitProvider, "gitProvider must be one of: 'github' or 'gitlab'"},
+		{badGitUrl, "gitUrl, if provided, must be a git ssh url that starts with 'git@'"},
 		{gitlabWithUrl, "<nil>"},
 		{githubWithOrg, "<nil>"},
 		{gitlabNoUrl, "Please provide the url to your gitlab git repository in: gitUrl"},
