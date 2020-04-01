@@ -91,10 +91,10 @@ spec:
       apiVersion: baremetalproviderspec/v1alpha1
       kind: BareMetalClusterProviderSpec
       user: {{ .SSHUser }}
-      {{ if .ControlPlaneLbAddress }}
+      {{- if .ControlPlaneLbAddress }}
       apiServer:
         externalLoadBalancer: {{ .ControlPlaneLbAddress }}
-      {{ end }}
+      {{- end }}
       os:
         files:
         - source:
