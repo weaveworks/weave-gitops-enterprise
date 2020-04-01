@@ -14,7 +14,6 @@ import (
 const validTrackEKS = `
 track: "eks"
 clusterName: ""
-gitProviderOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -22,7 +21,6 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const validTrackEKSWithGitURL = `
 track: "eks"
 clusterName: ""
-gitUrl: "git@git.acme.org:app-team/cluster-1"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -30,7 +28,6 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const validTrackSSH = `
 track: "wks-ssh"
 clusterName: ""
-gitProviderOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -38,7 +35,6 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const validTrackFootloose = `
 track: "wks-footloose"
 clusterName: ""
-gitProviderOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -46,7 +42,6 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const invalidTrack = `
 track: "footlose"
 clusterName: ""
-gitProviderOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -54,7 +49,6 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const missingTrack = `
 track: ""
 clusterName: ""
-gitProviderOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
@@ -62,22 +56,13 @@ dockerIOPasswordFile: "testdata/passwordFile"
 const missingUser = `
 track: "wks-ssh"
 clusterName: ""
-gitProviderOrg: "WyldStallyns"
 dockerIOUser: ""
-dockerIOPasswordFile: "testdata/passwordFile"
-`
-
-const missingOrgAndUrl = `
-track: "wks-ssh"
-clusterName: ""
-dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
 
 const missingPasswordFile = `
 track: "wks-ssh"
 clusterName: ""
-gitProviderOrg: "WyldStallyns"
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: ""
 `
@@ -93,7 +78,6 @@ func TestRequiredGlobals(t *testing.T) {
 		{validTrackFootloose, "<nil>"},
 		{invalidTrack, "track must be one of: 'eks', 'wks-ssh', or 'wks-footloose'"},
 		{missingTrack, "track must be specified"},
-		{missingOrgAndUrl, "Either gitProviderOrg or gitUrl must be specified"},
 		{missingUser, "dockerIOUser must be specified"},
 		{missingPasswordFile, "dockerIOPasswordFile must be specified"}}
 
@@ -101,6 +85,47 @@ func TestRequiredGlobals(t *testing.T) {
 		conf, err := unmarshalConfig([]byte(testvals.config))
 		require.NoError(t, err)
 		err = checkRequiredGlobalValues(conf)
+		assert.Equal(t, testvals.errorMsg, fmt.Sprintf("%v", err))
+	}
+}
+
+const gitUrl = `
+gitUrl: "foo"
+`
+
+const gitlabWithUrl = `
+gitProvider: "gitlab"
+gitUrl: "foo"
+`
+
+const githubWithOrg = `
+gitProvider: "github"
+gitProviderOrg: "foo"
+`
+
+const gitlabNoUrl = `
+gitProvider: "gitlab"
+`
+
+const githubNoOrg = `
+gitProvider: "github"
+`
+
+func TestValidateGitValues(t *testing.T) {
+	testinput := []struct {
+		config   string
+		errorMsg string
+	}{
+		{gitUrl, "<nil>"},
+		{gitlabWithUrl, "<nil>"},
+		{githubWithOrg, "<nil>"},
+		{gitlabNoUrl, "Please provide the url to your gitlab git repository in: gitUrl"},
+		{githubNoOrg, "Please provide the gitProviderOrg where the repository will be created"}}
+
+	for _, testvals := range testinput {
+		conf, err := unmarshalConfig([]byte(testvals.config))
+		require.NoError(t, err)
+		err = checkRequiredGitValues(conf)
 		assert.Equal(t, testvals.errorMsg, fmt.Sprintf("%v", err))
 	}
 }
