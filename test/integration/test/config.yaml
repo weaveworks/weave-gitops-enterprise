@@ -1,156 +1,24 @@
-# This file contains configuration information for creating and
-# managing a wkp cluster. The contents of the file are used by the "wk" command
-# to:
-#   - create a Kubernetes cluster
-#   - set up a GitOps workflow
-#   - deploy cluster components selected in "components.js"
-#
-# General configuration comes first. Configuration values specific to
-# particular cluster types and environments are found in separate
-# subsections below.
-# The file is initially set up with values that will create a
-# footloose development or test cluster with 1 master and 1 worker
-# running on docker containers.
-
-#
-# General configuration
-#
-# Defines the cluster "track", which is a combination of the type of
-# cluster being created and how machines are provided (required). Choices are:
-#   - eks
-#   - wks-ssh
-#   - wks-footloose
-#
-# EKS managed clusters may be created by choosing "eks".
-#
-# Clusters on bare metal may be created by selecting "wks-ssh".
-#
-# Local test or development clusters may be created by selecting "wks-footloose".
-#
-# The difference between "wks-ssh" and "wks-footloose" is that the "wks-ssh" track
-# creates a cluster on top of a set of machines provided by the user
-# while the "wks-footloose" track creates its own set of ignite VMs or docker
-# containers to act as the machines for the cluster. A standard docker
-# installation will support the use of docker containers;
-# see: https://ignite.readthedocs.io/en/stable/installation.html
-# for ignite requirements.
-#
-# If the "wks-ssh" track is chosen, IP addresses, ports, and roles (master/worker)
-# must be specified for the machines that will make up the cluster as well as
-# an SSH key for a user that has sudo permissions for each machine.
-# Value must be one of: "eks", "wks-ssh", or "wks-footloose" (required)
 track: wks-footloose
-
-# Name of the cluster being created. If left blank, defaults to: "wk-${USER}"
-# Value must be 1-100 characters matching the pattern:
-#   '^[0-9A-Za-z][A-Za-z0-9\-_]*'
 clusterName: 'upgrade-test'
-
-# Git Provider Id of organization that will be used to create new repository
-# and deploy key. The user doing the install should have her ssh key
-# associated with the organization. (required)
 gitProviderOrg: ''
-
-# Name of docker hub user for fetching images (required)
 dockerIOUser: 'dummy'
-
-# Path to a file containing password for docker hub user account (required)
 dockerIOPasswordFile: '/etc/passwd'
-
-# Path to a certificate used to encrypt sealed secrets.
-# If left blank a self signed certificate will be created.
-sealedSecretsCertificate: ""
-
-# Path to a private key used to decrypt sealed secrets.
-# If left blank a new private key will be created.
-sealedSecretsPrivateKey: ""
-
-#
-# EKS-specific configuration (only required for "eks" clusters)
-#
+sealedSecretsCertificate: ''
+sealedSecretsPrivateKey: ''
 eksConfig:
-  # AWS region in which to create the cluster (required)
   clusterRegion: 'eu-west-3'
-
-  # Defines the version of Kubernetes installed on each node.
-  # Must be: 1.14 or 1.15 (required)
   kubernetesVersion: '1.14'
-
-  # Description of the desired node groups. Each node group spec consists of:
-  #   - name: <string>. If unspecified, defaults to "ng-<node group index>"
-  #   - instanceType: <valid AWS machine instance type>. If unspecified,
-  #       defaults to: "m5.large"
-  #   - desiredCapacity: <integer>. If unspecified, defaults to 1.
-  # If no node groups are specified, a single node group names "ng-1" with a
-  #  capacity of 1 and an instanceType of "m5.large" will be created.
   nodeGroups: []
-
-  # Path to a file containing a managed node group specification
-  # The file will be included verbatim in the generated EKS config.
-  # No validity checking will be performed prior to invoking "eksctl".
-  # If left blank, no managed node groups wil be created.
   managedNodeGroupFile: ''
-
-#
-# Configuration for clusters not hosted in EKS
-#
 wksConfig:
-  # Defines the version of Kubernetes installed on each node.
-  # Must be: 1.14.x-1.15.x (required).
   kubernetesVersion: '1.14.1'
-
-  # Specifies the range of address available for services. Value is an array of
-  # CIDRs (required)
   serviceCIDRBlocks: [10.96.0.0/12]
-
-  # Specifies the range of address available for pods. Value is an array of
-  # CIDRs (required)
   podCIDRBlocks: [192.168.0.0/16]
-
-  #
-  # SSH-specific configuration (only required for "ssh" clusters)
-  #
   sshConfig:
-    # User name to be used when accessing cluster machines via
-    # ssh. The user must have 'sudo' privileges on each machine in the
-    # cluster. If left blank, defaults to: "root"
     sshUser: 'root'
-
-    # Path to SSH key file containing private key which provides access to
-    # the cluster machines. The key must correspond to a user with sudo
-    # permission. If left blank, defaults to: "${HOME}/.ssh/id_rsa"
     sshKeyFile: ''
-
-    # Descriptions for all machines provided to the cluster. A machine
-    # spec consists of:
-    #   - name: "<1-253 characters matching the pattern:
-    #      '^[0-9A-Za-z][A-Za-z0-9\-.]*[0-9A-Za-z]'>". If left blank,
-    #      defaults to: <role>-<public IP>
-    #   - role: "<one of: master, worker>" (required)
-    #   - publicAddress: "<IP address>" (required)
-    #   - publicPort: "<SSH port value (integer)>". If left blank, defaults to:
-    #       22
-    #   - privateAddress: "<IP address>". If left blank, defaults to
-    #       publicAddress
-    #   - privatePort: "<SSH port value (integer)>". If left blank, defaults to:
-    #       publicPort
-    # Value is an array of machine specs (required)
     machines: []
-
-  #
-  # Footloose-specific configuration (only required for "footloose" clusters)
-  #
   footlooseConfig:
-    # How to create machines underpinning Kubernetes nodes
-    #  - docker: use containers as "VMs":
-    #      https://github.com/weaveworks/footloose
-    #  - ignite: use ignite and firecracker to create real VMs:
-    #      https://github.com/weaveworks/ignite
-    # Note that "ignite" can only be used on Linux as it requires KVM (required)
     backend: docker
-
-    # Number of nodes allocated for the Kubernetes control plane (required)
     controlPlaneNodes: 2
-
-    # Number of nodes allocated for worker nodes (required)
     workerNodes: 1
