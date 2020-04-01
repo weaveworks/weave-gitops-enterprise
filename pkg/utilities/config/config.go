@@ -43,11 +43,12 @@ type NodeGroupConfig struct {
 
 // Parameters shared by 'footloose' and 'ssh'
 type WKSConfig struct {
-	KubernetesVersion string          `yaml:"kubernetesVersion"`
-	ServiceCIDRBlocks []string        `yaml:"serviceCIDRBlocks"`
-	PodCIDRBlocks     []string        `yaml:"podCIDRBlocks"`
-	SSHConfig         SSHConfig       `yaml:"sshConfig"`
-	FootlooseConfig   FootlooseConfig `yaml:"footlooseConfig"`
+	KubernetesVersion     string          `yaml:"kubernetesVersion"`
+	ServiceCIDRBlocks     []string        `yaml:"serviceCIDRBlocks"`
+	PodCIDRBlocks         []string        `yaml:"podCIDRBlocks"`
+	SSHConfig             SSHConfig       `yaml:"sshConfig"`
+	FootlooseConfig       FootlooseConfig `yaml:"footlooseConfig"`
+	ControlPlaneLbAddress string          `yaml:"controlPlaneLbAddress"`
 }
 
 // Parameters specific to ssh
@@ -90,6 +91,10 @@ spec:
       apiVersion: baremetalproviderspec/v1alpha1
       kind: BareMetalClusterProviderSpec
       user: {{ .SSHUser }}
+      {{- if .ControlPlaneLbAddress }}
+      apiServer:
+        externalLoadBalancer: {{ .ControlPlaneLbAddress }}
+      {{- end }}
       os:
         files:
         - source:
@@ -183,8 +188,9 @@ workers:
 `
 
 var (
-	cidrRegexp       = regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`)
-	k8sVersionRegexp = regexp.MustCompile(`^([1][.](14|15)[.][0-9][0-9]?)$`)
+	cidrRegexp                  = regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`)
+	k8sVersionRegexp            = regexp.MustCompile(`^([1][.](14|15)[.][0-9][0-9]?)$`)
+	controlPlaneLbAddressRegexp = regexp.MustCompile(`^((([0-9]{1,3}\.){3}[0-9]{1,3})|(([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}))$`)
 )
 
 func unmarshalConfig(configBytes []byte) (*WKPConfig, error) {
@@ -329,6 +335,12 @@ func setDefaultEKSValues(eksConfig *EKSConfig) {
 func checkRequiredWKSValues(wksConfig *WKSConfig) error {
 	if wksConfig.KubernetesVersion == "" {
 		return fmt.Errorf("A Kubernetes version must be specified")
+	}
+
+	if wksConfig.ControlPlaneLbAddress != "" {
+		if !controlPlaneLbAddressRegexp.MatchString(wksConfig.ControlPlaneLbAddress) {
+			return fmt.Errorf("%s is not a valid control plane load balancer address; must be a valid IP address or a domain name", wksConfig.ControlPlaneLbAddress)
+		}
 	}
 
 	if !k8sVersionRegexp.MatchString(wksConfig.KubernetesVersion) {
@@ -607,14 +619,18 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig) (string, error) {
 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
-		ClusterName       string
-		SSHUser           string
-		ServiceCIDRBlocks string
-		PodCIDRBlocks     string
+		ClusterName           string
+		SSHUser               string
+		ServiceCIDRBlocks     string
+		PodCIDRBlocks         string
+		ControlPlaneLbAddress string
 	}{config.ClusterName,
 		config.WKSConfig.SSHConfig.SSHUser,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
-		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks)})
+		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks),
+		config.WKSConfig.ControlPlaneLbAddress,
+	})
+
 	if err != nil {
 		return "", err
 	}
