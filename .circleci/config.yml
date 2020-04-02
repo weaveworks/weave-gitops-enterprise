@@ -32,10 +32,10 @@ workflows:
       - integration-tests:
           requires:
             - build
-          filters:
-            branches:
-              only:
-                - master
+          # filters:
+          #   branches:
+          #     only:
+          #       - master
 
 jobs:
   build:
@@ -253,6 +253,8 @@ jobs:
             ssh-add user-ssh-key
 
             go test -v -run TestEntitlements
+
+            go test -v -run TestCLeanRunMultipleSetupInstall
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
