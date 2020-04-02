@@ -37,6 +37,7 @@ config: # remember to consult `ui/src/entities/config.ts` before making any chan
   gitRepo:
     # e.g. git@github.com:weaveworks/wkp-core.git
     url: ''
+    provider: '' # 'gitlab' or 'github'
     branch: 'master'
     deployKeySecret:
       name: 'wkp-ui-git-deploy-key'

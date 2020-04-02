@@ -13,18 +13,26 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
+type GitProvider string
+
+const (
+	GitHubProvider GitProvider = "github"
+	GitLabProvider GitProvider = "gitlab"
+)
+
 // Top-level config parameters
 type WKPConfig struct {
-	Track                string    `yaml:"track"`
-	ClusterName          string    `yaml:"clusterName"`
-	GitProviderOrg       string    `yaml:"gitProviderOrg"`
-	GitURL               string    `yaml:"gitUrl"`
-	DockerIOUser         string    `yaml:"dockerIOUser"`
-	DockerIOPasswordFile string    `yaml:"dockerIOPasswordFile"`
-	SealedSecretsCert    string    `yaml:"sealedSecretsCertificate"`
-	SealedSecretsKey     string    `yaml:"sealedSecretsPrivateKey"`
-	EKSConfig            EKSConfig `yaml:"eksConfig"`
-	WKSConfig            WKSConfig `yaml:"wksConfig"`
+	Track                string      `yaml:"track"`
+	ClusterName          string      `yaml:"clusterName"`
+	GitProvider          GitProvider `yaml:"gitProvider"`
+	GitProviderOrg       string      `yaml:"gitProviderOrg"`
+	GitURL               string      `yaml:"gitUrl"`
+	DockerIOUser         string      `yaml:"dockerIOUser"`
+	DockerIOPasswordFile string      `yaml:"dockerIOPasswordFile"`
+	SealedSecretsCert    string      `yaml:"sealedSecretsCertificate"`
+	SealedSecretsKey     string      `yaml:"sealedSecretsPrivateKey"`
+	EKSConfig            EKSConfig   `yaml:"eksConfig"`
+	WKSConfig            WKSConfig   `yaml:"wksConfig"`
 }
 
 // Parameters specific to eks
@@ -233,10 +241,6 @@ func checkValidPath(field, path string) error {
 
 // Global values
 func checkRequiredGlobalValues(config *WKPConfig) error {
-	if config.GitProviderOrg == "" && config.GitURL == "" {
-		return fmt.Errorf("Either gitProviderOrg or gitUrl must be specified")
-	}
-
 	if config.DockerIOUser == "" {
 		return fmt.Errorf("dockerIOUser must be specified")
 	}
@@ -263,6 +267,33 @@ func setDefaultGlobalValues(config *WKPConfig) {
 	if config.ClusterName == "" {
 		config.ClusterName = createClusterName()
 	}
+}
+
+func checkRequiredGitValues(config *WKPConfig) error {
+	if config.GitProvider != GitHubProvider && config.GitProvider != GitLabProvider {
+		return fmt.Errorf("gitProvider must be one of: 'github' or 'gitlab'")
+	}
+
+	// All good.
+	if config.GitURL != "" {
+		if !strings.HasPrefix(config.GitURL, "git@") {
+			return fmt.Errorf("gitUrl, if provided, must be a git ssh url that starts with 'git@'")
+		}
+
+		return nil
+	}
+
+	// We don't actually support creating gitlab repos right now.
+	if config.GitProvider == GitLabProvider {
+		return fmt.Errorf("Please provide the url to your gitlab git repository in: gitUrl")
+	}
+
+	// Want us to create a github repo tell us the org
+	if config.GitProvider == GitHubProvider && config.GitProviderOrg == "" {
+		return fmt.Errorf("Please provide the gitProviderOrg where the repository will be created")
+	}
+
+	return nil
 }
 
 func validateSealedSecretsValues(config *WKPConfig) error {
@@ -470,6 +501,10 @@ func checkRequiredValues(config *WKPConfig) error {
 		return err
 	}
 
+	if err := checkRequiredGitValues(config); err != nil {
+		return err
+	}
+
 	if config.Track == "eks" {
 		if err := checkRequiredEKSValues(&config.EKSConfig); err != nil {
 			return err
@@ -544,6 +579,7 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 
 	str.WriteString(fmt.Sprintf("export TRACK=%s\n", config.Track))
 	str.WriteString(fmt.Sprintf("export CLUSTER_NAME=%s\n", config.ClusterName))
+	str.WriteString(fmt.Sprintf("export GIT_PROVIDER=%s\n", config.GitProvider))
 	str.WriteString(fmt.Sprintf("export GIT_PROVIDER_ORG=%s\n", config.GitProviderOrg))
 	str.WriteString(fmt.Sprintf("export GIT_URL=%s\n", config.GitURL))
 	str.WriteString(fmt.Sprintf("export DOCKER_IO_USER=%s\n", config.DockerIOUser))
