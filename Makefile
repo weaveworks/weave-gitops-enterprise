@@ -6,7 +6,7 @@
 IMAGE_PREFIX := docker.io/weaveworks/
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
-VERSION=$(shell git describe --always)
+VERSION=$(shell git describe --always --match "v*")
 CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 # The GOOS to use for local binaries that we `make install`
