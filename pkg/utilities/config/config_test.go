@@ -103,6 +103,11 @@ gitProvider: "gitlab"
 gitUrl: "git@git.acme.io/foo/bar.git"
 `
 
+const gitlabWithExplicitSSHUrl = `
+gitProvider: "gitlab"
+gitUrl: "ssh://git@git.acme.io:2222/foo/bar.git"
+`
+
 const githubWithOrg = `
 gitProvider: "github"
 gitProviderOrg: "foo"
@@ -130,8 +135,9 @@ func TestValidateGitValues(t *testing.T) {
 		errorMsg string
 	}{
 		{missingGitProvider, "gitProvider must be one of: 'github' or 'gitlab'"},
-		{badGitUrl, "gitUrl, if provided, must be a git ssh url that starts with 'git@'"},
+		{badGitUrl, "gitUrl, if provided, must be a git ssh url that starts with 'git@' or 'ssh://git@'"},
 		{gitlabWithUrl, "<nil>"},
+		{gitlabWithExplicitSSHUrl, "<nil>"},
 		{githubWithOrg, "<nil>"},
 		{gitlabNoUrl, "Please provide the url to your gitlab git repository in: gitUrl"},
 		{githubNoOrg, "Please provide the gitProviderOrg where the repository will be created"},
