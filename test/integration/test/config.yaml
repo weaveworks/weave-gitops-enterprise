@@ -1,6 +1,6 @@
 track: wks-footloose
 clusterName: 'upgrade-test'
-gitProvider: github
+gitProvider: 'github'
 gitProviderOrg: ''
 dockerIOUser: 'dummy'
 dockerIOPasswordFile: '/etc/passwd'
