@@ -1,0 +1,49 @@
+name: docs
+
+on:
+  # Trigger the workflow on push or pull request,
+  # but only for the master branch
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  link-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Install markdown-link-check
+        run: |
+          npm i markdown-link-check
+
+      - name: Check non-user-guide markdown docs
+        run: |
+          find . \
+            -name user-guide -prune -o \
+            -name node_modules -prune -o \
+            -iname '*.md' \
+            -exec ./node_modules/markdown-link-check/markdown-link-check --config .github/workflows/markdown-link-check-config.json {} \;
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest'
+          extended: true
+
+      - name: Build
+        run: cd user-guide; ./make-static.sh
+
+      # Using liche action to check generated HTML site
+      - name: Link Checker (generated site)
+        id: lc
+        uses: peter-evans/link-checker@v1
+        with:
+          args: -d ./user-guide/public -r ./user-guide/public -x http://localhost:8080
+      - name: Fail if there were link errors
+        run: exit ${{ steps.lc.outputs.exit_code }}

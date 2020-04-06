@@ -130,7 +130,7 @@ Using the url, branch, and deploy key, we will clone the repo - if we can't clon
 
 These `--git` arguments are then used to setup and configure [flux](https://www.weave.works/oss/flux/) to automate cluster management.
 
-We will rely on the user installing [fluxctl](https://github.com/weaveworks/flux/blob/master/site/fluxctl.md) to interact with flux directly instead of trying to replicate the functionality within `wk`
+We will rely on the user installing [fluxctl](https://docs.fluxcd.io/en/latest/references/fluxctl/) to interact with flux directly instead of trying to replicate the functionality within `wk`
 
 # Running an end-to-end test against EKS using Quickstart
 

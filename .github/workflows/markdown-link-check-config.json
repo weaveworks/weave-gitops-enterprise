@@ -1,0 +1,9 @@
+{
+    "ignorePatterns": [
+		{ "pattern": "^https://github.com/weaveworks/(wks|service-conf|rpm|wkp-ui)\\S*" },
+		{ "pattern": "^mailto:\\S+" },
+		{ "pattern": "^http[s]?://localhost:[0-9]+" },
+		{ "pattern": "^https://(drive|docs).google.com/\\S+" },
+		{ "pattern": "https://weaveworks.signin.aws.amazon.com/console/" }
+	]
+}
