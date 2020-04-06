@@ -16,14 +16,15 @@ jobs:
 
       - name: Install markdown-link-check
         run: |
-          npm install markdown-link-check
+          npm i markdown-link-check
 
       - name: Check non-user-guide markdown docs
         run: |
           find . \
             -name user-guide -prune -o \
+            -name node_modules -prune -o \
             -iname '*.md' \
-            -exec markdown-link-check --config .github/workflows/markdown-link-check-config.json {} \;
+            -exec ./node_modules/markdown-link-check/markdown-link-check --config .github/workflows/markdown-link-check-config.json {} \;
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
