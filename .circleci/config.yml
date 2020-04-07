@@ -3,7 +3,7 @@ version: 2
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
-    - image: docker.io/weaveworks/wks-build:master-192acc36
+    - image: docker.io/weaveworks/wks-build:node-build-image-5216df9a
       environment:
         GOPATH: /go/
         SRCDIR: /src/github.com/weaveworks/wks
@@ -56,17 +56,8 @@ jobs:
             # tidy up generated files and what not
             make clean
       - run:
-          # FIXME: move this to the build image
-          name: Install node and yarn
+          name: Install helm
           command: |
-            # Install node@12.9.0
-            set +e
-            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh | bash
-            export NVM_DIR="/root/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install v12.9.0
-            nvm use v12.9.0
-            npm install -g yarn
             # install helm
             curl -L https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz | tar xvz
             sudo mv linux-amd64/helm /usr/bin/helm
