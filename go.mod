@@ -36,7 +36,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20190903132036-efbcbb7a6390
-	github.com/weaveworks/wksctl v0.0.0-20200212145116-2ea3f8101ecf
+	github.com/weaveworks/wksctl v0.0.0-20200407191105-df8335ee2ff0
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
@@ -64,8 +64,6 @@ replace (
 	github.com/dlespiau/kube-test-harness => github.com/dlespiau/kube-test-harness v0.0.0-20180712150055-7eab798dff48
 	github.com/docker/distribution => github.com/2opremio/distribution v0.0.0-20190419185413-6c9727e5e5de
 	github.com/json-iterator/go => github.com/json-iterator/go v0.0.0-20180612202835-f2b4162afba3
-	github.com/weaveworks/wks => /Users/jerry/src/github.com/weaveworks/wks
-	github.com/weaveworks/wks/pkg/utilities/config => /Users/jerry/src/github.com/weaveworks/wks/pkg/config
 	gopkg.in/jcmturner/gokrb5.v6 => github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2
 	k8s.io/api => k8s.io/api v0.0.0-20190704094930-781da4e7b28a
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190704094625-facf06a8f4b8
