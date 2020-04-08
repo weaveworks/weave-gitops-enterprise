@@ -172,6 +172,16 @@ sealedSecretsCertificate: "testdata/nonMatchingCert.crt"
 sealedSecretsPrivateKey: "testdata/sealedSecretsKey"
 `
 
+const wrongKeyPath = `
+sealedSecretsCertificate: "testdata/sealedSecretsCert.crt"
+sealedSecretsPrivateKey: "doesnotexist/sealedSecretsKey"
+`
+
+const wrongCertPath = `
+sealedSecretsCertificate: "doesnotexist/sealedSecretsCert.crt"
+sealedSecretsPrivateKey: "testdata/sealedSecretsKey"
+`
+
 func TestValidateSealedSecretsValues(t *testing.T) {
 	testinput := []struct {
 		config   string
@@ -183,7 +193,11 @@ func TestValidateSealedSecretsValues(t *testing.T) {
 		{matchingKeyCert,
 			"<nil>"},
 		{nonMatchingKeyCert,
-			"could not load key and certificate pair"}}
+			"provided private key and certificate do not match"},
+		{wrongKeyPath, `could not find key at path: doesnotexist/sealedSecretsKey
+If you specified a relative path, note that it will be evaluated from the directory of your config.yaml`},
+		{wrongCertPath, `could not find certificate at path: doesnotexist/sealedSecretsCert.crt
+If you specified a relative path, note that it will be evaluated from the directory of your config.yaml`}}
 
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))

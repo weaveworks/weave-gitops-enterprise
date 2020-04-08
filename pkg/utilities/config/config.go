@@ -302,9 +302,25 @@ func validateSealedSecretsValues(config *WKPConfig) error {
 		config.SealedSecretsCert == "" && config.SealedSecretsKey != "" {
 		return fmt.Errorf("please provide both the private key and certificate for the sealed secrets controller")
 	} else if config.SealedSecretsCert != "" && config.SealedSecretsKey != "" {
+		// Check if cert file exists
+		if _, err := os.Stat(config.SealedSecretsCert); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf(`could not find certificate at path: %s
+If you specified a relative path, note that it will be evaluated from the directory of your config.yaml`, config.SealedSecretsCert)
+			}
+		}
+
+		// Check if key file exists
+		if _, err := os.Stat(config.SealedSecretsKey); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf(`could not find key at path: %s
+If you specified a relative path, note that it will be evaluated from the directory of your config.yaml`, config.SealedSecretsKey)
+			}
+		}
+
 		_, err := tls.LoadX509KeyPair(config.SealedSecretsCert, config.SealedSecretsKey)
 		if err != nil {
-			return fmt.Errorf("could not load key and certificate pair")
+			return fmt.Errorf("provided private key and certificate do not match")
 		}
 	}
 	return nil
