@@ -77,13 +77,11 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
 
             # Upload uniquely tagged binaries
-            if [ -z "${CI_BRANCH}" -o "${CI_BRANCH}" == "master" ]; then
-              aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-${TAG}-linux-amd64
-              aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-${TAG}-darwin-amd64
-            fi
+            aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-${TAG}-linux-amd64
+            aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-${TAG}-darwin-amd64
 
             # Upload a "master" binary for easy access to latest master build
-            if [ "${CI_BRANCH}" == "master" ]; then
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
               aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-master-linux-amd64
               aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-master-darwin-amd64
             fi
