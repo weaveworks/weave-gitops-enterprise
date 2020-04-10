@@ -276,8 +276,8 @@ func checkRequiredGitValues(config *WKPConfig) error {
 
 	// All good.
 	if config.GitURL != "" {
-		if !strings.HasPrefix(config.GitURL, "git@") {
-			return fmt.Errorf("gitUrl, if provided, must be a git ssh url that starts with 'git@'")
+		if !strings.HasPrefix(config.GitURL, "git@") && !strings.HasPrefix(config.GitURL, "ssh://git@") {
+			return fmt.Errorf("gitUrl, if provided, must be a git ssh url that starts with 'git@' or 'ssh://git@'")
 		}
 
 		return nil
