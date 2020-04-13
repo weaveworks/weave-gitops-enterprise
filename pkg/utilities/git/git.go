@@ -396,7 +396,7 @@ func (gr *GitRepo) PerformManifestUpdate(kind, namespace, name, fieldPath string
 	if err != nil {
 		return err
 	}
-	err = gr.UpdateYAMLFile(info, value, fieldPath)
+	err = updateYAMLFileFromStringPath(info, fieldPath, value)
 	if err != nil {
 		return err
 	}
@@ -407,8 +407,36 @@ func (gr *GitRepo) PerformManifestUpdate(kind, namespace, name, fieldPath string
 	return nil
 }
 
-func (gr *GitRepo) UpdateYAMLFile(info *ObjectInfo, value interface{}, fieldPath string) error {
-	err := UpdateNestedFields(info.ObjectNode, value, strings.Split(fieldPath, ".")...)
+// GetFileObjectInfo returns all the information necessary to use our YAML lookup and update facilities.
+// Specifically, UpdateYAMLFile expects an instance of *ObjectInfo in order to update a YAML file.
+func GetFileObjectInfo(path string) (*ObjectInfo, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var top yaml.Node
+	err = yaml.Unmarshal(data, &top)
+	if err != nil {
+		return nil, err
+	}
+
+	stats, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	perms := stats.Mode() | os.ModePerm
+	return &ObjectInfo{FilePath: path, FilePerms: perms, FileNode: &top, ObjectNode: top.Content[0]}, nil
+}
+
+// UpdateYAMLFile updates the contents of a YAML file while preserving comments. It takes a field path consisting
+// of field names and integers (for array indices), and inserts the substructure defined in the value argument.
+// The value argument is also a sequence of items where each entry other than the last is either a field name,
+// an integer, or '*' which causes the update to occur on each array element below the location referenced by the entry.
+// The final entry in the path must be a valid YAML field value: string, integer, bool, etc.
+func UpdateYAMLFile(info *ObjectInfo, fieldPath []string, value interface{}) error {
+	err := UpdateNestedFields(info.ObjectNode, value, fieldPath...)
 	if err != nil {
 		return err
 	}
@@ -417,6 +445,10 @@ func (gr *GitRepo) UpdateYAMLFile(info *ObjectInfo, value interface{}, fieldPath
 		return err
 	}
 	return nil
+}
+
+func updateYAMLFileFromStringPath(info *ObjectInfo, fieldPathString string, value interface{}) error {
+	return UpdateYAMLFile(info, strings.Split(fieldPathString, ";"), value)
 }
 
 func findNestedFields(data *yaml.Node, path ...string) []*yaml.Node {

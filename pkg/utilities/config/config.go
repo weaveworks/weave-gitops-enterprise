@@ -605,6 +605,7 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 	if config.Track == "eks" {
 		str.WriteString(fmt.Sprintf("export REGION=%s\n", config.EKSConfig.ClusterRegion))
 	} else {
+		str.WriteString(fmt.Sprintf("export KUBERNETES_VERSION=%s\n", config.WKSConfig.KubernetesVersion))
 		str.WriteString(fmt.Sprintf("export SSH_KEY_FILE=%s\n", config.WKSConfig.SSHConfig.SSHKeyFile))
 	}
 

@@ -242,7 +242,7 @@ jobs:
             cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
 
             export SKIP_COMPONENTS=true
-            export UPGRADE_VERSION=1.14.10
+            export KUBERNETES_VERSIONS='1.14.1,1.14.10'
             cd test/integration/test
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
 
