@@ -289,9 +289,23 @@ func TestRequiredEKSValues(t *testing.T) {
 	}
 }
 
-const validWKS = `
+const validWKSK8s114 = `
 wksConfig:
   kubernetesVersion: "1.14.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+`
+
+const validWKSK8s115 = `
+wksConfig:
+  kubernetesVersion: "1.15.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+`
+
+const validWKSK8s116 = `
+wksConfig:
+  kubernetesVersion: "1.16.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
 `
@@ -376,7 +390,9 @@ func TestInvalidWKSValues(t *testing.T) {
 		config   string
 		errorMsg string
 	}{
-		{validWKS, "<nil>"},
+		{validWKSK8s114, "<nil>"},
+		{validWKSK8s115, "<nil>"},
+		{validWKSK8s116, "<nil>"},
 		{missingWKSK8sVersion, "A Kubernetes version must be specified"},
 		{missingServiceCIDRBlocks, "At least one service CIDR block must be specified"},
 		{missingPodCIDRBlocks, "At least one pod CIDR block must be specified"},
