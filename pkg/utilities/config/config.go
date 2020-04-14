@@ -765,7 +765,8 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 		ControlPlaneNodes int64
 		WorkerNodes       int64
 		KubernetesVersion string
-	}{config.WKSConfig.FootlooseConfig.Backend,
+	}{
+		config.WKSConfig.FootlooseConfig.Backend,
 		config.WKSConfig.FootlooseConfig.ControlPlaneNodes,
 		config.WKSConfig.FootlooseConfig.WorkerNodes,
 		config.WKSConfig.KubernetesVersion,
