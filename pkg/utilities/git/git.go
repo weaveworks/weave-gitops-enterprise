@@ -421,6 +421,10 @@ func GetFileObjectInfo(path string) (*ObjectInfo, error) {
 		return nil, err
 	}
 
+	if len(top.Content) == 0 {
+		return nil, fmt.Errorf("YAML file is empty")
+	}
+
 	stats, err := os.Stat(path)
 	if err != nil {
 		return nil, err
@@ -451,7 +455,7 @@ func updateYAMLFileFromStringPath(info *ObjectInfo, fieldPathString string, valu
 	return UpdateYAMLFile(info, strings.Split(fieldPathString, ";"), value)
 }
 
-func findNestedFields(data *yaml.Node, path ...string) []*yaml.Node {
+func FindNestedFields(data *yaml.Node, path ...string) []*yaml.Node {
 	if len(path) == 0 {
 		return []*yaml.Node{data}
 	}
@@ -466,19 +470,19 @@ func findNestedFields(data *yaml.Node, path ...string) []*yaml.Node {
 
 	intval, err := strconv.ParseInt(elem, 10, 64)
 	if err == nil {
-		result = append(result, findNestedFields(data.Content[intval], pathTail...)...)
+		result = append(result, FindNestedFields(data.Content[intval], pathTail...)...)
 	} else if elem == "*" {
 		for _, item := range data.Content {
-			result = append(result, findNestedFields(item, pathTail...)...)
+			result = append(result, FindNestedFields(item, pathTail...)...)
 		}
 	} else if data.Kind == yaml.DocumentNode {
 		// Top level document just hods a single map node
-		return findNestedFields(data.Content[0], path...)
+		return FindNestedFields(data.Content[0], path...)
 	} else if data.Kind == yaml.MappingNode {
 		isKey := true
 		for idx, entry := range data.Content {
 			if isKey && entry.Value == elem {
-				result = append(result, findNestedFields(data.Content[idx+1], pathTail...)...)
+				result = append(result, FindNestedFields(data.Content[idx+1], pathTail...)...)
 				break
 			}
 			isKey = !isKey
@@ -488,7 +492,7 @@ func findNestedFields(data *yaml.Node, path ...string) []*yaml.Node {
 }
 
 func findNestedField(data *yaml.Node, path ...string) *yaml.Node {
-	nodes := findNestedFields(data, path...)
+	nodes := FindNestedFields(data, path...)
 	nodeCount := len(nodes)
 	if nodeCount == 0 || nodeCount > 1 {
 		return nil
@@ -504,7 +508,7 @@ func UpdateNestedFields(data *yaml.Node, val interface{}, path ...string) error 
 	if len(vals) == 0 {
 		return fmt.Errorf("Missing value for field: %s", strings.Join(path, "."))
 	}
-	fieldNodes := findNestedFields(data, path...)
+	fieldNodes := FindNestedFields(data, path...)
 	if len(fieldNodes) == 0 {
 		return fmt.Errorf("Could not locate fields: %s in object", strings.Join(path, "."))
 	}

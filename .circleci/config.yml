@@ -241,9 +241,11 @@ jobs:
             # get a wk binary from the attached workspace to use in the integration test
             cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
 
+            cd test/integration/test
             export SKIP_COMPONENTS=true
             export KUBERNETES_VERSIONS='1.14.1,1.14.10'
-            cd test/integration/test
+            export KUBERNETES_VERSION=1.14.1
+
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
 
             echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
@@ -254,7 +256,7 @@ jobs:
 
             go test -v -run TestEntitlements
 
-            go test -v -run TestCLeanRunMultipleSetupInstall
+            go test -v -run TestRunMultipleSetupInstall
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
