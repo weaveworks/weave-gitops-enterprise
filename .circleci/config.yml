@@ -254,6 +254,8 @@ jobs:
 
             go test -v -run TestEntitlements
 
+            go test -v -run TestCLeanRunMultipleSetupInstall
+
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
 
