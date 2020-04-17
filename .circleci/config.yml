@@ -256,10 +256,10 @@ jobs:
 
             go test -v -run TestEntitlements
 
-            go test -v -run TestRunMultipleSetupInstall
-
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+
+            go test -v -run TestRunMultipleSetupInstall
 
             go test -v -run TestHubAuthCheck
 
