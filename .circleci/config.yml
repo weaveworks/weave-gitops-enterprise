@@ -262,8 +262,6 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
 
             go test -v -run TestHubAuthCheck
-            
-            go test -v -run TestHubLocationMessage
 
             go test -v -run TestUpgrade --timeout=99999s
 
