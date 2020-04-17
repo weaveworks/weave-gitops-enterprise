@@ -193,6 +193,7 @@ controlPlane:
   nodes: {{ .ControlPlaneNodes }}
 workers:
   nodes: {{ .WorkerNodes }}
+kubernetesVersion: {{ .KubernetesVersion }}
 `
 
 var (
@@ -763,9 +764,13 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 		Backend           string
 		ControlPlaneNodes int64
 		WorkerNodes       int64
-	}{config.WKSConfig.FootlooseConfig.Backend,
+		KubernetesVersion string
+	}{
+		config.WKSConfig.FootlooseConfig.Backend,
 		config.WKSConfig.FootlooseConfig.ControlPlaneNodes,
-		config.WKSConfig.FootlooseConfig.WorkerNodes})
+		config.WKSConfig.FootlooseConfig.WorkerNodes,
+		config.WKSConfig.KubernetesVersion,
+	})
 
 	if err != nil {
 		return "", err
