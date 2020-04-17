@@ -64,7 +64,7 @@ replace (
 	github.com/dlespiau/kube-test-harness => github.com/dlespiau/kube-test-harness v0.0.0-20180712150055-7eab798dff48
 	github.com/docker/distribution => github.com/2opremio/distribution v0.0.0-20190419185413-6c9727e5e5de
 	github.com/json-iterator/go => github.com/json-iterator/go v0.0.0-20180612202835-f2b4162afba3
-	github.com/weaveworks/wksctl => github.com/weaveworks/wksctl v0.8.2-beta.1.0.20200416105927-b544de2753f1
+	github.com/weaveworks/wksctl => github.com/weaveworks/wksctl v0.8.2-beta.1.0.20200417135037-ab2265421f00
 	gopkg.in/jcmturner/gokrb5.v6 => github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2
 	k8s.io/api => k8s.io/api v0.0.0-20190704094930-781da4e7b28a
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190704094625-facf06a8f4b8
