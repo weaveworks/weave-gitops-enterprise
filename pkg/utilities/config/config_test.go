@@ -619,7 +619,7 @@ func TestRequiredFootlooseValues(t *testing.T) {
 func TestDefaultGlobals(t *testing.T) {
 	conf, err := unmarshalConfig([]byte(validTrackEKS))
 	require.NoError(t, err)
-	setDefaultGlobalValues(conf, "Bob")
+	setDefaultGlobalValues(conf, map[string]string{"USER": "Bob"})
 	assert.Equal(t, "wk-bob", conf.ClusterName)
 }
 
