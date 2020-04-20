@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	yaml "gopkg.in/yaml.v3"
+	k8sValidation "k8s.io/apimachinery/pkg/util/validation"
 )
 
 type GitProvider string
@@ -252,6 +253,13 @@ func checkRequiredGlobalValues(config *WKPConfig) error {
 
 	if err := checkValidPath("dockerIOPasswordFile", config.DockerIOPasswordFile); err != nil {
 		return err
+	}
+
+	if config.ClusterName != "" {
+		errs := k8sValidation.IsDNS1123Subdomain(config.ClusterName)
+		if len(errs) > 0 {
+			return fmt.Errorf("Invalid clusterName: \"%v\", %s", config.ClusterName, strings.Join(errs, ". "))
+		}
 	}
 
 	switch config.Track {
@@ -567,11 +575,12 @@ func addDefaultValues(config *WKPConfig) {
 }
 
 func processConfig(config *WKPConfig) error {
+	addDefaultValues(config)
+
 	if err := checkRequiredValues(config); err != nil {
 		return err
 	}
 
-	addDefaultValues(config)
 	err := validateSealedSecretsValues(config)
 	if err != nil {
 		return err
