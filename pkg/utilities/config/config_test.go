@@ -619,12 +619,8 @@ func TestRequiredFootlooseValues(t *testing.T) {
 func TestDefaultGlobals(t *testing.T) {
 	conf, err := unmarshalConfig([]byte(validTrackEKS))
 	require.NoError(t, err)
-	setDefaultGlobalValues(conf)
-	nameComponent := os.Getenv("USER")
-	if nameComponent == "" {
-		nameComponent = "cluster"
-	}
-	assert.Equal(t, "wk-"+nameComponent, conf.ClusterName)
+	setDefaultGlobalValues(conf, "Bob")
+	assert.Equal(t, "wk-bob", conf.ClusterName)
 }
 
 const nodeGroupNeedsDefaults = `

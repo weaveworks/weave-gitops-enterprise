@@ -221,12 +221,11 @@ func readConfig(path string) (*WKPConfig, error) {
 	return unmarshalConfig(fileBytes)
 }
 
-func createClusterName() string {
-	name := os.Getenv("USER")
+func createClusterName(name string) string {
 	if name == "" {
 		name = "cluster" // use "wk-cluster" if no user env var found
 	}
-	return "wk-" + name
+	return "wk-" + strings.ToLower(name)
 }
 
 // Check if file exists at specified path
@@ -264,9 +263,9 @@ func checkRequiredGlobalValues(config *WKPConfig) error {
 	}
 }
 
-func setDefaultGlobalValues(config *WKPConfig) {
+func setDefaultGlobalValues(config *WKPConfig, name string) {
 	if config.ClusterName == "" {
-		config.ClusterName = createClusterName()
+		config.ClusterName = createClusterName(name)
 	}
 }
 
@@ -548,7 +547,7 @@ func checkRequiredValues(config *WKPConfig) error {
 }
 
 func addDefaultValues(config *WKPConfig) {
-	setDefaultGlobalValues(config)
+	setDefaultGlobalValues(config, os.Getenv("USER"))
 
 	if config.Track == "eks" {
 		setDefaultEKSValues(&config.EKSConfig)
