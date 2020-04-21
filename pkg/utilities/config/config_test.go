@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,6 +39,21 @@ clusterName: ""
 dockerIOUser: "TheodoreLogan"
 dockerIOPasswordFile: "testdata/passwordFile"
 `
+
+const invalidClusterName = `
+track: "footlose"
+clusterName: "wk-FOO"
+dockerIOUser: "TheodoreLogan"
+dockerIOPasswordFile: "testdata/passwordFile"
+`
+
+var longName = strings.Repeat("x", 254)
+var invalidLongClusterName = fmt.Sprintf(`
+track: "wks-ssh"
+clusterName: "%s"
+dockerIOUser: "TheodoreLogan"
+dockerIOPasswordFile: "testdata/passwordFile"
+`, longName)
 
 const invalidTrack = `
 track: "footlose"
@@ -76,6 +92,8 @@ func TestRequiredGlobals(t *testing.T) {
 		{validTrackEKSWithGitURL, "<nil>"},
 		{validTrackSSH, "<nil>"},
 		{validTrackFootloose, "<nil>"},
+		{invalidClusterName, `Invalid clusterName: "wk-FOO", a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`},
+		{invalidLongClusterName, `Invalid clusterName: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", must be no more than 253 characters`},
 		{invalidTrack, "track must be one of: 'eks', 'wks-ssh', or 'wks-footloose'"},
 		{missingTrack, "track must be specified"},
 		{missingUser, "dockerIOUser must be specified"},
@@ -619,12 +637,8 @@ func TestRequiredFootlooseValues(t *testing.T) {
 func TestDefaultGlobals(t *testing.T) {
 	conf, err := unmarshalConfig([]byte(validTrackEKS))
 	require.NoError(t, err)
-	setDefaultGlobalValues(conf)
-	nameComponent := os.Getenv("USER")
-	if nameComponent == "" {
-		nameComponent = "cluster"
-	}
-	assert.Equal(t, "wk-"+nameComponent, conf.ClusterName)
+	setDefaultGlobalValues(conf, map[string]string{"USER": "Bob"})
+	assert.Equal(t, "wk-bob", conf.ClusterName)
 }
 
 const nodeGroupNeedsDefaults = `

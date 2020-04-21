@@ -11,6 +11,7 @@ import (
 	"text/template"
 
 	yaml "gopkg.in/yaml.v3"
+	k8sValidation "k8s.io/apimachinery/pkg/util/validation"
 )
 
 type GitProvider string
@@ -221,12 +222,12 @@ func readConfig(path string) (*WKPConfig, error) {
 	return unmarshalConfig(fileBytes)
 }
 
-func createClusterName() string {
-	name := os.Getenv("USER")
+func createClusterName(env map[string]string) string {
+	name := env["USER"]
 	if name == "" {
 		name = "cluster" // use "wk-cluster" if no user env var found
 	}
-	return "wk-" + name
+	return "wk-" + strings.ToLower(name)
 }
 
 // Check if file exists at specified path
@@ -254,6 +255,13 @@ func checkRequiredGlobalValues(config *WKPConfig) error {
 		return err
 	}
 
+	if config.ClusterName != "" {
+		errs := k8sValidation.IsDNS1123Subdomain(config.ClusterName)
+		if len(errs) > 0 {
+			return fmt.Errorf("Invalid clusterName: \"%v\", %s", config.ClusterName, strings.Join(errs, ". "))
+		}
+	}
+
 	switch config.Track {
 	case "":
 		return fmt.Errorf("track must be specified")
@@ -264,9 +272,9 @@ func checkRequiredGlobalValues(config *WKPConfig) error {
 	}
 }
 
-func setDefaultGlobalValues(config *WKPConfig) {
+func setDefaultGlobalValues(config *WKPConfig, env map[string]string) {
 	if config.ClusterName == "" {
-		config.ClusterName = createClusterName()
+		config.ClusterName = createClusterName(env)
 	}
 }
 
@@ -547,8 +555,17 @@ func checkRequiredValues(config *WKPConfig) error {
 	return nil
 }
 
+func getEnvironMap() map[string]string {
+	env := map[string]string{}
+	for _, e := range os.Environ() {
+		pair := strings.SplitN(e, "=", 2)
+		env[pair[0]] = pair[1]
+	}
+	return env
+}
+
 func addDefaultValues(config *WKPConfig) {
-	setDefaultGlobalValues(config)
+	setDefaultGlobalValues(config, getEnvironMap())
 
 	if config.Track == "eks" {
 		setDefaultEKSValues(&config.EKSConfig)
@@ -558,11 +575,12 @@ func addDefaultValues(config *WKPConfig) {
 }
 
 func processConfig(config *WKPConfig) error {
+	addDefaultValues(config)
+
 	if err := checkRequiredValues(config); err != nil {
 		return err
 	}
 
-	addDefaultValues(config)
 	err := validateSealedSecretsValues(config)
 	if err != nil {
 		return err
