@@ -6,7 +6,7 @@
 IMAGE_PREFIX := docker.io/weaveworks/
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
-VERSION=$(shell git describe --always --match "v*")
+VERSION := $(shell git describe --always --match "v*")
 CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 # The GOOS to use for local binaries that we `make install`
@@ -16,7 +16,12 @@ LOCAL_BINARIES_GOOS ?= $(GOOS)
 # $(IMAGE_PREFIX)<dirname>. Dependencies (i.e. things that go in the image)
 # still need to be explicitly declared.
 %/$(UPTODATE): %/Dockerfile %/*
-	$(SUDO) docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)$(shell basename $(@D)) $(@D)/
+	$(SUDO) docker build \
+		--build-arg=version=$(VERSION) \
+		--build-arg=image_tag=$(IMAGE_TAG) \
+		--build-arg=revision=$(GIT_REVISION) \
+		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
+		$(@D)/
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
 
