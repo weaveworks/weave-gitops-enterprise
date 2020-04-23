@@ -158,6 +158,7 @@ jobs:
           command: |
             go version
             make unit-tests
+            make cluster-component-tests
 
   container-tests:
     machine:
@@ -232,7 +233,7 @@ jobs:
           paths:
             - /home/circleci/go/pkg/mod
       - run:
-          name: Run container tests
+          name: Run e2e tests
           command: |
             export PATH=$GOROOT/bin:$PATH
             # remove the circle config which locks down github keys

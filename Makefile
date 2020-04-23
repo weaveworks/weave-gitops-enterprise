@@ -189,8 +189,9 @@ push:
 
 generate-manifests:
 	cd wkp-cluster-components && \
-		yarn && \
-		VERSION=$(VERSION) IMAGE_TAG=$(IMAGE_TAG) yarn generate-manifests
+		npm ci && \
+		VERSION=$(VERSION) IMAGE_TAG=$(IMAGE_TAG) npm run build && \
+		npm run generate-manifests
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
@@ -199,5 +200,12 @@ unit-tests: $(GENERATED)
 
 container-tests:  test/container/images/centos7/.uptodate
 	go test -count=1 ./test/container/...
+
+cluster-component-tests:
+	cd wkp-cluster-components && \
+		npm ci && \
+		VERSION=$(VERSION) IMAGE_TAG=$(IMAGE_TAG) npm run build
+	EXPECTED_VERSION=$(VERSION) EXPECTED_IMAGE_TAG=$(IMAGE_TAG) go test -v ./wkp-cluster-components/...
+
 
 FORCE:

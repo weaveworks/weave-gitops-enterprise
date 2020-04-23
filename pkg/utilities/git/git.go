@@ -491,7 +491,7 @@ func FindNestedFields(data *yaml.Node, path ...string) []*yaml.Node {
 	return result
 }
 
-func findNestedField(data *yaml.Node, path ...string) *yaml.Node {
+func FindNestedField(data *yaml.Node, path ...string) *yaml.Node {
 	nodes := FindNestedFields(data, path...)
 	nodeCount := len(nodes)
 	if nodeCount == 0 || nodeCount > 1 {
@@ -572,7 +572,7 @@ func findObjectNode(top *yaml.Node, kind, namespace, name string) *yaml.Node {
 		return objects[0]
 	}
 	for _, object := range objects {
-		ns := findNestedField(object, "metadata", "namespace")
+		ns := FindNestedField(object, "metadata", "namespace")
 		if ns == nil {
 			if namespace != "default" {
 				continue
@@ -580,7 +580,7 @@ func findObjectNode(top *yaml.Node, kind, namespace, name string) *yaml.Node {
 		} else if (ns.Value == "" && namespace != "default") || (ns.Value != "" && ns.Value != namespace) {
 			continue
 		}
-		n := findNestedField(object, "metadata", "name")
+		n := FindNestedField(object, "metadata", "name")
 		if n == nil || n.Value == "" || n.Value != name {
 			continue
 		}
@@ -633,14 +633,14 @@ func GetMachinesK8sVersions(repoPath, machinesConfigPath string) ([]string, erro
 	}
 
 	// Look at the machine descriptions
-	machineNodes := findNestedField(&fileNode, "0", "items")
+	machineNodes := FindNestedField(&fileNode, "0", "items")
 	if machineNodes == nil {
 		return nil, fmt.Errorf("Machine items not found in %s", machinesConfigPath)
 	}
 	// Iterate through all the machines and collect their kubelet versions in a map
 	versionMap := map[string]bool{}
 	for _, machineNode := range machineNodes.Content {
-		version := findNestedField(machineNode, "spec", "versions", "kubelet")
+		version := FindNestedField(machineNode, "spec", "versions", "kubelet")
 		if version == nil || version.Value == "" {
 			return nil, fmt.Errorf("Kubelet version missing for a node in %s", machinesConfigPath)
 		}
@@ -665,13 +665,13 @@ func GetEKSClusterVersion(repoPath, wkClusterConfigPath string) ([]string, error
 	}
 
 	// Find the spec node in the YAML file
-	specNode := findNestedField(&fileNode, "0", "spec")
+	specNode := FindNestedField(&fileNode, "0", "spec")
 	if specNode == nil {
 		return nil, fmt.Errorf("Spec item not found in %s", wkClusterConfigPath)
 	}
 
 	// Read the version field in the spec node
-	version := findNestedField(specNode, "version")
+	version := FindNestedField(specNode, "version")
 	if version == nil || version.Value == "" {
 		return nil, fmt.Errorf("Cluster version missing in %s", wkClusterConfigPath)
 	}
@@ -692,7 +692,7 @@ func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) err
 		return err
 	}
 	// Look at the machine descriptions
-	machineNodes := findNestedField(&fileNode, "0", "items")
+	machineNodes := FindNestedField(&fileNode, "0", "items")
 	if machineNodes == nil {
 		return fmt.Errorf("Machine items not found in %s", fileSubPath)
 	}
@@ -704,7 +704,7 @@ func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) err
 		}
 	}
 	// Write the updated results back to the file with same permissions
-	return writeYamlNodeToFile(path, findNestedField(&fileNode, "0"), filePerms)
+	return writeYamlNodeToFile(path, FindNestedField(&fileNode, "0"), filePerms)
 }
 
 // Operations used in git actions for policy checking
