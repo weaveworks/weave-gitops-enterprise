@@ -199,7 +199,7 @@ kubernetesVersion: {{ .KubernetesVersion }}
 
 var (
 	cidrRegexp                  = regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`)
-	k8sVersionRegexp            = regexp.MustCompile(`^([1][.](14|15|16)[.][0-9][0-9]?)$`)
+	k8sVersionRegexp            = regexp.MustCompile(`^([1][.](14|15|16|17)[.][0-9][0-9]?)$`)
 	controlPlaneLbAddressRegexp = regexp.MustCompile(`^((([0-9]{1,3}\.){3}[0-9]{1,3})|(([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}))$`)
 )
 
@@ -401,7 +401,7 @@ func checkRequiredWKSValues(wksConfig *WKSConfig) error {
 
 	if !k8sVersionRegexp.MatchString(wksConfig.KubernetesVersion) {
 		return fmt.Errorf(
-			"%s is not a valid Kubernetes version; must be 1.14.x-1.16.x",
+			"%s is not a valid Kubernetes version; must be 1.14.x-1.17.x",
 			wksConfig.KubernetesVersion)
 	}
 

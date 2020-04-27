@@ -328,6 +328,13 @@ wksConfig:
   podCIDRBlocks: [192.168.1.0/16]
 `
 
+const validWKSK8s117 = `
+wksConfig:
+  kubernetesVersion: "1.17.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+`
+
 const missingWKSK8sVersion = `
 wksConfig:
   serviceCIDRBlocks: [10.96.0.0/12]
@@ -348,7 +355,7 @@ wksConfig:
 
 const invalidWKSK8sVersion = `
 wksConfig:
-  kubernetesVersion: "1.17.1"
+  kubernetesVersion: "1.18.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
 `
@@ -411,11 +418,12 @@ func TestInvalidWKSValues(t *testing.T) {
 		{validWKSK8s114, "<nil>"},
 		{validWKSK8s115, "<nil>"},
 		{validWKSK8s116, "<nil>"},
+		{validWKSK8s117, "<nil>"},
 		{missingWKSK8sVersion, "A Kubernetes version must be specified"},
 		{missingServiceCIDRBlocks, "At least one service CIDR block must be specified"},
 		{missingPodCIDRBlocks, "At least one pod CIDR block must be specified"},
 		{invalidWKSK8sVersion,
-			"1.17.1 is not a valid Kubernetes version; must be 1.14.x-1.16.x"},
+			"1.18.1 is not a valid Kubernetes version; must be 1.14.x-1.17.x"},
 		{invalidServiceCIDRBlock, "1000.96.0.0/12 is not a valid CIDR specification"},
 		{invalidPodCIDRBlock, "192.1680.1.0/16 is not a valid CIDR specification"},
 		{invalidControlPlaneLbAddress1, "192.1680.1.0 is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
