@@ -16,7 +16,12 @@ LOCAL_BINARIES_GOOS ?= $(GOOS)
 # $(IMAGE_PREFIX)<dirname>. Dependencies (i.e. things that go in the image)
 # still need to be explicitly declared.
 %/$(UPTODATE): %/Dockerfile %/*
-	$(SUDO) docker build --build-arg=revision=$(GIT_REVISION) -t $(IMAGE_PREFIX)$(shell basename $(@D)) $(@D)/
+	$(SUDO) docker build \
+		--build-arg=version=$(VERSION) \
+		--build-arg=image_tag=$(IMAGE_TAG) \
+		--build-arg=revision=$(GIT_REVISION) \
+		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
+		$(@D)/
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
 
@@ -157,6 +162,21 @@ ui/build: $(UI_DEPS) user-guide/public
 	cd ui && yarn install --frozen-lockfile && yarn lint && yarn build
 	cp -r user-guide/public ui/build/docs
 
+# Cluster Components
+CC_CODE_DEPS = $(shell find wkp-cluster-components/src wkp-cluster-components/templates -type f)
+CC_BUILD_DEPS = \
+	wkp-cluster-components/.babelrc \
+	wkp-cluster-components/package.json \
+	wkp-cluster-components/package-lock.json
+CC_DEPS = $(CC_CODE_DEPS) $(CC_BUILD_DEPS)
+wkp-cluster-components/build: $(CC_DEPS)
+	cd wkp-cluster-components && \
+		npm ci && \
+		VERSION=$(VERSION) IMAGE_TAG=$(IMAGE_TAG) npm run build
+
+generate-manifests: wkp-cluster-components/build
+	cd wkp-cluster-components && npm run generate-manifests
+
 install: $(LOCAL_BINARIES)
 	cp $(LOCAL_BINARIES) `go env GOPATH`/bin
 
@@ -182,9 +202,6 @@ push:
 		docker push $$IMAGE_NAME:$(IMAGE_TAG); \
 	done
 
-generate-manifests:
-	cd wkp-cluster-components && yarn && yarn generate-manifests
-
 # We select which directory we want to descend into to not execute integration
 # tests here.
 unit-tests: $(GENERATED)
@@ -192,5 +209,9 @@ unit-tests: $(GENERATED)
 
 container-tests:  test/container/images/centos7/.uptodate
 	go test -count=1 ./test/container/...
+
+cluster-component-tests: wkp-cluster-components/build
+	EXPECTED_VERSION=$(VERSION) EXPECTED_IMAGE_TAG=$(IMAGE_TAG) go test -v ./wkp-cluster-components/...
+
 
 FORCE:
