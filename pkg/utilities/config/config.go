@@ -52,12 +52,19 @@ type NodeGroupConfig struct {
 
 // Parameters shared by 'footloose' and 'ssh'
 type WKSConfig struct {
-	KubernetesVersion     string          `yaml:"kubernetesVersion"`
-	ServiceCIDRBlocks     []string        `yaml:"serviceCIDRBlocks"`
-	PodCIDRBlocks         []string        `yaml:"podCIDRBlocks"`
-	SSHConfig             SSHConfig       `yaml:"sshConfig"`
-	FootlooseConfig       FootlooseConfig `yaml:"footlooseConfig"`
-	ControlPlaneLbAddress string          `yaml:"controlPlaneLbAddress"`
+	KubernetesVersion     string              `yaml:"kubernetesVersion"`
+	ServiceCIDRBlocks     []string            `yaml:"serviceCIDRBlocks"`
+	PodCIDRBlocks         []string            `yaml:"podCIDRBlocks"`
+	SSHConfig             SSHConfig           `yaml:"sshConfig"`
+	FootlooseConfig       FootlooseConfig     `yaml:"footlooseConfig"`
+	ControlPlaneLbAddress string              `yaml:"controlPlaneLbAddress"`
+	APIServerArguments    []APIServerArgument `yaml:"apiServerArguments"`
+}
+
+// Key/value pairs representing generic arguments to the Kubernetes api server
+type APIServerArgument struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
 }
 
 // Parameters specific to ssh
@@ -100,9 +107,12 @@ spec:
       apiVersion: baremetalproviderspec/v1alpha1
       kind: BareMetalClusterProviderSpec
       user: {{ .SSHUser }}
-      {{- if .ControlPlaneLbAddress }}
+      {{- if or (.ControlPlaneLbAddress) (.APIServerArguments) }}
       apiServer:
+        {{- if .ControlPlaneLbAddress }}
         externalLoadBalancer: {{ .ControlPlaneLbAddress }}
+        {{- end }}
+        extraArguments: {{ .APIServerArguments }}
       {{- end }}
       os:
         files:
@@ -669,12 +679,34 @@ func buildCIDRBlocks(cidrs []string) string {
 
 	firstTime := true
 	for _, cidr := range cidrs {
-		str.WriteString(cidr)
 		if !firstTime {
 			str.WriteString(",")
 		} else {
 			firstTime = false
 		}
+		str.WriteString(cidr)
+	}
+
+	str.WriteString("]")
+	return str.String()
+}
+
+func buildAPIServerArguments(args []APIServerArgument) string {
+	var str strings.Builder
+	str.WriteString("[")
+
+	firstTime := true
+	for _, arg := range args {
+		if !firstTime {
+			str.WriteString(",")
+		} else {
+			firstTime = false
+		}
+		str.WriteString(`{"name":"`)
+		str.WriteString(arg.Name)
+		str.WriteString(`","value":"`)
+		str.WriteString(arg.Value)
+		str.WriteString(`"}`)
 	}
 
 	str.WriteString("]")
@@ -695,11 +727,13 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig) (string, error) {
 		SSHUser               string
 		ServiceCIDRBlocks     string
 		PodCIDRBlocks         string
+		APIServerArguments    string
 		ControlPlaneLbAddress string
 	}{config.ClusterName,
 		config.WKSConfig.SSHConfig.SSHUser,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
 		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks),
+		buildAPIServerArguments(config.WKSConfig.APIServerArguments),
 		config.WKSConfig.ControlPlaneLbAddress,
 	})
 

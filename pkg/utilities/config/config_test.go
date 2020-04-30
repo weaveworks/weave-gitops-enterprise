@@ -410,15 +410,24 @@ wksConfig:
   controlPlaneLbAddress: "hello-World.com"
 `
 
+// valid extra apiserver arguments
+const validExtraArguments = `
+wksConfig:
+  kubernetesVersion: "1.14.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+  apiServerArguments:
+    - name: alsologtostderr
+      value: "true"
+    - name: oidc-issuer-url
+      value: "https://accounts.google.com"
+`
+
 func TestInvalidWKSValues(t *testing.T) {
 	testinput := []struct {
 		config   string
 		errorMsg string
 	}{
-		{validWKSK8s114, "<nil>"},
-		{validWKSK8s115, "<nil>"},
-		{validWKSK8s116, "<nil>"},
-		{validWKSK8s117, "<nil>"},
 		{missingWKSK8sVersion, "A Kubernetes version must be specified"},
 		{missingServiceCIDRBlocks, "At least one service CIDR block must be specified"},
 		{missingPodCIDRBlocks, "At least one pod CIDR block must be specified"},
@@ -442,6 +451,11 @@ func TestValidWKSValues(t *testing.T) {
 	testinput := []struct {
 		config string
 	}{
+		{validWKSK8s114},
+		{validWKSK8s115},
+		{validWKSK8s116},
+		{validWKSK8s117},
+		{validExtraArguments},
 		{validControlPlaneLbAddress1},
 		{validControlPlaneLbAddress2},
 	}
