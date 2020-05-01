@@ -38,7 +38,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20190903132036-efbcbb7a6390
-	github.com/weaveworks/wksctl v0.8.2-beta.2
+	github.com/weaveworks/wksctl v0.8.2-beta.3
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4

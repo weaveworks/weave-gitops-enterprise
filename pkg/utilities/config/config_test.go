@@ -410,7 +410,7 @@ wksConfig:
   controlPlaneLbAddress: "hello-World.com"
 `
 
-// valid extra apiserver arguments
+// valid extra apiserver and kubelet arguments
 const validExtraArguments = `
 wksConfig:
   kubernetesVersion: "1.14.1"
@@ -421,6 +421,11 @@ wksConfig:
       value: "true"
     - name: oidc-issuer-url
       value: "https://accounts.google.com"
+  kubeletArguments:
+    - name: alsologtostderr
+      value: "true"
+    - name: container-runtime
+      value: docker
 `
 
 func TestInvalidWKSValues(t *testing.T) {

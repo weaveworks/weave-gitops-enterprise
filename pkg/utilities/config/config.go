@@ -52,17 +52,18 @@ type NodeGroupConfig struct {
 
 // Parameters shared by 'footloose' and 'ssh'
 type WKSConfig struct {
-	KubernetesVersion     string              `yaml:"kubernetesVersion"`
-	ServiceCIDRBlocks     []string            `yaml:"serviceCIDRBlocks"`
-	PodCIDRBlocks         []string            `yaml:"podCIDRBlocks"`
-	SSHConfig             SSHConfig           `yaml:"sshConfig"`
-	FootlooseConfig       FootlooseConfig     `yaml:"footlooseConfig"`
-	ControlPlaneLbAddress string              `yaml:"controlPlaneLbAddress"`
-	APIServerArguments    []APIServerArgument `yaml:"apiServerArguments"`
+	KubernetesVersion     string           `yaml:"kubernetesVersion"`
+	ServiceCIDRBlocks     []string         `yaml:"serviceCIDRBlocks"`
+	PodCIDRBlocks         []string         `yaml:"podCIDRBlocks"`
+	SSHConfig             SSHConfig        `yaml:"sshConfig"`
+	FootlooseConfig       FootlooseConfig  `yaml:"footlooseConfig"`
+	ControlPlaneLbAddress string           `yaml:"controlPlaneLbAddress"`
+	APIServerArguments    []ServerArgument `yaml:"apiServerArguments"`
+	KubeletArguments      []ServerArgument `yaml:"kubeletArguments"`
 }
 
 // Key/value pairs representing generic arguments to the Kubernetes api server
-type APIServerArgument struct {
+type ServerArgument struct {
 	Name  string `yaml:"name"`
 	Value string `yaml:"value"`
 }
@@ -113,6 +114,9 @@ spec:
         externalLoadBalancer: {{ .ControlPlaneLbAddress }}
         {{- end }}
         extraArguments: {{ .APIServerArguments }}
+      {{- end }}
+      {{- if .KubeletArguments }}
+      kubeletArguments: {{ .KubeletArguments }}
       {{- end }}
       os:
         files:
@@ -691,7 +695,7 @@ func buildCIDRBlocks(cidrs []string) string {
 	return str.String()
 }
 
-func buildAPIServerArguments(args []APIServerArgument) string {
+func buildServerArguments(args []ServerArgument) string {
 	var str strings.Builder
 	str.WriteString("[")
 
@@ -728,12 +732,14 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig) (string, error) {
 		ServiceCIDRBlocks     string
 		PodCIDRBlocks         string
 		APIServerArguments    string
+		KubeletArguments      string
 		ControlPlaneLbAddress string
 	}{config.ClusterName,
 		config.WKSConfig.SSHConfig.SSHUser,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
 		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks),
-		buildAPIServerArguments(config.WKSConfig.APIServerArguments),
+		buildServerArguments(config.WKSConfig.APIServerArguments),
+		buildServerArguments(config.WKSConfig.KubeletArguments),
 		config.WKSConfig.ControlPlaneLbAddress,
 	})
 
