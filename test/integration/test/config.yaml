@@ -1,5 +1,5 @@
 track: wks-footloose
-clusterName: 'upgrade-test'
+clusterName: 'integration-test'
 gitProvider: 'github'
 gitProviderOrg: ''
 dockerIOUser: 'dummy'
@@ -15,6 +15,16 @@ wksConfig:
   kubernetesVersion: '1.14.1'
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.0.0/16]
+  apiServerArguments:
+    - name: alsologtostderr
+      value: "true"
+    - name: audit-log-maxsize
+      value: "10000"
+  kubeletArguments:
+    - name: alsologtostderr
+      value: "true"
+    - name: container-runtime
+      value: docker
   sshConfig:
     sshUser: 'root'
     sshKeyFile: ''
