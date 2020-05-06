@@ -1,4 +1,4 @@
-.PHONY: all install clean images lint unit-tests check
+.PHONY: all install clean images lint unit-tests check wksctl-version
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -48,7 +48,7 @@ $(patsubst $(IMAGE_PREFIX)%,imagetag-%,$(1)): $(patsubst $(IMAGE_PREFIX)%,%,$(1)
 endef
 $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
-all: $(UPTODATE_FILES) binaries
+all: wksctl-version $(UPTODATE_FILES) binaries
 
 check: all lint unit-tests container-tests
 
@@ -96,6 +96,12 @@ pkg/setup/setup_vfsdata.go: $(SETUP)
 	@rm -rf $(CURRENT_DIR)/setup/wk-quickstart/.git
 
 GENERATED = pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
+
+# ensure we use the same version for controller when go.mod references a wksctl release
+WKSCTL_GO_MOD_VERSION=$(shell grep wksctl go.mod | awk '$$2 !~ /(=>|.*[-][0-9]{14}[-][0-9]{12})/ {print($$2)}')
+WKSCTL_DEPS_VERSION=$(shell awk 'BEGIN {FS="\""}; /\[controller]/ {found=1; next}; found==1 {print($$2); exit}' setup/wk-quickstart/setup/dependencies.toml)
+wksctl-version:
+	@test -n "$(WKSCTL_GO_MOD_VERSION)" && test "$(WKSCTL_GO_MOD_VERSION)" != "$(WKSCTL_DEPS_VERSION)" && ex '+/\[controller]' -c"+1|s/\".*\"/\"$(WKSCTL_GO_MOD_VERSION)\"/|x" setup/wk-quickstart/setup/dependencies.toml >/dev/null 2>&1 || true
 
 cmd/wk/wk: $(DEPS) $(GENERATED)
 cmd/wk/wk: cmd/wk/*.go
