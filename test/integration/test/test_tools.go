@@ -36,6 +36,10 @@ const (
 	noError testFlag = iota
 )
 
+type connectRetryInfo struct {
+	current, max int
+}
+
 func flagSet(flags []testFlag, flag testFlag) bool {
 	for _, f := range flags {
 		if f == flag {
@@ -145,7 +149,9 @@ func (c *context) cleanupCluster(flags ...testFlag) {
 // checkClusterAtCorrectVersion retrieves the version from each node in the cluster and ensures that they
 // all match the argument version
 func (c *context) checkClusterAtCorrectVersion(correctVersion string) {
+	retryInfo := &connectRetryInfo{0, 8}
 	for retry := 0; retry < 45; retry++ {
+		c.checkProgress(retryInfo)
 		okay := true
 		versions := getAllNodeVersions(c.t, c.env)
 		log.Infof("Retry: %d, Versions: %s", retry, strings.Join(versions, ", "))
@@ -166,10 +172,13 @@ func (c *context) checkClusterAtCorrectVersion(correctVersion string) {
 
 // checkClusterAtExpectedNumberOfNodes waits for the cluster to reach the requested number of nodes
 func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int) {
+	retryInfo := &connectRetryInfo{0, 6}
 	for retry := 0; retry < 45; retry++ {
-		versions := getAllNodeVersions(c.t, c.env)
-		log.Infof("Retry: %d, Count: %d", retry, len(versions))
-		if len(versions) >= expectedNumberOfNodes {
+		c.checkProgress(retryInfo)
+		nodes := getAllReadyNodes(c.t, c.env)
+		log.Infof("Retry: %d, Count: %d", retry, len(nodes))
+		if len(nodes) >= expectedNumberOfNodes {
+			log.Infof("Reached expected node count")
 			return
 		}
 		time.Sleep(60 * time.Second)
@@ -293,6 +302,40 @@ func (c *context) copyFile(filename, dstpath string) {
 	assert.NoError(c.t, err)
 }
 
+// checkProgress attempts to contact the cluster and display statistics for nodes and pods
+// If it fails to talk to the cluster for a specified number of times in a row, it will
+// generate a panic to restart the test.
+func (c *context) checkProgress(retryInfo *connectRetryInfo) {
+	if c.showNodesAndPods() != nil {
+		retryInfo.current++
+	} else {
+		retryInfo.current = 0
+	}
+	if retryInfo.current >= retryInfo.max {
+		panic("Can't talk to cluster")
+	}
+}
+
+// showNodesAndPods displays the current set of nodes and pods in tabular format
+func (c *context) showNodesAndPods() error {
+	if err := c.showItems("nodes"); err != nil {
+		return err
+	}
+	if err := c.showItems("pods"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// showItems displays the current set of a specified object type in tabular format
+func (c *context) showItems(itemType string) error {
+	cmd := exec.Command("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+	cmd.Env = c.env
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 func checkForExpectedPods(t *testing.T, dir string, pods []PodData) {
 	componentsFilePath := filepath.Join(dir, "cluster", "platform", "components.js")
 	expectedPodIDs := extractComponentIDs(t, componentsFilePath)
@@ -352,12 +395,33 @@ func getAllNodeVersions(t *testing.T, env []string) []string {
 	cmd.Env = env
 	versions, err := cmd.CombinedOutput()
 	if err != nil {
+		log.Infof("Failed to retrieve versions: %s", versions)
 		return []string{"<unknown>"}
 	}
 	vstrings := strings.Split(string(versions), " ")
 	result := []string{}
 	for _, vstr := range vstrings {
 		result = append(result, vstr[1:])
+	}
+	return result
+}
+
+func getAllReadyNodes(t *testing.T, env []string) []string {
+	cmdItems := []string{"kubectl", "get", "nodes", "--all-namespaces", "-o",
+		`jsonpath={range .items[*]}{"\n"}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}`}
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	cmd.Env = env
+	cmdResults, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Infof("Failed to retrieve ready nodes: %s", cmdResults)
+		return nil
+	}
+	nodeStrings := strings.Split(string(cmdResults), "\n")
+	result := []string{}
+	for _, nstr := range nodeStrings {
+		if strings.Contains(nstr, "Ready=True") {
+			result = append(result, nstr)
+		}
 	}
 	return result
 }

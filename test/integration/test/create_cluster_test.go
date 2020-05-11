@@ -59,12 +59,19 @@ func TestClusterCreation(t *testing.T) {
 		region = "eu-north-1"
 	}
 
+	runClusterCreationTest(t, versions, region)
+}
+
+func runClusterCreationTest(t *testing.T, versions []string, region string) {
 	// Clean up context in case of error
 	var c *context
 	defer func() {
 		if c != nil {
 			c.cleanupCluster(noError)
 			c.cleanup()
+		}
+		if retry := recover(); retry != nil {
+			runClusterCreationTest(t, versions, region)
 		}
 	}()
 
