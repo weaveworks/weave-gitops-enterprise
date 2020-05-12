@@ -38,11 +38,11 @@ type WKPConfig struct {
 
 // Parameters specific to eks
 type EKSConfig struct {
-	ClusterRegion              string            `yaml:"clusterRegion"`
-	KubernetesVersion          string            `yaml:"kubernetesVersion"`
-	NodeGroups                 []NodeGroupConfig `yaml:"nodeGroups"`
-	ManagedNodeGroupFile       string            `yaml:"managedNodeGroupFile"`
-	DeployAlbIngressController bool              `yaml:"deployAlbIngressController"`
+	ClusterRegion        string            `yaml:"clusterRegion"`
+	KubernetesVersion    string            `yaml:"kubernetesVersion"`
+	NodeGroups           []NodeGroupConfig `yaml:"nodeGroups"`
+	ManagedNodeGroupFile string            `yaml:"managedNodeGroupFile"`
+	UIALBIngress         bool              `yaml:"uiALBIngress"`
 }
 
 type NodeGroupConfig struct {
