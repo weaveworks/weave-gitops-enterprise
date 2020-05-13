@@ -1,4 +1,4 @@
-track: wks-footloose
+track: wks-ssh
 clusterName: 'integration-test'
 gitProvider: 'github'
 gitProviderOrg: ''
@@ -26,9 +26,18 @@ wksConfig:
     - name: container-runtime
       value: docker
   sshConfig:
-    sshUser: 'root'
-    sshKeyFile: ''
-    machines: []
+    sshUser: 'weaveworks-cit'
+    sshKeyFile: '/root/.ssh/weaveworks_cit_id_rsa'
+    machines:
+      - role: master
+        privateAddress: PRIVATE_IP
+        publicAddress: PUBLIC_IP
+      - role: master
+        privateAddress: PRIVATE_IP
+        publicAddress: PUBLIC_IP
+      - role: worker
+        privateAddress: PRIVATE_IP
+        publicAddress: PUBLIC_IP
   footlooseConfig:
     backend: docker
     controlPlaneNodes: 2
