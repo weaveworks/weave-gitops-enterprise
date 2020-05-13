@@ -42,6 +42,7 @@ type EKSConfig struct {
 	KubernetesVersion    string            `yaml:"kubernetesVersion"`
 	NodeGroups           []NodeGroupConfig `yaml:"nodeGroups"`
 	ManagedNodeGroupFile string            `yaml:"managedNodeGroupFile"`
+	UIALBIngress         bool              `yaml:"uiALBIngress"`
 }
 
 type NodeGroupConfig struct {

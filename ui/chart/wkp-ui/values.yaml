@@ -7,19 +7,17 @@ image:
   tag: master-d843e5ae
   pullSecrets: []
   pullPolicy: IfNotPresent
-nginx-ingress:
+nginx-ingress-controller:
   enabled: true
-  controller:
-    ingressClass: wkp-nginx
-    service:
-      type: ClusterIP
-      enableHttps: false
-    #
-    # More config values from:
-    # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/configmap.md
-    #
-    config:
-      ssl-redirect: "false"
+  ingressClass: wkp-nginx
+  service:
+    type: ClusterIP
+  #
+  # More config values from:
+  # https://github.com/kubernetes/ingress-nginx/blob/master/docs/user-guide/nginx-configuration/configmap.md
+  #
+  config:
+    ssl-redirect: "false"
 ingress:
   enabled: true
   annotations:
