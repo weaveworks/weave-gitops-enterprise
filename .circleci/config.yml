@@ -19,6 +19,33 @@ checkoutWithSSH: &checkoutWithSSH
       fingerprints:
         - "cc:e8:46:28:c2:af:5e:30:cc:01:59:ab:9b:ad:45:5c"
 
+integrationTestCommonEnv: &integrationTestCommonEnv
+  GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+  GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
+  GOROOT: /home/circleci/goroot
+  GOPATH: /home/circleci/go
+  SRCDIR: /home/circleci/src/github.com/weaveworks/wks
+  KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
+  KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
+
+installDeps: &installDeps
+    - run:
+        name: Install deps
+        command: |
+          # install go
+          (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
+          mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
+
+          # install kubectl
+          curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
+          echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
+          tar xvzf kubectl.tar.gz --strip-components=3
+          sudo mv kubectl /usr/local/bin
+
+          # install hub
+          curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
+          sudo mv bin/hub /usr/local/bin
+
 workflows:
   version: 2
   test-build-deploy:
@@ -197,36 +224,14 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
-      GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
-      GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
-      GOROOT: /home/circleci/goroot
-      GOPATH: /home/circleci/go
-      SRCDIR: /home/circleci/src/github.com/weaveworks/wks
-      KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
-      KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
+      <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
       - <<: *checkoutWithSSH
       - attach_workspace:
           at: /tmp/workspace
-      - run:
-          name: Install go
-          command: |
-            (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
-            mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
-      - run:
-          name: Install kubectl
-          command: |
-            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
-            echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
-            tar xvzf kubectl.tar.gz --strip-components=3
-            sudo mv kubectl /usr/local/bin
-      - run:
-          name: Install hub
-          command: |
-            curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
-            sudo mv bin/hub /usr/local/bin
+      - <<: *installDeps
       - restore_cache:
           keys:
             - go-mod-v2-{{ checksum "go.sum" }}
@@ -286,36 +291,14 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
-      GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
-      GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
-      GOROOT: /home/circleci/goroot
-      GOPATH: /home/circleci/go
-      SRCDIR: /home/circleci/src/github.com/weaveworks/wks
-      KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
-      KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
+      <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
       - <<: *checkoutWithSSH
       - attach_workspace:
           at: /tmp/workspace
-      - run:
-          name: Install go
-          command: |
-            (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
-            mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
-      - run:
-          name: Install kubectl
-          command: |
-            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
-            echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
-            tar xvzf kubectl.tar.gz --strip-components=3
-            sudo mv kubectl /usr/local/bin
-      - run:
-          name: Install hub
-          command: |
-            curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
-            sudo mv bin/hub /usr/local/bin
+      - <<: *installDeps
       - restore_cache:
           keys:
             - go-mod-v2-{{ checksum "go.sum" }}
