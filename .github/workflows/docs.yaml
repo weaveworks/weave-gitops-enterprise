@@ -44,6 +44,6 @@ jobs:
         id: lc
         uses: peter-evans/link-checker@v1
         with:
-          args: -d ./user-guide/public -r ./user-guide/public -x http://localhost:8080
+          args: -d ./user-guide/public -r ./user-guide/public -x http://localhost:*
       - name: Fail if there were link errors
         run: exit ${{ steps.lc.outputs.exit_code }}
