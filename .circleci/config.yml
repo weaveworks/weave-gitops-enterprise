@@ -19,6 +19,33 @@ checkoutWithSSH: &checkoutWithSSH
       fingerprints:
         - "cc:e8:46:28:c2:af:5e:30:cc:01:59:ab:9b:ad:45:5c"
 
+integrationTestCommonEnv: &integrationTestCommonEnv
+  GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+  GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
+  GOROOT: /home/circleci/goroot
+  GOPATH: /home/circleci/go
+  SRCDIR: /home/circleci/src/github.com/weaveworks/wks
+  KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
+  KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
+
+installDeps: &installDeps
+    - run:
+        name: Install deps
+        command: |
+          # install go
+          (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
+          mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
+
+          # install kubectl
+          curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
+          echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
+          tar xvzf kubectl.tar.gz --strip-components=3
+          sudo mv kubectl /usr/local/bin
+
+          # install hub
+          curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
+          sudo mv bin/hub /usr/local/bin
+
 workflows:
   version: 2
   test-build-deploy:
@@ -29,13 +56,20 @@ workflows:
               only: /.*/
       - container-tests: {}
       - unit-tests: {}
-      - integration-tests:
+      - integration-tests-creation:
           requires:
             - build
-          filters:
-            branches:
-              only:
-                - master
+          # filters:
+          #   branches:
+          #     only:
+          #       - master
+      - integration-tests-upgrade:
+          requires:
+            - build
+          # filters:
+          #   branches:
+          #     only:
+          #       - master
 
 jobs:
   build:
@@ -186,40 +220,18 @@ jobs:
             go version
             make container-tests
 
-  integration-tests:
+  integration-tests-creation:
     machine:
       docker_layer_caching: true
     environment:
-      GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
-      GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
-      GOROOT: /home/circleci/goroot
-      GOPATH: /home/circleci/go
-      SRCDIR: /home/circleci/src/github.com/weaveworks/wks
-      KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
-      KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
+      <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
       - <<: *checkoutWithSSH
       - attach_workspace:
           at: /tmp/workspace
-      - run:
-          name: Install go
-          command: |
-            (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
-            mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
-      - run:
-          name: Install kubectl
-          command: |
-            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
-            echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
-            tar xvzf kubectl.tar.gz --strip-components=3
-            sudo mv kubectl /usr/local/bin
-      - run:
-          name: Install hub
-          command: |
-            curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
-            sudo mv bin/hub /usr/local/bin
+      - <<: *installDeps
       - restore_cache:
           keys:
             - go-mod-v2-{{ checksum "go.sum" }}
@@ -248,7 +260,12 @@ jobs:
             export KUBERNETES_VERSION=1.14.1
             export CLUSTER_VERSIONS=1.16.3,1.17.5
 
+            # create file with docker password
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB/" config.yaml
 
             echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
             chmod 600 user-ssh-key
@@ -268,6 +285,60 @@ jobs:
 
             go test -v -run TestClusterCreation --timeout=99999s
 
-            go test -v -run TestUpgrade --timeout=99999s
-
             go test -v -run TestGenerateSecrets --timeout=600s
+
+  integration-tests-upgrade:
+    machine:
+      docker_layer_caching: true
+    environment:
+      <<: *integrationTestCommonEnv
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - checkout
+      - <<: *checkoutWithSSH
+      - attach_workspace:
+          at: /tmp/workspace
+      - <<: *installDeps
+      - restore_cache:
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+          name: Go get
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            go get
+      - save_cache:
+          key: go-mod-v2-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            # remove the circle config which locks down github keys
+            mv ~/.ssh/config{,.old}
+
+            # get a wk binary from the attached workspace to use in the integration test
+            cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
+
+            cd test/integration/test
+            export SKIP_COMPONENTS=true
+            export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
+
+            # create file with docker password
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB/" config.yaml
+
+            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
+            chmod 600 user-ssh-key
+            eval "$(ssh-agent -s)"
+            ssh-add -D
+            ssh-add user-ssh-key
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+
+            go test -v -run TestUpgrade --timeout=99999s
