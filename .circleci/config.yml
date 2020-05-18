@@ -56,20 +56,39 @@ workflows:
               only: /.*/
       - container-tests: {}
       - unit-tests: {}
-      - integration-tests-creation:
+      - integration-tests-creation-footloose:
           requires:
             - build
           # filters:
           #   branches:
           #     only:
           #       - master
-      - integration-tests-upgrade:
+      - integration-tests-upgrade-footloose:
           requires:
             - build
           # filters:
           #   branches:
           #     only:
           #       - master
+      - integration-tests-ssh-gcp:
+          requires:
+            - build
+          # filters:
+          #   branches:
+          #     only:
+          #       - master
+  # nightly:
+  #   triggers:
+  #     - schedule:
+  #         cron: "0 0 * * *"
+  #         filters:
+  #           branches:
+  #             only:
+  #               - master
+  #   jobs:
+  #     - integration-tests-ssh-gcp:
+  #         requires:
+  #           - build
 
 jobs:
   build:
@@ -220,11 +239,144 @@ jobs:
             go version
             make container-tests
 
-  integration-tests-creation:
+  integration-tests-creation-footloose:
     machine:
       docker_layer_caching: true
     environment:
       <<: *integrationTestCommonEnv
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - checkout
+      - <<: *checkoutWithSSH
+      - attach_workspace:
+          at: /tmp/workspace
+      - <<: *installDeps
+      - restore_cache:
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+          name: Go get
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            go get
+      - save_cache:
+          key: go-mod-v2-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            # remove the circle config which locks down github keys
+            mv ~/.ssh/config{,.old}
+            
+            # get a wk binary from the attached workspace to use in the integration test
+            cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
+            
+            cd test/integration/test
+            export SKIP_COMPONENTS=true
+            export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
+            export KUBERNETES_VERSION=1.14.1
+            export CLUSTER_VERSIONS='1.16.3,1.17.5'
+            
+            # create file with docker password
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB-$CIRCLE_BUILD_NUM/" config.yaml
+            sed -i "s/sshUser:.*/sshUser: root/" config.yaml
+            sed -i "s/sshKeyFile:.*/sshKeyFile: ''/" config.yaml
+
+            # set the track to wks-footloose
+            sed -i "s/track:.*/track: wks-footloose/" config.yaml
+            
+            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
+            chmod 600 user-ssh-key
+            eval "$(ssh-agent -s)"
+            ssh-add -D
+            ssh-add user-ssh-key
+
+            go test -v -run TestEntitlements
+
+            # run before setting GITHUB_TOKEN
+            go test -v -run TestHubAuthCheck
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+
+            go test -v -run TestRunMultipleSetupInstall
+
+            go test -v -run TestClusterCreation --timeout=99999s
+
+            go test -v -run TestGenerateSecrets --timeout=600s
+  
+  integration-tests-upgrade-footloose:
+    machine:
+      docker_layer_caching: true
+    environment:
+      <<: *integrationTestCommonEnv
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - checkout
+      - <<: *checkoutWithSSH
+      - attach_workspace:
+          at: /tmp/workspace
+      - <<: *installDeps
+      - restore_cache:
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+          name: Go get
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            go get
+      - save_cache:
+          key: go-mod-v2-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            # remove the circle config which locks down github keys
+            mv ~/.ssh/config{,.old}
+            
+            # get a wk binary from the attached workspace to use in the integration test
+            cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
+            
+            cd test/integration/test
+            export SKIP_COMPONENTS=true
+            export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
+            
+            # create file with docker password
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB-$CIRCLE_BUILD_NUM/" config.yaml
+            sed -i "s/sshUser:.*/sshUser: root/" config.yaml
+            sed -i "s/sshKeyFile:.*/sshKeyFile: ''/" config.yaml
+
+            # set the track to wks-footloose
+            sed -i "s/track:.*/track: wks-footloose/" config.yaml
+            
+            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
+            chmod 600 user-ssh-key
+            eval "$(ssh-agent -s)"
+            ssh-add -D
+            ssh-add user-ssh-key
+            
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            
+            go test -v -run TestUpgrade --timeout=99999s
+
+  integration-tests-ssh-gcp:
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
@@ -258,7 +410,7 @@ jobs:
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
             export KUBERNETES_VERSION=1.14.1
-            export CLUSTER_VERSIONS=1.16.3,1.17.5
+            export CLUSTER_VERSIONS='1.16.3,1.17.5'
 
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
@@ -287,74 +439,14 @@ jobs:
 
             go test -v -run TestRunMultipleSetupInstall
 
+            export WKP_DEBUG=true
+
             go test -v -run TestClusterCreation --timeout=99999s
+
+            go test -v -run TestUpgrade --timeout=99999s
 
             go test -v -run TestGenerateSecrets --timeout=600s
 
-            ../bin/internal/run-integration-tests.sh destroy
-      - run:
-          # Ensures that the GCP resources are deleted even if the previous step fails
-          name: Destroy GCP resources
-          command: |
-            cd test/integration/test
-            ../bin/internal/run-integration-tests.sh destroy
-          when: on_fail
-
-  integration-tests-upgrade:
-    machine:
-      docker_layer_caching: true
-    environment:
-      <<: *integrationTestCommonEnv
-    working_directory: /home/circleci/src/github.com/weaveworks/wks
-    steps:
-      - checkout
-      - <<: *checkoutWithSSH
-      - attach_workspace:
-          at: /tmp/workspace
-      - <<: *installDeps
-      - restore_cache:
-          keys:
-            - go-mod-v2-{{ checksum "go.sum" }}
-      - run:
-          name: Go get
-          command: |
-            export PATH=$GOROOT/bin:$PATH
-            go get
-      - save_cache:
-          key: go-mod-v2-{{ checksum "go.sum" }}
-          paths:
-            - /home/circleci/go/pkg/mod
-      - run:
-          name: Run e2e tests
-          command: |
-            export PATH=$GOROOT/bin:$PATH
-            # remove the circle config which locks down github keys
-            mv ~/.ssh/config{,.old}
-
-            # get a wk binary from the attached workspace to use in the integration test
-            cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
-
-            cd test/integration/test
-            export SKIP_COMPONENTS=true
-            export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
-
-            # create file with docker password
-            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
-            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
-            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
-            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
-            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB/" config.yaml
-
-            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
-            chmod 600 user-ssh-key
-            eval "$(ssh-agent -s)"
-            ssh-add -D
-            ssh-add user-ssh-key
-
-            # e.g. wkp-ci-test-bot from 1passwords
-            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-
-            go test -v -run TestUpgrade --timeout=99999s
             ../bin/internal/run-integration-tests.sh destroy
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails

@@ -76,6 +76,8 @@ func runClusterCreationTest(t *testing.T, versions []string, region string) {
 	}()
 
 	for _, version := range versions {
+		log.Infof("~~~~~~~ Testing version: %v ~~~~~~~~~\n", version)
+		log.Infof("~~~~~~~ All versions: %v ~~~~~~~~~\n", versions)
 		c = getContext(t)
 
 		// Create cluster
