@@ -59,70 +59,89 @@ func TestClusterCreation(t *testing.T) {
 		region = "eu-north-1"
 	}
 
-	runClusterCreationTest(t, versions, region)
+	runClusterCreationTests(t, versions, region)
 }
 
-func runClusterCreationTest(t *testing.T, versions []string, region string) {
+func runClusterCreationTests(t *testing.T, versions []string, region string) {
 	// Clean up context in case of error
 	var c *context
+
+	version := versions[0]
+	retryCount := 0
+
 	defer func() {
 		if c != nil {
 			c.cleanupCluster(noError)
 			c.cleanup()
 		}
 		if retry := recover(); retry != nil {
-			runClusterCreationTest(t, versions, region)
+			log.Infof("failure occurred for %v, retry count %v", version, retryCount)
+			retryCount++
+
+			if retryCount <= 2 {
+				runClusterCreationTest(c, t, version, region)
+			} else {
+				log.Infof("gave up on retry %v when trying for version %v", retryCount, version)
+			}
 		}
 	}()
 
-	for _, version := range versions {
-		log.Infof("~~~~~~~ Testing version: %v ~~~~~~~~~\n", version)
-		log.Infof("~~~~~~~ All versions: %v ~~~~~~~~~\n", versions)
+	for _, runVersion := range versions {
+		log.Infof("All versions: %v\n", versions)
+		version = runVersion
 		c = getContext(t)
-
-		// Create cluster
-		log.Info("Creating and initializing cluster...")
-		c.installWKPFiles()
-		c.copyConfigFileIntoPlace()
-		c.updateConfigFileWithVersion(version)
-
-		if c.conf.Track == "eks" {
-			updateClusterNameAndRegionForTest(c, region)
-		}
-
-		c.setupCluster()
-
-		// Check that all components are functioning
-		if !c.shouldSkipComponents() {
-			// Check for all expected pods
-			log.Info("Checking that expected pods are running...")
-			c.checkClusterRunning()
-		}
-
-		// Wait for all nodes to be up
-		c.checkClusterAtExpectedNumberOfNodes(3)
-
-		if c.conf.Track != "eks" {
-			checkApiServerAndKubeletArguments(c)
-		}
-
-		// Check that sealed secrets work
-		c.assertSealedSecretsCanBeCreated()
-
-		// Clean up this cluster instance
-		c.cleanupCluster()
-
-		// Clean up this temporary directory
-		c.cleanup()
-
-		// Already cleaned up
-		c = nil
+		runClusterCreationTest(c, t, runVersion, region)
 	}
+}
+
+func runClusterCreationTest(c *context, t *testing.T, version string, region string) {
+	log.Infof("\nTesting version: %v\n\n", version)
+
+	// Create cluster
+	log.Info("Creating and initializing cluster...")
+	c.installWKPFiles()
+	c.copyConfigFileIntoPlace()
+	c.updateConfigFileWithVersion(version)
+
+	if c.conf.Track == "eks" {
+		updateClusterNameAndRegionForTest(c, region)
+	}
+
+	c.setupCluster()
+
+	// Check that all components are functioning
+	if !c.shouldSkipComponents() {
+		// Check for all expected pods
+		log.Info("Checking that expected pods are running...")
+		c.checkClusterRunning()
+	}
+
+	// Wait for all nodes to be up
+	c.checkClusterAtExpectedNumberOfNodes(3)
+
+	if c.conf.Track != "eks" && c.conf.Track != "wks-ssh" {
+		checkApiServerAndKubeletArguments(c)
+	}
+
+	// Check that sealed secrets work
+	c.assertSealedSecretsCanBeCreated()
+
+	// Clean up this cluster instance
+	c.cleanupCluster()
+
+	// Clean up this temporary directory
+	c.cleanup()
+
+	// Already cleaned up
+	c = nil
 }
 
 func checkApiServerAndKubeletArguments(c *context) {
 	machinesPath := filepath.Join(c.tmpDir, "setup", "machines.yaml")
 	machinesInfo, err := git.GetFileObjectInfo(machinesPath)
+	if err != nil {
+		log.Infof("error getting file object info: %s\n", err)
+	}
 	assert.NoError(c.t, err)
 
 	apiServerArgs := c.conf.WKSConfig.APIServerArguments
@@ -137,6 +156,9 @@ func checkApiServerAndKubeletArguments(c *context) {
 		for _, kubeletArg := range kubeletArgs {
 			argString := fmt.Sprintf("%s=%s", kubeletArg.Name, kubeletArg.Value)
 			_, err := sshClient.RunCommand(fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep /usr/bin/kubelet | grep %s", argString), nil)
+			if err != nil {
+				log.Infof("error grepping argument string from kubelet process %s\n", err)
+			}
 			assert.NoError(c.t, err)
 		}
 
@@ -144,6 +166,9 @@ func checkApiServerAndKubeletArguments(c *context) {
 			for _, apiServerArg := range apiServerArgs {
 				argString := fmt.Sprintf("%s=%s", apiServerArg.Name, apiServerArg.Value)
 				_, err := sshClient.RunCommand(fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep kube-apiserver | grep %s", argString), nil)
+				if err != nil {
+					log.Infof("error grepping argument string from apiserver process %s\n", err)
+				}
 				assert.NoError(c.t, err)
 			}
 		}

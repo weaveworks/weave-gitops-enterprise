@@ -70,25 +70,13 @@ workflows:
           #   branches:
           #     only:
           #       - master
-      - integration-tests-ssh-gcp:
+      - creation-ssh-gcp:
           requires:
             - build
           # filters:
           #   branches:
           #     only:
           #       - master
-  # nightly:
-  #   triggers:
-  #     - schedule:
-  #         cron: "0 0 * * *"
-  #         filters:
-  #           branches:
-  #             only:
-  #               - master
-  #   jobs:
-  #     - integration-tests-ssh-gcp:
-  #         requires:
-  #           - build
 
 jobs:
   build:
@@ -269,16 +257,16 @@ jobs:
             export PATH=$GOROOT/bin:$PATH
             # remove the circle config which locks down github keys
             mv ~/.ssh/config{,.old}
-            
+
             # get a wk binary from the attached workspace to use in the integration test
             cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
-            
+
             cd test/integration/test
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
             export KUBERNETES_VERSION=1.14.1
             export CLUSTER_VERSIONS='1.16.3,1.17.5'
-            
+
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
@@ -310,7 +298,7 @@ jobs:
             go test -v -run TestClusterCreation --timeout=99999s
 
             go test -v -run TestGenerateSecrets --timeout=600s
-  
+
   integration-tests-upgrade-footloose:
     machine:
       docker_layer_caching: true
@@ -372,7 +360,7 @@ jobs:
             
             go test -v -run TestUpgrade --timeout=99999s
 
-  integration-tests-ssh-gcp:
+  creation-ssh-gcp:
     docker:
       - image: quay.io/wks/build:master-134af34f
         environment:
@@ -408,7 +396,6 @@ jobs:
 
             cd test/integration/test
             export SKIP_COMPONENTS=true
-            export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
             export KUBERNETES_VERSION=1.14.1
             export CLUSTER_VERSIONS='1.16.3,1.17.5'
 
@@ -439,11 +426,7 @@ jobs:
 
             go test -v -run TestRunMultipleSetupInstall
 
-            export WKP_DEBUG=true
-
             go test -v -run TestClusterCreation --timeout=99999s
-
-            go test -v -run TestUpgrade --timeout=99999s
 
             go test -v -run TestGenerateSecrets --timeout=600s
 

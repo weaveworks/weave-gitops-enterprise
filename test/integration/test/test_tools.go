@@ -282,6 +282,7 @@ func (c *context) assertSealedSecretsCanBeCreated() {
 
 	assert.NoError(c.t, err)
 	assert.Equal(c.t, "supersekret", string(secretData), "The decrypted password should match the original value")
+	log.Info("Sealed secrets controller installed ok.")
 }
 
 // createSetupCommand creates a new invocation of "wk setup install"
