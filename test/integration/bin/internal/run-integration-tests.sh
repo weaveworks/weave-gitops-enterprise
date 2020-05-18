@@ -299,12 +299,11 @@ function end() {
 }
 
 function echo_export_hosts() {
-    # exec 1>&111
-    # # Print a command to set HOSTS in the calling script, so that subsequent calls to
-    # # test scripts can point to the right testing machines while developing:
-    # echo "export HOSTS=\"$HOSTS\""
-    # exec 1>&2
-    return true
+    exec 1>&111
+    # Print a command to set HOSTS in the calling script, so that subsequent calls to
+    # test scripts can point to the right testing machines while developing:
+    echo "export HOSTS=\"$HOSTS\""
+    exec 1>&2
 }
 
 function export_terraform_output() {
@@ -346,7 +345,6 @@ function main() {
             configure "$ssh_user" "$ssh_hosts" "${ssh_port:-22}" "$ssh_id_file"
             "$PROVISIONING_DIR/setup.sh"
             export_terraform_output
-            # echo_export_hosts
             ;;
 
         provision)
