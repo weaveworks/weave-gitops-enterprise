@@ -136,7 +136,7 @@ spec:
       cri:
         kind: docker
         package: docker-ce
-        version: 18.09.7
+        version: 19.03.8
 `
 
 const machineTemplate = `- apiVersion: cluster.k8s.io/v1alpha1
