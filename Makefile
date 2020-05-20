@@ -26,7 +26,16 @@ LOCAL_BINARIES_GOOS ?= $(GOOS)
 	touch $@
 
 # Get a list of directories containing Dockerfiles
-DOCKERFILES := $(shell find . -name tools -prune -o -name vendor -prune -o -name rpm -prune -o -name build -prune -o -name environments -prune -o -name test -prune -o -name examples -prune -o -type f -name 'Dockerfile' -print)
+DOCKERFILES := $(shell find . \
+	-name tools -prune -o \
+	-name vendor -prune -o \
+	-name rpm -prune -o \
+	-name build -prune -o \
+	-name environments -prune -o \
+	-name test -prune -o \
+	-name examples -prune -o \
+	-name node_modules -prune -o \
+	-type f -name 'Dockerfile' -print)
 UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
 DOCKER_IMAGE_DIRS := $(patsubst %/Dockerfile,%,$(DOCKERFILES))
 IMAGE_NAMES := $(foreach dir,$(DOCKER_IMAGE_DIRS),$(patsubst %,$(IMAGE_PREFIX)%,$(shell basename $(dir))))

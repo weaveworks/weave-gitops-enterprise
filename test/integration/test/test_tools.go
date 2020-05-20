@@ -65,7 +65,7 @@ func getContext(testval *testing.T) *context {
 		wkBin:      getWkBinary(testval),
 		testDir:    getTestDir(testval),
 		tmpDir:     tmpDir,
-		env:        getEnvironment(testval, tmpDir),
+		env:        getEnvironmentWithoutKubeconfig(testval, tmpDir),
 		repoExists: false,
 	}
 }
@@ -465,12 +465,6 @@ func getConfigInfo(t *testing.T) (string, *config.WKPConfig) {
 	wkpConf, err := config.GenerateConfig(configFile)
 	require.NoError(t, err)
 	return configFile, wkpConf
-}
-
-func getEnvironment(t *testing.T, dir string) []string {
-	_, conf := getConfigInfo(t)
-	kubeconfigPath := filepath.Join(dir, "setup", "weavek8sops", conf.ClusterName, "kubeconfig")
-	return append(getEnvironmentWithoutKubeconfig(t, dir), fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath))
 }
 
 func getEnvironmentWithoutKubeconfig(t *testing.T, dir string) []string {
