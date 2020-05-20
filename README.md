@@ -31,7 +31,9 @@ See:
 ### Releasing
 
 To release a new version of the project:
-
+- Verify that we have an updated dependencies file
+  - run `GITHUB_TOKEN=<your token> bin/sca-generate-deps.sh`
+  - If there are changes to the file `user-guide/content/deps/_index.md` merge this **before** creating the release
 - Create a new tag: `git tag -a 1.0.1` The -a is important as it creates an annotated tag which is then used as a version number for builds.
 - Push tag: `git push origin 1.0.1`
 - CI will push binary to weaveworks-wkp.s3.amazonaws.com/wk-1.0.1
