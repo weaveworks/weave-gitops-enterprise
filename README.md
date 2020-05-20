@@ -74,7 +74,7 @@ make
 - Test the build locally:
 
 ```console
-rm build/.uptodate
+rm wks-build/.uptodate
 make !$
 ```
 
