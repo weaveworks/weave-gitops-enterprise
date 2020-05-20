@@ -25,7 +25,7 @@ PROVISIONING_DIR="$(dirname $0)/provisioning"
 APP="wks"
 # shellcheck disable=SC2034
 PROJECT="wks-tests" # Only used when PROVIDER is gcp, by tools/provisioning/config.sh.
-NAME=${NAME:-"$(whoami | sed -e 's/[\.\_]*//g' | cut -c 1-4)"}
+NAME="wkp-${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
 PROVIDER=${PROVIDER:-gcp} # Provision using provided provider, or Google Cloud Platform by default.
 NUM_HOSTS=${NUM_HOSTS:-3}
 PLAYBOOK=${PLAYBOOK:-setup_bare_docker.yml}
@@ -333,7 +333,7 @@ function main() {
         "") # Provision, configure, run tests, and destroy test environment:
             provision on "$PROVIDER"
             configure "$ssh_user" "$ssh_hosts" "${ssh_port:-22}" "$ssh_id_file"
-            "$INT_TEST_DIR/setup.sh"
+            "$PROVISIONING_DIR/setup.sh"
             run_tests "$TESTS"
             status=$?
             provision off "$PROVIDER"
@@ -343,9 +343,8 @@ function main() {
         up) # Setup a test environment without actually doing any testing.
             provision on "$PROVIDER"
             configure "$ssh_user" "$ssh_hosts" "${ssh_port:-22}" "$ssh_id_file"
-            "$INT_TEST_DIR/setup.sh"
+            "$PROVISIONING_DIR/setup.sh"
             export_terraform_output
-            echo_export_hosts
             ;;
 
         provision)
@@ -363,7 +362,7 @@ function main() {
 
         setup)
             provision on "$PROVIDER" # Vagrant and Terraform do not provision twice if VMs are already provisioned, so we just set environment variables.
-            "$INT_TEST_DIR/setup.sh"
+            "$PROVISIONING_DIR/setup.sh"
             export_terraform_output
             echo_export_hosts
             ;;
