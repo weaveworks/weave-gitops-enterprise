@@ -3,7 +3,7 @@ version: 2
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
-    - image: docker.io/weaveworks/wks-build:master-ef35d851
+    - image: docker.io/weaveworks/wks-build:master-80cac886
       environment:
         GOPATH: /go/
         SRCDIR: /src/github.com/weaveworks/wks
@@ -59,24 +59,24 @@ workflows:
       - integration-tests-creation-footloose:
           requires:
             - build
-          # filters:
-          #   branches:
-          #     only:
-          #       - master
+          filters:
+            branches:
+              only:
+                - master
       - integration-tests-upgrade-footloose:
           requires:
             - build
-          # filters:
-          #   branches:
-          #     only:
-          #       - master
+          filters:
+            branches:
+              only:
+                - master
       - creation-ssh-gcp:
           requires:
             - build
-          # filters:
-          #   branches:
-          #     only:
-          #       - master
+          filters:
+            branches:
+              only:
+                - master
 
 jobs:
   build:
@@ -153,7 +153,7 @@ jobs:
 
   unit-tests:
     docker:
-      - image: docker.io/weaveworks/wks-build:master-ef35d851
+      - image: docker.io/weaveworks/wks-build:master-80cac886
         environment:
           GOPATH: /go
           SRCDIR: /src/github.com/weaveworks/wks
@@ -278,7 +278,7 @@ jobs:
 
             # set the track to wks-footloose
             sed -i "s/track:.*/track: wks-footloose/" config.yaml
-            
+
             echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
             chmod 600 user-ssh-key
             eval "$(ssh-agent -s)"
@@ -329,14 +329,14 @@ jobs:
             export PATH=$GOROOT/bin:$PATH
             # remove the circle config which locks down github keys
             mv ~/.ssh/config{,.old}
-            
+
             # get a wk binary from the attached workspace to use in the integration test
             cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
-            
+
             cd test/integration/test
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
-            
+
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
@@ -348,16 +348,16 @@ jobs:
 
             # set the track to wks-footloose
             sed -i "s/track:.*/track: wks-footloose/" config.yaml
-            
+
             echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
             chmod 600 user-ssh-key
             eval "$(ssh-agent -s)"
             ssh-add -D
             ssh-add user-ssh-key
-            
+
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-            
+
             go test -v -run TestUpgrade --timeout=99999s
 
   creation-ssh-gcp:
