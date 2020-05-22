@@ -1,6 +1,8 @@
 package cmdutil
 
 import (
+	"fmt"
+	"os"
 	"os/exec"
 )
 
@@ -38,4 +40,10 @@ func ExecError(err error) error {
 		}
 	}
 	return err
+}
+
+// ErrorExit will print a message to stderr and exit
+func ErrorExit(msg string, err interface{}) {
+	fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err)
+	os.Exit(1)
 }
