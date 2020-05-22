@@ -15,6 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/wks/pkg/cmdutil"
 	"github.com/weaveworks/wks/pkg/github/hub"
 	"github.com/weaveworks/wksctl/pkg/utilities/ssh"
 	cryptossh "golang.org/x/crypto/ssh"
@@ -740,10 +741,6 @@ func FileLinesToSet(lines []byte) Set {
 	return setval
 }
 
-func ExecError(err error) error {
-	return errors.New(string(err.(*exec.ExitError).Stderr))
-}
-
 func WithoutGenerationFiles(files Set) Set {
 	result := Set{}
 	for file := range files {
@@ -774,9 +771,9 @@ func ListTree(repoDir, commit string) (Set, error) {
 	empty := Set{}
 	cmd := exec.Command("git", "ls-tree", "--name-only", "-r", commit)
 	cmd.Dir = repoDir
-	out, err := cmd.Output()
+	out, err := cmdutil.Output(cmd)
 	if err != nil {
-		return empty, wrap(ExecError(err))
+		return empty, wrap(err)
 	}
 	return FileLinesToSet(out), nil
 }
@@ -785,9 +782,9 @@ func DiffTree(repoDir, oldCommit, newCommit string) (Set, error) {
 	log.Debug("Comparing git commits to find new and deleted files...")
 	wrap := MakeErrorWrapper("gitDiffTree")
 	empty := Set{}
-	out, err := exec.Command("git", "-C", repoDir, "diff-tree", "--no-commit-id", "--name-only", "-r", oldCommit, newCommit).Output()
+	out, err := cmdutil.Output(exec.Command("git", "-C", repoDir, "diff-tree", "--no-commit-id", "--name-only", "-r", oldCommit, newCommit))
 	if err != nil {
-		return empty, wrap(ExecError(err))
+		return empty, wrap(err)
 	}
 	return FileLinesToSet(out), nil
 }
@@ -796,12 +793,12 @@ func ReadFile(repoDir, filePath, commit string) ([]byte, error) {
 	log.Debugf("Reading file %q from git commit %q...", filePath, commit)
 	cmd := exec.Command("git", "show", commit+":"+filePath)
 	cmd.Dir = repoDir
-	data, err := cmd.Output()
+	data, err := cmdutil.Output(cmd)
 	if err != nil {
 		if !CheckExist(filePath, commit) {
 			return []byte(""), nil
 		}
-		return nil, MakeErrorWrapper("gitReadFile")(ExecError(err))
+		return nil, MakeErrorWrapper("gitReadFile")(err)
 	}
 	return data, nil
 }
