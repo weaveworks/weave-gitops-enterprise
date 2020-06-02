@@ -3,7 +3,7 @@
 
 # Boiler plate for bulding Docker containers.
 # All this must go at top of file I'm afraid.
-IMAGE_PREFIX := docker.io/weaveworks/
+IMAGE_PREFIX := docker.io/weaveworks/wkp-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe --always --match "v*")
@@ -20,9 +20,9 @@ LOCAL_BINARIES_GOOS ?= $(GOOS)
 		--build-arg=version=$(VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
-		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
+		--tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) \
 		$(@D)/
-	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
+	$(SUDO) docker tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))):$(IMAGE_TAG)
 	touch $@
 
 # Get a list of directories containing Dockerfiles
@@ -38,7 +38,7 @@ DOCKERFILES := $(shell find . \
 	-type f -name 'Dockerfile' -print)
 UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
 DOCKER_IMAGE_DIRS := $(patsubst %/Dockerfile,%,$(DOCKERFILES))
-IMAGE_NAMES := $(foreach dir,$(DOCKER_IMAGE_DIRS),$(patsubst %,$(IMAGE_PREFIX)%,$(shell basename $(dir))))
+IMAGE_NAMES := $(foreach dir,$(DOCKER_IMAGE_DIRS),$(patsubst %,$(IMAGE_PREFIX)%,$(subst wkp-,,$(shell basename $(dir)))))
 images:
 	$(info $(IMAGE_NAMES))
 	@echo > /dev/null
@@ -90,7 +90,7 @@ DEPS=$(call godeps,./cmd/wk)
 USER_GUIDE_SOURCES=$(shell find user-guide/ -name public -prune -o -print) user-guide/content/deps/_index.md
 user-guide/public: $(USER_GUIDE_SOURCES)
 	cd user-guide && ./make-static.sh
-# # Third-party build dependencies 
+# # Third-party build dependencies
 # SCA_DEPS = \
 # 	go.mod \
 # 	ui/package.json \
