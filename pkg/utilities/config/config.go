@@ -136,7 +136,7 @@ type FootlooseConfig struct {
 }
 
 // Templates for generating specific configs
-const clusterFileTemplate = `apiVersion: cluster.k8s.io/v1alpha1
+const clusterFileTemplate = `apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: {{ .ClusterName }}
@@ -147,10 +147,16 @@ spec:
     pods:
       cidrBlocks: {{ .PodCIDRBlocks }}
     serviceDomain: cluster.local
-  providerSpec:
-    value:
-      apiVersion: baremetalproviderspec/v1alpha1
-      kind: BareMetalClusterProviderSpec
+  infrastructureRef:
+    apiVersion: "cluster.weave.works/v1alpha3"
+    kind: BareMetalCluster
+    name: {{ .ClusterName }}
+---
+apiVersion: cluster.weave.works/v1alpha3
+kind: "BareMetalCluster"
+metadata:
+  name: {{ .ClusterName }}
+spec:
       user: {{ .SSHUser }}
       {{- if or (.ControlPlaneLbAddress) (.APIServerArguments) }}
       apiServer:
@@ -189,7 +195,7 @@ spec:
       {{- end }}
 `
 
-const machineTemplate = `- apiVersion: cluster.k8s.io/v1alpha1
+const machineTemplate = `apiVersion: cluster.x-k8s.io/v1alpha3
   kind: Machine
   metadata:
     labels:
@@ -197,12 +203,19 @@ const machineTemplate = `- apiVersion: cluster.k8s.io/v1alpha1
     name: {{ .Name }}
     namespace: weavek8sops
   spec:
+    clusterName: {{ .ClusterName }}
     versions:
       kubelet: {{ .KubernetesVersion }}
-    providerSpec:
-      value:
-        apiVersion: baremetalproviderspec/v1alpha1
-        kind: BareMetalMachineProviderSpec
+    infrastructureRef:
+      apiVersion: "cluster.weave.works/v1alpha3"
+      kind: BareMetalMachine
+      name: master-1
+---
+  apiVersion: "cluster.weave.works/v1alpha3"
+  kind: "BareMetalMachine"
+  metadata:
+    name: {{ .Name }}
+  spec:
         private:
           address: {{ .PrivateAddress }}
           port: {{ .PrivatePort }}
@@ -277,6 +290,7 @@ const footlooseTemplate = `# This file contains high level configuration paramet
 #  - ignite: use footloose with ignite and firecracker to create real VMs using:
 #            the ignite backend only works on linux as it requires KVM.
 #            https://github.com/weaveworks/ignite.
+clusterName: {{ .ClusterName }}
 backend: {{ .Backend }}
 # Number of nodes allocated for the Kubernetes control plane and workers.
 controlPlane:
@@ -864,6 +878,7 @@ func GenerateMachinesFileContentsFromConfig(config *WKPConfig) (string, error) {
 	for _, machine := range config.WKSConfig.SSHConfig.Machines {
 		var populated bytes.Buffer
 		err = t.Execute(&populated, struct {
+			ClusterName       string
 			Name              string
 			Role              string
 			KubernetesVersion string
@@ -871,7 +886,7 @@ func GenerateMachinesFileContentsFromConfig(config *WKPConfig) (string, error) {
 			PublicPort        int64
 			PrivateAddress    string
 			PrivatePort       int64
-		}{machine.Name, machine.Role, config.WKSConfig.KubernetesVersion, machine.PublicAddress, machine.PublicPort,
+		}{config.ClusterName, machine.Name, machine.Role, config.WKSConfig.KubernetesVersion, machine.PublicAddress, machine.PublicPort,
 			machine.PrivateAddress, machine.PrivatePort})
 		if err != nil {
 			return "", err
@@ -1052,12 +1067,14 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
+		ClusterName       string
 		Backend           string
 		ControlPlaneNodes int64
 		WorkerNodes       int64
 		Image             string
 		KubernetesVersion string
 	}{
+		config.ClusterName,
 		config.WKSConfig.FootlooseConfig.Backend,
 		config.WKSConfig.FootlooseConfig.ControlPlaneNodes,
 		config.WKSConfig.FootlooseConfig.WorkerNodes,
