@@ -1,10 +1,10 @@
-# Weave Kubernetes Subscription (WKS)
+# Weaveworks Kubernetes Platform
 
 ![Service description diagram](https://www.weave.works/assets/images/blt1670b4d9d8010619/KB_support_diagram.jpg)
 
 ## Purpose
 
-This repository is to keep together work done on the Weaveworks Kubernetes Subscription. Track the progress in the [Github project](https://github.com/weaveworks/wks/projects/1).
+This repository is to keep together work done on the Weaveworks Kubernetes Platform.
 
 ## Important documents
 
@@ -31,6 +31,7 @@ See:
 ### Releasing
 
 To release a new version of the project:
+
 - Verify that we have an updated dependencies file
   - run `GITHUB_TOKEN=<your token> bin/sca-generate-deps.sh`
   - If there are changes to the file `user-guide/content/deps/_index.md` merge this **before** creating the release
@@ -145,3 +146,7 @@ The following environment variables must be set before running the test:
 - DOCKER_IO_USER (for fetching images)
 - DOCKER_IO_PASSWORD (for fetching images)
 - WKP_CLUSTER_COMPONENTS_IMAGE (used to manage components)
+
+# What is `wks`?
+
+An earlier form of this product used to be named "WKS" for "Weave Kubernetes Subscription".
