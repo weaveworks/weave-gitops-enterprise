@@ -130,6 +130,10 @@ spec:
             key: docker-ce.repo
           destination: /etc/yum.repos.d/docker-ce.repo
         - source:
+            configmap: repo
+            key: cloud-google-com.gpg.b64
+          destination: /tmp/cloud-google-com.gpg.b64
+        - source:
             configmap: docker
             key: daemon.json
           destination: /etc/docker/daemon.json
