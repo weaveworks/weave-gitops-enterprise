@@ -27,8 +27,8 @@ require (
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/onsi/ginkgo v1.7.0 // indirect
-	github.com/onsi/gomega v1.4.3 // indirect
+	github.com/onsi/ginkgo v1.7.0
+	github.com/onsi/gomega v1.4.3
 	github.com/open-policy-agent/opa v0.12.2
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/pkg/errors v0.8.1
