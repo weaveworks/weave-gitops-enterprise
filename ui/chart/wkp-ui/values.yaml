@@ -3,7 +3,7 @@ fullnameOverride: ""
 
 enabled: true
 image:
-  repository: weaveworks/ui-server
+  repository: weaveworks/wkp-ui-server
   tag: master-d843e5ae
   pullSecrets: []
   pullPolicy: IfNotPresent
