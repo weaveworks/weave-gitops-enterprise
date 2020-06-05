@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
@@ -9,16 +9,6 @@ defaults: &defaults
         SRCDIR: /src/github.com/weaveworks/wks
   working_directory: /src/github.com/weaveworks/wks
 
-checkoutWithSSH: &checkoutWithSSH
-  - add_ssh_keys:
-      # With the switch go modules we need to pull some private
-      # Weaveworks repositories - specifically gokrb5.  We need to use
-      # an ssh key configured in Circle and Github.  The deploy key
-      # CircleCI adds is specific to a repository and doesn't work
-      # for fetching other private repos.
-      fingerprints:
-        - "cc:e8:46:28:c2:af:5e:30:cc:01:59:ab:9b:ad:45:5c"
-
 integrationTestCommonEnv: &integrationTestCommonEnv
   GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
   GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
@@ -27,24 +17,8 @@ integrationTestCommonEnv: &integrationTestCommonEnv
   SRCDIR: /home/circleci/src/github.com/weaveworks/wks
   KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
   KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
-
-installDeps: &installDeps
-    - run:
-        name: Install deps
-        command: |
-          # install go
-          (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
-          mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
-
-          # install kubectl
-          curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
-          echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
-          tar xvzf kubectl.tar.gz --strip-components=3
-          sudo mv kubectl /usr/local/bin
-
-          # install hub
-          curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
-          sudo mv bin/hub /usr/local/bin
+  JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
+  JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
 
 integrationTestConfig: &integrationTestConfig
   requires:
@@ -54,44 +28,146 @@ integrationTestConfig: &integrationTestConfig
       only:
         - master
 
+nightlyTestConfig: &nightlyTestConfig
+  requires:
+    - build
+
 workflows:
-  version: 2
   test-build-deploy:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /.*/
-      - container-tests: {}
-      - unit-tests: {}
-      - fast-integration-tests:
-          requires:
-            - build
-      - integration-tests-creation-footloose:
-          <<: *integrationTestConfig
-      - integration-tests-upgrade-footloose:
-          <<: *integrationTestConfig
-      - creation-ssh-gcp:
-          <<: *integrationTestConfig
-      - creation-ssh-gcp-ubuntu:
-          <<: *integrationTestConfig
+      - creation-ssh-gcp-ubuntu
+      # - build:
+      #     filters:
+      #       tags:
+      #         only: /.*/
+      # - container-tests
+      # - unit-tests
+      # - fast-integration-tests:
+      #     requires:
+      #      - build
+      # - integration-tests-creation-footloose:
+      #     <<: *integrationTestConfig
+      # - integration-tests-upgrade-footloose:
+      #     <<: *integrationTestConfig
+      # - creation-ssh-gcp-centos:
+      #     <<: *integrationTestConfig
+      # - creation-ssh-gcp-ubuntu:
+      #     <<: *integrationTestConfig
 
   nightly:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: '0 0 * * *'
           filters:
             branches:
               only:
                 - master
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /.*/
+      - build
       - cluster-components-gcp:
-          requires:
-            - build
+          <<: *nightlyTestConfig
+
+commands:
+  get-wk-binary:
+    description: Get the wk binary from workspace or s3
+    steps:
+      - run:
+          name: Get the wk binary from workspace or s3
+          command: |
+            DST_PATH=cmd/wk/wk
+
+            # get a wk binary from the attached workspace to use in the integration test
+            SRC_PATH=/tmp/workspace/cmd/wk/wk
+            if [ -f "$SRC_PATH" ]; then
+              cp "$SRC_PATH" "$DST_PATH"
+            else
+              # TAG=$(./tools/image-tag)
+              TAG=master
+              curl -o "$DST_PATH" https://s3.amazonaws.com/weaveworks-wkp/wk-${TAG}-linux-amd64
+              chmod +x "$DST_PATH"
+            fi
+
+  install-integration-test-deps:
+    description: Install go, kubectl and hub for the integration tests
+    steps:
+      - run:
+          name: Install deps
+          command: |
+            # install go
+            (cd ~ && curl --silent -L $GOURL -o go.tar.gz && echo "$GOCHECKSUM go.tar.gz" | sha256sum -c)
+            mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
+
+            # install kubectl
+            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
+            echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
+            tar xvzf kubectl.tar.gz --strip-components=3
+            sudo mv kubectl /usr/local/bin
+
+            # install hub
+            curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
+            sudo mv bin/hub /usr/local/bin
+      - run:
+          name: Install jk
+          command: |
+            curl --silent -L $JK_URL -o jk
+            echo "$JK_CHECKSUM jk" | sha256sum -c
+            chmod a+x jk
+            sudo mv jk /usr/local/bin
+
+  add-go-mod-ssh-keys:
+    description: Need these keys to pull some private go modules
+    steps:
+      - add_ssh_keys:
+          # With the switch go modules we need to pull some private
+          # Weaveworks repositories - specifically gokrb5.  We need to use
+          # an ssh key configured in Circle and Github.  The deploy key
+          # CircleCI adds is specific to a repository and doesn't work
+          # for fetching other private repos.
+          fingerprints:
+            - 'cc:e8:46:28:c2:af:5e:30:cc:01:59:ab:9b:ad:45:5c'
+
+  go-get-cached:
+    description: go get or used cached modules
+    steps:
+      - restore_cache:
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+          name: Go get
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            go get
+      - save_cache:
+          key: go-mod-v2-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod
+
+  reload-wkp-ssh-keys:
+    description: reload wkp ssh keys into eng
+    steps:
+      - run:
+          name: load ssh keys
+          command: |
+            # remove the circle config which locks down github keys
+            mv ~/.ssh/config{,.old}
+            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
+            chmod 600 user-ssh-key
+            ssh-agent -s | grep -v echo >> $BASH_ENV
+            source $BASH_ENV
+            ssh-add -D
+            ssh-add user-ssh-key
+
+  setup-integration-test-env:
+    description: 'Common steps to integration tests'
+    steps:
+      - checkout
+      - install-integration-test-deps
+      - add-go-mod-ssh-keys
+      - go-get-cached
+      - reload-wkp-ssh-keys
+      - attach_workspace:
+          at: /tmp/workspace
+      - get-wk-binary
 
 jobs:
   build:
@@ -101,7 +177,7 @@ jobs:
       BASH_ENV: ~/.bashrc
     steps:
       - checkout
-      - <<: *checkoutWithSSH
+      - add-go-mod-ssh-keys
       - setup_remote_docker
       - run: make lint
       - run:
@@ -160,9 +236,9 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-          - kubectl
-          - cmd/wk/wk
-          - cmd/mock-https-authz-server/server
+            - kubectl
+            - cmd/wk/wk
+            - cmd/mock-https-authz-server/server
       - run: docker login -u "$DOCKER_IO_USER" -p "$DOCKER_IO_PASSWORD" docker.io
       - run: make push
 
@@ -179,7 +255,7 @@ jobs:
     working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
-      - <<: *checkoutWithSSH
+      - add-go-mod-ssh-keys
       - run:
           name: Install kubectl
           command: |
@@ -218,7 +294,7 @@ jobs:
 
   container-tests:
     machine:
-      docker_layer_caching: true
+      image: ubuntu-1604:202004-01
     environment:
       GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
       GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
@@ -228,7 +304,7 @@ jobs:
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
-      - <<: *checkoutWithSSH
+      - add-go-mod-ssh-keys
       - run:
           name: Install go
           command: |
@@ -244,29 +320,13 @@ jobs:
 
   # Can be a bit faster
   fast-integration-tests:
-    machine:
-      docker_layer_caching: true
+    docker:
+      - image: quay.io/wks/build:master-134af34f
     environment:
       <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
-      - checkout
-      - <<: *checkoutWithSSH
-      - attach_workspace:
-          at: /tmp/workspace
-      - <<: *installDeps
-      - restore_cache:
-          keys:
-            - go-mod-v2-{{ checksum "go.sum" }}
-      - run:
-          name: Go get
-          command: |
-            export PATH=$GOROOT/bin:$PATH
-            go get
-      - save_cache:
-          key: go-mod-v2-{{ checksum "go.sum" }}
-          paths:
-            - /home/circleci/go/pkg/mod
+      - setup-integration-test-env
       - run: &setup-base-footloose-config-yaml
           name: Setup base config.yaml
           command: |
@@ -284,9 +344,6 @@ jobs:
       - run:
           name: Run e2e tests
           command: |
-            # get a wk binary from the attached workspace to use in the integration test
-            cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
-
             export PATH=$GOROOT/bin:$PATH
             cd test/integration/test
             go test -v -run TestEntitlements
@@ -297,51 +354,23 @@ jobs:
 
   integration-tests-creation-footloose:
     machine:
-      docker_layer_caching: true
+      image: ubuntu-1604:202004-01
     environment:
       <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
-      - checkout
-      - <<: *checkoutWithSSH
-      - attach_workspace:
-          at: /tmp/workspace
-      - <<: *installDeps
-      - restore_cache:
-          keys:
-            - go-mod-v2-{{ checksum "go.sum" }}
-      - run:
-          name: Go get
-          command: |
-            export PATH=$GOROOT/bin:$PATH
-            go get
-      - save_cache:
-          key: go-mod-v2-{{ checksum "go.sum" }}
-          paths:
-            - /home/circleci/go/pkg/mod
+      - setup-integration-test-env
       - run:
           <<: *setup-base-footloose-config-yaml
       - run:
           name: Run e2e tests
           command: |
             export PATH=$GOROOT/bin:$PATH
-            # remove the circle config which locks down github keys
-            mv ~/.ssh/config{,.old}
-
-            # get a wk binary from the attached workspace to use in the integration test
-            cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
 
             cd test/integration/test
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
             export CLUSTER_VERSIONS='1.16.3,1.17.5'
-            export CLUSTER_NAME=$CIRCLE_JOB-$CIRCLE_BUILD_NUM
-
-            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
-            chmod 600 user-ssh-key
-            eval "$(ssh-agent -s)"
-            ssh-add -D
-            ssh-add user-ssh-key
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
@@ -351,114 +380,69 @@ jobs:
 
   integration-tests-upgrade-footloose:
     machine:
-      docker_layer_caching: true
+      image: ubuntu-1604:202004-01
     environment:
       <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
-      - checkout
-      - <<: *checkoutWithSSH
-      - attach_workspace:
-          at: /tmp/workspace
-      - <<: *installDeps
-      - restore_cache:
-          keys:
-            - go-mod-v2-{{ checksum "go.sum" }}
-      - run:
-          name: Go get
-          command: |
-            export PATH=$GOROOT/bin:$PATH
-            go get
-      - save_cache:
-          key: go-mod-v2-{{ checksum "go.sum" }}
-          paths:
-            - /home/circleci/go/pkg/mod
+      - setup-integration-test-env
       - run:
           <<: *setup-base-footloose-config-yaml
       - run:
           name: Run e2e tests
           command: |
             export PATH=$GOROOT/bin:$PATH
-            # remove the circle config which locks down github keys
-            mv ~/.ssh/config{,.old}
-
-            # get a wk binary from the attached workspace to use in the integration test
-            cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
 
             cd test/integration/test
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
-            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
-
-            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
-            chmod 600 user-ssh-key
-            eval "$(ssh-agent -s)"
-            ssh-add -D
-            ssh-add user-ssh-key
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
 
             go test -v -run TestUpgrade --timeout=99999s
 
-  creation-ssh-gcp: &creation-ssh-gcp
+  creation-ssh-gcp-centos: &creation-ssh-gcp-centos
     docker:
       - image: quay.io/wks/build:master-134af34f
         environment:
           <<: *integrationTestCommonEnv
+          # Don't USE the default image, use IMAGE_NAME instead
           IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 1
+          NUM_WORKERS: 2
+          CLUSTER_VERSIONS: '1.16.3'
+          SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
-      - checkout
-      - <<: *checkoutWithSSH
-      - attach_workspace:
-          at: /tmp/workspace
-      - <<: *installDeps
-      - restore_cache:
-          keys:
-            - go-mod-v2-{{ checksum "go.sum" }}
-      - run:
-          name: Go get
+      - setup-integration-test-env
+      - run: &setup-base-gce-config-yaml
+          name: Setup base config.yaml
           command: |
-            export PATH=$GOROOT/bin:$PATH
-            go get
-      - save_cache:
-          key: go-mod-v2-{{ checksum "go.sum" }}
-          paths:
-            - /home/circleci/go/pkg/mod
-      - run:
-          name: Run e2e tests
-          command: |
-            export PATH=$GOROOT/bin:$PATH
-            # remove the circle config which locks down github keys
-            mv ~/.ssh/config{,.old}
-
-            # get a wk binary from the attached workspace to use in the integration test
-            cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
-
             cd test/integration/test
-            export SKIP_COMPONENTS=true
-            export CLUSTER_VERSIONS='1.16.3,1.17.5'
             export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
-
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
             sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
             sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
             sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
+            sed -i "s/track:.*/track: wks-ssh/" config.yaml
+            sed -i "s/sshUser:.*/sshUser: weaveworks-cit/" config.yaml
+            sed -i "s|sshKeyFile:.*|sshKeyFile: /root/.ssh/weaveworks_cit_id_rsa|" config.yaml
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
 
-            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
-            chmod 600 user-ssh-key
-            eval "$(ssh-agent -s)"
-            ssh-add -D
-            ssh-add user-ssh-key
+            cd test/integration/test
 
-            # Don't USE the default image, use IMAGE_NAME instead
+            lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
+            export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
             export USE_IMAGE=0
-            # provision 3 GCE VMs
+            # provision $NUM_HOSTS GCE VMs
             ../bin/internal/run-integration-tests.sh up
-            ../bin/internal/update-config-with-node-info.sh
+            ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
@@ -473,6 +457,16 @@ jobs:
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
 
+  creation-ssh-gcp-ubuntu:
+    <<: *creation-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-lts
+          CLUSTER_VERSIONS: '1.16.3'
+          SKIP_COMPONENTS: true
+
   cluster-components-gcp:
     docker:
       - image: quay.io/wks/build:master-134af34f
@@ -481,34 +475,13 @@ jobs:
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
-      - checkout
-      - <<: *checkoutWithSSH
-      - attach_workspace:
-          at: /tmp/workspace
-      - <<: *installDeps
-      - restore_cache:
-          keys:
-            - go-mod-v2-{{ checksum "go.sum" }}
+      - setup-integration-test-env
       - run:
-          name: Go get
-          command: |
-            export PATH=$GOROOT/bin:$PATH
-            go get
-      - save_cache:
-          key: go-mod-v2-{{ checksum "go.sum" }}
-          paths:
-            - /home/circleci/go/pkg/mod
+          <<: *setup-base-gce-config-yaml
       - run:
           name: Run e2e tests
           command: |
             export PATH=$GOROOT/bin:$PATH
-            # remove the circle config which locks down github keys
-            mv ~/.ssh/config{,.old}
-
-            # get a wk binary from the attached workspace to use in the integration test
-            # cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
-            curl -o cmd/wk/wk https://weaveworks-wkp.s3.amazonaws.com/wk-WKP-449-wkp-ui-validation-be64502b-linux-amd64
-            chmod +x cmd/wk/wk
 
             cd test/integration/test
             export SKIP_COMPONENTS=false
@@ -516,28 +489,13 @@ jobs:
             # WKP UI reads values from the repository
             export CLEANUP_REPO=false
 
-            # create file with docker password
-            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
-            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
-            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
-            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
-            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB-$CIRCLE_BUILD_NUM/" config.yaml
-
-            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
-            chmod 600 user-ssh-key
-            eval "$(ssh-agent -s)"
-            ssh-add -D
-            ssh-add user-ssh-key
-
             # provision 3 GCE VMs
             ../bin/internal/run-integration-tests.sh up
             ../bin/internal/update-config-with-node-info.sh
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-
             go test -v -run TestClusterCreation --timeout=99999s
-
             export SELENIUM_DEBUG=true
             ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
             go test -v -run TestVersionInUI
@@ -553,6 +511,7 @@ jobs:
           command: |
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
           when: on_fail
           # Store screenshot from TestVersionInUI
@@ -561,11 +520,3 @@ jobs:
           # Store page source from TestVersionInUI
       - store_artifacts:
           path: /tmp/workspace/wkp-ui-page-source
-
-  creation-ssh-gcp-ubuntu:
-    <<: *creation-ssh-gcp
-    docker:
-      - image: quay.io/wks/build:master-134af34f
-        environment:
-          <<: *integrationTestCommonEnv
-          IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-lts
