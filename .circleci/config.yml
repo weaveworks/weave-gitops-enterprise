@@ -72,11 +72,27 @@ workflows:
                 - master
       - creation-ssh-gcp:
           requires:
-            - build
+          - build
           filters:
             branches:
               only:
                 - master
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - cluster-components-gcp:
+          requires:
+            - build
 
 jobs:
   build:
@@ -266,14 +282,13 @@ jobs:
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
             export KUBERNETES_VERSION=1.14.1
             export CLUSTER_VERSIONS='1.16.3,1.17.5'
-            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
 
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
             sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
             sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
-            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB-$CIRCLE_BUILD_NUM/" config.yaml
             sed -i "s/sshUser:.*/sshUser: root/" config.yaml
             sed -i "s/sshKeyFile:.*/sshKeyFile: ''/" config.yaml
 
@@ -337,14 +352,13 @@ jobs:
             cd test/integration/test
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
-            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
 
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
             sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
             sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
-            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB-$CIRCLE_BUILD_NUM/" config.yaml
             sed -i "s/sshUser:.*/sshUser: root/" config.yaml
             sed -i "s/sshKeyFile:.*/sshKeyFile: ''/" config.yaml
 
@@ -367,6 +381,7 @@ jobs:
       - image: quay.io/wks/build:master-134af34f
         environment:
           <<: *integrationTestCommonEnv
+      - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
@@ -441,3 +456,95 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
+          # Store screenshot from TestVersionInUI
+      - store_artifacts:
+          path: /tmp/workspace/wkp-ui-screenshot.png
+
+  cluster-components-gcp:
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+      - image: selenium/standalone-chrome:latest
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - checkout
+      - <<: *checkoutWithSSH
+      - attach_workspace:
+          at: /tmp/workspace
+      - <<: *installDeps
+      - restore_cache:
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+          name: Go get
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            go get
+      - save_cache:
+          key: go-mod-v2-{{ checksum "go.sum" }}
+          paths:
+            - /home/circleci/go/pkg/mod
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            # remove the circle config which locks down github keys
+            mv ~/.ssh/config{,.old}
+
+            # get a wk binary from the attached workspace to use in the integration test
+            # cp /tmp/workspace/cmd/wk/wk cmd/wk/wk
+            curl -o cmd/wk/wk https://weaveworks-wkp.s3.amazonaws.com/wk-WKP-449-wkp-ui-validation-be64502b-linux-amd64
+            chmod +x cmd/wk/wk
+
+            cd test/integration/test
+            export SKIP_COMPONENTS=false
+            export CLUSTER_VERSIONS='1.16.3'
+            # WKP UI reads values from the repository
+            export CLEANUP_REPO=false
+
+            # create file with docker password
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB-$CIRCLE_BUILD_NUM/" config.yaml
+
+            echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
+            chmod 600 user-ssh-key
+            eval "$(ssh-agent -s)"
+            ssh-add -D
+            ssh-add user-ssh-key
+
+            # provision 3 GCE VMs
+            ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+
+            go test -v -run TestClusterCreation --timeout=99999s
+
+            export SELENIUM_DEBUG=true
+            ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
+            go test -v -run TestVersionInUI
+
+            if [ $CLEANUP_REPO != "false" ]; then
+              hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+            fi
+
+            ../bin/internal/run-integration-tests.sh destroy
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy GCP resources
+          command: |
+            cd test/integration/test
+            ../bin/internal/run-integration-tests.sh destroy
+            hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+          when: on_fail
+          # Store screenshot from TestVersionInUI
+      - store_artifacts:
+          path: /tmp/workspace/wkp-ui-screenshot.png
+          # Store page source from TestVersionInUI
+      - store_artifacts:
+          path: /tmp/workspace/wkp-ui-page-source

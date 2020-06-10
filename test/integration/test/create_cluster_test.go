@@ -70,9 +70,11 @@ func runClusterCreationTests(t *testing.T, versions []string, region string) {
 	retryCount := 0
 
 	defer func() {
-		if c != nil {
+		if os.Getenv("CLEANUP_REPO") != "false" {
 			c.cleanupCluster(noError)
+			log.Info("Deleting remote repo in defer...")
 			c.cleanup()
+			log.Info("done.")
 		}
 		if retry := recover(); retry != nil {
 			log.Infof("failure occurred for %v, retry count %v", version, retryCount)
@@ -113,7 +115,9 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 	if !c.shouldSkipComponents() {
 		// Check for all expected pods
 		log.Info("Checking that expected pods are running...")
-		c.checkClusterRunning()
+		if assert.True(t, c.isClusterRunning()) {
+			log.Info("All pods are running.")
+		}
 	}
 
 	// Wait for all nodes to be up
@@ -126,14 +130,6 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 	// Check that sealed secrets work
 	c.assertSealedSecretsCanBeCreated()
 
-	// Clean up this cluster instance
-	c.cleanupCluster()
-
-	// Clean up this temporary directory
-	c.cleanup()
-
-	// Already cleaned up
-	c = nil
 }
 
 func checkApiServerAndKubeletArguments(c *context) {

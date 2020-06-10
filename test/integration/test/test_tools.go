@@ -1,13 +1,11 @@
 package test
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -47,6 +45,95 @@ func flagSet(flags []testFlag, flag testFlag) bool {
 		}
 	}
 	return false
+}
+
+type Component struct {
+	Namespace string
+	Name      string
+}
+
+// Sets the timeout for 'kubectl wait' for a deployment
+var defaultDeploymentTimeout = "300s"
+
+// Sets the retries for the pods of a deployment to be scheduled
+var defaultDeploymentRetries = 50
+
+// Sets the wait interval for checking if a deployment has been scheduled (in seconds)
+var defaultDeploymentRetryInterval = 8
+
+// All the components of a WKP cluster, ordered by deployment time
+var allComponents = []Component{
+	{"weavek8sops", "wks-controller"},
+	{"wkp-flux", "flux"},
+	{"wkp-flux", "flux-helm-operator"},
+	{"wkp-flux", "memcached"},
+	{"wkp-tiller", "tiller-deploy"},
+	{"wkp-gitops-repo-broker", "gitops-repo-broker"},
+	{"wkp-github-service", "github-service"},
+	{"wkp-scope", "weave-scope-cluster-agent-weave-scope"},
+	{"wkp-scope", "weave-scope-frontend-weave-scope"},
+	{"wkp-grafana", "grafana"},
+	{"wkp-grafana", "grafana"},
+	{"wkp-prometheus", "prometheus-operator-kube-state-metrics"},
+	{"wkp-prometheus", "prometheus-operator-operator"},
+	{"wkp-workspaces", "repository-controller"},
+	{"wkp-external-dns", "external-dns"},
+	{"wkp-ui", "wkp-ui-server"},
+	{"wkp-ui", "wkp-ui-nginx-ingress-controller"},
+	{"wkp-ui", "wkp-ui-nginx-ingress-controller-default-backend"},
+}
+
+func (c *context) checkComponentRunning(component Component) bool {
+	found := false
+	for retry := 0; retry < defaultDeploymentRetries; retry++ {
+		if c.checkDeploymentExists(component) {
+			found = true
+			break
+		}
+		time.Sleep(time.Duration(defaultDeploymentRetryInterval) * time.Second)
+	}
+	if !found || !c.checkDeploymentRunning(component) {
+		log.Errorf("Component is not running: %s Was found: %v\n", component.Name, found)
+		return false
+	}
+	return true
+}
+
+func (c *context) checkDeploymentExists(component Component) bool {
+	deploymentName := "deployment/" + component.Name
+	cmdItems := []string{"kubectl", "wait", "--for=condition=available", "--timeout", defaultDeploymentTimeout,
+		"--namespace", component.Namespace, deploymentName}
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	cmd.Env = c.env
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Infof("Deployment: %s timed out\nOutput: %s", component.Name, string(output))
+
+		// Printing all pods for debugging
+		cmdItems := []string{"kubectl", "get", "pods", "--all-namespaces"}
+		cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+		cmd.Env = c.env
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			log.Infof("Failed to get pods: %s", string(output))
+			return false
+		}
+		log.Infof("Current state:\n%s", string(output))
+		return false
+	}
+	return true
+}
+
+func (c *context) checkDeploymentRunning(component Component) bool {
+	cmdItems := []string{"kubectl", "get", "deployment", "-n", component.Namespace, component.Name}
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	cmd.Env = c.env
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Infof("Failed to get deployment: %s", string(output))
+		return false
+	}
+	return true
 }
 
 // getContext returns a "context" object containing all the information needed to perform most
@@ -187,36 +274,19 @@ func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int)
 		len(getAllNodeVersions(c.t, c.env)))
 }
 
-// checkClusterRunning checks if all expected pods are running
-func (c *context) checkClusterRunning() {
-	checkForExpectedPods(c.t, c.tmpDir, c.getAllPods())
+// isClusterRunning checks if all expected components are running
+func (c *context) isClusterRunning() bool {
+	for _, component := range allComponents {
+		if !c.checkComponentRunning(component) {
+			return false
+		}
+	}
+	return true
 }
 
 // PodData stores a component id (namespace + name)
 type PodData struct {
 	Namespace, Name string
-}
-
-var lineNameExp = regexp.MustCompile(`\s*['"]?name['"]?:\s*['"]?([^\s'"]+)['"]?`)
-
-// getAllPods returns PodData for each pod running the cluster
-func (c *context) getAllPods() []PodData {
-	cmdItems := []string{"kubectl", "get", "pods", "--all-namespaces", "-o", "json"}
-	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
-	cmd.Env = c.env
-	podJson, err := cmd.CombinedOutput()
-	assert.NoError(c.t, err)
-	pods := []PodData{}
-	podList := map[string]interface{}{}
-	if err := json.Unmarshal(podJson, &podList); err != nil {
-		assert.FailNowf(c.t, "Invalid pod data", "returned pod data: %s", podJson)
-	}
-	podEntries := podList["items"].([]interface{})
-	for _, entry := range podEntries {
-		meta := entry.(map[string]interface{})["metadata"].(map[string]interface{})
-		pods = append(pods, PodData{Namespace: meta["namespace"].(string), Name: meta["name"].(string)})
-	}
-	return pods
 }
 
 // shouldSkipComponents returns true if the SKIP_COMPONENTS environment variable is set
@@ -335,59 +405,6 @@ func (c *context) showItems(itemType string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
-}
-
-func checkForExpectedPods(t *testing.T, dir string, pods []PodData) {
-	componentsFilePath := filepath.Join(dir, "cluster", "platform", "components.js")
-	expectedPodIDs := extractComponentIDs(t, componentsFilePath)
-	for retries := 0; retries < 10; retries++ {
-		if checkPods(expectedPodIDs, pods) {
-			return
-		}
-		time.Sleep(60 * time.Second)
-	}
-	assert.FailNowf(t, "Expected pods not found", "found: %v, expected: %v", pods, expectedPodIDs)
-}
-
-func checkPods(expected, pods []PodData) bool {
-	for _, podData := range expected {
-		found := false
-		for _, pod := range pods {
-			if pod.Namespace == podData.Namespace && pod.Name == podData.Name {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
-}
-
-// Extract namespace and name from components; assumes we will continue to follow the convention that
-// the namespace name is: wkp-<component name>
-func extractComponentIDs(t *testing.T, componentsPath string) []PodData {
-	filedata, err := ioutil.ReadFile(componentsPath)
-	assert.NoError(t, err)
-	lines := strings.Split(string(filedata), "\n")
-	result := []PodData{}
-	for _, line := range lines {
-		if namespaceMatch := lineNameExp.FindStringSubmatch(line); namespaceMatch != nil {
-			namespace := namespaceMatch[1] // "0" is whole match
-			name := extractComponentName(namespace)
-			if !strings.HasPrefix(namespace, "wkp-") || name == "eks-controller" || name == "flux-bootstrap" {
-				// only for management cluster and startup
-				continue
-			}
-			result = append(result, PodData{Namespace: namespace, Name: name})
-		}
-	}
-	return result
-}
-
-func extractComponentName(namespace string) string {
-	return strings.TrimPrefix(namespace, "wkp-")
 }
 
 func getAllNodeVersions(t *testing.T, env []string) []string {
