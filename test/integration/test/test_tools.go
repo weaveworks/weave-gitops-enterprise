@@ -295,17 +295,6 @@ func (c *context) shouldSkipComponents() bool {
 	return found && skipComponents == "true"
 }
 
-// checkForRequiredEnvVars ensures that any argument environment variable are set
-func (c *context) checkForRequiredEnvVars(requiredVars ...string) {
-	unset := []string{}
-	for _, evar := range requiredVars {
-		if os.Getenv(evar) == "" {
-			unset = append(unset, evar)
-		}
-	}
-	assert.Lenf(c.t, unset, 0, "Missing environment variable(s): %+v", unset)
-}
-
 // assertSealedSecretsCanBeCreated ensures that sealed secret creation works correctly and the created secrets
 // are valid
 func (c *context) assertSealedSecretsCanBeCreated() {

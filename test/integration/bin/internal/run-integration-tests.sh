@@ -165,7 +165,6 @@ function create_image() {
 function use_or_create_image() {
     setup_gcloud
     image_exists || create_image
-    export TF_VAR_gcp_image="$IMAGE_NAME" # Override the default image name.
     export SKIP_CONFIG=1                  # No need to configure the image, since already done when making the template
 }
 
@@ -181,7 +180,7 @@ function terraform_init() {
 function provision_remotely() {
     case "$1" in
         on)
-            terraform apply -input=false -auto-approve -parallelism="$NUM_HOSTS" -var "app=$APP" -var "name=$NAME" -var "num_hosts=$NUM_HOSTS" "$PROVISIONING_DIR/$2"
+            terraform apply -input=false -auto-approve -parallelism="$NUM_HOSTS" -var "app=$APP" -var "gcp_image=$IMAGE_NAME" -var "name=$NAME" -var "num_hosts=$NUM_HOSTS" "$PROVISIONING_DIR/$2"
             local status=$?
             ssh_user=$(terraform output username)
             ssh_id_file=$(terraform output private_key_path)
