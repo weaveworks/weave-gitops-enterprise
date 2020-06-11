@@ -88,11 +88,21 @@ func runClusterCreationTests(t *testing.T, versions []string, region string) {
 		}
 	}()
 
-	for _, runVersion := range versions {
+	for i, runVersion := range versions {
 		log.Infof("All versions: %v\n", versions)
 		version = runVersion
 		c = getContext(t)
 		runClusterCreationTest(c, t, runVersion, region)
+
+		// clean up between runs but leave the final to the defer
+		hasAnotherRun := i < len(versions)-1
+		if hasAnotherRun {
+			log.Infof("Another run to do (%v / %v), cleaning up", i+1, len(versions))
+			c.cleanupCluster()
+			c.cleanup()
+		} else {
+			log.Infof("Final run completed, leaving cleanup to defer()")
+		}
 	}
 }
 
@@ -129,7 +139,6 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 
 	// Check that sealed secrets work
 	c.assertSealedSecretsCanBeCreated()
-
 }
 
 func checkApiServerAndKubeletArguments(c *context) {

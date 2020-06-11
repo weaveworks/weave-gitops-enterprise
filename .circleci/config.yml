@@ -282,13 +282,14 @@ jobs:
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
             export KUBERNETES_VERSION=1.14.1
             export CLUSTER_VERSIONS='1.16.3,1.17.5'
+            export CLUSTER_NAME=$CIRCLE_JOB-$CIRCLE_BUILD_NUM
 
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
             sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
             sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
-            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB-$CIRCLE_BUILD_NUM/" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
             sed -i "s/sshUser:.*/sshUser: root/" config.yaml
             sed -i "s/sshKeyFile:.*/sshKeyFile: ''/" config.yaml
 
@@ -352,13 +353,14 @@ jobs:
             cd test/integration/test
             export SKIP_COMPONENTS=true
             export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
+            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
 
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
             sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
             sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
-            sed -i "s/clusterName:.*/clusterName: $CIRCLE_JOB-$CIRCLE_BUILD_NUM/" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
             sed -i "s/sshUser:.*/sshUser: root/" config.yaml
             sed -i "s/sshKeyFile:.*/sshKeyFile: ''/" config.yaml
 
@@ -381,7 +383,6 @@ jobs:
       - image: quay.io/wks/build:master-134af34f
         environment:
           <<: *integrationTestCommonEnv
-      - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout
@@ -456,9 +457,6 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
-          # Store screenshot from TestVersionInUI
-      - store_artifacts:
-          path: /tmp/workspace/wkp-ui-screenshot.png
 
   cluster-components-gcp:
     docker:
