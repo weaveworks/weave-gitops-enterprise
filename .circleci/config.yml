@@ -49,10 +49,10 @@ installDeps: &installDeps
 integrationTestConfig: &integrationTestConfig
   requires:
     - build
-  # filters:
-  #   branches:
-  #     only:
-  #       - master
+  filters:
+    branches:
+      only:
+        - master
 
 workflows:
   version: 2
