@@ -35,24 +35,23 @@ nightlyTestConfig: &nightlyTestConfig
 workflows:
   test-build-deploy:
     jobs:
-      - creation-ssh-gcp-ubuntu
-      # - build:
-      #     filters:
-      #       tags:
-      #         only: /.*/
-      # - container-tests
-      # - unit-tests
-      # - fast-integration-tests:
-      #     requires:
-      #      - build
-      # - integration-tests-creation-footloose:
-      #     <<: *integrationTestConfig
-      # - integration-tests-upgrade-footloose:
-      #     <<: *integrationTestConfig
-      # - creation-ssh-gcp-centos:
-      #     <<: *integrationTestConfig
-      # - creation-ssh-gcp-ubuntu:
-      #     <<: *integrationTestConfig
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - container-tests
+      - unit-tests
+      - fast-integration-tests:
+          requires:
+           - build
+      - integration-tests-creation-footloose:
+          <<: *integrationTestConfig
+      - integration-tests-upgrade-footloose:
+          <<: *integrationTestConfig
+      - creation-ssh-gcp-centos:
+          <<: *integrationTestConfig
+      - creation-ssh-gcp-ubuntu:
+          <<: *integrationTestConfig
 
   nightly:
     triggers:
