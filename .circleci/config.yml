@@ -466,6 +466,8 @@ jobs:
           IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-lts
           CLUSTER_VERSIONS: '1.16.3'
           SKIP_COMPONENTS: true
+          NUM_MASTERS: 1
+          NUM_WORKERS: 2
 
   cluster-components-gcp:
     docker:
