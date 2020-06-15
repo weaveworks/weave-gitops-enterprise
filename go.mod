@@ -61,6 +61,7 @@ require (
 	k8s.io/apimachinery v0.0.0-20190831074630-461753078381
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/klog v1.0.0 // indirect
+	sigs.k8s.io/cluster-api v0.0.0-20181211193542-3547f8dd9307
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 

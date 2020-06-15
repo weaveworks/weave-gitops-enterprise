@@ -6,12 +6,31 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	wksos "github.com/weaveworks/wksctl/pkg/apis/wksprovider/machine/os"
+	baremetalspecv1 "github.com/weaveworks/wksctl/pkg/baremetalproviderspec/v1alpha1"
+	"github.com/weaveworks/wksctl/pkg/cluster/machine"
+	"github.com/weaveworks/wksctl/pkg/plan"
+	"github.com/weaveworks/wksctl/pkg/plan/recipe"
+	"github.com/weaveworks/wksctl/pkg/plan/resource"
+	"github.com/weaveworks/wksctl/pkg/plan/runners/ssh"
+	"github.com/weaveworks/wksctl/pkg/plan/runners/sudo"
+	"github.com/weaveworks/wksctl/pkg/utilities"
+	"github.com/weaveworks/wksctl/pkg/utilities/envcfg"
+	"github.com/weaveworks/wksctl/pkg/utilities/object"
 	yaml "gopkg.in/yaml.v3"
+	v1 "k8s.io/api/core/v1"
 	k8sValidation "k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	clusterv1 "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
+	apierrors "sigs.k8s.io/cluster-api/pkg/errors"
 )
 
 type GitProvider string
@@ -214,6 +233,77 @@ controlPlane:
 workers:
   nodes: {{ .WorkerNodes }}
 kubernetesVersion: {{ .KubernetesVersion }}
+`
+
+const haproxyTemplate = `#---------------------------------------------------------------------
+# HAProxy configuration file for the Kubernetes API service.
+#
+# See the full configuration options online at:
+#
+#   http://haproxy.1wt.eu/download/1.4/doc/configuration.txt
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    log         127.0.0.1 local2
+
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+#---------------------------------------------------------------------
+# OPTIONAL - stats UI that allows you to see which masters have joined
+#            the LB roundrobin
+#---------------------------------------------------------------------
+frontend stats
+    bind *:8404
+    stats enable
+    stats uri /stats
+    stats refresh 10s
+    stats admin if LOCALHOST
+
+#---------------------------------------------------------------------
+# KubeAPI frontend which proxys to the master nodes
+#---------------------------------------------------------------------
+frontend kubernetes
+    bind *:6443
+    default_backend             kubernetes
+    mode tcp
+    option tcplog
+
+backend kubernetes
+    balance     roundrobin
+    mode tcp
+    option tcp-check
+    default-server inter 10s downinter 5s rise 2 fall 2 slowstart 60s maxconn 250 maxqueue 256 weight 100
 `
 
 var (
@@ -724,7 +814,7 @@ func buildServerArguments(args []ServerArgument) string {
 
 // GenerateClusterFileContentsFromConfig produces the contents of a cluster.yaml file
 // usable by quickstarts based on a nested configuration structure (typically created by GenerateConfig)
-func GenerateClusterFileContentsFromConfig(config *WKPConfig) (string, error) {
+func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) (string, error) {
 	t, err := template.New("cluster-file").Parse(clusterFileTemplate)
 	if err != nil {
 		return "", err
@@ -745,13 +835,43 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig) (string, error) {
 		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks),
 		buildServerArguments(config.WKSConfig.APIServerArguments),
 		buildServerArguments(config.WKSConfig.KubeletArguments),
-		config.WKSConfig.ControlPlaneLbAddress,
+		getLoadBalancerAddress(config, configDir),
 	})
 
 	if err != nil {
 		return "", err
 	}
 	return populated.String(), nil
+}
+
+func getLoadBalancerPublicAddress(conf *WKPConfig) string {
+	if conf.Track == "wks-footloose" && conf.WKSConfig.FootlooseConfig.ControlPlaneNodes > 1 {
+		return "127.0.0.1"
+	}
+	return conf.WKSConfig.ControlPlaneLbAddress
+}
+
+func getLoadBalancerAddress(conf *WKPConfig, configDir string) string {
+	if conf.Track == "wks-footloose" && conf.WKSConfig.FootlooseConfig.ControlPlaneNodes > 1 {
+		ips, err := getPrivateIPs(configDir)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not retrieve IPs\n")
+			os.Exit(1)
+		}
+		return incIP(ips[len(ips)-1])
+	}
+	return conf.WKSConfig.ControlPlaneLbAddress
+}
+
+func incIP(ip string) string {
+	octets := strings.Split(ip, ".")
+	num, err := strconv.Atoi(octets[len(octets)-1])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Invalid IP: %s\n", ip)
+		os.Exit(1)
+	}
+	octets = append(octets[0:3], fmt.Sprintf("%d", num+1))
+	return strings.Join(octets, ".")
 }
 
 func generateNodeGroups(nodeGroups []NodeGroupConfig) (string, error) {
@@ -839,4 +959,172 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 		return "", err
 	}
 	return populated.String(), nil
+}
+
+func getPrivateIPs(configDir string) ([]string, error) {
+	machinesManifestPath := filepath.Join(configDir, "machines.yaml")
+
+	errorsHandler := func(machines []*clusterv1.Machine, errors field.ErrorList) ([]*clusterv1.Machine, error) {
+		if len(errors) > 0 {
+			utilities.PrintErrors(errors)
+			return nil, apierrors.InvalidMachineConfiguration(
+				"%s failed validation, use --skip-validation to force the operation",
+				machinesManifestPath)
+		}
+		return machines, nil
+	}
+
+	machines, err := machine.ParseAndDefaultAndValidate(machinesManifestPath, errorsHandler)
+	if err != nil {
+		return nil, err
+	}
+
+	codec, err := baremetalspecv1.NewCodec()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create codec for machine parsing")
+	}
+
+	results := []string{}
+	for _, m := range machines {
+		spec, err := codec.MachineProviderFromProviderSpec(m.Spec.ProviderSpec)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse machine")
+		}
+		results = append(results, spec.Private.Address)
+	}
+	return results, nil
+}
+
+func generateHAConfiguration(user string, clusterIPs []string) string {
+	var str strings.Builder
+	str.WriteString(haproxyTemplate)
+
+	for idx, IP := range clusterIPs {
+		str.WriteString(fmt.Sprintf("    server master-%d %s:6443 check\n", idx, IP))
+	}
+
+	return str.String()
+}
+
+func buildDockerConfigResource(configDir string) (plan.Resource, error) {
+	b := plan.NewBuilder()
+	filespecs := []struct{ sourcePath, key, destPath string }{
+		{"repo-config.yaml", "docker-ce.repo", "/etc/yum.repos.d/docker-ce.repo"},
+		{"docker-config.yaml", "daemon.json", "/etc/docker/daemon.json"},
+	}
+
+	for idx, spec := range filespecs {
+		configPath := filepath.Join(configDir, spec.sourcePath)
+		contents, err := ioutil.ReadFile(configPath)
+		if err != nil {
+			return nil, err
+		}
+		configMap := &v1.ConfigMap{}
+		if err := yaml.Unmarshal(contents, configMap); err != nil {
+			return nil, errors.Wrapf(err, "failed to parse config:\n%s", contents)
+		}
+		fileResource := &resource.File{Destination: spec.destPath}
+		fileContents, ok := configMap.Data[spec.key]
+		if !ok {
+			return nil, fmt.Errorf("No config data for in %q", configPath)
+		}
+		fileResource.Content = fileContents
+		b.AddResource(fmt.Sprintf("install-config-file-%d", idx), fileResource)
+	}
+	p, err := b.Plan()
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+// ConfigureHAProxy takes a WKPConfig which specifies a load balancer and configures the load balancer machine with ha proxy.
+func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int) error {
+	keyFile := conf.WKSConfig.SSHConfig.SSHKeyFile
+	lbAddress := getLoadBalancerPublicAddress(conf)
+
+	if keyFile == "" && conf.Track == "wks-footloose" {
+		keyFile = filepath.Join(configDir, "cluster-key")
+	}
+
+	sshClient, err := ssh.NewClient(ssh.ClientParams{
+		User:           conf.WKSConfig.SSHConfig.SSHUser,
+		Host:           lbAddress,
+		Port:           uint16(loadBalancerSSHPort),
+		PrivateKeyPath: keyFile,
+	})
+	if err != nil {
+		return err
+	}
+	defer sshClient.Close()
+	installer, err := wksos.Identify(sshClient)
+	if err != nil {
+		return errors.Wrapf(err, "failed to identify operating system for haproxy node (%s)",
+			lbAddress)
+	}
+
+	runner := &sudo.Runner{Runner: sshClient}
+
+	cfg, err := envcfg.GetEnvSpecificConfig(installer.PkgType, "default", "", runner)
+	if err != nil {
+		return err
+	}
+	// resources
+	baseResource := recipe.BuildBasePlan(installer.PkgType)
+
+	dockerConfigResource, err := buildDockerConfigResource(configDir)
+	if err != nil {
+		return err
+	}
+
+	criResource := recipe.BuildCRIPlan(
+		&baremetalspecv1.ContainerRuntime{
+			Kind:    "docker",
+			Package: "docker-ce",
+			Version: "19.03.8",
+		},
+		cfg,
+		installer.PkgType)
+
+	ips, err := getPrivateIPs(configDir)
+	if err != nil {
+		return err
+	}
+
+	// Only the masters for the load balancer
+	ips = ips[0:conf.WKSConfig.FootlooseConfig.ControlPlaneNodes]
+
+	haConfigResource := &resource.File{
+		Content:     generateHAConfiguration(conf.WKSConfig.SSHConfig.SSHUser, ips),
+		Destination: "/tmp/haproxy.cfg",
+	}
+
+	haproxyResource := &resource.Run{
+		Script:     object.String("mkdir /tmp/haproxy && docker run --detach --name haproxy -v /tmp/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg -v /tmp/haproxy:/var/lib/haproxy -p 6443:6443 haproxy"),
+		UndoScript: object.String("docker rm haproxy || true"),
+	}
+	lbPlanBuilder := plan.NewBuilder()
+	lbPlanBuilder.AddResource("install:base", baseResource)
+	lbPlanBuilder.AddResource("install:docker-repo-config", dockerConfigResource,
+		plan.DependOn("install:base"))
+	lbPlanBuilder.AddResource("install:cri", criResource, plan.DependOn("install:docker-repo-config"))
+	lbPlanBuilder.AddResource("install:ha-config", haConfigResource, plan.DependOn("install:cri"))
+	lbPlanBuilder.AddResource("install:haproxy", haproxyResource, plan.DependOn("install:ha-config"))
+
+	lbPlan, err := lbPlanBuilder.Plan()
+	if err != nil {
+		return err
+	}
+
+	err = lbPlan.Undo(runner, plan.EmptyState)
+	if err != nil {
+		log.Infof("Pre-plan cleanup failed:\n%s\n", err)
+		return err
+	}
+	_, err = lbPlan.Apply(runner, plan.EmptyDiff())
+	if err != nil {
+		log.Errorf("Apply of Plan failed:\n%s\n", err)
+		return err
+	}
+	return nil
 }
