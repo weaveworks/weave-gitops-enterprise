@@ -853,7 +853,7 @@ func getLoadBalancerPublicAddress(conf *WKPConfig) string {
 
 func getLoadBalancerAddress(conf *WKPConfig, configDir string) string {
 	if conf.Track == "wks-footloose" && conf.WKSConfig.FootlooseConfig.ControlPlaneNodes > 1 {
-		ips, err := getPrivateIPs(configDir)
+		ips, err := getPrivateIPsFromMachines(configDir)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Could not retrieve IPs\n")
 			os.Exit(1)
@@ -995,7 +995,7 @@ func getPrivateIPsFromMachines(configDir string) ([]string, error) {
 	return results, nil
 }
 
-func generateHAConfiguration(user string, clusterIPs []string) string {
+func generateHAConfiguration(clusterIPs []string) string {
 	var str strings.Builder
 	str.WriteString(haproxyTemplate)
 
@@ -1087,7 +1087,6 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 		installer.PkgType)
 
 	var ips []string
-	haproxyUser := conf.WKSConfig.SSHConfig.SSHUser
 	if conf.Track == "wks-footloose" {
 		ips, err = getPrivateIPsFromMachines(configDir)
 		if err != nil {
@@ -1096,10 +1095,8 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 	} else {
 		// wks-ssh
 		ips = []string{}
-		haproxyUser = ""
 		for _, m := range conf.WKSConfig.SSHConfig.Machines {
 			if m.Role == "master" {
-
 				ips = append(ips, m.PrivateAddress)
 			}
 		}
@@ -1109,7 +1106,7 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 	ips = ips[0:conf.WKSConfig.FootlooseConfig.ControlPlaneNodes]
 
 	haConfigResource := &resource.File{
-		Content:     generateHAConfiguration(haproxyUser, ips),
+		Content:     generateHAConfiguration(ips),
 		Destination: "/tmp/haproxy.cfg",
 	}
 
