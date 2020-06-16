@@ -118,7 +118,7 @@ pkg/setup/setup_vfsdata.go: $(SETUP)
 GENERATED = pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
 
 # ensure we use the same version for controller when go.mod references a wksctl release
-WKSCTL_GO_MOD_VERSION=$(shell grep wksctl go.mod | awk '$$2 !~ /(=>|.*[-][0-9]{14}[-][0-9]{12})/ {print($$2)}')
+WKSCTL_GO_MOD_VERSION=$(shell grep wksctl go.mod | cut -d' ' -f2 | egrep -v '=>|.*[-][0-9]{14}[-][0-9]{12}')
 WKSCTL_DEPS_VERSION=$(shell awk 'BEGIN {FS="\""}; /\[controller]/ {found=1; next}; found==1 {print($$2); exit}' setup/wk-quickstart/setup/dependencies.toml)
 wksctl-version:
 	@test -n "$(WKSCTL_GO_MOD_VERSION)" && test "$(WKSCTL_GO_MOD_VERSION)" != "$(WKSCTL_DEPS_VERSION)" && ex '+/\[controller]' -c"+1|s/\".*\"/\"$(WKSCTL_GO_MOD_VERSION)\"/|x" setup/wk-quickstart/setup/dependencies.toml >/dev/null 2>&1 || true
