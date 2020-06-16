@@ -195,33 +195,35 @@ spec:
       {{- end }}
 `
 
-const machineTemplate = `apiVersion: cluster.x-k8s.io/v1alpha3
-  kind: Machine
-  metadata:
-    labels:
-      set: {{ .Role }}
+const machineTemplate = `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Machine
+metadata:
+  labels:
+    set: {{ .Role }}
+  name: {{ .Name }}
+  namespace: weavek8sops
+spec:
+  clusterName: {{ .ClusterName }}
+  versions:
+    kubelet: {{ .KubernetesVersion }}
+  infrastructureRef:
+    apiVersion: "cluster.weave.works/v1alpha3"
+    kind: BareMetalMachine
     name: {{ .Name }}
-    namespace: weavek8sops
-  spec:
-    clusterName: {{ .ClusterName }}
-    versions:
-      kubelet: {{ .KubernetesVersion }}
-    infrastructureRef:
-      apiVersion: "cluster.weave.works/v1alpha3"
-      kind: BareMetalMachine
-      name: master-1
+  bootstrap: {}
 ---
-  apiVersion: "cluster.weave.works/v1alpha3"
-  kind: "BareMetalMachine"
-  metadata:
-    name: {{ .Name }}
-  spec:
-        private:
-          address: {{ .PrivateAddress }}
-          port: {{ .PrivatePort }}
-        public:
-          address: {{ .PublicAddress }}
-          port: {{ .PublicPort }}
+apiVersion: "cluster.weave.works/v1alpha3"
+kind: "BareMetalMachine"
+metadata:
+  name: {{ .Name }}
+spec:
+  private:
+    address: {{ .PrivateAddress }}
+    port: {{ .PrivatePort }}
+  public:
+    address: {{ .PublicAddress }}
+    port: {{ .PublicPort }}
 `
 
 const nodeGroupTemplate = `  - desiredCapacity: {{ .DesiredCapacity }}
@@ -873,7 +875,6 @@ func GenerateMachinesFileContentsFromConfig(config *WKPConfig) (string, error) {
 	}
 
 	var str strings.Builder
-	str.WriteString("apiVersion: v1\nitems:\n")
 
 	for _, machine := range config.WKSConfig.SSHConfig.Machines {
 		var populated bytes.Buffer
@@ -893,7 +894,6 @@ func GenerateMachinesFileContentsFromConfig(config *WKPConfig) (string, error) {
 		}
 		str.WriteString(populated.String())
 	}
-	str.WriteString("kind: List\n")
 	return str.String(), nil
 }
 
