@@ -97,7 +97,9 @@ resource "google_compute_firewall" "fw-allow-kube-apiserver" {
     ports    = ["6443"]
   }
 
-  source_ranges = ["${var.client_ip}"]
+  # Need to accept connections via the nodes themselves onto the load balancer
+  # So can't limit this to circle machines
+  # source_ranges = ["${var.client_ip}"]
 }
 
 # Required for WKS Kerberos tests

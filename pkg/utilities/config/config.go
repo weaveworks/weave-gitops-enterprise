@@ -961,7 +961,7 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 	return populated.String(), nil
 }
 
-func getPrivateIPs(configDir string) ([]string, error) {
+func getPrivateIPsFromMachines(configDir string) ([]string, error) {
 	machinesManifestPath := filepath.Join(configDir, "machines.yaml")
 
 	errorsHandler := func(machines []*clusterv1.Machine, errors field.ErrorList) ([]*clusterv1.Machine, error) {
@@ -1086,16 +1086,30 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 		cfg,
 		installer.PkgType)
 
-	ips, err := getPrivateIPs(configDir)
-	if err != nil {
-		return err
+	var ips []string
+	haproxyUser := conf.WKSConfig.SSHConfig.SSHUser
+	if conf.Track == "wks-footloose" {
+		ips, err = getPrivateIPsFromMachines(configDir)
+		if err != nil {
+			return err
+		}
+	} else {
+		// wks-ssh
+		ips = []string{}
+		haproxyUser = ""
+		for _, m := range conf.WKSConfig.SSHConfig.Machines {
+			if m.Role == "master" {
+
+				ips = append(ips, m.PrivateAddress)
+			}
+		}
 	}
 
 	// Only the masters for the load balancer
 	ips = ips[0:conf.WKSConfig.FootlooseConfig.ControlPlaneNodes]
 
 	haConfigResource := &resource.File{
-		Content:     generateHAConfiguration(conf.WKSConfig.SSHConfig.SSHUser, ips),
+		Content:     generateHAConfiguration(haproxyUser, ips),
 		Destination: "/tmp/haproxy.cfg",
 	}
 

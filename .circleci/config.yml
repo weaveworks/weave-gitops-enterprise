@@ -35,23 +35,26 @@ nightlyTestConfig: &nightlyTestConfig
 workflows:
   test-build-deploy:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /.*/
-      - container-tests
-      - unit-tests
-      - fast-integration-tests:
-          requires:
-           - build
-      - integration-tests-creation-footloose:
-          <<: *integrationTestConfig
-      - integration-tests-upgrade-footloose:
-          <<: *integrationTestConfig
-      - creation-ssh-gcp-centos:
-          <<: *integrationTestConfig
-      - creation-ssh-gcp-ubuntu:
-          <<: *integrationTestConfig
+      - creation-ssh-gcp-ubuntu-lb
+      # - build:
+      #     filters:
+      #       tags:
+      #         only: /.*/
+      # - container-tests
+      # - unit-tests
+      # - fast-integration-tests:
+      #     requires:
+      #      - build
+      # - integration-tests-creation-footloose:
+      #     <<: *integrationTestConfig
+      # - integration-tests-upgrade-footloose:
+      #     <<: *integrationTestConfig
+      # - creation-ssh-gcp-centos:
+      #     <<: *integrationTestConfig
+      # - creation-ssh-gcp-ubuntu:
+      #     <<: *integrationTestConfig
+      # - creation-ssh-gcp-ubuntu-lb:
+      #     <<: *integrationTestConfig
 
   nightly:
     triggers:
@@ -467,6 +470,19 @@ jobs:
           SKIP_COMPONENTS: true
           NUM_MASTERS: 1
           NUM_WORKERS: 2
+
+  creation-ssh-gcp-ubuntu-lb:
+    <<: *creation-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-lts
+          USE_LB: true
+          NUM_MASTERS: 3
+          NUM_WORKERS: 2
+          CLUSTER_VERSIONS: '1.16.3'
+          SKIP_COMPONENTS: true
 
   cluster-components-gcp:
     docker:

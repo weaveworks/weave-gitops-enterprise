@@ -37,6 +37,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/wks/pkg/utilities/config"
 	"github.com/weaveworks/wks/pkg/utilities/git"
 	"github.com/weaveworks/wksctl/pkg/plan/runners/ssh"
 )
@@ -119,6 +121,12 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 		updateClusterNameAndRegionForTest(c, region)
 	}
 
+	if c.conf.Track == "wks-ssh" && c.conf.WKSConfig.ControlPlaneLbAddress != "" {
+		log.Infof("ControlPlaneLbAddress detected! %v. installing...", c.conf.WKSConfig.ControlPlaneLbAddress)
+		err := config.ConfigureHAProxy(c.conf, filepath.Join(c.tmpDir, "setup"), 22)
+		require.NoError(c.t, err)
+	}
+
 	c.setupCluster()
 
 	// Check that all components are functioning
@@ -131,7 +139,11 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 	}
 
 	// Wait for all nodes to be up
-	c.checkClusterAtExpectedNumberOfNodes(3)
+	expectedNodes := 3
+	if c.conf.Track == "wks-ssh" {
+		expectedNodes = len(c.conf.WKSConfig.SSHConfig.Machines)
+	}
+	c.checkClusterAtExpectedNumberOfNodes(expectedNodes)
 
 	if c.conf.Track != "eks" && c.conf.Track != "wks-ssh" {
 		checkApiServerAndKubeletArguments(c)
