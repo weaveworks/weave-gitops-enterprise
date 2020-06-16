@@ -57,6 +57,7 @@ require (
 	gopkg.in/src-d/go-git.v4 v4.10.0
 	gopkg.in/yaml.v2 v2.2.8
 	gopkg.in/yaml.v3 v3.0.0-20191026110619-0b21df46bc1d
+	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.0.0-20190831074750-7364b6bdad65
 	k8s.io/apimachinery v0.0.0-20190831074630-461753078381
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
