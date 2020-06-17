@@ -50,6 +50,12 @@ workflows:
           <<: *integrationTestConfig
       - creation-ssh-gcp-centos:
           <<: *integrationTestConfig
+      - creation-ssh-gcp-centos-lb:
+          <<: *integrationTestConfig
+      - upgrade-ssh-gcp-centos:
+          <<: *integrationTestConfig
+      - upgrade-ssh-gcp-centos-lb:
+          <<: *integrationTestConfig
       - creation-ssh-gcp-ubuntu:
           <<: *integrationTestConfig
       - creation-ssh-gcp-ubuntu-lb:
@@ -457,6 +463,75 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
+  
+  creation-ssh-gcp-centos-lb:
+    <<: *creation-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 3
+          NUM_WORKERS: 1
+          USE_LB: true
+          CLUSTER_VERSIONS: '1.16.3'
+          SKIP_COMPONENTS: true
+
+  upgrade-ssh-gcp-centos: &upgrade-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 3
+          NUM_WORKERS: 1
+          USE_LB: false
+          SKIP_COMPONENTS: true
+          UPGRADE_VERSIONS: '1.15.7,1.16.3,1.17.5'
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          <<: *setup-base-gce-config-yaml
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+
+            cd test/integration/test
+
+            lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
+            export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
+            export USE_IMAGE=0
+            # provision 3 GCE VMs
+            ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+
+            go test -v -run TestUpgrade --timeout=99999s
+
+            ../bin/internal/run-integration-tests.sh destroy
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy GCP resources
+          command: |
+            cd test/integration/test
+            ../bin/internal/run-integration-tests.sh destroy
+          when: on_fail
+
+  upgrade-ssh-gcp-centos-lb:
+    <<: *upgrade-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 3
+          NUM_WORKERS: 1
+          USE_LB: true
+          SKIP_COMPONENTS: true
 
   creation-ssh-gcp-ubuntu:
     <<: *creation-ssh-gcp-centos
@@ -488,6 +563,8 @@ jobs:
       - image: quay.io/wks/build:master-134af34f
         environment:
           <<: *integrationTestCommonEnv
+          SKIP_COMPONENTS: false
+          CLUSTER_VERSIONS: '1.16.3'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -500,8 +577,6 @@ jobs:
             export PATH=$GOROOT/bin:$PATH
 
             cd test/integration/test
-            export SKIP_COMPONENTS=false
-            export CLUSTER_VERSIONS='1.16.3'
             # WKP UI reads values from the repository
             export CLEANUP_REPO=false
 
@@ -527,6 +602,8 @@ jobs:
           command: |
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
+
+            # delete the github repository if it's hanging
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
           when: on_fail
