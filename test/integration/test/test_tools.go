@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,6 +25,7 @@ type context struct {
 	wkBin      string
 	testDir    string
 	tmpDir     string
+	randGen    *rand.Rand
 	env        []string
 	repoExists bool
 }
@@ -144,6 +146,7 @@ func getContext(testval *testing.T) *context {
 	require.NoError(testval, err)
 	log.Infof("Using temporary directory: %s\n", tmpDir)
 	file, conf := getConfigInfo(testval)
+	s := rand.NewSource(time.Now().Unix())
 
 	return &context{
 		t:          testval,
@@ -152,6 +155,7 @@ func getContext(testval *testing.T) *context {
 		wkBin:      getWkBinary(testval),
 		testDir:    getTestDir(testval),
 		tmpDir:     tmpDir,
+		randGen:    rand.New(s),
 		env:        getEnvironmentWithoutKubeconfig(testval, tmpDir),
 		repoExists: false,
 	}
@@ -206,6 +210,18 @@ func (c *context) updateConfigFileWithVersion(version string) {
 	log.Infof("Configuring Kubernetes version: %s", version)
 	err := git.UpdateYAMLFile(info, []string{"wksConfig", "kubernetesVersion"}, version)
 	require.NoError(c.t, err)
+}
+
+// chooseTestOS randomly selects either a CentOS or Ubuntu image for the cluster nodes used to run an upgrade test
+func (c *context) chooseTestOS() {
+	osImage := randomOSImageChoice(c)
+	path := c.runtimeConfigFilePath()
+	info := getFileInfo(c.t, path)
+	log.Infof("Configuring test to use: %s", osImage)
+	if err := git.UpdateYAMLFile(info, []string{"wksConfig", "footlooseConfig", "image"}, osImage); err != nil {
+		err = git.UpdateYAMLFile(info, []string{"wksConfig", "footlooseConfig"}, []interface{}{"image", osImage})
+		require.NoError(c.t, err)
+	}
 }
 
 // setupCluster invokes "wk setup run" within the context's temporary directory
@@ -394,6 +410,10 @@ func (c *context) showItems(itemType string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+func randomOSImageChoice(c *context) string {
+	return []string{"quay.io/footloose/centos7", "quay.io/footloose/ubuntu18.04"}[c.randGen.Intn(2)]
 }
 
 func getAllNodeVersions(t *testing.T, env []string) []string {

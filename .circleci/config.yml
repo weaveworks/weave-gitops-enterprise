@@ -376,8 +376,8 @@ jobs:
 
             cd test/integration/test
             export SKIP_COMPONENTS=true
-            export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
-            export CLUSTER_VERSIONS='1.16.3,1.17.5'
+            export UPGRADE_VERSIONS='1.15.7,1.16.11,1.17.5'
+            export CLUSTER_VERSIONS='1.16.11,1.17.5'
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
@@ -402,7 +402,7 @@ jobs:
 
             cd test/integration/test
             export SKIP_COMPONENTS=true
-            export UPGRADE_VERSIONS='1.15.7,1.16.3,1.17.5'
+            export UPGRADE_VERSIONS='1.15.7,1.16.11,1.17.5'
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
@@ -418,7 +418,7 @@ jobs:
           IMAGE_NAME: centos-cloud/centos-7
           NUM_MASTERS: 1
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: '1.16.3'
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -463,7 +463,7 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
-  
+
   creation-ssh-gcp-centos-lb:
     <<: *creation-ssh-gcp-centos
     docker:
@@ -474,7 +474,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: true
-          CLUSTER_VERSIONS: '1.16.3'
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
 
   upgrade-ssh-gcp-centos: &upgrade-ssh-gcp-centos
@@ -487,7 +487,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
-          UPGRADE_VERSIONS: '1.15.7,1.16.3,1.17.5'
+          UPGRADE_VERSIONS: '1.15.7,1.16.11,1.17.5'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
@@ -540,7 +540,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-lts
-          CLUSTER_VERSIONS: '1.16.3'
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
           NUM_MASTERS: 1
           NUM_WORKERS: 2
@@ -555,7 +555,7 @@ jobs:
           USE_LB: true
           NUM_MASTERS: 3
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: '1.16.3'
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
 
   cluster-components-gcp:
@@ -564,7 +564,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           SKIP_COMPONENTS: false
-          CLUSTER_VERSIONS: '1.16.3'
+          CLUSTER_VERSIONS: '1.16.11'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:

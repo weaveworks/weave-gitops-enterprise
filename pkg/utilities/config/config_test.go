@@ -577,6 +577,7 @@ wksConfig:
     backend: docker
     controlPlaneNodes: 1
     workerNodes: 1
+    image: quay.io:7000/footloose/centos7
 `
 
 const validFootlooseIgnite = `
@@ -585,6 +586,7 @@ wksConfig:
     backend: ignite
     controlPlaneNodes: 1
     workerNodes: 1
+    image: quay.io/footloose/ubuntu18.04:current
 `
 
 const missingFootlooseBackend = `
@@ -600,6 +602,15 @@ wksConfig:
     backend: igniter
     controlPlaneNodes: 1
     workerNodes: 1
+`
+
+const invalidFootlooseImage = `
+wksConfig:
+  footlooseConfig:
+    backend: ignite
+    controlPlaneNodes: 1
+    workerNodes: 1
+    image: qu_ay.io:7000/footloose/centos7
 `
 
 const invalidNegativeFootlooseControlPlaneCount = `
@@ -643,6 +654,7 @@ func TestRequiredFootlooseValues(t *testing.T) {
 		{validFootlooseIgnite, "<nil>"},
 		{missingFootlooseBackend, "A footloose backend must be specified"},
 		{invalidFootlooseBackend, "A footloose backend must be either 'docker' or 'ignite'"},
+		{invalidFootlooseImage, "Invalid footloose image reference: 'qu_ay.io:7000/footloose/centos7': invalid reference format"},
 		{invalidNegativeFootlooseControlPlaneCount,
 			"A footloose specification must have at least one control plane node"},
 		{invalidZeroFootlooseControlPlaneCount,

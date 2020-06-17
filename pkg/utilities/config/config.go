@@ -12,6 +12,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/docker/distribution/reference"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	wksos "github.com/weaveworks/wksctl/pkg/apis/wksprovider/machine/os"
@@ -109,6 +110,7 @@ type FootlooseConfig struct {
 	Backend           string `yaml:"backend"`
 	ControlPlaneNodes int64  `yaml:"controlPlaneNodes"`
 	WorkerNodes       int64  `yaml:"workerNodes"`
+	Image             string `yaml:"image"`
 }
 
 // Templates for generating specific configs
@@ -232,6 +234,7 @@ controlPlane:
   nodes: {{ .ControlPlaneNodes }}
 workers:
   nodes: {{ .WorkerNodes }}
+image: {{ .Image }}
 kubernetesVersion: {{ .KubernetesVersion }}
 `
 
@@ -624,10 +627,18 @@ func checkRequiredFootlooseValues(footlooseConfig *FootlooseConfig) error {
 	case "":
 		return fmt.Errorf("A footloose backend must be specified")
 	case "docker", "ignite":
-		return nil
+		break
 	default:
 		return fmt.Errorf("A footloose backend must be either 'docker' or 'ignite'")
 	}
+
+	if footlooseConfig.Image != "" {
+		if _, err := reference.ParseNamed(footlooseConfig.Image); err != nil {
+			return errors.Wrapf(err, "Invalid footloose image reference: '%s'", footlooseConfig.Image)
+		}
+	}
+
+	return nil
 }
 
 func checkRequiredValues(config *WKPConfig) error {
@@ -947,11 +958,13 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 		Backend           string
 		ControlPlaneNodes int64
 		WorkerNodes       int64
+		Image             string
 		KubernetesVersion string
 	}{
 		config.WKSConfig.FootlooseConfig.Backend,
 		config.WKSConfig.FootlooseConfig.ControlPlaneNodes,
 		config.WKSConfig.FootlooseConfig.WorkerNodes,
+		config.WKSConfig.FootlooseConfig.Image,
 		config.WKSConfig.KubernetesVersion,
 	})
 
