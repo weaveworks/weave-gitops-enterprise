@@ -19,8 +19,8 @@ integrationTestCommonEnv: &integrationTestCommonEnv
   KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
   JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
   JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
-  POD_CIDR_BLOCK: '172.30.0.0/16'
-  SERVICE_CIDR_BLOCK: '192.168.0.0/16'
+  POD_CIDR_BLOCK: '192.168.0.0/16'
+  SERVICE_CIDR_BLOCK: '10.96.0.0/12'
 
 integrationTestConfig: &integrationTestConfig
   requires:
@@ -352,6 +352,8 @@ jobs:
             sed -i "s/sshUser:.*/sshUser: root/" config.yaml
             sed -i "s/sshKeyFile:.*/sshKeyFile: ''/" config.yaml
             sed -i "s/track:.*/track: wks-footloose/" config.yaml
+            sed -i "s|podCIDRBlocks:.*|podCIDRBlocks: [$POD_CIDR_BLOCK]|" config.yaml
+            sed -i "s|serviceCIDRBlocks:.*|serviceCIDRBlocks: [$SERVICE_CIDR_BLOCK]|" config.yaml
       - run:
           name: Run e2e tests
           command: |
@@ -441,6 +443,8 @@ jobs:
             sed -i "s/track:.*/track: wks-ssh/" config.yaml
             sed -i "s/sshUser:.*/sshUser: weaveworks-cit/" config.yaml
             sed -i "s|sshKeyFile:.*|sshKeyFile: /root/.ssh/weaveworks_cit_id_rsa|" config.yaml
+            sed -i "s|podCIDRBlocks:.*|podCIDRBlocks: [$POD_CIDR_BLOCK]|" config.yaml
+            sed -i "s|serviceCIDRBlocks:.*|serviceCIDRBlocks: [$SERVICE_CIDR_BLOCK]|" config.yaml
       - run:
           name: Run e2e tests
           command: |
