@@ -151,6 +151,9 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 
 	// Check that sealed secrets work
 	c.assertSealedSecretsCanBeCreated()
+
+	// Check that the pod and service CIDR blocks have been set
+	c.testCIDRBlocks(os.Getenv("POD_CIDR_BLOCK"), os.Getenv("SERVICE_CIDR_BLOCK"))
 }
 
 func checkApiServerAndKubeletArguments(c *context) {

@@ -13,8 +13,8 @@ eksConfig:
   managedNodeGroupFile: ''
 wksConfig:
   kubernetesVersion: '1.14.1'
-  serviceCIDRBlocks: [10.96.0.0/12]
-  podCIDRBlocks: [192.168.0.0/16]
+  serviceCIDRBlocks: [192.168.0.0/16]
+  podCIDRBlocks: [172.30.0.0/16]
   apiServerArguments:
     - name: alsologtostderr
       value: "true"

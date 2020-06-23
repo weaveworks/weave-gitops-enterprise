@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -504,4 +505,34 @@ func getEnvironmentWithoutKubeconfig(t *testing.T, dir string) []string {
 func getEntitlementEnvironmentEntry(testDir string) string {
 	entitlementEntry := "WKP_ENTITLEMENTS=%s/../../../entitlements/2018-08-31-weaveworks.entitlements"
 	return fmt.Sprintf(entitlementEntry, testDir)
+}
+
+func (c *context) testCIDRBlocks(podCIDRBlock, serviceCIDRBlock string) {
+	cmdItems := []string{"get", "pods", "-l", "name=wks-controller", "--namespace=weavek8sops",
+		"-o", "jsonpath={.items[].status.podIP}"}
+	podIP := c.getIP(cmdItems, "wks-controller")
+	c.assertIPisWithinRange(string(podIP), podCIDRBlock, "Pod")
+
+	cmdItems = []string{"get", "service", "kubernetes", "--namespace=default",
+		"-o", "jsonpath={.spec.clusterIP}"}
+	serviceIP := c.getIP(cmdItems, "Kubernetes service")
+	c.assertIPisWithinRange(string(serviceIP), serviceCIDRBlock, "Service")
+}
+
+func (c *context) getIP(cmdItems []string, msg string) string {
+	cmd := exec.Command("kubectl", cmdItems...)
+	ip, err := cmd.CombinedOutput()
+	assert.NoError(c.t, err)
+	log.Printf("%s has IP: %s\n", msg, string(ip))
+	return string(ip)
+}
+
+func (c *context) assertIPisWithinRange(ip, ipRange, msg string) {
+	_, subnet, err := net.ParseCIDR(ipRange)
+	assert.NoError(c.t, err)
+	parsedIP := net.ParseIP(ip)
+	isValid := subnet.Contains(parsedIP)
+	log.Printf("%s IP %s is inside %s range? %v\n", msg, ipRange, parsedIP, isValid)
+	assert.True(c.t, isValid)
+
 }
