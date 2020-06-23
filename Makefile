@@ -113,6 +113,8 @@ SETUP=$(shell find setup -name bin -prune -o -print)
 pkg/setup/setup_vfsdata.go: $(SETUP)
 	RELEASE_GOOS=$(LOCAL_BINARIES_GOOS) ./tools/build/setup/build-release.sh $(CURRENT_DIR)/setup $(CURRENT_DIR)/setup/wk-quickstart/setup/dependencies.toml
 	go generate ./pkg/setup
+	# Clean up. FIXME: do this better.
+	@rm -rf $(CURRENT_DIR)/setup/wk-quickstart/setup/VERSION
 	@rm -rf $(CURRENT_DIR)/setup/wk-quickstart/.git
 
 GENERATED = pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
