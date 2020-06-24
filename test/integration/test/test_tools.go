@@ -532,7 +532,7 @@ func (c *context) assertIPisWithinRange(ip, ipRange, msg string) {
 	assert.NoError(c.t, err)
 	parsedIP := net.ParseIP(ip)
 	isValid := subnet.Contains(parsedIP)
-	log.Printf("%s IP %s is inside %s range? %v\n", msg, ipRange, parsedIP, isValid)
+	log.Printf("%s IP %s is inside %s range? %v\n", msg, parsedIP, ipRange, isValid)
 	assert.True(c.t, isValid)
 
 }
