@@ -31,8 +31,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	k8sValidation "k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	clusterv1 "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
-	apierrors "sigs.k8s.io/cluster-api/pkg/errors"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	apierrors "sigs.k8s.io/cluster-api/errors"
 )
 
 type GitProvider string
