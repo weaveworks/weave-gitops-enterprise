@@ -235,7 +235,7 @@ push:
 unit-tests: $(GENERATED)
 	go test -v ./cmd/... ./pkg/...
 
-container-tests:  test/container/images/centos7/.uptodate
+container-tests:
 	go test -count=1 ./test/container/...
 
 cluster-component-tests: wkp-cluster-components/build
