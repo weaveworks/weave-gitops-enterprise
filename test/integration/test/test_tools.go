@@ -15,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/wks/pkg/cmdutil"
 	"github.com/weaveworks/wks/pkg/utilities/config"
 	"github.com/weaveworks/wks/pkg/utilities/git"
 )
@@ -174,10 +175,7 @@ func (c *context) cleanup() {
 
 // installWKPFiles runs "wk setup install" within the temporary directory associated with the context
 func (c *context) installWKPFiles() {
-	cmd := c.createSetupCommand()
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	err := cmdutil.Run(c.createSetupCommand())
 	require.NoError(c.t, err)
 }
 
