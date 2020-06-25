@@ -17,7 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/pkg/utilities/versions"
 	wksos "github.com/weaveworks/wksctl/pkg/apis/wksprovider/machine/os"
-	baremetalspecv1 "github.com/weaveworks/wksctl/pkg/baremetalproviderspec/v1alpha1"
+	baremetalv1 "github.com/weaveworks/wksctl/pkg/baremetal/v1alpha3"
 	"github.com/weaveworks/wksctl/pkg/cluster/machine"
 	"github.com/weaveworks/wksctl/pkg/plan"
 	"github.com/weaveworks/wksctl/pkg/plan/recipe"
@@ -1091,33 +1091,24 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 func getPrivateIPsFromMachines(configDir string) ([]string, error) {
 	machinesManifestPath := filepath.Join(configDir, "machines.yaml")
 
-	errorsHandler := func(machines []*clusterv1.Machine, errors field.ErrorList) ([]*clusterv1.Machine, error) {
+	errorsHandler := func(machines []*clusterv1.Machine, bml []*baremetalv1.BareMetalMachine, errors field.ErrorList) ([]*clusterv1.Machine, []*baremetalv1.BareMetalMachine, error) {
 		if len(errors) > 0 {
 			utilities.PrintErrors(errors)
-			return nil, apierrors.InvalidMachineConfiguration(
+			return nil, nil, apierrors.InvalidMachineConfiguration(
 				"%s failed validation, use --skip-validation to force the operation",
 				machinesManifestPath)
 		}
-		return machines, nil
+		return machines, bml, nil
 	}
 
-	machines, err := machine.ParseAndDefaultAndValidate(machinesManifestPath, errorsHandler)
+	_, bl, err := machine.ParseAndDefaultAndValidate(machinesManifestPath, errorsHandler)
 	if err != nil {
 		return nil, err
 	}
 
-	codec, err := baremetalspecv1.NewCodec()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create codec for machine parsing")
-	}
-
 	results := []string{}
-	for _, m := range machines {
-		spec, err := codec.MachineProviderFromProviderSpec(m.Spec.ProviderSpec)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to parse machine")
-		}
-		results = append(results, spec.Private.Address)
+	for _, m := range bl {
+		results = append(results, m.Spec.Private.Address)
 	}
 	return results, nil
 }
@@ -1205,7 +1196,7 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 	}
 
 	criResource := recipe.BuildCRIPlan(
-		&baremetalspecv1.ContainerRuntime{
+		&baremetalv1.ContainerRuntime{
 			Kind:    "docker",
 			Package: "docker-ce",
 			Version: "19.03.8",
