@@ -261,6 +261,8 @@ jobs:
           KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
           JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
           JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
+          KUBESEAL_BINARY_PATH: /src/github.com/weaveworks/wks/setup/wk-quickstart/bin/kubeseal # used in unit-tests of workspaces/create_test.go
+          SEALED_SECRETS_CERT_PATH: /src/github.com/weaveworks/wks/test/integration/test/test-sealed-secrets-cert.crt # used in unit-tests of workspaces/create_test.go
     working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
