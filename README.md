@@ -1,7 +1,8 @@
 # Weaveworks Kubernetes Platform
 
 ![Service description diagram](https://www.weave.works/assets/images/blt1670b4d9d8010619/KB_support_diagram.jpg)
-![Component breakdown diagram](https://drive.google.com/file/d/1jg6K_4vRVNuR0nrT_n5eWUJx1tDAk2v2/preview)
+![Component breakdown diagram](/docs/images/component-breakdown.png)
+
 
 ## Purpose
 
