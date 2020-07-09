@@ -187,7 +187,7 @@ UI_BUILD_DEPS = \
 	ui/webpack.production.js
 UI_DEPS = $(UI_CODE_DEPS) $(UI_BUILD_DEPS)
 ui/build: $(UI_DEPS) user-guide/public
-	cd ui && yarn install --frozen-lockfile && yarn lint && yarn build
+	cd ui && yarn install --frozen-lockfile && yarn lint && yarn test && yarn build
 	cp -r user-guide/public ui/build/docs
 
 # Cluster Components
