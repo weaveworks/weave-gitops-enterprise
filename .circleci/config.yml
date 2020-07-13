@@ -76,6 +76,20 @@ workflows:
       - cluster-components-gcp:
           <<: *nightlyTestConfig
 
+  weekly:
+    triggers:
+      - schedule:
+          # Run at midnight on Sunday
+          cron: '0 0 * * 0'
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build
+      - conformance-tests-sonobuoy:
+          <<: *nightlyTestConfig
+
 commands:
   get-wk-binary:
     description: Get the wk binary from workspace or s3
@@ -621,3 +635,71 @@ jobs:
           # Store page source from TestVersionInUI
       - store_artifacts:
           path: /tmp/workspace/wkp-ui-page-source
+
+  conformance-tests-sonobuoy:
+    <<: *creation-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          # IMAGE_NAME: centos-cloud/centos-7
+          USE_LB: false
+          NUM_MASTERS: 3
+          NUM_WORKERS: 2
+          CLUSTER_VERSIONS: '1.17.7'
+          SKIP_COMPONENTS: true
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          <<: *setup-base-gce-config-yaml
+      - run:
+          name: Install sonobuoy
+          command: |
+            wget https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.18.3/sonobuoy_0.18.3_linux_amd64.tar.gz
+            tar -xvzf sonobuoy_0.18.3_linux_amd64.tar.gz
+            chmod +x sonobuoy
+            mv ./sonobuoy /usr/local/bin/sonobuoy
+      - run:
+          name: Run conformance tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+
+            cd test/integration/test
+
+            # provision GCE VMs
+            ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            go test -v -run TestClusterCreation --timeout=99999s
+
+            sonobuoy run --wait --wait-output Spinner --mode certified-conformance
+            results=$(sonobuoy retrieve)
+            mv $results ./sonobuoy-test-results.tar.gz
+
+            # untar results to expose junit_01.xml
+            mkdir sonobuoy-test-results
+            tar xzf ./sonobuoy-test-results.tar.gz -C ./sonobuoy-test-results
+
+            # print brief result summary
+            sonobuoy results ./sonobuoy-test-results.tar.gz
+
+            ../bin/internal/run-integration-tests.sh destroy
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy GCP resources
+          command: |
+            cd test/integration/test
+            ../bin/internal/run-integration-tests.sh destroy
+
+            # delete the github repository if it's hanging
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+          when: on_fail
+          # Store sonobuoy results as artifact
+      - store_test_results:
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results/plugins/e2e/results
+      - store_artifacts:
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results.tar.gz
