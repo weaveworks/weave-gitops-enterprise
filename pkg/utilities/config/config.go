@@ -76,6 +76,7 @@ type WKSConfig struct {
 	KubernetesVersion     string           `yaml:"kubernetesVersion"`
 	ServiceCIDRBlocks     []string         `yaml:"serviceCIDRBlocks"`
 	PodCIDRBlocks         []string         `yaml:"podCIDRBlocks"`
+	MinDiskSpace          uint64           `yaml:"minDiskSpace"`
 	SSHConfig             SSHConfig        `yaml:"sshConfig"`
 	FootlooseConfig       FootlooseConfig  `yaml:"footlooseConfig"`
 	ControlPlaneLbAddress string           `yaml:"controlPlaneLbAddress"`
