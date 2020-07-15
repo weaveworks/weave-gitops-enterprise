@@ -25,6 +25,10 @@ integrationTestCommonEnv: &integrationTestCommonEnv
 integrationTestConfig: &integrationTestConfig
   requires:
     - build
+  filters:
+    branches:
+      only:
+        - master
 
 nightlyTestConfig: &nightlyTestConfig
   requires:
