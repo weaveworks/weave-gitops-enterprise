@@ -43,17 +43,23 @@ const (
 
 // Top-level config parameters
 type WKPConfig struct {
-	Track                string      `yaml:"track"`
-	ClusterName          string      `yaml:"clusterName"`
-	GitProvider          GitProvider `yaml:"gitProvider"`
-	GitProviderOrg       string      `yaml:"gitProviderOrg"`
-	GitURL               string      `yaml:"gitUrl"`
-	DockerIOUser         string      `yaml:"dockerIOUser"`
-	DockerIOPasswordFile string      `yaml:"dockerIOPasswordFile"`
-	SealedSecretsCert    string      `yaml:"sealedSecretsCertificate"`
-	SealedSecretsKey     string      `yaml:"sealedSecretsPrivateKey"`
-	EKSConfig            EKSConfig   `yaml:"eksConfig"`
-	WKSConfig            WKSConfig   `yaml:"wksConfig"`
+	Track                string          `yaml:"track"`
+	ClusterName          string          `yaml:"clusterName"`
+	GitProvider          GitProvider     `yaml:"gitProvider"`
+	GitProviderOrg       string          `yaml:"gitProviderOrg"`
+	GitURL               string          `yaml:"gitUrl"`
+	DockerIOUser         string          `yaml:"dockerIOUser"`
+	DockerIOPasswordFile string          `yaml:"dockerIOPasswordFile"`
+	SealedSecretsCert    string          `yaml:"sealedSecretsCertificate"`
+	SealedSecretsKey     string          `yaml:"sealedSecretsPrivateKey"`
+	EnabledFeatures      EnabledFeatures `yaml:"enabledFeatures"`
+	EKSConfig            EKSConfig       `yaml:"eksConfig"`
+	WKSConfig            WKSConfig       `yaml:"wksConfig"`
+}
+
+// Map of WKP features that can be toggled on/off
+type EnabledFeatures struct {
+	TeamWorkspaces bool `yaml:"teamWorkspaces"`
 }
 
 // Parameters specific to eks
@@ -326,13 +332,61 @@ func unmarshalConfig(configBytes []byte) (*WKPConfig, error) {
 }
 
 // Load a config from the file system into the structs from above
-func readConfig(path string) (*WKPConfig, error) {
+func ReadConfig(path string) (*WKPConfig, error) {
 	fileBytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	return unmarshalConfig(fileBytes)
+}
+
+// SetNodeValue finds the node at the given path, and sets its value
+func SetNodeValue(config *yaml.Node, nodePath []string, value string) error {
+	currentNode := config
+	var errCode int
+	for _, node := range nodePath {
+		currentNode, errCode = findMapNode(currentNode, node)
+		if errCode == 0 {
+			return errors.New(fmt.Sprintf("did not find node %v in config.yaml", node))
+		}
+	}
+	currentNode.Value = value
+	return nil
+}
+
+func findMapNode(n *yaml.Node, key string) (*yaml.Node, int) {
+	switch n.Kind {
+	case yaml.DocumentNode:
+		for _, c := range n.Content {
+			if r, p := findMapNode(c, key); r != nil {
+				return r, p
+			}
+		}
+	case yaml.MappingNode:
+		for i := 0; i < len(n.Content)/2; i++ {
+			if n.Content[i*2].Value == key {
+				p := i*2 + 1
+				return n.Content[p], p
+			}
+		}
+	}
+	return nil, 0
+}
+
+// WriteConfig writes a modified config.yaml back to the file system
+func WriteConfig(path string, config *yaml.Node) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0)
+	if err != nil {
+		return errors.Wrapf(err, fmt.Sprintf("failed to open file at path %v", path))
+	}
+	encoder := yaml.NewEncoder(f)
+	encoder.SetIndent(2)
+	err = encoder.Encode(config)
+	if err != nil {
+		return errors.Wrapf(err, "failed to encode parsed config")
+	}
+	return nil
 }
 
 func createClusterName(env map[string]string) string {
@@ -716,7 +770,7 @@ func processConfig(config *WKPConfig) error {
 // GenerateConfig reads a wkp config file and returns a corresponding nested structure after
 // checking for required values and setting defaults as necessary.
 func GenerateConfig(path string) (*WKPConfig, error) {
-	config, err := readConfig(path)
+	config, err := ReadConfig(path)
 	if err != nil {
 		return nil, err
 	}

@@ -34,7 +34,7 @@ service:
 config: # remember to consult `ui/src/entities/config.ts` before making any changes to this file. (see see https://github.com/weaveworks/wkp-ui/issues/200)
   demoMode: false
   featureGates:
-    teamWorkspaces: true
+    teamWorkspaces: false
     fleetManagement: false
   gitRepo:
     # e.g. git@github.com:weaveworks/wkp-core.git
