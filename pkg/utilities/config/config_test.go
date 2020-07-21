@@ -434,8 +434,8 @@ func TestInvalidWKSValues(t *testing.T) {
 		errorMsg string
 	}{
 		{missingWKSK8sVersion, "A Kubernetes version must be specified"},
-		{missingServiceCIDRBlocks, "At least one service CIDR block must be specified"},
-		{missingPodCIDRBlocks, "At least one pod CIDR block must be specified"},
+		{missingServiceCIDRBlocks, "A service CIDR block must be specified"},
+		{missingPodCIDRBlocks, "A pod CIDR block must be specified"},
 		{invalidWKSK8sVersion,
 			"1.18.1 is not a valid Kubernetes version; must be 1.14.x-1.17.x"},
 		{invalidServiceCIDRBlock, "1000.96.0.0/12 is not a valid CIDR specification"},

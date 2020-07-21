@@ -15,6 +15,7 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/wks/pkg/utilities/versions"
 	wksos "github.com/weaveworks/wksctl/pkg/apis/wksprovider/machine/os"
 	baremetalspecv1 "github.com/weaveworks/wksctl/pkg/baremetalproviderspec/v1alpha1"
 	"github.com/weaveworks/wksctl/pkg/cluster/machine"
@@ -318,7 +319,6 @@ backend kubernetes
 
 var (
 	cidrRegexp                  = regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`)
-	k8sVersionRegexp            = regexp.MustCompile(`^([1][.](14|15|16|17)[.][0-9][0-9]?)$`)
 	controlPlaneLbAddressRegexp = regexp.MustCompile(`^((([0-9]{1,3}\.){3}[0-9]{1,3})|(([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}))$`)
 )
 
@@ -331,7 +331,7 @@ func unmarshalConfig(configBytes []byte) (*WKPConfig, error) {
 	return &config, nil
 }
 
-// Load a config from the file system into the structs from above
+// ReadConfig loads a config from the file system into the structs from above
 func ReadConfig(path string) (*WKPConfig, error) {
 	fileBytes, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -566,14 +566,13 @@ func checkRequiredWKSValues(wksConfig *WKSConfig) error {
 		}
 	}
 
-	if !k8sVersionRegexp.MatchString(wksConfig.KubernetesVersion) {
-		return fmt.Errorf(
-			"%s is not a valid Kubernetes version; must be 1.14.x-1.17.x",
-			wksConfig.KubernetesVersion)
+	err := versions.CheckValidVersion(wksConfig.KubernetesVersion)
+	if err != nil {
+		return fmt.Errorf("%v", err)
 	}
 
 	if len(wksConfig.ServiceCIDRBlocks) == 0 {
-		return fmt.Errorf("At least one service CIDR block must be specified")
+		return fmt.Errorf("A service CIDR block must be specified")
 	}
 
 	for _, cidr := range wksConfig.ServiceCIDRBlocks {
@@ -583,7 +582,7 @@ func checkRequiredWKSValues(wksConfig *WKSConfig) error {
 	}
 
 	if len(wksConfig.PodCIDRBlocks) == 0 {
-		return fmt.Errorf("At least one pod CIDR block must be specified")
+		return fmt.Errorf("A pod CIDR block must be specified")
 	}
 
 	for _, cidr := range wksConfig.PodCIDRBlocks {
