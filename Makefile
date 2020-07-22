@@ -150,12 +150,12 @@ cmd/wks-ci/wks-ci: $(CI_DEPS)
 UPDATE_MANIFEST_DEPS=$(call godeps,./cmd/update-manifest)
 cmd/update-manifest/update-manifest: $(UPDATE_MANIFEST_DEPS)
 
-kerberos/cmd/wk-kerberos/wk-kerberos: $(shell find kerberos/cmd/wk-kerberos/ -type f -name '*.go')
+kerberos/cmd/wk-kerberos/wk-kerberos: $(call godeps,./kerberos/cmd/wk-kerberos/)
 kerberos/cmd/k8s-krb5-server/server: kerberos/cmd/k8s-krb5-server/*.go
 cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
 cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
-cmd/git-provider-service/git-provider-service: cmd/git-provider-service/*.go
-cmd/gitops-repo-broker/gitops-repo-broker: cmd/gitops-repo-broker/*.go
+cmd/git-provider-service/git-provider-service: $(call godeps,./cmd/git-provider-service)
+cmd/gitops-repo-broker/gitops-repo-broker: $(call godeps,./cmd/gitops-repo-broker)
 cmd/ui-server/ui-server: cmd/ui-server/*.go
 
 UI_CODE_DEPS = $(shell find ui/src -name '*.jsx' -or -name '*.json')
