@@ -77,6 +77,8 @@ workflows:
       - build
       - cluster-components-gcp:
           <<: *nightlyTestConfig
+      - upgrade-to-latest-patch:
+          <<: *nightlyTestConfig
 
   weekly:
     triggers:
@@ -527,7 +529,7 @@ jobs:
             lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
             export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
             export USE_IMAGE=0
-            # provision 3 GCE VMs
+            # provision GCE VMs
             ../bin/internal/run-integration-tests.sh up
             ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
 
@@ -556,6 +558,53 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: true
           SKIP_COMPONENTS: true
+
+  upgrade-to-latest-patch: &upgrade-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 3
+          NUM_WORKERS: 1
+          USE_LB: false
+          SKIP_COMPONENTS: true
+          SUPPORTED_MINOR_VERSIONS: '1.14,1.15,1.16,1.17'
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          <<: *setup-base-gce-config-yaml
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+
+            cd test/integration/test
+
+            lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
+            export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
+            export USE_IMAGE=0
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+
+            eval "$(../bin/internal/get-latest-patch-versions.sh ${SUPPORTED_MINOR_VERSIONS})"
+
+            # provision GCE VMs
+            ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
+
+            go test -v -run TestUpgrade --timeout=99999s
+
+            ../bin/internal/run-integration-tests.sh destroy
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy GCP resources
+          command: |
+            cd test/integration/test
+            ../bin/internal/run-integration-tests.sh destroy
+          when: on_fail
 
   creation-ssh-gcp-ubuntu:
     <<: *creation-ssh-gcp-centos
@@ -604,7 +653,7 @@ jobs:
             # WKP UI reads values from the repository
             export CLEANUP_REPO=false
 
-            # provision 3 GCE VMs
+            # provision GCE VMs
             ../bin/internal/run-integration-tests.sh up
             ../bin/internal/update-config-with-node-info.sh
 
