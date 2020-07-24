@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -533,4 +534,35 @@ func (c *context) assertIPisWithinRange(ip, ipRange, msg string) {
 	log.Printf("%s IP %s is inside %s range? %v\n", msg, parsedIP, ipRange, isValid)
 	assert.True(c.t, isValid)
 
+}
+
+// setupPrePushHook installs a pre-push hook that counts push's number happening after wk setup run
+func (c *context) setupPrePushHook() {
+	prePushPath := filepath.Join(c.tmpDir, "/.git/hooks/pre-push")
+	pushCountPath := filepath.Join(c.tmpDir, "/.git/hooks/push-count.txt")
+	prePush, _ := os.Create(prePushPath)
+	pushCount, _ := os.Create(pushCountPath)
+
+	_, err := prePush.WriteString("#!/bin/sh\n\necho \"pushed\" >> " + pushCountPath)
+	assert.NoError(c.t, err)
+
+	prePush.Close()
+	pushCount.Close()
+
+	err = os.Chmod(prePushPath, 0755)
+	require.NoError(c.t, err)
+	log.Info("pre-push hook installed.")
+}
+
+// checkPushCount counts the number of push's added to push-count.txt
+func (c *context) checkPushCount() {
+	pushCountPath := filepath.Join(c.tmpDir, "/.git/hooks/push-count.txt")
+	pushCount, _ := os.Open(pushCountPath)
+	fileScanner := bufio.NewScanner(pushCount)
+	lineCount := 0
+	for fileScanner.Scan() {
+		lineCount++
+	}
+	assert.Equal(c.t, 1, lineCount, "Number of push's matches expected.")
+	log.Info("Testing number of push's passed.")
 }

@@ -127,7 +127,11 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 		require.NoError(c.t, err)
 	}
 
+	c.setupPrePushHook()
+
 	c.setupCluster()
+
+	c.checkPushCount()
 
 	// Check that all components are functioning
 	if !c.shouldSkipComponents() {
