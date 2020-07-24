@@ -135,6 +135,8 @@ func CreateGithubRepoWithDeployKey(
 	}
 
 	log.Info("Set up master branch")
+	gr.repo.DeleteBranch("master") // okay if not present
+
 	if err := gr.repo.CreateBranch(&config.Branch{Name: "master", Remote: "origin", Merge: "refs/heads/master"}); err != nil {
 		return nil, errors.Wrap(err, "create branch")
 	}
