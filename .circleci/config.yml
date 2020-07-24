@@ -22,8 +22,8 @@ integrationTestCommonEnv: &integrationTestCommonEnv
   SRCDIR: /home/circleci/src/github.com/weaveworks/wks
   KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
   KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
-  JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
-  JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
+  JK_URL: https://github.com/jkcfg/jk/releases/download/0.4.0/jk-linux-amd64
+  JK_CHECKSUM: eb4a833d4aae8fce338b0374fffd0e321fa4641d75170de58491ee2e60d336d0
   POD_CIDR_BLOCK: '192.168.0.0/16'
   SERVICE_CIDR_BLOCK: '10.96.0.0/12'
 

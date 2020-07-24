@@ -199,7 +199,7 @@ CC_BUILD_DEPS = \
 CC_DEPS = $(CC_CODE_DEPS) $(CC_BUILD_DEPS)
 wkp-cluster-components/build: $(CC_DEPS)
 	cd wkp-cluster-components && \
-		npm ci && \
+		npm install && \
 		VERSION=$(VERSION) IMAGE_TAG=$(IMAGE_TAG) npm run build
 
 generate-manifests: wkp-cluster-components/build
