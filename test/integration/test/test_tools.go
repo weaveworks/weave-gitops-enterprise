@@ -74,14 +74,14 @@ var allComponents = []Component{
 	{"wkp-flux", "memcached"},
 	{"wkp-tiller", "tiller-deploy"},
 	{"wkp-gitops-repo-broker", "gitops-repo-broker"},
-	{"wkp-github-service", "github-service"},
+	// {"wkp-github-service", "github-service"}, deployed only when team-workspaces are enabled
 	{"wkp-scope", "weave-scope-cluster-agent-weave-scope"},
 	{"wkp-scope", "weave-scope-frontend-weave-scope"},
 	{"wkp-grafana", "grafana"},
 	{"wkp-grafana", "grafana"},
 	{"wkp-prometheus", "prometheus-operator-kube-state-metrics"},
 	{"wkp-prometheus", "prometheus-operator-operator"},
-	{"wkp-workspaces", "repository-controller"},
+	// {"wkp-workspaces", "repository-controller"}, deployed only when team-workspaces are enabled
 	{"wkp-external-dns", "external-dns"},
 	{"wkp-ui", "wkp-ui-server"},
 	{"wkp-ui", "wkp-ui-nginx-ingress-controller"},
@@ -563,6 +563,11 @@ func (c *context) checkPushCount() {
 	for fileScanner.Scan() {
 		lineCount++
 	}
-	assert.Equal(c.t, 1, lineCount, "Number of push's matches expected.")
-	log.Info("Testing number of push's passed.")
+
+	expectedPushes := 1
+	if os.Getenv("SKIP_COMPONENTS") != "true" {
+		expectedPushes = 2
+	}
+	assert.Equal(c.t, expectedPushes, lineCount, "Number of pushes matches expected.")
+	log.Info("Testing number of pushes passed.")
 }

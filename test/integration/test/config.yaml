@@ -6,6 +6,8 @@ dockerIOUser: 'dummy'
 dockerIOPasswordFile: '/etc/passwd'
 sealedSecretsCertificate: ''
 sealedSecretsPrivateKey: ''
+enabledFeatures:
+  teamWorkspaces: false
 eksConfig:
   clusterRegion: 'eu-west-3'
   kubernetesVersion: '1.14'
