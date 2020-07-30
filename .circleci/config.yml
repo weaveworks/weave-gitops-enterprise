@@ -64,6 +64,8 @@ workflows:
           <<: *integrationTestConfig
       - preflight-ssh-gcp-centos:
           <<: *integrationTestConfig
+      - cluster-lifecycle-tests:
+          <<: *integrationTestConfig
 
   nightly:
     triggers:
@@ -794,6 +796,49 @@ jobs:
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             go test -v -run TestPreflightChecks --timeout=99999s
+
+            ../bin/internal/run-integration-tests.sh destroy
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy GCP resources
+          command: |
+            cd test/integration/test
+            ../bin/internal/run-integration-tests.sh destroy
+          when: on_fail
+
+  cluster-lifecycle-tests:
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          # Don't USE the default image, use IMAGE_NAME instead
+          IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 1
+          NUM_WORKERS: 2
+          CLUSTER_VERSIONS: '1.16.11'
+          SKIP_COMPONENTS: true
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          <<: *setup-base-gce-config-yaml
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+
+            cd test/integration/test
+
+            lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
+            export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
+            export USE_IMAGE=0
+            # provision $NUM_HOSTS GCE VMs
+            ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            go test -v -run TestRemoveThenAddNode --timeout=99999s
 
             ../bin/internal/run-integration-tests.sh destroy
       - run:
