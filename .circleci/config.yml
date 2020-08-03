@@ -1,5 +1,10 @@
 version: 2.1
 
+parameters:
+  run_integration_tests:
+    type: boolean
+    default: false
+
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
@@ -36,6 +41,7 @@ nightlyTestConfig: &nightlyTestConfig
 
 workflows:
   test-build-deploy:
+    unless: << pipeline.parameters.run_integration_tests >>
     jobs:
       - build:
           filters:
@@ -45,27 +51,28 @@ workflows:
       - unit-tests
       - fast-integration-tests:
           requires:
-           - build
-      - integration-tests-creation-footloose:
-          <<: *integrationTestConfig
-      - integration-tests-upgrade-footloose:
-          <<: *integrationTestConfig
-      - creation-ssh-gcp-centos:
-          <<: *integrationTestConfig
-      - creation-ssh-gcp-centos-lb:
-          <<: *integrationTestConfig
-      - upgrade-ssh-gcp-centos:
-          <<: *integrationTestConfig
-      - upgrade-ssh-gcp-centos-lb:
-          <<: *integrationTestConfig
-      - creation-ssh-gcp-ubuntu:
-          <<: *integrationTestConfig
-      - creation-ssh-gcp-ubuntu-lb:
-          <<: *integrationTestConfig
-      - preflight-ssh-gcp-centos:
-          <<: *integrationTestConfig
-      - cluster-lifecycle-tests:
-          <<: *integrationTestConfig
+            - build
+      - trigger-integration-tests:
+          requires:
+            - fast-integration-tests
+          filters:
+            branches:
+              only:
+                - master
+
+  run-integration-tests:
+    when: << pipeline.parameters.run_integration_tests >>
+    jobs:
+      - integration-tests-creation-footloose
+      - integration-tests-upgrade-footloose
+      - creation-ssh-gcp-centos
+      - creation-ssh-gcp-centos-lb
+      - upgrade-ssh-gcp-centos
+      - upgrade-ssh-gcp-centos-lb
+      - creation-ssh-gcp-ubuntu
+      - creation-ssh-gcp-ubuntu-lb
+      - preflight-ssh-gcp-centos
+      - cluster-lifecycle-tests
 
   nightly:
     triggers:
@@ -110,8 +117,8 @@ commands:
             if [ -f "$SRC_PATH" ]; then
               cp "$SRC_PATH" "$DST_PATH"
             else
-              # TAG=$(./tools/image-tag)
-              TAG=master
+              TAG=$(./tools/image-tag)
+              # TAG=master
               curl -o "$DST_PATH" https://s3.amazonaws.com/weaveworks-wkp/wk-${TAG}-linux-amd64
               chmod +x "$DST_PATH"
             fi
@@ -227,10 +234,7 @@ jobs:
       - deploy:
           name: Push wk to S3
           command: |
-            TAG=${CIRCLE_TAG}
-            if [ -z "$TAG" ]; then
-              TAG=$(./tools/image-tag)
-            fi
+            TAG=$(./tools/image-tag)
 
             # aws gets its credential through the AWS_ACCESS_KEY_ID and
             # AWS_SECRET_ACCESS_KEY environment variables.
@@ -252,10 +256,7 @@ jobs:
             export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
 
-            TAG=${CIRCLE_TAG}
-            if [ -z "$TAG" ]; then
-              TAG=$(git describe --always)
-            fi
+            TAG=$(git describe --always)
             IMAGE_TAG=$(./tools/image-tag)
 
             cd ui
@@ -348,6 +349,17 @@ jobs:
             export PATH=$GOROOT/bin:$PATH
             go version
             make container-tests
+
+  trigger-integration-tests:
+    docker:
+      - image: weaveworks/wkp-wks-build:trigger-circle-ci-workflows-9e4b65ae
+    steps:
+      - checkout
+      - run:
+          name: Run integration tests
+          command: |
+            branch=$(git rev-parse --abbrev-ref HEAD)
+            ./tools/trigger-integration-tests.sh "${branch}"
 
   # Can be a bit faster
   fast-integration-tests:

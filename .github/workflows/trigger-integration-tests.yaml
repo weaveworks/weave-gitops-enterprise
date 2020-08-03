@@ -1,0 +1,45 @@
+name: trigger-integration-tests
+
+on:
+  pull_request:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: khan/pull-request-comment-trigger@bb03972cc9f423111f3b5a23fcc9fd32741acabb
+        id: check
+        with:
+          trigger: "/test"
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: GitHub API Request
+        id: request
+        if: steps.check.outputs.triggered == 'true'
+        # ~v2.0.0
+        uses: octokit/request-action@57ec46afcc4c58c813af3afe67e57ced1ea9f165
+        with:
+          route: ${{ github.event.issue.pull_request.url }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Github actions on run on master so use master
+      # ~v2
+      - uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
+
+      - name: Run Kubernetes tools
+        if: steps.check.outputs.triggered == 'true'
+        # ~v1
+        uses: stefanprodan/kube-tools@48a6ad249bbec6e78f5f231568970406e0f41ae2
+        env:
+          WEAVEWORKSBOT_CIRCLECI_TOKEN: "${{ secrets.WEAVEWORKSBOT_CIRCLECI_TOKEN }}"
+        with:
+          command: |
+            branch="${{ fromJson(steps.request.outputs.data).head.ref }}"
+            echo "Trigger integration tests on ${branch}"
+            ./tools/trigger-integration-tests.sh "${branch}"
