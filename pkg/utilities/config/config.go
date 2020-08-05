@@ -1156,6 +1156,8 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 	var ips []string
 	if conf.Track == "wks-footloose" {
 		ips, err = getPrivateIPsFromMachines(configDir)
+		// Only the masters for the load balancer
+		ips = ips[0:conf.WKSConfig.FootlooseConfig.ControlPlaneNodes]
 		if err != nil {
 			return err
 		}
@@ -1168,9 +1170,6 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 			}
 		}
 	}
-
-	// Only the masters for the load balancer
-	ips = ips[0:conf.WKSConfig.FootlooseConfig.ControlPlaneNodes]
 
 	haConfigResource := &resource.File{
 		Content:     generateHAConfiguration(ips),

@@ -198,6 +198,23 @@ func (c *context) commitChanges() {
 	assert.NoError(c.t, err)
 }
 
+func (c *context) commitChangesAndPush(message string) {
+	cmd := exec.Command("git", "add", "-u")
+	cmd.Dir = c.tmpDir
+	err := cmd.Run()
+	assert.NoError(c.t, err)
+
+	cmd = exec.Command("git", "commit", "-m", message)
+	cmd.Dir = c.tmpDir
+	err = cmd.Run()
+	assert.NoError(c.t, err)
+
+	cmd = exec.Command("git", "push")
+	cmd.Dir = c.tmpDir
+	err = cmd.Run()
+	assert.NoError(c.t, err)
+}
+
 // runtimeConfigFilePath returns the path to the config.yaml file within the context's temporary directory
 func (c *context) runtimeConfigFilePath() string {
 	return filepath.Join(c.tmpDir, "setup", "config.yaml")

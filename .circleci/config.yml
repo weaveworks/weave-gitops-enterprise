@@ -51,7 +51,7 @@ workflows:
       - unit-tests
       - fast-integration-tests:
           requires:
-            - build
+          - build
       - trigger-integration-tests:
           requires:
             - fast-integration-tests
@@ -825,8 +825,9 @@ jobs:
           <<: *integrationTestCommonEnv
           # Don't USE the default image, use IMAGE_NAME instead
           IMAGE_NAME: centos-cloud/centos-7
-          NUM_MASTERS: 1
+          NUM_MASTERS: 3
           NUM_WORKERS: 2
+          USE_LB: true
           CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
