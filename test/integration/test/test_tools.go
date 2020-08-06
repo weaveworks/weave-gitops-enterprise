@@ -588,3 +588,12 @@ func (c *context) checkPushCount() {
 	assert.Equal(c.t, expectedPushes, lineCount, "Number of pushes matches expected.")
 	log.Info("Testing number of pushes passed.")
 }
+
+// checkLogsContainString gets the logs of a pod in a namespace and checks if a message is contained in them
+func (c *context) checkLogsContainString(namespace, podName, message string) bool {
+	cmd := exec.Command("kubectl", "logs", "-n", namespace, fmt.Sprintf("-l=name=%s", podName))
+	logs, err := cmd.CombinedOutput()
+	assert.NoError(c.t, err)
+	log.Printf("logs of pod %s: \n%s\n", podName, string(logs))
+	return strings.Contains(string(logs), message)
+}
