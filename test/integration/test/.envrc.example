@@ -1,0 +1,11 @@
+export user="$(whoami)"
+export RUN_GCP_ON=false
+export CIRCLE_JOB="${user}-test"
+export CIRCLE_BUILD_NUM=1
+export USE_IMAGE=0
+
+export TF_VAR_gcp_username=wks
+export TF_VAR_gcp_public_key_path="$HOME/.ssh/cluster-key.pub"
+export TF_VAR_gcp_private_key_path="$HOME/.ssh/cluster-key"
+export TF_VAR_client_ip=$(curl -s -X GET http://checkip.amazonaws.com/)
+export TF_VAR_gcp_project="wks-tests"

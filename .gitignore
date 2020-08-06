@@ -3,6 +3,8 @@
 /examples/.vagrant
 /rpm/output
 /test/resource/tests
+/test/integration/test/hosts_private
+/test/integration/test/hosts_public
 /user-guide/public
 /user-guide/resources/_gen
 

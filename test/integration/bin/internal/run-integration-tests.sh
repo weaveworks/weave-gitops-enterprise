@@ -28,12 +28,13 @@ PROJECT="wks-tests" # Only used when PROVIDER is gcp, by tools/provisioning/conf
 NAME="wkp-${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
 PROVIDER=${PROVIDER:-gcp} # Provision using provided provider, or Google Cloud Platform by default.
 NUM_HOSTS=${NUM_HOSTS:-3}
+RUN_GCP_ON=${RUN_GCP_ON:-true}
 PLAYBOOK=${PLAYBOOK:-setup_bare_docker.yml}
 PLAYBOOK_DOCKER_INSTALL_ROLE=${PLAYBOOK_DOCKER_INSTALL_ROLE:-docker-from-get.docker.com}
 TESTS=${TESTS:-}
 RUNNER_ARGS=${RUNNER_ARGS:-""}
 # Dependencies' versions:
-DOCKER_VERSION=${DOCKER_VERSION:-"$(grep -oP "(?<=DOCKER_VERSION=).*" "$REPO_ROOT_DIR/DEPENDENCIES")"}
+DOCKER_VERSION=${DOCKER_VERSION:-"$(grep DOCKER_VERSION "$REPO_ROOT_DIR/DEPENDENCIES" | cut -d"=" -f2)"}
 # Google Cloud Platform image's name & usage (only used when PROVIDER is gcp):
 IMAGE_NAME=${IMAGE_NAME:-"$(echo "$APP-centos7-docker$DOCKER_VERSION" | sed -e 's/[\.\_]*//g')"}
 DISK_NAME_PREFIX=${DISK_NAME_PREFIX:-$NAME}
@@ -226,7 +227,7 @@ function provision() {
         'gcp')
             export PATH="$PATH:/opt/google-cloud-sdk/bin"
             export CLOUDSDK_CORE_DISABLE_PROMPTS=1
-            gcp_on
+            [[ "$RUN_GCP_ON" == "true" ]] && gcp_on
             [[ "$1" == "on" ]] && [[ "$USE_IMAGE" == 1 ]] && use_or_create_image
             provision_remotely "$1" "$2"
             ;;
