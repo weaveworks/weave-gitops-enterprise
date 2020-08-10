@@ -375,7 +375,7 @@ func findMapNode(n *yaml.Node, key string) (*yaml.Node, int) {
 }
 
 // WriteConfig writes a modified config.yaml back to the file system
-func WriteConfig(path string, config *yaml.Node) error {
+func WriteConfig(path string, config interface{}) error {
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0)
 	if err != nil {
 		return errors.Wrapf(err, fmt.Sprintf("failed to open file at path %v", path))

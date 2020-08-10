@@ -221,10 +221,19 @@ func (c *context) runtimeConfigFilePath() string {
 }
 
 // updateConfigFileWithVersion updates the Kubernetes version for each wks machine in the config.yaml file
+func (c *context) updateConfigMachines(updateFn func([]config.MachineSpec) []config.MachineSpec) {
+	c.conf.WKSConfig.SSHConfig.Machines = updateFn(c.conf.WKSConfig.SSHConfig.Machines)
+	path := c.runtimeConfigFilePath()
+	err := config.WriteConfig(path, c.conf)
+	require.NoError(c.t, err)
+}
+
+// updateConfigFileWithVersion updates the Kubernetes version for each wks machine in the config.yaml file
 func (c *context) updateConfigFileWithVersion(version string) {
 	path := c.runtimeConfigFilePath()
 	info := getFileInfo(c.t, path)
 	log.Infof("Configuring Kubernetes version: %s", version)
+	c.conf.WKSConfig.KubernetesVersion = version
 	err := git.UpdateYAMLFile(info, []string{"wksConfig", "kubernetesVersion"}, version)
 	require.NoError(c.t, err)
 }
@@ -293,15 +302,15 @@ func (c *context) checkClusterAtCorrectVersion(correctVersion string) {
 // checkClusterAtExpectedNumberOfNodes waits for the cluster to reach the requested number of nodes
 func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int) {
 	retryInfo := &connectRetryInfo{0, 6}
-	for retry := 0; retry < 45; retry++ {
+	for retry := 0; retry < 90; retry++ {
 		c.checkProgress(retryInfo)
 		nodes := getAllReadyNodes(c.t, c.env)
-		log.Infof("Retry: %d, Count: %d", retry, len(nodes))
-		if len(nodes) >= expectedNumberOfNodes {
+		log.Infof("Retry: %d, Expected: %d, Count: %d", retry, expectedNumberOfNodes, len(nodes))
+		if len(nodes) == expectedNumberOfNodes {
 			log.Infof("Reached expected node count")
 			return
 		}
-		time.Sleep(60 * time.Second)
+		time.Sleep(30 * time.Second)
 	}
 	assert.FailNowf(c.t, "Never reached expected node count", "Expected: %d, got: %d", expectedNumberOfNodes,
 		len(getAllNodeVersions(c.t, c.env)))
@@ -411,10 +420,10 @@ func (c *context) checkProgress(retryInfo *connectRetryInfo) {
 
 // showNodesAndPods displays the current set of nodes and pods in tabular format
 func (c *context) showNodesAndPods() error {
-	if err := c.showItems("nodes"); err != nil {
+	if err := c.showItems("pods"); err != nil {
 		return err
 	}
-	if err := c.showItems("pods"); err != nil {
+	if err := c.showItems("nodes"); err != nil {
 		return err
 	}
 	return nil
@@ -595,5 +604,13 @@ func (c *context) checkLogsContainString(namespace, podName, message string) boo
 	logs, err := cmd.CombinedOutput()
 	assert.NoError(c.t, err)
 	log.Printf("logs of pod %s: \n%s\n", podName, string(logs))
+	return strings.Contains(string(logs), message)
+}
+
+// checkLogsContainString gets the logs of a pod in a namespace and checks if a message is contained in them
+func (c *context) checkDeploymentLogsContainString(namespace, deploymentName, message string) bool {
+	cmd := exec.Command("kubectl", "logs", "-n", namespace, fmt.Sprintf("deployment/%s", deploymentName))
+	logs, err := cmd.CombinedOutput()
+	assert.NoError(c.t, err)
 	return strings.Contains(string(logs), message)
 }
