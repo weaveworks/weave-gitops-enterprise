@@ -17,8 +17,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/pkg/utilities/versions"
 	wksos "github.com/weaveworks/wksctl/pkg/apis/wksprovider/machine/os"
-	baremetalv1 "github.com/weaveworks/wksctl/pkg/baremetal/v1alpha3"
 	"github.com/weaveworks/wksctl/pkg/cluster/machine"
+	baremetalv1 "github.com/weaveworks/wksctl/pkg/existinginfra/v1alpha3"
 	"github.com/weaveworks/wksctl/pkg/plan"
 	"github.com/weaveworks/wksctl/pkg/plan/recipe"
 	"github.com/weaveworks/wksctl/pkg/plan/resource"
@@ -149,11 +149,11 @@ spec:
     serviceDomain: cluster.local
   infrastructureRef:
     apiVersion: "cluster.weave.works/v1alpha3"
-    kind: BareMetalCluster
+    kind: ExistingInfraCluster
     name: {{ .ClusterName }}
 ---
 apiVersion: cluster.weave.works/v1alpha3
-kind: "BareMetalCluster"
+kind: "ExistingInfraCluster"
 metadata:
   name: {{ .ClusterName }}
 spec:
@@ -205,16 +205,15 @@ metadata:
   namespace: weavek8sops
 spec:
   clusterName: {{ .ClusterName }}
-  versions:
-    kubelet: {{ .KubernetesVersion }}
+  version: {{ .KubernetesVersion }}
   infrastructureRef:
     apiVersion: "cluster.weave.works/v1alpha3"
-    kind: BareMetalMachine
+    kind: ExistingInfraMachine
     name: {{ .Name }}
   bootstrap: {}
 ---
 apiVersion: "cluster.weave.works/v1alpha3"
-kind: "BareMetalMachine"
+kind: "ExistingInfraMachine"
 metadata:
   name: {{ .Name }}
 spec:
@@ -1091,7 +1090,7 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 func getPrivateIPsFromMachines(configDir string) ([]string, error) {
 	machinesManifestPath := filepath.Join(configDir, "machines.yaml")
 
-	errorsHandler := func(machines []*clusterv1.Machine, bml []*baremetalv1.BareMetalMachine, errors field.ErrorList) ([]*clusterv1.Machine, []*baremetalv1.BareMetalMachine, error) {
+	errorsHandler := func(machines []*clusterv1.Machine, bml []*baremetalv1.ExistingInfraMachine, errors field.ErrorList) ([]*clusterv1.Machine, []*baremetalv1.ExistingInfraMachine, error) {
 		if len(errors) > 0 {
 			utilities.PrintErrors(errors)
 			return nil, nil, apierrors.InvalidMachineConfiguration(
