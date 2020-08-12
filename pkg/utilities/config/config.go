@@ -225,7 +225,7 @@ spec:
   nodeGroups:
 {{ .NodeGroups }}
   managedNodeGroupFile: {{ .ManagedNodeGroupFile }}
-  version: {{ .KubernetesVersion }}
+  version: '{{ .KubernetesVersion }}'
 `
 
 const footlooseTemplate = `# This file contains high level configuration parameters. The setup.sh script

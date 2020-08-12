@@ -455,7 +455,7 @@ func UpdateYAMLFile(info *ObjectInfo, fieldPath []string, value interface{}) err
 }
 
 func updateYAMLFileFromStringPath(info *ObjectInfo, fieldPathString string, value interface{}) error {
-	return UpdateYAMLFile(info, strings.Split(fieldPathString, ";"), value)
+	return UpdateYAMLFile(info, strings.Split(fieldPathString, "."), value)
 }
 
 func FindNestedFields(data *yaml.Node, path ...string) []*yaml.Node {
