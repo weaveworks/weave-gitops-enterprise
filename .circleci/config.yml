@@ -230,7 +230,7 @@ jobs:
             curl -L https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz | tar xvz
             sudo mv linux-amd64/helm /usr/bin/helm
             sudo chmod +x /usr/bin/helm
-      - run: make
+      - run: make -j4 #Could be -j8 once we have bigger circleci instances
       - deploy:
           name: Push wk to S3
           command: |
