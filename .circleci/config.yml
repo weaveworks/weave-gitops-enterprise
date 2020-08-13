@@ -73,6 +73,7 @@ workflows:
       - creation-ssh-gcp-ubuntu-lb
       - preflight-ssh-gcp-centos
       - cluster-lifecycle-tests
+      - cluster-lifecycle-footloose-tests
 
   nightly:
     triggers:
@@ -861,3 +862,29 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
+
+  cluster-lifecycle-footloose-tests:
+    machine:
+      image: ubuntu-1604:202004-01
+    environment:
+      <<: *integrationTestCommonEnv
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          <<: *setup-base-footloose-config-yaml
+      - run:
+          name: Setup the number of nodes
+          command: |
+            cd test/integration/test
+            sed -i "s/controlPlaneNodes:.*/controlPlaneNodes: 3/" config.yaml
+            sed -i "s/workerNodes:.*/workerNodes: 1/" config.yaml
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            cd test/integration/test
+            export SKIP_COMPONENTS=true
+            # e.g. wkp-ci-test-bot from 1passwords
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            go test -v -run TestLifeCycleRemoveMasterNodes --timeout=1800s
