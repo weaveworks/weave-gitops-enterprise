@@ -419,8 +419,8 @@ github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2 h1:agQMkKaEwVZ0B
 github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2/go.mod h1:w71L8jQE+JbvgoFozS5vHDJKIu/Rq5TVH8czB7FbxC4=
 github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c h1:YTNC1c2AM3xjrL6DM4vuq0HNJ79GFR8ScT+QKWadFUw=
 github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
-github.com/weaveworks/wksctl v0.8.3-rc.4 h1:W0ow14BPLvAYaa8s3Yazlh1GoT/NC3bTQgkuzTjk86A=
-github.com/weaveworks/wksctl v0.8.3-rc.4/go.mod h1:lqpumDfm810h4Dhpa3tAf5QLk7Zeg8nHWNQ46JZOtjY=
+github.com/weaveworks/wksctl v0.8.5-rc.1 h1:/wCnjHroIHEN4WlbWMNje2Jn7W1Uu1Z3hpSz/JXfWlg=
+github.com/weaveworks/wksctl v0.8.5-rc.1/go.mod h1:lqpumDfm810h4Dhpa3tAf5QLk7Zeg8nHWNQ46JZOtjY=
 github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/xanzy/ssh-agent v0.2.0/go.mod h1:0NyE30eGUDliuLEHJgYte/zncp2zdTStcOnWhgSqHD8=
 github.com/xanzy/ssh-agent v0.2.1 h1:TCbipTQL2JiiCprBWx9frJ2eJlCYT00NmctrHxVAr70=
