@@ -24,8 +24,8 @@ integrationTestCommonEnv: &integrationTestCommonEnv
   KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
   JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
   JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
-  POD_CIDR_BLOCK: "192.168.0.0/16"
-  SERVICE_CIDR_BLOCK: "10.96.0.0/12"
+  POD_CIDR_BLOCK: '192.168.0.0/16'
+  SERVICE_CIDR_BLOCK: '10.96.0.0/12'
 
 integrationTestConfig: &integrationTestConfig
   requires:
@@ -51,7 +51,7 @@ workflows:
       - unit-tests
       - fast-integration-tests:
           requires:
-            - build
+          - build
       - trigger-integration-tests:
           requires:
             - fast-integration-tests
@@ -73,12 +73,12 @@ workflows:
       - creation-ssh-gcp-ubuntu-lb
       - preflight-ssh-gcp-centos
       - cluster-lifecycle-tests
-      - cluster-lifecycle-tests-footloose
+      - cluster-lifecycle-footloose-tests
 
   nightly:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: '0 0 * * *'
           filters:
             branches:
               only:
@@ -94,7 +94,7 @@ workflows:
     triggers:
       - schedule:
           # Run at midnight on Sunday
-          cron: "0 0 * * 0"
+          cron: '0 0 * * 0'
           filters:
             branches:
               only:
@@ -161,7 +161,7 @@ commands:
           # CircleCI adds is specific to a repository and doesn't work
           # for fetching other private repos.
           fingerprints:
-            - "cc:e8:46:28:c2:af:5e:30:cc:01:59:ab:9b:ad:45:5c"
+            - 'cc:e8:46:28:c2:af:5e:30:cc:01:59:ab:9b:ad:45:5c'
 
   go-get-cached:
     description: go get or used cached modules
@@ -195,7 +195,7 @@ commands:
             ssh-add user-ssh-key
 
   setup-integration-test-env:
-    description: "Common steps to integration tests"
+    description: 'Common steps to integration tests'
     steps:
       - checkout
       - install-integration-test-deps
@@ -457,7 +457,7 @@ jobs:
           IMAGE_NAME: centos-cloud/centos-7
           NUM_MASTERS: 1
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: "1.16.11"
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -515,7 +515,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: true
-          CLUSTER_VERSIONS: "1.16.11"
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
 
   upgrade-ssh-gcp-centos: &upgrade-ssh-gcp-centos
@@ -528,7 +528,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
-          UPGRADE_VERSIONS: "1.15.7,1.16.11,1.17.7"
+          UPGRADE_VERSIONS: '1.15.7,1.16.11,1.17.7'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
@@ -584,7 +584,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
-          SUPPORTED_MINOR_VERSIONS: "1.14,1.15,1.16,1.17"
+          SUPPORTED_MINOR_VERSIONS: '1.14,1.15,1.16,1.17'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
@@ -628,7 +628,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-lts
-          CLUSTER_VERSIONS: "1.16.11"
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
           NUM_MASTERS: 1
           NUM_WORKERS: 2
@@ -643,7 +643,7 @@ jobs:
           USE_LB: true
           NUM_MASTERS: 3
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: "1.16.11"
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
 
   cluster-components-gcp:
@@ -652,7 +652,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           SKIP_COMPONENTS: false
-          CLUSTER_VERSIONS: "1.16.11"
+          CLUSTER_VERSIONS: '1.16.11'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -712,7 +712,7 @@ jobs:
           USE_LB: false
           NUM_MASTERS: 3
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: "1.17.7"
+          CLUSTER_VERSIONS: '1.17.7'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -780,7 +780,7 @@ jobs:
           NUM_MASTERS: 1
           NUM_WORKERS: 1
           USE_LB: false
-          CLUSTER_VERSIONS: "1.16.11"
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -829,7 +829,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 4 # 1 + 3 spare machines
           USE_LB: true
-          CLUSTER_VERSIONS: "1.16.11"
+          CLUSTER_VERSIONS: '1.16.11'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -863,7 +863,7 @@ jobs:
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
 
-  cluster-lifecycle-tests-footloose:
+  cluster-lifecycle-footloose-tests:
     machine:
       image: ubuntu-1604:202004-01
     environment:
