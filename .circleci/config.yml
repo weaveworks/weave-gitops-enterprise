@@ -861,7 +861,7 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
-          
+
   cluster-lifecycle-tests-footloose:
     machine:
       image: ubuntu-1604:202004-01
@@ -887,3 +887,4 @@ jobs:
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             go test -v -run TestLifeCycleRemoveMasterNodes --timeout=99999s
+            
