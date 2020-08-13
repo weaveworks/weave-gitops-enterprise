@@ -886,4 +886,4 @@ jobs:
             export SKIP_COMPONENTS=true
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-            go test -v -run TestLifeCycleOnFootloose --timeout=99999s
+            go test -v -run TestLifeCycleRemoveMasterNodes --timeout=99999s
