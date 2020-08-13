@@ -861,7 +861,7 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
-
+          
   cluster-lifecycle-tests-footloose:
     machine:
       image: ubuntu-1604:202004-01
