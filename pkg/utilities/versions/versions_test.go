@@ -99,24 +99,24 @@ func TestCheckVersionExists(t *testing.T) {
 	err = CheckVersionExists("v1.17.9")
 	assert.NoError(t, err)
 
-	err = CheckVersionExists("v1.17.10")
+	err = CheckVersionExists("v1.17.99")
 	assert.Error(t, err)
 
 	err = CheckVersionExists("v1.16.13")
 	assert.NoError(t, err)
 
-	err = CheckVersionExists("v1.16.14")
+	err = CheckVersionExists("v1.16.99")
 	assert.Error(t, err)
 
 	err = CheckVersionExists("v1.15.12")
 	assert.NoError(t, err)
 
-	err = CheckVersionExists("v1.15.13")
+	err = CheckVersionExists("v1.15.99")
 	assert.Error(t, err)
 
 	err = CheckVersionExists("v1.14.10")
 	assert.NoError(t, err)
 
-	err = CheckVersionExists("v1.14.11")
+	err = CheckVersionExists("v1.14.99")
 	assert.Error(t, err)
 }
