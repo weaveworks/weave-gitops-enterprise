@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -16,7 +17,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	genSecretsCmd "github.com/weaveworks/wks/cmd/wk/gitops/generate-secrets"
 	"github.com/weaveworks/wks/pkg/cmdutil"
+	"github.com/weaveworks/wks/pkg/gitops/model/workspaces"
+	"github.com/weaveworks/wks/pkg/security"
 	"github.com/weaveworks/wks/pkg/utilities/config"
 	"github.com/weaveworks/wks/pkg/utilities/git"
 )
@@ -144,22 +148,26 @@ func (c *context) checkDeploymentRunning(component Component) bool {
 // getContext returns a "context" object containing all the information needed to perform most
 // test tasks. Methods on the context object can be used to implement integration tests and manage
 // temporary directories, git repositories, and clusters.
-func getContext(testval *testing.T) *context {
+func getContext(t *testing.T) *context {
 	tmpDir, err := ioutil.TempDir("", "tmp_dir")
-	require.NoError(testval, err)
+	require.NoError(t, err)
+	return getContextFrom(t, tmpDir)
+}
+
+func getContextFrom(t *testing.T, tmpDir string) *context {
 	log.Infof("Using temporary directory: %s\n", tmpDir)
-	file, conf := getConfigInfo(testval)
+	file, conf := getConfigInfo(t)
 	s := rand.NewSource(time.Now().Unix())
 
 	return &context{
-		t:          testval,
+		t:          t,
 		configFile: file,
 		conf:       conf,
-		wkBin:      getWkBinary(testval),
-		testDir:    getTestDir(testval),
+		wkBin:      getWkBinary(t),
+		testDir:    getTestDir(t),
 		tmpDir:     tmpDir,
 		randGen:    rand.New(s),
-		env:        getEnvironmentWithoutKubeconfig(testval, tmpDir),
+		env:        getEnvironmentWithoutKubeconfig(t, tmpDir),
 		repoExists: false,
 	}
 }
@@ -613,4 +621,50 @@ func (c *context) checkDeploymentLogsContainString(namespace, deploymentName, me
 	logs, err := cmd.CombinedOutput()
 	assert.NoError(c.t, err)
 	return strings.Contains(string(logs), message)
+}
+
+// makeWorkspace generates a workspace object
+func (c *context) makeWorkspace(workspace workspaces.Workspace) *workspaces.Workspace {
+	ws := workspace
+
+	publicKey, privateKey, err := security.GenerateSSHKeyPair()
+	assert.NoError(c.t, err)
+
+	tmpPrivateKeyPath := path.Join("/tmp", fmt.Sprintf("%s-private-key", ws.NamespaceName))
+	err = ioutil.WriteFile(tmpPrivateKeyPath, []byte(privateKey), 0644)
+	assert.NoError(c.t, err)
+	defer os.Remove(tmpPrivateKeyPath)
+
+	certPath := filepath.Join(c.tmpDir, "setup", "test-sealed-secrets-cert.crt")
+	c.copyFile("./test-sealed-secrets-cert.crt", certPath)
+	kubesealPath := filepath.Join(c.tmpDir, "bin", "kubeseal")
+
+	sealedPrivateKey, err := genSecretsCmd.SealSecret(
+		kubesealPath,
+		certPath,
+		tmpPrivateKeyPath,
+		ws.NamespaceName,
+		true)
+	assert.NoError(c.t, err)
+
+	ws.RepoGitHub.DeployKey = sealedPrivateKey
+	ws.RepoGitHub.PublicDeployKey = publicKey
+
+	return &ws
+}
+
+// getTeamWorkspaces returns a list of team workspaces in a git repo
+func (c *context) getTeamWorkspaces(gitURL, gitBranch string, key []byte, path string) []workspaces.Workspace {
+	repo, err := git.CloneToTempDir("", gitURL, gitBranch, key)
+	assert.NoError(c.t, err)
+	defer repo.Close()
+
+	fp := filepath.Join(repo.WorktreeDir(), path, "team-workspaces.yaml")
+	filebytes, err := ioutil.ReadFile(fp)
+	assert.NoError(c.t, err)
+
+	db, err := workspaces.FromYAML(filebytes)
+	assert.NoError(c.t, err)
+
+	return db.Workspaces
 }
