@@ -678,7 +678,10 @@ jobs:
             go test -v -run TestClusterCreation --timeout=99999s
             export SELENIUM_DEBUG=true
             ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
-            go test -v -run TestVersionInUI
+            cd ../../acceptance/test/
+            go test -v
+            ginkgo -v
+            cd ../../integration/test
 
             if [ $CLEANUP_REPO != "false" ]; then
               hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
