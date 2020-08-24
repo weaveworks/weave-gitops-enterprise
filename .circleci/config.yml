@@ -926,14 +926,16 @@ jobs:
             ../bin/internal/run-integration-tests.sh up
             ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
 
-            export WORKSPACES_ORG_ADMIN_USER=$WKP_GITHUB_USER
+            export WORKSPACES_ORG=$WKP_GITHUB_ORG
+            # this token has admin:org
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_WORKSPACES_GITHUB_TOKEN
-
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             go test -v -run TestEnableWorkspaces --timeout=99999s
 
+            # Cleanup
             ../bin/internal/run-integration-tests.sh destroy
+            hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}" || echo "No worries"
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
           name: Destroy GCP resources
@@ -944,4 +946,5 @@ jobs:
             # delete the github repository if it's hanging
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+            hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
           when: on_fail        
