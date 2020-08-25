@@ -679,8 +679,7 @@ jobs:
             export SELENIUM_DEBUG=true
             ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
             cd ../../acceptance/test/
-            #go test -v
-            ginkgo -v
+            go test -v
             cd ../../integration/test
 
             if [ $CLEANUP_REPO != "false" ]; then
