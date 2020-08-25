@@ -46,18 +46,18 @@ func String(length int) string {
 	return StringWithCharset(length, charset)
 }
 
-func TakeScreenShot(driver *agouti.Page) {
+func TakeScreenShot() {
 	if webDriver != nil {
 
 		filepath := SCREENSHOTS_DIR + String(16) + ".png"
-		driver.Screenshot(filepath)
+		webDriver.Screenshot(filepath)
 		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
 	}
 }
 
 func GomegaFail(message string, callerSkip ...int) {
 
-	TakeScreenShot(webDriver) //Save the screenshot of failure
+	TakeScreenShot() //Save the screenshot of failure
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
