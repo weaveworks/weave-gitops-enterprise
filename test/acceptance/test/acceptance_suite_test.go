@@ -76,7 +76,7 @@ func TestAcceptance(t *testing.T) {
 	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
 
-	//JUnit sytle test report
+	//JUnit style test report
 	junitReporter := reporters.NewJUnitReporter(JUNIT_TEST_REPORT_FILE)
 	RunSpecsWithDefaultAndCustomReporters(t, "WKP Acceptance Suite", []Reporter{junitReporter})
 
