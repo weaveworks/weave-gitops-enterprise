@@ -99,7 +99,7 @@ var _ = Describe("WKP UI", func() {
 
 		By("Then I should see components count", func() {
 
-			Eventually(componentsPage.ClusterComponentsList).Should(HaveCount(13)) //hard coded components number???
+			Eventually(componentsPage.ClusterComponentsList).Should(HaveCount(12)) //hard coded components number???
 		})
 
 		By("And I should see following list of cluster components", func() {
