@@ -47,7 +47,7 @@ var _ = Describe("WKP UI", func() {
 	It("Verify WKP Dashboard Page Structure", func() {
 
 		var expectedWKPTitle = "Weaveworks Kubernetes Platform"
-		var expectedClusterName = `/ gce-cluster`
+		//var expectedClusterName = `/ gce-cluster`
 		var expectedAlertInfo = "No Alerts firing"
 		var expectedDocLink = "/docs"
 		var expectedGrafanaLink = "/grafana/d/all-nodes-resources/kubernetes-all-nodes-resources"
@@ -64,7 +64,7 @@ var _ = Describe("WKP UI", func() {
 			})
 
 			By("-Cluster Name and Alert Info Text", func() {
-				Eventually(dashboardPage.ClusterName).Should(HaveText(expectedClusterName))
+				//Eventually(dashboardPage.ClusterName).Should(HaveText(expectedClusterName))
 				Expect(dashboardPage.AlertInfo).Should(HaveText(expectedAlertInfo))
 			})
 
@@ -99,10 +99,10 @@ var _ = Describe("WKP UI", func() {
 
 		By("Then I should see components count", func() {
 
-			Eventually(componentsPage.ClusterComponentsList).Should(HaveCount(12)) //hard coded components number???
+			Eventually(componentsPage.ClusterComponentsList).Should(HaveCount(13)) //hard coded components number???
 		})
 
-		By("Then I should see following list of cluster components", func() {
+		By("And I should see following list of cluster components", func() {
 
 			By("- wkp-external-dns", func() {
 

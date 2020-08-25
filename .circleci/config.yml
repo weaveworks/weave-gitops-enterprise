@@ -699,12 +699,11 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
           when: on_fail
-          # Store screenshot from TestVersionInUI
+          # Store artefacts
       - store_artifacts:
-          path: /tmp/workspace/wkp-ui-screenshot.png
-          # Store page source from TestVersionInUI
-      - store_artifacts:
-          path: /tmp/workspace/wkp-ui-page-source
+          path: /tmp/workspace
+      - store_test_results:
+          path: /tmp/workspace
 
   conformance-tests-sonobuoy:
     <<: *creation-ssh-gcp-centos

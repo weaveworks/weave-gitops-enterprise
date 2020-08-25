@@ -9,6 +9,7 @@ import (
 
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
@@ -20,6 +21,10 @@ var webDriver *agouti.Page
 var gitProvider string
 var seleniumServiceUrl string
 var wkpDashboardUrl string
+
+const ARTEFACTS_BASE_DIR string = "/tmp/workspace/"
+const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
+const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "wkp_junit.xml"
 
 const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second //15 seconds
 
@@ -44,7 +49,7 @@ func String(length int) string {
 func TakeScreenShot(driver *agouti.Page) {
 	if webDriver != nil {
 
-		filepath := "./screenshots/" + String(16) + ".png"
+		filepath := SCREENSHOTS_DIR + String(16) + ".png"
 		driver.Screenshot(filepath)
 		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
 	}
@@ -59,12 +64,22 @@ func GomegaFail(message string, callerSkip ...int) {
 }
 
 func TestAcceptance(t *testing.T) {
+
 	theT = t //Save the testing instance for later use
-	_ = os.RemoveAll("./screenshots")
-	_ = os.Mkdir("./screenshots", 0700)
+
+	//Cleanup the workspace dir, it helps when running locally
+	_ = os.RemoveAll(ARTEFACTS_BASE_DIR)
+	_ = os.MkdirAll(SCREENSHOTS_DIR, 0700)
+
 	RegisterFailHandler(Fail)
+
+	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
-	RunSpecs(t, "WKP Acceptance Suite")
+
+	//JUnit sytle test report
+	junitReporter := reporters.NewJUnitReporter(JUNIT_TEST_REPORT_FILE)
+	RunSpecsWithDefaultAndCustomReporters(t, "WKP Acceptance Suite", []Reporter{junitReporter})
+
 }
 
 var _ = BeforeSuite(func() {
