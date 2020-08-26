@@ -118,9 +118,9 @@ var _ = Describe("WKP UI", func() {
 			 * TODO - Verify other components
 			 */
 
-			By("- wkp-workspaces", func() {
+			By("- wkp-tiller"", func() {
 
-				Expect(pages.FindClusterComponent(componentsPage, "wkp-workspaces")).To(BeTrue())
+				Expect(pages.FindClusterComponent(componentsPage, "wkp-tiller"")).To(BeTrue())
 			})
 
 		})
