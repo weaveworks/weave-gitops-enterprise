@@ -73,9 +73,22 @@ type EKSConfig struct {
 }
 
 type NodeGroupConfig struct {
-	Name            string `yaml:"name"`
-	InstanceType    string `yaml:"instanceType"`
-	DesiredCapacity int64  `yaml:"desiredCapacity"`
+	Name            string                       `yaml:"name,omitempty"`
+	InstanceType    string                       `yaml:"instanceType,omitempty"`
+	DesiredCapacity int64                        `yaml:"desiredCapacity,omitempty"`
+	AMIFamily       string                       `yaml:"amiFamily,omitempty"`
+	AMI             string                       `yaml:"ami,omitempty"`
+	Labels          map[string]string            `yaml:"labels,omitempty"`
+	Bottlerocket    *NodeGroupBottlerocketConfig `yaml:"bottlerocket,omitempty"`
+}
+
+type NodeGroupBottlerocketConfig struct {
+	EnableAdminContainer bool                                 `yaml:"enableAdminContainer,omitempty"`
+	Settings             *NodeGroupBottlerocketSettingsConfig `yaml:"settings,omitempty"`
+}
+
+type NodeGroupBottlerocketSettingsConfig struct {
+	Motd string `yaml:"motd,omitempty"`
 }
 
 // Parameters shared by 'footloose' and 'ssh'
@@ -199,7 +212,31 @@ const nodeGroupTemplate = `  - desiredCapacity: {{ .DesiredCapacity }}
       withAddonPolicies:
         albIngress: true
     instanceType: {{ .InstanceType }}
-    name: {{ .Name }}`
+    name: {{ .Name }}
+    {{- if .AMIFamily }}
+    amiFamily: {{ .AMIFamily }}
+    {{- end }}
+    {{- if .AMI }}
+    ami: {{ .AMI }}
+    {{- end }}
+    {{- if .Labels }}
+    labels:
+    {{- range $key, $value := .Labels }}
+      "{{ $key }}": "{{ $value }}"
+    {{- end }}
+    {{- end }}
+    {{- if .Bottlerocket }}
+    bottlerocket:
+      {{- if .Bottlerocket.EnableAdminContainer }}
+      enableAdminContainer: {{ .Bottlerocket.EnableAdminContainer }}
+      {{- end }}
+      {{- if .Bottlerocket.Settings }}
+      settings:
+      {{- if .Bottlerocket.Settings.Motd }}
+        motd: "{{ .Bottlerocket.Settings.Motd }}"
+      {{- end }}
+      {{- end }}
+    {{- end }}`
 
 const eksTemplate = `apiVersion: infrastructure.eksctl.io/v1alpha5
 kind: EKSCluster
@@ -947,13 +984,9 @@ func generateNodeGroups(nodeGroups []NodeGroupConfig) (string, error) {
 
 	var str strings.Builder
 	firstTime := true
-	for _, ngroup := range nodeGroups {
+	for _, nodeGroup := range nodeGroups {
 		var populated bytes.Buffer
-		err = t.Execute(&populated, struct {
-			Name            string
-			InstanceType    string
-			DesiredCapacity int64
-		}{ngroup.Name, ngroup.InstanceType, ngroup.DesiredCapacity})
+		err = t.Execute(&populated, nodeGroup)
 		if err != nil {
 			return "", err
 		}
