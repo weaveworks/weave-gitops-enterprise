@@ -1205,3 +1205,16 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 	}
 	return nil
 }
+
+func GetDockerIOPasswordFromConfig(conf *WKPConfig) (string, error) {
+	return GetDockerIOPassword(conf.DockerIOPasswordFile)
+}
+
+func GetDockerIOPassword(dockerIOPasswordFile string) (string, error) {
+	dockerPasswordBytes, err := ioutil.ReadFile(dockerIOPasswordFile)
+	if err != nil {
+		return "", errors.Wrapf(err, "read docker password file %q", dockerIOPasswordFile)
+	}
+	dockerPassword := strings.TrimSuffix(string(dockerPasswordBytes), "\n")
+	return dockerPassword, nil
+}

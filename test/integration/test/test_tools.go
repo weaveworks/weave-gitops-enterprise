@@ -2,6 +2,7 @@ package test
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -617,4 +618,15 @@ func (c *context) checkDeploymentLogsContainString(namespace, deploymentName, me
 	logs, err := cmd.CombinedOutput()
 	assert.NoError(c.t, err)
 	return strings.Contains(string(logs), message)
+}
+
+func runCommand(c *context, firstItem string, cmdItems ...string) ([]byte, []byte, error) {
+	cmd := exec.Command(firstItem, cmdItems...)
+	var stdout, stderr bytes.Buffer
+	cmd.Dir = c.tmpDir
+	cmd.Env = c.env
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return stdout.Bytes(), stderr.Bytes(), err
 }
