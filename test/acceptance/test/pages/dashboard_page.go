@@ -26,7 +26,7 @@ func Dashboard(webDriver *agouti.Page) *DashboardwebDriver {
 		AlertInfo:         webDriver.FindByXPath(`//*[@id="app"]/div/div[2]/div/div[1]/div[2]/i`),
 		GrafanaLink:       webDriver.FindByLink(`View Grafana dashboards`),
 		AddComponentsLink: webDriver.FindByLink(`Add components`),
-		OpenGitRepoLink:   webDriver.FindByLink(`Open Git repo`)}
+		OpenGitRepoLink:   webDriver.FindByLink(`Open git repo`)}
 
 	return &dashboard
 }

@@ -55,7 +55,7 @@ var _ = Describe("WKP UI", func() {
 
 		var expectedWKPTitle = "Weaveworks Kubernetes Platform"
 		//var expectedClusterName = `/ gce-cluster`
-		var expectedAlertInfo = "No Alerts firing"
+		var expectedAlertInfo = "No alerts firing"
 		var expectedDocLink = "/docs"
 		var expectedGrafanaLink = "/grafana/d/all-nodes-resources/kubernetes-all-nodes-resources"
 		var expectedComponentsLink = `https://%s.com/`
