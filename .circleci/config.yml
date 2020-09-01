@@ -8,15 +8,15 @@ parameters:
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
-    - image: docker.io/weaveworks/wks-build:master-80cac886
+    - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
       environment:
         GOPATH: /go/
         SRCDIR: /src/github.com/weaveworks/wks
   working_directory: /src/github.com/weaveworks/wks
 
 integrationTestCommonEnv: &integrationTestCommonEnv
-  GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
-  GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
+  GOURL: https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz
+  GOCHECKSUM: 512103d7ad296467814a6e3f635631bd35574cab3369a97a323c9a585ccaa569
   GOROOT: /home/circleci/goroot
   GOPATH: /home/circleci/go
   SRCDIR: /home/circleci/src/github.com/weaveworks/wks
@@ -164,17 +164,17 @@ commands:
           fingerprints:
             - 'cc:e8:46:28:c2:af:5e:30:cc:01:59:ab:9b:ad:45:5c'
 
-  go-get-cached:
-    description: go get or used cached modules
+  go-mod-cached:
+    description: Download or use cached modules
     steps:
       - restore_cache:
           keys:
             - go-mod-v2-{{ checksum "go.sum" }}
       - run:
-          name: Go get
+          name: Download Go modules
           command: |
             export PATH=$GOROOT/bin:$PATH
-            go get
+            go mod download
       - save_cache:
           key: go-mod-v2-{{ checksum "go.sum" }}
           paths:
@@ -201,7 +201,7 @@ commands:
       - checkout
       - install-integration-test-deps
       - add-go-mod-ssh-keys
-      - go-get-cached
+      - go-mod-cached
       - reload-wkp-ssh-keys
       - attach_workspace:
           at: /tmp/workspace
@@ -217,11 +217,10 @@ jobs:
       - checkout
       - add-go-mod-ssh-keys
       - setup_remote_docker
-      - run: make lint
       - run:
           name: Build darwin binaries
           command: |
-            LOCAL_BINARIES_GOOS=darwin make cmd/wk/wk
+            LOCAL_BINARIES_GOOS=darwin make cmd/wk/wk BUILD_IN_CONTAINER=false
             mv cmd/wk/wk cmd/wk/wk-darwin-amd64
             # tidy up generated files and what not
             make clean
@@ -232,7 +231,8 @@ jobs:
             curl -L https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz | tar xvz
             sudo mv linux-amd64/helm /usr/bin/helm
             sudo chmod +x /usr/bin/helm
-      - run: make -j4 #Could be -j8 once we have bigger circleci instances
+      - run: touch ./wks-build/.uptodate
+      - run: make -j4 BUILD_IN_CONTAINER=false
       - deploy:
           name: Push wk to S3
           command: |
@@ -275,17 +275,7 @@ jobs:
       - run: make push
 
   unit-tests:
-    docker:
-      - image: docker.io/weaveworks/wks-build:master-80cac886
-        environment:
-          GOPATH: /go
-          SRCDIR: /src/github.com/weaveworks/wks
-          KUBECTL_URL: https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
-          KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
-          JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
-          JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
-          KUBESEAL_BINARY_PATH: /src/github.com/weaveworks/wks/setup/wk-quickstart/bin/kubeseal # used in unit-tests of workspaces/create_test.go
-          SEALED_SECRETS_CERT_PATH: /src/github.com/weaveworks/wks/test/integration/test/test-sealed-secrets-cert.crt # used in unit-tests of workspaces/create_test.go
+    <<: *defaults
     working_directory: /src/github.com/weaveworks/wks
     steps:
       - checkout
@@ -293,48 +283,30 @@ jobs:
       - run:
           name: Install kubectl
           command: |
+            export KUBECTL_URL=https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
+            export KUBECTL_CHECKSUM=da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
             curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
             echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
             tar xvzf kubectl.tar.gz --strip-components=3
             sudo mv kubectl /usr/local/bin
-
-      - run:
-          name: Install jk
-          command: |
-            curl --silent -L $JK_URL -o jk
-            echo "$JK_CHECKSUM jk" | sha256sum -c
-            chmod a+x jk
-            sudo mv jk /usr/local/bin
-
-      - run:
-          name: Install git
-          command: |
-            os=$(for f in $(find /etc -type f -maxdepth 1 \( ! -wholename /etc/os-release ! -wholename /etc/lsb-release -wholename /etc/\*release -o -wholename /etc/\*version \) 2> /dev/null); do echo ${f:5:${#f}-13}; done)
-            if [ $os = "centos" ]; then
-              sudo yum update -y
-              sudo yum install -y git
-            else
-              sudo apt-get update -y
-              sudo apt-get install -y git
-            fi
-            git config --global user.email "test@wkp.org"
-            git config --global user.name "Test Wkp"
       - run:
           name: Run unit tests
           command: |
             go version
-            make unit-tests
-            make cluster-component-tests
+            export KUBESEAL_BINARY_PATH=/src/github.com/weaveworks/wks/setup/wk-quickstart/bin/kubeseal # used in unit-tests of workspaces/create_test.go
+            export SEALED_SECRETS_CERT_PATH=/src/github.com/weaveworks/wks/test/integration/test/test-sealed-secrets-cert.crt # used in unit-tests of workspaces/create_test.go
+            make unit-tests BUILD_IN_CONTAINER=false
+            make cluster-component-tests BUILD_IN_CONTAINER=false
+      - run:
+          name: Lint
+          command: |
+            make lint BUILD_IN_CONTAINER=false
 
   container-tests:
     machine:
       image: ubuntu-1604:202004-01
     environment:
-      GOURL: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
-      GOCHECKSUM: 66d83bfb5a9ede000e33c6579a91a29e6b101829ad41fffb5c5bb6c900e109d9
-      GOROOT: /home/circleci/goroot
-      GOPATH: /home/circleci/go
-      SRCDIR: /home/circleci/src/github.com/weaveworks/wks
+      <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - checkout

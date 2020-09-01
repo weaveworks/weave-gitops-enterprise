@@ -88,14 +88,14 @@ make !$
 
 ```console
 $ git checkout master ; git fetch origin master ; git merge --ff-only master
-$ rm build/.uptodate
+$ rm wks-build/.uptodate
 $ make !$
 [...]
 Successfully built deadbeefcafe
-Successfully tagged docker.io/weaveworks/wks-build:latest
-docker tag docker.io/weaveworks/wks-build docker.io/weaveworks/wks-build:master-XXXXXXX
-touch build/.uptodate
-$ docker push docker.io/weaveworks/wks-build:$(tools/image-tag)
+Successfully tagged docker.io/weaveworks/wkp-wks-build:latest
+docker tag docker.io/weaveworks/wkp-wks-build docker.io/weaveworks/wkp-wks-build:master-XXXXXXX
+touch wks-build/.uptodate
+$ docker push docker.io/weaveworks/wkp-wks-build:$(tools/image-tag)
 ```
 
 - Update `.circleci/config.yml` to use the newly pushed image.

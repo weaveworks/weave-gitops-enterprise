@@ -45,3 +45,9 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform.tfstate.lock.info
 tf.json
+
+# Build caches
+/.cache
+/.npm
+/.yarnrc
+/.config
