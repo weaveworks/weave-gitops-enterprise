@@ -10,6 +10,8 @@ import (
 	"github.com/weaveworks/wks/test/acceptance/test/pages"
 )
 
+var n = 1
+
 var _ = Describe("WKP UI", func() {
 
 	BeforeEach(func() {
@@ -28,7 +30,10 @@ var _ = Describe("WKP UI", func() {
 						"--disable-gpu",
 						"--no-sandbox",
 					}}}))
+			Expect(err).NotTo(HaveOccurred())
 
+			// Make the page bigger so we can see all the things in the screenshots
+			err = webDriver.Size(1440, 3000)
 			Expect(err).NotTo(HaveOccurred())
 		}
 
@@ -40,6 +45,8 @@ var _ = Describe("WKP UI", func() {
 	})
 
 	AfterEach(func() {
+		TakeScreenShot(fmt.Sprintf("test-%v", n))
+		n += 1
 		//Tear down
 		//Expect(webDriver.Destroy()).To(Succeed())
 	})
@@ -106,12 +113,12 @@ var _ = Describe("WKP UI", func() {
 
 			By("- wkp-external-dns", func() {
 
-				Expect(pages.FindClusterComponent(componentsPage, "wkp-external-dns")).To(BeTrue())
+				Expect(pages.FindClusterComponent(componentsPage, "External DNS")).To(BeTrue())
 			})
 
 			By("- wkp-flux-bootstrap", func() {
 
-				Expect(pages.FindClusterComponent(componentsPage, "wkp-flux-bootstrap")).To(BeTrue())
+				Expect(pages.FindClusterComponent(componentsPage, "Flux")).To(BeTrue())
 			})
 
 			/*
@@ -120,7 +127,7 @@ var _ = Describe("WKP UI", func() {
 
 			By("- wkp-tiller", func() {
 
-				Expect(pages.FindClusterComponent(componentsPage, "wkp-tiller")).To(BeTrue())
+				Expect(pages.FindClusterComponent(componentsPage, "Tiller")).To(BeTrue())
 			})
 
 		})

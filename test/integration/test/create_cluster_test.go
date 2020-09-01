@@ -52,7 +52,7 @@ var (
 func TestClusterCreation(t *testing.T) {
 	versions := getVersions("CLUSTER_VERSIONS")
 	if len(versions) == 1 && versions[0] == "" {
-		versions = []string{"1.16.11", "1.17.7"}
+		versions = []string{"1.16.11"}
 		fmt.Printf("Using default versions: '%s'\n", strings.Join(versions, ","))
 	}
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -46,18 +47,20 @@ func String(length int) string {
 	return StringWithCharset(length, charset)
 }
 
-func TakeScreenShot() {
+func TakeScreenShot(name string) string {
 	if webDriver != nil {
-
-		filepath := SCREENSHOTS_DIR + String(16) + ".png"
+		filepath := path.Join(SCREENSHOTS_DIR, name+".png")
 		webDriver.Screenshot(filepath)
-		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
+		return filepath
 	}
+	return ""
 }
 
 func GomegaFail(message string, callerSkip ...int) {
-
-	TakeScreenShot() //Save the screenshot of failure
+	if webDriver != nil {
+		filepath := TakeScreenShot(String(16)) //Save the screenshot of failure
+		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
+	}
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)

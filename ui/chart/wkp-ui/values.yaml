@@ -138,7 +138,7 @@ config: # remember to consult `ui/src/entities/config.ts` before making any chan
       pollInterval: 15s
     nodesOverview:
       enabled: true
-      title: All Nodes
+      title: All nodes
       pollInterval: 15s
       # Must have at most 2 sparklines for the good looks
       sparklines:

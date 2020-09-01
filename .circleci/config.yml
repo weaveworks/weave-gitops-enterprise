@@ -656,6 +656,7 @@ jobs:
           <<: *integrationTestCommonEnv
           SKIP_COMPONENTS: false
           CLUSTER_VERSIONS: '1.16.11'
+          IMAGE_NAME: centos-cloud/centos-7
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -672,6 +673,7 @@ jobs:
             export CLEANUP_REPO=false
 
             # provision GCE VMs
+            export USE_IMAGE=0
             ../bin/internal/run-integration-tests.sh up
             ../bin/internal/update-config-with-node-info.sh
 

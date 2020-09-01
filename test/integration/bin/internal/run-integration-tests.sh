@@ -36,7 +36,7 @@ RUNNER_ARGS=${RUNNER_ARGS:-""}
 # Dependencies' versions:
 DOCKER_VERSION=${DOCKER_VERSION:-"$(grep DOCKER_VERSION "$REPO_ROOT_DIR/DEPENDENCIES" | cut -d"=" -f2)"}
 # Google Cloud Platform image's name & usage (only used when PROVIDER is gcp):
-IMAGE_NAME=${IMAGE_NAME:-"$(echo "$APP-centos7-docker$DOCKER_VERSION" | sed -e 's/[\.\_]*//g')"}
+IMAGE_NAME=${IMAGE_NAME:-"centos-cloud/centos-7"}
 DISK_NAME_PREFIX=${DISK_NAME_PREFIX:-$NAME}
 USE_IMAGE=${USE_IMAGE:-1}
 CREATE_IMAGE=${CREATE_IMAGE:-1}
