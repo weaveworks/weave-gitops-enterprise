@@ -24,6 +24,8 @@ integrationTestCommonEnv: &integrationTestCommonEnv
   KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
   JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
   JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
+  KUBEBUILDER_URL: https://go.kubebuilder.io/dl/2.3.1/linux/amd64
+  KUBEBUILDER_CHECKSUM: ff496970f209706763f2aba2bdcefc2de8d00085b3b972b5790117b59ea4ed10
   POD_CIDR_BLOCK: '192.168.0.0/16'
   SERVICE_CIDR_BLOCK: '10.96.0.0/12'
 
@@ -144,6 +146,14 @@ commands:
             # install hub
             curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
             sudo mv bin/hub /usr/local/bin
+
+            # TODO: Move this to the build image
+            # install kubebuilder
+            curl --silent -L $KUBEBUILDER_URL -o kubebuilder.tar.gz
+            echo "$KUBEBUILDER_CHECKSUM kubebuilder.tar.gz" | sha256sum -c
+            tar xvzf kubebuilder.tar.gz --strip-components=1
+            sudo mkdir -p /usr/local/kubebuilder
+            sudo mv bin /usr/local/kubebuilder
       - run:
           name: Install jk
           command: |
@@ -372,6 +382,11 @@ jobs:
             go test -v -run TestRunMultipleSetupInstall
 
             go test -v -run TestImageRepositoryCheck
+
+            export WORKSPACES_ORG=$WKP_GITHUB_ORG
+            export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
+            cd ../../../cmd/workspaces-controller
+            make test
 
   integration-tests-creation-footloose:
     machine:
