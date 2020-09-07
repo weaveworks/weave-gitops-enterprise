@@ -101,6 +101,9 @@ config: # remember to consult `ui/src/entities/config.ts` before making any chan
     node_pods_count:
       label: Pods
       query: sum (kube_pod_info) by (__name__,node)
+    deployment_replicas_unavailable:
+      label: Deployments unavailable
+      query: kube_deployment_status_replicas_unavailable
   clusterInfo:
     name: My Cluster
     provider: ''

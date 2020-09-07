@@ -110,26 +110,13 @@ var _ = Describe("WKP UI", func() {
 		})
 
 		By("And I should see following list of cluster components", func() {
-
-			By("- wkp-external-dns", func() {
-
-				Expect(pages.FindClusterComponent(componentsPage, "External DNS")).To(BeTrue())
-			})
-
-			By("- wkp-flux-bootstrap", func() {
-
-				Expect(pages.FindClusterComponent(componentsPage, "Flux")).To(BeTrue())
-			})
-
-			/*
-			 * TODO - Verify other components
-			 */
-
-			By("- wkp-tiller", func() {
-
-				Expect(pages.FindClusterComponent(componentsPage, "Tiller")).To(BeTrue())
-			})
-
+			clusterComponents := []string{"External DNS", "Flux", "Flux helm operator", "Gitops repo broker", "Grafana", "Manifest loader", "Prometheus", "Scope", "Tiller", "UI"}
+			for _, expectedName := range clusterComponents {
+				cmp := pages.FindClusterComponent(componentsPage, expectedName)
+				Expect(cmp).NotTo(Equal(nil))
+				Expect(cmp.Name).To(Equal(expectedName))
+				Expect(cmp.Status).To(Equal("ok"))
+			}
 		})
 	})
 })

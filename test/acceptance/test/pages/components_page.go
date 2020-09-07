@@ -9,6 +9,11 @@ type ComponentsPage struct {
 	ClusterComponentsList *agouti.MultiSelection
 }
 
+type ClusterComponent struct {
+	Name   string
+	Status string
+}
+
 //Dashboard initialises the page object
 func Components(webDriver *agouti.Page) *ComponentsPage {
 	componentsPage := ComponentsPage{
@@ -18,17 +23,16 @@ func Components(webDriver *agouti.Page) *ComponentsPage {
 	return &componentsPage
 }
 
-func FindClusterComponent(componentsPage *ComponentsPage, componentName string) bool {
-
+func FindClusterComponent(componentsPage *ComponentsPage, componentName string) *ClusterComponent {
 	count, _ := componentsPage.ClusterComponentsList.Count()
 	for i := 0; i < count; i++ {
-
-		text, _ := componentsPage.ClusterComponentsList.At(i).Text()
-
-		if text == componentName {
-			return true
+		listItemNode := componentsPage.ClusterComponentsList.At(i)
+		name, _ := listItemNode.FindByClass("cluster-component-name").Text()
+		statusNode := listItemNode.FindByXPath(`*[@data-status]`)
+		status, _ := statusNode.Attribute("data-status")
+		if name == componentName {
+			return &ClusterComponent{Name: name, Status: status}
 		}
 	}
-
-	return false
+	return &ClusterComponent{}
 }
