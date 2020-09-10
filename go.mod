@@ -8,12 +8,14 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
+	github.com/fluxcd/go-git-providers v0.0.2
 	github.com/ghodss/yaml v1.0.0
 	github.com/gliderlabs/ssh v0.1.4 // indirect
 	github.com/google/go-cmp v0.4.1
 	github.com/google/go-containerregistry v0.1.2
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-github/v28 v28.1.1
+	github.com/google/go-github/v32 v32.1.0
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
@@ -43,6 +45,7 @@ require (
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools v0.0.0-20200804011535-6c149bb5ef0d
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect

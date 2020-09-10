@@ -361,7 +361,7 @@ jobs:
             # create file with docker password
             export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
-            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" config.yaml
             sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
             sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
             sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
@@ -378,7 +378,7 @@ jobs:
             go test -v -run TestEntitlements
             # run before setting GITHUB_TOKEN
             go test -v -run TestHubAuthCheck
-            export GITHUB_TOKEN=bar
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             go test -v -run TestRunMultipleSetupInstall
 
             go test -v -run TestImageRepositoryCheck
@@ -459,7 +459,7 @@ jobs:
             export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
             # create file with docker password
             echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
-            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_USER/" config.yaml
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" config.yaml
             sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
             sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
             sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
@@ -899,11 +899,6 @@ jobs:
       - setup-integration-test-env
       - run:
           <<: *setup-base-gce-config-yaml
-      - run:
-          name: Add github org values
-          command: |
-            cd test/integration/test
-            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" config.yaml
       - run:
           name: Run e2e tests
           command: |

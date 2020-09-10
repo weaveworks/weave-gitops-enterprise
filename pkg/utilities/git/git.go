@@ -16,8 +16,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/pkg/cmdutil"
-	"github.com/weaveworks/wks/pkg/github/hub"
-	"github.com/weaveworks/wksctl/pkg/utilities/ssh"
+	"github.com/weaveworks/wks/pkg/github/ggp"
 	cryptossh "golang.org/x/crypto/ssh"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
@@ -105,7 +104,8 @@ func CreateGithubRepoWithDeployKey(
 	}
 
 	log.Infof("Creating the remote git repository %q...", repoName)
-	if _, err := hub.CreateEmpty(org, repoName, true); err != nil {
+	err = ggp.CreateEmpty(org, repoName, true)
+	if err != nil {
 		return nil, errors.Wrap(err, "create remote git repo")
 	}
 
@@ -117,7 +117,8 @@ func CreateGithubRepoWithDeployKey(
 	pubKey := cryptossh.MarshalAuthorizedKey(auth.Signer.PublicKey())
 	log.Infof("Adding Deploy key to the remote git repository %q: %q", repoName, pubKey)
 	fullRepoName := fmt.Sprintf("%s/%s", org, repoName)
-	if err := hub.RegisterDeployKey(fullRepoName, "wkp-gitops-key", string(pubKey), false); err != nil {
+	err = ggp.RegisterDeployKey(fullRepoName, "wkp-gitops-key", string(pubKey), false)
+	if err != nil {
 		return nil, errors.Wrap(err, "register deploy key")
 	}
 
@@ -142,93 +143,6 @@ func CreateGithubRepoWithDeployKey(
 	}
 
 	return gr, nil
-}
-
-// TarballToGithubRepo unrolls a wkp release tar, creates a remote GitHub repository, sets up
-// a deployment key and sets the local repository's remote to point to the new repository.
-func TarballToGithubRepo(org, repoName, tarPath, repoDir string, privKey []byte) (*GitRepo, error) {
-	log.Infof("Creating a temp directory...")
-	tmpDir, err := ioutil.TempDir("", "git-")
-	if err != nil {
-		return nil, errors.Wrap(err, "TempDir")
-	}
-	log.Infof("Temp directory %q created.", tmpDir)
-
-	log.Infof("Unrolling tar ball into local git repo")
-	cmdstr := fmt.Sprintf("cd %q && tar xz -f %q", tmpDir, tarPath)
-	cmd := exec.Command("sh", "-c", cmdstr)
-	if err := cmd.Run(); err != nil {
-		return nil, err
-	}
-
-	gitDir := filepath.Join(tmpDir, repoDir)
-
-	gr, err := CreateGithubRepoWithDeployKey(org, repoName, gitDir, privKey)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Infof("Pushing initial commit to the Git repository %q...", repoName)
-	if err := gr.Push(); err != nil {
-		return nil, errors.Wrap(err, "git push")
-	}
-
-	return gr, nil
-}
-
-func NewGithubRepoToTempDir(parentDir, repoName string) (*GitRepo, *ssh.KeyPair, error) {
-	log.Infof("Creating a temp directory...")
-	gitDir, err := ioutil.TempDir(parentDir, "git-")
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "TempDir")
-	}
-	log.Infof("Temp directory %q created.", gitDir)
-
-	log.Infof("Initializing an empty Git repository in %q...", gitDir)
-	repo, err := git.PlainInit(gitDir, false)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "git init")
-	}
-
-	log.Infof("Creating the remote git repository %q...", repoName)
-	// XXX: hub.Create succeeds if the remote repo already exists.
-	if _, err := hub.Create(gitDir, true, repoName); err != nil {
-		return nil, nil, errors.Wrap(err, "create remote git repo")
-	}
-
-	bits := 4096
-	log.Infof("Generating a %d-bit SSH key pair...", bits)
-	keyPair, err := ssh.GenerateKeyPair(bits)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "ssh generate key pair")
-	}
-
-	log.Infof("Registering the SSH deploy key with the remote git repository %q...", repoName)
-	if err := hub.RegisterDeployKey(repoName, "wkp-gitops-key", string(keyPair.PublicRSA), false); err != nil {
-		return nil, nil, errors.Wrap(err, "register deploy key")
-	}
-
-	auth, err := gitssh.NewPublicKeys("git", keyPair.PrivatePEM, "")
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "private key read")
-	}
-
-	gr := &GitRepo{
-		worktreeDir: gitDir,
-		repo:        repo,
-		auth:        auth,
-	}
-
-	log.Infof("Pushing an initial (empty) commit to the Git repository %q...", repoName)
-	if err := gr.CommitAll(DefaultAuthor, DefaultEmail, "initial commit"); err != nil {
-		return nil, nil, errors.Wrap(err, "initial commit")
-	}
-
-	if err := gr.Push(); err != nil {
-		return nil, nil, errors.Wrap(err, "git push")
-	}
-
-	return gr, keyPair, nil
 }
 
 func CloneToTempDir(parentDir, gitURL, branch string, privKey []byte) (*GitRepo, error) {
