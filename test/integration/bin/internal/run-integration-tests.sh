@@ -29,6 +29,7 @@ NAME="wkp-${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
 PROVIDER=${PROVIDER:-gcp} # Provision using provided provider, or Google Cloud Platform by default.
 NUM_HOSTS=${NUM_HOSTS:-3}
 RUN_GCP_ON=${RUN_GCP_ON:-true}
+WKP_DEBUG=${WKP_DEBUG:-true}
 PLAYBOOK=${PLAYBOOK:-setup_bare_docker.yml}
 PLAYBOOK_DOCKER_INSTALL_ROLE=${PLAYBOOK_DOCKER_INSTALL_ROLE:-docker-from-get.docker.com}
 TESTS=${TESTS:-}

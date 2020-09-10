@@ -269,7 +269,7 @@ lint:
 # We select which directory we want to descend into to not execute integration
 # tests here.
 unit-tests: $(GENERATED)
-	go test -v ./cmd/... ./pkg/...
+	WKP_DEBUG=true go test -v ./cmd/... ./pkg/...
 
 endif # BUILD_IN_CONTAINER
 
@@ -293,10 +293,10 @@ push:
 	done
 
 container-tests:
-	go test -count=1 ./test/container/...
+	WKP_DEBUG=true go test -count=1 ./test/container/...
 
 cluster-component-tests: wkp-cluster-components/build
-	EXPECTED_VERSION=$(VERSION) EXPECTED_IMAGE_TAG=$(IMAGE_TAG) go test -v ./wkp-cluster-components/...
+	WKP_DEBUG=true EXPECTED_VERSION=$(VERSION) EXPECTED_IMAGE_TAG=$(IMAGE_TAG) go test -v ./wkp-cluster-components/...
 
 
 FORCE:

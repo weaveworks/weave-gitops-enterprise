@@ -28,6 +28,7 @@ integrationTestCommonEnv: &integrationTestCommonEnv
   KUBEBUILDER_CHECKSUM: ff496970f209706763f2aba2bdcefc2de8d00085b3b972b5790117b59ea4ed10
   POD_CIDR_BLOCK: '192.168.0.0/16'
   SERVICE_CIDR_BLOCK: '10.96.0.0/12'
+  WKP_DEBUG: true
 
 integrationTestConfig: &integrationTestConfig
   requires:
