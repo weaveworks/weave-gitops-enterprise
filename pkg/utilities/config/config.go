@@ -56,6 +56,7 @@ type WKPConfig struct {
 	EnabledFeatures      EnabledFeatures `yaml:"enabledFeatures"`
 	EKSConfig            EKSConfig       `yaml:"eksConfig"`
 	WKSConfig            WKSConfig       `yaml:"wksConfig"`
+	ImageRepository      string          `yaml:"imageRepository"`
 }
 
 // Map of WKP features that can be toggled on/off
@@ -183,6 +184,9 @@ spec:
         kind: docker
         package: docker-ce
         version: 19.03.8
+      {{- if .ImageRepository }}
+      imageRepository: {{ .ImageRepository }}
+      {{- end }}
 `
 
 const machineTemplate = `- apiVersion: cluster.k8s.io/v1alpha1
@@ -931,6 +935,7 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 		APIServerArguments    string
 		KubeletArguments      string
 		ControlPlaneLbAddress string
+		ImageRepository       string
 	}{config.ClusterName,
 		config.WKSConfig.SSHConfig.SSHUser,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
@@ -938,6 +943,7 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 		buildServerArguments(config.WKSConfig.APIServerArguments),
 		buildServerArguments(config.WKSConfig.KubeletArguments),
 		getLoadBalancerAddress(config, configDir),
+		config.ImageRepository,
 	})
 
 	if err != nil {
