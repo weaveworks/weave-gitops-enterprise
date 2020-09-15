@@ -77,7 +77,7 @@ workflows:
       - preflight-ssh-gcp-centos
       - cluster-lifecycle-tests
       - cluster-lifecycle-footloose-tests
-      - enable-workspaces-tests
+      - workspaces-tests
 
   nightly:
     triggers:
@@ -883,7 +883,7 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             go test -v -run TestLifeCycleRemoveMasterNodes --timeout=1800s
 
-  enable-workspaces-tests:
+  workspaces-tests:
     docker:
       - image: quay.io/wks/build:master-134af34f
         environment:
@@ -919,7 +919,7 @@ jobs:
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_WORKSPACES_GITHUB_TOKEN
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-            go test -v -run TestEnableWorkspaces --timeout=99999s
+            go test -v -run TestWorkspaces --timeout=99999s
 
             # Cleanup
             ../bin/internal/run-integration-tests.sh destroy
