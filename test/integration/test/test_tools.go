@@ -3,6 +3,7 @@ package test
 import (
 	"bufio"
 	"bytes"
+	contxt "context"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -14,12 +15,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/wks/pkg/cmdutil"
 	"github.com/weaveworks/wks/pkg/utilities/config"
 	"github.com/weaveworks/wks/pkg/utilities/git"
+
+	"github.com/weaveworks/wks/pkg/github/ggp"
 )
 
 type context struct {
@@ -629,4 +633,89 @@ func runCommand(c *context, firstItem string, cmdItems ...string) ([]byte, []byt
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	return stdout.Bytes(), stderr.Bytes(), err
+}
+
+// findTeamAccess returns team access permission to a specific repo
+func (c *context) findTeamAccess(orgName, repoName, teamName string) (gitprovider.TeamAccess, error) {
+	ggpClient, err := ggp.CreateGithubClient()
+	assert.NoError(c.t, err)
+	ctx := contxt.Background()
+
+	orgRepoRef := ggp.NewOrgRepoRef(orgName, repoName)
+
+	repo, err := ggpClient.OrgRepositories().Get(ctx, orgRepoRef)
+	assert.NoError(c.t, err)
+
+	teamAccess, err := repo.TeamAccess().Get(ctx, teamName)
+
+	return teamAccess, err
+}
+
+func (c *context) getWorkspaceYaml(repoName, orgName, teams string) string {
+	workspaceYamlTemplate := `
+apiVersion: wkp.weave.works/v1alpha1
+kind: Workspace
+metadata:
+  name: demo
+  namespace: wkp-workspaces
+spec:
+  interval: 1m
+  suspend: false
+  gitProvider:
+    type: github
+    hostname: github.com
+    tokenRef:
+      name: github-token
+  gitRepository:
+    name: %s
+    owner: %s
+    teams: %s
+  clusterScope:
+    role: namespace-admin
+    namespaces:
+    - name: demo-app
+    - name: demo-db
+    - name: demo-resource-quota
+      resourceQuota:
+        hard:
+          limits.cpu: "2"
+          limits.memory: 2Gi
+          requests.cpu: "1"
+          requests.memory: 1Gi
+    - name: demo-limit-range
+      limitRange:
+        limits:
+          - max:
+              memory: 1Gi
+            min:
+              memory: 500Mi
+            type: Container
+    networkPolicy: workspace-isolation
+`
+
+	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams)
+}
+
+func (c *context) pushFileToGit(commitMessage, path string) {
+	commitMessage = fmt.Sprintf("-m%s", commitMessage)
+	cmd := exec.Command("git", "add", path)
+	cmd.Dir = c.tmpDir
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	assert.NoError(c.t, err)
+
+	cmd = exec.Command("git", "commit", commitMessage)
+	cmd.Dir = c.tmpDir
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+	assert.NoError(c.t, err)
+
+	cmd = exec.Command("git", "push", "origin", "master")
+	cmd.Dir = c.tmpDir
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+	assert.NoError(c.t, err)
 }
