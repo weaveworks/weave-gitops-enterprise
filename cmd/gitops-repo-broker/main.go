@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/upgrades"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/version"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/permissions"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/workspaces"
 )
 
@@ -70,16 +69,11 @@ func runServer(params paramSet) error {
 	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Get).Methods("GET")
 	r.HandleFunc("/gitops/clusters/{namespace}/{name}", clusters.Update(params.gitURL, params.gitBranch, privKey)).Methods("POST")
 	r.HandleFunc("/gitops/clusters", clusters.List).Methods("GET")
-	r.HandleFunc("/gitops/clusters", clusters.Create).Methods("POST")
 
 	r.HandleFunc("/gitops/repo/branches", branches.List(params.gitURL, params.privKeyFile)).Methods("GET")
 
-	r.HandleFunc("/gitops/workspaces", workspaces.MakeListHandler(
-		params.gitURL, params.gitBranch, privKey, params.gitPath)).Methods("GET")
+	r.HandleFunc("/gitops/workspaces", workspaces.List).Methods("GET")
 	r.HandleFunc("/gitops/workspaces", workspaces.MakeCreateHandler(
-		params.gitURL, params.gitBranch, privKey, params.gitPath)).Methods("POST")
-
-	r.HandleFunc("/gitops/permissions", permissions.MakeCreateHandler(
 		params.gitURL, params.gitBranch, privKey, params.gitPath)).Methods("POST")
 
 	srv := &http.Server{

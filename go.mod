@@ -6,6 +6,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/alioygur/gores v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/campoy/embedmd v1.0.0 // indirect
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fluxcd/go-git-providers v0.0.2
