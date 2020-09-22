@@ -651,7 +651,7 @@ func (c *context) findTeamAccess(orgName, repoName, teamName string) (gitprovide
 	return teamAccess, err
 }
 
-func (c *context) getWorkspaceYaml(repoName, orgName, teams string) string {
+func (c *context) getWorkspaceYaml(repoName, orgName, teams, resourceQuotaSpec, limitRangeSpec string) string {
 	workspaceYamlTemplate := `
 apiVersion: wkp.weave.works/v1alpha1
 kind: Workspace
@@ -675,25 +675,12 @@ spec:
     namespaces:
     - name: demo-app
     - name: demo-db
-    - name: demo-resource-quota
-      resourceQuota:
-        hard:
-          limits.cpu: "2"
-          limits.memory: 2Gi
-          requests.cpu: "1"
-          requests.memory: 1Gi
-    - name: demo-limit-range
-      limitRange:
-        limits:
-          - max:
-              memory: 1Gi
-            min:
-              memory: 500Mi
-            type: Container
+    - name: demo-resource-quota%s
+    - name: demo-limit-range%s
     networkPolicy: workspace-isolation
 `
 
-	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams)
+	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams, resourceQuotaSpec, limitRangeSpec)
 }
 
 func (c *context) pushFileToGit(commitMessage, path string) {
