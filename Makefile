@@ -72,7 +72,7 @@ LOCAL_BINARIES = \
 
 BINARIES = \
 	$(LOCAL_BINARIES) \
-	cmd/github-service/github-service \
+	cmd/git-provider-service/git-provider-service \
 	cmd/gitops-repo-broker/gitops-repo-broker \
 	cmd/mock-authz-server/server \
 	cmd/mock-https-authz-server/server \
@@ -96,7 +96,7 @@ cmd/wks-ci/.uptodate: cmd/wks-ci/wks-ci cmd/wks-ci/checks/policy/policy cmd/wks-
 kerberos/cmd/k8s-krb5-server/.uptodate: kerberos/cmd/k8s-krb5-server/server kerberos/cmd/k8s-krb5-server/Dockerfile
 cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-server/Dockerfile
 cmd/mock-https-authz-server/.uptodate: cmd/mock-https-authz-server/server cmd/mock-https-authz-server/Dockerfile
-cmd/github-service/.uptodate: cmd/github-service/github-service cmd/github-service/Dockerfile
+cmd/git-provider-service/.uptodate: cmd/git-provider-service/git-provider-service cmd/git-provider-service/Dockerfile
 cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/gitops-repo-broker/Dockerfile
 cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
 
@@ -154,7 +154,7 @@ kerberos/cmd/wk-kerberos/wk-kerberos: $(shell find kerberos/cmd/wk-kerberos/ -ty
 kerberos/cmd/k8s-krb5-server/server: kerberos/cmd/k8s-krb5-server/*.go
 cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
 cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
-cmd/github-service/github-service: cmd/github-service/*.go
+cmd/git-provider-service/git-provider-service: cmd/git-provider-service/*.go
 cmd/gitops-repo-broker/gitops-repo-broker: cmd/gitops-repo-broker/*.go
 cmd/ui-server/ui-server: cmd/ui-server/*.go
 
@@ -235,8 +235,8 @@ cmd/mock-authz-server/server:
 cmd/mock-https-authz-server/server:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-https-authz-server/*.go
 
-cmd/github-service/github-service:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/github-service
+cmd/git-provider-service/git-provider-service:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/git-provider-service
 
 cmd/gitops-repo-broker/gitops-repo-broker:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/gitops-repo-broker
