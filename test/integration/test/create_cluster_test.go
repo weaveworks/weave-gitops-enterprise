@@ -38,9 +38,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/utilities/ssh"
 	"github.com/weaveworks/wks/pkg/utilities/config"
 	"github.com/weaveworks/wks/pkg/utilities/git"
-	"github.com/weaveworks/wksctl/pkg/plan/runners/ssh"
 )
 
 var (

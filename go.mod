@@ -7,10 +7,8 @@ require (
 	github.com/alioygur/gores v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/distribution v2.7.1+incompatible
-	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/ghodss/yaml v1.0.0
-	github.com/gliderlabs/ssh v0.1.4 // indirect
 	github.com/google/go-cmp v0.4.1
 	github.com/google/go-containerregistry v0.1.4
 	github.com/google/go-github/v26 v26.1.3
@@ -21,7 +19,6 @@ require (
 	github.com/jcmturner/gofork v1.0.0 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/lithammer/dedent v1.1.0
-	github.com/mattn/go-colorable v0.1.0 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onsi/ginkgo v1.14.0
@@ -35,12 +32,12 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
+	github.com/weaveworks/cluster-api-provider-existinginfra v0.0.2
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
-	github.com/weaveworks/footloose v0.0.0-20190903132036-efbcbb7a6390
-	github.com/weaveworks/wksctl v0.9.0-alpha.0
-	github.com/xanzy/ssh-agent v0.2.1 // indirect
+	github.com/weaveworks/footloose v0.0.0-20200609124411-8f3df89ea188
+	github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20200924114541-6fdf5e9ddb9b
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
@@ -50,15 +47,15 @@ require (
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
 	gopkg.in/jcmturner/gokrb5.v6 v6.0.0-00010101000000-000000000000
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
-	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
-	gopkg.in/src-d/go-git.v4 v4.10.0
+	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
-	gopkg.in/yaml.v3 v3.0.0-20200121175148-a6ecf24a6d71
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.18.8
 	k8s.io/apimachinery v0.18.8
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	sigs.k8s.io/cluster-api v0.3.3
+	sigs.k8s.io/cluster-api v0.3.9
+	sigs.k8s.io/controller-runtime v0.6.3 // indirect
 )
 
 replace (
