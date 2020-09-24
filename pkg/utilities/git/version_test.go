@@ -9,137 +9,176 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var machinesPrevNoVersion = `apiVersion: v1
-items:
-- apiVersion: cluster.k8s.io/v1alpha1
-  kind: Machine
-  metadata:
-    labels:
-      set: master
+var machinesPrevNoVersion = `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Machine
+metadata:
+  labels:
+    set: master
+  name: master-0
+  namespace: weavek8sops
+spec:
+  clusterName: derp
+  infrastructureRef:
+    apiVersion: cluster.weave.works/v1alpha3
+    kind: ExistingInfraMachine
     name: master-0
-    namespace: weavek8sops
-  spec:
-    versions:
-      kubelet: 1.14.1
-    providerSpec:
-      value:
-        apiVersion: baremetalproviderspec/v1alpha1
-        kind: BareMetalMachineProviderSpec
-        private:
-          address: 172.17.0.2
-          port: 22
-        public:
-          address: 127.0.0.1
-          port: 2222
-- apiVersion: cluster.k8s.io/v1alpha1
-  kind: Machine
-  metadata:
-    labels:
-      set: worker
+---
+apiVersion: cluster.weave.works/v1alpha3
+kind: ExistingInfraMachine
+metadata:
+  name: master-0
+  namespace: weavek8sops
+spec:
+  private:
+    address: 172.17.0.2
+    port: 22
+  public:
+    address: 127.0.0.1
+    port: 2222
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Machine
+metadata:
+  labels:
+    set: worker
+  name: worker-0
+  namespace: weavek8sops
+spec:
+  clusterName: derp
+  infrastructureRef:
+    apiVersion: cluster.weave.works/v1alpha3
+    kind: ExistingInfraMachine
     name: worker-0
-    namespace: weavek8sops
-  spec:
-    providerSpec:
-      value:
-        apiVersion: baremetalproviderspec/v1alpha1
-        kind: BareMetalMachineProviderSpec
-        private:
-          address: 172.17.0.3
-          port: 22
-        public:
-          address: 127.0.0.1
-          port: 2223
-kind: List
+---
+apiVersion: cluster.weave.works/v1alpha3
+kind: ExistingInfraMachine
+metadata:
+  name: worker-0
+  namespace: weavek8sops
+spec:
+  private:
+    address: 172.17.0.3
+    port: 22
+  public:
+    address: 127.0.0.1
+    port: 2223
 `
 
-var machinesPrev = `apiVersion: v1
-items:
-- apiVersion: cluster.k8s.io/v1alpha1
-  kind: Machine
-  metadata:
-    labels:
-      set: master
+var machinesPrev = `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Machine
+metadata:
+  labels:
+    set: master
+  name: master-0
+  namespace: weavek8sops
+spec:
+  clusterName: derp
+  infrastructureRef:
+    apiVersion: cluster.weave.works/v1alpha3
+    kind: ExistingInfraMachine
     name: master-0
-    namespace: weavek8sops
-  spec:
-    versions:
-      kubelet: 1.14.1
-    providerSpec:
-      value:
-        apiVersion: baremetalproviderspec/v1alpha1
-        kind: BareMetalMachineProviderSpec
-        private:
-          address: 172.17.0.2
-          port: 22
-        public:
-          address: 127.0.0.1
-          port: 2222
-- apiVersion: cluster.k8s.io/v1alpha1
-  kind: Machine
-  metadata:
-    labels:
-      set: worker
+  versions:
+    kubelet: 1.14.1
+---
+apiVersion: cluster.weave.works/v1alpha3
+kind: ExistingInfraMachine
+metadata:
+  name: master-0
+  namespace: weavek8sops
+spec:
+  private:
+    address: 172.17.0.2
+    port: 22
+  public:
+    address: 127.0.0.1
+    port: 2222
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Machine
+metadata:
+  labels:
+    set: worker
+  name: worker-0
+  namespace: weavek8sops
+spec:
+  clusterName: derp
+  infrastructureRef:
+    apiVersion: cluster.weave.works/v1alpha3
+    kind: ExistingInfraMachine
     name: worker-0
-    namespace: weavek8sops
-  spec:
-    versions:
-      kubelet: 1.14.10
-    providerSpec:
-      value:
-        apiVersion: baremetalproviderspec/v1alpha1
-        kind: BareMetalMachineProviderSpec
-        private:
-          address: 172.17.0.3
-          port: 22
-        public:
-          address: 127.0.0.1
-          port: 2223
-kind: List
+  versions:
+    kubelet: 1.14.10
+---
+apiVersion: cluster.weave.works/v1alpha3
+kind: ExistingInfraMachine
+metadata:
+  name: worker-0
+  namespace: weavek8sops
+spec:
+  private:
+    address: 172.17.0.3
+    port: 22
+  public:
+    address: 127.0.0.1
+    port: 2223
 `
-
-var machinesNext = `apiVersion: v1
-items:
-- apiVersion: cluster.k8s.io/v1alpha1
-  kind: Machine
-  metadata:
-    labels:
-      set: master
+var machinesNext = `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Machine
+metadata:
+  labels:
+    set: master
+  name: master-0
+  namespace: weavek8sops
+spec:
+  clusterName: derp
+  infrastructureRef:
+    apiVersion: cluster.weave.works/v1alpha3
+    kind: ExistingInfraMachine
     name: master-0
-    namespace: weavek8sops
-  spec:
-    versions:
-      kubelet: 1.15.7
-    providerSpec:
-      value:
-        apiVersion: baremetalproviderspec/v1alpha1
-        kind: BareMetalMachineProviderSpec
-        private:
-          address: 172.17.0.2
-          port: 22
-        public:
-          address: 127.0.0.1
-          port: 2222
-- apiVersion: cluster.k8s.io/v1alpha1
-  kind: Machine
-  metadata:
-    labels:
-      set: worker
+  versions:
+    kubelet: 1.15.7
+---
+apiVersion: cluster.weave.works/v1alpha3
+kind: ExistingInfraMachine
+metadata:
+  name: master-0
+  namespace: weavek8sops
+spec:
+  private:
+    address: 172.17.0.2
+    port: 22
+  public:
+    address: 127.0.0.1
+    port: 2222
+---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Machine
+metadata:
+  labels:
+    set: worker
+  name: worker-0
+  namespace: weavek8sops
+spec:
+  clusterName: derp
+  infrastructureRef:
+    apiVersion: cluster.weave.works/v1alpha3
+    kind: ExistingInfraMachine
     name: worker-0
-    namespace: weavek8sops
-  spec:
-    versions:
-      kubelet: 1.15.7
-    providerSpec:
-      value:
-        apiVersion: baremetalproviderspec/v1alpha1
-        kind: BareMetalMachineProviderSpec
-        private:
-          address: 172.17.0.3
-          port: 22
-        public:
-          address: 127.0.0.1
-          port: 2223
-kind: List
+  versions:
+    kubelet: 1.15.7
+---
+apiVersion: cluster.weave.works/v1alpha3
+kind: ExistingInfraMachine
+metadata:
+  name: worker-0
+  namespace: weavek8sops
+spec:
+  private:
+    address: 172.17.0.3
+    port: 22
+  public:
+    address: 127.0.0.1
+    port: 2223
 `
 
 var wkClusterYaml = `apiVersion: infrastructure.eksctl.io/v1alpha5

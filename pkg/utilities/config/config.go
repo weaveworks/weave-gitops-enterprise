@@ -18,7 +18,7 @@ import (
 	"github.com/weaveworks/wks/pkg/utilities/versions"
 	wksos "github.com/weaveworks/wksctl/pkg/apis/wksprovider/machine/os"
 	"github.com/weaveworks/wksctl/pkg/cluster/machine"
-	baremetalv1 "github.com/weaveworks/wksctl/pkg/existinginfra/v1alpha3"
+	existinginfrav1 "github.com/weaveworks/wksctl/pkg/existinginfra/v1alpha3"
 	"github.com/weaveworks/wksctl/pkg/plan"
 	"github.com/weaveworks/wksctl/pkg/plan/recipe"
 	"github.com/weaveworks/wksctl/pkg/plan/resource"
@@ -1090,14 +1090,14 @@ func GenerateFootlooseSpecFromConfig(config *WKPConfig) (string, error) {
 func getPrivateIPsFromMachines(configDir string) ([]string, error) {
 	machinesManifestPath := filepath.Join(configDir, "machines.yaml")
 
-	errorsHandler := func(machines []*clusterv1.Machine, bml []*baremetalv1.ExistingInfraMachine, errors field.ErrorList) ([]*clusterv1.Machine, []*baremetalv1.ExistingInfraMachine, error) {
+	errorsHandler := func(machines []*clusterv1.Machine, eim []*existinginfrav1.ExistingInfraMachine, errors field.ErrorList) ([]*clusterv1.Machine, []*existinginfrav1.ExistingInfraMachine, error) {
 		if len(errors) > 0 {
 			utilities.PrintErrors(errors)
 			return nil, nil, apierrors.InvalidMachineConfiguration(
 				"%s failed validation, use --skip-validation to force the operation",
 				machinesManifestPath)
 		}
-		return machines, bml, nil
+		return machines, eim, nil
 	}
 
 	_, bl, err := machine.ParseAndDefaultAndValidate(machinesManifestPath, errorsHandler)
@@ -1195,7 +1195,7 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 	}
 
 	criResource := recipe.BuildCRIPlan(
-		&baremetalv1.ContainerRuntime{
+		&existinginfrav1.ContainerRuntime{
 			Kind:    "docker",
 			Package: "docker-ce",
 			Version: "19.03.8",
