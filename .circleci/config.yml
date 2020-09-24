@@ -924,6 +924,8 @@ jobs:
             # Cleanup
             ../bin/internal/run-integration-tests.sh destroy
             hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}" || echo "No worries"
+            export GITLAB_PROJECT_URL="${WORKSPACES_GITLAB_ORG}%2F${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+            curl --request DELETE --header "Authorization: Bearer ${WORKSPACES_GITLAB_ORG_ADMIN_TOKEN}" --header "Content-Type: application/json" "https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_URL}"
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
           name: Destroy GCP resources
@@ -935,4 +937,6 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
             hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+            export GITLAB_PROJECT_URL="${WORKSPACES_GITLAB_ORG}%2F${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+            curl --request DELETE --header "Authorization: Bearer ${WORKSPACES_GITLAB_ORG_ADMIN_TOKEN}" --header "Content-Type: application/json" "https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_URL}"
           when: on_fail        

@@ -7,15 +7,14 @@ require (
 	github.com/alioygur/gores v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/campoy/embedmd v1.0.0 // indirect
+	github.com/dinosk/go-git-providers v0.0.7
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
-	github.com/fluxcd/go-git-providers v0.0.2
 	github.com/ghodss/yaml v1.0.0
 	github.com/gliderlabs/ssh v0.1.4 // indirect
 	github.com/google/go-cmp v0.4.1
 	github.com/google/go-containerregistry v0.1.2
 	github.com/google/go-github/v26 v26.1.3
-	github.com/google/go-github/v28 v28.1.1 // indirect
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/gorilla/mux v1.7.3
@@ -46,7 +45,6 @@ require (
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/tools v0.0.0-20200804011535-6c149bb5ef0d
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
@@ -61,7 +59,6 @@ require (
 	k8s.io/api v0.17.4
 	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
-	k8s.io/kubernetes v0.0.0-20190201210629-c6d339953bd4 // indirect
 	sigs.k8s.io/cluster-api v0.0.0-20181211193542-3547f8dd9307
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )

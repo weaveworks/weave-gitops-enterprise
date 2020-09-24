@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/dinosk/go-git-providers/gitprovider"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -679,6 +679,51 @@ spec:
 `
 
 	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams, resourceQuotaSpec, limitRangeSpec)
+}
+
+func (c *context) getGitlabWorkspaceYaml(hostName, repoName, orgName, teams string) string {
+	workspaceYamlTemplate := `
+apiVersion: wkp.weave.works/v1alpha1
+kind: Workspace
+metadata:
+  name: gitlab-demo
+  namespace: wkp-workspaces
+spec:
+  interval: 1m
+  suspend: false
+  gitProvider:
+    type: gitlab
+    hostname: %s
+    tokenRef:
+      name: gitlab-token
+  gitRepository:
+    name: %s
+    owner: %s
+    teams: %s
+  clusterScope:
+    role: namespace-admin
+    namespaces:
+    - name: gitlab-demo-app
+    - name: gitlab-demo-db
+    - name: gitlab-demo-resource-quota
+      resourceQuota:
+        hard:
+          limits.cpu: "2"
+          limits.memory: 2Gi
+          requests.cpu: "1"
+          requests.memory: 1Gi
+    - name: demo-limit-range
+      limitRange:
+        limits:
+          - max:
+              memory: 1Gi
+            min:
+              memory: 500Mi
+            type: Container
+    networkPolicy: workspace-isolation
+`
+
+	return fmt.Sprintf(workspaceYamlTemplate, hostName, repoName, orgName, teams)
 }
 
 func (c *context) pushFileToGit(commitMessage, path string) {
