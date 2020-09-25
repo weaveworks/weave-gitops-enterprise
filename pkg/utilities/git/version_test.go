@@ -9,176 +9,169 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var machinesPrevNoVersion = `apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Machine
-metadata:
-  labels:
-    set: master
-  name: master-0
-  namespace: weavek8sops
-spec:
-  clusterName: derp
-  infrastructureRef:
-    apiVersion: cluster.weave.works/v1alpha3
-    kind: ExistingInfraMachine
+var machinesPrevNoVersion = `apiVersion: v1
+items:
+- apiVersion: cluster.x-k8s.io/v1alpha3
+  kind: Machine
+  metadata:
+    labels:
+      set: master
     name: master-0
----
-apiVersion: cluster.weave.works/v1alpha3
-kind: ExistingInfraMachine
-metadata:
-  name: master-0
-  namespace: weavek8sops
-spec:
-  private:
-    address: 172.17.0.2
-    port: 22
-  public:
-    address: 127.0.0.1
-    port: 2222
----
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Machine
-metadata:
-  labels:
-    set: worker
-  name: worker-0
-  namespace: weavek8sops
-spec:
-  clusterName: derp
-  infrastructureRef:
-    apiVersion: cluster.weave.works/v1alpha3
-    kind: ExistingInfraMachine
+    namespace: weavek8sops
+  spec:
+    clusterName: derp
+    infrastructureRef:
+      apiVersion: cluster.weave.works/v1alpha3
+      kind: ExistingInfraMachine
+      name: master-0
+- apiVersion: cluster.weave.works/v1alpha3
+  kind: ExistingInfraMachine
+  metadata:
+    name: master-0
+    namespace: weavek8sops
+  spec:
+    private:
+      address: 172.17.0.2
+      port: 22
+    public:
+      address: 127.0.0.1
+      port: 2222
+- apiVersion: cluster.x-k8s.io/v1alpha3
+  kind: Machine
+  metadata:
+    labels:
+      set: worker
     name: worker-0
----
-apiVersion: cluster.weave.works/v1alpha3
-kind: ExistingInfraMachine
-metadata:
-  name: worker-0
-  namespace: weavek8sops
-spec:
-  private:
-    address: 172.17.0.3
-    port: 22
-  public:
-    address: 127.0.0.1
-    port: 2223
+    namespace: weavek8sops
+  spec:
+    clusterName: derp
+    infrastructureRef:
+      apiVersion: cluster.weave.works/v1alpha3
+      kind: ExistingInfraMachine
+      name: worker-0
+- apiVersion: cluster.weave.works/v1alpha3
+  kind: ExistingInfraMachine
+  metadata:
+    name: worker-0
+    namespace: weavek8sops
+  spec:
+    private:
+      address: 172.17.0.3
+      port: 22
+    public:
+      address: 127.0.0.1
+      port: 2223
 `
 
-var machinesPrev = `apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Machine
-metadata:
-  labels:
-    set: master
-  name: master-0
-  namespace: weavek8sops
-spec:
-  clusterName: derp
-  infrastructureRef:
-    apiVersion: cluster.weave.works/v1alpha3
-    kind: ExistingInfraMachine
+var machinesPrev = `apiVersion: v1
+items: 
+- apiVersion: cluster.x-k8s.io/v1alpha3
+  kind: Machine
+  metadata:
+    labels:
+      set: master
     name: master-0
-  versions:
-    kubelet: 1.14.1
----
-apiVersion: cluster.weave.works/v1alpha3
-kind: ExistingInfraMachine
-metadata:
-  name: master-0
-  namespace: weavek8sops
-spec:
-  private:
-    address: 172.17.0.2
-    port: 22
-  public:
-    address: 127.0.0.1
-    port: 2222
----
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Machine
-metadata:
-  labels:
-    set: worker
-  name: worker-0
-  namespace: weavek8sops
-spec:
-  clusterName: derp
-  infrastructureRef:
-    apiVersion: cluster.weave.works/v1alpha3
-    kind: ExistingInfraMachine
+    namespace: weavek8sops
+  spec:
+    clusterName: derp
+    infrastructureRef:
+      apiVersion: cluster.weave.works/v1alpha3
+      kind: ExistingInfraMachine
+      name: master-0
+    version: 1.14.1
+- apiVersion: cluster.weave.works/v1alpha3
+  kind: ExistingInfraMachine
+  metadata:
+    name: master-0
+    namespace: weavek8sops
+  spec:
+    private:
+      address: 172.17.0.2
+      port: 22
+    public:
+      address: 127.0.0.1
+      port: 2222
+- apiVersion: cluster.x-k8s.io/v1alpha3
+  kind: Machine
+  metadata:
+    labels:
+      set: worker
     name: worker-0
-  versions:
-    kubelet: 1.14.10
----
-apiVersion: cluster.weave.works/v1alpha3
-kind: ExistingInfraMachine
-metadata:
-  name: worker-0
-  namespace: weavek8sops
-spec:
-  private:
-    address: 172.17.0.3
-    port: 22
-  public:
-    address: 127.0.0.1
-    port: 2223
+    namespace: weavek8sops
+  spec:
+    clusterName: derp
+    infrastructureRef:
+      apiVersion: cluster.weave.works/v1alpha3
+      kind: ExistingInfraMachine
+      name: worker-0
+    version: 1.14.10
+- apiVersion: cluster.weave.works/v1alpha3
+  kind: ExistingInfraMachine
+  metadata:
+    name: worker-0
+    namespace: weavek8sops
+  spec:
+    private:
+      address: 172.17.0.3
+      port: 22
+    public:
+      address: 127.0.0.1
+      port: 2223
 `
-var machinesNext = `apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Machine
-metadata:
-  labels:
-    set: master
-  name: master-0
-  namespace: weavek8sops
-spec:
-  clusterName: derp
-  infrastructureRef:
-    apiVersion: cluster.weave.works/v1alpha3
-    kind: ExistingInfraMachine
+var machinesNext = `apiVersion: v1
+items:
+- apiVersion: cluster.x-k8s.io/v1alpha3
+  kind: Machine
+  metadata:
+    labels:
+      set: master
     name: master-0
-  versions:
-    kubelet: 1.15.7
----
-apiVersion: cluster.weave.works/v1alpha3
-kind: ExistingInfraMachine
-metadata:
-  name: master-0
-  namespace: weavek8sops
-spec:
-  private:
-    address: 172.17.0.2
-    port: 22
-  public:
-    address: 127.0.0.1
-    port: 2222
----
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Machine
-metadata:
-  labels:
-    set: worker
-  name: worker-0
-  namespace: weavek8sops
-spec:
-  clusterName: derp
-  infrastructureRef:
-    apiVersion: cluster.weave.works/v1alpha3
-    kind: ExistingInfraMachine
+    namespace: weavek8sops
+  spec:
+    clusterName: derp
+    infrastructureRef:
+      apiVersion: cluster.weave.works/v1alpha3
+      kind: ExistingInfraMachine
+      name: master-0
+    version: 1.15.7
+- apiVersion: cluster.weave.works/v1alpha3
+  kind: ExistingInfraMachine
+  metadata:
+    name: master-0
+    namespace: weavek8sops
+  spec:
+    private:
+      address: 172.17.0.2
+      port: 22
+    public:
+      address: 127.0.0.1
+      port: 2222
+- apiVersion: cluster.x-k8s.io/v1alpha3
+  kind: Machine
+  metadata:
+    labels:
+      set: worker
     name: worker-0
-  versions:
-    kubelet: 1.15.7
----
-apiVersion: cluster.weave.works/v1alpha3
-kind: ExistingInfraMachine
-metadata:
-  name: worker-0
-  namespace: weavek8sops
-spec:
-  private:
-    address: 172.17.0.3
-    port: 22
-  public:
-    address: 127.0.0.1
-    port: 2223
+    namespace: weavek8sops
+  spec:
+    clusterName: derp
+    infrastructureRef:
+      apiVersion: cluster.weave.works/v1alpha3
+      kind: ExistingInfraMachine
+      name: worker-0
+    version: 1.15.7
+- apiVersion: cluster.weave.works/v1alpha3
+  kind: ExistingInfraMachine
+  metadata:
+    name: worker-0
+    namespace: weavek8sops
+  spec:
+    private:
+      address: 172.17.0.3
+      port: 22
+    public:
+      address: 127.0.0.1
+      port: 2223
 `
 
 var wkClusterYaml = `apiVersion: infrastructure.eksctl.io/v1alpha5
@@ -262,7 +255,7 @@ func TestUpdateMachinesK8sVersions_Standard(t *testing.T) {
 
 	content, err := readFile(fileName)
 	assert.NoError(t, err)
-	assert.Equal(t, content, machinesNext)
+	assert.Equal(t, machinesNext, content)
 }
 
 func TestGetK8sVersionEKS(t *testing.T) {

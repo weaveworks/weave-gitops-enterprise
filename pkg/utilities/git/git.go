@@ -564,7 +564,10 @@ func GetMachinesK8sVersions(repoPath, machinesConfigPath string) ([]string, erro
 	// Iterate through all the machines and collect their kubelet versions in a map
 	versionMap := map[string]bool{}
 	for _, machineNode := range machineNodes.Content {
-		version := FindNestedField(machineNode, "spec", "versions", "kubelet")
+		if isExistingInfraMachine(machineNode) {
+			continue
+		}
+		version := FindNestedField(machineNode, "spec", "version")
 		if version == nil || version.Value == "" {
 			return nil, fmt.Errorf("Kubelet version missing for a node in %s", machinesConfigPath)
 		}
@@ -622,7 +625,10 @@ func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) err
 	}
 	// Iterate through all the machines and update their kubelet versions
 	for _, machineNode := range machineNodes.Content {
-		err := UpdateNestedFields(machineNode, version, "spec", "versions", "kubelet")
+		if isExistingInfraMachine(machineNode) {
+			continue
+		}
+		err := UpdateNestedFields(machineNode, version, "spec", "version")
 		if err != nil {
 			return err
 		}
@@ -724,4 +730,11 @@ func ReadFile(repoDir, filePath, commit string) ([]byte, error) {
 		return nil, MakeErrorWrapper("gitReadFile")(err)
 	}
 	return data, nil
+}
+func isExistingInfraMachine(machineNode *yaml.Node) bool {
+	kind := FindNestedField(machineNode, "kind")
+	if kind == nil || kind.Value == "" || kind.Value == "ExistingInfraMachine" {
+		return true
+	}
+	return false
 }
