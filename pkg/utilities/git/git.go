@@ -88,6 +88,13 @@ func CreateLocalRepo(gitDir string, privKey []byte) (*GitRepo, error) {
 	}, nil
 }
 
+func qualifiedRepo(o, r string) string {
+	if o == "" {
+		return r
+	}
+	return o + "/" + r
+}
+
 // CreateGithubRepoWithDeployKey creates a remote GitHub repository with a deploy key and either
 // updates a local repository to set its origin to the new repository or creates a new local repository
 // with an origin of the new GitHub repository
@@ -103,7 +110,7 @@ func CreateGithubRepoWithDeployKey(
 		return nil, errors.Wrap(err, "set up local repo")
 	}
 
-	log.Infof("Creating the remote git repository %q...", repoName)
+	log.Infof("Creating the remote git repository %q...", qualifiedRepo(org, repoName))
 	err = ggp.CreateEmpty(org, repoName, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "create remote git repo")
@@ -115,7 +122,7 @@ func CreateGithubRepoWithDeployKey(
 	}
 
 	pubKey := cryptossh.MarshalAuthorizedKey(auth.Signer.PublicKey())
-	log.Infof("Adding Deploy key to the remote git repository %q: %q", repoName, pubKey)
+	log.Infof("Adding Deploy key to the remote git repository %q: %q", qualifiedRepo(org, repoName), pubKey)
 	fullRepoName := fmt.Sprintf("%s/%s", org, repoName)
 	err = ggp.RegisterDeployKey(fullRepoName, "wkp-gitops-key", string(pubKey), false)
 	if err != nil {
