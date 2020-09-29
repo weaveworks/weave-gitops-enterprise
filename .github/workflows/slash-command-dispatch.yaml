@@ -1,0 +1,21 @@
+name: Slash command dispatch
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  slashCommandDispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slash Command Dispatch
+        # @v2
+        uses: weaveworks/slash-command-dispatch@7dd4ee1aa3be41c206a08dba4fa0c486cfd595ee
+        with:
+          # This is an Secret in the Weaveworks Organization (not wks repo)
+          token: ${{ secrets.WKS_CI_TEST_BOT_TOKEN }}
+          reaction-token: ${{ secrets.WKS_CI_TEST_BOT_TOKEN }}
+          permission: write
+          commands: |
+            test
+
