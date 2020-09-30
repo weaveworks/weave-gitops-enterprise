@@ -7,9 +7,9 @@ require (
 	github.com/alioygur/gores v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/campoy/embedmd v1.0.0 // indirect
-	github.com/dinosk/go-git-providers v0.0.7
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/emirpasic/gods v1.12.0 // indirect
+	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/ghodss/yaml v1.0.0
 	github.com/gliderlabs/ssh v0.1.4 // indirect
 	github.com/google/go-cmp v0.4.1
