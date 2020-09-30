@@ -12,6 +12,11 @@ import (
 
 var n = 1
 
+func TakeNextScreenshot() {
+	TakeScreenShot(fmt.Sprintf("test-%v", n))
+	n += 1
+}
+
 var _ = Describe("WKP UI", func() {
 
 	BeforeEach(func() {
@@ -39,14 +44,13 @@ var _ = Describe("WKP UI", func() {
 
 		By("When I navigate to WKP dashboard", func() {
 
-			Expect(webDriver.Navigate(wkpDashboardUrl)).To(Succeed())
+			Expect(webDriver.Navigate(wkpUrl)).To(Succeed())
 
 		})
 	})
 
 	AfterEach(func() {
-		TakeScreenShot(fmt.Sprintf("test-%v", n))
-		n += 1
+		TakeNextScreenshot()
 		//Tear down
 		//Expect(webDriver.Destroy()).To(Succeed())
 	})

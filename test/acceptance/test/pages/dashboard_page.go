@@ -19,8 +19,8 @@ type DashboardwebDriver struct {
 //Dashboard initialises the webDriver object
 func Dashboard(webDriver *agouti.Page) *DashboardwebDriver {
 	dashboard := DashboardwebDriver{
-		WKPTitle:          webDriver.FindByXPath(`//*[@id="app"]/div/div[1]/div/a[1]`),
-		WKPDocLink:        webDriver.FindByXPath(`//*[@id="app"]/div/div[1]/div/a[2]`),
+		WKPTitle:          webDriver.Find(`.nav-bar a[title="Home"]`),
+		WKPDocLink:        webDriver.Find(`.nav-bar a[title="User guide"]`),
 		ClusterName:       webDriver.FindByXPath(`//*[@id="app"]/div/div[2]/div/div[1]/div[1]/div/div[1]/span[2]`),
 		K8SVersion:        webDriver.Find("#wkp-ui-cluster-version"),
 		AlertInfo:         webDriver.FindByXPath(`//*[@id="app"]/div/div[2]/div/div[1]/div[2]/i`),

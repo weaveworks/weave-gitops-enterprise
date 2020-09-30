@@ -21,7 +21,8 @@ var webDriver *agouti.Page
 
 var gitProvider string
 var seleniumServiceUrl string
-var wkpDashboardUrl string
+
+const wkpUrl = "http://localhost:8090"
 
 const ARTEFACTS_BASE_DIR string = "/tmp/workspace/"
 const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
@@ -92,8 +93,6 @@ var _ = BeforeSuite(func() {
 
 	gitProvider = "github" //TODO - Read from config.yaml
 	seleniumServiceUrl = "http://localhost:4444/wd/hub"
-	wkpDashboardUrl = "http://localhost:8090/"
-
 })
 
 var _ = AfterSuite(func() {

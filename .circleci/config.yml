@@ -644,6 +644,8 @@ jobs:
           <<: *integrationTestCommonEnv
           SKIP_COMPONENTS: false
           CLUSTER_VERSIONS: '1.16.11'
+          NUM_MASTERS: 1
+          NUM_WORKERS: 1
           IMAGE_NAME: centos-cloud/centos-7
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
@@ -661,23 +663,29 @@ jobs:
             export CLEANUP_REPO=false
 
             # provision GCE VMs
-            export USE_IMAGE=0
-            ../bin/internal/run-integration-tests.sh up
-            ../bin/internal/update-config-with-node-info.sh
+            USE_IMAGE=0 NUM_HOSTS=2 ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh 1 false
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-            go test -v -run TestClusterCreation --timeout=99999s
+            export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
+
+            # Create a cluster and enable team workspaces on it
+            go test -v -run "TestWorkspaces/Test that we can enable the workspaces" --timeout=99999s
+
+            # Wait for that test to propagate and settle
+            sleep 120
+
             export SELENIUM_DEBUG=true
             ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
             cd ../../acceptance/test/
             go test -v
-            cd ../../integration/test
 
             if [ $CLEANUP_REPO != "false" ]; then
               hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
             fi
 
+            cd ../../integration/test
             ../bin/internal/run-integration-tests.sh destroy
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
