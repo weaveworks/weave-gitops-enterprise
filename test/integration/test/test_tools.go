@@ -649,7 +649,7 @@ func (c *context) findTeamAccess(orgName, repoName, teamName string) (gitprovide
 	return teamAccess, err
 }
 
-func (c *context) getWorkspaceYaml(repoName, orgName, teams, resourceQuotaSpec, limitRangeSpec string) string {
+func (c *context) getWorkspaceYaml(repoName, orgName, teams, role, resourceQuotaSpec, limitRangeSpec string) string {
 	workspaceYamlTemplate := `
 apiVersion: wkp.weave.works/v1alpha1
 kind: Workspace
@@ -669,7 +669,7 @@ spec:
     owner: %s
     teams: %s
   clusterScope:
-    role: namespace-admin
+    role: %s
     namespaces:
     - name: demo-app
     - name: demo-db
@@ -678,10 +678,10 @@ spec:
     networkPolicy: workspace-isolation
 `
 
-	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams, resourceQuotaSpec, limitRangeSpec)
+	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams, role, resourceQuotaSpec, limitRangeSpec)
 }
 
-func (c *context) getGitlabWorkspaceYaml(hostName, repoName, orgName, teams string) string {
+func (c *context) getGitlabWorkspaceYaml(hostName, repoName, orgName, teams, role string) string {
 	workspaceYamlTemplate := `
 apiVersion: wkp.weave.works/v1alpha1
 kind: Workspace
@@ -701,7 +701,7 @@ spec:
     owner: %s
     teams: %s
   clusterScope:
-    role: namespace-admin
+    role: %s
     namespaces:
     - name: gitlab-demo-app
     - name: gitlab-demo-db
@@ -723,7 +723,7 @@ spec:
     networkPolicy: workspace-isolation
 `
 
-	return fmt.Sprintf(workspaceYamlTemplate, hostName, repoName, orgName, teams)
+	return fmt.Sprintf(workspaceYamlTemplate, hostName, repoName, orgName, teams, role)
 }
 
 func (c *context) pushFileToGit(commitMessage, path string) {
