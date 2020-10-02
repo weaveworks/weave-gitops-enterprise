@@ -306,6 +306,7 @@ jobs:
             go version
             export KUBESEAL_BINARY_PATH=/src/github.com/weaveworks/wks/setup/wk-quickstart/bin/kubeseal # used in unit-tests of workspaces/create_test.go
             export SEALED_SECRETS_CERT_PATH=/src/github.com/weaveworks/wks/test/integration/test/test-sealed-secrets-cert.crt # used in unit-tests of workspaces/create_test.go
+            export WKP_NO_SCOPES_GITHUB_TOKEN=$WKP_NO_SCOPES_GITHUB_TOKEN
             make unit-tests BUILD_IN_CONTAINER=false
             make cluster-component-tests BUILD_IN_CONTAINER=false
       - run:
