@@ -711,7 +711,7 @@ jobs:
       - image: quay.io/wks/build:master-134af34f
         environment:
           <<: *integrationTestCommonEnv
-          # IMAGE_NAME: centos-cloud/centos-7
+          IMAGE_NAME: centos-cloud/centos-7
           USE_LB: false
           NUM_MASTERS: 3
           NUM_WORKERS: 2
@@ -737,8 +737,8 @@ jobs:
             cd test/integration/test
 
             # provision GCE VMs
-            ../bin/internal/run-integration-tests.sh up
-            ../bin/internal/update-config-with-node-info.sh
+            USE_IMAGE=0 NUM_HOSTS=2 ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh 1 false
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
