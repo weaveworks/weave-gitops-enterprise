@@ -735,3 +735,23 @@ func TestDefaultSSHValues(t *testing.T) {
 	assert.Equal(t, int64(22), m1.PrivatePort)
 	assert.Equal(t, "172.17.20.6", m1.PrivateAddress)
 }
+
+func TestWorkMasterCount(t *testing.T) {
+	testinput := []struct {
+		config        string
+		controlPlanes string
+		workers       string
+	}{
+		{validSSH, "1", "1"},
+		{missingWorker, "1", "0"},
+		{missingMaster, "0", "1"},
+	}
+	for _, testvals := range testinput {
+		conf, err := unmarshalConfig([]byte(testvals.config))
+		require.NoError(t, err)
+		c, err := GenerateClusterFileContentsFromConfig(conf, "")
+		require.NoError(t, err)
+		assert.True(t, strings.Contains(c, "controlPlaneMachineCount: "+testvals.controlPlanes))
+		assert.True(t, strings.Contains(c, "workerMachineCount: "+testvals.workers))
+	}
+}

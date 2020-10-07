@@ -167,7 +167,9 @@ spec:
       {{- end }}
       {{- if .KubeletArguments }}
       kubeletArguments: {{ .KubeletArguments }}
-      {{- end }}
+	  {{- end }}
+	  controlPlaneMachineCount: {{ .CPMachineCount }}
+	  workerMachineCount: {{ .WorkerMachineCount }}
       os:
         files:
         - source:
@@ -665,33 +667,39 @@ func checkRequiredSSHValues(sshConfig *SSHConfig) error {
 		return fmt.Errorf("No machine information provided")
 	}
 
-	masters := 0
-	workers := 0
-	for idx := range sshConfig.Machines {
-		machine := &sshConfig.Machines[idx]
+	masters, workers, err := getMachineCounts(sshConfig.Machines)
+	if err != nil {
+		return err
+	}
+	if masters == 0 || workers == 0 {
+		return fmt.Errorf("invalid machine set. At least one master and one worker must be specified")
+	}
+
+	return nil
+}
+
+func getMachineCounts(machines []MachineSpec) (int, int, error) {
+	var masters, workers int
+	for idx := range machines {
+		machine := &machines[idx]
 
 		if machine.PublicAddress == "" {
-			return fmt.Errorf("A public address must be specified for each machine")
+			return 0, 0, fmt.Errorf("a public address must be specified for each machine")
 		}
 
 		switch machine.Role {
 		case "":
-			return fmt.Errorf("A role ('master' or 'worker') must be specified for each machine")
+			return 0, 0, fmt.Errorf("a role ('master' or 'worker') must be specified for each machine")
 		case "master":
 			masters++
 		case "worker":
 			workers++
 		default:
-			return fmt.Errorf("Invalid machine role: '%s'. Only 'master' and 'worker' are valid.",
+			return 0, 0, fmt.Errorf("invalid machine role: '%s'. Only 'master' and 'worker' are valid",
 				machine.Role)
 		}
 	}
-
-	if masters == 0 || workers == 0 {
-		return fmt.Errorf("Invalid machine set. At least one master and one worker must be specified.")
-	}
-
-	return nil
+	return masters, workers, nil
 }
 
 func setDefaultSSHValues(sshConfig *SSHConfig) {
@@ -944,6 +952,10 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 		return "", err
 	}
 
+	controlPlanes, workers, err := getMachineCounts(config.WKSConfig.SSHConfig.Machines)
+	if err != nil {
+		return "", err
+	}
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
 		ClusterName           string
@@ -954,6 +966,8 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 		KubeletArguments      string
 		ControlPlaneLbAddress string
 		ImageRepository       string
+		CPMachineCount        string
+		WorkerMachineCount    string
 	}{config.ClusterName,
 		config.WKSConfig.SSHConfig.SSHUser,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
@@ -962,6 +976,8 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 		buildServerArguments(config.WKSConfig.KubeletArguments),
 		getLoadBalancerAddress(config, configDir),
 		config.ImageRepository,
+		strconv.Itoa(controlPlanes),
+		strconv.Itoa(workers),
 	})
 
 	if err != nil {
