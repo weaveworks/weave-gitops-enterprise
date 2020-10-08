@@ -345,7 +345,7 @@ jobs:
           name: Run integration tests
           command: |
             branch=$(git rev-parse --abbrev-ref HEAD)
-            CIRCLE_TOKEN=$WEAVEWORKSBOT_CIRCLECI_TOKEN ./tools/trigger-integration-tests.sh "${branch}"
+            CIRCLECI_TOKEN=$WEAVEWORKSBOT_CIRCLECI_TOKEN ./tools/trigger-integration-tests.sh "${branch}"
 
   # Can be a bit faster
   fast-integration-tests:
