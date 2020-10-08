@@ -566,7 +566,7 @@ func TestRequiredSSHValues(t *testing.T) {
 		{missingMaster,
 			"Invalid machine set. At least one master and one worker must be specified."},
 		{missingRole,
-			"A role ('master' or 'worker') must be specified for each machine"},
+			"a role ('master' or 'worker') must be specified for each machine"},
 		{invalidRole,
 			"Invalid machine role: 'supervisor'. Only 'master' and 'worker' are valid."},
 		{invalidSSHKeyFile, `no file found at path: "8128goober" for field: "sshKeyFile"`}}
@@ -574,12 +574,13 @@ func TestRequiredSSHValues(t *testing.T) {
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
 		require.NoError(t, err)
-		err = checkRequiredSSHValues(&conf.WKSConfig.SSHConfig)
+		err = checkRequiredSSHValues(conf)
 		assert.Equal(t, testvals.errorMsg, fmt.Sprintf("%v", err))
 	}
 }
 
 const validFootlooseDocker = `
+track: wks-footloose
 wksConfig:
   footlooseConfig:
     backend: docker
@@ -589,6 +590,7 @@ wksConfig:
 `
 
 const validFootlooseIgnite = `
+track: wks-footloose
 wksConfig:
   footlooseConfig:
     backend: ignite
@@ -745,13 +747,15 @@ func TestWorkMasterCount(t *testing.T) {
 		{validSSH, "1", "1"},
 		{missingWorker, "1", "0"},
 		{missingMaster, "0", "1"},
+		{validFootlooseDocker, "1", "1"},
+		{validFootlooseIgnite, "1", "1"},
 	}
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
 		require.NoError(t, err)
 		c, err := GenerateClusterFileContentsFromConfig(conf, "")
 		require.NoError(t, err)
-		assert.True(t, strings.Contains(c, "controlPlaneMachineCount: "+testvals.controlPlanes))
-		assert.True(t, strings.Contains(c, "workerMachineCount: "+testvals.workers))
+		assert.True(t, strings.Contains(c, "controlPlaneMachineCount: \""+testvals.controlPlanes+"\""))
+		assert.True(t, strings.Contains(c, "workerMachineCount: \""+testvals.workers+"\""))
 	}
 }
