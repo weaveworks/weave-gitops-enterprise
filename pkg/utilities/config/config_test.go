@@ -12,6 +12,13 @@ import (
 
 // Tests for required values
 
+const validTrackExisting = `
+track: "wks-components"
+clusterName: ""
+dockerIOUser: "TheodoreLogan"
+dockerIOPasswordFile: "testdata/passwordFile"
+`
+
 const validTrackEKS = `
 track: "eks"
 clusterName: ""
@@ -88,13 +95,14 @@ func TestRequiredGlobals(t *testing.T) {
 		config   string
 		errorMsg string
 	}{
+		{validTrackExisting, "<nil>"},
 		{validTrackEKS, "<nil>"},
 		{validTrackEKSWithGitURL, "<nil>"},
 		{validTrackSSH, "<nil>"},
 		{validTrackFootloose, "<nil>"},
 		{invalidClusterName, `Invalid clusterName: "wk-FOO", a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`},
 		{invalidLongClusterName, `Invalid clusterName: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", must be no more than 253 characters`},
-		{invalidTrack, "track must be one of: 'eks', 'wks-ssh', or 'wks-footloose'"},
+		{invalidTrack, "track must be one of: 'eks', 'wks-ssh', 'wks-footloose' or 'wks-components'"},
 		{missingTrack, "track must be specified"},
 		{missingUser, "dockerIOUser must be specified"},
 		{missingPasswordFile, "dockerIOPasswordFile must be specified"}}

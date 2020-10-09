@@ -473,10 +473,10 @@ func checkRequiredGlobalValues(config *WKPConfig) error {
 	switch config.Track {
 	case "":
 		return fmt.Errorf("track must be specified")
-	case "eks", "wks-ssh", "wks-footloose":
+	case "eks", "wks-ssh", "wks-footloose", "wks-components":
 		return nil
 	default:
-		return fmt.Errorf("track must be one of: 'eks', 'wks-ssh', or 'wks-footloose'")
+		return fmt.Errorf("track must be one of: 'eks', 'wks-ssh', 'wks-footloose' or 'wks-components'")
 	}
 }
 
@@ -743,6 +743,10 @@ func checkRequiredValues(config *WKPConfig) error {
 
 	if err := checkRequiredGitValues(config); err != nil {
 		return err
+	}
+
+	if config.Track == "wks-components" {
+		return nil
 	}
 
 	if config.Track == "eks" {
@@ -1200,14 +1204,15 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 		if err != nil {
 			return err
 		}
-	} else {
-		// wks-ssh
+	} else if conf.Track == "wks-ssh" {
 		ips = []string{}
 		for _, m := range conf.WKSConfig.SSHConfig.Machines {
 			if m.Role == "master" {
 				ips = append(ips, m.PrivateAddress)
 			}
 		}
+	} else {
+		return errors.Errorf("Unsupported track for configuring LB: %s", conf.Track)
 	}
 
 	haConfigResource := &resource.File{
