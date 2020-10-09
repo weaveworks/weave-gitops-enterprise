@@ -160,10 +160,10 @@ metadata:
 spec:
       user: {{ .SSHUser }}
       {{- if or (.ControlPlaneLbAddress) (.APIServerArguments) }}
+      {{- if .ControlPlaneLbAddress }}
+      controlPlaneEndpoint: {{ .ControlPlaneLbAddress }}
+      {{- end }}
       apiServer:
-        {{- if .ControlPlaneLbAddress }}
-        externalLoadBalancer: {{ .ControlPlaneLbAddress }}
-        {{- end }}
         extraArguments: {{ .APIServerArguments }}
       {{- end }}
       {{- if .KubeletArguments }}
