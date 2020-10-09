@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
+	github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alioygur/gores v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/distribution v2.7.1+incompatible
@@ -34,10 +35,10 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
-	github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201007173108-fe66c657d75d
+	github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201009193405-484e006fe0f4
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20200609124411-8f3df89ea188
-	github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201007225519-1c40e9f660bb
+	github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201009195534-9948892f0211
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
@@ -59,6 +60,7 @@ require (
 )
 
 replace (
+	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.7.0
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
 	github.com/docker/distribution => github.com/2opremio/distribution v0.0.0-20190419185413-6c9727e5e5de
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.1.0
