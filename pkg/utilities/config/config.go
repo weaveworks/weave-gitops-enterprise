@@ -159,6 +159,7 @@ metadata:
   name: {{ .ClusterName }}
 spec:
       user: {{ .SSHUser }}
+      kubernetesVersion: {{ .KubernetesVersion }}
       {{- if or (.ControlPlaneLbAddress) (.APIServerArguments) }}
       {{- if .ControlPlaneLbAddress }}
       controlPlaneEndpoint: {{ .ControlPlaneLbAddress }}
@@ -706,7 +707,7 @@ func checkRequiredEKSValues(eksConfig *EKSConfig) error {
 			return err
 		}
 	}
-
+	// TODO can we retrieve this value dynamically?
 	switch eksConfig.KubernetesVersion {
 	case "":
 		return fmt.Errorf("A Kubernetes version must be specified")
@@ -1092,6 +1093,7 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 	err = t.Execute(&populated, struct {
 		ClusterName           string
 		SSHUser               string
+		KubernetesVersion     string
 		ServiceCIDRBlocks     string
 		PodCIDRBlocks         string
 		APIServerArguments    string
@@ -1102,6 +1104,7 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 		WorkerMachineCount    string
 	}{config.ClusterName,
 		config.WKSConfig.SSHConfig.SSHUser,
+		config.WKSConfig.KubernetesVersion,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
 		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks),
 		buildServerArguments(config.WKSConfig.APIServerArguments),

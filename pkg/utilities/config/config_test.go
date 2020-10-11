@@ -738,7 +738,7 @@ func TestDefaultSSHValues(t *testing.T) {
 	assert.Equal(t, "172.17.20.6", m1.PrivateAddress)
 }
 
-func TestWorkMasterCount(t *testing.T) {
+func TestWorkerControlPlaneCount(t *testing.T) {
 	testinput := []struct {
 		config        string
 		controlPlanes string
@@ -758,4 +758,21 @@ func TestWorkMasterCount(t *testing.T) {
 		assert.True(t, strings.Contains(c, "controlPlaneMachineCount: \""+testvals.controlPlanes+"\""))
 		assert.True(t, strings.Contains(c, "workerMachineCount: \""+testvals.workers+"\""))
 	}
+}
+
+func TestClusterVersion(t *testing.T) {
+	testinput := []struct {
+		config string
+		ver    string
+	}{
+		{validWKSK8s117, "1.17.1"},
+	}
+	for _, testvals := range testinput {
+		conf, err := unmarshalConfig([]byte(testvals.config))
+		require.NoError(t, err)
+		c, err := GenerateClusterFileContentsFromConfig(conf, "")
+		require.NoError(t, err)
+		assert.True(t, strings.Contains(c, "kubernetesVersion: "+testvals.ver))
+	}
+
 }
