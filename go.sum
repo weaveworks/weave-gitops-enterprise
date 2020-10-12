@@ -1046,6 +1046,7 @@ github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeV
 github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd h1:ug7PpSOB5RBPK1Kg6qskGBoP3Vnj/aNYFTznWvlkGo0=
 github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd/go.mod h1:TrYk7fJVaAttu97ZZKrO9UbRa8izdowaMIZcxYMbVaw=
 github.com/shurcooL/vfsgen v0.0.0-20200627165143-92b8a710ab6c/go.mod h1:TrYk7fJVaAttu97ZZKrO9UbRa8izdowaMIZcxYMbVaw=
+github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546/go.mod h1:TrYk7fJVaAttu97ZZKrO9UbRa8izdowaMIZcxYMbVaw=
 github.com/sirupsen/logrus v1.0.4-0.20170822132746-89742aefa4b2/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.0.5/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.0.6/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
@@ -1056,6 +1057,7 @@ github.com/sirupsen/logrus v1.4.2 h1:SPIRibHv4MatM3XXNO2BJeFLZwZ2LvZgfQ5+UNI2im4
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0 h1:UBcNElsrwanuuMsnGSlYmtmgbb23qDR5dG+6X6Oo89I=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
+github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/assertions v1.0.0/go.mod h1:kHHU4qYBaI3q23Pp3VPrmWhuIUrLW/7eUrw0BU5VaoM=
 github.com/smartystreets/go-aws-auth v0.0.0-20180515143844-0c1422d1fdb9/go.mod h1:SnhjPscd9TpLiy1LpzGSKh3bXCfxxXuqd9xmQJy3slM=
@@ -1171,6 +1173,8 @@ github.com/vishvananda/netns v0.0.0-20171111001504-be1fbeda1936/go.mod h1:ZjcWmF
 github.com/vmware/govmomi v0.20.3/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.2 h1:Z/OUvMxnX4KjyIZgXUKbveTZPKKr9J2GorwEeIs2Wkk=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.2/go.mod h1:1+bY5QfDcvqYDHCLF7a57X+/Zt3OSqyL/x7wayf+Wbo=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201010160446-1cca68d74314 h1:p5jw1m7MfELh26Yx3CLhtzMx55+DQzPG9NdQBiAr5sI=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201010160446-1cca68d74314/go.mod h1:98HLocudnw5vDbdA4rtIwu5sHjnt0XPeXC3zpW98LYc=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e h1:Y5z9Bu95l0laB3xOF3BT6LWkcR7VcRxN0n+nf2S72xA=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
 github.com/weaveworks/footloose v0.0.0-20190903132036-efbcbb7a6390 h1:kFi0CaTblX4lM4Oi9KeZmcz3eo7NsmwNEXgQrVkVXHw=
@@ -1191,6 +1195,8 @@ github.com/weaveworks/wksctl v0.9.0-alpha.0 h1:plpegC151wfkO52zbAo+dJuCRSqxmjx6O
 github.com/weaveworks/wksctl v0.9.0-alpha.0/go.mod h1:N80A2fUyNRN0xuBrBBnpRnyWe8rJ1vE71b0iPCVIa0Q=
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20200924114541-6fdf5e9ddb9b h1:fzGX4HKejMrYmkmb/DUfpEhPazyqoI16pPqyGanF74s=
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20200924114541-6fdf5e9ddb9b/go.mod h1:bCoFXYa4rzaHcyt/EoBuDThZtfbz6G5hemmNYs+OYZ4=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201010160726-a547d41ace8c h1:B1pqdKWDmCvEFIr7GW0A24KL0SiYcXFyQpvwEozV7lI=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201010160726-a547d41ace8c/go.mod h1:0mwrt8DcJ5GdNNJ/EhUeCaE037IbMZ+NEmGSVx+W+g4=
 github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/xanzy/go-gitlab v0.31.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
@@ -1572,9 +1578,9 @@ golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IV
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 h1:go1bK/D/BFZV2I8cIQd1NKEZ+0owSTG1fDTci4IqFcE=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+gomodules.xyz/jsonpatch/v2 v2.0.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
+gomodules.xyz/jsonpatch/v2 v2.0.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
 gomodules.xyz/jsonpatch/v2 v2.0.0+incompatible/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
-gomodules.xyz/jsonpatch/v2 v2.0.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
-gomodules.xyz/jsonpatch/v2 v2.0.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
 gomodules.xyz/jsonpatch/v2 v2.0.1/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
 gomodules.xyz/jsonpatch/v2 v2.1.0 h1:Phva6wqu+xR//Njw6iorylFFgn/z547tw5Ne3HZPQ+k=
 gomodules.xyz/jsonpatch/v2 v2.1.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3mwe7XcUU=
