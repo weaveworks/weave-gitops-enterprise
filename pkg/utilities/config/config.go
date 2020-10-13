@@ -348,6 +348,8 @@ apiVersion: "cluster.weave.works/v1alpha3"
 kind: "ExistingInfraMachine"
 metadata:
   name: {{ .Name }}
+  labels:
+    cluster.x-k8s.io/cluster-name: {{ .ClusterName }}
 spec:
   private:
     address: {{ .PrivateAddress }}
