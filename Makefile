@@ -176,8 +176,8 @@ ifeq ($(BUILD_IN_CONTAINER),true)
 
 $(BINARIES) $(GENERATED) wkp-cluster-components/build ui/build unit-tests generate-manifests lint: $(BUILD_UPTODATE)
 	$(SUDO) docker run -ti --rm \
-		-v $(shell pwd):/src/github.com/weaveworks/wks \
-		-v $(GOPATH)/pkg:/go/pkg \
+		-v $(shell pwd):/src/github.com/weaveworks/wks:delegated \
+		-v $(GOPATH)/pkg:/go/pkg:delegated \
 		--net=host \
 		-e SRC_PATH=/src/github.com/weaveworks/wks -e GOPATH=/go/ \
 		-e GOARCH -e GOOS -e CIRCLECI -e CIRCLE_BUILD_NUM -e CIRCLE_NODE_TOTAL \
