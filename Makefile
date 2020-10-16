@@ -38,6 +38,7 @@ DOCKERFILES := $(shell find . \
 	-name test -prune -o \
 	-name examples -prune -o \
 	-name node_modules -prune -o \
+	-name wks-ci -prune -o \
 	-type f -name 'Dockerfile' -print)
 UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
 DOCKER_IMAGE_DIRS := $(patsubst %/Dockerfile,%,$(DOCKERFILES))
@@ -67,8 +68,7 @@ check: all lint unit-tests container-tests
 LOCAL_BINARIES = \
 	cmd/wk/wk \
 	cmd/wks-entitle/wks-entitle \
-	cmd/update-manifest/update-manifest \
-	cmd/wks-ci/wks-ci
+	cmd/update-manifest/update-manifest
 
 BINARIES = \
 	$(LOCAL_BINARIES) \
