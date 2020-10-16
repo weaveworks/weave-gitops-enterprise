@@ -183,8 +183,7 @@ func (c *context) cleanup() {
 
 // installWKPFiles runs "wk setup install" within the temporary directory associated with the context
 func (c *context) installWKPFiles() {
-	err := cmdutil.Run(c.createSetupCommand())
-	require.NoError(c.t, err)
+	c.runAndCheckError(c.wkBin, "setup", "install")
 }
 
 // copyConfigFileIntoPlace copies an external config file into the setup directory under the context's temporary directory
@@ -195,31 +194,14 @@ func (c *context) copyConfigFileIntoPlace() {
 
 // commitChanges commits any outstanding changes in the git repo under the context's temporary directory
 func (c *context) commitChanges() {
-	cmd := exec.Command("git", "add", "-u")
-	cmd.Dir = c.tmpDir
-	err := cmd.Run()
-	assert.NoError(c.t, err)
-	cmd = exec.Command("git", "commit", "-m", "checkpoint")
-	cmd.Dir = c.tmpDir
-	err = cmd.Run()
-	assert.NoError(c.t, err)
+	c.runAndCheckError("git", "add", "-u")
+	c.runAndCheckError("git", "commit", "-m", "checkpoint")
 }
 
 func (c *context) commitChangesAndPush(message string) {
-	cmd := exec.Command("git", "add", "-u")
-	cmd.Dir = c.tmpDir
-	err := cmd.Run()
-	assert.NoError(c.t, err)
-
-	cmd = exec.Command("git", "commit", "-m", message)
-	cmd.Dir = c.tmpDir
-	err = cmd.Run()
-	assert.NoError(c.t, err)
-
-	cmd = exec.Command("git", "push")
-	cmd.Dir = c.tmpDir
-	err = cmd.Run()
-	assert.NoError(c.t, err)
+	c.runAndCheckError("git", "add", "-u")
+	c.runAndCheckError("git", "commit", "-m", message)
+	c.runAndCheckError("git", "push")
 }
 
 // runtimeConfigFilePath returns the path to the config.yaml file within the context's temporary directory
@@ -262,11 +244,9 @@ func (c *context) setupCluster() {
 	deleteRepo(c)
 	c.repoExists = true
 	cmd := exec.Command(c.wkBin, "setup", "run")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Env = getEnvironmentWithoutKubeconfig(c.t, c.tmpDir)
 	cmd.Dir = c.tmpDir
-	err := cmd.Run()
+	err := cmdutil.Run(cmd)
 	require.NoError(c.t, err)
 }
 
@@ -275,7 +255,7 @@ func (c *context) cleanupCluster(flags ...testFlag) {
 	env := append(c.env, "SKIP_PROMPT=1", "DELETE_REPO_ON_CLEANUP=yes")
 	cmd := exec.Command(filepath.Join(c.tmpDir, "setup", "cleanup.sh"), c.wkBin)
 	cmd.Env = env
-	err := cmd.Run()
+	err := cmdutil.Run(cmd)
 	if flagSet(flags, noError) {
 		return
 	}
@@ -351,36 +331,24 @@ func (c *context) assertSealedSecretsCanBeCreated() {
 	// kubeseal uses the certificate created when the cluster was spun up
 	kubesealPath := filepath.Join(c.tmpDir, "bin", "kubeseal")
 	cmdCreateSecret := fmt.Sprintf("kubectl create secret generic --dry-run --output json mysecret --from-literal=password=supersekret | %s --cert=%s/setup/sealed-secrets-cert.crt > mysealedsecret.json", kubesealPath, c.tmpDir)
-	cmd := exec.Command("bash", "-c", cmdCreateSecret)
-	cmd.Env = c.env
-	err := cmd.Run()
-	assert.NoError(c.t, err)
+	c.runAndCheckError("bash", "-c", cmdCreateSecret)
 
 	// wait until the controller deployment is ready
-	cmdItems := []string{"kubectl", "wait", "--for", "condition=available", "--timeout=120s", "deployment/sealed-secrets-controller", "--namespace", "kube-system"}
-	cmd = exec.Command(cmdItems[0], cmdItems[1:]...)
-	cmd.Env = c.env
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	assert.NoError(c.t, err)
+	c.runAndCheckError("kubectl", "wait", "--for", "condition=available", "--timeout=120s", "deployment/sealed-secrets-controller", "--namespace", "kube-system")
 
 	// create a SealedSecret
-	cmdItems = []string{"kubectl", "create", "-f", "mysealedsecret.json"}
-	cmd = exec.Command(cmdItems[0], cmdItems[1:]...)
-	cmd.Env = c.env
-	err = cmd.Run()
-	assert.NoError(c.t, err)
+	c.runAndCheckError("kubectl", "create", "-f", "mysealedsecret.json")
 
-	defer os.Remove("mysealedsecret.json")
+	defer os.Remove(filepath.Join(c.tmpDir, "mysealedsecret.json"))
 
 	// check that the Secret created from the SealedSecret has the right field
 	cmdGetPasswordField := "kubectl get secret mysecret -o=jsonpath='{.data.password}' | base64 --decode"
 
 	var secretData []byte
+	var err error
 	for retry := 0; retry < 5; retry++ {
 		time.Sleep(5 * time.Second)
-		cmd = exec.Command("bash", "-c", cmdGetPasswordField)
+		cmd := exec.Command("bash", "-c", cmdGetPasswordField)
 		cmd.Env = c.env
 		secretData, err = cmd.CombinedOutput()
 		if string(secretData) == "supersekret" {
@@ -438,11 +406,7 @@ func (c *context) showNodesAndPods() error {
 
 // showItems displays the current set of a specified object type in tabular format
 func (c *context) showItems(itemType string) error {
-	cmd := exec.Command("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
-	cmd.Env = c.env
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	return c.runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 }
 
 func randomOSImageChoice(c *context) string {
@@ -496,9 +460,7 @@ func deleteRepo(c *context) {
 	org := c.conf.GitProviderOrg
 	name := c.conf.ClusterName
 	cmdstr := fmt.Sprintf("hub delete -y %s/%s", org, name)
-	cmd := exec.Command("sh", "-c", cmdstr)
-	cmd.Env = c.env
-	cmd.Run() // there's nothing we can do with the error
+	_ = c.runCommandPassThrough("sh", "-c", cmdstr) // there's nothing we can do with the error
 }
 
 func getVersions(envVar string) []string {
@@ -622,6 +584,7 @@ func (c *context) checkDeploymentLogsContainString(namespace, deploymentName, me
 	return strings.Contains(string(logs), message)
 }
 
+// Run a command in c.tmpDir, collect stdout and stderr for checking.
 func runCommand(c *context, firstItem string, cmdItems ...string) ([]byte, []byte, error) {
 	cmd := exec.Command(firstItem, cmdItems...)
 	var stdout, stderr bytes.Buffer
@@ -631,6 +594,26 @@ func runCommand(c *context, firstItem string, cmdItems ...string) ([]byte, []byt
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	return stdout.Bytes(), stderr.Bytes(), err
+}
+
+// Run a command in c.tmpDir and fail the test on error
+func (c *context) runAndCheckError(name string, arg ...string) {
+	c.t.Helper()
+	cmd := exec.Command(name, arg...)
+	cmd.Dir = c.tmpDir
+	cmd.Env = c.env
+	err := cmdutil.Run(cmd)
+	require.NoError(c.t, err)
+}
+
+// Run a command in c.tmpDir, passing through stdout/stderr to parent's
+func (c *context) runCommandPassThrough(name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
+	cmd.Dir = c.tmpDir
+	cmd.Env = c.env
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // findTeamAccess returns team access permission to a specific repo
@@ -728,24 +711,12 @@ spec:
 
 func (c *context) pushFileToGit(commitMessage, path string) {
 	commitMessage = fmt.Sprintf("-m%s", commitMessage)
-	cmd := exec.Command("git", "add", path)
-	cmd.Dir = c.tmpDir
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
+	err := c.runCommandPassThrough("git", "add", path)
 	assert.NoError(c.t, err)
 
-	cmd = exec.Command("git", "commit", commitMessage)
-	cmd.Dir = c.tmpDir
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	err = cmd.Run()
+	err = c.runCommandPassThrough("git", "commit", commitMessage)
 	assert.NoError(c.t, err)
 
-	cmd = exec.Command("git", "push", "origin", "master")
-	cmd.Dir = c.tmpDir
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	err = cmd.Run()
+	err = c.runCommandPassThrough("git", "push", "origin", "master")
 	assert.NoError(c.t, err)
 }
