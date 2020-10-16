@@ -50,6 +50,13 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - build-darwin:
+          requires:
+          - build
+          - unit-tests
+          filters:
+            tags:
+              only: /.*/
       - container-tests
       - unit-tests
       - fast-integration-tests:
@@ -228,13 +235,6 @@ jobs:
       - add-go-mod-ssh-keys
       - setup_remote_docker
       - run:
-          name: Build darwin binaries
-          command: |
-            LOCAL_BINARIES_GOOS=darwin make cmd/wk/wk BUILD_IN_CONTAINER=false
-            mv cmd/wk/wk cmd/wk/wk-darwin-amd64
-            # tidy up generated files and what not
-            make clean
-      - run:
           name: Install helm
           command: |
             # install helm
@@ -255,12 +255,10 @@ jobs:
 
             # Upload uniquely tagged binaries
             aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-${TAG}-linux-amd64
-            aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-${TAG}-darwin-amd64
 
             # Upload a "master" binary for easy access to latest master build
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-master-linux-amd64
-              aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-master-darwin-amd64
             fi
       - run:
           name: Publish helm chart
@@ -283,6 +281,34 @@ jobs:
             - cmd/mock-https-authz-server/server
       - run: docker login -u "$DOCKER_IO_USER" -p "$DOCKER_IO_PASSWORD" docker.io
       - run: make push
+
+  build-darwin:
+    <<: *defaults
+    steps:
+      - checkout
+      - add-go-mod-ssh-keys
+      - run:
+          name: Build darwin binaries
+          command: |
+            LOCAL_BINARIES_GOOS=darwin make cmd/wk/wk BUILD_IN_CONTAINER=false
+            mv cmd/wk/wk cmd/wk/wk-darwin-amd64
+      - deploy:
+          name: Push wk to S3
+          command: |
+            TAG=$(./tools/image-tag)
+
+            # aws gets its credential through the AWS_ACCESS_KEY_ID and
+            # AWS_SECRET_ACCESS_KEY environment variables.
+            export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
+
+            # Upload uniquely tagged binaries
+            aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-${TAG}-darwin-amd64
+
+            # Upload a "master" binary for easy access to latest master build
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              aws s3 cp cmd/wk/wk-darwin-amd64 s3://weaveworks-wkp/wk-master-darwin-amd64
+            fi
 
   unit-tests:
     <<: *defaults
