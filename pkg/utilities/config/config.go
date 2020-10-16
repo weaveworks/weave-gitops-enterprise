@@ -564,10 +564,10 @@ func checkRequiredEKSValues(eksConfig *EKSConfig) error {
 	switch eksConfig.KubernetesVersion {
 	case "":
 		return fmt.Errorf("A Kubernetes version must be specified")
-	case "1.14", "1.15":
+	case "1.16", "1.17":
 		return nil
 	default:
-		return fmt.Errorf(`Kubernetes version must be one of: "1.14" or "1.15"`)
+		return fmt.Errorf(`Kubernetes version must be one of: "1.16" or "1.17"`)
 	}
 }
 

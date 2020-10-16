@@ -241,14 +241,14 @@ If you specified a relative path, note that it will be evaluated from the direct
 
 const validEKS = `
 eksConfig:
-  kubernetesVersion: "1.14"
+  kubernetesVersion: "1.16"
   clusterRegion: "eu-north-1"
   managedNodeGroupFile: "testdata/managedNodeGroups.yaml"
 `
 
 const validEKSWithNodeGroups = `
 eksConfig:
-  kubernetesVersion: "1.14"
+  kubernetesVersion: "1.16"
   clusterRegion: "eu-north-1"
   nodeGroups:
   - name: "my-first-node-group"
@@ -279,18 +279,18 @@ eksConfig:
 
 const missingClusterRegion = `
 eksConfig:
-  kubernetesVersion: "1.14"
+  kubernetesVersion: "1.16"
 `
 
 const invalidK8sVersion = `
 eksConfig:
-  kubernetesVersion: "1.16"
+  kubernetesVersion: "1.15"
   clusterRegion: "eu-north-1"
 `
 
 const invalidManagedNodeGroupFile = `
 eksConfig:
-  kubernetesVersion: "1.14"
+  kubernetesVersion: "1.16"
   clusterRegion: "eu-north-1"
   managedNodeGroupFile: "628wanda496"
 `
@@ -305,7 +305,7 @@ func TestRequiredEKSValues(t *testing.T) {
 		{invalidNodeGroup, "A node group must have a capacity of at least 1"},
 		{missingK8sVersion, "A Kubernetes version must be specified"},
 		{missingClusterRegion, "clusterRegion must be specified"},
-		{invalidK8sVersion, `Kubernetes version must be one of: "1.14" or "1.15"`},
+		{invalidK8sVersion, `Kubernetes version must be one of: "1.16" or "1.17"`},
 		{invalidManagedNodeGroupFile, `no file found at path: "628wanda496" for field: "managedNodeGroupFile"`}}
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
