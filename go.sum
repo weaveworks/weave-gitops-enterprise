@@ -1175,6 +1175,8 @@ github.com/weaveworks/cluster-api-provider-existinginfra v0.0.2 h1:Z/OUvMxnX4Kjy
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.2/go.mod h1:1+bY5QfDcvqYDHCLF7a57X+/Zt3OSqyL/x7wayf+Wbo=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201010160446-1cca68d74314 h1:p5jw1m7MfELh26Yx3CLhtzMx55+DQzPG9NdQBiAr5sI=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201010160446-1cca68d74314/go.mod h1:98HLocudnw5vDbdA4rtIwu5sHjnt0XPeXC3zpW98LYc=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201014233641-727a85ff4e68 h1:TX1oAiNhJultslGlZ0d5wiuz8mDAF6tQDI3/fCG2UQ0=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201014233641-727a85ff4e68/go.mod h1:UZkF4dw1GEm5doPVqh1cpoONk/LYQ4HAgGm9PpDUwDE=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e h1:Y5z9Bu95l0laB3xOF3BT6LWkcR7VcRxN0n+nf2S72xA=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
 github.com/weaveworks/footloose v0.0.0-20190903132036-efbcbb7a6390 h1:kFi0CaTblX4lM4Oi9KeZmcz3eo7NsmwNEXgQrVkVXHw=
@@ -1197,6 +1199,8 @@ github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20200924114541-6fdf5e9ddb9b h1:fzG
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20200924114541-6fdf5e9ddb9b/go.mod h1:bCoFXYa4rzaHcyt/EoBuDThZtfbz6G5hemmNYs+OYZ4=
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201010160726-a547d41ace8c h1:B1pqdKWDmCvEFIr7GW0A24KL0SiYcXFyQpvwEozV7lI=
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201010160726-a547d41ace8c/go.mod h1:0mwrt8DcJ5GdNNJ/EhUeCaE037IbMZ+NEmGSVx+W+g4=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201017024134-db19947fabf5 h1:3AY/QMkUK64cZtGobD43LHWPNzwgKbfz3NQLU7eu9WI=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201017024134-db19947fabf5/go.mod h1:u3ds8Jw5J2swNjKWn6xhXvBY2xQO4ZLC+EQaEX2KVA0=
 github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/xanzy/go-gitlab v0.31.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
