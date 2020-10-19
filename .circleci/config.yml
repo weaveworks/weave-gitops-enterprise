@@ -410,8 +410,6 @@ jobs:
 
             go test -v -run TestImageRepositoryCheck
 
-            export WORKSPACES_ORG=$WKP_GITHUB_ORG
-            export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
             cd ../../../cmd/workspaces-controller
             make test
 

@@ -695,7 +695,7 @@ spec:
           limits.memory: 2Gi
           requests.cpu: "1"
           requests.memory: 1Gi
-    - name: demo-limit-range
+    - name: gitlab-demo-limit-range
       limitRange:
         limits:
           - max:
