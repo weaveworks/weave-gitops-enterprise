@@ -18,9 +18,9 @@ roleRef:
   kind: ClusterRole
   name: wkp-flux
 subjects:
-- kind: ServiceAccount
-  name: flux
-  namespace: wkp-flux
+  - kind: ServiceAccount
+    name: flux
+    namespace: wkp-flux
 `
 
 var crbNext = `kind: ClusterRoleBinding
@@ -32,9 +32,9 @@ roleRef:
   kind: ClusterRole
   name: wkp-flux
 subjects:
-- kind: ServiceAccount
-  name: flux
-  namespace: wkp-flux
+  - kind: ServiceAccount
+    name: flux
+    namespace: wkp-flux
 `
 
 var elaboratePrev = `apiVersion: apps/v1
@@ -65,37 +65,37 @@ spec:
       # bootstrapping of the cluster, we may initially have just one master,
       # and would then need to deploy this controller there to set the entire
       # cluster up.
-      - effect: NoSchedule
-        key: node-role.kubernetes.io/master
-        operator: Exists
-      - # Mark this as a critical addon:
-        key: CriticalAddonsOnly
-        operator: Exists
-      - # Only schedule on nodes which are ready and reachable:
-        effect: NoExecute
-        key: node.alpha.kubernetes.io/notReady
-        operator: Exists
-      - effect: NoExecute
-        key: node.alpha.kubernetes.io/unreachable
-        operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+        - # Mark this as a critical addon:
+          key: CriticalAddonsOnly
+          operator: Exists
+        - # Only schedule on nodes which are ready and reachable:
+          effect: NoExecute
+          key: node.alpha.kubernetes.io/notReady
+          operator: Exists
+        - effect: NoExecute
+          key: node.alpha.kubernetes.io/unreachable
+          operator: Exists
       containers:
-      - name: controller
-        image: docker.io/jrryjcksn/wks-controller:2019-09-18-scale-footloose-8e831136-WIP
-        env:
-        - name: BRIDGE_ADDRESS
-        - value: 172.17.0.1
-        command:
-        - /bin/controller
-        - --verbose
-        resources:
-          limits:
-            cpu: 100m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
+        - name: controller
+          image: docker.io/jrryjcksn/wks-controller:2019-09-18-scale-footloose-8e831136-WIP
+          env:
+            - name: BRIDGE_ADDRESS
+            - value: 172.17.0.1
+          command:
+            - /bin/controller
+            - --verbose
+          resources:
+            limits:
+              cpu: 100m
+              memory: 30Mi
+            requests:
+              cpu: 100m
+              memory: 20Mi
       imagePullSecrets:
-      - name: wks-image-secret
+        - name: wks-image-secret
 `
 
 var elaborateNext = `apiVersion: apps/v1
@@ -122,39 +122,41 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: ""
       tolerations:
-      - # Allow scheduling on master nodes. This is required because during
+        # Allow scheduling on master nodes. This is required because during
         # bootstrapping of the cluster, we may initially have just one master,
         # and would then need to deploy this controller there to set the entire
         # cluster up.
-        effect: NoSchedule
-        key: node-role.kubernetes.io/master
-        operator: Exists
-      - key: CriticalAddonsOnly # Mark this as a critical addon:
-        operator: Exists
-      - effect: NoExecute # Only schedule on nodes which are ready and reachable:
-        key: node.alpha.kubernetes.io/notReady
-        operator: Exists
-      - effect: NoExecute
-        key: node.alpha.kubernetes.io/unreachable
-        operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+        - # Mark this as a critical addon:
+          key: CriticalAddonsOnly
+          operator: Exists
+        - # Only schedule on nodes which are ready and reachable:
+          effect: NoExecute
+          key: node.alpha.kubernetes.io/notReady
+          operator: Exists
+        - effect: NoExecute
+          key: node.alpha.kubernetes.io/unreachable
+          operator: Exists
       containers:
-      - name: controller
-        image: docker.io/jrryjcksn/wks-controller:2019-09-18-scale-footloose-8e831136-WIP
-        env:
-        - name: BRIDGE_ADDRESS
-        - value: 172.17.0.1
-        command:
-        - /bin/controller
-        - --verbose
-        resources:
-          limits:
-            cpu: 200m
-            memory: 30Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
+        - name: controller
+          image: docker.io/jrryjcksn/wks-controller:2019-09-18-scale-footloose-8e831136-WIP
+          env:
+            - name: BRIDGE_ADDRESS
+            - value: 172.17.0.1
+          command:
+            - /bin/controller
+            - --verbose
+          resources:
+            limits:
+              cpu: 200m
+              memory: 30Mi
+            requests:
+              cpu: 100m
+              memory: 20Mi
       imagePullSecrets:
-      - name: wks-image-secret
+        - name: wks-image-secret
 `
 
 type testdata struct {
