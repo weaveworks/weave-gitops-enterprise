@@ -19,10 +19,10 @@ get_version_status_code() {
 }
 
 LAST_PATCH_VERSION=""
-UPGRADE_VERSIONS="1.14.1"
+UPGRADE_VERSIONS=$1
 
 IFS=','; set -f
-MINOR_VERSIONS=($1)
+MINOR_VERSIONS=($2)
 for MINOR_VERSION in "${MINOR_VERSIONS[@]}"
 do
     for PATCH_VERSION in {0..99}

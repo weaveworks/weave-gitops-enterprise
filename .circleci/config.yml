@@ -575,7 +575,8 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
-          SUPPORTED_MINOR_VERSIONS: '1.14,1.15,1.16,1.17'
+          STARTING_VERSION: '1.16.3'
+          SUPPORTED_MINOR_VERSIONS: '1.16,1.17'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
@@ -595,7 +596,7 @@ jobs:
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
 
-            eval "$(../bin/internal/get-latest-patch-versions.sh ${SUPPORTED_MINOR_VERSIONS})"
+            eval "$(../bin/internal/get-latest-patch-versions.sh ${STARTING_VERSION} ${SUPPORTED_MINOR_VERSIONS})"
 
             # provision GCE VMs
             ../bin/internal/run-integration-tests.sh up

@@ -334,7 +334,7 @@ func (c *context) assertSealedSecretsCanBeCreated() {
 	c.runAndCheckError("bash", "-c", cmdCreateSecret)
 
 	// wait until the controller deployment is ready
-	c.runAndCheckError("kubectl", "wait", "--for", "condition=available", "--timeout=120s", "deployment/sealed-secrets-controller", "--namespace", "kube-system")
+	c.runAndCheckError("kubectl", "wait", "--for", "condition=available", "--timeout=180s", "deployment/sealed-secrets-controller", "--namespace", "kube-system")
 
 	// create a SealedSecret
 	c.runAndCheckError("kubectl", "create", "-f", "mysealedsecret.json")
