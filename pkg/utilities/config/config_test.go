@@ -305,7 +305,7 @@ func TestRequiredEKSValues(t *testing.T) {
 		{invalidNodeGroup, "A node group must have a capacity of at least 1"},
 		{missingK8sVersion, "A Kubernetes version must be specified"},
 		{missingClusterRegion, "clusterRegion must be specified"},
-		{invalidK8sVersion, `Kubernetes version must be one of: "1.16" or "1.17"`},
+		{invalidK8sVersion, `Kubernetes version must be one of: "1.16", "1.17" or "1.18"`},
 		{invalidManagedNodeGroupFile, `no file found at path: "628wanda496" for field: "managedNodeGroupFile"`}}
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
