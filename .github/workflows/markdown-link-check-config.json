@@ -4,6 +4,7 @@
 		{ "pattern": "^mailto:\\S+" },
 		{ "pattern": "^http[s]?://localhost:[0-9]+" },
 		{ "pattern": "^https://(drive|docs).google.com/\\S+" },
-		{ "pattern": "https://weaveworks.signin.aws.amazon.com/console/" }
+		{ "pattern": "https://weaveworks.signin.aws.amazon.com/console/" },
+		{ "pattern": "https://weavesupport.zendesk.com" }
 	]
 }
