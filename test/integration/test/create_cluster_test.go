@@ -147,17 +147,23 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 	if c.conf.Track == "wks-ssh" {
 		expectedNodes = len(c.conf.WKSConfig.SSHConfig.Machines)
 	}
-	c.checkClusterAtExpectedNumberOfNodes(expectedNodes)
 
-	if c.conf.Track != "eks" && c.conf.Track != "wks-ssh" {
+	// We don't care about the cluster if you're running on this track
+	if c.conf.Track != "wks-components" {
+		c.checkClusterAtExpectedNumberOfNodes(expectedNodes)
+	}
+
+	if c.conf.Track == "wks-footloose" {
 		checkApiServerAndKubeletArguments(c)
 	}
 
 	// Check that sealed secrets work
 	c.assertSealedSecretsCanBeCreated()
 
-	// Check that the pod and service CIDR blocks have been set
-	c.testCIDRBlocks(os.Getenv("POD_CIDR_BLOCK"), os.Getenv("SERVICE_CIDR_BLOCK"))
+	if c.conf.Track == "wks-footloose" || c.conf.Track == "wks-ssh" {
+		// Check that the pod and service CIDR blocks have been set
+		c.testCIDRBlocks(os.Getenv("POD_CIDR_BLOCK"), os.Getenv("SERVICE_CIDR_BLOCK"))
+	}
 }
 
 func checkApiServerAndKubeletArguments(c *context) {

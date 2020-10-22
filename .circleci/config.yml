@@ -73,6 +73,7 @@ workflows:
   run-integration-tests:
     when: << pipeline.parameters.run_integration_tests >>
     jobs:
+      - creation-wks-components-on-eks
       - integration-tests-creation-footloose
       - creation-ssh-gcp-centos
       - creation-ssh-gcp-centos-lb
@@ -423,6 +424,62 @@ jobs:
 
             cd ../../../cmd/workspaces-controller
             make test
+
+  creation-wks-components-on-eks:
+    machine:
+      image: ubuntu-1604:202004-01
+    environment:
+      <<: *integrationTestCommonEnv
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          name: Setup base config.yaml
+          command: |
+            cd test/integration/test
+            # create file with docker password
+            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
+            sed -i "s/track:.*/track: wks-components/" config.yaml
+      - run:
+          name: Run e2e tests
+          no_output_timeout: 35m
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+
+            # install iam-auth
+            curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/aws-iam-authenticator
+            chmod +x ./aws-iam-authenticator
+            sudo mv ./aws-iam-authenticator /usr/local/bin
+
+            # install eksctl
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            sudo mv /tmp/eksctl /usr/local/bin
+
+            cd test/integration/test
+            export AWS_ACCESS_KEY_ID=$WKP_EKS_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$WKP_EKS_AWS_SECRET_ACCESS_KEY
+            eksctl create cluster -f eks-cluster.yaml
+
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            # Skip the y/n prompt when installing wks-components
+            export SKIP_PROMPT=1
+            go test -v -run TestClusterCreation --timeout=99999s
+
+            eksctl delete cluster -f eks-cluster.yaml
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy EKS resources
+          command: |
+            cd test/integration/test
+            export AWS_ACCESS_KEY_ID=$WKP_EKS_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$WKP_EKS_AWS_SECRET_ACCESS_KEY
+            eksctl delete cluster -f eks-cluster.yaml || echo "no worries"
+          when: on_fail
 
   integration-tests-creation-footloose:
     machine:

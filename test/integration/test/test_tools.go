@@ -72,23 +72,30 @@ var defaultDeploymentRetries = 50
 var defaultDeploymentRetryInterval = 8
 
 // All the components of a WKP cluster, ordered by deployment time
-var allComponents = []Component{
-	{"weavek8sops", "wks-controller"},
-	{"wkp-flux", "flux"},
-	{"wkp-flux", "flux-helm-operator"},
-	{"wkp-flux", "memcached"},
-	{"wkp-tiller", "tiller-deploy"},
-	{"wkp-gitops-repo-broker", "gitops-repo-broker"},
-	{"wkp-scope", "weave-scope-cluster-agent-weave-scope"},
-	{"wkp-scope", "weave-scope-frontend-weave-scope"},
-	{"wkp-grafana", "grafana"},
-	{"wkp-grafana", "grafana"},
-	{"wkp-prometheus", "prometheus-operator-kube-state-metrics"},
-	{"wkp-prometheus", "prometheus-operator-operator"},
-	{"wkp-external-dns", "external-dns"},
-	{"wkp-ui", "wkp-ui-server"},
-	{"wkp-ui", "wkp-ui-nginx-ingress-controller"},
-	{"wkp-ui", "wkp-ui-nginx-ingress-controller-default-backend"},
+var allComponents = func(track string) []Component {
+	var components = []Component{
+		{"wkp-flux", "flux"},
+		{"wkp-flux", "flux-helm-operator"},
+		{"wkp-flux", "memcached"},
+		{"wkp-tiller", "tiller-deploy"},
+		{"wkp-gitops-repo-broker", "gitops-repo-broker"},
+		{"wkp-scope", "weave-scope-cluster-agent-weave-scope"},
+		{"wkp-scope", "weave-scope-frontend-weave-scope"},
+		{"wkp-grafana", "grafana"},
+		{"wkp-grafana", "grafana"},
+		{"wkp-prometheus", "prometheus-operator-kube-state-metrics"},
+		{"wkp-prometheus", "prometheus-operator-operator"},
+		{"wkp-external-dns", "external-dns"},
+		{"wkp-ui", "wkp-ui-server"},
+		{"wkp-ui", "wkp-ui-nginx-ingress-controller"},
+		{"wkp-ui", "wkp-ui-nginx-ingress-controller-default-backend"},
+	}
+
+	if track == "wks-ssh" || track == "wks-footloose" {
+		components = append(components, Component{"weavek8sops", "wks-controller"})
+	}
+
+	return components
 }
 
 func (c *context) checkComponentRunning(component Component) bool {
@@ -243,10 +250,7 @@ func (c *context) chooseTestOS() {
 func (c *context) setupCluster() {
 	deleteRepo(c)
 	c.repoExists = true
-	cmd := exec.Command(c.wkBin, "setup", "run")
-	cmd.Env = getEnvironmentWithoutKubeconfig(c.t, c.tmpDir)
-	cmd.Dir = c.tmpDir
-	err := cmdutil.Run(cmd)
+	err := c.runCommandPassThrough(c.wkBin, "setup", "run")
 	require.NoError(c.t, err)
 }
 
@@ -305,7 +309,7 @@ func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int)
 
 // isClusterRunning checks if all expected components are running
 func (c *context) isClusterRunning() bool {
-	for _, component := range allComponents {
+	for _, component := range allComponents(c.conf.Track) {
 		if !c.checkComponentRunning(component) {
 			return false
 		}
@@ -560,9 +564,11 @@ func (c *context) checkPushCount() {
 	}
 
 	expectedPushes := 1
-	if os.Getenv("SKIP_COMPONENTS") != "true" {
+	// ssh/footloose we have to delete the old flux which is another push
+	if os.Getenv("SKIP_COMPONENTS") != "true" && (c.conf.Track == "wks-ssh" || c.conf.Track == "wks-footloose") {
 		expectedPushes = 2
 	}
+
 	assert.Equal(c.t, expectedPushes, lineCount, "Number of pushes matches expected.")
 	log.Info("Testing number of pushes passed.")
 }
