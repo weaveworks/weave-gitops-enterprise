@@ -727,3 +727,45 @@ func (c *context) pushFileToGit(commitMessage, path string) {
 	err = c.runCommandPassThrough("git", "push", "origin", "master")
 	assert.NoError(c.t, err)
 }
+
+func (c *context) runInDir(repoDir string, args ...string) error {
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Dir = repoDir
+	cmd.Env = c.env
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func nginxDeployment(name, ns string) string {
+	depoymentYaml := `
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: %s
+  namespace: %s
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.14.2
+          ports:
+            - containerPort: 80
+`
+
+	return fmt.Sprintf(depoymentYaml, name, ns)
+}
