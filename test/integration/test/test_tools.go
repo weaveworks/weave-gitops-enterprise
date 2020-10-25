@@ -640,7 +640,7 @@ func (c *context) findTeamAccess(orgName, repoName, teamName string) (gitprovide
 
 func (c *context) getWorkspaceYaml(repoName, orgName, teams, role, resourceQuotaSpec, limitRangeSpec string) string {
 	workspaceYamlTemplate := `
-apiVersion: wkp.weave.works/v1alpha1
+apiVersion: wkp.weave.works/v1beta1
 kind: Workspace
 metadata:
   name: demo
@@ -673,7 +673,7 @@ spec:
 
 func (c *context) getGitlabWorkspaceYaml(hostName, repoName, orgName, teams, role string) string {
 	workspaceYamlTemplate := `
-apiVersion: wkp.weave.works/v1alpha1
+apiVersion: wkp.weave.works/v1beta1
 kind: Workspace
 metadata:
   name: gitlab-demo
