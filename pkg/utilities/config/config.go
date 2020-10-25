@@ -40,6 +40,7 @@ type GitProvider string
 const (
 	GitHubProvider GitProvider = "github"
 	GitLabProvider GitProvider = "gitlab"
+	Namespace      string      = "weavek8sops"
 )
 
 // Top-level config parameters
@@ -141,6 +142,7 @@ const clusterFileTemplate = `apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: {{ .ClusterName }}
+  namespace: {{ .Namespace }}
 spec:
   clusterNetwork:
     services:
@@ -157,6 +159,7 @@ apiVersion: cluster.weave.works/v1alpha3
 kind: "ExistingInfraCluster"
 metadata:
   name: {{ .ClusterName }}
+  namespace: {{ .Namespace }}
 spec:
       user: {{ .SSHUser }}
       kubernetesVersion: {{ .KubernetesVersion }}
@@ -334,7 +337,7 @@ metadata:
   labels:
     set: {{ .Role }}
   name: {{ .Name }}
-  namespace: weavek8sops
+  namespace: {{ .Namespace }}
 spec:
   clusterName: {{ .ClusterName }}
   version: {{ .KubernetesVersion }}
@@ -348,6 +351,7 @@ apiVersion: "cluster.weave.works/v1alpha3"
 kind: "ExistingInfraMachine"
 metadata:
   name: {{ .Name }}
+  namespace: {{ .Namespace }}
   labels:
     cluster.x-k8s.io/cluster-name: {{ .ClusterName }}
 spec:
@@ -1023,13 +1027,14 @@ func GenerateMachinesFileContentsFromConfig(config *WKPConfig) (string, error) {
 		err = t.Execute(&populated, struct {
 			ClusterName       string
 			Name              string
+			Namespace         string
 			Role              string
 			KubernetesVersion string
 			PublicAddress     string
 			PublicPort        int64
 			PrivateAddress    string
 			PrivatePort       int64
-		}{config.ClusterName, machine.Name, machine.Role, config.WKSConfig.KubernetesVersion, machine.PublicAddress, machine.PublicPort,
+		}{config.ClusterName, machine.Name, Namespace, machine.Role, config.WKSConfig.KubernetesVersion, machine.PublicAddress, machine.PublicPort,
 			machine.PrivateAddress, machine.PrivatePort})
 		if err != nil {
 			return "", err
@@ -1094,6 +1099,7 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
 		ClusterName           string
+		Namespace             string
 		SSHUser               string
 		KubernetesVersion     string
 		ServiceCIDRBlocks     string
@@ -1105,6 +1111,7 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 		CPMachineCount        string
 		WorkerMachineCount    string
 	}{config.ClusterName,
+		Namespace,
 		config.WKSConfig.SSHConfig.SSHUser,
 		config.WKSConfig.KubernetesVersion,
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
