@@ -2,7 +2,7 @@
 
 ![Service description diagram](https://www.weave.works/assets/images/blt1670b4d9d8010619/KB_support_diagram.jpg)
 ![Component breakdown diagram](/docs/images/component-breakdown.png)
-
+![Component breakdown diagram with EKS](/docs/images/component-breakdown-eks.png)
 
 ## Purpose
 
