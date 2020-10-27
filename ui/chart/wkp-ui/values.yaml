@@ -108,6 +108,7 @@ config: # remember to consult `ui/src/entities/config.ts` before making any chan
     name: My Cluster
     provider: ''
     regions: ''
+    track: ''
     isManagementCluster: true
     managementClusterLink: ''
   homepage:

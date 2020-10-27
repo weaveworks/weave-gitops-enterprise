@@ -112,8 +112,7 @@ func CheckVersionExists(version string) error {
 	if err != nil {
 		return err
 	}
-	return fmt.Errorf("version %s was not found by checking %s and is probably not a valid kubernetes version.\n"+
-		"You can skip this check with --skip-check-exists", versionString, renderedURL)
+	return fmt.Errorf("version %s was not found by checking %s and is probably not a valid kubernetes version.", versionString, renderedURL)
 }
 
 // CheckVersionRange checks if an upgrade from one version to another is valid

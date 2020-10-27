@@ -162,7 +162,7 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 
 	if c.conf.Track == "wks-footloose" || c.conf.Track == "wks-ssh" {
 		// Check that the pod and service CIDR blocks have been set
-		c.testCIDRBlocks(os.Getenv("POD_CIDR_BLOCK"), os.Getenv("SERVICE_CIDR_BLOCK"))
+		c.testCIDRBlocks(c.conf.WKSConfig.PodCIDRBlocks[0], c.conf.WKSConfig.ServiceCIDRBlocks[0])
 	}
 }
 
