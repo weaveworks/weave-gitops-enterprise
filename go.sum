@@ -932,6 +932,8 @@ github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201020203221
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201020203221-5ac2786b616c/go.mod h1:UZkF4dw1GEm5doPVqh1cpoONk/LYQ4HAgGm9PpDUwDE=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201024172930-c30aed54a09c h1:/Lk1X+QyyWz0OJFfvSU8Fn77d4tdiyCl/hO89jz3OFk=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201024172930-c30aed54a09c/go.mod h1:ZFXd0YRjr5436b3aY3CMqqVn239RNPsshOc5Gi6QYaI=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201027191654-e41cafc56c2f h1:mDzzcui87mlDVqgyIGZzV0D2X8TVpyrHWQI77BdZYsg=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201027191654-e41cafc56c2f/go.mod h1:ZFXd0YRjr5436b3aY3CMqqVn239RNPsshOc5Gi6QYaI=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e h1:Y5z9Bu95l0laB3xOF3BT6LWkcR7VcRxN0n+nf2S72xA=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
 github.com/weaveworks/footloose v0.0.0-20200609124411-8f3df89ea188 h1:BuiVM+91YRjWUSMvF93A7Sm7s7IHrxjrPcc/5boO2V0=
@@ -951,6 +953,8 @@ github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201020220350-6b6f73bcb734 h1:KjJ
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201020220350-6b6f73bcb734/go.mod h1:lMjwXJ88cQYMov9MNq3dRLTYHbxd+g64XxtHYXVl9Vw=
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201021034044-2875f7387833 h1:Dfcz0ODnA7xlQnmHmmXcN5P71ThGuYkGSKwY/ZJ2EWM=
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201021034044-2875f7387833/go.mod h1:lMjwXJ88cQYMov9MNq3dRLTYHbxd+g64XxtHYXVl9Vw=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201028141621-b081e2f987f9 h1:mU0GLgOidS+HXXE9Hfg6JB/cbUazRHDhSe5rs+lBxqI=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201028141621-b081e2f987f9/go.mod h1:REMqar+5WwzJaQ9qOZcgXwFx59jSikE7sc+VUTsOQxA=
 github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/xanzy/go-gitlab v0.33.0 h1:MUJZknbLhVXSFzBA5eqGGhQ2yHSu8tPbGBPeB3sN4B0=
 github.com/xanzy/go-gitlab v0.33.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
