@@ -903,6 +903,7 @@ github.com/throttled/throttled v2.2.2+incompatible/go.mod h1:0BjlrEGQmvxps+HuXLs
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/timakin/bodyclose v0.0.0-20190721030226-87058b9bfcec/go.mod h1:Qimiffbc6q9tBWlVV6x0P9sat/ao1xEkREYPPj9hphk=
 github.com/timakin/bodyclose v0.0.0-20190930140734-f7f2e9bca95e/go.mod h1:Qimiffbc6q9tBWlVV6x0P9sat/ao1xEkREYPPj9hphk=
+github.com/tj/assert v0.0.3/go.mod h1:Ne6X72Q+TB1AteidzQncjw9PabbMp4PBMZ1k+vd1Pvk=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
@@ -932,8 +933,11 @@ github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201020203221
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201020203221-5ac2786b616c/go.mod h1:UZkF4dw1GEm5doPVqh1cpoONk/LYQ4HAgGm9PpDUwDE=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201024172930-c30aed54a09c h1:/Lk1X+QyyWz0OJFfvSU8Fn77d4tdiyCl/hO89jz3OFk=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201024172930-c30aed54a09c/go.mod h1:ZFXd0YRjr5436b3aY3CMqqVn239RNPsshOc5Gi6QYaI=
-github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201027191654-e41cafc56c2f h1:mDzzcui87mlDVqgyIGZzV0D2X8TVpyrHWQI77BdZYsg=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201027191654-e41cafc56c2f/go.mod h1:ZFXd0YRjr5436b3aY3CMqqVn239RNPsshOc5Gi6QYaI=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201029000811-620a9628e141 h1:vloOIO1cZa462OoTQpZYCoc0/MrT5MXmgRG6B4ABQcY=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201029000811-620a9628e141/go.mod h1:nnqvEposdqHGD1tap7bSMa4WzC00mq9EoWgbzfF6Ahs=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201029002355-d51ee84d2c9f h1:6lbXp0OfcKSLtDxj0MsA5qWN7/SRacyhZm2vWAUmKKk=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201029002355-d51ee84d2c9f/go.mod h1:nnqvEposdqHGD1tap7bSMa4WzC00mq9EoWgbzfF6Ahs=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e h1:Y5z9Bu95l0laB3xOF3BT6LWkcR7VcRxN0n+nf2S72xA=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
 github.com/weaveworks/footloose v0.0.0-20200609124411-8f3df89ea188 h1:BuiVM+91YRjWUSMvF93A7Sm7s7IHrxjrPcc/5boO2V0=
@@ -1411,6 +1415,7 @@ gopkg.in/yaml.v3 v3.0.0-20191120175047-4206685974f2/go.mod h1:K4uyk7z7BCEPqu6E+C
 gopkg.in/yaml.v3 v3.0.0-20200121175148-a6ecf24a6d71/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 h1:tQIYjPdBoyREyB9XMu+nnTclpTYkz2zFM+lzLJFO4gQ=
 gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gotest.tools v2.1.0+incompatible/go.mod h1:DsYFclhRJ6vuDpmuTbkuFWG+y2sxOXAzmJt81HFBacw=
