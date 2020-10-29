@@ -13,7 +13,7 @@ import (
 
 var kubectlDownloadURL = "https://storage.googleapis.com/kubernetes-release/release/%s/bin/linux/amd64/kubectl"
 
-var k8sVersionRegexp = regexp.MustCompile(`^([1][.](16|17|18|19)[.][0-9][0-9]?)$`)
+var k8sVersionRegexp = regexp.MustCompile(`^([1][.](14|15|16|17|18|19)[.][0-9][0-9]?)$`)
 
 // ValidVersions maps the k8s versions WKP supports
 var ValidVersions = map[string]bool{
