@@ -447,6 +447,7 @@ func getAllReadyNodes(t *testing.T, env []string) []string {
 	nodeStrings := strings.Split(string(cmdResults), "\n")
 	result := []string{}
 	for _, nstr := range nodeStrings {
+		// wkp-simon-test-1-4:NetworkUnavailable=False;MemoryPressure=False;DiskPressure=False;PIDPressure=False;Ready=True;
 		if strings.Contains(nstr, "Ready=True") {
 			result = append(result, nstr)
 		}
