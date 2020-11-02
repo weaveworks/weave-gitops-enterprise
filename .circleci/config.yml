@@ -86,6 +86,7 @@ workflows:
       - cluster-lifecycle-footloose-tests
       - workspaces-tests
       - existing-cluster-tests
+      - cluster-components-on-kind-1-18
 
   nightly:
     triggers:
@@ -936,7 +937,7 @@ jobs:
 
   cluster-lifecycle-footloose-tests:
     machine:
-      image: ubuntu-1604:202004-01
+      image: ubuntu-2004:202010-01
     environment:
       <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
@@ -1020,7 +1021,7 @@ jobs:
 
   existing-cluster-tests:
     machine:
-      image: ubuntu-1604:202004-01
+      image: ubuntu-2004:202010-01
     environment:
       <<: *integrationTestCommonEnv
       SKIP_COMPONENTS: true
@@ -1063,6 +1064,61 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
             hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
-          when: on_fail    
+          when: on_fail
+
+  cluster-components-on-kind-1-18:
+    machine:
+      image: ubuntu-2004:202010-01
+    environment:
+      <<: *integrationTestCommonEnv
+      SKIP_COMPONENTS: false
+      KIND_NODE_IMAGE_TAG: 'v1.18.2'
+      CLUSTER_VERSION: '1.18.2'
+      SKIP_PROMPT: 1
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run: &setup-wkp-components-config-yaml
+          name: Setup base config.yaml
+          command: |
+            cd test/integration/test
+            # create file with docker password
+            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
+            sed -i "s/track:.*/track: wks-components/" config.yaml
+            sed -i "s|podCIDRBlocks:.*|podCIDRBlocks: [$POD_CIDR_BLOCK]|" config.yaml
+            sed -i "s|serviceCIDRBlocks:.*|serviceCIDRBlocks: [$SERVICE_CIDR_BLOCK]|" config.yaml
+
+      - install-kind
+      - run:
+          name: Run e2e tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+
+            cd test/integration/test
+            sed -i "s|kindest/node:.*|kindest/node:$KIND_NODE_IMAGE_TAG|" kind-config.yaml
+            kind create cluster --config kind-config.yaml
+
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            kubectl get nodes
+            kubectl get pods --all-namespaces
+
+            go test -v -run TestClusterCreation --timeout=99999s
+
+            hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}" || echo "No worries"
+      - run:
+          # Ensures that the git repo is deleted even if the previous step fails
+          name: Delete git repo
+          command: |
+            # delete the github repository if it's hanging
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            echo "Cleaning up cluster repo on Github if it is hanging."
+            hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}" || echo "Could not delete or the repo wasn't found."
+          when: on_fail
 
           
