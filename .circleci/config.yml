@@ -565,6 +565,19 @@ jobs:
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
 
+  creation-ssh-gcp-no-lb:
+    <<: *creation-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 3
+          NUM_WORKERS: 1
+          USE_LB: false
+          CLUSTER_VERSIONS: '1.16.11'
+          SKIP_COMPONENTS: true
+
   creation-ssh-gcp-centos-lb:
     <<: *creation-ssh-gcp-centos
     docker:
