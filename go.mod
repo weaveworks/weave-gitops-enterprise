@@ -35,7 +35,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
-	github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201031104227-380d55e9e34b
+	github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201103163923-63ea7819523d
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20200918140536-ff126705213e
 	github.com/weaveworks/libgitops v0.0.2
