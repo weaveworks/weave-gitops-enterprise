@@ -588,7 +588,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
-          UPGRADE_VERSIONS: '1.15.7,1.16.11,1.17.7'
+          UPGRADE_VERSIONS: '1.16.11,1.17.7'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env

@@ -261,7 +261,7 @@ eksConfig:
 
 const invalidNodeGroup = `
 eksConfig:
-  kubernetesVersion: "1.14"
+  kubernetesVersion: "1.16"
   clusterRegion: "eu-north-1"
   nodeGroups:
   - name: "my-first-node-group"
@@ -305,7 +305,7 @@ func TestRequiredEKSValues(t *testing.T) {
 		{invalidNodeGroup, "A node group must have a capacity of at least 1"},
 		{missingK8sVersion, "A Kubernetes version must be specified"},
 		{missingClusterRegion, "clusterRegion must be specified"},
-		{invalidK8sVersion, `Kubernetes version must be one of: "1.16", "1.17" or "1.18"`},
+		{invalidK8sVersion, `Kubernetes version must be one of: "1.16", "1.17", "1.18" or "1.19"`},
 		{invalidManagedNodeGroupFile, `no file found at path: "628wanda496" for field: "managedNodeGroupFile"`}}
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
@@ -314,20 +314,6 @@ func TestRequiredEKSValues(t *testing.T) {
 		assert.Equal(t, testvals.errorMsg, fmt.Sprintf("%v", err))
 	}
 }
-
-const validWKSK8s114 = `
-wksConfig:
-  kubernetesVersion: "1.14.1"
-  serviceCIDRBlocks: [10.96.0.0/12]
-  podCIDRBlocks: [192.168.1.0/16]
-`
-
-const validWKSK8s115 = `
-wksConfig:
-  kubernetesVersion: "1.15.1"
-  serviceCIDRBlocks: [10.96.0.0/12]
-  podCIDRBlocks: [192.168.1.0/16]
-`
 
 const validWKSK8s116 = `
 wksConfig:
@@ -343,6 +329,20 @@ wksConfig:
   podCIDRBlocks: [192.168.1.0/16]
 `
 
+const validWKSK8s118 = `
+wksConfig:
+  kubernetesVersion: "1.18.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+`
+
+const validWKSK8s119 = `
+wksConfig:
+  kubernetesVersion: "1.19.1"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+`
+
 const missingWKSK8sVersion = `
 wksConfig:
   serviceCIDRBlocks: [10.96.0.0/12]
@@ -351,33 +351,33 @@ wksConfig:
 
 const missingServiceCIDRBlocks = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.17.1"
   podCIDRBlocks: [192.168.1.0/16]
 `
 
 const missingPodCIDRBlocks = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.17.1"
   serviceCIDRBlocks: [10.96.0.0/12]
 `
 
 const invalidWKSK8sVersion = `
 wksConfig:
-  kubernetesVersion: "1.18.1"
+  kubernetesVersion: "1.15.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
 `
 
 const invalidServiceCIDRBlock = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.17.1"
   serviceCIDRBlocks: [1000.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
 `
 
 const invalidPodCIDRBlock = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.17.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.1680.1.0/16]
 `
@@ -385,7 +385,7 @@ wksConfig:
 // invalid ipv4 address
 const invalidControlPlaneLbAddress1 = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.18.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
   controlPlaneLbAddress: 192.1680.1.0
@@ -394,7 +394,7 @@ wksConfig:
 // valid ipv4 address
 const validControlPlaneLbAddress1 = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.18.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
   controlPlaneLbAddress: 192.168.1.0
@@ -403,7 +403,7 @@ wksConfig:
 // invalid domain
 const invalidControlPlaneLbAddress2 = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.18.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
   controlPlaneLbAddress: "hello-World-.com"
@@ -412,7 +412,7 @@ wksConfig:
 // valid domain
 const validControlPlaneLbAddress2 = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.18.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
   controlPlaneLbAddress: "hello-World.com"
@@ -421,7 +421,7 @@ wksConfig:
 // valid extra apiserver and kubelet arguments
 const validExtraArguments = `
 wksConfig:
-  kubernetesVersion: "1.14.1"
+  kubernetesVersion: "1.18.1"
   serviceCIDRBlocks: [10.96.0.0/12]
   podCIDRBlocks: [192.168.1.0/16]
   apiServerArguments:
@@ -445,7 +445,7 @@ func TestInvalidWKSValues(t *testing.T) {
 		{missingServiceCIDRBlocks, "A service CIDR block must be specified"},
 		{missingPodCIDRBlocks, "A pod CIDR block must be specified"},
 		{invalidWKSK8sVersion,
-			"1.18.1 is not a valid Kubernetes version; must be 1.14.x-1.17.x"},
+			"1.15.1 is not a valid Kubernetes version; must be 1.16.x-1.19.x"},
 		{invalidServiceCIDRBlock, "1000.96.0.0/12 is not a valid CIDR specification"},
 		{invalidPodCIDRBlock, "192.1680.1.0/16 is not a valid CIDR specification"},
 		{invalidControlPlaneLbAddress1, "192.1680.1.0 is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
@@ -464,10 +464,10 @@ func TestValidWKSValues(t *testing.T) {
 	testinput := []struct {
 		config string
 	}{
-		{validWKSK8s114},
-		{validWKSK8s115},
 		{validWKSK8s116},
 		{validWKSK8s117},
+		{validWKSK8s118},
+		{validWKSK8s119},
 		{validExtraArguments},
 		{validControlPlaneLbAddress1},
 		{validControlPlaneLbAddress2},
@@ -690,7 +690,7 @@ func TestDefaultGlobals(t *testing.T) {
 
 const nodeGroupNeedsDefaults = `
 eksConfig:
-  kubernetesVersion: "1.14"
+  kubernetesVersion: "1.16"
   clusterRegion: "eu-north-1"
   nodeGroups:
   - instanceType: "m5.small"

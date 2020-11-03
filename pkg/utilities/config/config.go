@@ -567,7 +567,7 @@ func checkRequiredEKSValues(eksConfig *EKSConfig) error {
 	case "1.16", "1.17", "1.18":
 		return nil
 	default:
-		return fmt.Errorf(`Kubernetes version must be one of: "1.16", "1.17" or "1.18"`)
+		return fmt.Errorf(`Kubernetes version must be one of: "1.16", "1.17", "1.18" or "1.19"`)
 	}
 }
 
