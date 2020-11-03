@@ -76,22 +76,22 @@ config: # remember to consult `ui/src/entities/config.ts` before making any chan
   resourcesById:
     cluster_cpu_utilisation:
       label: CPU
-      query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (machine_cpu_cores)
+      query: sum (rate (container_cpu_usage_seconds_total{id="/"}[5m])) / sum (kube_node_status_capacity{resource="cpu"})
     cluster_cpu_limits:
       label: CPU Limits
-      query: sum(kube_pod_container_resource_limits_cpu_cores) / sum (machine_cpu_cores)
+      query: sum(kube_pod_container_resource_limits_cpu_cores) / sum (kube_node_status_capacity{resource="cpu"})
     cluster_cpu_requests:
       label: CPU Requests
-      query: sum(kube_pod_container_resource_requests_cpu_cores) / sum (machine_cpu_cores)
+      query: sum(kube_pod_container_resource_requests_cpu_cores) / sum (kube_node_status_capacity{resource="cpu"})
     cluster_memory_utilisation:
       label: Memory
-      query: sum (container_memory_working_set_bytes{id="/"}) / sum (machine_memory_bytes)
+      query: sum (container_memory_working_set_bytes{id="/"}) / sum (kube_node_status_capacity{resource="memory"})
     cluster_memory_limits:
       label: Memory Limits
-      query: sum(kube_pod_container_resource_limits_memory_bytes) / sum (machine_memory_bytes)
+      query: sum(kube_pod_container_resource_limits_memory_bytes) / sum (kube_node_status_capacity{resource="memory"})
     cluster_memory_requests:
       label: Memory Requests
-      query: sum(kube_pod_container_resource_requests_memory_bytes) / sum (machine_memory_bytes)
+      query: sum(kube_pod_container_resource_requests_memory_bytes) / sum (kube_node_status_capacity{resource="memory"})
     node_cpu_utilisation:
       label: CPU
       query: node:node_cpu_utilisation:avg1m
