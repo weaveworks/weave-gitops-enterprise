@@ -187,7 +187,7 @@ $(BINARIES) $(GENERATED) wkp-cluster-components/build ui/build unit-tests genera
 else # not BUILD_IN_CONTAINER
 
 user-guide/public:
-	cd user-guide && ./make-static.sh
+	cd user-guide && ./make-static.sh $(VERSION)
 
 pkg/guide/assets_vfsdata.go:
 	go generate ./pkg/guide
