@@ -499,8 +499,8 @@ jobs:
 
             cd test/integration/test
             export SKIP_COMPONENTS=true
-            export UPGRADE_VERSIONS='1.15.7,1.16.11,1.17.7'
-            export CLUSTER_VERSIONS='1.16.11,1.17.7'
+            export UPGRADE_VERSIONS='1.17.13,1.18.10,1.19.3'
+            export CLUSTER_VERSIONS='1.17.7'
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
@@ -517,7 +517,7 @@ jobs:
           IMAGE_NAME: centos-cloud/centos-7
           NUM_MASTERS: 1
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.17.13,1.18.10,1.19.3'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -575,7 +575,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: false
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.17.13,1.18.10,1.19.3'
           SKIP_COMPONENTS: true
 
   creation-ssh-gcp-centos-lb:
@@ -588,7 +588,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: true
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.19.3'
           SKIP_COMPONENTS: true
 
   upgrade-ssh-gcp-centos: &upgrade-ssh-gcp-centos
@@ -601,7 +601,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
-          UPGRADE_VERSIONS: '1.16.11,1.17.7'
+          UPGRADE_VERSIONS: '1.17.13,1.18.10,1.19.3'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
@@ -646,6 +646,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: true
           SKIP_COMPONENTS: true
+          UPGRADE_VERSIONS: '1.17.13,1.18.10,1.19.3'
 
   upgrade-to-latest-patch: &upgrade-ssh-gcp-centos
     docker:
@@ -657,8 +658,8 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
-          STARTING_VERSION: '1.16.3'
-          SUPPORTED_MINOR_VERSIONS: '1.16,1.17'
+          STARTING_VERSION: '1.17.3'
+          SUPPORTED_MINOR_VERSIONS: '1.17,1.18,1.19'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
@@ -702,7 +703,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-lts
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.17.13,1.18.10,1.19.3'
           SKIP_COMPONENTS: true
           NUM_MASTERS: 1
           NUM_WORKERS: 2
@@ -717,7 +718,7 @@ jobs:
           USE_LB: true
           NUM_MASTERS: 3
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.19.3'
           SKIP_COMPONENTS: true
 
   cluster-components-gcp:
@@ -726,7 +727,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           SKIP_COMPONENTS: false
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.19.3'
           NUM_MASTERS: 1
           NUM_WORKERS: 1
           IMAGE_NAME: centos-cloud/centos-7
@@ -797,7 +798,7 @@ jobs:
           USE_LB: false
           NUM_MASTERS: 3
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: '1.17.7'
+          CLUSTER_VERSIONS: '1.17.13,1.18.10,1.19.3'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -865,7 +866,7 @@ jobs:
           NUM_MASTERS: 1
           NUM_WORKERS: 1
           USE_LB: false
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.19.3'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -914,7 +915,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 4 # 1 + 3 spare machines
           USE_LB: true
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.19.3'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -984,7 +985,7 @@ jobs:
           NUM_MASTERS: 1
           NUM_WORKERS: 1 # 1 + 3 spare machines
           USE_LB: false
-          CLUSTER_VERSIONS: '1.16.11'
+          CLUSTER_VERSIONS: '1.19.3'
           SKIP_COMPONENTS: false
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
