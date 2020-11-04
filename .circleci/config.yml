@@ -98,6 +98,7 @@ workflows:
                 - master
     jobs:
       - build
+      - third-party-dependencies-check
       - cluster-components-gcp:
           <<: *nightlyTestConfig
       - upgrade-to-latest-patch:
@@ -1135,4 +1136,22 @@ jobs:
             hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}" || echo "Could not delete or the repo wasn't found."
           when: on_fail
 
-          
+  third-party-dependencies-check:
+    <<: *defaults
+    working_directory: /src/github.com/weaveworks/wks
+    steps:
+      - checkout
+      - add-go-mod-ssh-keys
+      - run:
+          name: Check third party dependencies
+          command: |
+            set -e
+            GITHUB_TOKEN=$WKP_GITHUB_TOKEN bin/sca-generate-deps.sh
+
+            # Check if dependency info changed
+            if git diff --name-only | grep 'user-guide/content/deps/_index.md'; then
+              echo "found a change in the deps doc pls go and update it!"
+              exit 1
+            else
+              exit 0
+            fi
