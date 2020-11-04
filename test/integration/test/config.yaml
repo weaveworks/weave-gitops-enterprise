@@ -14,7 +14,7 @@ eksConfig:
   nodeGroups: []
   managedNodeGroupFile: ''
 wksConfig:
-  kubernetesVersion: '1.16.11'
+  kubernetesVersion: '1.19.3'
   serviceCIDRBlocks: [192.168.0.0/16]
   podCIDRBlocks: [172.30.0.0/16]
   minDiskSpace: 5
