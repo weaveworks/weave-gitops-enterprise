@@ -950,6 +950,8 @@ github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201104144736
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201104144736-91c37fb7731d/go.mod h1:nnqvEposdqHGD1tap7bSMa4WzC00mq9EoWgbzfF6Ahs=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201104145902-1301f96a83d9 h1:GWE/xjtqfFZq6++yTzskqEp9y8PzrQNIR7RIcZWux9Y=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.0.3-0.20201104145902-1301f96a83d9/go.mod h1:nnqvEposdqHGD1tap7bSMa4WzC00mq9EoWgbzfF6Ahs=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.4 h1:XjZDr6pGWoRQk1hGSCFRVjLosNh2xjrE19e7jvI5tXw=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.0.4/go.mod h1:nnqvEposdqHGD1tap7bSMa4WzC00mq9EoWgbzfF6Ahs=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e h1:Y5z9Bu95l0laB3xOF3BT6LWkcR7VcRxN0n+nf2S72xA=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
 github.com/weaveworks/footloose v0.0.0-20200609124411-8f3df89ea188 h1:BuiVM+91YRjWUSMvF93A7Sm7s7IHrxjrPcc/5boO2V0=
@@ -977,6 +979,12 @@ github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201030035727-b7023ab3c90f h1:Bbl
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201030035727-b7023ab3c90f/go.mod h1:OT239MUFQSv2avnVaH9QO2aXDWsqhG2H2vAb7awpleU=
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201031104917-ea36d44e3e38 h1:ynlLItqpkFTIwGanuquWVukRbeND03iOLFeszaCjQqs=
 github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201031104917-ea36d44e3e38/go.mod h1:9UiO9gw6K5ocZUTRC/786Kab9EV28YCthT6BxN6WrL0=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201105103818-f54519f3e07f h1:F86HQBugXSLOnBq0MTN3HcAGZStbKkyYJUYGZZGIa6g=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201105103818-f54519f3e07f/go.mod h1:TN/ZyR0aR4Kp8iVHv8xp/YtVo0DT+AiNVYN8297Qgqk=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201105111553-1a8696d8f446 h1:mK/fX6GCHC+Y2zNDD0S95TKjDKMioDeHwayBNwiitvM=
+github.com/weaveworks/wksctl v0.9.0-alpha.4.0.20201105111553-1a8696d8f446/go.mod h1:TN/ZyR0aR4Kp8iVHv8xp/YtVo0DT+AiNVYN8297Qgqk=
+github.com/weaveworks/wksctl v0.9.0-beta.1 h1:5FVFI27cN30SdWEp7ay8xgJHtDWmmF/EKiXqEShns8U=
+github.com/weaveworks/wksctl v0.9.0-beta.1/go.mod h1:TN/ZyR0aR4Kp8iVHv8xp/YtVo0DT+AiNVYN8297Qgqk=
 github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/xanzy/go-gitlab v0.33.0 h1:MUJZknbLhVXSFzBA5eqGGhQ2yHSu8tPbGBPeB3sN4B0=
 github.com/xanzy/go-gitlab v0.33.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
