@@ -1155,3 +1155,12 @@ jobs:
             else
               exit 0
             fi
+      - run:
+          name: Upload updated deps file
+          command: |
+            mkdir -p /tmp/artifacts
+            cp user-guide/content/deps/_index.md /tmp/artifacts
+          when: on_fail
+      - store_artifacts:
+          path: /tmp/artifacts
+
