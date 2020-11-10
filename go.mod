@@ -1,10 +1,9 @@
 module github.com/weaveworks/wks
 
-go 1.12
+go 1.13
 
 require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
-	github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alioygur/gores v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/distribution v2.7.1+incompatible
@@ -55,9 +54,10 @@ require (
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.18.8
 	k8s.io/apimachinery v0.18.8
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
+	k8s.io/client-go v0.18.8
 	sigs.k8s.io/cluster-api v0.3.9
 	sigs.k8s.io/controller-runtime v0.6.3 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.6.0
 )
 
 replace (

@@ -10,6 +10,7 @@ defaults: &defaults
   docker:
     - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
       environment:
+        GOFLAGS: -p=4  # see https://github.com/golang/go/issues/26186#issuecomment-435544512 for more info. Docker in Circle incorrectly reports number of CPUs and causes OOM errors
         GOPATH: /go/
         SRCDIR: /src/github.com/weaveworks/wks
   working_directory: /src/github.com/weaveworks/wks

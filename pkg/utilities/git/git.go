@@ -15,6 +15,8 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/cluster/machine"
+	"github.com/weaveworks/libgitops/pkg/serializer"
 	"github.com/weaveworks/wks/pkg/cmdutil"
 	"github.com/weaveworks/wks/pkg/github/ggp"
 	cryptossh "golang.org/x/crypto/ssh"
@@ -24,6 +26,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	yaml "gopkg.in/yaml.v3"
+	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
 const (
@@ -551,28 +554,20 @@ func UpdateManifest(gitURL, gitBranch string, key []byte, kind, namespace, name,
 func GetMachinesK8sVersions(repoPath, machinesConfigPath string) ([]string, error) {
 	// Parse the machines.yaml file
 	machinesFilePath := path.Join(repoPath, machinesConfigPath)
-	fileNode, _, err := readYamlNodeFromFile(machinesFilePath)
+	machines, _, err := machine.ParseManifest(machinesFilePath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Look at the machine descriptions
-	machineNodes := FindNestedField(&fileNode, "0", "items")
-	if machineNodes == nil {
-		return nil, fmt.Errorf("Machine items not found in %s", machinesConfigPath)
-	}
 	// Iterate through all the machines and collect their kubelet versions in a map
 	versionMap := map[string]bool{}
-	for _, machineNode := range machineNodes.Content {
-		if isExistingInfraMachine(machineNode) {
-			continue
-		}
-		version := FindNestedField(machineNode, "spec", "version")
-		if version == nil || version.Value == "" {
+	for _, m := range machines {
+		if m.Spec.Version == nil || *m.Spec.Version == "" {
 			return nil, fmt.Errorf("Kubelet version missing for a node in %s", machinesConfigPath)
 		}
-		versionMap[version.Value] = true
+		versionMap[*m.Spec.Version] = true
 	}
+
 	// Return a sorted list of unique versions
 	versions := []string{}
 	for version := range versionMap {
@@ -612,29 +607,57 @@ func GetEKSClusterVersion(repoPath, wkClusterConfigPath string) ([]string, error
 
 // UpdateMachinesK8sVersions updates all machines in machines.yaml to the same K8s version
 func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) error {
-	// Parse the YAML file
-	path := path.Join(repoPath, fileSubPath)
-	fileNode, filePerms, err := readYamlNodeFromFile(path)
+	fPath := path.Join(repoPath, fileSubPath)
+	f, err := os.Open(fPath)
 	if err != nil {
 		return err
 	}
-	// Look at the machine descriptions
-	machineNodes := FindNestedField(&fileNode, "0", "items")
-	if machineNodes == nil {
-		return fmt.Errorf("Machine items not found in %s", fileSubPath)
+	defer f.Close()
+
+	fr := serializer.NewYAMLFrameReader(f)
+	buf := new(bytes.Buffer)
+	fw := serializer.NewYAMLFrameWriter(buf)
+
+	// Read all frames from the FrameReader
+	frames, err := serializer.ReadFrameList(fr)
+	if err != nil {
+		return err
 	}
-	// Iterate through all the machines and update their kubelet versions
-	for _, machineNode := range machineNodes.Content {
-		if isExistingInfraMachine(machineNode) {
-			continue
-		}
-		err := UpdateNestedFields(machineNode, version, "spec", "version")
+
+	for _, frame := range frames {
+		obj, err := kyaml.Parse(string(frame))
 		if err != nil {
 			return err
 		}
+
+		meta, err := obj.GetMeta()
+		if err != nil {
+			return err
+		}
+
+		if meta.Kind == "Machine" {
+			err := obj.PipeE(
+				kyaml.Lookup("spec"),
+				kyaml.SetField("version", kyaml.NewScalarRNode(version)))
+			if err != nil {
+				return err
+			}
+		}
+
+		str, err := obj.String()
+		if err != nil {
+			return err
+		}
+		if _, err := fw.Write([]byte(str)); err != nil {
+			return err
+		}
 	}
-	// Write the updated results back to the file with same permissions
-	return writeYamlNodeToFile(path, FindNestedField(&fileNode, "0"), filePerms)
+
+	err = ioutil.WriteFile(fPath, buf.Bytes(), 0644)
+	if err != nil {
+		return errors.Wrap(err, "failed writing the machines file")
+	}
+	return nil
 }
 
 // Operations used in git actions for policy checking
@@ -730,11 +753,4 @@ func ReadFile(repoDir, filePath, commit string) ([]byte, error) {
 		return nil, MakeErrorWrapper("gitReadFile")(err)
 	}
 	return data, nil
-}
-func isExistingInfraMachine(machineNode *yaml.Node) bool {
-	kind := FindNestedField(machineNode, "kind")
-	if kind == nil || kind.Value == "" || kind.Value == "ExistingInfraMachine" {
-		return true
-	}
-	return false
 }
