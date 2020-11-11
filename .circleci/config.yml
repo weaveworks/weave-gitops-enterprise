@@ -915,7 +915,7 @@ jobs:
           # Don't USE the default image, use IMAGE_NAME instead
           IMAGE_NAME: centos-cloud/centos-7
           NUM_MASTERS: 3
-          NUM_WORKERS: 4 # 1 + 3 spare machines
+          NUM_WORKERS: 5 # 1 + 4 spare machines
           USE_LB: true
           CLUSTER_VERSIONS: '1.19.3'
           SKIP_COMPONENTS: true
