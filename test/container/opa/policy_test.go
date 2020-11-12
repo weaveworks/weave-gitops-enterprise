@@ -1,6 +1,7 @@
 package opa
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -33,26 +34,27 @@ func TestPolicy(t *testing.T) {
 		Destination: "/tmp/policy_test.rego",
 	}
 	emptyDiff := plan.EmptyDiff()
-	_, err := policyFile.Apply(r, emptyDiff)
+	ctx := context.Background()
+	_, err := policyFile.Apply(ctx, r, emptyDiff)
 	assert.NoError(t, err)
-	_, err = policyTestFile.Apply(r, emptyDiff)
+	_, err = policyTestFile.Apply(ctx, r, emptyDiff)
 	assert.NoError(t, err)
 	run := &resource.Run{
 		Script: object.String("curl -L -o /opa https://github.com/open-policy-agent/opa/releases/download/v0.10.7/opa_linux_amd64"),
 	}
-	_, err = run.Apply(r, emptyDiff)
+	_, err = run.Apply(ctx, r, emptyDiff)
 	assert.NoError(t, err)
 	run = &resource.Run{
 		Script: object.String("chmod 755 /opa"),
 	}
-	_, err = run.Apply(r, emptyDiff)
+	_, err = run.Apply(ctx, r, emptyDiff)
 	assert.NoError(t, err)
 	var result string
 	run = &resource.Run{
 		Script: object.String("/opa test /tmp/policy_test.rego /tmp/policy.rego"),
 		Output: &result,
 	}
-	_, err = run.Apply(r, emptyDiff)
+	_, err = run.Apply(ctx, r, emptyDiff)
 	assert.NoError(t, err)
 	assert.True(t, strings.HasPrefix(result, "PASS:"))
 }

@@ -26,6 +26,7 @@ package test
 // It can be run via "go test" but requires a long timeout -- try "go test -run TestClusterCreation --timeout=99999s"
 
 import (
+	gcontext "context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -182,10 +183,11 @@ func checkApiServerAndKubeletArguments(c *context) {
 
 	for idx, portNode := range portNodes {
 		sshClient := getTestSSHClient(c, portNode.Value)
+		ctx := gcontext.Background()
 
 		for _, kubeletArg := range kubeletArgs {
 			argString := fmt.Sprintf("%s=%s", kubeletArg.Name, kubeletArg.Value)
-			_, err := sshClient.RunCommand(fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep /usr/bin/kubelet | grep %s", argString), nil)
+			_, err := sshClient.RunCommand(ctx, fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep /usr/bin/kubelet | grep %s", argString), nil)
 			if err != nil {
 				log.Infof("error grepping argument string from kubelet process %s\n", err)
 			}
@@ -195,7 +197,7 @@ func checkApiServerAndKubeletArguments(c *context) {
 		if roleNodes[idx].Value == "master" {
 			for _, apiServerArg := range apiServerArgs {
 				argString := fmt.Sprintf("%s=%s", apiServerArg.Name, apiServerArg.Value)
-				_, err := sshClient.RunCommand(fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep kube-apiserver | grep %s", argString), nil)
+				_, err := sshClient.RunCommand(ctx, fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep kube-apiserver | grep %s", argString), nil)
 				if err != nil {
 					log.Infof("error grepping argument string from apiserver process %s\n", err)
 				}

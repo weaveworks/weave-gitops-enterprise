@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	gcontext "context"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
@@ -1334,7 +1335,8 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 		return err
 	}
 	defer sshClient.Close()
-	installer, err := wksos.Identify(sshClient)
+	ctx := gcontext.Background()
+	installer, err := wksos.Identify(ctx, sshClient)
 	if err != nil {
 		return errors.Wrapf(err, "failed to identify operating system for haproxy node (%s)",
 			lbAddress)
@@ -1342,7 +1344,7 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 
 	runner := &sudo.Runner{Runner: sshClient}
 
-	cfg, err := envcfg.GetEnvSpecificConfig(installer.PkgType, "default", "", runner)
+	cfg, err := envcfg.GetEnvSpecificConfig(ctx, installer.PkgType, "default", "", runner)
 	if err != nil {
 		return err
 	}
@@ -1355,6 +1357,7 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 	}
 
 	criResource := recipe.BuildCRIPlan(
+		ctx,
 		&existinginfrav1.ContainerRuntime{
 			Kind:    "docker",
 			Package: "docker-ce",
@@ -1404,12 +1407,12 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 		return err
 	}
 
-	err = lbPlan.Undo(runner, plan.EmptyState)
+	err = lbPlan.Undo(ctx, runner, plan.EmptyState)
 	if err != nil {
 		log.Infof("Pre-plan cleanup failed:\n%s\n", err)
 		return err
 	}
-	_, err = lbPlan.Apply(runner, plan.EmptyDiff())
+	_, err = lbPlan.Apply(ctx, runner, plan.EmptyDiff())
 	if err != nil {
 		log.Errorf("Apply of Plan failed:\n%s\n", err)
 		return err
