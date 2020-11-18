@@ -58,6 +58,8 @@ resource "google_compute_instance" "tf_test_vm" {
   timeouts {
     delete = "10m"
   }
+
+  depends_on = ["google_compute_firewall.fw-allow-ping-and-ssh"]
 }
 
 resource "google_compute_firewall" "fw-allow-ping-and-ssh" {
@@ -74,7 +76,8 @@ resource "google_compute_firewall" "fw-allow-ping-and-ssh" {
     protocol = "icmp"
   }
 
-  source_ranges = ["${var.client_ip}"]
+  # This doesn't work for local testing.
+  # source_ranges = ["${var.client_ip}"]
 }
 
 resource "google_compute_firewall" "fw-allow-internal" {
