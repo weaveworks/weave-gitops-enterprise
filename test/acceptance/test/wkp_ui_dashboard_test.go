@@ -96,7 +96,7 @@ var _ = Describe("WKP UI", func() {
 
 	It("Verify Kubernetes Version", func() {
 
-		var expectedVersion = "v1.16.11"
+		var expectedVersion = "v1.19.3"
 		dashboardPage := pages.Dashboard(webDriver)
 		By("Then I should see the correct Kubernetes Version next to the cluster name", func() {
 			Eventually(dashboardPage.K8SVersion).Should(HaveText(expectedVersion))
@@ -110,7 +110,7 @@ var _ = Describe("WKP UI", func() {
 
 		By("Then I should see components count", func() {
 
-			Eventually(componentsPage.ClusterComponentsList).Should(HaveCount(12)) //hard coded components number???
+			Eventually(componentsPage.ClusterComponentsList).Should(HaveCount(11)) //hard coded components number???
 		})
 
 		By("And I should see following list of cluster components", func() {
