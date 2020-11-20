@@ -7,7 +7,7 @@ dockerIOPasswordFile: '/etc/passwd'
 sealedSecretsCertificate: ''
 sealedSecretsPrivateKey: ''
 enabledFeatures:
-  teamWorkspaces: false
+  teamWorkspaces: true
 eksConfig:
   clusterRegion: 'eu-west-3'
   kubernetesVersion: '1.18'

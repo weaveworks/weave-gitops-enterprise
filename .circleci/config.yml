@@ -804,8 +804,11 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
 
-            # Create a cluster and enable team workspaces on it
-            go test -v -run "TestWorkspaces/Test that we can enable the workspaces" --timeout=99999s
+            # Create a cluster and test workspaces
+            # FIXME: this is quite brittle and prone to breaking
+            # We use the first workspaces test to create a cluster and load in a provider token so we can
+            # start creating workspaces via the UI here.
+            go test -v -run "TestWorkspaces/Test that workspaces components are running" --timeout=99999s
 
             # Wait for that test to propagate and settle
             sleep 120
@@ -1216,4 +1219,3 @@ jobs:
           when: on_fail
       - store_artifacts:
           path: /tmp/artifacts
-
