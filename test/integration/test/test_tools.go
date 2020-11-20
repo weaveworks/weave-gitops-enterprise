@@ -233,6 +233,16 @@ func (c *context) updateConfigFileWithVersion(version string) {
 	require.NoError(c.t, err)
 }
 
+// updateDockerPasswordFile updates the docker io password file for the user in the config.yaml
+func (c *context) updateDockerPasswordFile(passwordPath string) {
+	path := c.runtimeConfigFilePath()
+	info := getFileInfo(c.t, path)
+	log.Infof("Configuring docker password file: %s", passwordPath)
+	c.conf.DockerIOPasswordFile = passwordPath
+	err := git.UpdateYAMLFile(info, []string{"dockerIOPasswordFile"}, passwordPath)
+	require.NoError(c.t, err)
+}
+
 // chooseTestOS randomly selects either a CentOS or Ubuntu image for the cluster nodes used to run an upgrade test
 func (c *context) chooseTestOS() {
 	osImage := randomOSImageChoice(c)
