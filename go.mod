@@ -34,11 +34,11 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
-	github.com/weaveworks/cluster-api-provider-existinginfra v0.0.9
+	github.com/weaveworks/cluster-api-provider-existinginfra v0.0.0-20201120150316-f0e8f722a3d3
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20200918140536-ff126705213e
 	github.com/weaveworks/libgitops v0.0.2
-	github.com/weaveworks/wksctl v0.9.0-rc.1
+	github.com/weaveworks/wksctl v0.0.0-20201120151316-02f7d474f5d7
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
