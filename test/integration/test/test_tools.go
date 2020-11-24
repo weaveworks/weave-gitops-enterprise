@@ -667,7 +667,6 @@ spec:
     name: %s
     owner: %s
     teams: %s
-    defaultBranch: master
   clusterScope:
     role: %s
     namespaces:
