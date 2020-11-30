@@ -1,8 +1,8 @@
-# Weaveworks Kubernetes Platform
+# Weave Kubernetes Platform
 
 <img src="/docs/images/wk-transparent.svg" height="100">
 
-Weaveworks Kubernetes Platform (WKP) creates production ready clusters with ease and
+Weave Kubernetes Platform (WKP) creates production ready clusters with ease and
 facilitates GitOps: all configuration is in files which can be kept under version control.
 
 ## Getting Started

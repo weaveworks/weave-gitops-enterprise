@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	DefaultAuthor = "Weaveworks Kubernetes Platform"
+	DefaultAuthor = "Weave Kubernetes Platform"
 	DefaultEmail  = "support@weave.works"
 
 	ComponentsFileName  = "components.yaml"
