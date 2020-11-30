@@ -57,7 +57,7 @@ var _ = Describe("WKP UI", func() {
 
 	It("Verify WKP Dashboard Page Structure", func() {
 
-		var expectedWKPTitle = "Weaveworks Kubernetes Platform"
+		var expectedWKPTitle = "Weave Kubernetes Platform"
 		//var expectedClusterName = `/ gce-cluster`
 		var expectedAlertInfo = "No alerts firing"
 		var expectedDocLink = "/docs"
