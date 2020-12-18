@@ -255,8 +255,8 @@ func (gr *GitRepo) Close() error {
 }
 
 // PushAllChanges commits and pushes all the file changes to a git repo
-func PushAllChanges(repo *GitRepo) error {
-	err := repo.CommitAll(DefaultAuthor, DefaultEmail, "updated by WKP UI")
+func PushAllChanges(repo *GitRepo, msg string) error {
+	err := repo.CommitAll(DefaultAuthor, DefaultEmail, msg)
 	if err != nil {
 		return err
 	}
@@ -327,7 +327,7 @@ func (gr *GitRepo) PerformManifestUpdate(kind, namespace, name, fieldPath string
 	if err != nil {
 		return err
 	}
-	err = PushAllChanges(gr)
+	err = PushAllChanges(gr, "Updated manifests by WKP UI")
 	if err != nil {
 		return err
 	}
