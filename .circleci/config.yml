@@ -301,7 +301,7 @@ jobs:
           name: Install helm
           command: |
             # install helm
-            curl -L https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz | tar xvz
+            curl -L https://get.helm.sh/helm-v2.17.0-linux-amd64.tar.gz | tar xvz
             sudo mv linux-amd64/helm /usr/bin/helm
             sudo chmod +x /usr/bin/helm
       - run: touch ./wks-build/.uptodate
