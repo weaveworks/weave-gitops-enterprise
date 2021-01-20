@@ -34,6 +34,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
+	github.com/tj/assert v0.0.3
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.1.1
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20200918140536-ff126705213e
@@ -51,10 +52,14 @@ require (
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+	gorm.io/datatypes v1.0.0
+	gorm.io/driver/sqlite v1.1.4
+	gorm.io/gorm v1.20.11
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.18.8
 	k8s.io/apimachinery v0.18.8
 	k8s.io/client-go v0.18.8
+	k8s.io/kubectl v0.18.6
 	sigs.k8s.io/cluster-api v0.3.9
 	sigs.k8s.io/controller-runtime v0.6.3 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.6.0

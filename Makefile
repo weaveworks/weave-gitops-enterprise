@@ -78,6 +78,7 @@ BINARIES = \
 	cmd/mock-https-authz-server/server \
 	cmd/ui-server/ui-server \
 	cmd/wks-ci/checks/policy/policy \
+	cmd/event-writer \
 	kerberos/cmd/k8s-krb5-server/server \
 	kerberos/cmd/wk-kerberos/wk-kerberos \
 	$(NULL)
@@ -99,6 +100,7 @@ cmd/mock-https-authz-server/.uptodate: cmd/mock-https-authz-server/server cmd/mo
 cmd/git-provider-service/.uptodate: cmd/git-provider-service/git-provider-service cmd/git-provider-service/Dockerfile
 cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/gitops-repo-broker/Dockerfile
 cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
+cmd/event-writer/.uptodate: cmd/event-writer/event-writer cmd/event-writer/Dockerfile
 
 wkp-cluster-components/.uptodate: wkp-cluster-components/build
 
@@ -156,6 +158,7 @@ cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
 cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
 cmd/git-provider-service/git-provider-service: $(call godeps,./cmd/git-provider-service)
 cmd/gitops-repo-broker/gitops-repo-broker: $(call godeps,./cmd/gitops-repo-broker)
+cmd/event-writer/event-writer: $(call godeps,./cmd/event-writer)
 cmd/ui-server/ui-server: cmd/ui-server/*.go
 
 UI_CODE_DEPS = $(shell find ui/src -name '*.jsx' -or -name '*.json')
@@ -240,6 +243,9 @@ cmd/git-provider-service/git-provider-service:
 
 cmd/gitops-repo-broker/gitops-repo-broker:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/gitops-repo-broker
+
+cmd/event-writer/event-writer:
+	CGO_ENABLED=1 go build -ldflags '-linkmode external -w -extldflags "-static"' -o $@ ./cmd/event-writer/*.go
 
 # UI
 cmd/ui-server/ui-server:

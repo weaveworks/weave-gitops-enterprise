@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wkp-mccp-database-inspector
+  namespace: wkp-mccp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mccp-database-inspector
+  template:
+    metadata:
+      labels:
+        app: mccp-database-inspector
+    spec:
+      nodeSelector:
+        mccp-dev-node: "true"
+      containers:
+        - name: inspector
+          image: database-inspector-image
+          command: ["tail", "-f", "/dev/null"]
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: database-volume
+              mountPath: /data
+      volumes:
+        - name: database-volume
+          hostPath:
+            # directory location on host
+            path: /home/wks/database
