@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/agent"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/branches"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/upgrades"
@@ -75,6 +76,8 @@ func runServer(params paramSet) error {
 	r.HandleFunc("/gitops/workspaces", workspaces.List).Methods("GET")
 	r.HandleFunc("/gitops/workspaces", workspaces.MakeCreateHandler(
 		params.gitURL, params.gitBranch, privKey, params.gitPath)).Methods("POST")
+
+	r.HandleFunc("/gitops/api/agent.yaml", agent.Get).Methods("GET")
 
 	srv := &http.Server{
 		Handler: r,
