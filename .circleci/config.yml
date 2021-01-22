@@ -427,7 +427,8 @@ jobs:
             export WKP_NO_SCOPES_GITHUB_TOKEN=$WKP_NO_SCOPES_GITHUB_TOKEN
             go get github.com/modocache/gover github.com/mattn/goveralls
             make unit-tests-with-coverage BUILD_IN_CONTAINER=false
-            goveralls -coverprofile=gover.coverprofile -service=circle-ci -repotoken xyz
+            gover
+            goveralls -coverprofile=gover.coverprofile -service=circle-ci -repotoken $WKP_COVERALLS_TOKEN
 
       - run:
           name: Lint
