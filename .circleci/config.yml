@@ -430,11 +430,6 @@ jobs:
             gover
             goveralls -coverprofile=gover.coverprofile -service=circle-ci -repotoken $WKP_COVERALLS_TOKEN
 
-      - run:
-          name: Lint
-          command: |
-            make lint BUILD_IN_CONTAINER=false
-
   container-tests:
     machine:
       image: ubuntu-1604:202004-01
