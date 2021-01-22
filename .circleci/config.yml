@@ -96,7 +96,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - release-2.4
     jobs:
       - build
       - third-party-dependencies-check
