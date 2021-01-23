@@ -104,6 +104,14 @@ workflows:
           <<: *nightlyTestConfig
       - upgrade-to-latest-patch:
           <<: *nightlyTestConfig
+      - creation-ssh-gcp-centos-lb
+      - upgrade-ssh-gcp-centos-lb
+      - creation-ssh-gcp-ubuntu-lb
+      - preflight-ssh-gcp-centos
+      - cluster-lifecycle-tests
+      - workspaces-tests
+      - existing-cluster-tests
+      - cluster-components-on-kind-1-18
 
   weekly:
     triggers:
