@@ -99,7 +99,8 @@ workflows:
                 - release-2.4
     jobs:
       - build
-      - third-party-dependencies-check
+      - third-party-dependencies-check:
+          <<: *nightlyTestConfig
       - cluster-components-gcp:
           <<: *nightlyTestConfig
       - upgrade-to-latest-patch:
