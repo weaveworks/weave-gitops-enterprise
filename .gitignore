@@ -52,3 +52,6 @@ tf.json
 /.npm
 /.yarnrc
 /.config
+
+#IDE specific foolder
+.idea

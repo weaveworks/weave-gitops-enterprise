@@ -156,6 +156,7 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 
 	if c.conf.Track == "wks-footloose" {
 		checkApiServerAndKubeletArguments(c)
+		checkKubeconfigWorksWithDefaultArgs(c)
 	}
 
 	// Check that sealed secrets work
@@ -255,4 +256,11 @@ func generateClusterName() string {
 
 func generateIDString() string {
 	return fmt.Sprintf("%s-%d-%d", strings.ToLower(os.Getenv("USER")), os.Getppid(), os.Getpid())
+}
+
+func checkKubeconfigWorksWithDefaultArgs(c *context) {
+	kubeconfigCmd := createCommand(c, "kubeconfig")
+	kubeconfigCmd.Stderr = os.Stderr
+	kubeconfigCmd.Stdout = os.Stdout
+	assert.NoError(c.t, kubeconfigCmd.Run())
 }
