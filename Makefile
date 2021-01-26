@@ -79,6 +79,7 @@ BINARIES = \
 	cmd/ui-server/ui-server \
 	cmd/wks-ci/checks/policy/policy \
 	cmd/event-writer \
+	cmd/wkp-agent/wkp-agent \
 	kerberos/cmd/k8s-krb5-server/server \
 	kerberos/cmd/wk-kerberos/wk-kerberos \
 	$(NULL)
@@ -101,6 +102,7 @@ cmd/git-provider-service/.uptodate: cmd/git-provider-service/git-provider-servic
 cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/gitops-repo-broker/Dockerfile
 cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
 cmd/event-writer/.uptodate: cmd/event-writer/event-writer cmd/event-writer/Dockerfile
+cmd/wkp-agent/.uptodate: cmd/wkp-agent/wkp-agent cmd/wkp-agent/Dockerfile
 
 wkp-cluster-components/.uptodate: wkp-cluster-components/build
 
@@ -246,6 +248,9 @@ cmd/gitops-repo-broker/gitops-repo-broker:
 
 cmd/event-writer/event-writer:
 	CGO_ENABLED=1 go build -ldflags '-linkmode external -w -extldflags "-static"' -o $@ ./cmd/event-writer/*.go
+
+cmd/wkp-agent/wkp-agent:
+	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
 
 # UI
 cmd/ui-server/ui-server:

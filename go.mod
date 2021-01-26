@@ -6,6 +6,8 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/alioygur/gores v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/cloudevents/sdk-go/protocol/nats/v2 v2.3.1
+	github.com/cloudevents/sdk-go/v2 v2.3.1
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/ghodss/yaml v1.0.0
@@ -13,6 +15,7 @@ require (
 	github.com/google/go-containerregistry v0.1.3
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-github/v32 v32.1.0
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.3
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
@@ -21,6 +24,8 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/nats-io/nats-server/v2 v2.1.7
+	github.com/nats-io/nats.go v1.10.0
 	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
 	github.com/open-policy-agent/opa v0.12.2
@@ -59,7 +64,6 @@ require (
 	k8s.io/api v0.18.8
 	k8s.io/apimachinery v0.18.8
 	k8s.io/client-go v0.18.8
-	k8s.io/kubectl v0.18.6
 	sigs.k8s.io/cluster-api v0.3.9
 	sigs.k8s.io/controller-runtime v0.6.3 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.6.0

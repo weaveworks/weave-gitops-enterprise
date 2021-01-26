@@ -473,6 +473,8 @@ jobs:
 
             go test -v -run TestImageRepositoryCheck
 
+            go test -v -run TestAgent
+
             cd ../../../cmd/workspaces-controller
             make test
 

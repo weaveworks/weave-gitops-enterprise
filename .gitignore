@@ -21,6 +21,7 @@
 /cmd/wks-ci/wks-ci
 /cmd/wks-controller/controller
 /cmd/wks-entitle/wks-entitle
+/cmd/wkp-agent/wkp-agent
 
 # build step for the ui server
 /cmd/ui-server/html
