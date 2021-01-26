@@ -279,6 +279,9 @@ lint:
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
+unit-tests-with-coverage: $(GENERATED)
+	WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/...
+
 unit-tests: $(GENERATED)
 	WKP_DEBUG=true go test -v ./cmd/... ./pkg/...
 

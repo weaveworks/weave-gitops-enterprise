@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/weaveworks/wks/badge.svg?branch=master&t=Yv0GnU)](https://coveralls.io/github/weaveworks/wks?branch=master)
+
 # Weave Kubernetes Platform
 
 <img src="/docs/images/wk-transparent.svg" height="100">

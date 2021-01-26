@@ -60,6 +60,7 @@ workflows:
               only: /.*/
       - container-tests
       - unit-tests
+      - unit-tests-with-coverage
       - fast-integration-tests:
           requires:
           - build
@@ -401,6 +402,33 @@ jobs:
           name: Lint
           command: |
             make lint BUILD_IN_CONTAINER=false
+
+  unit-tests-with-coverage:
+    <<: *defaults
+    working_directory: /src/github.com/weaveworks/wks
+    steps:
+      - checkout
+      - add-go-mod-ssh-keys
+      - run:
+          name: Install kubectl
+          command: |
+            export KUBECTL_URL=https://dl.k8s.io/v1.14.1/kubernetes-client-linux-amd64.tar.gz
+            export KUBECTL_CHECKSUM=da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
+            curl --silent -L $KUBECTL_URL -o kubectl.tar.gz
+            echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
+            tar xvzf kubectl.tar.gz --strip-components=3
+            sudo mv kubectl /usr/local/bin
+      - run:
+          name: Run unit tests
+          command: |
+            go version
+            export KUBESEAL_BINARY_PATH=/src/github.com/weaveworks/wks/setup/wk-quickstart/bin/kubeseal # used in unit-tests of workspaces/create_test.go
+            export SEALED_SECRETS_CERT_PATH=/src/github.com/weaveworks/wks/test/integration/test/test-sealed-secrets-cert.crt # used in unit-tests of workspaces/create_test.go
+            export WKP_NO_SCOPES_GITHUB_TOKEN=$WKP_NO_SCOPES_GITHUB_TOKEN
+            go get github.com/modocache/gover github.com/mattn/goveralls
+            make unit-tests-with-coverage BUILD_IN_CONTAINER=false
+            gover
+            goveralls -coverprofile=gover.coverprofile -service=circle-ci -repotoken $WKP_COVERALLS_TOKEN
 
   container-tests:
     machine:
