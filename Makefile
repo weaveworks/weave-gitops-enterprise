@@ -12,6 +12,13 @@ UPTODATE := .uptodate
 BUILD_IN_CONTAINER=true
 BUILD_IMAGE=docker.io/weaveworks/wkp-wks-build
 BUILD_UPTODATE=wks-build/.uptodate
+GOOS := $(shell go env GOOS)
+ifeq ($(GOOS),linux)
+	cgo_ldflags='-linkmode external -w -extldflags "-static"'
+else
+	# darwin doesn't like -static
+	cgo_ldflags='-linkmode external -w'
+endif
 # The GOOS to use for local binaries that we `make install`
 LOCAL_BINARIES_GOOS ?= $(GOOS)
 
@@ -78,8 +85,8 @@ BINARIES = \
 	cmd/mock-https-authz-server/server \
 	cmd/ui-server/ui-server \
 	cmd/wks-ci/checks/policy/policy \
-	cmd/event-writer \
 	cmd/wkp-agent/wkp-agent \
+	cmd/event-writer/event-writer \
 	kerberos/cmd/k8s-krb5-server/server \
 	kerberos/cmd/wk-kerberos/wk-kerberos \
 	$(NULL)
@@ -182,7 +189,7 @@ ifeq ($(BUILD_IN_CONTAINER),true)
 $(BINARIES) $(GENERATED) wkp-cluster-components/build ui/build unit-tests generate-manifests lint: $(BUILD_UPTODATE)
 	$(SUDO) docker run -ti --rm \
 		-v $(shell pwd):/src/github.com/weaveworks/wks:delegated \
-		-v $(GOPATH)/pkg:/go/pkg:delegated \
+		-v $(shell go env GOPATH)/pkg:/go/pkg:delegated \
 		--net=host \
 		-e SRC_PATH=/src/github.com/weaveworks/wks -e GOPATH=/go/ \
 		-e GOARCH -e GOOS -e CIRCLECI -e CIRCLE_BUILD_NUM -e CIRCLE_NODE_TOTAL \
@@ -247,7 +254,7 @@ cmd/gitops-repo-broker/gitops-repo-broker:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/gitops-repo-broker
 
 cmd/event-writer/event-writer:
-	CGO_ENABLED=1 go build -ldflags '-linkmode external -w -extldflags "-static"' -o $@ ./cmd/event-writer/*.go
+	CGO_ENABLED=1 go build -ldflags $(cgo_ldflags) -o $@ ./cmd/event-writer/*.go
 
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
