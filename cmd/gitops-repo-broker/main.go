@@ -56,7 +56,7 @@ func init() {
 func runServer(params paramSet) error {
 	privKey, err := ioutil.ReadFile(params.privKeyFile)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	r := mux.NewRouter()
@@ -77,7 +77,8 @@ func runServer(params paramSet) error {
 	r.HandleFunc("/gitops/workspaces", workspaces.MakeCreateHandler(
 		params.gitURL, params.gitBranch, privKey, params.gitPath)).Methods("POST")
 
-	r.HandleFunc("/gitops/api/agent.yaml", agent.Get).Methods("GET")
+	// TODO: read this nats url from the cli args?
+	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler("nats://nats-client.wkp-mccp:4222")).Methods("GET")
 
 	srv := &http.Server{
 		Handler: r,

@@ -251,7 +251,7 @@ cmd/git-provider-service/git-provider-service:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/git-provider-service
 
 cmd/gitops-repo-broker/gitops-repo-broker:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/gitops-repo-broker
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ ./cmd/gitops-repo-broker
 
 cmd/event-writer/event-writer:
 	CGO_ENABLED=1 go build -ldflags $(cgo_ldflags) -o $@ ./cmd/event-writer/*.go

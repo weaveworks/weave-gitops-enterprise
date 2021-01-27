@@ -39,11 +39,10 @@ func init() {
 }
 
 func autodetectKubeconfig() {
-	// Not set as a flag
-	if KubeconfigFile == "" {
-		if home := homedir.HomeDir(); home != "" {
-			KubeconfigFile = filepath.Join(home, ".kube", "config")
-		}
+	defaultKubeconfigPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
+	// file is there, lets use it
+	if _, err := os.Stat(defaultKubeconfigPath); err == nil {
+		KubeconfigFile = defaultKubeconfigPath
 	}
 }
 
