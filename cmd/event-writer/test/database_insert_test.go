@@ -2,10 +2,12 @@ package test
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/weaveworks/wks/cmd/event-writer/converter"
 	"github.com/weaveworks/wks/cmd/event-writer/database/models"
 	"github.com/weaveworks/wks/cmd/event-writer/database/utils"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -77,10 +80,16 @@ func testBatchEventDBInsertion(t *testing.T, db *gorm.DB) {
 	start := time.Now()
 	// Change the name and insert it to the array
 	for _, clusterRow := range allClusters {
+		commonUID := RandomString(36)
 		for i := 0; i < eventCount; i++ {
-			dbEvent.Name = RandomString(10)
-			dbEvent.ClusterName = clusterRow.Name
-			allEvents = append(allEvents, dbEvent)
+			eventCopy := dbEvent
+			eventCopy.Name = RandomString(10)
+			rawEventStr := string(eventCopy.RawEvent)
+			rawEventStr = strings.Replace(rawEventStr, `"uid":"57251486-2f56-400e-a332-146680a99654"`,
+				fmt.Sprintf(`"uid":"%s"`, commonUID), -1)
+			eventCopy.RawEvent = []byte(rawEventStr)
+			eventCopy.ClusterName = clusterRow.Name
+			allEvents = append(allEvents, eventCopy)
 		}
 		// Insert the event in the table
 		db.CreateInBatches(allEvents, batchInsertSize)
@@ -122,6 +131,24 @@ func testDBQuerying(t *testing.T, db *gorm.DB) {
 	elapsed := time.Since(start)
 	assert.Equal(t, len(events), eventCount)
 	log.Printf("Querying %d events by cluster name took %s", len(events), elapsed)
+
+	// Test querying events by a nested JSON field
+	// Get all events with involvedObject.UID equal to the first event's involvedObject.UID)
+	reconEvent, err := converter.DeserializeJSONToEvent(result.RawEvent)
+	assert.NoError(t, err)
+
+	db.First(&result, datatypes.JSONQuery("raw_event").Equals("involvedObject", "uid", string(reconEvent.InvolvedObject.UID)))
+	reconResult, err := converter.DeserializeJSONToEvent(result.RawEvent)
+	assert.NoError(t, err)
+	fmt.Println(reconResult.InvolvedObject.UID)
+	assert.Equal(t, reconResult.InvolvedObject.UID, reconEvent.InvolvedObject.UID)
+
+	// All events from the same cluster should have the same involvedObject.UID
+	start = time.Now()
+	db.Find(&events, datatypes.JSONQuery("raw_event").Equals("involvedObject", "uid", string(reconEvent.InvolvedObject.UID)))
+	assert.Equal(t, len(events), eventCount)
+	elapsed = time.Since(start)
+	log.Printf("Querying %d events by a nested JSON field took %s", eventCount, elapsed)
 }
 
 func testSingleEventDBSelect(t *testing.T, db *gorm.DB) {
