@@ -5,11 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	// sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/weaveworks/wks/cmd/event-writer/database/models"
 	"github.com/weaveworks/wks/cmd/event-writer/messages"
-
-	// workspacesv1 "github.com/weaveworks/wks/cmd/workspaces-controller/api/v1beta1"
 	"gorm.io/datatypes"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"

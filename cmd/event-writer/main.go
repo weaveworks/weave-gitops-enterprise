@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/event-writer/database"
 	"github.com/weaveworks/wks/cmd/event-writer/run"
-	"github.com/weaveworks/wks/pkg/cmdutil"
 )
 
 var cmd = &cobra.Command{
@@ -19,6 +18,6 @@ func main() {
 	cmd.AddCommand(run.Cmd)
 
 	if err := cmd.Execute(); err != nil {
-		cmdutil.ErrorExit("Error", err)
+		panic(err)
 	}
 }

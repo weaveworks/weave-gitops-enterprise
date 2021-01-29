@@ -13,12 +13,7 @@ BUILD_IN_CONTAINER=true
 BUILD_IMAGE=docker.io/weaveworks/wkp-wks-build
 BUILD_UPTODATE=wks-build/.uptodate
 GOOS := $(shell go env GOOS)
-ifeq ($(GOOS),linux)
-	cgo_ldflags='-linkmode external -w -extldflags "-static"'
-else
-	# darwin doesn't like -static
-	cgo_ldflags='-linkmode external -w'
-endif
+
 # The GOOS to use for local binaries that we `make install`
 LOCAL_BINARIES_GOOS ?= $(GOOS)
 
@@ -86,7 +81,6 @@ BINARIES = \
 	cmd/ui-server/ui-server \
 	cmd/wks-ci/checks/policy/policy \
 	cmd/wkp-agent/wkp-agent \
-	cmd/event-writer/event-writer \
 	kerberos/cmd/k8s-krb5-server/server \
 	kerberos/cmd/wk-kerberos/wk-kerberos \
 	$(NULL)
@@ -108,7 +102,6 @@ cmd/mock-https-authz-server/.uptodate: cmd/mock-https-authz-server/server cmd/mo
 cmd/git-provider-service/.uptodate: cmd/git-provider-service/git-provider-service cmd/git-provider-service/Dockerfile
 cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/gitops-repo-broker/Dockerfile
 cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
-cmd/event-writer/.uptodate: cmd/event-writer/event-writer cmd/event-writer/Dockerfile
 cmd/wkp-agent/.uptodate: cmd/wkp-agent/wkp-agent cmd/wkp-agent/Dockerfile
 
 wkp-cluster-components/.uptodate: wkp-cluster-components/build
@@ -167,7 +160,6 @@ cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
 cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
 cmd/git-provider-service/git-provider-service: $(call godeps,./cmd/git-provider-service)
 cmd/gitops-repo-broker/gitops-repo-broker: $(call godeps,./cmd/gitops-repo-broker)
-cmd/event-writer/event-writer: $(call godeps,./cmd/event-writer)
 cmd/ui-server/ui-server: cmd/ui-server/*.go
 
 UI_CODE_DEPS = $(shell find ui/src -name '*.jsx' -or -name '*.json')
@@ -253,9 +245,6 @@ cmd/git-provider-service/git-provider-service:
 cmd/gitops-repo-broker/gitops-repo-broker:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ ./cmd/gitops-repo-broker
 
-cmd/event-writer/event-writer:
-	CGO_ENABLED=1 go build -ldflags $(cgo_ldflags) -o $@ ./cmd/event-writer/*.go
-
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
 
@@ -288,9 +277,11 @@ lint:
 # tests here.
 unit-tests-with-coverage: $(GENERATED)
 	WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/...
+	cd cmd/event-writer && go test -cover -coverprofile=.coverprofile ./converter/... ./database/... ./subscribe/... ./run/... ./test/...
 
 unit-tests: $(GENERATED)
 	WKP_DEBUG=true go test -v ./cmd/... ./pkg/...
+	cd cmd/event-writer && go test ./converter/... ./database/... ./subscribe/... ./run/... ./test/...
 
 endif # BUILD_IN_CONTAINER
 

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/weaveworks/wks/cmd/event-writer/messages"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -17,6 +18,41 @@ func newEvent(reason, kind, namespace, name string) v1.Event {
 		},
 	}
 	return event
+}
+
+func newClusterMessage(name string, namespace string, labels string, annotations string,
+	cpNodes int, workerNodes int, cniInfo string, csiInfo string, criInfo string,
+	version string, ingressInfo string) messages.Cluster {
+	return messages.Cluster{
+		Name:              name,
+		Namespace:         namespace,
+		Labels:            labels,
+		Annotations:       annotations,
+		ControlPlaneNodes: cpNodes,
+		WorkerNodes:       workerNodes,
+		CNIInfo:           cniInfo,
+		CSIInfo:           csiInfo,
+		CRIInfo:           criInfo,
+		Version:           version,
+		IngressInfo:       ingressInfo,
+	}
+}
+
+func TestConvertCluster(t *testing.T) {
+	msgCluster := newClusterMessage("wkp-test", "weavek8sops", "prod=true", "", 3, 5, "", "", "", "1.19.3", "")
+	dbCluster, err := ConvertCluster(msgCluster)
+	assert.NoError(t, err)
+	assert.Equal(t, dbCluster.Name, msgCluster.Name)
+	assert.Equal(t, dbCluster.Namespace, msgCluster.Namespace)
+	assert.Equal(t, dbCluster.Labels, msgCluster.Labels)
+	assert.Equal(t, dbCluster.Annotations, msgCluster.Annotations)
+	assert.Equal(t, dbCluster.ControlPlaneNodes, msgCluster.ControlPlaneNodes)
+	assert.Equal(t, dbCluster.WorkerNodes, msgCluster.WorkerNodes)
+	assert.Equal(t, dbCluster.CNIInfo, msgCluster.CNIInfo)
+	assert.Equal(t, dbCluster.CSIInfo, msgCluster.CSIInfo)
+	assert.Equal(t, dbCluster.CRIInfo, msgCluster.CRIInfo)
+	assert.Equal(t, dbCluster.Version, msgCluster.Version)
+	assert.Equal(t, dbCluster.IngressInfo, msgCluster.IngressInfo)
 }
 
 func TestSerializeStringMap(t *testing.T) {
