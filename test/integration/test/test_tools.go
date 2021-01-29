@@ -57,41 +57,50 @@ func flagSet(flags []testFlag, flag testFlag) bool {
 	return false
 }
 
+type ComponentType string
+
+const (
+	Deployment  ComponentType = "deployment"
+	StatefulSet ComponentType = "statefulset"
+)
+
 type Component struct {
 	Namespace string
 	Name      string
+	Type      ComponentType
 }
 
-// Sets the timeout for 'kubectl wait' for a deployment
-var defaultDeploymentTimeout = "300s"
+// Sets the timeout for 'kubectl wait' for a deployment/statefulset
+var defaultTimeout = "300s"
 
-// Sets the retries for the pods of a deployment to be scheduled
-var defaultDeploymentRetries = 50
+// Sets the retries for the pods of a deployment/statefulset to be scheduled
+var defaultRetries = 50
 
-// Sets the wait interval for checking if a deployment has been scheduled (in seconds)
-var defaultDeploymentRetryInterval = 8
+// Sets the wait interval for checking if a deployment/statefulset has been scheduled (in seconds)
+var defaultRetryInterval = 8
 
 // All the components of a WKP cluster, ordered by deployment time
 var allComponents = func(track string) []Component {
 	var components = []Component{
-		{"wkp-flux", "flux"},
-		{"wkp-flux", "flux-helm-operator"},
-		{"wkp-flux", "memcached"},
-		{"wkp-tiller", "tiller-deploy"},
-		{"wkp-gitops-repo-broker", "gitops-repo-broker"},
-		{"wkp-scope", "weave-scope-cluster-agent-weave-scope"},
-		{"wkp-scope", "weave-scope-frontend-weave-scope"},
-		{"wkp-grafana", "grafana"},
-		{"wkp-prometheus", "prometheus-operator-kube-state-metrics"},
-		{"wkp-prometheus", "prometheus-operator-kube-p-operator"},
-		{"wkp-external-dns", "external-dns"},
-		{"wkp-ui", "wkp-ui-server"},
-		{"wkp-ui", "wkp-ui-nginx-ingress-controller"},
-		{"wkp-ui", "wkp-ui-nginx-ingress-controller-default-backend"},
+		{"wkp-flux", "flux", Deployment},
+		{"wkp-flux", "flux-helm-operator", Deployment},
+		{"wkp-flux", "memcached", Deployment},
+		{"wkp-tiller", "tiller-deploy", Deployment},
+		{"wkp-gitops-repo-broker", "gitops-repo-broker", Deployment},
+		{"wkp-scope", "weave-scope-cluster-agent-weave-scope", Deployment},
+		{"wkp-scope", "weave-scope-frontend-weave-scope", Deployment},
+		{"wkp-grafana", "grafana", Deployment},
+		{"wkp-prometheus", "prometheus-operator-kube-state-metrics", Deployment},
+		{"wkp-prometheus", "prometheus-operator-kube-p-operator", Deployment},
+		{"wkp-external-dns", "external-dns", Deployment},
+		{"wkp-ui", "wkp-ui-server", Deployment},
+		{"wkp-ui", "wkp-ui-nginx-ingress-controller", Deployment},
+		{"wkp-ui", "wkp-ui-nginx-ingress-controller-default-backend", Deployment},
+		{"wkp-mccp", "nats", StatefulSet},
 	}
 
 	if track == "wks-ssh" || track == "wks-footloose" {
-		components = append(components, Component{"weavek8sops", "wks-controller"})
+		components = append(components, Component{"weavek8sops", "wks-controller", Deployment})
 	}
 
 	return components
@@ -99,29 +108,38 @@ var allComponents = func(track string) []Component {
 
 func (c *context) checkComponentRunning(component Component) bool {
 	found := false
-	for retry := 0; retry < defaultDeploymentRetries; retry++ {
-		if c.checkDeploymentExists(component) {
+	for retry := 0; retry < defaultRetries; retry++ {
+		if c.checkResourceExists(component) {
 			found = true
 			break
 		}
-		time.Sleep(time.Duration(defaultDeploymentRetryInterval) * time.Second)
+		time.Sleep(time.Duration(defaultRetryInterval) * time.Second)
 	}
-	if !found || !c.checkDeploymentRunning(component) {
+	if !found || !c.checkResourceRunning(component) {
 		log.Errorf("Component is not running: %s Was found: %v\n", component.Name, found)
 		return false
 	}
 	return true
 }
 
-func (c *context) checkDeploymentExists(component Component) bool {
-	deploymentName := "deployment/" + component.Name
-	cmdItems := []string{"kubectl", "wait", "--for=condition=available", "--timeout", defaultDeploymentTimeout,
-		"--namespace", component.Namespace, deploymentName}
+func (c *context) checkResourceExists(component Component) bool {
+	var cmdItems []string
+	if component.Type == Deployment {
+		name := "deployment/" + component.Name
+		cmdItems = []string{"kubectl", "wait", "--for=condition=available", "--timeout", defaultTimeout,
+			"--namespace", component.Namespace, name}
+	} else if component.Type == StatefulSet {
+		// kubectl wait does not work for StatefulSet so we wait for the first pod instead
+		// https://github.com/kubernetes/kubernetes/issues/79606
+		selector := fmt.Sprintf("statefulset.kubernetes.io/pod-name=%s-0", component.Name)
+		cmdItems = []string{"kubectl", "wait", "--for=condition=ready", "--timeout", defaultTimeout,
+			"--namespace", component.Namespace, "--selector", selector, "pod"}
+	}
 	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
 	cmd.Env = c.env
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Infof("Deployment: %s timed out\nOutput: %s", component.Name, string(output))
+		log.Infof("Resource: %s timed out\nOutput: %s", component.Name, string(output))
 
 		// Printing all pods for debugging
 		cmdItems := []string{"kubectl", "get", "pods", "--all-namespaces"}
@@ -138,13 +156,13 @@ func (c *context) checkDeploymentExists(component Component) bool {
 	return true
 }
 
-func (c *context) checkDeploymentRunning(component Component) bool {
-	cmdItems := []string{"kubectl", "get", "deployment", "-n", component.Namespace, component.Name}
+func (c *context) checkResourceRunning(component Component) bool {
+	cmdItems := []string{"kubectl", "get", string(component.Type), "-n", component.Namespace, component.Name}
 	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
 	cmd.Env = c.env
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Infof("Failed to get deployment: %s", string(output))
+		log.Infof("Failed to get resource: %s", string(output))
 		return false
 	}
 	return true
