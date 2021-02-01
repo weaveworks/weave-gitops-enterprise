@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	clusterCount    = 25
-	eventCount      = 100
-	batchInsertSize = 1000
+	clusterCount    = 2
+	eventCount      = 10
+	batchInsertSize = 10
 )
 
 func TestDBInsertSuite(t *testing.T) {

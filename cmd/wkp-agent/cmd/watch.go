@@ -5,13 +5,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	cloudeventsnats "github.com/cloudevents/sdk-go/protocol/nats/v2"
-	cloudevents "github.com/cloudevents/sdk-go/v2"
-	nats "github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/wks/cmd/wkp-agent/internal/common"
 	clusterclient "github.com/weaveworks/wks/pkg/cluster/client"
 	clusterwatcher "github.com/weaveworks/wks/pkg/cluster/watcher"
 	"github.com/weaveworks/wks/pkg/messaging/handlers"
@@ -53,30 +50,7 @@ func run(cmd *cobra.Command, args []string) {
 	// So we want to delay this as much as possible by setting it to 0.
 	factory := informers.NewSharedInformerFactory(k8sClient, 0)
 
-	options := cloudeventsnats.NatsOptions(
-		nats.MaxReconnects(-1), // Always reconnect
-		nats.ReconnectWait(5*time.Second),
-		nats.ErrorHandler(func(con *nats.Conn, sub *nats.Subscription, err error) {
-			log.Debugf("Agent encountered an error: %v.", err)
-		}),
-		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
-			log.Debugf("Agent disconnected from broker: %v.", err)
-		}),
-		nats.ReconnectHandler(func(nc *nats.Conn) {
-			log.Debugf("Agent reconnected to broker.")
-		}),
-	)
-	sender, err := cloudeventsnats.NewSender(NatsURL, Subject, options)
-	if err != nil {
-		log.Fatalf("Failed to create NATS client, %s.", err.Error())
-	}
-	defer sender.Close(ctx)
-	log.Infof("NATS host: %s", sender.Conn.Servers())
-
-	client, err := cloudevents.NewClient(sender)
-	if err != nil {
-		log.Fatalf("Failed to create CloudEvents client, %s", err.Error())
-	}
+	client := common.CreateClient(ctx, NatsURL, Subject)
 
 	notifier, err := handlers.NewEventNotifier("wkp-agent", client)
 	if err != nil {
