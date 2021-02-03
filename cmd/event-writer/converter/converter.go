@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/weaveworks/wks/cmd/event-writer/database/models"
 	"github.com/weaveworks/wks/cmd/event-writer/messages"
@@ -27,17 +28,24 @@ func ConvertEvent(event v1.Event) (models.Event, error) {
 
 	flattenedLabels := SerializeStringMap(event.ObjectMeta.Labels)
 	flattenedAnnotations := SerializeStringMap(event.ObjectMeta.Annotations)
+	creationTimestamp := datatypes.Date{}
+	creationTimestamp.Scan(event.ObjectMeta.CreationTimestamp)
+	registrationTimestamp := datatypes.Date{}
+	registrationTimestamp.Scan(time.Now())
 
 	result := models.Event{
-		Name:        event.ObjectMeta.Name,
-		Namespace:   event.ObjectMeta.Namespace,
-		Labels:      flattenedLabels,
-		Annotations: flattenedAnnotations,
-		ClusterName: event.ClusterName,
-		Reason:      event.Reason,
-		Message:     event.Message,
-		Type:        event.Type,
-		RawEvent:    eventJSON,
+		UID:          event.ObjectMeta.UID,
+		CreatedAt:    creationTimestamp,
+		RegisteredAt: registrationTimestamp,
+		Name:         event.ObjectMeta.Name,
+		Namespace:    event.ObjectMeta.Namespace,
+		Labels:       flattenedLabels,
+		Annotations:  flattenedAnnotations,
+		ClusterName:  event.ClusterName,
+		Reason:       event.Reason,
+		Message:      event.Message,
+		Type:         event.Type,
+		RawEvent:     eventJSON,
 	}
 	return result, nil
 }

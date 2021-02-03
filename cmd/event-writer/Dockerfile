@@ -12,6 +12,7 @@ RUN go mod download
 COPY main.go main.go
 COPY converter/ converter/
 COPY database/ database/
+COPY queue/ queue/
 COPY run/ run/
 COPY subscribe/ subscribe/
 COPY messages/ messages/

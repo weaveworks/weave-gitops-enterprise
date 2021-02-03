@@ -4,12 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/event-writer/database/utils"
+	"github.com/weaveworks/wks/cmd/event-writer/queue"
 	"github.com/weaveworks/wks/cmd/event-writer/subscribe"
 )
+
+var LogLevel int
 
 // Cmd to start the event-writer process
 var Cmd = &cobra.Command{
@@ -23,9 +27,11 @@ var Cmd = &cobra.Command{
 }
 
 type paramSet struct {
-	natsURL     string
-	natsSubject string
-	dbURI       string
+	natsURL      string
+	natsSubject  string
+	dbURI        string
+	timeInterval int
+	batchSize    int
 }
 
 var globalParams paramSet
@@ -34,9 +40,14 @@ func init() {
 	Cmd.Flags().StringVar(&globalParams.natsURL, "nats-url", os.Getenv("NATS_URL"), "URL of the NATS server to connect to")
 	Cmd.Flags().StringVar(&globalParams.natsSubject, "nats-subject", os.Getenv("NATS_SUBJECT"), "NATS subject to subscribe to")
 	Cmd.Flags().StringVar(&globalParams.dbURI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
+	Cmd.Flags().IntVar(&globalParams.timeInterval, "time-interval", 3, "time interval in seconds for writing messages to the DB")
+	Cmd.Flags().IntVar(&globalParams.batchSize, "batch-size", 100, "batch size of writes")
+	Cmd.PersistentFlags().IntVar(&LogLevel, "log-level", 4, "logging level (0-6)")
 }
 
 func runCommand(globalParams paramSet) error {
+	setupLogger()
+
 	if globalParams.dbURI == "" {
 		return errors.New("--db-uri not provided and $DB_URI not set")
 	}
@@ -46,6 +57,10 @@ func runCommand(globalParams paramSet) error {
 	if globalParams.natsURL == "" {
 		return errors.New("please specify the NATS server URL the event-writer should connect to")
 	}
+
+	queue.BatchSize = globalParams.batchSize
+	queue.TimeInterval = time.Duration(globalParams.timeInterval) * time.Second
+	queue.LastWriteTimestamp = time.Now()
 
 	// Connect to the DB
 	_, err := utils.Open(globalParams.dbURI)
@@ -60,4 +75,13 @@ func runCommand(globalParams paramSet) error {
 	}
 	log.Info(fmt.Printf("unsubscribed from %s", globalParams.natsSubject))
 	return nil
+}
+
+func setupLogger() {
+	if LogLevel < 0 || LogLevel > 6 {
+		fmt.Println("The log-level argument should have a value between 0 and 6.")
+		os.Exit(1)
+	} else {
+		log.SetLevel(log.Level(LogLevel))
+	}
 }

@@ -6,8 +6,6 @@ require (
 	github.com/cloudevents/sdk-go/protocol/nats/v2 v2.3.1
 	github.com/cloudevents/sdk-go/v2 v2.3.1
 	github.com/google/uuid v1.1.2
-	github.com/nats-io/nats-server/v2 v2.1.7
-	github.com/nats-io/nats.go v1.10.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1

@@ -3,20 +3,20 @@ package test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/tj/assert"
 	"github.com/weaveworks/wks/cmd/event-writer/converter"
 	"github.com/weaveworks/wks/cmd/event-writer/database/models"
 	"github.com/weaveworks/wks/cmd/event-writer/database/utils"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var (
@@ -78,15 +78,20 @@ func testBatchEventDBInsertion(t *testing.T, db *gorm.DB) {
 
 	// Time the insertion of 250 batches of 10000 events
 	start := time.Now()
+
 	// Change the name and insert it to the array
 	for _, clusterRow := range allClusters {
-		commonUID := RandomString(36)
 		for i := 0; i < eventCount; i++ {
 			eventCopy := dbEvent
 			eventCopy.Name = RandomString(10)
 			rawEventStr := string(eventCopy.RawEvent)
-			rawEventStr = strings.Replace(rawEventStr, `"uid":"57251486-2f56-400e-a332-146680a99654"`,
-				fmt.Sprintf(`"uid":"%s"`, commonUID), -1)
+
+			// Replace the hardcoded UUID of the event in the file with a random one
+			uuid, _ := uuid.NewUUID()
+			eventCopy.UID = types.UID(uuid.String())
+			rawEventStr = strings.Replace(rawEventStr,
+				fmt.Sprintf(`"uid":"57251486-2f56-400e-a332-146680a99654"`),
+				fmt.Sprintf(`"uid":"%s"`, uuid.String()), -1)
 			eventCopy.RawEvent = []byte(rawEventStr)
 			eventCopy.ClusterName = clusterRow.Name
 			allEvents = append(allEvents, eventCopy)
@@ -101,6 +106,11 @@ func testBatchEventDBInsertion(t *testing.T, db *gorm.DB) {
 	start = time.Now()
 	db.Exec("DELETE FROM events")
 	elapsed2 := time.Since(start)
+	// Assert the count is 0
+	var events []models.Event
+	var count int64
+	db.Model(&events).Count(&count)
+	assert.Equal(t, 0, int(count))
 
 	// Time the insertion of 250 batches of 10000 events in a single insert
 	start = time.Now()
@@ -117,7 +127,7 @@ func testDBQuerying(t *testing.T, db *gorm.DB) {
 	var events []models.Event
 	var count int64
 	db.Model(&events).Count(&count)
-	assert.Equal(t, int(count), clusterCount*eventCount)
+	assert.Equal(t, clusterCount*eventCount, int(count))
 
 	// Get all events for a single cluster
 	// Get a random cluster name
@@ -154,7 +164,7 @@ func testDBQuerying(t *testing.T, db *gorm.DB) {
 func testSingleEventDBSelect(t *testing.T, db *gorm.DB) {
 	// Get the event with primary key (ID) 1
 	var event models.Event
-	db.First(&event, 1)
+	db.Take(&event)
 	assert.Contains(t, event.Message, "synchronization of release 'grafana'")
 
 	// Return all event rows, should be 1
@@ -166,43 +176,4 @@ func testSingleEventDBSelect(t *testing.T, db *gorm.DB) {
 	assert.Equal(t, event.Namespace, "wkp-grafana")
 	_, err := json.Marshal(event)
 	assert.NoError(t, err)
-}
-
-// Read file at path and return bytes
-func readTestFile(path string) ([]byte, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-// Create a models.Event object from an Event exported to a JSON file
-func dbEventFromFile(t *testing.T, path string) (models.Event, error) {
-	data, err := readTestFile(path)
-	assert.NoError(t, err)
-	event, err := converter.DeserializeJSONToEvent(data)
-	assert.NoError(t, err)
-
-	dbEvent, err := converter.ConvertEvent(*event)
-	assert.NoError(t, err)
-	return dbEvent, nil
-}
-
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-var seededRand *rand.Rand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
-
-func StringWithCharset(length int, charset string) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func RandomString(length int) string {
-	return StringWithCharset(length, charset)
 }
