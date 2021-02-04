@@ -38,8 +38,6 @@ var globalParams paramSet
 func init() {
 	rootCmd.AddCommand(cmd)
 
-	cmd.PersistentFlags().StringVar(&Subject, "subject", "weave.wkp.agent.events", "NATS subject to send Kubernetes events to")
-
 	cmd.Flags().StringVar(&globalParams.listenAddress, "listen-address", "0.0.0.0:8000", "Address to listen for webhook requests.")
 	cmd.Flags().StringVar(&globalParams.alertmanagerURL, "alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Address of Alertmanager HTTP API")
 	cmd.Flags().DurationVar(&globalParams.alertmanagerPollInterval, "alertmanager-poll-interval", 15*time.Second, "How often to poll alertmanager for alerts")

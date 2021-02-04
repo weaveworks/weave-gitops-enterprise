@@ -5,19 +5,23 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/wkp-agent/internal/common"
 	clusterclient "github.com/weaveworks/wks/pkg/cluster/client"
+	clusterpoller "github.com/weaveworks/wks/pkg/cluster/poller"
 	clusterwatcher "github.com/weaveworks/wks/pkg/cluster/watcher"
 	"github.com/weaveworks/wks/pkg/messaging/handlers"
 	"k8s.io/client-go/informers"
 )
 
-var (
-	Subject string
-)
+type watchCmdParamSet struct {
+	ClusterInfoPollingInterval time.Duration
+}
+
+var watchCmdParams watchCmdParamSet
 
 var watchCmd = &cobra.Command{
 	Use:   "watch",
@@ -28,7 +32,7 @@ var watchCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(watchCmd)
 
-	watchCmd.PersistentFlags().StringVar(&Subject, "subject", "weave.wkp.agent.events", "NATS subject to send Kubernetes events to")
+	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.ClusterInfoPollingInterval, "cluster-info-polling-interval", 10*time.Second, "Polling interval for ClusterInfo")
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -52,17 +56,20 @@ func run(cmd *cobra.Command, args []string) {
 
 	client := common.CreateClient(ctx, NatsURL, Subject)
 
-	notifier, err := handlers.NewEventNotifier("wkp-agent", client)
-	if err != nil {
-		log.Fatalf("Failed to create event notifier, %s.", err.Error())
-	}
-
-	events := clusterwatcher.NewWatcher(factory.Core().V1().Events().Informer(), notifier.Notify)
-
 	log.Info("Agent starting watchers.")
+
+	// Watch for Events
+	notifier := handlers.NewEventNotifier("wkp-agent", client)
+	events := clusterwatcher.NewWatcher(factory.Core().V1().Events().Informer(), notifier.Notify)
 	go events.Run("Events", 1, ctx.Done())
+
+	// Poll for ClusterInfo
+	clusterInfoSender := handlers.NewClusterInfoSender("wkp-agent", client)
+	clusterInfo := clusterpoller.NewClusterInfoPoller(k8sClient, watchCmdParams.ClusterInfoPollingInterval, clusterInfoSender)
+	go clusterInfo.Run(ctx.Done())
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
+	cancel()
 }

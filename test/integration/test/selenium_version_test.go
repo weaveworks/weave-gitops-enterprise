@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -21,7 +20,7 @@ func TestVersionInUI(t *testing.T) {
 	// Connect to the WebDriver instance running remotely
 	caps := selenium.Capabilities{"browserName": "chrome"}
 	// Selenium on circleci is exposed at localhost:4444 by default
-	wd, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:4444/wd/hub"))
+	wd, err := selenium.NewRemote(caps, "http://localhost:4444/wd/hub")
 	if err != nil {
 		t.Error("could not make selenium remote at localhost:4444\nerr: ", err)
 	}

@@ -13,6 +13,7 @@ import (
 
 var (
 	NatsURL        string
+	Subject        string
 	KubeconfigFile string
 	LogLevel       int
 )
@@ -33,6 +34,7 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&NatsURL, "nats-url", nats.DefaultURL, "NATS url")
+	rootCmd.PersistentFlags().StringVar(&Subject, "subject", "weave.wkp.agent.events", "NATS subject to send Kubernetes events to")
 	rootCmd.PersistentFlags().StringVar(&KubeconfigFile, "kubeconfig", "", "absolute path to the kubeconfig file")
 	rootCmd.PersistentFlags().IntVar(&LogLevel, "log-level", 4, "logging level (0-6)")
 	_ = rootCmd.ParseFlags(os.Args)
