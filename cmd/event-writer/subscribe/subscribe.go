@@ -11,8 +11,8 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/weaveworks/wks/cmd/event-writer/converter"
-	"github.com/weaveworks/wks/cmd/event-writer/database/utils"
 	"github.com/weaveworks/wks/cmd/event-writer/queue"
+	"github.com/weaveworks/wks/common/database/utils"
 	v1 "k8s.io/api/core/v1"
 )
 

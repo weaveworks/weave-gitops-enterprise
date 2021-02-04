@@ -1,10 +1,9 @@
 package queue
 
-import (
-	"sync"
+import ( "sync"
 	"time"
 
-	"github.com/weaveworks/wks/cmd/event-writer/database/models"
+	"github.com/weaveworks/wks/common/database/models"
 )
 
 // LastWriteTimestamp keeps the timestamp of the last database insertion

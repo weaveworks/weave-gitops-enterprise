@@ -10,8 +10,8 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
 	github.com/tj/assert v0.0.3
+	github.com/weaveworks/wks/common v0.0.0
 	gorm.io/datatypes v1.0.0
-	gorm.io/driver/sqlite v1.1.3
 	gorm.io/gorm v1.20.12
 	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.20.2
@@ -19,3 +19,5 @@ require (
 )
 
 replace k8s.io/client-go => k8s.io/client-go v0.20.2
+
+replace github.com/weaveworks/wks/common => ../../common

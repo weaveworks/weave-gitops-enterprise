@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/wks/cmd/event-writer/database/models"
+	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/cmd/event-writer/messages"
 	"gorm.io/datatypes"
 	v1 "k8s.io/api/core/v1"

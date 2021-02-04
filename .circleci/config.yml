@@ -436,6 +436,7 @@ jobs:
             # submit the coverage 1 by 1, seems important that they have a -flagname
             goveralls -coverprofile=.coverprofile -flagname wks -parallel -service=circle-ci -repotoken $WKP_COVERALLS_TOKEN
             (cd cmd/event-writer; goveralls -coverprofile=.coverprofile -flagname event-writer -parallel -service=circle-ci -repotoken $WKP_COVERALLS_TOKEN)
+            (cd common; goveralls -coverprofile=.coverprofile -flagname common -parallel -service=circle-ci -repotoken $WKP_COVERALLS_TOKEN)
 
             # We've finished submitting the coverage
             curl -k "https://coveralls.io/webhook?repo_token=$WKP_COVERALLS_TOKEN" \

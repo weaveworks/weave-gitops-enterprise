@@ -13,6 +13,12 @@ BUILD_IN_CONTAINER=true
 BUILD_IMAGE=docker.io/weaveworks/wkp-wks-build
 BUILD_UPTODATE=wks-build/.uptodate
 GOOS := $(shell go env GOOS)
+ifeq ($(GOOS),linux)
+	cgo_ldflags='-linkmode external -w -extldflags "-static"'
+else
+	# darwin doesn't like -static
+	cgo_ldflags='-linkmode external -w'
+endif
 
 # The GOOS to use for local binaries that we `make install`
 LOCAL_BINARIES_GOOS ?= $(GOOS)
@@ -27,6 +33,19 @@ LOCAL_BINARIES_GOOS ?= $(GOOS)
 		--build-arg=revision=$(GIT_REVISION) \
 		--tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) \
 		$(@D)/
+	$(SUDO) docker tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))):$(IMAGE_TAG)
+	touch $@
+
+# Takes precedence over the more general rule above
+# The only difference is the build context
+cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
+	$(SUDO) docker build \
+		--build-arg=version=$(VERSION) \
+		--build-arg=image_tag=$(IMAGE_TAG) \
+		--build-arg=revision=$(GIT_REVISION) \
+		--tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) \
+		--file cmd/event-writer/Dockerfile \
+        .
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))):$(IMAGE_TAG)
 	touch $@
 
@@ -243,7 +262,7 @@ cmd/git-provider-service/git-provider-service:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/git-provider-service
 
 cmd/gitops-repo-broker/gitops-repo-broker:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ ./cmd/gitops-repo-broker
+	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -ldflags $(cgo_ldflags) -o $@ ./cmd/gitops-repo-broker
 
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
@@ -278,10 +297,12 @@ lint:
 unit-tests-with-coverage: $(GENERATED)
 	WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/...
 	cd cmd/event-writer && go test -cover -coverprofile=.coverprofile ./converter/... ./database/... ./subscribe/... ./run/... ./test/...
+	cd common && go test -cover -coverprofile=.coverprofile ./...
 
 unit-tests: $(GENERATED)
 	WKP_DEBUG=true go test -v ./cmd/... ./pkg/...
 	cd cmd/event-writer && go test ./converter/... ./database/... ./subscribe/... ./run/... ./test/...
+	cd common && go test ./...
 
 endif # BUILD_IN_CONTAINER
 

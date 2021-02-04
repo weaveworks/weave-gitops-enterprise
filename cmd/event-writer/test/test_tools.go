@@ -1,14 +1,13 @@
 package test
 
-import (
-	"io/ioutil"
+import ( "io/ioutil"
 	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/tj/assert"
 	"github.com/weaveworks/wks/cmd/event-writer/converter"
-	"github.com/weaveworks/wks/cmd/event-writer/database/models"
+	"github.com/weaveworks/wks/common/database/models"
 )
 
 // Read file at path and return bytes

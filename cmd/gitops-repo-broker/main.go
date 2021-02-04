@@ -4,12 +4,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/agent"
+	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/branches"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/upgrades"
@@ -36,6 +38,7 @@ type paramSet struct {
 	httpWriteTimeout             time.Duration
 	agentTemplateNatsURL         string
 	agentTemplateAlertmanagerURL string
+	dbURI                        string
 }
 
 var globalParams paramSet
@@ -56,6 +59,7 @@ func init() {
 
 	cmd.Flags().StringVar(&globalParams.agentTemplateAlertmanagerURL, "--agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&globalParams.agentTemplateNatsURL, "--agent-template-nats-url", "nats://nats-client.wkp-mccp:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&globalParams.dbURI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
 }
 
 func runServer(params paramSet) error {
@@ -84,6 +88,7 @@ func runServer(params paramSet) error {
 
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(
 		params.agentTemplateNatsURL, params.agentTemplateAlertmanagerURL)).Methods("GET")
+	r.HandleFunc("/gitops/api/clusters", api.NewGetClusters(params.dbURI)).Methods("GET")
 
 	srv := &http.Server{
 		Handler: r,

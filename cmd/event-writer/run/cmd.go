@@ -8,9 +8,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/cmd/event-writer/database/utils"
 	"github.com/weaveworks/wks/cmd/event-writer/queue"
 	"github.com/weaveworks/wks/cmd/event-writer/subscribe"
+	"github.com/weaveworks/wks/common/database/utils"
 )
 
 var LogLevel int
