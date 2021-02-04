@@ -28,12 +28,14 @@ var cmd = &cobra.Command{
 }
 
 type paramSet struct {
-	privKeyFile      string
-	gitURL           string
-	gitBranch        string
-	gitPath          string
-	httpReadTimeout  time.Duration
-	httpWriteTimeout time.Duration
+	privKeyFile                  string
+	gitURL                       string
+	gitBranch                    string
+	gitPath                      string
+	httpReadTimeout              time.Duration
+	httpWriteTimeout             time.Duration
+	agentTemplateNatsURL         string
+	agentTemplateAlertmanagerURL string
 }
 
 var globalParams paramSet
@@ -51,6 +53,9 @@ func init() {
 	cmd.Flags().StringVar(&globalParams.gitPath, "git-path", "/", "Subdirectory of the GitOps repository where configuration as code can be found.")
 	cmd.Flags().DurationVar(&globalParams.httpReadTimeout, "http-read-timeout", 30*time.Second, "ReadTimeout is the maximum duration for reading the entire request, including the body.")
 	cmd.Flags().DurationVar(&globalParams.httpWriteTimeout, "http-write-timeout", 30*time.Second, "WriteTimeout is the maximum duration before timing out writes of the response.")
+
+	cmd.Flags().StringVar(&globalParams.agentTemplateAlertmanagerURL, "--agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&globalParams.agentTemplateNatsURL, "--agent-template-nats-url", "nats://nats-client.wkp-mccp:4222", "Value used to populate the nats URL in /api/agent.yaml")
 }
 
 func runServer(params paramSet) error {
@@ -77,8 +82,8 @@ func runServer(params paramSet) error {
 	r.HandleFunc("/gitops/workspaces", workspaces.MakeCreateHandler(
 		params.gitURL, params.gitBranch, privKey, params.gitPath)).Methods("POST")
 
-	// TODO: read this nats url from the cli args?
-	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler("nats://nats-client.wkp-mccp:4222")).Methods("GET")
+	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(
+		params.agentTemplateNatsURL, params.agentTemplateAlertmanagerURL)).Methods("GET")
 
 	srv := &http.Server{
 		Handler: r,

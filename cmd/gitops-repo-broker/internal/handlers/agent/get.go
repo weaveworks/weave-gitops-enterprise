@@ -98,9 +98,18 @@ spec:
         volumeMounts:
         - name: token
           mountPath: /etc/wkp-agent/token
+      - name: alertmanager-agent
+        image: weaveworks/wkp-agent:{{ .ImageTag }}
+        args:
+        - agent-server
+        - --nats-url={{ .NatsURL }}
+        - --alertmanager-url={{ .AlertmanagerURL }}
+        volumeMounts:
+        - name: token
+          mountPath: /etc/wkp-agent/token
 `
 
-func renderTemplate(token, imageTag, natsURL string) (string, error) {
+func renderTemplate(token, imageTag, natsURL, alertmanagerURL string) (string, error) {
 	t, err := template.New("agent-manifest").Parse(agentManifestTemplate)
 	if err != nil {
 		return "", err
@@ -109,10 +118,11 @@ func renderTemplate(token, imageTag, natsURL string) (string, error) {
 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
-		Token    string
-		ImageTag string
-		NatsURL  string
-	}{encodedToken, imageTag, natsURL})
+		Token           string
+		ImageTag        string
+		NatsURL         string
+		AlertmanagerURL string
+	}{encodedToken, imageTag, natsURL, alertmanagerURL})
 	if err != nil {
 		return "", err
 	}
@@ -120,7 +130,7 @@ func renderTemplate(token, imageTag, natsURL string) (string, error) {
 }
 
 // Get returns a YAMLStream given a token
-func NewGetHandler(defaultNatsURL string) func(w http.ResponseWriter, r *http.Request) {
+func NewGetHandler(defaultNatsURL, defaultAlertmanagerURL string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/yaml")
 
@@ -132,7 +142,11 @@ func NewGetHandler(defaultNatsURL string) func(w http.ResponseWriter, r *http.Re
 
 		// TODO: Maybe support reading natsURL from query params?
 		// natsURL := r.URL.Query().Get("natsURL")
-		stream, err := renderTemplate(token, version.ImageTag, defaultNatsURL)
+		alertmanagerURL := r.URL.Query().Get("alertmanagerURL")
+		if alertmanagerURL == "" {
+			alertmanagerURL = defaultAlertmanagerURL
+		}
+		stream, err := renderTemplate(token, version.ImageTag, defaultNatsURL, alertmanagerURL)
 		if err != nil {
 			common.WriteError(w, err, 500)
 			return
