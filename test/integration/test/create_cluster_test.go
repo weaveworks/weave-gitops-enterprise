@@ -259,8 +259,6 @@ func generateIDString() string {
 }
 
 func checkKubeconfigWorksWithDefaultArgs(c *context) {
-	kubeconfigCmd := createCommand(c, "kubeconfig")
-	kubeconfigCmd.Stderr = os.Stderr
-	kubeconfigCmd.Stdout = os.Stdout
-	assert.NoError(c.t, kubeconfigCmd.Run())
+	err := c.runCommandPassThrough("kubeconfig")
+	assert.NoError(c.t, err)
 }
