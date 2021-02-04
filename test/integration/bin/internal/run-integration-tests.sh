@@ -23,6 +23,7 @@ PROVISIONING_DIR="$(dirname $0)/provisioning"
 
 # Variables:
 APP="wks"
+# WK_BINARY_PATH=/usr/local/bin/wk # This env variable can be used to override the default wk binary path 
 # shellcheck disable=SC2034
 PROJECT="wks-tests" # Only used when PROVIDER is gcp, by tools/provisioning/config.sh.
 NAME="wkp-${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"

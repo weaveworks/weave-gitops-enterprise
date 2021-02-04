@@ -505,6 +505,14 @@ func getTestDir(t *testing.T) string {
 	return testDir
 }
 
+func printWKBinaryInfo(t *testing.T, wkBin string) {
+	cmd := exec.Command(wkBin, "version")
+	version, err := cmd.CombinedOutput()
+	assert.NoError(t, err)
+	log.Printf("WK Version : %s", version)
+	log.Printf("WK Path : %s", wkBin)
+}
+
 func getWkBinary(t *testing.T) string {
 	var path string
 	var err error
@@ -513,10 +521,7 @@ func getWkBinary(t *testing.T) string {
 		path, err = filepath.Abs(fmt.Sprintf("%s/../../../cmd/wk/wk", getTestDir(t)))
 	}
 	require.NoError(t, err, "error getting wk binary path")
-	cmd := exec.Command(path, "version")
-	version, err := cmd.CombinedOutput()
-	assert.NoError(t, err)
-	log.Printf("WK Version : %s", version)
+	printWKBinaryInfo(t, path)
 	return path
 }
 
