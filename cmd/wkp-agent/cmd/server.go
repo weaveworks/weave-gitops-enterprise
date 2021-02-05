@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/wkp-agent/internal/common"
 	"github.com/weaveworks/wks/cmd/wkp-agent/server/handlers/alertmanager"
+	"github.com/weaveworks/wks/pkg/utilities/healthcheck"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -71,6 +72,11 @@ func runServer(params paramSet) error {
 			log.Fatalf("failed to send, %v", result)
 		}
 	})).Methods("POST")
+
+	started := time.Now()
+	r.HandleFunc("/started", healthcheck.Started(started))
+	r.HandleFunc("/healthz", healthcheck.Healthz(started))
+	r.HandleFunc("/redirect", healthcheck.Redirect)
 
 	srv := &http.Server{
 		Handler: r,

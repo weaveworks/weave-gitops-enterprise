@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"context"
-	"os"
-	"os/signal"
-	"syscall"
+	"net/http"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -14,6 +12,7 @@ import (
 	clusterpoller "github.com/weaveworks/wks/pkg/cluster/poller"
 	clusterwatcher "github.com/weaveworks/wks/pkg/cluster/watcher"
 	"github.com/weaveworks/wks/pkg/messaging/handlers"
+	"github.com/weaveworks/wks/pkg/utilities/healthcheck"
 	"k8s.io/client-go/informers"
 )
 
@@ -68,8 +67,14 @@ func run(cmd *cobra.Command, args []string) {
 	clusterInfo := clusterpoller.NewClusterInfoPoller(k8sClient, watchCmdParams.ClusterInfoPollingInterval, clusterInfoSender)
 	go clusterInfo.Run(ctx.Done())
 
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-	<-ch
-	cancel()
+	livenessCheck()
+}
+
+func livenessCheck() {
+	started := time.Now()
+	http.HandleFunc("/started", healthcheck.Started(started))
+	http.HandleFunc("/healthz", healthcheck.Healthz(started))
+	http.HandleFunc("/redirect", healthcheck.Redirect)
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

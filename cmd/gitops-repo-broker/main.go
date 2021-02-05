@@ -17,6 +17,7 @@ import (
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/upgrades"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/version"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/workspaces"
+	"github.com/weaveworks/wks/pkg/utilities/healthcheck"
 )
 
 var cmd = &cobra.Command{
@@ -68,6 +69,8 @@ func runServer(params paramSet) error {
 		return err
 	}
 
+	started := time.Now()
+
 	r := mux.NewRouter()
 
 	// These endpoints assume WKS single cluster (no multi-cluster support)
@@ -89,6 +92,10 @@ func runServer(params paramSet) error {
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(
 		params.agentTemplateNatsURL, params.agentTemplateAlertmanagerURL)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters", api.NewGetClusters(params.dbURI)).Methods("GET")
+
+	r.HandleFunc("/gitops/started", healthcheck.Started(started))
+	r.HandleFunc("/gitops/healthz", healthcheck.Healthz(started))
+	r.HandleFunc("/gitops/redirect", healthcheck.Redirect)
 
 	srv := &http.Server{
 		Handler: r,
