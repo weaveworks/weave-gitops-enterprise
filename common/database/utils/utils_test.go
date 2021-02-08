@@ -4,8 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/tj/assert"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/stretchr/testify/assert"
 )
 
 var dbPath = "open-test.db"
@@ -28,9 +27,5 @@ func TestMigrateTables(t *testing.T) {
 	err = MigrateTables(testDB)
 	assert.NoError(t, err)
 
-	testDB.Migrator().HasTable(&models.Event{})
-	testDB.Migrator().HasTable(&models.Cluster{})
-	testDB.Migrator().HasTable(&models.GitProvider{})
-	testDB.Migrator().HasTable(&models.GitRepository{})
-	testDB.Migrator().HasTable(&models.Workspace{})
+	assert.True(t, HasAllTables(testDB))
 }

@@ -57,3 +57,15 @@ func MigrateTables(db *gorm.DB) error {
 	log.Info("created Workspaces table")
 	return nil
 }
+
+// HasAllTables return true if the given DB has all tables defined in the models
+func HasAllTables(db *gorm.DB) bool {
+	if db.Migrator().HasTable(&models.Event{}) &&
+		db.Migrator().HasTable(&models.Cluster{}) &&
+		db.Migrator().HasTable(&models.GitProvider{}) &&
+		db.Migrator().HasTable(&models.GitRepository{}) &&
+		db.Migrator().HasTable(&models.Workspace{}) {
+		return true
+	}
+	return false
+}

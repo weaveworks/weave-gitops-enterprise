@@ -10,7 +10,7 @@ import (
 	ce "github.com/cloudevents/sdk-go/v2"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	"github.com/tj/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/cmd/event-writer/converter"
 	"github.com/weaveworks/wks/cmd/event-writer/queue"
 	test "github.com/weaveworks/wks/cmd/event-writer/test"

@@ -8,6 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/wks/cmd/event-writer/liveness"
 	"github.com/weaveworks/wks/cmd/event-writer/queue"
 	"github.com/weaveworks/wks/cmd/event-writer/subscribe"
 	"github.com/weaveworks/wks/common/database/utils"
@@ -58,15 +59,15 @@ func runCommand(globalParams paramSet) error {
 		return errors.New("please specify the NATS server URL the event-writer should connect to")
 	}
 
-	queue.BatchSize = globalParams.batchSize
-	queue.TimeInterval = time.Duration(globalParams.timeInterval) * time.Second
-	queue.LastWriteTimestamp = time.Now()
+	initializeQueues(globalParams)
 
 	// Connect to the DB
 	_, err := utils.Open(globalParams.dbURI)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("failed to connect to the database at %s", globalParams.dbURI))
 	}
+
+	go liveness.StartLivenessProcess()
 
 	log.Info(fmt.Printf("subscribing to %s at NATS server %s\n", globalParams.natsSubject, globalParams.natsURL))
 	err = subscribe.ToSubject(globalParams.natsURL, globalParams.natsSubject, subscribe.ReceiveEvent)
@@ -84,4 +85,10 @@ func setupLogger() {
 	} else {
 		log.SetLevel(log.Level(LogLevel))
 	}
+}
+
+func initializeQueues(p paramSet) {
+	queue.BatchSize = p.batchSize
+	queue.TimeInterval = time.Duration(p.timeInterval) * time.Second
+	queue.LastWriteTimestamp = time.Now()
 }

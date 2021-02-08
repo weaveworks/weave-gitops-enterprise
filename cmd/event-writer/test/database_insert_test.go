@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tj/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/cmd/event-writer/converter"
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/database/utils"

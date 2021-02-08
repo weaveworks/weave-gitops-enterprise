@@ -1,11 +1,12 @@
 package test
 
-import ( "io/ioutil"
+import (
+	"io/ioutil"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/tj/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/cmd/event-writer/converter"
 	"github.com/weaveworks/wks/common/database/models"
 )

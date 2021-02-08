@@ -20,6 +20,8 @@ COPY $EWPATH/queue/ queue/
 COPY $EWPATH/run/ run/
 COPY $EWPATH/subscribe/ subscribe/
 COPY $EWPATH/messages/ messages/
+COPY $EWPATH/liveness/ liveness/
+
 
 # build
 RUN CGO_ENABLED=1 go build -ldflags '-linkmode external -w -extldflags "-static"' -o event-writer main.go

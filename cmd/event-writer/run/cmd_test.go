@@ -3,10 +3,10 @@ package run
 import (
 	"testing"
 
-	"github.com/tj/assert"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestRunCommand(t *testing.T) {
+func TestRunCommandErrorMessages(t *testing.T) {
 	tests := []struct {
 		params paramSet
 		output string
