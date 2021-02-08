@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/upgrades"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/clusters/version"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/workspaces"
+	"github.com/weaveworks/wks/common/database/utils"
 	"github.com/weaveworks/wks/pkg/utilities/healthcheck"
 )
 
@@ -70,6 +72,16 @@ func runServer(params paramSet) error {
 	}
 
 	started := time.Now()
+	db, err := utils.Open(params.dbURI)
+	if err != nil {
+		return err
+	}
+	// Get hold of internal *sql.DB and ensure it's closed at the end
+	sqldb, err := db.DB()
+	if err != nil {
+		return err
+	}
+	defer sqldb.Close()
 
 	r := mux.NewRouter()
 
@@ -91,7 +103,7 @@ func runServer(params paramSet) error {
 
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(
 		params.agentTemplateNatsURL, params.agentTemplateAlertmanagerURL)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters", api.NewGetClusters(params.dbURI)).Methods("GET")
+	r.HandleFunc("/gitops/api/clusters", api.NewGetClusters(db, json.MarshalIndent)).Methods("GET")
 
 	r.HandleFunc("/gitops/started", healthcheck.Started(started))
 	r.HandleFunc("/gitops/healthz", healthcheck.Healthz(started))
