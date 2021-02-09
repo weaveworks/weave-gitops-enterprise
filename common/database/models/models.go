@@ -29,6 +29,7 @@ type Event struct {
 type Cluster struct {
 	gorm.Model
 	Name              string
+	Type              string
 	Namespace         string
 	Labels            string
 	Annotations       string
