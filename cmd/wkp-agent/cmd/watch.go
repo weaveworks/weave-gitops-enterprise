@@ -8,10 +8,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/wkp-agent/internal/common"
+	"github.com/weaveworks/wks/common/messaging/handlers"
 	clusterclient "github.com/weaveworks/wks/pkg/cluster/client"
 	clusterpoller "github.com/weaveworks/wks/pkg/cluster/poller"
 	clusterwatcher "github.com/weaveworks/wks/pkg/cluster/watcher"
-	"github.com/weaveworks/wks/pkg/messaging/handlers"
 	"github.com/weaveworks/wks/pkg/utilities/healthcheck"
 	"k8s.io/client-go/informers"
 )

@@ -24,7 +24,7 @@ func NewGetClusters(db *gorm.DB, fn MarshalIndent) func(w http.ResponseWriter, r
 			return
 		}
 
-		var result []models.Cluster
+		var result []models.ClusterInfo
 		db.Find(&result)
 		if result == nil {
 			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)

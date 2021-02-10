@@ -1,6 +1,7 @@
 package queue
 
-import ( "sync"
+import (
+	"sync"
 	"time"
 
 	"github.com/weaveworks/wks/common/database/models"

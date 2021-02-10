@@ -1,6 +1,7 @@
 package run
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -39,7 +40,7 @@ var globalParams paramSet
 
 func init() {
 	Cmd.Flags().StringVar(&globalParams.natsURL, "nats-url", os.Getenv("NATS_URL"), "URL of the NATS server to connect to")
-	Cmd.Flags().StringVar(&globalParams.natsSubject, "nats-subject", os.Getenv("NATS_SUBJECT"), "NATS subject to subscribe to")
+	Cmd.Flags().StringVar(&globalParams.natsSubject, "nats-subject", ">", "NATS subject to subscribe to")
 	Cmd.Flags().StringVar(&globalParams.dbURI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
 	Cmd.Flags().IntVar(&globalParams.timeInterval, "time-interval", 3, "time interval in seconds for writing messages to the DB")
 	Cmd.Flags().IntVar(&globalParams.batchSize, "batch-size", 100, "batch size of writes")
@@ -70,7 +71,7 @@ func runCommand(globalParams paramSet) error {
 	go liveness.StartLivenessProcess()
 
 	log.Info(fmt.Printf("subscribing to %s at NATS server %s\n", globalParams.natsSubject, globalParams.natsURL))
-	err = subscribe.ToSubject(globalParams.natsURL, globalParams.natsSubject, subscribe.ReceiveEvent)
+	err = subscribe.ToSubject(context.Background(), globalParams.natsURL, globalParams.natsSubject, subscribe.ReceiveEvent)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("failed to subscribe to NATS server %s and subject %s", globalParams.natsURL, globalParams.natsSubject))
 	}
@@ -87,8 +88,10 @@ func setupLogger() {
 	}
 }
 
-func initializeQueues(p paramSet) {
-	queue.BatchSize = p.batchSize
-	queue.TimeInterval = time.Duration(p.timeInterval) * time.Second
+func initializeQueues(params paramSet) {
+	queue.BatchSize = params.batchSize
+	queue.TimeInterval = time.Duration(params.timeInterval) * time.Second
 	queue.LastWriteTimestamp = time.Now()
+
+	queue.NewEventQueue()
 }

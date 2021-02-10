@@ -62,11 +62,11 @@ func TestGetCluster(t *testing.T) {
 	assert.Equal(t, "[]", response.Body.String())
 
 	// Pop a cluster in
-	myCluster := models.Cluster{Name: "My Cluster"}
+	myCluster := models.ClusterInfo{Name: "My Cluster"}
 	db.Create(&myCluster)
 	response = executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
-	var clusters []models.Cluster
+	var clusters []models.ClusterInfo
 	err = json.Unmarshal(response.Body.Bytes(), &clusters)
 	assert.NoError(t, err)
 	assert.Equal(t, "My Cluster", clusters[0].Name)

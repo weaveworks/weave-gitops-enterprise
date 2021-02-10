@@ -23,6 +23,7 @@ func TestMigrateTables(t *testing.T) {
 	defer os.Remove(dbPath)
 
 	assert.NoError(t, err)
+	assert.False(t, HasAllTables(testDB))
 
 	err = MigrateTables(testDB)
 	assert.NoError(t, err)

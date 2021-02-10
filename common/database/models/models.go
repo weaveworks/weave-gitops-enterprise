@@ -18,28 +18,29 @@ type Event struct {
 	Labels       string
 	Annotations  string
 	ClusterName  string
-	Cluster      Cluster `gorm:"foreignKey:Name"`
+	ClusterInfo  ClusterInfo `gorm:"foreignKey:Name"`
 	Reason       string
 	Message      string
 	Type         string
 	RawEvent     datatypes.JSON
 }
 
-// Cluster table
-type Cluster struct {
-	gorm.Model
-	Name              string
-	Type              string
-	Namespace         string
-	Labels            string
-	Annotations       string
-	ControlPlaneNodes int
-	WorkerNodes       int
-	CNIInfo           string
-	CSIInfo           string
-	CRIInfo           string
-	Version           string
-	IngressInfo       string
+// ClusterInfo table
+type ClusterInfo struct {
+	UID   types.UID `gorm:"primaryKey"`
+	Name  string
+	Type  string
+	Token string `gorm:"primaryKey"`
+}
+
+// NodeInfo table
+type NodeInfo struct {
+	UID            types.UID `gorm:"primaryKey"`
+	ClusterInfoUID types.UID
+	ClusterInfo    ClusterInfo `gorm:"foreignKey:UID"`
+	Name           string
+	IsControlPlane bool
+	KubeletVersion string
 }
 
 // GitRepository table

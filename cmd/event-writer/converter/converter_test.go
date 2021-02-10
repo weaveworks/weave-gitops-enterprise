@@ -3,8 +3,9 @@ package converter
 import (
 	"testing"
 
+	"github.com/weaveworks/wks/common/messaging/payload"
+
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/cmd/event-writer/messages"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -20,39 +21,20 @@ func newEvent(reason, kind, namespace, name string) v1.Event {
 	return event
 }
 
-func newClusterMessage(name string, namespace string, labels string, annotations string,
-	cpNodes int, workerNodes int, cniInfo string, csiInfo string, criInfo string,
-	version string, ingressInfo string) messages.Cluster {
-	return messages.Cluster{
-		Name:              name,
-		Namespace:         namespace,
-		Labels:            labels,
-		Annotations:       annotations,
-		ControlPlaneNodes: cpNodes,
-		WorkerNodes:       workerNodes,
-		CNIInfo:           cniInfo,
-		CSIInfo:           csiInfo,
-		CRIInfo:           criInfo,
-		Version:           version,
-		IngressInfo:       ingressInfo,
+func newClusterInfo(id, typ string) payload.ClusterInfo {
+	return payload.ClusterInfo{
+		ID:   id,
+		Type: typ,
 	}
 }
 
-func TestConvertCluster(t *testing.T) {
-	msgCluster := newClusterMessage("wkp-test", "weavek8sops", "prod=true", "", 3, 5, "", "", "", "1.19.3", "")
-	dbCluster, err := ConvertCluster(msgCluster)
-	assert.NoError(t, err)
-	assert.Equal(t, dbCluster.Name, msgCluster.Name)
-	assert.Equal(t, dbCluster.Namespace, msgCluster.Namespace)
-	assert.Equal(t, dbCluster.Labels, msgCluster.Labels)
-	assert.Equal(t, dbCluster.Annotations, msgCluster.Annotations)
-	assert.Equal(t, dbCluster.ControlPlaneNodes, msgCluster.ControlPlaneNodes)
-	assert.Equal(t, dbCluster.WorkerNodes, msgCluster.WorkerNodes)
-	assert.Equal(t, dbCluster.CNIInfo, msgCluster.CNIInfo)
-	assert.Equal(t, dbCluster.CSIInfo, msgCluster.CSIInfo)
-	assert.Equal(t, dbCluster.CRIInfo, msgCluster.CRIInfo)
-	assert.Equal(t, dbCluster.Version, msgCluster.Version)
-	assert.Equal(t, dbCluster.IngressInfo, msgCluster.IngressInfo)
+func newNodeInfo(id, name, kubeletVersion string, isControlPlane bool) payload.NodeInfo {
+	return payload.NodeInfo{
+		MachineID:      id,
+		Name:           name,
+		KubeletVersion: kubeletVersion,
+		IsControlPlane: isControlPlane,
+	}
 }
 
 func TestSerializeStringMap(t *testing.T) {
@@ -121,4 +103,46 @@ func TestConvertEvent(t *testing.T) {
 	assert.Equal(t, parsedEvent.InvolvedObject.Kind, testEvent.InvolvedObject.Kind)
 	assert.Equal(t, parsedEvent.InvolvedObject.Namespace, testEvent.InvolvedObject.Namespace)
 	assert.Equal(t, parsedEvent.InvolvedObject.Name, testEvent.InvolvedObject.Name)
+}
+
+func TestConvertClusterInfo(t *testing.T) {
+	testClusterInfo := newClusterInfo("8cb9581a-1de1-4a7b-ab2d-16791acc8f74", "existingInfra")
+
+	// Convert payload.ClusterInfo to models.ClusterInfo
+	dbClusterInfo, err := ConvertClusterInfo(testClusterInfo)
+	assert.NoError(t, err)
+
+	assert.Equal(t, testClusterInfo.ID, string(dbClusterInfo.UID))
+	assert.Equal(t, testClusterInfo.Type, dbClusterInfo.Type)
+}
+
+func TestConvertNodeInfo(t *testing.T) {
+	testClusterInfo := newClusterInfo("8cb9581a-1de1-4a7b-ab2d-16791acc8f74", "existingInfra")
+
+	// Convert payload.ClusterInfo to models.ClusterInfo
+	dbClusterInfo, err := ConvertClusterInfo(testClusterInfo)
+	assert.NoError(t, err)
+
+	cp := newNodeInfo("3f28d1dd7291784ed454f52ba0937337", "foo-wks-1", "v1.19.3", true)
+	worker := newNodeInfo("953089b9924d3a45febe69bc3add4683", "foo-wks-2", "v1.19.4", false)
+	testClusterInfo.Nodes = append(testClusterInfo.Nodes, cp)
+	testClusterInfo.Nodes = append(testClusterInfo.Nodes, worker)
+
+	// Convert payload.ClusterInfo to models.ClusterInfo
+	dbNodeInfo, err := ConvertNodeInfo(testClusterInfo, dbClusterInfo.UID)
+	assert.NoError(t, err)
+
+	assert.Len(t, dbNodeInfo, 2)
+	assert.Equal(t, cp.MachineID, string(dbNodeInfo[0].UID))
+	assert.Equal(t, cp.Name, dbNodeInfo[0].Name)
+	assert.Equal(t, cp.IsControlPlane, dbNodeInfo[0].IsControlPlane)
+	assert.Equal(t, cp.KubeletVersion, dbNodeInfo[0].KubeletVersion)
+	assert.Equal(t, dbClusterInfo.UID, dbNodeInfo[0].ClusterInfoUID)
+
+	assert.Equal(t, worker.MachineID, string(dbNodeInfo[1].UID))
+	assert.Equal(t, worker.Name, dbNodeInfo[1].Name)
+	assert.Equal(t, worker.IsControlPlane, dbNodeInfo[1].IsControlPlane)
+	assert.Equal(t, worker.KubeletVersion, dbNodeInfo[1].KubeletVersion)
+	assert.Equal(t, dbClusterInfo.UID, dbNodeInfo[1].ClusterInfoUID)
+
 }

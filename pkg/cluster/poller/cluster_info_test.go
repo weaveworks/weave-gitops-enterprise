@@ -2,15 +2,13 @@ package poller_test
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
-	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/stretchr/testify/assert"
+	"github.com/weaveworks/wks/common/messaging/handlers"
+	"github.com/weaveworks/wks/common/messaging/handlers/handlerstest"
+	"github.com/weaveworks/wks/common/messaging/payload"
 	clusterpoller "github.com/weaveworks/wks/pkg/cluster/poller"
-	"github.com/weaveworks/wks/pkg/messaging/handlers"
-	"github.com/weaveworks/wks/pkg/messaging/payload"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -103,7 +101,7 @@ func TestClusterInfoPoller(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			clientset := fake.NewSimpleClientset(tt.clusterState...)
-			client := NewFakeCloudEventsClient()
+			client := handlerstest.NewFakeCloudEventsClient()
 			sender := handlers.NewClusterInfoSender("test", client)
 			poller := clusterpoller.NewClusterInfoPoller(clientset, time.Second, sender)
 
@@ -113,58 +111,10 @@ func TestClusterInfoPoller(t *testing.T) {
 			cancel()
 
 			if tt.expected == nil {
-				client.AssertNoEventsWereSent(t)
+				client.AssertNoCloudEventsWereSent(t)
 			} else {
-				client.AssertClusterInfoSent(t, *tt.expected)
+				client.AssertClusterInfoWasSent(t, *tt.expected)
 			}
 		})
 	}
-}
-
-type FakeCloudEventsClient struct {
-	sync.Mutex
-	sent map[string]cloudevents.Event
-}
-
-func NewFakeCloudEventsClient() *FakeCloudEventsClient {
-	sent := make(map[string]cloudevents.Event)
-
-	return &FakeCloudEventsClient{
-		sent: sent,
-	}
-}
-
-func (c *FakeCloudEventsClient) Request(ctx context.Context, event cloudevents.Event) (*cloudevents.Event, cloudevents.Result) {
-	return nil, nil
-}
-
-func (c *FakeCloudEventsClient) Send(ctx context.Context, event cloudevents.Event) cloudevents.Result {
-
-	c.Lock()
-	defer c.Unlock()
-	c.sent[event.ID()] = event
-
-	return nil
-}
-
-func (c *FakeCloudEventsClient) StartReceiver(ctx context.Context, fn interface{}) error {
-	return nil
-}
-
-func (c *FakeCloudEventsClient) AssertClusterInfoSent(t *testing.T, expected payload.ClusterInfo) {
-	c.Lock()
-	defer c.Unlock()
-
-	list := make([]payload.ClusterInfo, 0)
-	var info payload.ClusterInfo
-	for _, e := range c.sent {
-		_ = e.DataAs(&info)
-		list = append(list, info)
-	}
-
-	assert.Subset(t, list, []payload.ClusterInfo{expected})
-}
-
-func (c *FakeCloudEventsClient) AssertNoEventsWereSent(t *testing.T) {
-	assert.Empty(t, c.sent)
 }

@@ -19,7 +19,6 @@ COPY $EWPATH/database/ database/
 COPY $EWPATH/queue/ queue/
 COPY $EWPATH/run/ run/
 COPY $EWPATH/subscribe/ subscribe/
-COPY $EWPATH/messages/ messages/
 COPY $EWPATH/liveness/ liveness/
 
 

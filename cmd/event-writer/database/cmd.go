@@ -2,7 +2,7 @@ package database
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/cmd/event-writer/database/create.go"
+	"github.com/weaveworks/wks/cmd/event-writer/database/create"
 )
 
 // Cmd group for database operations

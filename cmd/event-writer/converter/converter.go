@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/cmd/event-writer/messages"
+	"github.com/weaveworks/wks/common/messaging/payload"
 	"gorm.io/datatypes"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -50,25 +51,31 @@ func ConvertEvent(event v1.Event) (models.Event, error) {
 	return result, nil
 }
 
-// ConvertCluster returns a models.Cluster from a NATS message with cluster info
-func ConvertCluster(cluster messages.Cluster) (models.Cluster, error) {
-	result := models.Cluster{
-		Name:              cluster.Name,
-		Namespace:         cluster.Namespace,
-		Labels:            cluster.Labels,
-		Annotations:       cluster.Annotations,
-		ControlPlaneNodes: cluster.ControlPlaneNodes,
-		WorkerNodes:       cluster.WorkerNodes,
-		CNIInfo:           cluster.CNIInfo,
-		CSIInfo:           cluster.CSIInfo,
-		CRIInfo:           cluster.CRIInfo,
-		Version:           cluster.Version,
-		IngressInfo:       cluster.IngressInfo,
+// ConvertClusterInfo returns a models.ClusterInfo from a NATS message with cluster info
+func ConvertClusterInfo(cluster payload.ClusterInfo) (models.ClusterInfo, error) {
+	result := models.ClusterInfo{
+		UID:  types.UID(cluster.ID),
+		Type: cluster.Type,
 	}
 	return result, nil
 }
 
-// SerializeStringMap flattens a string to string map to a string given a printf format
+// ConvertNodeInfo returns a models.Node from a NATS message with node info
+func ConvertNodeInfo(clusterInfo payload.ClusterInfo, clusterID types.UID) ([]models.NodeInfo, error) {
+	result := []models.NodeInfo{}
+	for _, nodeInfo := range clusterInfo.Nodes {
+		result = append(result, models.NodeInfo{
+			UID:            types.UID(nodeInfo.MachineID),
+			ClusterInfoUID: clusterID,
+			Name:           nodeInfo.Name,
+			IsControlPlane: nodeInfo.IsControlPlane,
+			KubeletVersion: nodeInfo.KubeletVersion,
+		})
+	}
+	return result, nil
+}
+
+// SerializeStringMap flattens a string-to-string map to a string
 func SerializeStringMap(m map[string]string) string {
 	format := "%s:%s,"
 	b := new(bytes.Buffer)

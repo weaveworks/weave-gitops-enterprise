@@ -7,8 +7,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/pkg/messaging/handlers"
-	"github.com/weaveworks/wks/pkg/messaging/payload"
+	"github.com/weaveworks/wks/common/messaging/handlers"
+	"github.com/weaveworks/wks/common/messaging/payload"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
