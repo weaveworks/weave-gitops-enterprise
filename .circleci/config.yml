@@ -647,6 +647,15 @@ jobs:
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             go test -v -run TestClusterCreation --timeout=99999s
+            cp /root/.ssh/weaveworks_cit_id_rsa /root/.ssh/id_rsa
+            
+            go test -v -run TestDefaultSshKeyFile --timeout=99999s
+
+            go test -v -run TestMissingSshKeyFile --timeout=99999s
+
+            go test -v -run TestIncorrectSshKeyFile --timeout=99999s
+           
+
 
             ../bin/internal/run-integration-tests.sh destroy
       - run:

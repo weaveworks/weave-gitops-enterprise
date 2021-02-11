@@ -211,8 +211,12 @@ func (c *context) installWKPFiles() {
 }
 
 // copyConfigFileIntoPlace copies an external config file into the setup directory under the context's temporary directory
-func (c *context) copyConfigFileIntoPlace() {
-	c.copyFile(c.configFile, c.runtimeConfigFilePath())
+func (c *context) copyConfigFileIntoPlace(filename ...string) {
+	path := c.configFile
+	if len(filename) > 0 {
+		path = filename[0]
+	}
+	c.copyFile(path, c.runtimeConfigFilePath())
 	c.commitChanges()
 }
 
@@ -251,6 +255,16 @@ func (c *context) updateConfigFileWithVersion(version string) {
 	require.NoError(c.t, err)
 }
 
+// updateConfigFileWithKeyPath sets the path to the ssh key used to talk to the cluster
+func (c *context) updateConfigFileWithKeyPath(keyPath string) {
+	path := c.runtimeConfigFilePath()
+	info := getFileInfo(c.t, path)
+	log.Infof("Configuring SSH Key Path: %s", keyPath)
+	c.conf.WKSConfig.SSHConfig.SSHKeyFile = keyPath
+	err := git.UpdateYAMLFile(info, []string{"wksConfig", "sshConfig", "sshKeyFile"}, keyPath)
+	require.NoError(c.t, err)
+}
+
 // updateDockerPasswordFile updates the docker io password file for the user in the config.yaml
 func (c *context) updateDockerPasswordFile(passwordPath string) {
 	path := c.runtimeConfigFilePath()
@@ -273,12 +287,39 @@ func (c *context) chooseTestOS() {
 	}
 }
 
-// setupCluster invokes "wk setup run" within the context's temporary directory
-func (c *context) setupCluster() {
+func (c *context) overrideHomeDirectory() {
+	err := os.Setenv("HOME", c.tmpDir)
+	require.NoError(c.t, err)
+	for idx, val := range c.env {
+		if strings.HasPrefix(val, "HOME=") {
+			c.env[idx] = "HOME=" + c.tmpDir
+			break
+		}
+	}
+}
+
+func (c *context) setupClusterExpectedToFail(errorMessage string) {
+	c.setupClusterAndCheckResult(errorMessage)
+}
+
+// setupClusterAndCheckResult invokes "wk setup run" within the context's temporary director
+func (c *context) setupClusterAndCheckResult(errorMessage string) {
 	deleteRepo(c)
 	c.repoExists = true
-	err := c.runCommandPassThrough(c.wkBin, "setup", "run")
-	require.NoError(c.t, err)
+	_, err, errcode := runCommand(c, c.wkBin, "setup", "run")
+	fmt.Println(string(err))
+
+	if errorMessage == "" {
+		require.NoError(c.t, errcode)
+	} else {
+		require.Error(c.t, errcode)
+		require.Contains(c.t, string(err), errorMessage)
+	}
+}
+
+// setupCluster invokes "wk setup run" within the context's temporary directory
+func (c *context) setupCluster() {
+	c.setupClusterAndCheckResult("")
 }
 
 // cleanupCluster invokes the cleanup.sh script within the context's temporary directory to delete the cluster

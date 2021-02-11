@@ -9,6 +9,9 @@
 /user-guide/public
 /user-guide/resources/_gen
 
+# Recovery files from vim
+*.swp
+
 # Ignore generated binaries
 /cmd/k8s-krb5-server/server
 /cmd/mock-authz-server/server
@@ -54,5 +57,5 @@ tf.json
 /.yarnrc
 /.config
 
-#IDE specific foolder
+#IDE specific folder
 .idea
