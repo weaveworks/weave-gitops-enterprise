@@ -60,8 +60,8 @@ func init() {
 	cmd.Flags().DurationVar(&globalParams.httpReadTimeout, "http-read-timeout", 30*time.Second, "ReadTimeout is the maximum duration for reading the entire request, including the body.")
 	cmd.Flags().DurationVar(&globalParams.httpWriteTimeout, "http-write-timeout", 30*time.Second, "WriteTimeout is the maximum duration before timing out writes of the response.")
 
-	cmd.Flags().StringVar(&globalParams.agentTemplateAlertmanagerURL, "--agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
-	cmd.Flags().StringVar(&globalParams.agentTemplateNatsURL, "--agent-template-nats-url", "nats://nats-client.wkp-mccp:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&globalParams.agentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&globalParams.agentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wkp-mccp:4222", "Value used to populate the nats URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&globalParams.dbURI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
 }
 

@@ -14,10 +14,10 @@ BUILD_IMAGE=docker.io/weaveworks/wkp-wks-build
 BUILD_UPTODATE=wks-build/.uptodate
 GOOS := $(shell go env GOOS)
 ifeq ($(GOOS),linux)
-	cgo_ldflags='-linkmode external -w -extldflags "-static"'
+	cgo_ldflags=-linkmode external -w -extldflags "-static"
 else
 	# darwin doesn't like -static
-	cgo_ldflags='-linkmode external -w'
+	cgo_ldflags=-linkmode external -w
 endif
 
 # The GOOS to use for local binaries that we `make install`
@@ -262,7 +262,7 @@ cmd/git-provider-service/git-provider-service:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/git-provider-service
 
 cmd/gitops-repo-broker/gitops-repo-broker:
-	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -ldflags $(cgo_ldflags) -o $@ ./cmd/gitops-repo-broker
+	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
 
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
