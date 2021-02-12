@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -19,6 +20,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/plan/runners/ssh"
 	"github.com/weaveworks/wks/pkg/cmdutil"
 	"github.com/weaveworks/wks/pkg/utilities/config"
 	"github.com/weaveworks/wks/pkg/utilities/git"
@@ -215,7 +217,7 @@ func (c *context) runtimeConfigFilePath() string {
 	return filepath.Join(c.tmpDir, "setup", "config.yaml")
 }
 
-// updateConfigFileWithVersion updates the Kubernetes version for each wks machine in the config.yaml file
+// updateConfigMachines updates the Kubernetes version for each wks machine in the config.yaml file
 func (c *context) updateConfigMachines(updateFn func([]config.MachineSpec) []config.MachineSpec) {
 	c.conf.WKSConfig.SSHConfig.Machines = updateFn(c.conf.WKSConfig.SSHConfig.Machines)
 	path := c.runtimeConfigFilePath()
@@ -420,6 +422,60 @@ func (c *context) showNodesAndPods() error {
 // showItems displays the current set of a specified object type in tabular format
 func (c *context) showItems(itemType string) error {
 	return c.runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+}
+
+func (c *context) checkApiServerAndKubeletArguments() {
+	machinesPath := filepath.Join(c.tmpDir, "setup", "machines.yaml")
+	machinesInfo, err := git.GetFileObjectInfo(machinesPath)
+	if err != nil {
+		log.Infof("error getting file object info: %s\n", err)
+	}
+	assert.NoError(c.t, err)
+
+	apiServerArgs := c.conf.WKSConfig.APIServerArguments
+	kubeletArgs := c.conf.WKSConfig.KubeletArguments
+
+	roleNodes := git.FindNestedFields(machinesInfo.ObjectNode, "items", "*", "metadata", "labels", "set")
+	portNodes := git.FindNestedFields(machinesInfo.ObjectNode, "items", "*", "spec", "providerSpec", "value", "public", "port")
+
+	for idx, portNode := range portNodes {
+		sshClient := getTestSSHClient(c, portNode.Value)
+		ctx := contxt.Background()
+
+		for _, kubeletArg := range kubeletArgs {
+			argString := fmt.Sprintf("%s=%s", kubeletArg.Name, kubeletArg.Value)
+			_, err := sshClient.RunCommand(ctx, fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep /usr/bin/kubelet | grep %s", argString), nil)
+			if err != nil {
+				log.Infof("error grepping argument string from kubelet process %s\n", err)
+			}
+			assert.NoError(c.t, err)
+		}
+
+		if roleNodes[idx].Value == "master" {
+			for _, apiServerArg := range apiServerArgs {
+				argString := fmt.Sprintf("%s=%s", apiServerArg.Name, apiServerArg.Value)
+				_, err := sshClient.RunCommand(ctx, fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep kube-apiserver | grep %s", argString), nil)
+				if err != nil {
+					log.Infof("error grepping argument string from apiserver process %s\n", err)
+				}
+				assert.NoError(c.t, err)
+			}
+		}
+	}
+}
+
+func getTestSSHClient(c *context, portStr string) *ssh.Client {
+	portNum, err := strconv.Atoi(portStr)
+	assert.NoError(c.t, err)
+
+	sshClient, err := ssh.NewClient(ssh.ClientParams{
+		User:           "root",
+		Host:           "127.0.0.1",
+		Port:           uint16(portNum),
+		PrivateKeyPath: filepath.Join(c.tmpDir, "setup", "cluster-key"),
+	})
+	assert.NoError(c.t, err)
+	return sshClient
 }
 
 func randomOSImageChoice(c *context) string {

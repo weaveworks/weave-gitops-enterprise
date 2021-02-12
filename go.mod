@@ -4,7 +4,9 @@ go 1.13
 
 require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
+	github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alioygur/gores v1.2.1
+	github.com/aws/eks-distro-build-tooling/release v0.0.0-20201211225747-07f05a470de8 // indirect
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/fluxcd/go-git-providers v0.0.3
@@ -34,7 +36,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
-	github.com/weaveworks/cluster-api-provider-existinginfra v0.1.1
+	github.com/weaveworks/cluster-api-provider-existinginfra v0.1.2-0.20201231185002-82b0570621f6
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20200918140536-ff126705213e
 	github.com/weaveworks/libgitops v0.0.2

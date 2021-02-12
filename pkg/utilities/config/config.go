@@ -103,14 +103,21 @@ type WKSConfig struct {
 	SSHConfig             SSHConfig        `yaml:"sshConfig"`
 	FootlooseConfig       FootlooseConfig  `yaml:"footlooseConfig"`
 	ControlPlaneLbAddress string           `yaml:"controlPlaneLbAddress"`
+	CNI                   string           `yaml:"cni"`
 	APIServerArguments    []ServerArgument `yaml:"apiServerArguments"`
 	KubeletArguments      []ServerArgument `yaml:"kubeletArguments"`
+	Flavor                Flavor           `yaml:"flavor"`
 }
 
 // Key/value pairs representing generic arguments to the Kubernetes api server
 type ServerArgument struct {
 	Name  string `yaml:"name"`
 	Value string `yaml:"value"`
+}
+
+type Flavor struct {
+	Name        string `yaml:"name"`
+	ManifestURL string `yaml:"manifestURL"`
 }
 
 // Parameters specific to ssh
@@ -164,6 +171,8 @@ metadata:
 spec:
       user: {{ .SSHUser }}
       kubernetesVersion: {{ .KubernetesVersion }}
+      cni: "{{ .CNI }}"
+      flavor: {{ .Flavor }}
       {{- if or (.ControlPlaneLbAddress) (.APIServerArguments) }}
       {{- if .ControlPlaneLbAddress }}
       controlPlaneEndpoint: {{ .ControlPlaneLbAddress }}
@@ -1085,6 +1094,10 @@ func buildServerArguments(args []ServerArgument) string {
 	return str.String()
 }
 
+func buildFlavor(flavor Flavor) string {
+	return fmt.Sprintf(`{"name": "%s", "manifestURL": "%s"}`, flavor.Name, flavor.ManifestURL)
+}
+
 // GenerateClusterFileContentsFromConfig produces the contents of a cluster.yaml file
 // usable by quickstarts based on a nested configuration structure (typically created by GenerateConfig)
 func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) (string, error) {
@@ -1097,12 +1110,15 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 	if err != nil {
 		return "", err
 	}
+
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
 		ClusterName           string
 		Namespace             string
 		SSHUser               string
 		KubernetesVersion     string
+		CNI                   string
+		Flavor                string
 		ServiceCIDRBlocks     string
 		PodCIDRBlocks         string
 		APIServerArguments    string
@@ -1111,10 +1127,13 @@ func GenerateClusterFileContentsFromConfig(config *WKPConfig, configDir string) 
 		ImageRepository       string
 		CPMachineCount        string
 		WorkerMachineCount    string
-	}{config.ClusterName,
+	}{
+		config.ClusterName,
 		Namespace,
 		config.WKSConfig.SSHConfig.SSHUser,
 		config.WKSConfig.KubernetesVersion,
+		config.WKSConfig.CNI,
+		buildFlavor(config.WKSConfig.Flavor),
 		buildCIDRBlocks(config.WKSConfig.ServiceCIDRBlocks),
 		buildCIDRBlocks(config.WKSConfig.PodCIDRBlocks),
 		buildServerArguments(config.WKSConfig.APIServerArguments),

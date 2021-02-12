@@ -26,22 +26,18 @@ package test
 // It can be run via "go test" but requires a long timeout -- try "go test -run TestClusterCreation --timeout=99999s"
 
 import (
-	gcontext "context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/plan/runners/ssh"
 	"github.com/weaveworks/wks/pkg/utilities/config"
-	"github.com/weaveworks/wks/pkg/utilities/git"
 )
 
 var (
@@ -155,7 +151,6 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 	}
 
 	if c.conf.Track == "wks-footloose" {
-		checkApiServerAndKubeletArguments(c)
 		checkKubeconfigWorksWithDefaultArgs(c)
 	}
 
@@ -166,60 +161,6 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 		// Check that the pod and service CIDR blocks have been set
 		c.testCIDRBlocks(c.conf.WKSConfig.PodCIDRBlocks[0], c.conf.WKSConfig.ServiceCIDRBlocks[0])
 	}
-}
-
-func checkApiServerAndKubeletArguments(c *context) {
-	machinesPath := filepath.Join(c.tmpDir, "setup", "machines.yaml")
-	machinesInfo, err := git.GetFileObjectInfo(machinesPath)
-	if err != nil {
-		log.Infof("error getting file object info: %s\n", err)
-	}
-	assert.NoError(c.t, err)
-
-	apiServerArgs := c.conf.WKSConfig.APIServerArguments
-	kubeletArgs := c.conf.WKSConfig.KubeletArguments
-
-	roleNodes := git.FindNestedFields(machinesInfo.ObjectNode, "items", "*", "metadata", "labels", "set")
-	portNodes := git.FindNestedFields(machinesInfo.ObjectNode, "items", "*", "spec", "providerSpec", "value", "public", "port")
-
-	for idx, portNode := range portNodes {
-		sshClient := getTestSSHClient(c, portNode.Value)
-		ctx := gcontext.Background()
-
-		for _, kubeletArg := range kubeletArgs {
-			argString := fmt.Sprintf("%s=%s", kubeletArg.Name, kubeletArg.Value)
-			_, err := sshClient.RunCommand(ctx, fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep /usr/bin/kubelet | grep %s", argString), nil)
-			if err != nil {
-				log.Infof("error grepping argument string from kubelet process %s\n", err)
-			}
-			assert.NoError(c.t, err)
-		}
-
-		if roleNodes[idx].Value == "master" {
-			for _, apiServerArg := range apiServerArgs {
-				argString := fmt.Sprintf("%s=%s", apiServerArg.Name, apiServerArg.Value)
-				_, err := sshClient.RunCommand(ctx, fmt.Sprintf("ps -ef | grep -v 'ps -ef' | grep kube-apiserver | grep %s", argString), nil)
-				if err != nil {
-					log.Infof("error grepping argument string from apiserver process %s\n", err)
-				}
-				assert.NoError(c.t, err)
-			}
-		}
-	}
-}
-
-func getTestSSHClient(c *context, portStr string) *ssh.Client {
-	portNum, err := strconv.Atoi(portStr)
-	assert.NoError(c.t, err)
-
-	sshClient, err := ssh.NewClient(ssh.ClientParams{
-		User:           "root",
-		Host:           "127.0.0.1",
-		Port:           uint16(portNum),
-		PrivateKeyPath: filepath.Join(c.tmpDir, "setup", "cluster-key"),
-	})
-	assert.NoError(c.t, err)
-	return sshClient
 }
 
 // Update wk-cluster.yaml and components.js with cluster name and region

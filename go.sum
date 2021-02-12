@@ -124,6 +124,8 @@ github.com/auth0/go-jwt-middleware v0.0.0-20170425171159-5493cabe49f7/go.mod h1:
 github.com/aws/aws-sdk-go v1.27.1/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.28.2/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.31.6/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU8YkpAk0=
+github.com/aws/eks-distro-build-tooling/release v0.0.0-20201211225747-07f05a470de8 h1:75gPAFuZYhlbmyoMF+XkbGBiptXATi37fegJRqWen1Y=
+github.com/aws/eks-distro-build-tooling/release v0.0.0-20201211225747-07f05a470de8/go.mod h1:zS4jJCwuah31QqzRtwe0fVaj8UtjZDaC9MjaveZGmI0=
 github.com/bazelbuild/bazel-gazelle v0.18.2/go.mod h1:D0ehMSbS+vesFsLGiD6JXu3mVEzOlfUl8wNnq+x/9p0=
 github.com/bazelbuild/bazel-gazelle v0.19.1-0.20191105222053-70208cbdc798/go.mod h1:rPwzNHUqEzngx1iVBfO/2X2npKaT3tqPqqHW6rVsn/A=
 github.com/bazelbuild/buildtools v0.0.0-20190731111112-f720930ceb60/go.mod h1:5JP0TXzWDHXv8qvxRC4InIazwdyDseBDbzESUMKk1yU=
@@ -238,6 +240,8 @@ github.com/docker/go-units v0.4.0 h1:3uh0PgVws3nIA0Q+MwDC8yjEPf9zjRfZZWXZYDct3Tw
 github.com/docker/go-units v0.4.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
 github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96 h1:cenwrSVm+Z7QLSV/BsnenAOcDXdX4cMv4wP0B/5QbPg=
 github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96/go.mod h1:Qh8CwZgvJUkLughtfhJv5dyTYa91l1fOUCrgjqmcifM=
+github.com/drone/envsubst v1.0.2/go.mod h1:bkZbnc/2vh1M12Ecn7EYScpI4YGYU0etwLJICOWi8Z0=
+github.com/drone/envsubst v1.0.3-0.20200709223903-efdb65b94e5a h1:pf3CyiWgjOLL7cjFos89AEOPCWSOoQt7tgbEk/SvBAg=
 github.com/drone/envsubst v1.0.3-0.20200709223903-efdb65b94e5a/go.mod h1:N2jZmlMufstn1KEqvbHjw40h1KyTmnVzHcSc9bFiJ2g=
 github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
@@ -841,6 +845,8 @@ github.com/sirupsen/logrus v1.4.2 h1:SPIRibHv4MatM3XXNO2BJeFLZwZ2LvZgfQ5+UNI2im4
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0 h1:UBcNElsrwanuuMsnGSlYmtmgbb23qDR5dG+6X6Oo89I=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
+github.com/sirupsen/logrus v1.7.0 h1:ShrD1U9pZB12TX0cVy0DtePoCH97K8EtX+mg7ZARUtM=
+github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/goconvey v1.6.4/go.mod h1:syvi0/a8iFYH4r/RixwvyeAJjdLS9QV7WQ/tjFTllLA=
 github.com/soheilhy/cmux v0.1.4/go.mod h1:IM3LyeVVIOuxMH7sFAkER9+bJ4dT7Ms6E4xg4kGIyLM=
@@ -930,6 +936,12 @@ github.com/vishvananda/netns v0.0.0-20171111001504-be1fbeda1936/go.mod h1:ZjcWmF
 github.com/vmware/govmomi v0.20.3/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.1.1 h1:uAveHJzhMQMG0FEKNZ4AbP0s7ZxX+xR2Rk1cibQIqWs=
 github.com/weaveworks/cluster-api-provider-existinginfra v0.1.1/go.mod h1:YEi5vGmSucFgcmHl+mUIp8dfm4aX3UO5tuUzSoh5Pfs=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.1.2-0.20201208002008-4b5b576c644e h1:6fI4ZVtqJsKQ2ZOQbH2tBKyNPa/+dKm0MAtiUgR+iKU=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.1.2-0.20201208002008-4b5b576c644e/go.mod h1:YEi5vGmSucFgcmHl+mUIp8dfm4aX3UO5tuUzSoh5Pfs=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.1.2-0.20201215184919-c9c75b1bd1bd h1:v3khz8CNBzwhI8QTK3TLnrDyCXKMJpAntNGkMp2u/Mo=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.1.2-0.20201215184919-c9c75b1bd1bd/go.mod h1:CnqlmKLJw+ztGRXkUE3vdpAhciCbFwqy5gt2/qfT6gU=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.1.2-0.20201231185002-82b0570621f6 h1:3FKGTeZsRuSVngZCyvtpFkw4+q3Q/mZYRe1kBtcmloI=
+github.com/weaveworks/cluster-api-provider-existinginfra v0.1.2-0.20201231185002-82b0570621f6/go.mod h1:CnqlmKLJw+ztGRXkUE3vdpAhciCbFwqy5gt2/qfT6gU=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e h1:Y5z9Bu95l0laB3xOF3BT6LWkcR7VcRxN0n+nf2S72xA=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
 github.com/weaveworks/footloose v0.0.0-20200918140536-ff126705213e h1:lW0k9X2U0S+6Kq5qoYQaDKrUCS50x2M7ZivVpOFgTso=
@@ -943,6 +955,8 @@ github.com/weaveworks/libgitops v0.0.2 h1:Brdmd+2DI8iPtrfWoyzyyzYcuFFlAGj+kf8asd
 github.com/weaveworks/libgitops v0.0.2/go.mod h1:P3TjYVc4kFAUmXolRTMWUoUNTvN2HPMTo1ZWrpOCwFM=
 github.com/weaveworks/wksctl v0.9.0-rc.3 h1:eeg0ER75+bhREb7fbI02o0pcAuueUnUBwFX/agvYJ8g=
 github.com/weaveworks/wksctl v0.9.0-rc.3/go.mod h1:lLcwbn/sh5oN6G+LmPmMFn168EfbsHraZbIYlZEpv1Q=
+github.com/weaveworks/wksctl v0.9.0-rc.3.0.20201215212726-f21df0f29bab h1:CHP3MFwo0gHkPOxqZ5vmELXfbe8LwYYLx6yrF8QfecA=
+github.com/weaveworks/wksctl v0.9.0-rc.3.0.20201215212726-f21df0f29bab/go.mod h1:2iaD4HzWqEq77auyR3aYItgl6rfH5LpJECZZy+ECJSw=
 github.com/whilp/git-urls v0.0.0-20191001220047-6db9661140c0/go.mod h1:2rx5KE5FLD0HRfkkpyn8JwbVLBdhgeiOb2D2D9LLKM4=
 github.com/xanzy/go-gitlab v0.33.0 h1:MUJZknbLhVXSFzBA5eqGGhQ2yHSu8tPbGBPeB3sN4B0=
 github.com/xanzy/go-gitlab v0.33.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=
