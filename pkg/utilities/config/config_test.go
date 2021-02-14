@@ -436,6 +436,46 @@ wksConfig:
       value: docker
 `
 
+// valid eks-d usage
+const validEKS_D = `
+wksConfig:
+  cni: 'kubectl create -f https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/quick-install.yaml'
+  flavor:
+    name: 'eks-d'
+    manifestURL: 'https://distro.eks.amazonaws.com/kubernetes-1-18/kubernetes-1-18-eks-1.yaml'
+  kubernetesVersion: "1.18.9"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+experimentalFeatures:
+  eks-d: true
+`
+
+// disabled eks-d
+const disabledEKS_D = `
+track: "wks-ssh"
+gitProvider: "github"
+gitProviderOrg: "station"
+clusterName: "sandimas"
+dockerIOUser: "billspreston"
+dockerIOPasswordFile: "testdata/passwordFile"
+wksConfig:
+  sshConfig:
+    sshKeyFile: "testdata/sshKey"
+    machines:
+    - role: master
+      publicAddress: 172.17.20.5
+    - role: worker
+      publicAddress: 172.17.20.6
+  cni: 'kubectl create -f https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/quick-install.yaml'
+  flavor:
+    name: 'eks-d'
+    manifestURL: 'https://distro.eks.amazonaws.com/kubernetes-1-18/kubernetes-1-18-eks-1.yaml'
+  kubernetesVersion: "1.18.9"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+experimentalFeatures:
+`
+
 func TestInvalidWKSValues(t *testing.T) {
 	testinput := []struct {
 		config   string
@@ -774,5 +814,13 @@ func TestClusterVersion(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, strings.Contains(c, "kubernetesVersion: "+testvals.ver))
 	}
+}
 
+func TestExperimentalFeatures(t *testing.T) {
+	_, err := unmarshalConfig([]byte(validEKS_D))
+	require.NoError(t, err)
+	conf, err := unmarshalConfig([]byte(disabledEKS_D))
+	require.NoError(t, err)
+	err = processConfig(conf)
+	assert.Equal(t, "Flavors and CNI overrides are not enabled; enable the experimental 'eks-d' feature to use them", fmt.Sprintf("%v", err))
 }

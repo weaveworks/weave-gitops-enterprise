@@ -46,24 +46,30 @@ const (
 
 // Top-level config parameters
 type WKPConfig struct {
-	Track                string          `yaml:"track"`
-	ClusterName          string          `yaml:"clusterName"`
-	GitProvider          GitProvider     `yaml:"gitProvider"`
-	GitProviderOrg       string          `yaml:"gitProviderOrg"`
-	GitURL               string          `yaml:"gitUrl"`
-	DockerIOUser         string          `yaml:"dockerIOUser"`
-	DockerIOPasswordFile string          `yaml:"dockerIOPasswordFile"`
-	SealedSecretsCert    string          `yaml:"sealedSecretsCertificate"`
-	SealedSecretsKey     string          `yaml:"sealedSecretsPrivateKey"`
-	EnabledFeatures      EnabledFeatures `yaml:"enabledFeatures"`
-	EKSConfig            EKSConfig       `yaml:"eksConfig"`
-	WKSConfig            WKSConfig       `yaml:"wksConfig"`
-	ImageRepository      string          `yaml:"imageRepository"`
+	Track                string               `yaml:"track"`
+	ClusterName          string               `yaml:"clusterName"`
+	GitProvider          GitProvider          `yaml:"gitProvider"`
+	GitProviderOrg       string               `yaml:"gitProviderOrg"`
+	GitURL               string               `yaml:"gitUrl"`
+	DockerIOUser         string               `yaml:"dockerIOUser"`
+	DockerIOPasswordFile string               `yaml:"dockerIOPasswordFile"`
+	SealedSecretsCert    string               `yaml:"sealedSecretsCertificate"`
+	SealedSecretsKey     string               `yaml:"sealedSecretsPrivateKey"`
+	EnabledFeatures      EnabledFeatures      `yaml:"enabledFeatures"`
+	ExperimentalFeatures ExperimentalFeatures `yaml:"experimentalFeatures,omitempty"`
+	EKSConfig            EKSConfig            `yaml:"eksConfig"`
+	WKSConfig            WKSConfig            `yaml:"wksConfig"`
+	ImageRepository      string               `yaml:"imageRepository"`
 }
 
 // Map of WKP features that can be toggled on/off
 type EnabledFeatures struct {
 	TeamWorkspaces bool `yaml:"teamWorkspaces"`
+}
+
+// Map of Experimental WKP features that can be toggled on/off
+type ExperimentalFeatures struct {
+	EKS_D bool `yaml:"eks-d,omitempty"`
 }
 
 // Parameters specific to eks
@@ -706,6 +712,13 @@ If you specified a relative path, note that it will be evaluated from the direct
 	return nil
 }
 
+func validateExperimentalFeatures(config *WKPConfig) error {
+	if !config.ExperimentalFeatures.EKS_D && (config.WKSConfig.Flavor.Name != "" || config.WKSConfig.CNI != "") {
+		return fmt.Errorf("Flavors and CNI overrides are not enabled; enable the experimental 'eks-d' feature to use them")
+	}
+	return nil
+}
+
 // eks values
 func checkRequiredEKSValues(eksConfig *EKSConfig) error {
 	if eksConfig.ClusterRegion == "" {
@@ -972,10 +985,14 @@ func processConfig(config *WKPConfig) error {
 		return err
 	}
 
-	err := validateSealedSecretsValues(config)
-	if err != nil {
+	if err := validateSealedSecretsValues(config); err != nil {
 		return err
 	}
+
+	if err := validateExperimentalFeatures(config); err != nil {
+		return err
+	}
+
 	return nil
 }
 
