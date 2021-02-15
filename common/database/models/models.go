@@ -11,6 +11,7 @@ import (
 // Event table, ref: https://godoc.org/k8s.io/api/core/v1#Event
 type Event struct {
 	UID          types.UID `gorm:"primaryKey"`
+	Token        string
 	CreatedAt    datatypes.Date
 	RegisteredAt datatypes.Date
 	Name         string
@@ -18,7 +19,6 @@ type Event struct {
 	Labels       string
 	Annotations  string
 	ClusterName  string
-	ClusterInfo  ClusterInfo `gorm:"foreignKey:Name"`
 	Reason       string
 	Message      string
 	Type         string
@@ -27,20 +27,32 @@ type Event struct {
 
 // ClusterInfo table
 type ClusterInfo struct {
-	UID   types.UID `gorm:"primaryKey"`
-	Name  string
-	Type  string
-	Token string `gorm:"primaryKey"`
+	UID       types.UID `gorm:"primaryKey"`
+	Token     string
+	Type      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (ClusterInfo) TableName() string {
+	return "cluster_info"
 }
 
 // NodeInfo table
 type NodeInfo struct {
 	UID            types.UID `gorm:"primaryKey"`
+	Token          string
 	ClusterInfoUID types.UID
 	ClusterInfo    ClusterInfo `gorm:"foreignKey:UID"`
 	Name           string
 	IsControlPlane bool
 	KubeletVersion string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+func (NodeInfo) TableName() string {
+	return "node_info"
 }
 
 // GitRepository table
@@ -81,4 +93,12 @@ type GitProvider struct {
 	Type            string
 	SecretName      string
 	SecretNamespace string
+}
+
+// Cluster table. Stores cluster configuration.
+type Cluster struct {
+	gorm.Model
+	Token      string `gorm:"uniqueIndex"`
+	Name       string `gorm:"uniqueIndex"`
+	IngressURL string
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/agent"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api"
@@ -63,7 +64,8 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(
 		params.AgentTemplateNatsURL, params.AgentTemplateAlertmanagerURL)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters", api.NewGetClusters(db, json.MarshalIndent)).Methods("GET")
+	r.HandleFunc("/gitops/api/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
+	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, api.Generate)).Methods("POST")
 
 	r.HandleFunc("/gitops/started", healthcheck.Started(started))
 	r.HandleFunc("/gitops/healthz", healthcheck.Healthz(started))

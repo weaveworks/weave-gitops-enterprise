@@ -32,6 +32,12 @@ func MigrateTables(db *gorm.DB) error {
 	}
 	log.Info("created Events table")
 
+	err = db.AutoMigrate(&models.Cluster{})
+	if err != nil {
+		return errors.New("failed to create Cluster table")
+	}
+	log.Info("created Cluster table")
+
 	err = db.AutoMigrate(&models.ClusterInfo{})
 	if err != nil {
 		return errors.New("failed to create ClusterInfo table")
@@ -67,6 +73,7 @@ func MigrateTables(db *gorm.DB) error {
 // HasAllTables return true if the given DB has all tables defined in the models
 func HasAllTables(db *gorm.DB) bool {
 	if db.Migrator().HasTable(&models.Event{}) &&
+		db.Migrator().HasTable(&models.Cluster{}) &&
 		db.Migrator().HasTable(&models.ClusterInfo{}) &&
 		db.Migrator().HasTable(&models.NodeInfo{}) &&
 		db.Migrator().HasTable(&models.GitProvider{}) &&

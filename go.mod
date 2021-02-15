@@ -11,6 +11,7 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-playground/validator/v10 v10.4.1
 	github.com/google/go-cmp v0.4.1
 	github.com/google/go-containerregistry v0.1.3
 	github.com/google/go-github/v26 v26.1.3

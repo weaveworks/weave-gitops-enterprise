@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 
 type watchCmdParamSet struct {
 	ClusterInfoPollingInterval time.Duration
+	HealthCheckPort            int
 }
 
 var watchCmdParams watchCmdParamSet
@@ -32,6 +34,7 @@ func init() {
 	rootCmd.AddCommand(watchCmd)
 
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.ClusterInfoPollingInterval, "cluster-info-polling-interval", 10*time.Second, "Polling interval for ClusterInfo")
+	watchCmd.PersistentFlags().IntVar(&watchCmdParams.HealthCheckPort, "health-check-port", 8080, "Port to expose health check")
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -76,5 +79,5 @@ func livenessCheck() {
 	http.HandleFunc("/healthz", healthcheck.Healthz(started))
 	http.HandleFunc("/redirect", healthcheck.Redirect)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", watchCmdParams.HealthCheckPort), nil))
 }

@@ -93,7 +93,7 @@ func GetDB(t *testing.T) (*gorm.DB, string) {
 }
 
 func AddCluster(t *testing.T, db *gorm.DB) {
-	c := models.ClusterInfo{Name: "ewq"}
+	c := models.Cluster{Name: "ewq"}
 	result := db.Create(&c)
 	require.NoError(t, result.Error)
 }

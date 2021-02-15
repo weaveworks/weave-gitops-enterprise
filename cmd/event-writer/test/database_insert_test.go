@@ -62,10 +62,10 @@ func testSingleEventDBInsertion(t *testing.T, db *gorm.DB) {
 
 func testBatchEventDBInsertion(t *testing.T, db *gorm.DB) {
 	var allEvents = []models.Event{}
-	var allClusters = []models.ClusterInfo{}
+	var allClusters = []models.Cluster{}
 
 	for i := 0; i < clusterCount; i++ {
-		clusterRow := models.ClusterInfo{
+		clusterRow := models.Cluster{
 			Name: RandomString(5),
 		}
 		allClusters = append(allClusters, clusterRow)
