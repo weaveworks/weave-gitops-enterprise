@@ -53,17 +53,18 @@ workflows:
               only: /.*/
       - build-darwin:
           requires:
-          - build
-          - unit-tests
+            - build
+            - unit-tests
           filters:
             tags:
               only: /.*/
       - container-tests
       - unit-tests
       - unit-tests-with-coverage
+      - ui-backend-integration-tests
       - fast-integration-tests:
           requires:
-          - build
+            - build
       - trigger-integration-tests:
           requires:
             - fast-integration-tests
@@ -230,7 +231,7 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - get-wk-binary
-  
+
   install-kind:
     description: 'Installs kind'
     steps:
@@ -240,7 +241,7 @@ commands:
             curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
-  
+
   run-sonobuoy-tests:
     description: 'Runs conformance tests using sonobuoy'
     parameters:
@@ -248,7 +249,7 @@ commands:
         type: string
         default: "1.19.3"
     steps:
-      - run: 
+      - run:
           name: Create cluster
           command: |
             export PATH=$GOROOT/bin:$PATH
@@ -648,13 +649,13 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             go test -v -run TestClusterCreation --timeout=99999s
             cp /root/.ssh/weaveworks_cit_id_rsa /root/.ssh/id_rsa
-            
+
             go test -v -run TestDefaultSshKeyFile --timeout=99999s
 
             go test -v -run TestMissingSshKeyFile --timeout=99999s
 
             go test -v -run TestIncorrectSshKeyFile --timeout=99999s
-           
+
 
 
             ../bin/internal/run-integration-tests.sh destroy
@@ -821,6 +822,23 @@ jobs:
           NUM_WORKERS: 2
           CLUSTER_VERSIONS: '1.19.3'
           SKIP_COMPONENTS: true
+
+  ui-backend-integration-tests:
+    docker:
+      - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
+        environment:
+          <<: *integrationTestCommonEnv
+      - image: selenium/standalone-chrome:latest
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          name: Run tests
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            make ui-build-for-tests
+            cd test/integration/test
+            go test -v -run TestMccpUI --timeout=99999s
 
   cluster-components-gcp:
     docker:
@@ -1139,7 +1157,7 @@ jobs:
             hub delete -y "${WKP_GITHUB_ORG}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
             export GITLAB_PROJECT_URL="${WORKSPACES_GITLAB_ORG}%2F${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
             curl --request DELETE --header "Authorization: Bearer ${WORKSPACES_GITLAB_ORG_ADMIN_TOKEN}" --header "Content-Type: application/json" "https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_URL}"
-          when: on_fail    
+          when: on_fail
 
   existing-cluster-tests:
     machine:

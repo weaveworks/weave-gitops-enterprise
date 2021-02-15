@@ -1,4 +1,4 @@
-.PHONY: all install clean images lint unit-tests check wksctl-version
+.PHONY: all install clean images lint unit-tests check wksctl-version generate-manifests ui-build-for-tests
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -305,6 +305,9 @@ unit-tests: $(GENERATED)
 	cd common && go test ./...
 
 endif # BUILD_IN_CONTAINER
+
+ui-build-for-tests:
+	cd ui && yarn install && yarn build
 
 install: $(LOCAL_BINARIES)
 	cp $(LOCAL_BINARIES) `go env GOPATH`/bin
