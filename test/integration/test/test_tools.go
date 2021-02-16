@@ -657,6 +657,7 @@ func (c *context) checkPushCount() {
 }
 
 // checkLogsContainString gets the logs of a pod in a namespace and checks if a message is contained in them
+//nolint:unused // Unsure why the linter thinks this is unused as this method is used in the cluster lifecycle test.
 func (c *context) checkLogsContainString(namespace, podName, message string) bool {
 	cmd := exec.Command("kubectl", "logs", "-n", namespace, fmt.Sprintf("-l=name=%s", podName))
 	logs, err := cmd.CombinedOutput()
