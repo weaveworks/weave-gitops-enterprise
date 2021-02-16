@@ -9,7 +9,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func newEvent(reason, kind, namespace, name string) v1.Event {
+func newEvent(reason, kind, namespace, name string) payload.KubernetesEvent {
 	event := v1.Event{
 		Reason: reason,
 		InvolvedObject: v1.ObjectReference{
@@ -18,18 +18,23 @@ func newEvent(reason, kind, namespace, name string) v1.Event {
 			Name:      name,
 		},
 	}
-	return event
+	ret := payload.KubernetesEvent{
+		Event: event,
+	}
+	return ret
 }
 
 func newClusterInfo(id, typ string) payload.ClusterInfo {
 	return payload.ClusterInfo{
-		ID:   id,
-		Type: typ,
+		Cluster: payload.Cluster{
+			ID:   id,
+			Type: typ,
+		},
 	}
 }
 
-func newNodeInfo(id, name, kubeletVersion string, isControlPlane bool) payload.NodeInfo {
-	return payload.NodeInfo{
+func newNodeInfo(id, name, kubeletVersion string, isControlPlane bool) payload.Node {
+	return payload.Node{
 		MachineID:      id,
 		Name:           name,
 		KubeletVersion: kubeletVersion,
@@ -54,7 +59,7 @@ func TestSerializeEventToJSON(t *testing.T) {
 	testEvent := newEvent(reason, kind, namespace, name)
 
 	// Serialize a v1.Event to the gorm JSON datatype as byte array
-	b, err := SerializeEventToJSON(&testEvent)
+	b, err := SerializeEventToJSON(&testEvent.Event)
 	assert.NoError(t, err)
 	assert.Contains(t, string(b), reason)
 	assert.Contains(t, string(b), namespace)
@@ -69,7 +74,7 @@ func TestDeserializeEventToJSON(t *testing.T) {
 	testEvent := newEvent(reason, kind, namespace, name)
 
 	// First serialize a v1.Event to the gorm JSON datatype as byte array
-	b, err := SerializeEventToJSON(&testEvent)
+	b, err := SerializeEventToJSON(&testEvent.Event)
 	assert.NoError(t, err)
 
 	// Recreate the v1.Event struct and compare the fields
@@ -99,10 +104,10 @@ func TestConvertEvent(t *testing.T) {
 	parsedEvent, err := DeserializeJSONToEvent(dbEvent.RawEvent)
 	assert.NoError(t, err)
 
-	assert.Equal(t, parsedEvent.Reason, testEvent.Reason)
-	assert.Equal(t, parsedEvent.InvolvedObject.Kind, testEvent.InvolvedObject.Kind)
-	assert.Equal(t, parsedEvent.InvolvedObject.Namespace, testEvent.InvolvedObject.Namespace)
-	assert.Equal(t, parsedEvent.InvolvedObject.Name, testEvent.InvolvedObject.Name)
+	assert.Equal(t, parsedEvent.Reason, testEvent.Event.Reason)
+	assert.Equal(t, parsedEvent.InvolvedObject.Kind, testEvent.Event.InvolvedObject.Kind)
+	assert.Equal(t, parsedEvent.InvolvedObject.Namespace, testEvent.Event.InvolvedObject.Namespace)
+	assert.Equal(t, parsedEvent.InvolvedObject.Name, testEvent.Event.InvolvedObject.Name)
 }
 
 func TestConvertClusterInfo(t *testing.T) {
@@ -112,8 +117,8 @@ func TestConvertClusterInfo(t *testing.T) {
 	dbClusterInfo, err := ConvertClusterInfo(testClusterInfo)
 	assert.NoError(t, err)
 
-	assert.Equal(t, testClusterInfo.ID, string(dbClusterInfo.UID))
-	assert.Equal(t, testClusterInfo.Type, dbClusterInfo.Type)
+	assert.Equal(t, testClusterInfo.Cluster.ID, string(dbClusterInfo.UID))
+	assert.Equal(t, testClusterInfo.Cluster.Type, dbClusterInfo.Type)
 }
 
 func TestConvertNodeInfo(t *testing.T) {
@@ -125,8 +130,8 @@ func TestConvertNodeInfo(t *testing.T) {
 
 	cp := newNodeInfo("3f28d1dd7291784ed454f52ba0937337", "foo-wks-1", "v1.19.3", true)
 	worker := newNodeInfo("953089b9924d3a45febe69bc3add4683", "foo-wks-2", "v1.19.4", false)
-	testClusterInfo.Nodes = append(testClusterInfo.Nodes, cp)
-	testClusterInfo.Nodes = append(testClusterInfo.Nodes, worker)
+	testClusterInfo.Cluster.Nodes = append(testClusterInfo.Cluster.Nodes, cp)
+	testClusterInfo.Cluster.Nodes = append(testClusterInfo.Cluster.Nodes, worker)
 
 	// Convert payload.ClusterInfo to models.ClusterInfo
 	dbNodeInfo, err := ConvertNodeInfo(testClusterInfo, dbClusterInfo.UID)

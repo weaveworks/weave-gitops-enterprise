@@ -85,28 +85,30 @@ spec:
         app: wkp-agent
     spec:
       serviceAccountName: wkp-agent
-      volumes:
-      - name: token
-        secret:
-          secretName: wkp-agent-token
       containers:
       - name: agent
         image: weaveworks/wkp-agent:{{ .ImageTag }}
         args:
         - watch
         - --nats-url={{ .NatsURL }}
-        volumeMounts:
-        - name: token
-          mountPath: /etc/wkp-agent/token
+        env:
+        - name: WKP_AGENT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: wkp-agent-token
+              key: token
       - name: alertmanager-agent
         image: weaveworks/wkp-agent:{{ .ImageTag }}
         args:
         - agent-server
         - --nats-url={{ .NatsURL }}
         - --alertmanager-url={{ .AlertmanagerURL }}
-        volumeMounts:
-        - name: token
-          mountPath: /etc/wkp-agent/token
+        env:
+        - name: WKP_AGENT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: wkp-agent-token
+              key: token
 `
 
 func renderTemplate(token, imageTag, natsURL, alertmanagerURL string) (string, error) {

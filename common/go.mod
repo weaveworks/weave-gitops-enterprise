@@ -3,6 +3,9 @@ module github.com/weaveworks/wks/common
 go 1.14
 
 require (
+	github.com/cloudevents/sdk-go/v2 v2.3.1
+	github.com/google/uuid v1.1.2
+	github.com/prometheus/alertmanager v0.21.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.6.1
 	gorm.io/datatypes v1.0.0

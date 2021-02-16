@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/common/messaging/handlers"
 	"github.com/weaveworks/wks/common/messaging/handlers/handlerstest"
+	"github.com/weaveworks/wks/common/messaging/payload"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -19,7 +20,7 @@ func TestEventNotifier(t *testing.T) {
 		clientErr error
 		// error returned from Notify method
 		err      error
-		expected *v1.Event
+		expected *payload.KubernetesEvent
 	}{
 		{
 			name:      "Object that is not a Kubernetes Event gets ignored",
@@ -37,9 +38,12 @@ func TestEventNotifier(t *testing.T) {
 			},
 			clientErr: nil,
 			err:       nil,
-			expected: &v1.Event{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "foo",
+			expected: &payload.KubernetesEvent{
+				Token: "derp",
+				Event: v1.Event{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "foo",
+					},
 				},
 			},
 		},
@@ -60,7 +64,7 @@ func TestEventNotifier(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			client := handlerstest.NewFakeCloudEventsClient()
 			client.SetupErrorForSend(tc.clientErr)
-			notifier := handlers.NewEventNotifier("test", client)
+			notifier := handlers.NewEventNotifier("derp", "test", client)
 			err := notifier.Notify("add", tc.obj)
 			assert.Equal(t, err, tc.err)
 			if tc.expected == nil {

@@ -19,6 +19,7 @@ func TestClusterInfoPoller(t *testing.T) {
 	testCases := []struct {
 		name         string
 		clusterState []runtime.Object // state of cluster before executing tests
+		token        string
 		expected     *payload.ClusterInfo
 	}{
 		{
@@ -76,21 +77,25 @@ func TestClusterInfoPoller(t *testing.T) {
 					},
 				},
 			},
+			token: "derp",
 			expected: &payload.ClusterInfo{
-				ID:   "f72c7ce4-afd1-4840-bd50-fb4fabc99859",
-				Type: "existingInfra",
-				Nodes: []payload.NodeInfo{
-					{
-						MachineID:      "e3801e6f-13b6-4e39-a234-435b4f6b0011",
-						Name:           "derp-wks-1",
-						IsControlPlane: true,
-						KubeletVersion: "v1.19.4",
-					},
-					{
-						MachineID:      "9c6708f5-9aa0-4a09-8d41-362b49f62a76",
-						Name:           "derp-wks-2",
-						IsControlPlane: false,
-						KubeletVersion: "v1.19.3",
+				Token: "derp",
+				Cluster: payload.Cluster{
+					ID:   "f72c7ce4-afd1-4840-bd50-fb4fabc99859",
+					Type: "existingInfra",
+					Nodes: []payload.Node{
+						{
+							MachineID:      "e3801e6f-13b6-4e39-a234-435b4f6b0011",
+							Name:           "derp-wks-1",
+							IsControlPlane: true,
+							KubeletVersion: "v1.19.4",
+						},
+						{
+							MachineID:      "9c6708f5-9aa0-4a09-8d41-362b49f62a76",
+							Name:           "derp-wks-2",
+							IsControlPlane: false,
+							KubeletVersion: "v1.19.3",
+						},
 					},
 				},
 			},
@@ -103,7 +108,7 @@ func TestClusterInfoPoller(t *testing.T) {
 			clientset := fake.NewSimpleClientset(tt.clusterState...)
 			client := handlerstest.NewFakeCloudEventsClient()
 			sender := handlers.NewClusterInfoSender("test", client)
-			poller := clusterpoller.NewClusterInfoPoller(clientset, time.Second, sender)
+			poller := clusterpoller.NewClusterInfoPoller(tt.token, clientset, time.Second, sender)
 
 			// Run poller enough time to send an event then cancel it
 			go poller.Run(ctx.Done())

@@ -47,7 +47,7 @@ func newCloudEvent(typ string, obj interface{}) (*ce.Event, error) {
 	return &e, nil
 }
 
-func newk8sEvent(reason, namespace, name string) v1.Event {
+func newk8sEvent(reason, namespace, name string) payload.KubernetesEvent {
 	uuid, _ := uuid.NewUUID()
 	event := v1.Event{
 		ObjectMeta: metav1.ObjectMeta{
@@ -57,7 +57,10 @@ func newk8sEvent(reason, namespace, name string) v1.Event {
 		},
 		Reason: reason,
 	}
-	return event
+	ret := payload.KubernetesEvent{
+		Event: event,
+	}
+	return ret
 }
 
 func TestReceiveEvent(t *testing.T) {
@@ -227,20 +230,22 @@ func TestReceiveClusterInfo(t *testing.T) {
 
 	// Publish event
 	info := payload.ClusterInfo{
-		ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
-		Type: "existinginfra",
-		Nodes: []payload.NodeInfo{
-			payload.NodeInfo{
-				MachineID:      "3f28d1dd7291784ed454f52ba0937337",
-				Name:           "derp-wks-1",
-				IsControlPlane: true,
-				KubeletVersion: "v1.19.7",
-			},
-			payload.NodeInfo{
-				MachineID:      "953089b9924d3a45febe69bc3add4683",
-				Name:           "derp-wks-2",
-				IsControlPlane: false,
-				KubeletVersion: "v1.19.3",
+		Cluster: payload.Cluster{
+			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
+			Type: "existinginfra",
+			Nodes: []payload.Node{
+				payload.Node{
+					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
+					Name:           "derp-wks-1",
+					IsControlPlane: true,
+					KubeletVersion: "v1.19.7",
+				},
+				payload.Node{
+					MachineID:      "953089b9924d3a45febe69bc3add4683",
+					Name:           "derp-wks-2",
+					IsControlPlane: false,
+					KubeletVersion: "v1.19.3",
+				},
 			},
 		},
 	}
@@ -264,22 +269,22 @@ func TestReceiveClusterInfo(t *testing.T) {
 	assert.Equal(t, 1, int(clustersResult.RowsAffected))
 	assert.NoError(t, clustersResult.Error)
 
-	assert.Equal(t, info.ID, string(clusters[0].UID))
-	assert.Equal(t, info.Type, clusters[0].Type)
+	assert.Equal(t, info.Cluster.ID, string(clusters[0].UID))
+	assert.Equal(t, info.Cluster.Type, clusters[0].Type)
 
 	var nodes []models.NodeInfo
 	nodesResult := db.Find(&nodes)
 	assert.Equal(t, 2, int(nodesResult.RowsAffected))
 	assert.NoError(t, nodesResult.Error)
 
-	assert.Equal(t, info.Nodes[0].MachineID, string(nodes[0].UID))
-	assert.Equal(t, info.Nodes[0].Name, nodes[0].Name)
-	assert.Equal(t, info.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
-	assert.Equal(t, info.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
-	assert.Equal(t, info.Nodes[1].MachineID, string(nodes[1].UID))
-	assert.Equal(t, info.Nodes[1].Name, nodes[1].Name)
-	assert.Equal(t, info.Nodes[1].KubeletVersion, nodes[1].KubeletVersion)
-	assert.Equal(t, info.Nodes[1].IsControlPlane, nodes[1].IsControlPlane)
+	assert.Equal(t, info.Cluster.Nodes[0].MachineID, string(nodes[0].UID))
+	assert.Equal(t, info.Cluster.Nodes[0].Name, nodes[0].Name)
+	assert.Equal(t, info.Cluster.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
+	assert.Equal(t, info.Cluster.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
+	assert.Equal(t, info.Cluster.Nodes[1].MachineID, string(nodes[1].UID))
+	assert.Equal(t, info.Cluster.Nodes[1].Name, nodes[1].Name)
+	assert.Equal(t, info.Cluster.Nodes[1].KubeletVersion, nodes[1].KubeletVersion)
+	assert.Equal(t, info.Cluster.Nodes[1].IsControlPlane, nodes[1].IsControlPlane)
 }
 
 func TestReceiveClusterInfo_PayloadNotClusterInfo(t *testing.T) {
@@ -374,20 +379,22 @@ func TestReceiveClusterInfo_SamePayloadReceivedAgain(t *testing.T) {
 
 	// Publish event
 	info := payload.ClusterInfo{
-		ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
-		Type: "existinginfra",
-		Nodes: []payload.NodeInfo{
-			payload.NodeInfo{
-				MachineID:      "3f28d1dd7291784ed454f52ba0937337",
-				Name:           "derp-wks-1",
-				IsControlPlane: true,
-				KubeletVersion: "v1.19.7",
-			},
-			payload.NodeInfo{
-				MachineID:      "953089b9924d3a45febe69bc3add4683",
-				Name:           "derp-wks-2",
-				IsControlPlane: false,
-				KubeletVersion: "v1.19.3",
+		Cluster: payload.Cluster{
+			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
+			Type: "existinginfra",
+			Nodes: []payload.Node{
+				payload.Node{
+					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
+					Name:           "derp-wks-1",
+					IsControlPlane: true,
+					KubeletVersion: "v1.19.7",
+				},
+				payload.Node{
+					MachineID:      "953089b9924d3a45febe69bc3add4683",
+					Name:           "derp-wks-2",
+					IsControlPlane: false,
+					KubeletVersion: "v1.19.3",
+				},
 			},
 		},
 	}
@@ -415,22 +422,22 @@ func TestReceiveClusterInfo_SamePayloadReceivedAgain(t *testing.T) {
 	assert.Equal(t, 1, int(clustersResult.RowsAffected))
 	assert.NoError(t, clustersResult.Error)
 
-	assert.Equal(t, info.ID, string(clusters[0].UID))
-	assert.Equal(t, info.Type, clusters[0].Type)
+	assert.Equal(t, info.Cluster.ID, string(clusters[0].UID))
+	assert.Equal(t, info.Cluster.Type, clusters[0].Type)
 
 	var nodes []models.NodeInfo
 	nodesResult := db.Find(&nodes)
 	assert.Equal(t, 2, int(nodesResult.RowsAffected))
 	assert.NoError(t, nodesResult.Error)
 
-	assert.Equal(t, info.Nodes[0].MachineID, string(nodes[0].UID))
-	assert.Equal(t, info.Nodes[0].Name, nodes[0].Name)
-	assert.Equal(t, info.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
-	assert.Equal(t, info.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
-	assert.Equal(t, info.Nodes[1].MachineID, string(nodes[1].UID))
-	assert.Equal(t, info.Nodes[1].Name, nodes[1].Name)
-	assert.Equal(t, info.Nodes[1].KubeletVersion, nodes[1].KubeletVersion)
-	assert.Equal(t, info.Nodes[1].IsControlPlane, nodes[1].IsControlPlane)
+	assert.Equal(t, info.Cluster.Nodes[0].MachineID, string(nodes[0].UID))
+	assert.Equal(t, info.Cluster.Nodes[0].Name, nodes[0].Name)
+	assert.Equal(t, info.Cluster.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
+	assert.Equal(t, info.Cluster.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
+	assert.Equal(t, info.Cluster.Nodes[1].MachineID, string(nodes[1].UID))
+	assert.Equal(t, info.Cluster.Nodes[1].Name, nodes[1].Name)
+	assert.Equal(t, info.Cluster.Nodes[1].KubeletVersion, nodes[1].KubeletVersion)
+	assert.Equal(t, info.Cluster.Nodes[1].IsControlPlane, nodes[1].IsControlPlane)
 }
 
 func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
@@ -464,20 +471,22 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 
 	// Publish event
 	info := payload.ClusterInfo{
-		ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
-		Type: "existinginfra",
-		Nodes: []payload.NodeInfo{
-			payload.NodeInfo{
-				MachineID:      "3f28d1dd7291784ed454f52ba0937337",
-				Name:           "derp-wks-1",
-				IsControlPlane: true,
-				KubeletVersion: "v1.19.7",
-			},
-			payload.NodeInfo{
-				MachineID:      "953089b9924d3a45febe69bc3add4683",
-				Name:           "derp-wks-2",
-				IsControlPlane: false,
-				KubeletVersion: "v1.19.3",
+		Cluster: payload.Cluster{
+			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
+			Type: "existinginfra",
+			Nodes: []payload.Node{
+				payload.Node{
+					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
+					Name:           "derp-wks-1",
+					IsControlPlane: true,
+					KubeletVersion: "v1.19.7",
+				},
+				payload.Node{
+					MachineID:      "953089b9924d3a45febe69bc3add4683",
+					Name:           "derp-wks-2",
+					IsControlPlane: false,
+					KubeletVersion: "v1.19.3",
+				},
 			},
 		},
 	}
@@ -500,33 +509,35 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 	assert.Equal(t, 1, int(clustersResult.RowsAffected))
 	assert.NoError(t, clustersResult.Error)
 
-	assert.Equal(t, info.ID, string(clusters[0].UID))
-	assert.Equal(t, info.Type, clusters[0].Type)
+	assert.Equal(t, info.Cluster.ID, string(clusters[0].UID))
+	assert.Equal(t, info.Cluster.Type, clusters[0].Type)
 
 	var nodes []models.NodeInfo
 	nodesResult := db.Find(&nodes)
 	assert.Equal(t, 2, int(nodesResult.RowsAffected))
 	assert.NoError(t, nodesResult.Error)
 
-	assert.Equal(t, info.Nodes[0].MachineID, string(nodes[0].UID))
-	assert.Equal(t, info.Nodes[0].Name, nodes[0].Name)
-	assert.Equal(t, info.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
-	assert.Equal(t, info.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
-	assert.Equal(t, info.Nodes[1].MachineID, string(nodes[1].UID))
-	assert.Equal(t, info.Nodes[1].Name, nodes[1].Name)
-	assert.Equal(t, info.Nodes[1].KubeletVersion, nodes[1].KubeletVersion)
-	assert.Equal(t, info.Nodes[1].IsControlPlane, nodes[1].IsControlPlane)
+	assert.Equal(t, info.Cluster.Nodes[0].MachineID, string(nodes[0].UID))
+	assert.Equal(t, info.Cluster.Nodes[0].Name, nodes[0].Name)
+	assert.Equal(t, info.Cluster.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
+	assert.Equal(t, info.Cluster.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
+	assert.Equal(t, info.Cluster.Nodes[1].MachineID, string(nodes[1].UID))
+	assert.Equal(t, info.Cluster.Nodes[1].Name, nodes[1].Name)
+	assert.Equal(t, info.Cluster.Nodes[1].KubeletVersion, nodes[1].KubeletVersion)
+	assert.Equal(t, info.Cluster.Nodes[1].IsControlPlane, nodes[1].IsControlPlane)
 
 	// Publish 2nd event
 	info2 := payload.ClusterInfo{
-		ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
-		Type: "existinginfra",
-		Nodes: []payload.NodeInfo{
-			payload.NodeInfo{
-				MachineID:      "3f28d1dd7291784ed454f52ba0937337",
-				Name:           "foo-wks-1",
-				IsControlPlane: true,
-				KubeletVersion: "v1.19.7",
+		Cluster: payload.Cluster{
+			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
+			Type: "existinginfra",
+			Nodes: []payload.Node{
+				payload.Node{
+					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
+					Name:           "foo-wks-1",
+					IsControlPlane: true,
+					KubeletVersion: "v1.19.7",
+				},
 			},
 		},
 	}
@@ -549,15 +560,15 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 	assert.Equal(t, 1, int(clustersResult.RowsAffected))
 	assert.NoError(t, clustersResult.Error)
 
-	assert.Equal(t, info.ID, string(clusters[0].UID))
-	assert.Equal(t, info.Type, clusters[0].Type)
+	assert.Equal(t, info.Cluster.ID, string(clusters[0].UID))
+	assert.Equal(t, info.Cluster.Type, clusters[0].Type)
 
 	nodesResult = db.Find(&nodes)
 	assert.Equal(t, 1, int(nodesResult.RowsAffected))
 	assert.NoError(t, nodesResult.Error)
 
-	assert.Equal(t, info2.Nodes[0].MachineID, string(nodes[0].UID))
-	assert.Equal(t, info2.Nodes[0].Name, nodes[0].Name)
-	assert.Equal(t, info2.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
-	assert.Equal(t, info2.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
+	assert.Equal(t, info2.Cluster.Nodes[0].MachineID, string(nodes[0].UID))
+	assert.Equal(t, info2.Cluster.Nodes[0].Name, nodes[0].Name)
+	assert.Equal(t, info2.Cluster.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
+	assert.Equal(t, info2.Cluster.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
 }

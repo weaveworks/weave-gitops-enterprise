@@ -16,8 +16,9 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
-// ConvertEvent returns a models.Event from a k8s core api v1.Event object
-func ConvertEvent(event v1.Event) (models.Event, error) {
+// ConvertEvent returns a models.Event from a payload.KubernetesEvent which wraps a v1.Event object
+func ConvertEvent(wkpEvent payload.KubernetesEvent) (models.Event, error) {
+	event := wkpEvent.Event
 	eventJSONbytes, err := SerializeEventToJSON(&event)
 	if err != nil {
 		return models.Event{}, err
@@ -35,6 +36,7 @@ func ConvertEvent(event v1.Event) (models.Event, error) {
 	registrationTimestamp.Scan(time.Now())
 
 	result := models.Event{
+		Token:        wkpEvent.Token,
 		UID:          event.ObjectMeta.UID,
 		CreatedAt:    creationTimestamp,
 		RegisteredAt: registrationTimestamp,
@@ -52,10 +54,12 @@ func ConvertEvent(event v1.Event) (models.Event, error) {
 }
 
 // ConvertClusterInfo returns a models.ClusterInfo from a NATS message with cluster info
-func ConvertClusterInfo(cluster payload.ClusterInfo) (models.ClusterInfo, error) {
+func ConvertClusterInfo(clusterInfo payload.ClusterInfo) (models.ClusterInfo, error) {
+	cluster := clusterInfo.Cluster
 	result := models.ClusterInfo{
-		UID:  types.UID(cluster.ID),
-		Type: cluster.Type,
+		Token: clusterInfo.Token,
+		UID:   types.UID(cluster.ID),
+		Type:  cluster.Type,
 	}
 	return result, nil
 }
@@ -63,8 +67,9 @@ func ConvertClusterInfo(cluster payload.ClusterInfo) (models.ClusterInfo, error)
 // ConvertNodeInfo returns a models.Node from a NATS message with node info
 func ConvertNodeInfo(clusterInfo payload.ClusterInfo, clusterID types.UID) ([]models.NodeInfo, error) {
 	result := []models.NodeInfo{}
-	for _, nodeInfo := range clusterInfo.Nodes {
+	for _, nodeInfo := range clusterInfo.Cluster.Nodes {
 		result = append(result, models.NodeInfo{
+			Token:          clusterInfo.Token,
 			UID:            types.UID(nodeInfo.MachineID),
 			ClusterInfoUID: clusterID,
 			Name:           nodeInfo.Name,

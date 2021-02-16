@@ -3,14 +3,15 @@ package alertmanager
 import (
 	"bytes"
 	"fmt"
-	"github.com/prometheus/alertmanager/api/v2/models"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/cloudevents/sdk-go/v2/event"
+	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/wks/common/messaging/payload"
 )
 
 const alertResponse = `
@@ -96,25 +97,29 @@ func TestGetAlertsAsEvent(t *testing.T) {
 	// Close the server when test finishes
 	defer server.Close()
 
-	ev, err := GetAlertsAsEvent(fmt.Sprintf("%v/api/v2", server.URL))
+	ev, err := GetAlertsAsEvent("derp", fmt.Sprintf("%v/api/v2", server.URL))
 	assert.NoError(t, err)
-	alerts := models.GettableAlerts{}
-	err = ev.DataAs(&alerts)
+	pa := payload.PrometheusAlerts{}
+	err = ev.DataAs(&pa)
 	assert.NoError(t, err)
-	assert.Len(t, alerts, 1)
-	assert.Equal(t, alerts[0].Labels["alertname"], "Watchdog")
+	assert.Len(t, pa.Alerts, 1)
+	assert.Equal(t, pa.Alerts[0].Labels["alertname"], "Watchdog")
 }
 
 func TestToCloudEvent(t *testing.T) {
 	fp := "wiggly"
 	alerts := models.GettableAlerts{&models.GettableAlert{Fingerprint: &fp}}
-	ev, err := ToCloudEvent("ewq", alerts)
+	pa := &payload.PrometheusAlerts{
+		Token:  "derp",
+		Alerts: alerts,
+	}
+	ev, err := ToCloudEvent("ewq", pa)
 	assert.NoError(t, err)
 	assert.Equal(t, "ewq", ev.Source())
 
-	newAlerts := models.GettableAlerts{}
-	err = ev.DataAs(&newAlerts)
+	npa := payload.PrometheusAlerts{}
+	err = ev.DataAs(&npa)
 	assert.NoError(t, err)
-	assert.Len(t, newAlerts, 1)
-	assert.Equal(t, fp, *newAlerts[0].Fingerprint)
+	assert.Len(t, npa.Alerts, 1)
+	assert.Equal(t, fp, *npa.Alerts[0].Fingerprint)
 }

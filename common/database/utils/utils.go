@@ -34,7 +34,7 @@ func MigrateTables(db *gorm.DB) error {
 
 	err = db.AutoMigrate(&models.Cluster{})
 	if err != nil {
-		return errors.New("failed to create Cluster table")
+		return errors.New("failed to create Clusters table")
 	}
 	log.Info("created Cluster table")
 

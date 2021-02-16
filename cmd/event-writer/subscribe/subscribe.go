@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/wks/common/database/utils"
 	"github.com/weaveworks/wks/common/messaging/payload"
 	"gorm.io/gorm/clause"
-	v1 "k8s.io/api/core/v1"
 )
 
 // ToSubject subscribes to a subject given a nats connection
@@ -59,12 +58,12 @@ func ReceiveEvent(ctx context.Context, event ce.Event) error {
 }
 
 func enqueueEvent(event ce.Event) {
-	data := &v1.Event{}
+	data := &payload.KubernetesEvent{}
 	if err := event.DataAs(data); err != nil {
 		log.Warn(fmt.Sprintf("failed to parse event: %s\n", err.Error()))
 		return
 	}
-	log.Info(fmt.Sprintf("received event: %+v %+v %+v\n", data.Name, data.Namespace, data.Message))
+	log.Info(fmt.Sprintf("received event: %+v %+v %+v\n", data.Event.Name, data.Event.Namespace, data.Event.Message))
 
 	dbEvent, err := converter.ConvertEvent(*data)
 	if err != nil {
@@ -83,12 +82,12 @@ func writeClusterInfo(event ce.Event) error {
 	}
 
 	// If the ID is empty, the received message was probably of the wrong type
-	if data.ID == "" {
+	if data.Cluster.ID == "" {
 		log.Warnf("Failed to parse event %s correctly.", event.ID())
 		return errors.New("failed to parse event as ClusterInfo object")
 	}
 
-	log.Infof("Received ClusterInfo: %s %s.", data.ID, data.Type)
+	log.Infof("Received ClusterInfo: %s %s.", data.Cluster.ID, data.Cluster.Type)
 
 	dbClusterInfo, err := converter.ConvertClusterInfo(data)
 	if err != nil {

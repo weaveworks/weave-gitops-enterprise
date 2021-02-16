@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/weaveworks/wks/common/messaging/payload"
+
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -11,12 +13,14 @@ import (
 )
 
 type EventNotifier struct {
+	token  string
 	source string
 	client cloudevents.Client
 }
 
-func NewEventNotifier(source string, client cloudevents.Client) *EventNotifier {
+func NewEventNotifier(token string, source string, client cloudevents.Client) *EventNotifier {
 	return &EventNotifier{
+		token:  token,
 		source: source,
 		client: client,
 	}
@@ -30,12 +34,17 @@ func (en *EventNotifier) Notify(eventType string, obj interface{}) error {
 		return nil
 	}
 
+	ke := payload.KubernetesEvent{
+		Token: en.token,
+		Event: *event,
+	}
+
 	e := cloudevents.NewEvent()
 	e.SetID(uuid.New().String())
 	e.SetType("Event")
 	e.SetTime(time.Now())
 	e.SetSource(en.source)
-	if err := e.SetData(cloudevents.ApplicationJSON, event); err != nil {
+	if err := e.SetData(cloudevents.ApplicationJSON, ke); err != nil {
 		log.Errorf("Unable to set event as data: %v.", err)
 		return err
 	}

@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/weaveworks/wks/common/messaging/payload"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/cmd/event-writer/converter"
 	"github.com/weaveworks/wks/common/database/models"
@@ -27,7 +29,7 @@ func dbEventFromFile(t *testing.T, path string) (models.Event, error) {
 	event, err := converter.DeserializeJSONToEvent(data)
 	assert.NoError(t, err)
 
-	dbEvent, err := converter.ConvertEvent(*event)
+	dbEvent, err := converter.ConvertEvent(payload.KubernetesEvent{Event: *event})
 	assert.NoError(t, err)
 	return dbEvent, nil
 }

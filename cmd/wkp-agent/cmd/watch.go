@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -41,6 +42,11 @@ func run(cmd *cobra.Command, args []string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	token := os.Getenv(WKPAgentTokenEnvVar)
+	if token == "" {
+		log.Fatalf("The `%s` environment variable has not been set.  Please set it and try again.", WKPAgentTokenEnvVar)
+	}
+
 	k8sClient, err := clusterclient.GetClient(KubeconfigFile)
 	if err != nil {
 		log.Fatalf("Failed to create Kubernetes client: %s.", err.Error())
@@ -61,13 +67,13 @@ func run(cmd *cobra.Command, args []string) {
 	log.Info("Agent starting watchers.")
 
 	// Watch for Events
-	notifier := handlers.NewEventNotifier("wkp-agent", client)
+	notifier := handlers.NewEventNotifier(token, "wkp-agent", client)
 	events := clusterwatcher.NewWatcher(factory.Core().V1().Events().Informer(), notifier.Notify)
 	go events.Run("Events", 1, ctx.Done())
 
 	// Poll for ClusterInfo
 	clusterInfoSender := handlers.NewClusterInfoSender("wkp-agent", client)
-	clusterInfo := clusterpoller.NewClusterInfoPoller(k8sClient, watchCmdParams.ClusterInfoPollingInterval, clusterInfoSender)
+	clusterInfo := clusterpoller.NewClusterInfoPoller(token, k8sClient, watchCmdParams.ClusterInfoPollingInterval, clusterInfoSender)
 	go clusterInfo.Run(ctx.Done())
 
 	livenessCheck()
@@ -75,9 +81,7 @@ func run(cmd *cobra.Command, args []string) {
 
 func livenessCheck() {
 	started := time.Now()
-	http.HandleFunc("/started", healthcheck.Started(started))
 	http.HandleFunc("/healthz", healthcheck.Healthz(started))
-	http.HandleFunc("/redirect", healthcheck.Redirect)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", watchCmdParams.HealthCheckPort), nil))
 }

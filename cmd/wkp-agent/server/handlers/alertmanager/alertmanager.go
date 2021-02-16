@@ -12,9 +12,9 @@ import (
 	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/google/uuid"
 	"github.com/prometheus/alertmanager/api/v2/client"
-	models "github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/alertmanager/notify/webhook"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/wks/common/messaging/payload"
 )
 
 const (
@@ -83,7 +83,7 @@ func NewWebhookHandler(fn func(event.Event)) func(http.ResponseWriter, *http.Req
 	}
 }
 
-func GetAlerts(alertmanagerAddress string) (models.GettableAlerts, error) {
+func GetAlerts(token string, alertmanagerAddress string) (*payload.PrometheusAlerts, error) {
 	u, err := url.Parse(alertmanagerAddress)
 	if err != nil {
 		return nil, err
@@ -94,10 +94,16 @@ func GetAlerts(alertmanagerAddress string) (models.GettableAlerts, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Payload, nil
+
+	pa := &payload.PrometheusAlerts{
+		Token:  token,
+		Alerts: resp.Payload,
+	}
+
+	return pa, nil
 }
 
-func ToCloudEvent(source string, alerts models.GettableAlerts) (event.Event, error) {
+func ToCloudEvent(source string, alerts *payload.PrometheusAlerts) (event.Event, error) {
 	ce := cloudevents.NewEvent()
 	ce.SetID(uuid.New().String())
 	ce.SetType(eventType)
@@ -110,8 +116,8 @@ func ToCloudEvent(source string, alerts models.GettableAlerts) (event.Event, err
 	return ce, nil
 }
 
-func GetAlertsAsEvent(alertmanagerAddress string) (event.Event, error) {
-	alerts, err := GetAlerts(alertmanagerAddress)
+func GetAlertsAsEvent(token string, alertmanagerAddress string) (event.Event, error) {
+	alerts, err := GetAlerts(token, alertmanagerAddress)
 	if err != nil {
 		return event.Event{}, err
 	}

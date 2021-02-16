@@ -25,13 +25,15 @@ var (
 )
 
 type ClusterInfoPoller struct {
+	token     string
 	clientset kubernetes.Interface
 	interval  time.Duration
 	sender    *handlers.ClusterInfoSender
 }
 
-func NewClusterInfoPoller(clientset kubernetes.Interface, interval time.Duration, sender *handlers.ClusterInfoSender) *ClusterInfoPoller {
+func NewClusterInfoPoller(token string, clientset kubernetes.Interface, interval time.Duration, sender *handlers.ClusterInfoSender) *ClusterInfoPoller {
 	return &ClusterInfoPoller{
+		token:     token,
 		clientset: clientset,
 		interval:  interval,
 		sender:    sender,
@@ -89,9 +91,9 @@ func (p *ClusterInfoPoller) toClusterInfo(nodeList *v1.NodeList, namespaceList *
 	providerID := nodeList.Items[0].Spec.ProviderID
 	providerName := providerID[:strings.Index(providerID, "://")]
 
-	nodes := make([]payload.NodeInfo, 0)
+	nodes := make([]payload.Node, 0)
 	for _, node := range nodeList.Items {
-		n := payload.NodeInfo{
+		n := payload.Node{
 			MachineID:      node.Status.NodeInfo.MachineID,
 			Name:           node.Name,
 			KubeletVersion: node.Status.NodeInfo.KubeletVersion,
@@ -104,9 +106,14 @@ func (p *ClusterInfoPoller) toClusterInfo(nodeList *v1.NodeList, namespaceList *
 		nodes = append(nodes, n)
 	}
 
-	return &payload.ClusterInfo{
+	cluster := payload.Cluster{
 		ID:    id,
 		Type:  providerName,
 		Nodes: nodes,
+	}
+
+	return &payload.ClusterInfo{
+		Token:   p.token,
+		Cluster: cluster,
 	}, nil
 }

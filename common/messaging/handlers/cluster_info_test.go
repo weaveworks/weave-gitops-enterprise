@@ -24,36 +24,40 @@ func TestClusterInfoSender(t *testing.T) {
 		{
 			name: "ClusterInfo gets sent successfully",
 			info: payload.ClusterInfo{
-				ID:   "foo",
-				Type: "existinginfra",
-				Nodes: []payload.NodeInfo{
-					{
-						MachineID:      "111",
-						IsControlPlane: true,
-						KubeletVersion: "1.20.1",
-					},
-					{
-						MachineID:      "222",
-						IsControlPlane: false,
-						KubeletVersion: "1.20.1",
+				Cluster: payload.Cluster{
+					ID:   "foo",
+					Type: "existinginfra",
+					Nodes: []payload.Node{
+						{
+							MachineID:      "111",
+							IsControlPlane: true,
+							KubeletVersion: "1.20.1",
+						},
+						{
+							MachineID:      "222",
+							IsControlPlane: false,
+							KubeletVersion: "1.20.1",
+						},
 					},
 				},
 			},
 			clientErr: nil,
 			err:       nil,
 			expected: &payload.ClusterInfo{
-				ID:   "foo",
-				Type: "existinginfra",
-				Nodes: []payload.NodeInfo{
-					{
-						MachineID:      "111",
-						IsControlPlane: true,
-						KubeletVersion: "1.20.1",
-					},
-					{
-						MachineID:      "222",
-						IsControlPlane: false,
-						KubeletVersion: "1.20.1",
+				Cluster: payload.Cluster{
+					ID:   "foo",
+					Type: "existinginfra",
+					Nodes: []payload.Node{
+						{
+							MachineID:      "111",
+							IsControlPlane: true,
+							KubeletVersion: "1.20.1",
+						},
+						{
+							MachineID:      "222",
+							IsControlPlane: false,
+							KubeletVersion: "1.20.1",
+						},
 					},
 				},
 			},
@@ -61,7 +65,9 @@ func TestClusterInfoSender(t *testing.T) {
 		{
 			name: "ClusterInfo does not get sent successfully",
 			info: payload.ClusterInfo{
-				ID: "bar",
+				Cluster: payload.Cluster{
+					ID: "bar",
+				},
 			},
 			clientErr: errors.New("oops"),
 			err:       errors.New("oops"),

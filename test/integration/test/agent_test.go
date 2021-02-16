@@ -45,7 +45,7 @@ func TestAgent(t *testing.T) {
 		defer sender.Close(ctx)
 		publisher, err := cloudevents.NewClient(sender)
 		require.NoError(t, err)
-		notifier := handlers.NewEventNotifier("test", publisher)
+		notifier := handlers.NewEventNotifier("derp", "test", publisher)
 		require.NoError(t, err)
 
 		// Set up subscriber
@@ -80,7 +80,7 @@ func TestAgent(t *testing.T) {
 		err = notifier.Notify("added", expected)
 		require.NoError(t, err)
 
-		var actual *v1.Event
+		var actual payload.KubernetesEvent
 		select {
 		case e := <-events:
 			err := e.DataAs(&actual)
@@ -89,7 +89,7 @@ func TestAgent(t *testing.T) {
 			t.Logf("Time out waiting for event to arrive")
 		}
 
-		assert.Equal(t, expected, actual)
+		assert.Equal(t, expected, &actual.Event)
 	})
 
 	t.Run("Poll for ClusterInfo", func(t *testing.T) {
@@ -109,20 +109,23 @@ func TestAgent(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := payload.ClusterInfo{
-			ID:   "f72c7ce4-afd1-4840-bd50-fb4fabc99859",
-			Type: "existingInfra",
-			Nodes: []payload.NodeInfo{
-				{
-					MachineID:      "e3801e6f-13b6-4e39-a234-435b4f6b0011",
-					Name:           "derp-wks-1",
-					IsControlPlane: true,
-					KubeletVersion: "v1.19.4",
-				},
-				{
-					MachineID:      "9c6708f5-9aa0-4a09-8d41-362b49f62a76",
-					Name:           "derp-wks-2",
-					IsControlPlane: false,
-					KubeletVersion: "v1.19.3",
+			Token: "derp",
+			Cluster: payload.Cluster{
+				ID:   "f72c7ce4-afd1-4840-bd50-fb4fabc99859",
+				Type: "existingInfra",
+				Nodes: []payload.Node{
+					{
+						MachineID:      "e3801e6f-13b6-4e39-a234-435b4f6b0011",
+						Name:           "derp-wks-1",
+						IsControlPlane: true,
+						KubeletVersion: "v1.19.4",
+					},
+					{
+						MachineID:      "9c6708f5-9aa0-4a09-8d41-362b49f62a76",
+						Name:           "derp-wks-2",
+						IsControlPlane: false,
+						KubeletVersion: "v1.19.3",
+					},
 				},
 			},
 		}
@@ -166,7 +169,7 @@ func TestAgent(t *testing.T) {
 		}
 		clientset := fake.NewSimpleClientset(controlplane, worker, namespace)
 		cis := handlers.NewClusterInfoSender("test", publisher)
-		poller := clusterpoller.NewClusterInfoPoller(clientset, time.Minute, cis)
+		poller := clusterpoller.NewClusterInfoPoller("derp", clientset, time.Minute, cis)
 
 		// Set up subscriber
 		consumer, err := cloudeventsnats.NewConsumer(s.ClientURL(), "test.subject", cloudeventsnats.NatsOptions(

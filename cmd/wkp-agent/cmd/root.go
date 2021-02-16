@@ -18,6 +18,10 @@ var (
 	LogLevel       int
 )
 
+const (
+	WKPAgentTokenEnvVar string = "WKP_AGENT_TOKEN"
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "wkp-agent",
 	Short: "Agent that connects to Weave WKP to send Kubernetes events",

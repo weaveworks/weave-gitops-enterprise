@@ -8,7 +8,6 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/common/messaging/payload"
-	v1 "k8s.io/api/core/v1"
 )
 
 type FakeCloudEventsClient struct {
@@ -64,18 +63,18 @@ func (c *FakeCloudEventsClient) AssertClusterInfoWasSent(t *testing.T, expected 
 	assert.Subset(t, list, []payload.ClusterInfo{expected})
 }
 
-func (c *FakeCloudEventsClient) AssertEventWasSent(t *testing.T, expected v1.Event) {
+func (c *FakeCloudEventsClient) AssertEventWasSent(t *testing.T, expected payload.KubernetesEvent) {
 	c.Lock()
 	defer c.Unlock()
 
-	list := make([]v1.Event, 0)
-	var ev v1.Event
+	list := make([]payload.KubernetesEvent, 0)
+	var ev payload.KubernetesEvent
 	for _, e := range c.sent {
 		_ = e.DataAs(&ev)
 		list = append(list, ev)
 	}
 
-	assert.Subset(t, list, []v1.Event{expected})
+	assert.Subset(t, list, []payload.KubernetesEvent{expected})
 }
 
 func (c *FakeCloudEventsClient) AssertNoCloudEventsWereSent(t *testing.T) {

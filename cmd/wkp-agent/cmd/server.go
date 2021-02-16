@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
@@ -53,11 +54,16 @@ func runServer(params paramSet) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	token := os.Getenv(WKPAgentTokenEnvVar)
+	if token == "" {
+		log.Fatalf("The `%s` environment variable has not been set. Please set it and try again.", WKPAgentTokenEnvVar)
+	}
+
 	client := common.CreateClient(ctx, NatsURL, Subject)
 
 	log.Infof("Starting to poll Alertmanager at %v", params.alertmanagerURL)
 	go wait.Until(func() {
-		ce, err := alertmanager.GetAlertsAsEvent(params.alertmanagerURL)
+		ce, err := alertmanager.GetAlertsAsEvent(token, params.alertmanagerURL)
 		if err != nil {
 			log.Errorf("Failed to ping Alertmanager at %v: %v", params.alertmanagerURL, err)
 			return
@@ -74,9 +80,7 @@ func runServer(params paramSet) error {
 	})).Methods("POST")
 
 	started := time.Now()
-	r.HandleFunc("/started", healthcheck.Started(started))
 	r.HandleFunc("/healthz", healthcheck.Healthz(started))
-	r.HandleFunc("/redirect", healthcheck.Redirect)
 
 	srv := &http.Server{
 		Handler: r,
