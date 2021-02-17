@@ -20,6 +20,7 @@ import (
 
 type watchCmdParamSet struct {
 	ClusterInfoPollingInterval time.Duration
+	FluxInfoPollingInterval    time.Duration
 	HealthCheckPort            int
 }
 
@@ -35,6 +36,7 @@ func init() {
 	rootCmd.AddCommand(watchCmd)
 
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.ClusterInfoPollingInterval, "cluster-info-polling-interval", 10*time.Second, "Polling interval for ClusterInfo")
+	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.FluxInfoPollingInterval, "flux-info-polling-interval", 10*time.Second, "Polling interval for flux deployment info")
 	watchCmd.PersistentFlags().IntVar(&watchCmdParams.HealthCheckPort, "health-check-port", 8080, "Port to expose health check")
 }
 
@@ -75,6 +77,11 @@ func run(cmd *cobra.Command, args []string) {
 	clusterInfoSender := handlers.NewClusterInfoSender("wkp-agent", client)
 	clusterInfo := clusterpoller.NewClusterInfoPoller(token, k8sClient, watchCmdParams.ClusterInfoPollingInterval, clusterInfoSender)
 	go clusterInfo.Run(ctx.Done())
+
+	// Poll for FluxInfo
+	fluxInfoSender := handlers.NewFluxInfoSender("wkp-agent", client)
+	fluxInfo := clusterpoller.NewFluxInfoPoller(token, k8sClient, watchCmdParams.FluxInfoPollingInterval, fluxInfoSender)
+	go fluxInfo.Run(ctx.Done())
 
 	livenessCheck()
 }

@@ -63,6 +63,20 @@ func (c *FakeCloudEventsClient) AssertClusterInfoWasSent(t *testing.T, expected 
 	assert.Subset(t, list, []payload.ClusterInfo{expected})
 }
 
+func (c *FakeCloudEventsClient) AssertFluxInfoWasSent(t *testing.T, expected payload.FluxInfo) {
+	c.Lock()
+	defer c.Unlock()
+
+	list := make([]payload.FluxInfo, 0)
+	var info payload.FluxInfo
+	for _, e := range c.sent {
+		_ = e.DataAs(&info)
+		list = append(list, info)
+	}
+
+	assert.Subset(t, list, []payload.FluxInfo{expected})
+}
+
 func (c *FakeCloudEventsClient) AssertEventWasSent(t *testing.T, expected payload.KubernetesEvent) {
 	c.Lock()
 	defer c.Unlock()

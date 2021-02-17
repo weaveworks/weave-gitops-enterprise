@@ -23,10 +23,16 @@ func TestRunCommand(t *testing.T) {
 			},
 			"--db-uri not provided and $DB_URI not set",
 		},
+		{
+			paramSet{
+				dbURI: "/derp/test.db",
+			},
+			"failed to connect to database",
+		},
 	}
 	for _, test := range tests {
 		err := runCommand(test.params)
-		if test.params.dbURI == "" {
+		if test.output != "" {
 			assert.Error(t, err)
 			assert.Equal(t, string(err.Error()), test.output)
 		} else {

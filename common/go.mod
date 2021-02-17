@@ -11,4 +11,6 @@ require (
 	gorm.io/datatypes v1.0.0
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.20.12
+	k8s.io/api v0.20.2
+	k8s.io/apimachinery v0.20.2
 )
