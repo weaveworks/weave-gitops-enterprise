@@ -328,6 +328,11 @@ func (c *context) isClusterRunning() bool {
 	return true
 }
 
+// checkConfigAtCorrectVersion determines if the config.yaml has been correctly updated
+func (c *context) checkConfigAtCorrectVersion(version string) {
+	require.Equal(c.t, c.conf.WKSConfig.KubernetesVersion, version)
+}
+
 // PodData stores a component id (namespace + name)
 type PodData struct {
 	Namespace, Name string

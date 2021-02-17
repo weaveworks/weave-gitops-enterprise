@@ -706,7 +706,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: true
-          SKIP_COMPONENTS: true
+          SKIP_COMPONENTS: false
           UPGRADE_VERSIONS: '1.17.13,1.18.10,1.19.3'
 
   upgrade-to-latest-patch: &upgrade-ssh-gcp-centos

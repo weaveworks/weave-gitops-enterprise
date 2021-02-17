@@ -605,8 +605,43 @@ func GetEKSClusterVersion(repoPath, wkClusterConfigPath string) ([]string, error
 	return versions, nil
 }
 
+// UpdateWKSConfigK8sVersions updates the K8s version for the wks-ssh and wks-footloose tracks
+func UpdateWKSConfigK8sVersion(repoPath, fileSubPath string, version string) error {
+	return UpdateObjects(repoPath, fileSubPath, updateWKSK8sVersion(version))
+}
+
+func updateWKSK8sVersion(version string) func(*kyaml.RNode) error {
+	return func(obj *kyaml.RNode) error {
+		return obj.PipeE(
+			kyaml.Lookup("wksConfig"),
+			kyaml.SetField("kubernetesVersion", kyaml.NewScalarRNode(version)))
+	}
+}
+
 // UpdateMachinesK8sVersions updates all machines in machines.yaml to the same K8s version
 func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) error {
+	return UpdateObjects(repoPath, fileSubPath, updateMachineVersion(version))
+}
+
+func updateMachineVersion(version string) func(*kyaml.RNode) error {
+	return func(obj *kyaml.RNode) error {
+		meta, err := obj.GetMeta()
+		if err != nil {
+			return err
+		}
+
+		if meta.Kind == "Machine" {
+			return obj.PipeE(
+				kyaml.Lookup("spec"),
+				kyaml.SetField("version", kyaml.NewScalarRNode(version)))
+		}
+
+		return nil
+	}
+}
+
+// UpdateObjects updates all objects in a yaml file using a specified updater
+func UpdateObjects(repoPath, fileSubPath string, updater func(*kyaml.RNode) error) error {
 	fPath := path.Join(repoPath, fileSubPath)
 	f, err := os.Open(fPath)
 	if err != nil {
@@ -629,21 +664,10 @@ func UpdateMachinesK8sVersions(repoPath, fileSubPath string, version string) err
 		if err != nil {
 			return err
 		}
-
-		meta, err := obj.GetMeta()
+		err = updater(obj)
 		if err != nil {
 			return err
 		}
-
-		if meta.Kind == "Machine" {
-			err := obj.PipeE(
-				kyaml.Lookup("spec"),
-				kyaml.SetField("version", kyaml.NewScalarRNode(version)))
-			if err != nil {
-				return err
-			}
-		}
-
 		str, err := obj.String()
 		if err != nil {
 			return err
