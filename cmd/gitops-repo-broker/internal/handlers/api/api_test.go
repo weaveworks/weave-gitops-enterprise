@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -19,7 +20,283 @@ import (
 	"gorm.io/gorm"
 )
 
-const dbTestName = "test.db"
+func errorBody(message string) interface{} {
+	return map[string]interface{}{"message": message}
+}
+
+var noInit = errorBody("The database has not been initialised.")
+var noSuchTable = errorBody("no such table: clusters")
+
+func doRequest(t *testing.T, handler http.HandlerFunc, method, path, url, data string) (*httptest.ResponseRecorder, interface{}) {
+	body := bytes.NewReader([]byte(data))
+	req, err := http.NewRequest("GET", url, body)
+	require.Nil(t, err)
+	rec := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc(path, handler)
+	router.ServeHTTP(rec, req)
+	if rec.Header().Get("Content-Type") == "application/json" {
+		var res interface{}
+		err = json.Unmarshal(rec.Body.Bytes(), &res)
+		require.NoError(t, err)
+		return rec, res
+	}
+	return rec, rec.Body.String()
+}
+
+func TestNilDb(t *testing.T) {
+	nilDbHandlers := []http.HandlerFunc{
+		api.FindCluster(nil, nil),
+		api.ListClusters(nil, nil),
+		api.RegisterCluster(nil, nil, nil, nil, nil),
+		api.UpdateCluster(nil, nil, nil),
+	}
+	for i, fn := range nilDbHandlers {
+		t.Run(string(i), func(t *testing.T) {
+			response, body := doRequest(t, fn, "GET", "/", "/", "")
+			assert.Equal(t, http.StatusInternalServerError, response.Code)
+			assert.Equal(t, noInit, body)
+		})
+	}
+}
+
+func TestNoTables(t *testing.T) {
+	db, err := utils.Open("")
+	assert.NoError(t, err)
+
+	noTablesHandlers := []struct {
+		handler http.HandlerFunc
+		message interface{}
+	}{
+		{api.FindCluster(db, nil), noInit},
+		{api.ListClusters(db, nil), noInit},
+		{
+			api.RegisterCluster(db, validator.New(), json.Unmarshal, nil, NewFakeTokenGenerator("derp", nil).Generate),
+			noSuchTable,
+		},
+		{api.UpdateCluster(db, json.Unmarshal, nil), noInit},
+	}
+
+	for i, tt := range noTablesHandlers {
+		t.Run(string(i), func(t *testing.T) {
+			response, body := doRequest(t, tt.handler, "GET", "/{id:[0-9]+}", "/1", `{ "name": "ewq" }`)
+			assert.Equal(t, http.StatusInternalServerError, response.Code)
+			assert.Equal(t, tt.message, body)
+		})
+	}
+}
+
+func TestJSONMarshalErrors(t *testing.T) {
+	db, err := utils.Open("")
+	assert.NoError(t, err)
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+	myCluster := models.Cluster{Name: "MyCluster"}
+	result := db.Create(&myCluster)
+	assert.NoError(t, result.Error)
+
+	marshalError := func(v interface{}, prefix, indent string) ([]byte, error) {
+		return nil, errors.New("oops")
+	}
+
+	unmarshallErrors := []struct {
+		handler http.HandlerFunc
+		data    string
+	}{
+		{api.FindCluster(db, marshalError), ""},
+		{api.ListClusters(db, marshalError), ""},
+		{api.RegisterCluster(db, validator.New(), json.Unmarshal, marshalError, NewFakeTokenGenerator("derp", nil).Generate), `{ "name": "ewq" }`},
+		{api.UpdateCluster(db, json.Unmarshal, marshalError), `{ "name": "ewq2" }`},
+	}
+
+	for i, tt := range unmarshallErrors {
+		t.Run(string(i), func(t *testing.T) {
+			response, body := doRequest(
+				t,
+				tt.handler,
+				"GET",
+				"/{id:[0-9]+}",
+				fmt.Sprintf("/%d", myCluster.ID),
+				tt.data,
+			)
+			assert.Equal(t, http.StatusInternalServerError, response.Code)
+			assert.Equal(t, errorBody("oops"), body)
+		})
+	}
+}
+
+func TestGetCluster(t *testing.T) {
+	requestTests := []struct {
+		description  string
+		path         string
+		responseCode int
+		response     interface{}
+		clusters     []models.Cluster
+	}{
+		{"404 if no :id", "/", 404, "404 page not found\n", nil},
+		{"404 if no cluster in db", "/1", 404, errorBody("cluster not found"), nil},
+		{
+			"200 if cluster is in db",
+			"/1", 200, map[string]interface{}{
+				"id":    float64(1),
+				"name":  "ewq",
+				"token": "",
+				"type":  "",
+			}, []models.Cluster{{Name: "ewq"}},
+		},
+		{
+			"Get the correct cluster",
+			"/2", 200, map[string]interface{}{
+				"id":    float64(2),
+				"name":  "dsa",
+				"token": "dsa",
+				"type":  "",
+			}, []models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
+		},
+	}
+
+	for _, rt := range requestTests {
+		t.Run(rt.description, func(t *testing.T) {
+			db, err := utils.Open("")
+			assert.NoError(t, err)
+			err = utils.MigrateTables(db)
+			assert.NoError(t, err)
+			if rt.clusters != nil {
+				result := db.Create(&rt.clusters)
+				assert.NoError(t, result.Error)
+			}
+			response, body := doRequest(
+				t,
+				api.FindCluster(db, json.MarshalIndent),
+				"GET",
+				"/{id:[0-9]+}",
+				rt.path,
+				"",
+			)
+			assert.Equal(t, rt.responseCode, response.Code)
+			assert.Equal(t, rt.response, body)
+		})
+	}
+}
+
+func TestUpdateCluster(t *testing.T) {
+	requestTests := []struct {
+		description  string
+		path         string
+		data         interface{}
+		responseCode int
+		response     interface{}
+		clusters     []models.Cluster
+		getResponse  interface{}
+	}{
+		{"404 if no :id", "/", nil, 404, "404 page not found\n", nil, nil},
+		{"404 if no cluster in db", "/1", nil, 404, errorBody("cluster not found"), nil, nil},
+		{
+			"200 if cluster is in db",
+			"/1",
+			map[string]interface{}{
+				"name": "ewq1",
+			},
+			200,
+			map[string]interface{}{
+				"id":    float64(1),
+				"name":  "ewq1",
+				"token": "ewq",
+				"type":  "",
+			},
+			[]models.Cluster{{Name: "ewq", Token: "ewq"}},
+			map[string]interface{}{
+				"id":    float64(1),
+				"name":  "ewq1",
+				"token": "ewq",
+				"type":  "",
+			},
+		},
+		{
+			"Update the correct cluster",
+			"/2",
+			map[string]interface{}{
+				"name": "dsa2",
+			},
+			200,
+			map[string]interface{}{
+				"id":    float64(2),
+				"name":  "dsa2",
+				"token": "dsa",
+				"type":  "",
+			},
+			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
+			map[string]interface{}{
+				"id":    float64(2),
+				"name":  "dsa2",
+				"token": "dsa",
+				"type":  "",
+			},
+		},
+		{
+			"Can't update token",
+			"/2",
+			map[string]interface{}{
+				"token": "newtoken",
+			},
+			200,
+			map[string]interface{}{
+				"id":    float64(2),
+				"name":  "dsa",
+				"token": "dsa",
+				"type":  "",
+			},
+			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
+			map[string]interface{}{
+				"id":    float64(2),
+				"name":  "dsa",
+				"token": "dsa",
+				"type":  "",
+			},
+		},
+	}
+	for _, rt := range requestTests {
+		t.Run(rt.description, func(t *testing.T) {
+			db, err := utils.Open("")
+			assert.NoError(t, err)
+			err = utils.MigrateTables(db)
+			assert.NoError(t, err)
+			if rt.clusters != nil {
+				result := db.Create(&rt.clusters)
+				assert.NoError(t, result.Error)
+			}
+			dataStr := ""
+			if rt.data != nil {
+				dataBytes, err := json.Marshal(rt.data)
+				assert.NoError(t, err)
+				dataStr = string(dataBytes)
+			}
+			response, body := doRequest(
+				t,
+				api.UpdateCluster(db, json.Unmarshal, json.MarshalIndent),
+				"GET",
+				"/{id:[0-9]+}",
+				rt.path,
+				dataStr,
+			)
+			assert.Equal(t, rt.responseCode, response.Code)
+			assert.Equal(t, rt.response, body)
+
+			if rt.getResponse != nil {
+				response, body := doRequest(
+					t,
+					api.FindCluster(db, json.MarshalIndent),
+					"GET",
+					"/{id:[0-9]+}",
+					rt.path,
+					"",
+				)
+				assert.Equal(t, 200, response.Code)
+				assert.Equal(t, rt.getResponse, body)
+			}
+		})
+	}
+}
 
 func TestListClusters_NilDB(t *testing.T) {
 	response := executeGet(t, nil, json.MarshalIndent, "")
@@ -29,7 +306,6 @@ func TestListClusters_NilDB(t *testing.T) {
 
 func TestListClusters_NoTables(t *testing.T) {
 	db, err := utils.Open("")
-	defer os.Remove(dbTestName)
 	assert.NoError(t, err)
 
 	response := executeGet(t, db, json.MarshalIndent, "")
@@ -39,7 +315,6 @@ func TestListClusters_NoTables(t *testing.T) {
 
 func TestListClusters_JSONError(t *testing.T) {
 	db, err := utils.Open("")
-	defer os.Remove(dbTestName)
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -61,8 +336,7 @@ func TestListClusters_JSONError(t *testing.T) {
 }
 
 func TestListClusters(t *testing.T) {
-	db, err := utils.Open(dbTestName)
-	defer os.Remove(dbTestName)
+	db, err := utils.Open("")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -80,10 +354,12 @@ func TestListClusters(t *testing.T) {
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
 	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.Cluster{
+		Clusters: []api.ClusterView{
 			{
-				Name: "My Cluster",
-				Type: "",
+				ID:    1,
+				Name:  "My Cluster",
+				Token: "derp",
+				Type:  "",
 			},
 		},
 	}, res)
@@ -115,11 +391,13 @@ func TestListClusters(t *testing.T) {
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
 	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.Cluster{
+		Clusters: []api.ClusterView{
 			{
-				Name: "My Cluster",
-				Type: "existingInfra",
-				Nodes: []api.Node{
+				ID:    1,
+				Name:  "My Cluster",
+				Token: "derp",
+				Type:  "existingInfra",
+				Nodes: []api.NodeView{
 					{
 						Name:           "wks-1",
 						IsControlPlane: true,
@@ -153,7 +431,6 @@ func TestRegisterCluster_NilDB(t *testing.T) {
 
 func TestRegisterCluster_IOError(t *testing.T) {
 	db, err := utils.Open("")
-	defer os.Remove(dbTestName)
 	assert.NoError(t, err)
 
 	response := executePost(t, FakeErrorReader{}, db, json.Unmarshal, json.MarshalIndent, nil)
@@ -163,7 +440,6 @@ func TestRegisterCluster_IOError(t *testing.T) {
 
 func TestRegisterCluster_JSONError(t *testing.T) {
 	db, err := utils.Open("")
-	defer os.Remove(dbTestName)
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -194,7 +470,6 @@ func TestRegisterCluster_JSONError(t *testing.T) {
 
 func TestRegisterCluster_TokenGenerationError(t *testing.T) {
 	db, err := utils.Open("")
-	defer os.Remove(dbTestName)
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -210,7 +485,6 @@ func TestRegisterCluster_TokenGenerationError(t *testing.T) {
 
 func TestRegisterCluster_ValidateRequestBody(t *testing.T) {
 	db, err := utils.Open("")
-	defer os.Remove(dbTestName)
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -227,7 +501,6 @@ func TestRegisterCluster_ValidateRequestBody(t *testing.T) {
 
 func TestRegisterCluster(t *testing.T) {
 	db, err := utils.Open("")
-	defer os.Remove(dbTestName)
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -239,7 +512,7 @@ func TestRegisterCluster(t *testing.T) {
 	}, "", " ")
 	response := executePost(t, bytes.NewReader(data), db, json.Unmarshal, json.MarshalIndent, NewFakeTokenGenerator("fake token", nil).Generate)
 	assert.Equal(t, http.StatusOK, response.Code)
-	assert.Equal(t, "{\n \"name\": \"derp\",\n \"ingressUrl\": \"http://localhost:8000/ui\",\n \"token\": \"fake token\"\n}", response.Body.String())
+	assert.Equal(t, "{\n \"id\": 1,\n \"name\": \"derp\",\n \"ingressUrl\": \"http://localhost:8000/ui\",\n \"token\": \"fake token\"\n}", response.Body.String())
 }
 
 func executePost(t *testing.T, r io.Reader, db *gorm.DB, unmarshalFn api.Unmarshal, marshalFn api.MarshalIndent, generateTokenFn api.GenerateToken) *httptest.ResponseRecorder {

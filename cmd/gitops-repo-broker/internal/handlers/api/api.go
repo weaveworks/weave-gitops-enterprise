@@ -3,8 +3,10 @@ package api
 import (
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	log "github.com/sirupsen/logrus"
@@ -27,24 +29,25 @@ type Unmarshal func(data []byte, v interface{}) error
 // Signature for api.Generate accepted as a method parameter for unit test
 type GenerateToken func() (string, error)
 
-func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if db == nil {
-			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
-			return
-		}
+// DB helpers (FIXME: maybe move somewhere)
 
-		type result struct {
-			Name           string
-			Type           string
-			NodeName       string
-			IsControlPlane bool
-			KubeletVersion string
-		}
-		var results []result
-		if err := db.Raw(`
+func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
+	type ClusterNodeRow struct {
+		ID             uint
+		Name           string
+		Token          string
+		Type           string
+		NodeName       string
+		IsControlPlane bool
+		KubeletVersion string
+	}
+
+	var rows []ClusterNodeRow
+	if err := db.Raw(`
 			SELECT
+				c.id AS ID,
 				c.name AS Name, 
+				c.token AS Token, 
 				ci.type AS Type, 
 				ni.name AS NodeName, 
 				ni.is_control_plane AS IsControlPlane, 
@@ -54,59 +57,98 @@ func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Respon
 				LEFT JOIN cluster_info ci ON c.token = ci.token 
 				LEFT JOIN node_info ni ON c.token = ni.token
 			WHERE c.deleted_at IS NULL
-		`).Scan(&results).Error; err != nil {
-			log.Errorf("Failed to query for clusters: %v", err)
+		`+extraQuery, extraValues).Scan(&rows).Error; err != nil {
+		return nil, ErrNilDB
+	}
+
+	clusters := map[string]*ClusterView{}
+	for _, r := range rows {
+		if cl, ok := clusters[r.Name]; !ok {
+			// Add new cluster with node to map
+			c := ClusterView{
+				ID:    r.ID,
+				Name:  r.Name,
+				Token: r.Token,
+				Type:  r.Type,
+			}
+			// Do not add nodes if they don't exist yet
+			if r.NodeName != "" {
+				c.Nodes = append(c.Nodes, NodeView{
+					Name:           r.NodeName,
+					IsControlPlane: r.IsControlPlane,
+					KubeletVersion: r.KubeletVersion,
+				})
+			}
+			clusters[r.Name] = &c
+		} else {
+			// Update existing cluster in map with node
+			n := NodeView{
+				Name:           r.NodeName,
+				IsControlPlane: r.IsControlPlane,
+				KubeletVersion: r.KubeletVersion,
+			}
+			cl.Nodes = append(cl.Nodes, n)
+		}
+	}
+
+	clusterList := []ClusterView{}
+	for _, c := range clusters {
+		clusterList = append(clusterList, *c)
+	}
+
+	return clusterList, nil
+}
+
+func getCluster(db *gorm.DB, id uint) (*ClusterView, error) {
+	clusters, err := getClusters(db, " AND c.id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	if len(clusters) == 0 {
+		return nil, nil
+	}
+	return &clusters[0], nil
+}
+
+// Handlers
+
+func FindCluster(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if db == nil {
 			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
 			return
 		}
 
-		res := &ClustersResponse{
-			Clusters: []Cluster{},
+		cluster, err := getClusterFromRequest(r, db)
+		if err != nil {
+			common.WriteError(w, err, http.StatusInternalServerError)
+			return
 		}
-
-		if results == nil {
-			data, err := marshalIndentFn(res, "", " ")
-			if err != nil {
-				common.WriteError(w, err, http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprint(w, string(data))
+		if cluster == nil {
+			common.WriteError(w, fmt.Errorf("cluster not found"), http.StatusNotFound)
 			return
 		}
 
-		clusters := map[string]*Cluster{}
-		for _, r := range results {
-			if cl, ok := clusters[r.Name]; !ok {
-				// Add new cluster with node to map
-				c := Cluster{
-					Name: r.Name,
-					Type: r.Type,
-				}
-				// Do not add nodes if they don't exist yet
-				if r.NodeName != "" {
-					c.Nodes = append(c.Nodes, Node{
-						Name:           r.NodeName,
-						IsControlPlane: r.IsControlPlane,
-						KubeletVersion: r.KubeletVersion,
-					})
-				}
-				clusters[r.Name] = &c
-			} else {
-				// Update existing cluster in map with node
-				n := Node{
-					Name:           r.NodeName,
-					IsControlPlane: r.IsControlPlane,
-					KubeletVersion: r.KubeletVersion,
-				}
-				cl.Nodes = append(cl.Nodes, n)
-			}
+		respondWithJSON(w, http.StatusOK, cluster, marshalIndentFn)
+	}
+}
+
+func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if db == nil {
+			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
+			return
 		}
 
-		for _, c := range clusters {
-			res.Clusters = append(res.Clusters, *c)
+		clusters, err := getClusters(db, "")
+		if err != nil {
+			common.WriteError(w, err, http.StatusInternalServerError)
+			return
 		}
 
+		res := ClustersResponse{
+			Clusters: clusters,
+		}
 		data, err := marshalIndentFn(res, "", " ")
 		if err != nil {
 			common.WriteError(w, err, http.StatusInternalServerError)
@@ -169,6 +211,7 @@ func RegisterCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unma
 		}
 
 		res := ClusterRegistrationResponse{
+			ID:         c.ID,
 			Name:       c.Name,
 			IngressURL: c.IngressURL,
 			Token:      c.Token,
@@ -183,29 +226,113 @@ func RegisterCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unma
 	}
 }
 
+func UpdateCluster(db *gorm.DB, unmarshalFn Unmarshal, marshalFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if db == nil {
+			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
+			return
+		}
+
+		err := db.Transaction(func(tx *gorm.DB) error {
+			cluster, err := getClusterFromRequest(r, tx)
+			if err != nil {
+				return err
+			}
+			if cluster == nil {
+				common.WriteError(w, fmt.Errorf("cluster not found"), http.StatusNotFound)
+				return nil
+			}
+
+			reqBody, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				common.WriteError(w, err, http.StatusBadRequest)
+				return nil
+			}
+
+			clusterUpdates := &models.Cluster{}
+			if err := unmarshalFn(reqBody, clusterUpdates); err != nil {
+				return err
+			}
+
+			c := models.Cluster{}
+			tx.First(&c, cluster.ID)
+			c.IngressURL = clusterUpdates.IngressURL
+			c.Name = clusterUpdates.Name
+			// This particular variant of `Updates` (with a struct), does non-zero checking
+			// and so don't update the Name or IngressURL if they are "zero"
+			// https://gorm.io/docs/update.html#Update-Selected-Fields
+			result := tx.Model(c).Updates(c)
+			if result.Error != nil {
+				common.WriteError(w, result.Error, http.StatusBadRequest)
+				return nil
+			}
+
+			clusterView, err := getCluster(tx, c.ID)
+			if err != nil {
+				return err
+			}
+			respondWithJSON(w, http.StatusOK, clusterView, marshalFn)
+			return nil
+		})
+
+		if err != nil {
+			common.WriteError(w, err, http.StatusInternalServerError)
+		}
+	}
+}
+
+// types
+
 type ClusterRegistrationRequest struct {
 	Name       string `json:"name" validate:"required"`
 	IngressURL string `json:"ingressUrl" validate:"omitempty,url"`
 }
 
 type ClusterRegistrationResponse struct {
+	ID         uint   `json:"id"`
 	Name       string `json:"name"`
 	IngressURL string `json:"ingressUrl"`
 	Token      string `json:"token"`
 }
 
-type Node struct {
+type NodeView struct {
 	Name           string `json:"name"`
 	IsControlPlane bool   `json:"isControlPlane"`
 	KubeletVersion string `json:"kubeletVersion"`
 }
 
-type Cluster struct {
-	Name  string `json:"name"`
-	Type  string `json:"type"`
-	Nodes []Node `json:"nodes,omitempty"`
+type ClusterView struct {
+	ID    uint       `json:"id"`
+	Name  string     `json:"name"`
+	Type  string     `json:"type"`
+	Token string     `json:"token"`
+	Nodes []NodeView `json:"nodes,omitempty"`
 }
 
 type ClustersResponse struct {
-	Clusters []Cluster `json:"clusters"`
+	Clusters []ClusterView `json:"clusters"`
+}
+
+// helpers
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}, marshalIndentFn MarshalIndent) {
+	response, err := marshalIndentFn(payload, "", " ")
+	if err != nil {
+		common.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
+}
+
+func getClusterFromRequest(r *http.Request, db *gorm.DB) (*ClusterView, error) {
+	vars := mux.Vars(r)
+	idString := vars["id"]
+	id, err := strconv.ParseUint(idString, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse id %v: %v", idString, err)
+	}
+
+	return getCluster(db, uint(id))
 }
