@@ -50,6 +50,12 @@ func MigrateTables(db *gorm.DB) error {
 	}
 	log.Info("created NodeInfo table")
 
+	err = db.AutoMigrate(&models.Alert{})
+	if err != nil {
+		return errors.New("failed to create Alert table")
+	}
+	log.Info("created Alert table")
+
 	err = db.AutoMigrate(&models.GitRepository{})
 	if err != nil {
 		return errors.New("failed to create GitRepository table")
@@ -76,6 +82,7 @@ func HasAllTables(db *gorm.DB) bool {
 		db.Migrator().HasTable(&models.Cluster{}) &&
 		db.Migrator().HasTable(&models.ClusterInfo{}) &&
 		db.Migrator().HasTable(&models.NodeInfo{}) &&
+		db.Migrator().HasTable(&models.Alert{}) &&
 		db.Migrator().HasTable(&models.GitProvider{}) &&
 		db.Migrator().HasTable(&models.GitRepository{}) &&
 		db.Migrator().HasTable(&models.Workspace{}) {

@@ -9,10 +9,12 @@ import (
 
 	cenats "github.com/cloudevents/sdk-go/protocol/nats/v2"
 	ce "github.com/cloudevents/sdk-go/v2"
+	"github.com/go-openapi/strfmt"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats-server/v2/server"
 	natsserver "github.com/nats-io/nats-server/v2/test"
 	"github.com/nats-io/nats.go"
+	ammodels "github.com/prometheus/alertmanager/api/v2/models"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -571,4 +573,210 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 	assert.Equal(t, info2.Cluster.Nodes[0].Name, nodes[0].Name)
 	assert.Equal(t, info2.Cluster.Nodes[0].KubeletVersion, nodes[0].KubeletVersion)
 	assert.Equal(t, info2.Cluster.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
+}
+
+func TestReceiveAlert(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Alert dates
+	startDate := time.Now()
+	endDate := startDate.Add(time.Duration(60) * time.Minute)
+	updatedDate := startDate.Add(time.Duration(30) * time.Minute)
+
+	annot := ammodels.LabelSet{
+		"summary":     "Instance down",
+		"description": "Instance has been down for more than 5 minutes.",
+	}
+	labls := ammodels.LabelSet{
+		"severity": "critical",
+	}
+
+	var strSlice = []string{"Test1", "Test2", "Test3"}
+
+	receiverName := "My Receiver 1"
+	receivr := ammodels.Receiver{
+		Name: &receiverName,
+	}
+	receivrs := []*ammodels.Receiver{&receivr}
+
+	gAlert := newAlert("example.com", "test fingerprint", "active",
+		startDate, endDate, updatedDate, annot, labls, strSlice, strSlice, receivrs)
+
+	// Publish event
+	info := payload.PrometheusAlerts{
+		Token: "derp",
+		Alerts: ammodels.GettableAlerts{
+			&gAlert,
+		},
+	}
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("PrometheusAlerts")
+	event.SetSource("test")
+	event.SetDataContentType("application/json")
+	event.SetDataSchema("test")
+	event.SetSubject("test Alert")
+	event.SetTime(time.Now())
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// Query db
+	var alerts []models.Alert
+	alertsResult := db.Find(&alerts)
+	t.Log(alerts)
+	assert.Equal(t, 1, int(alertsResult.RowsAffected))
+	assert.NoError(t, alertsResult.Error)
+
+	assert.Equal(t, info.Token, string(alerts[0].Token))
+}
+
+func TestReceiveAlert_SameAlertReceivedAgain(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Alert dates
+	startDate := time.Now()
+	endDate := startDate.Add(time.Duration(60) * time.Minute)
+	updatedDate := startDate.Add(time.Duration(30) * time.Minute)
+
+	annot := ammodels.LabelSet{
+		"summary":     "Instance down",
+		"description": "Instance has been down for more than 5 minutes.",
+	}
+	labls := ammodels.LabelSet{
+		"severity": "critical",
+	}
+
+	var strSlice = []string{"Test1", "Test2", "Test3"}
+
+	receiverName := "My Receiver 1"
+	receivr := ammodels.Receiver{
+		Name: &receiverName,
+	}
+	receivrs := []*ammodels.Receiver{&receivr}
+
+	gAlert := newAlert("example.com", "test fingerprint", "active",
+		startDate, endDate, updatedDate, annot, labls, strSlice, strSlice, receivrs)
+
+	// Publish event
+	info := payload.PrometheusAlerts{
+		Token: "derp",
+		Alerts: ammodels.GettableAlerts{
+			&gAlert,
+		},
+	}
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("PrometheusAlerts")
+	event.SetSource("test")
+	event.SetDataContentType("application/json")
+	event.SetDataSchema("test")
+	event.SetSubject("test Alert")
+	event.SetTime(time.Now())
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// Query db
+	var alerts []models.Alert
+	alertsResult := db.Find(&alerts)
+	t.Log(alerts)
+	assert.Equal(t, 1, int(alertsResult.RowsAffected))
+	assert.NoError(t, alertsResult.Error)
+
+	assert.Equal(t, info.Token, string(alerts[0].Token))
+}
+
+func newAlert(generatorURL, finPrint, state string, start, end, update time.Time,
+	annot, labels ammodels.LabelSet, inhibitedBy, silencedBy []string,
+	receivers []*ammodels.Receiver) ammodels.GettableAlert {
+	startDate := strfmt.DateTime(start)
+	endDate := strfmt.DateTime(end)
+	updatedDate := strfmt.DateTime(update)
+
+	alertStatus := ammodels.AlertStatus{
+		InhibitedBy: inhibitedBy,
+		SilencedBy:  silencedBy,
+		State:       &state,
+	}
+
+	alertStruct := ammodels.Alert{
+		GeneratorURL: strfmt.URI(generatorURL),
+		Labels:       labels,
+	}
+
+	alert := ammodels.GettableAlert{
+		Annotations: annot,
+		EndsAt:      &endDate,
+		Fingerprint: &finPrint,
+		Receivers:   receivers,
+		StartsAt:    &startDate,
+		Status:      &alertStatus,
+		UpdatedAt:   &updatedDate,
+		Alert:       alertStruct,
+	}
+
+	return alert
 }

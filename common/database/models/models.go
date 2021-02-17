@@ -55,6 +55,24 @@ func (NodeInfo) TableName() string {
 	return "node_info"
 }
 
+// Alert Table
+type Alert struct {
+	UID          types.UID `gorm:"primaryKey"`
+	Token        string
+	Annotations  string
+	EndsAt       time.Time
+	Fingerprint  string
+	InhibitedBy  string
+	SilencedBy   string
+	Severity     string
+	State        string
+	StartsAt     time.Time
+	UpdatedAt    time.Time
+	GeneratorURL string
+	Labels       string
+	RawAlert     datatypes.JSON
+}
+
 // GitRepository table
 type GitRepository struct {
 	gorm.Model

@@ -3,10 +3,12 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
+
+	"github.com/gorilla/mux"
 
 	"github.com/go-playground/validator/v10"
 	log "github.com/sirupsen/logrus"
@@ -31,18 +33,24 @@ type GenerateToken func() (string, error)
 
 // DB helpers (FIXME: maybe move somewhere)
 
-func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
-	type ClusterNodeRow struct {
-		ID             uint
-		Name           string
-		Token          string
-		Type           string
-		NodeName       string
-		IsControlPlane bool
-		KubeletVersion string
-	}
+type ClusterListRow struct {
+	ID             uint
+	Name           string
+	Token          string
+	Type           string
+	NodeName       string
+	IsControlPlane bool
+	KubeletVersion string
 
-	var rows []ClusterNodeRow
+	// for alerts
+	CriticalAlertsCount uint
+	AlertsCount         uint
+	UpdatedAt           time.Time
+}
+
+func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
+
+	var rows []ClusterListRow
 	if err := db.Raw(`
 			SELECT
 				c.id AS ID,
@@ -50,8 +58,11 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 				c.token AS Token, 
 				ci.type AS Type, 
 				ni.name AS NodeName, 
+				ci.updated_at as UpdatedAt,
 				ni.is_control_plane AS IsControlPlane, 
-				ni.kubelet_version AS KubeletVersion
+				ni.kubelet_version AS KubeletVersion,
+				(select count(*) from alerts a where a.token = c.token and severity = 'critical') as CriticalAlertsCount,
+				(select count(*) from alerts a where a.token = c.token and severity is not null) AS AlertsCount
 			FROM 
 				clusters c 
 				LEFT JOIN cluster_info ci ON c.token = ci.token 
@@ -66,10 +77,11 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 		if cl, ok := clusters[r.Name]; !ok {
 			// Add new cluster with node to map
 			c := ClusterView{
-				ID:    r.ID,
-				Name:  r.Name,
-				Token: r.Token,
-				Type:  r.Type,
+				ID:     r.ID,
+				Name:   r.Name,
+				Token:  r.Token,
+				Type:   r.Type,
+				Status: getClusterStatus(r),
 			}
 			// Do not add nodes if they don't exist yet
 			if r.NodeName != "" {
@@ -226,6 +238,28 @@ func RegisterCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unma
 	}
 }
 
+func getClusterStatus(c ClusterListRow) string {
+	if c.CriticalAlertsCount > 0 {
+		return "critical"
+	}
+	if c.AlertsCount > 0 {
+		return "alerting"
+	}
+
+	timeNow := time.Now()
+	diff := timeNow.Sub(c.UpdatedAt)
+	intDiff := int64(diff / time.Minute)
+
+	if intDiff > 1 && intDiff < 30 {
+		return "lastSeen"
+	}
+	if intDiff > 30 {
+		return "notConnected"
+	}
+
+	return "ready"
+}
+
 func UpdateCluster(db *gorm.DB, unmarshalFn Unmarshal, marshalFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if db == nil {
@@ -302,11 +336,12 @@ type NodeView struct {
 }
 
 type ClusterView struct {
-	ID    uint       `json:"id"`
-	Name  string     `json:"name"`
-	Type  string     `json:"type"`
-	Token string     `json:"token"`
-	Nodes []NodeView `json:"nodes,omitempty"`
+	ID     uint       `json:"id"`
+	Name   string     `json:"name"`
+	Type   string     `json:"type"`
+	Token  string     `json:"token"`
+	Nodes  []NodeView `json:"nodes,omitempty"`
+	Status string     `json:"status"`
 }
 
 type ClustersResponse struct {

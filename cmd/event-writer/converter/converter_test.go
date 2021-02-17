@@ -2,7 +2,10 @@ package converter
 
 import (
 	"testing"
+	"time"
 
+	"github.com/go-openapi/strfmt"
+	ammodels "github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/weaveworks/wks/common/messaging/payload"
 
 	"github.com/stretchr/testify/assert"
@@ -40,6 +43,58 @@ func newNodeInfo(id, name, kubeletVersion string, isControlPlane bool) payload.N
 		KubeletVersion: kubeletVersion,
 		IsControlPlane: isControlPlane,
 	}
+}
+
+func newAlert(generatorURL, finPrint, state string, start, end, update time.Time,
+	annot, labels ammodels.LabelSet, inhibitedBy, silencedBy []string,
+	receivers []*ammodels.Receiver) ammodels.GettableAlert {
+	startDate := strfmt.DateTime(start)
+	endDate := strfmt.DateTime(end)
+	updatedDate := strfmt.DateTime(update)
+
+	alertStatus := ammodels.AlertStatus{
+		InhibitedBy: inhibitedBy,
+		SilencedBy:  silencedBy,
+		State:       &state,
+	}
+
+	alertStruct := ammodels.Alert{
+		GeneratorURL: strfmt.URI(generatorURL),
+		Labels:       labels,
+	}
+
+	alert := ammodels.GettableAlert{
+		Annotations: annot,
+		EndsAt:      &endDate,
+		Fingerprint: &finPrint,
+		Receivers:   receivers,
+		StartsAt:    &startDate,
+		Status:      &alertStatus,
+		UpdatedAt:   &updatedDate,
+		Alert:       alertStruct,
+	}
+
+	return alert
+}
+
+func TestSerializeLabelSet(t *testing.T) {
+	testLabelSet := ammodels.LabelSet{"label1": "1", "label2": "test_label", "label3": "foo"}
+	flattenedLabels := SerializeLabelSet(testLabelSet)
+
+	assert.Contains(t, flattenedLabels, "label1:1,")
+	assert.Contains(t, flattenedLabels, "label2:test_label,")
+	assert.Contains(t, flattenedLabels, "label3:foo,")
+}
+
+func TestSerializeStringSlice(t *testing.T) {
+	testStringSlice := []string{"str1", "str2", "str3"}
+	flattenedStringSlice := SerializeStringSlice(testStringSlice)
+	t.Log(testStringSlice)
+	t.Log(flattenedStringSlice)
+
+	assert.Contains(t, flattenedStringSlice, "str1, ")
+	assert.Contains(t, flattenedStringSlice, ", str2, ")
+	assert.Contains(t, flattenedStringSlice, ", str3")
 }
 
 func TestSerializeStringMap(t *testing.T) {
@@ -150,4 +205,54 @@ func TestConvertNodeInfo(t *testing.T) {
 	assert.Equal(t, worker.KubeletVersion, dbNodeInfo[1].KubeletVersion)
 	assert.Equal(t, dbClusterInfo.UID, dbNodeInfo[1].ClusterInfoUID)
 
+}
+
+func TestConvertAlert(t *testing.T) {
+	// Alert dates
+	startDate := time.Now()
+	endDate := startDate.Add(time.Duration(60) * time.Minute)
+	updatedDate := startDate.Add(time.Duration(30) * time.Minute)
+
+	annot := ammodels.LabelSet{
+		"summary":     "Instance down",
+		"description": "Instance has been down for more than 5 minutes.",
+	}
+	labls := ammodels.LabelSet{
+		"severity": "critical",
+	}
+
+	var strSlice = []string{"Test1", "Test2", "Test3"}
+
+	receiverName := "My Receiver 1"
+	receivr := ammodels.Receiver{
+		Name: &receiverName,
+	}
+	receivrs := []*ammodels.Receiver{&receivr}
+
+	alert := newAlert("example.com", "Test Fingerprint", "active",
+		startDate, endDate, updatedDate, annot, labls, strSlice, strSlice, receivrs)
+
+	// Convert payload.PrometheusAlerts to models.Alert
+	dbAlert, err := ConvertAlert("derp", &alert)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "derp", dbAlert.Token)
+	assert.Equal(t, "active", dbAlert.State)
+	assert.Equal(t, endDate, dbAlert.EndsAt)
+	assert.Equal(t, startDate, dbAlert.StartsAt)
+	assert.Equal(t, updatedDate, dbAlert.UpdatedAt)
+	assert.Equal(t, "Test Fingerprint", dbAlert.Fingerprint)
+	assert.Equal(t, "example.com", dbAlert.GeneratorURL)
+	assert.Equal(t, "Test1, Test2, Test3", dbAlert.InhibitedBy)
+	assert.Equal(t, "Test1, Test2, Test3", dbAlert.SilencedBy)
+	assert.Equal(t, "critical", dbAlert.Severity)
+}
+
+type Labels struct {
+	Severity string `json:"severity"`
+}
+
+type Annotations struct {
+	Summary     string `json:"summary"`
+	Description string `json:"description"`
 }

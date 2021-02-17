@@ -18,23 +18,9 @@ import (
 )
 
 const (
-	eventType   = "io.prometheus.alertmanager.alert"
+	eventType   = "PrometheusAlerts"
 	contentType = "application/json"
 )
-
-type AlertEvent struct {
-	Key      string
-	Type     string
-	Resource interface{}
-
-	ID     string
-	Source url.URL
-
-	DataContentType string
-	DataSchema      url.URL
-	Subject         string
-	Time            *time.Time
-}
 
 type Parser struct{}
 

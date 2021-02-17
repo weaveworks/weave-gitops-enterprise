@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
+	ammodels "github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/messaging/payload"
 	"gorm.io/datatypes"
@@ -80,6 +82,56 @@ func ConvertNodeInfo(clusterInfo payload.ClusterInfo, clusterID types.UID) ([]mo
 	return result, nil
 }
 
+// ConvertAlert returns a models.Alert from a NATS message with alert info
+func ConvertAlert(token string, gAlert *ammodels.GettableAlert) (models.Alert, error) {
+	alert := gAlert
+	alertJSONbytes, err := SerializeAlertToJSON(alert)
+	if err != nil {
+		return models.Alert{}, err
+	}
+	alertJSON, err := datatypes.JSON.MarshalJSON(alertJSONbytes)
+	if err != nil {
+		return models.Alert{}, err
+	}
+
+	flattenedLabels := SerializeLabelSet(alert.Alert.Labels)
+	flattenedAnnotations := SerializeLabelSet(alert.Annotations)
+	flattenedInhibitedBy := SerializeStringSlice(alert.Status.InhibitedBy)
+	flattenedSilencedBy := SerializeStringSlice(alert.Status.SilencedBy)
+	Severity := alert.Alert.Labels["severity"]
+
+	result := models.Alert{
+		Token:        token,
+		Annotations:  flattenedAnnotations,
+		EndsAt:       time.Time(*alert.EndsAt),
+		Fingerprint:  *alert.Fingerprint,
+		InhibitedBy:  flattenedInhibitedBy,
+		SilencedBy:   flattenedSilencedBy,
+		Severity:     Severity,
+		State:        *alert.Status.State,
+		StartsAt:     time.Time(*alert.StartsAt),
+		UpdatedAt:    time.Time(*alert.UpdatedAt),
+		GeneratorURL: alert.Alert.GeneratorURL.String(),
+		Labels:       flattenedLabels,
+		RawAlert:     alertJSON,
+	}
+
+	return result, nil
+}
+
+// SerializeLabelSet flattens a labelset to a string
+func SerializeLabelSet(labels ammodels.LabelSet) string {
+	labelMap := map[string]string(labels)
+	return SerializeStringMap(labelMap)
+}
+
+// SerializeStringSlice flattens a slice of strings to a string
+func SerializeStringSlice(strSlice []string) string {
+	str := strings.Join(strSlice, ", ")
+
+	return str
+}
+
 // SerializeStringMap flattens a string-to-string map to a string
 func SerializeStringMap(m map[string]string) string {
 	format := "%s:%s,"
@@ -88,6 +140,14 @@ func SerializeStringMap(m map[string]string) string {
 		fmt.Fprintf(b, format, key, value)
 	}
 	return b.String()
+}
+
+// SerializeAlertToJSON serializes a alert manager models.Alert object to a byte array
+func SerializeAlertToJSON(a *ammodels.GettableAlert) ([]byte, error) {
+	output := bytes.NewBufferString("")
+	encoder := json.NewEncoder(output)
+	encoder.Encode(a)
+	return output.Bytes(), nil
 }
 
 // SerializeEventToJSON serializes a v1.Event object to a byte array

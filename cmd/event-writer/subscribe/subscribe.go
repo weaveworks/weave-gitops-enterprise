@@ -50,6 +50,8 @@ func ReceiveEvent(ctx context.Context, event ce.Event) error {
 		BatchWrite()
 	case "ClusterInfo":
 		return writeClusterInfo(event)
+	case "PrometheusAlerts":
+		return writeAlert(event)
 	default:
 		log.Warnf("Unknown message type: %s.", event.Type())
 	}
@@ -110,6 +112,36 @@ func writeClusterInfo(event ce.Event) error {
 	utils.DB.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(&dbNodeInfoArray)
+
+	return nil
+}
+
+func writeAlert(event ce.Event) error {
+	var data payload.PrometheusAlerts
+
+	if err := event.DataAs(&data); err != nil {
+		log.Warnf("Failed to parse event as Alert object: %v.", err)
+		return err
+	}
+
+	log.Infof("Received Alert")
+
+	var dbAlerts []models.Alert
+
+	for _, alert := range data.Alerts {
+		dbAlert, err := converter.ConvertAlert(data.Token, alert)
+		if err != nil {
+			log.Warnf("Failed to convert Alert object to db model: %v.", err)
+			return err
+		}
+		dbAlerts = append(dbAlerts, dbAlert)
+	}
+
+	utils.DB.Where("token = ?", data.Token).Delete(models.Alert{})
+
+	utils.DB.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(&dbAlerts)
 
 	return nil
 }
