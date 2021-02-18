@@ -10,30 +10,52 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/wks/common/database/utils"
+	"gorm.io/gorm"
 )
 
 func TestGet(t *testing.T) {
+	db, err := utils.Open("")
+	assert.NoError(t, err)
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+
+	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
+
 	encodedToken := base64.StdEncoding.EncodeToString([]byte("derp"))
-	response := executeGet(t, "foo-nat-url", "foo-am-url", "/gitops/api/agent.yaml?token=derp")
+	response := executeGet(t, db, "foo-nat-url", "foo-am-url", "/gitops/api/agent.yaml?token=derp")
 	assert.Equal(t, http.StatusOK, response.Code)
 	assert.Contains(t, response.Body.String(), encodedToken)
 	assert.Contains(t, response.Body.String(), "foo-nat-url")
 	assert.Contains(t, response.Body.String(), "foo-am-url")
 
 	amURL := "http://example.com:9090"
-	response = executeGet(t, "foo-nat-url", "foo-am-url", fmt.Sprintf("/gitops/api/agent.yaml?token=derp&alertmanagerURL=%v", amURL))
+	response = executeGet(t, db, "foo-nat-url", "foo-am-url", fmt.Sprintf("/gitops/api/agent.yaml?token=derp&alertmanagerURL=%v", amURL))
 	assert.Contains(t, response.Body.String(), amURL)
 
 	escapedURL := url.QueryEscape(amURL)
-	response = executeGet(t, "foo-nat-url", "foo-am-url", fmt.Sprintf("/gitops/api/agent.yaml?token=derp&alertmanagerURL=%v", escapedURL))
+	response = executeGet(t, db, "foo-nat-url", "foo-am-url", fmt.Sprintf("/gitops/api/agent.yaml?token=derp&alertmanagerURL=%v", escapedURL))
 	assert.Contains(t, response.Body.String(), amURL)
 }
 
-func executeGet(t *testing.T, natsURL, alertmanagerURL, url string) *httptest.ResponseRecorder {
+func TestGet_ClusterNotFound(t *testing.T) {
+	db, err := utils.Open("")
+	assert.NoError(t, err)
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+
+	db.Create(&models.Cluster{Name: "My Cluster", Token: "notderp"})
+
+	response := executeGet(t, db, "foo-nat-url", "foo-am-url", "/gitops/api/agent.yaml?token=derp")
+	assert.Equal(t, http.StatusNotFound, response.Code)
+}
+
+func executeGet(t *testing.T, db *gorm.DB, natsURL, alertmanagerURL, url string) *httptest.ResponseRecorder {
 	req, err := http.NewRequest("GET", url, nil)
 	require.Nil(t, err)
 	rec := httptest.NewRecorder()
-	handler := http.HandlerFunc(NewGetHandler(natsURL, alertmanagerURL))
+	handler := http.HandlerFunc(NewGetHandler(db, natsURL, alertmanagerURL))
 	handler.ServeHTTP(rec, req)
 	return rec
 }

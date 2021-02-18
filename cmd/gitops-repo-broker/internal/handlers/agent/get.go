@@ -9,8 +9,13 @@ import (
 	"net/http"
 
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/common"
+	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/pkg/version"
+	"gorm.io/gorm"
 )
+
+// ErrNilDB is a database error
+var ErrNilDB = errors.New("The database has not been initialised")
 
 const agentManifestTemplate = `
 ---
@@ -131,14 +136,24 @@ func renderTemplate(token, imageTag, natsURL, alertmanagerURL string) (string, e
 	return populated.String(), nil
 }
 
-// Get returns a YAMLStream given a token
-func NewGetHandler(defaultNatsURL, defaultAlertmanagerURL string) func(w http.ResponseWriter, r *http.Request) {
+// NewGetHandler returns a YAMLStream given a token
+func NewGetHandler(db *gorm.DB, defaultNatsURL, defaultAlertmanagerURL string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/yaml")
 
 		token := r.URL.Query().Get("token")
 		if token == "" {
 			common.WriteError(w, errors.New("Missing token param"), http.StatusUnauthorized)
+			return
+		}
+
+		checkToken, err := isTokenPresent(db, token)
+		if err != nil {
+			common.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		if !checkToken {
+			common.WriteError(w, errors.New("Cluster not found"), http.StatusNotFound)
 			return
 		}
 
@@ -157,4 +172,18 @@ func NewGetHandler(defaultNatsURL, defaultAlertmanagerURL string) func(w http.Re
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, string(stream))
 	}
+}
+
+func isTokenPresent(db *gorm.DB, token string) (bool, error) {
+	if db == nil {
+		return false, ErrNilDB
+	}
+
+	var cluster models.Cluster
+	result := db.Where("token = ?", token).First(&cluster)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return false, nil
+	}
+
+	return true, result.Error
 }
