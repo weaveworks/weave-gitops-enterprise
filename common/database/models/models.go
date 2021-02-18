@@ -57,7 +57,7 @@ func (NodeInfo) TableName() string {
 
 // Alert Table
 type Alert struct {
-	UID          types.UID `gorm:"primaryKey"`
+	ID           uint `gorm:"primaryKey"`
 	Token        string
 	Annotations  string
 	EndsAt       time.Time

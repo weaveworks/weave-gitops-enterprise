@@ -315,6 +315,67 @@ func UpdateCluster(db *gorm.DB, unmarshalFn Unmarshal, marshalFn MarshalIndent) 
 	}
 }
 
+func ListAlerts(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if db == nil {
+			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
+			return
+		}
+
+		var rows []models.Alert
+		err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Raw(`
+			SELECT
+				a.id,
+				a.annotations, 
+				a.ends_at, 
+				a.fingerprint, 
+				a.inhibited_by, 
+				a.silenced_by,
+				a.severity, 
+				a.state,
+				a.starts_at,
+				a.updated_at,
+				a.generator_url,
+				a.labels
+			FROM 
+				alerts a
+			`).Scan(&rows).Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			log.Errorf("Failed to query for alerts: %v", err)
+			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
+			return
+		}
+
+		res := AlertsResponse{
+			Alerts: []AlertView{},
+		}
+		for _, r := range rows {
+			res.Alerts = append(res.Alerts, AlertView{
+				ID:          r.ID,
+				Fingerprint: r.Fingerprint,
+				State:       r.State,
+				Severity:    r.Severity,
+				InhibitedBy: r.InhibitedBy,
+				SilencedBy:  r.SilencedBy,
+				Annotations: r.Annotations,
+				Labels:      r.Labels,
+				StartsAt:    r.StartsAt,
+				UpdatedAt:   r.UpdatedAt,
+				EndsAt:      r.EndsAt,
+			})
+		}
+
+		respondWithJSON(w, http.StatusOK, res, marshalIndentFn)
+	}
+}
+
 // types
 
 type ClusterRegistrationRequest struct {
@@ -346,6 +407,24 @@ type ClusterView struct {
 
 type ClustersResponse struct {
 	Clusters []ClusterView `json:"clusters"`
+}
+
+type AlertView struct {
+	ID          uint      `json:"id"`
+	Fingerprint string    `json:"fingerprint"`
+	State       string    `json:"state"`
+	Severity    string    `json:"severity"`
+	InhibitedBy string    `json:"inhibited_by"`
+	SilencedBy  string    `json:"silenced_by"`
+	Annotations string    `json:"annotations"`
+	Labels      string    `json:"labels"`
+	StartsAt    time.Time `json:"starts_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	EndsAt      time.Time `json:"ends_at"`
+}
+
+type AlertsResponse struct {
+	Alerts []AlertView `json:"alerts"`
 }
 
 // helpers

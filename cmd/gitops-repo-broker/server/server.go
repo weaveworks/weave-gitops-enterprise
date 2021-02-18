@@ -68,6 +68,7 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, api.Generate)).Methods("POST")
 	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UpdateCluster(db, json.Unmarshal, json.MarshalIndent)).Methods("PUT")
+	r.HandleFunc("/gitops/api/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")
 
 	r.HandleFunc("/gitops/started", healthcheck.Started(started))
 	r.HandleFunc("/gitops/healthz", healthcheck.Healthz(started))

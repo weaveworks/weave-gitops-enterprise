@@ -31,7 +31,7 @@ var noSuchTable = errorBody("no such table: clusters")
 
 func doRequest(t *testing.T, handler http.HandlerFunc, method, path, url, data string) (*httptest.ResponseRecorder, interface{}) {
 	body := bytes.NewReader([]byte(data))
-	req, err := http.NewRequest("GET", url, body)
+	req, err := http.NewRequest(method, url, body)
 	require.Nil(t, err)
 	rec := httptest.NewRecorder()
 	router := mux.NewRouter()
@@ -49,12 +49,13 @@ func doRequest(t *testing.T, handler http.HandlerFunc, method, path, url, data s
 func TestNilDb(t *testing.T) {
 	nilDbHandlers := []http.HandlerFunc{
 		api.FindCluster(nil, nil),
+		api.ListAlerts(nil, nil),
 		api.ListClusters(nil, nil),
 		api.RegisterCluster(nil, nil, nil, nil, nil),
 		api.UpdateCluster(nil, nil, nil),
 	}
 	for i, fn := range nilDbHandlers {
-		t.Run(string(i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
 			response, body := doRequest(t, fn, "GET", "/", "/", "")
 			assert.Equal(t, http.StatusInternalServerError, response.Code)
 			assert.Equal(t, noInit, body)
@@ -71,6 +72,7 @@ func TestNoTables(t *testing.T) {
 		message interface{}
 	}{
 		{api.FindCluster(db, nil), noInit},
+		{api.ListAlerts(db, nil), noInit},
 		{api.ListClusters(db, nil), noInit},
 		{
 			api.RegisterCluster(db, validator.New(), json.Unmarshal, nil, NewFakeTokenGenerator("derp", nil).Generate),
@@ -80,7 +82,7 @@ func TestNoTables(t *testing.T) {
 	}
 
 	for i, tt := range noTablesHandlers {
-		t.Run(string(i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
 			response, body := doRequest(t, tt.handler, "GET", "/{id:[0-9]+}", "/1", `{ "name": "ewq" }`)
 			assert.Equal(t, http.StatusInternalServerError, response.Code)
 			assert.Equal(t, tt.message, body)
@@ -106,13 +108,14 @@ func TestJSONMarshalErrors(t *testing.T) {
 		data    string
 	}{
 		{api.FindCluster(db, marshalError), ""},
+		{api.ListAlerts(db, marshalError), ""},
 		{api.ListClusters(db, marshalError), ""},
 		{api.RegisterCluster(db, validator.New(), json.Unmarshal, marshalError, NewFakeTokenGenerator("derp", nil).Generate), `{ "name": "ewq" }`},
 		{api.UpdateCluster(db, json.Unmarshal, marshalError), `{ "name": "ewq2" }`},
 	}
 
 	for i, tt := range unmarshallErrors {
-		t.Run(string(i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
 			response, body := doRequest(
 				t,
 				tt.handler,
@@ -308,43 +311,6 @@ func TestUpdateCluster(t *testing.T) {
 	}
 }
 
-func TestListClusters_NilDB(t *testing.T) {
-	response := executeGet(t, nil, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-	assert.Equal(t, "{\"message\":\"The database has not been initialised.\"}\n", response.Body.String())
-}
-
-func TestListClusters_NoTables(t *testing.T) {
-	db, err := utils.Open("")
-	assert.NoError(t, err)
-
-	response := executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-	assert.Equal(t, "{\"message\":\"The database has not been initialised.\"}\n", response.Body.String())
-}
-
-func TestListClusters_JSONError(t *testing.T) {
-	db, err := utils.Open("")
-	assert.NoError(t, err)
-	err = utils.MigrateTables(db)
-	assert.NoError(t, err)
-
-	jsonError := func(v interface{}, prefix, indent string) ([]byte, error) {
-		return nil, errors.New("oops")
-	}
-
-	// No data
-	response := executeGet(t, db, jsonError, "")
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-	assert.Equal(t, "{\"message\":\"oops\"}\n", response.Body.String())
-
-	// With data
-	db.Create(&models.Cluster{Name: "MyCluster"})
-	response = executeGet(t, db, jsonError, "")
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-	assert.Equal(t, "{\"message\":\"oops\"}\n", response.Body.String())
-}
-
 func TestListClusters(t *testing.T) {
 	db, err := utils.Open("")
 	assert.NoError(t, err)
@@ -433,12 +399,6 @@ func executeGet(t *testing.T, db *gorm.DB, fn api.MarshalIndent, url string) *ht
 	handler := http.HandlerFunc(api.ListClusters(db, fn))
 	handler.ServeHTTP(rec, req)
 	return rec
-}
-
-func TestRegisterCluster_NilDB(t *testing.T) {
-	response := executePost(t, nil, nil, nil, nil, nil)
-	assert.Equal(t, http.StatusInternalServerError, response.Code)
-	assert.Equal(t, "{\"message\":\"The database has not been initialised.\"}\n", response.Body.String())
 }
 
 func TestRegisterCluster_IOError(t *testing.T) {
@@ -536,6 +496,46 @@ func executePost(t *testing.T, r io.Reader, db *gorm.DB, unmarshalFn api.Unmarsh
 	return rec
 }
 
+func TestListAlerts(t *testing.T) {
+	db, err := utils.Open("")
+	assert.NoError(t, err)
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+
+	a := models.Alert{
+		Fingerprint: "123",
+		State:       "active",
+		Severity:    "foo",
+		InhibitedBy: "bar",
+		SilencedBy:  "baz",
+		Annotations: "annotations",
+		Labels:      "labels",
+		StartsAt:    time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
+		EndsAt:      time.Now().UTC(),
+	}
+	db.Create(&a)
+	response, _ := doRequest(t, api.ListAlerts(db, json.MarshalIndent), "GET", "/", "/", "")
+	assert.Equal(t, http.StatusOK, response.Code)
+
+	var payload api.AlertsResponse
+	err = json.Unmarshal(response.Body.Bytes(), &payload)
+	assert.NoError(t, err)
+	assert.Len(t, payload.Alerts, 1)
+	alert := payload.Alerts[0]
+	assert.Equal(t, a.ID, alert.ID)
+	assert.Equal(t, a.Fingerprint, alert.Fingerprint)
+	assert.Equal(t, a.State, alert.State)
+	assert.Equal(t, a.Severity, alert.Severity)
+	assert.Equal(t, a.InhibitedBy, alert.InhibitedBy)
+	assert.Equal(t, a.SilencedBy, alert.SilencedBy)
+	assert.Equal(t, a.Annotations, alert.Annotations)
+	assert.Equal(t, a.Labels, alert.Labels)
+	assert.Equal(t, a.StartsAt, alert.StartsAt)
+	assert.Equal(t, a.UpdatedAt, alert.UpdatedAt)
+	assert.Equal(t, a.EndsAt, alert.EndsAt)
+}
+
 type FakeErrorReader struct {
 }
 
@@ -617,7 +617,7 @@ func TestListClusters_StatusCritical(t *testing.T) {
 
 	// Add a critical alert
 	myCriticalAlert := models.Alert{
-		UID:      "135",
+		ID:       135,
 		Token:    "derp",
 		Severity: "critical",
 	}
@@ -626,7 +626,7 @@ func TestListClusters_StatusCritical(t *testing.T) {
 
 	// Add a non-critical alert
 	myNonCriticalAlert := models.Alert{
-		UID:      "246",
+		ID:       246,
 		Token:    "derp",
 		Severity: "info",
 	}
@@ -717,7 +717,7 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 
 	// Add a non-critical alert
 	myNonCriticalAlert := models.Alert{
-		UID:      "246",
+		ID:       246,
 		Token:    "derp",
 		Severity: "info",
 	}
