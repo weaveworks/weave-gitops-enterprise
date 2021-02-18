@@ -5,6 +5,7 @@ import (
 	"bytes"
 	contxt "context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -838,4 +839,54 @@ spec:
 `
 
 	return fmt.Sprintf(depoymentYaml, name, ns)
+}
+
+func waitCondition(stream io.ReadCloser, timeout time.Duration, condition string, stdout io.Writer) {
+
+	done := make(chan error)
+
+	go func() {
+		scanner := bufio.NewScanner(stream)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.Contains(line, condition) {
+				done <- nil
+				return
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			fmt.Fprintf(stdout, "condition was not met. err %s\n", err)
+		}
+		if err := stream.Close(); err != nil {
+			fmt.Fprintf(stdout, "condition was not met. err %s\n", err)
+		}
+		fmt.Fprintf(stdout, "condition was not met. condition: %s\n", condition)
+		fmt.Fprintln(stdout, "waiting for timeout")
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(timeout):
+		fmt.Fprintf(stdout, "condition was not met. timeout reached. condition: %s\n", condition)
+	}
+}
+
+type callback func() string
+
+func retryProcess(callback callback, retry int, retryWait time.Duration) string {
+	response := ""
+	for i := 0; i < retry; i++ {
+		response = callback()
+		if response == "" {
+			return ""
+		}
+		fmt.Printf("response: %s\n", response)
+		fmt.Printf("waiting %s\n", retryWait.String())
+		time.Sleep(retryWait)
+		fmt.Printf("retrying (%d out of %d) \n", i, retry)
+	}
+	if response != "" {
+		return fmt.Sprintf("response: %s", response)
+	}
+	return ""
 }

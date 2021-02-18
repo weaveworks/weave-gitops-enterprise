@@ -200,6 +200,6 @@ func generateIDString() string {
 }
 
 func checkKubeconfigWorksWithDefaultArgs(c *context) {
-	err := c.runCommandPassThrough("kubeconfig")
+	err := c.runCommandPassThrough(c.wkBin, "kubeconfig")
 	assert.NoError(c.t, err)
 }
