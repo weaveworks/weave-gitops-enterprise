@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	ammodels "github.com/prometheus/alertmanager/api/v2/models"
+	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/messaging/payload"
 
 	"github.com/stretchr/testify/assert"
@@ -92,9 +93,9 @@ func TestSerializeStringSlice(t *testing.T) {
 	t.Log(testStringSlice)
 	t.Log(flattenedStringSlice)
 
-	assert.Contains(t, flattenedStringSlice, "str1, ")
-	assert.Contains(t, flattenedStringSlice, ", str2, ")
-	assert.Contains(t, flattenedStringSlice, ", str3")
+	assert.Contains(t, flattenedStringSlice, "str1,")
+	assert.Contains(t, flattenedStringSlice, ",str2,")
+	assert.Contains(t, flattenedStringSlice, ",str3")
 }
 
 func TestSerializeStringMap(t *testing.T) {
@@ -204,7 +205,145 @@ func TestConvertNodeInfo(t *testing.T) {
 	assert.Equal(t, worker.IsControlPlane, dbNodeInfo[1].IsControlPlane)
 	assert.Equal(t, worker.KubeletVersion, dbNodeInfo[1].KubeletVersion)
 	assert.Equal(t, dbClusterInfo.UID, dbNodeInfo[1].ClusterInfoUID)
+}
 
+func TestConvertFluxInfo(t *testing.T) {
+	tests := []struct {
+		message payload.FluxInfo
+		result  []models.FluxInfo
+	}{
+		{
+			payload.FluxInfo{
+				// empty list of flux deployments
+				Token:       "derp",
+				Deployments: []payload.FluxDeploymentInfo{},
+			},
+			[]models.FluxInfo{},
+		},
+		{
+			payload.FluxInfo{
+				// list of flux deployments with 1 item
+				Token: "derp",
+				Deployments: []payload.FluxDeploymentInfo{
+					{
+						Name:      "flux",
+						Namespace: "wkp-flux",
+						Args: []string{
+							"--memcached-service=",
+							"--ssh-keygen-dir=/var/fluxd/keygen",
+							"--sync-garbage-collection=true",
+							"--git-poll-interval=10s",
+							"--sync-interval=10s",
+							"--manifest-generation=true",
+							"--listen-metrics=:3031",
+							"--git-url=git@github.com:dinosk/fluxes-1.git",
+							"--git-branch=master",
+							"--registry-exclude-image=*"},
+						Image: "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+					},
+				},
+			},
+			[]models.FluxInfo{
+				{
+					ClusterToken: "derp",
+					Name:         "flux",
+					Namespace:    "wkp-flux",
+					Args:         "--memcached-service=,--ssh-keygen-dir=/var/fluxd/keygen,--sync-garbage-collection=true,--git-poll-interval=10s,--sync-interval=10s,--manifest-generation=true,--listen-metrics=:3031,--git-url=git@github.com:dinosk/fluxes-1.git,--git-branch=master,--registry-exclude-image=*",
+					Image:        "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+					RepoURL:      "git@github.com:dinosk/fluxes-1.git",
+					RepoBranch:   "master",
+				},
+			},
+		},
+		{
+			payload.FluxInfo{
+				// list of flux deployments with 3 items
+				Token: "derp",
+				Deployments: []payload.FluxDeploymentInfo{
+					{
+						Name:      "flux",
+						Namespace: "wkp-flux",
+						Args: []string{
+							"--memcached-service=",
+							"--ssh-keygen-dir=/var/fluxd/keygen",
+							"--sync-garbage-collection=true",
+							"--git-poll-interval=10s",
+							"--sync-interval=10s",
+							"--manifest-generation=true",
+							"--listen-metrics=:3031",
+							"--git-url=git@github.com:dinosk/fluxes-1.git",
+							"--git-branch=master",
+							"--registry-exclude-image=*"},
+						Image: "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+					},
+					{
+						Name:      "flux-2",
+						Namespace: "wkp-workspaces",
+						Args: []string{
+							"--ssh-keygen-dir=/var/fluxd/keygen",
+							"--git-poll-interval=3s",
+							"--sync-interval=10s",
+							"--manifest-generation=true",
+							"--git-url=git@github.com:weaveworks/foo.git",
+							"--git-branch=main",
+							"--registry-exclude-image=*"},
+						Image: "myuser/custom-flux:gd677dc0a",
+					},
+					{
+						Name:      "flux-3",
+						Namespace: "default",
+						Args: []string{
+							"--memcached-service=",
+							"--ssh-keygen-dir=/var/fluxd/keygen",
+							"--sync-garbage-collection=true",
+							"--git-poll-interval=1s",
+							"--sync-interval=1s",
+							"--manifest-generation=true",
+							"--listen-metrics=:3031",
+							"--git-url=git@github.com:test/test-flux.git",
+							"--git-branch=dev",
+							"--registry-exclude-image=*"},
+						Image: "docker.io/weaveworks/flux:latest",
+					},
+				},
+			},
+			[]models.FluxInfo{
+				{
+					ClusterToken: "derp",
+					Name:         "flux",
+					Namespace:    "wkp-flux",
+					Args:         "--memcached-service=,--ssh-keygen-dir=/var/fluxd/keygen,--sync-garbage-collection=true,--git-poll-interval=10s,--sync-interval=10s,--manifest-generation=true,--listen-metrics=:3031,--git-url=git@github.com:dinosk/fluxes-1.git,--git-branch=master,--registry-exclude-image=*",
+					Image:        "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+					RepoURL:      "git@github.com:dinosk/fluxes-1.git",
+					RepoBranch:   "master",
+				},
+				{
+					ClusterToken: "derp",
+					Name:         "flux-2",
+					Namespace:    "wkp-workspaces",
+					Args:         "--ssh-keygen-dir=/var/fluxd/keygen,--git-poll-interval=3s,--sync-interval=10s,--manifest-generation=true,--git-url=git@github.com:weaveworks/foo.git,--git-branch=main,--registry-exclude-image=*",
+					Image:        "myuser/custom-flux:gd677dc0a",
+					RepoURL:      "git@github.com:weaveworks/foo.git",
+					RepoBranch:   "main",
+				},
+				{
+					ClusterToken: "derp",
+					Name:         "flux-3",
+					Namespace:    "default",
+					Args:         "--memcached-service=,--ssh-keygen-dir=/var/fluxd/keygen,--sync-garbage-collection=true,--git-poll-interval=1s,--sync-interval=1s,--manifest-generation=true,--listen-metrics=:3031,--git-url=git@github.com:test/test-flux.git,--git-branch=dev,--registry-exclude-image=*",
+					Image:        "docker.io/weaveworks/flux:latest",
+					RepoURL:      "git@github.com:test/test-flux.git",
+					RepoBranch:   "dev",
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		result, err := ConvertFluxInfo(test.message)
+		assert.NoError(t, err)
+		assert.Equal(t, test.result, result)
+	}
 }
 
 func TestConvertAlert(t *testing.T) {
@@ -243,8 +382,8 @@ func TestConvertAlert(t *testing.T) {
 	assert.Equal(t, updatedDate, dbAlert.UpdatedAt)
 	assert.Equal(t, "Test Fingerprint", dbAlert.Fingerprint)
 	assert.Equal(t, "example.com", dbAlert.GeneratorURL)
-	assert.Equal(t, "Test1, Test2, Test3", dbAlert.InhibitedBy)
-	assert.Equal(t, "Test1, Test2, Test3", dbAlert.SilencedBy)
+	assert.Equal(t, "Test1,Test2,Test3", dbAlert.InhibitedBy)
+	assert.Equal(t, "Test1,Test2,Test3", dbAlert.SilencedBy)
 	assert.Equal(t, "critical", dbAlert.Severity)
 }
 
@@ -255,4 +394,61 @@ type Labels struct {
 type Annotations struct {
 	Summary     string `json:"summary"`
 	Description string `json:"description"`
+}
+
+func TestExtractRepoURLfromFluxArgs(t *testing.T) {
+	tests := []struct {
+		args      []string
+		parsedURL string
+	}{
+		{
+			args: []string{
+				"--memcached-service=",
+				"--ssh-keygen-dir=/var/fluxd/keygen",
+				"--sync-garbage-collection=true",
+				"--git-poll-interval=10s",
+				"--sync-interval=10s",
+				"--manifest-generation=true",
+				"--listen-metrics=:3031",
+				"--git-url=git@github.com:ww/fluxes-1.git",
+				"--git-branch=master",
+				"--registry-exclude-image=*",
+			},
+			parsedURL: "git@github.com:ww/fluxes-1.git",
+		},
+		{
+			args: []string{
+				"--memcached-service=",
+				"--ssh-keygen-dir=/var/fluxd/keygen",
+				"--sync-garbage-collection=true",
+				"--git-poll-interval=10s",
+				"--sync-interval=10s",
+				"--manifest-generation=true",
+				"--listen-metrics=:3031",
+				"--git-url=https://github.com/ww/fluxes-2",
+				"--git-branch=master",
+				"--registry-exclude-image=*",
+			},
+			parsedURL: "https://github.com/ww/fluxes-2",
+		},
+		{
+			args: []string{
+				"--memcached-service=",
+				"--ssh-keygen-dir=/var/fluxd/keygen",
+				"--sync-garbage-collection=true",
+				"--git-poll-interval=10s",
+				"--sync-interval=10s",
+				"--manifest-generation=true",
+				"--listen-metrics=:3031",
+				"--git-branch=master",
+				"--registry-exclude-image=*",
+			},
+			parsedURL: "",
+		},
+	}
+
+	for _, test := range tests {
+		result := ExtractRepoURLfromFluxArgs(test.args)
+		assert.Equal(t, test.parsedURL, result)
+	}
 }

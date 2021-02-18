@@ -73,6 +73,12 @@ func MigrateTables(db *gorm.DB) error {
 		return errors.New("failed to create Workspaces table")
 	}
 	log.Info("created Workspaces table")
+
+	err = db.AutoMigrate(&models.FluxInfo{})
+	if err != nil {
+		return errors.New("failed to create FluxInfo table")
+	}
+	log.Info("created FluxInfo table")
 	return nil
 }
 
@@ -85,6 +91,7 @@ func HasAllTables(db *gorm.DB) bool {
 		db.Migrator().HasTable(&models.Alert{}) &&
 		db.Migrator().HasTable(&models.GitProvider{}) &&
 		db.Migrator().HasTable(&models.GitRepository{}) &&
+		db.Migrator().HasTable(&models.FluxInfo{}) &&
 		db.Migrator().HasTable(&models.Workspace{}) {
 		return true
 	}

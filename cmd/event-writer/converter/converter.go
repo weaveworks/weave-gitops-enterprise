@@ -119,6 +119,31 @@ func ConvertAlert(token string, gAlert *ammodels.GettableAlert) (models.Alert, e
 	return result, nil
 }
 
+// ConvertFluxInfo returns a models.FluxInfo from a NATS message with cluster info
+func ConvertFluxInfo(fluxInfo payload.FluxInfo) ([]models.FluxInfo, error) {
+	result := []models.FluxInfo{}
+
+	for _, fluxDeploymentInfo := range fluxInfo.Deployments {
+
+		fluxRepoURL := ExtractRepoURLfromFluxArgs(fluxDeploymentInfo.Args)
+		fluxRepoBranch := ExtractRepoBranchfromFluxArgs(fluxDeploymentInfo.Args)
+
+		flattenedArgs := SerializeStringSlice(fluxDeploymentInfo.Args)
+		result = append(result,
+			models.FluxInfo{
+				ClusterToken: fluxInfo.Token,
+				Name:         fluxDeploymentInfo.Name,
+				Namespace:    fluxDeploymentInfo.Namespace,
+				Args:         flattenedArgs,
+				Image:        fluxDeploymentInfo.Image,
+				RepoURL:      fluxRepoURL,
+				RepoBranch:   fluxRepoBranch,
+			})
+	}
+
+	return result, nil
+}
+
 // SerializeLabelSet flattens a labelset to a string
 func SerializeLabelSet(labels ammodels.LabelSet) string {
 	labelMap := map[string]string(labels)
@@ -127,7 +152,7 @@ func SerializeLabelSet(labels ammodels.LabelSet) string {
 
 // SerializeStringSlice flattens a slice of strings to a string
 func SerializeStringSlice(strSlice []string) string {
-	str := strings.Join(strSlice, ", ")
+	str := strings.Join(strSlice, ",")
 
 	return str
 }
@@ -167,4 +192,29 @@ func DeserializeJSONToEvent(b []byte) (*v1.Event, error) {
 		return nil, err
 	}
 	return e, nil
+}
+
+// ExtractRepoURLfromFluxArgs parses a string slice of flux start arguments and returns the repo URL
+func ExtractRepoURLfromFluxArgs(args []string) string {
+	gitURLPrefix := "--git-url="
+	return ExtractArgValue(args, gitURLPrefix)
+}
+
+// ExtractRepoBranchfromFluxArgs parses a string slice of flux start arguments and returns the repo branch
+func ExtractRepoBranchfromFluxArgs(args []string) string {
+	gitBranchPrefix := "--git-branch="
+	return ExtractArgValue(args, gitBranchPrefix)
+}
+
+// ExtractArgValue returns a given argument value from a string slice of flux run arguments
+func ExtractArgValue(args []string, arg string) string {
+	var result string
+
+	for _, item := range args {
+		if strings.HasPrefix(item, arg) {
+			result = strings.TrimPrefix(item, arg)
+			return result
+		}
+	}
+	return ""
 }

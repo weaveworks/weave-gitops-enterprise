@@ -10,7 +10,10 @@ import (
 var dbPath = "open-test.db"
 
 func TestOpen(t *testing.T) {
-	_, err := Open(dbPath)
+	_, err := Open("/doesnotexist/test.db")
+	assert.Error(t, err)
+
+	_, err = Open(dbPath)
 	defer os.Remove(dbPath)
 
 	assert.NoError(t, err)

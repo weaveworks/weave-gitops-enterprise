@@ -14,6 +14,8 @@ import (
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/database/utils"
 	"github.com/weaveworks/wks/common/messaging/payload"
+
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -52,6 +54,8 @@ func ReceiveEvent(ctx context.Context, event ce.Event) error {
 		return writeClusterInfo(event)
 	case "PrometheusAlerts":
 		return writeAlert(event)
+	case "FluxInfo":
+		return writeFluxInfo(event)
 	default:
 		log.Warnf("Unknown message type: %s.", event.Type())
 	}
@@ -142,6 +146,34 @@ func writeAlert(event ce.Event) error {
 	utils.DB.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Create(&dbAlerts)
+
+	return nil
+}
+
+func writeFluxInfo(event ce.Event) error {
+	var data payload.FluxInfo
+	if err := event.DataAs(&data); err != nil {
+		log.Warnf("failed to parse event as FluxInfo object: %v", err)
+		return err
+	}
+
+	var cluster models.Cluster
+	clusterResult := utils.DB.First(&cluster, "token = ?", data.Token)
+	if errors.Is(clusterResult.Error, gorm.ErrRecordNotFound) {
+		log.Warnf("received FluxInfo for unknown cluster")
+		return fmt.Errorf("received FluxInfo did not match any registered clusters, token: %s", data.Token)
+	}
+	log.Infof("received FluxInfo for cluster %s", cluster.Name)
+
+	dbFluxInfo, err := converter.ConvertFluxInfo(data)
+	if err != nil {
+		log.Warnf("failed to convert FluxInfo object to db model: %v", err)
+		return err
+	}
+
+	utils.DB.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).CreateInBatches(dbFluxInfo, queue.BatchSize)
 
 	return nil
 }

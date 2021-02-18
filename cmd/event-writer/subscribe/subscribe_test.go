@@ -201,6 +201,170 @@ func TestWriteConditionsMet(t *testing.T) {
 	}
 }
 
+func TestReceiveFluxInfo_NoMatchingCluster(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Publish event
+	info := payload.FluxInfo{
+		// list of flux deployments with 1 item
+		Token: "derp",
+		Deployments: []payload.FluxDeploymentInfo{
+			{
+				Name:      "flux",
+				Namespace: "wkp-flux",
+				Args: []string{
+					"--memcached-service=",
+					"--ssh-keygen-dir=/var/fluxd/keygen",
+					"--sync-garbage-collection=true",
+					"--git-poll-interval=10s",
+					"--sync-interval=10s",
+					"--manifest-generation=true",
+					"--listen-metrics=:3031",
+					"--git-url=git@github.com:dinosk/fluxes-1.git",
+					"--git-branch=master",
+					"--registry-exclude-image=*"},
+				Image: "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+			},
+		},
+	}
+
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("FluxInfo")
+	event.SetTime(time.Now())
+	event.SetSource("test")
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// FluxInfo should be stored as there is no cluster matching the token
+	// Query db
+	var fluxes []models.FluxInfo
+	fluxesResult := db.Find(&fluxes)
+	assert.Equal(t, 0, int(fluxesResult.RowsAffected))
+	assert.NoError(t, fluxesResult.Error)
+}
+
+func TestReceiveFluxInfo(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	queue.BatchSize = 100
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
+
+	// Publish event
+	fluxInfo := payload.FluxInfo{
+		// list of flux deployments with 1 item
+		Token: "derp",
+		Deployments: []payload.FluxDeploymentInfo{
+			{
+				Name:      "flux",
+				Namespace: "wkp-flux",
+				Args: []string{
+					"--memcached-service=",
+					"--ssh-keygen-dir=/var/fluxd/keygen",
+					"--sync-garbage-collection=true",
+					"--git-poll-interval=10s",
+					"--sync-interval=10s",
+					"--manifest-generation=true",
+					"--listen-metrics=:3031",
+					"--git-url=git@github.com:dinosk/fluxes-1.git",
+					"--git-branch=master",
+					"--registry-exclude-image=*"},
+				Image: "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+			},
+		},
+	}
+
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("FluxInfo")
+	event.SetTime(time.Now())
+	event.SetSource("test")
+	err = event.SetData(ce.ApplicationJSON, fluxInfo)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// FluxInfo should be stored as there is no cluster matching the token
+	// Query db
+	var fluxes []models.FluxInfo
+	fluxesResult := db.Find(&fluxes)
+	assert.Equal(t, 1, int(fluxesResult.RowsAffected))
+	assert.NoError(t, fluxesResult.Error)
+
+	assert.Equal(t, fluxInfo.Token, string(fluxes[0].ClusterToken))
+	assert.Equal(t, fluxInfo.Deployments[0].Name, string(fluxes[0].Name))
+	assert.Equal(t, fluxInfo.Deployments[0].Namespace, string(fluxes[0].Namespace))
+	assert.Equal(t, converter.SerializeStringSlice(fluxInfo.Deployments[0].Args), string(fluxes[0].Args))
+}
+
 func TestReceiveClusterInfo(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

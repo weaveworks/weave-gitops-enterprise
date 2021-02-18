@@ -120,3 +120,20 @@ type Cluster struct {
 	Name       string `gorm:"uniqueIndex"`
 	IngressURL string
 }
+
+// FluxInfo table
+type FluxInfo struct {
+	gorm.Model
+	ClusterToken string
+	Cluster      Cluster `gorm:"foreignKey:ClusterToken"`
+	Name         string
+	Namespace    string
+	Args         string
+	Image        string
+	RepoURL      string
+	RepoBranch   string
+}
+
+func (FluxInfo) TableName() string {
+	return "flux_info"
+}
