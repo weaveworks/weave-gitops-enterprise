@@ -123,11 +123,10 @@ type Cluster struct {
 
 // FluxInfo table
 type FluxInfo struct {
-	gorm.Model
-	ClusterToken string
+	ClusterToken string  `gorm:"primaryKey"`
 	Cluster      Cluster `gorm:"foreignKey:ClusterToken"`
-	Name         string
-	Namespace    string
+	Name         string  `gorm:"primaryKey"`
+	Namespace    string  `gorm:"primaryKey"`
 	Args         string
 	Image        string
 	RepoURL      string

@@ -332,11 +332,12 @@ func TestListClusters(t *testing.T) {
 	assert.Equal(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:     1,
-				Name:   "My Cluster",
-				Token:  "derp",
-				Status: "notConnected",
-				Type:   "",
+				ID:       1,
+				Name:     "My Cluster",
+				Token:    "derp",
+				Status:   "notConnected",
+				Type:     "",
+				FluxInfo: nil,
 			},
 		},
 	}, res)
@@ -363,6 +364,16 @@ func TestListClusters(t *testing.T) {
 		IsControlPlane: false,
 		KubeletVersion: "v1.19.7",
 	})
+	db.Create(&models.FluxInfo{
+		ClusterToken: "derp",
+		Name:         "flux",
+		Namespace:    "wkp-flux",
+		Args:         "--memcached-service=,--ssh-keygen-dir=/var/fluxd/keygen,--sync-garbage-collection=true,--git-poll-interval=10s,--sync-interval=10s,--manifest-generation=true,--listen-metrics=:3031,--git-url=git@github.com:weaveworks/fluxes-1.git,--git-branch=master,--registry-exclude-image=*",
+		Image:        "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+		RepoURL:      "git@github.com:weaveworks/fluxes-1.git",
+		RepoBranch:   "master",
+	})
+
 	response = executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
 	err = json.Unmarshal(response.Body.Bytes(), &res)
@@ -385,6 +396,132 @@ func TestListClusters(t *testing.T) {
 						Name:           "wks-2",
 						IsControlPlane: false,
 						KubeletVersion: "v1.19.7",
+					},
+				},
+				FluxInfo: []api.FluxInfoView{
+					{
+						Name:       "flux",
+						Namespace:  "wkp-flux",
+						RepoURL:    "git@github.com:weaveworks/fluxes-1.git",
+						RepoBranch: "master",
+					},
+				},
+			},
+		},
+	}, res)
+}
+
+func TestListCluster_MultipleFluxInfo(t *testing.T) {
+	db, err := utils.Open("")
+	assert.NoError(t, err)
+
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+
+	// No data
+	response := executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+	assert.Equal(t, "{\n \"clusters\": []\n}", response.Body.String())
+
+	// Register a cluster
+	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
+	response = executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+	var res api.ClustersResponse
+	err = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.NoError(t, err)
+	assert.Equal(t, api.ClustersResponse{
+		Clusters: []api.ClusterView{
+			{
+				ID:       1,
+				Name:     "My Cluster",
+				Token:    "derp",
+				Status:   "notConnected",
+				Type:     "",
+				FluxInfo: nil,
+			},
+		},
+	}, res)
+
+	// Agent sends cluster info
+	db.Create(&models.ClusterInfo{
+		UID:   "123",
+		Token: "derp",
+		Type:  "existingInfra",
+	})
+	db.Create(&models.NodeInfo{
+		UID:            "456",
+		ClusterInfoUID: "123",
+		Token:          "derp",
+		Name:           "wks-1",
+		IsControlPlane: true,
+		KubeletVersion: "v1.19.7",
+	})
+	db.Create(&models.FluxInfo{
+		ClusterToken: "derp",
+		Name:         "flux",
+		Namespace:    "wkp-flux",
+		Args:         "--memcached-service=,--ssh-keygen-dir=/var/fluxd/keygen,--sync-garbage-collection=true,--git-poll-interval=10s,--sync-interval=10s,--manifest-generation=true,--listen-metrics=:3031,--git-url=git@github.com:weaveworks/fluxes-1.git,--git-branch=master,--registry-exclude-image=*",
+		Image:        "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+		RepoURL:      "git@github.com:weaveworks/fluxes-1.git",
+		RepoBranch:   "master",
+	})
+	db.Create(&models.FluxInfo{
+		ClusterToken: "derp",
+		Name:         "flux-namespaced",
+		Namespace:    "default",
+		Args:         "--memcached-service=,--ssh-keygen-dir=/var/fluxd/keygen,--sync-garbage-collection=true,--git-poll-interval=10s,--sync-interval=10s,--manifest-generation=true,--listen-metrics=:3031,--git-url=git@github.com:weaveworks/fluxes-1.git,--git-branch=master,--registry-exclude-image=*",
+		Image:        "docker.io/fluxcd/flux:v0.8.1",
+		RepoURL:      "git@github.com:weaveworks/fluxes-2.git",
+		RepoBranch:   "dev",
+	})
+	db.Create(&models.FluxInfo{
+		ClusterToken: "derp",
+		Name:         "flux-system",
+		Namespace:    "kube-system",
+		Args:         "--memcached-service=,--ssh-keygen-dir=/var/fluxd/keygen,--sync-garbage-collection=true,--git-poll-interval=10s,--sync-interval=10s,--manifest-generation=true,--listen-metrics=:3031,--git-url=git@github.com:weaveworks/fluxes-1.git,--git-branch=master,--registry-exclude-image=*",
+		Image:        "docker.io/fluxcd/flux:v0.8.1",
+		RepoURL:      "git@github.com:weaveworks/fluxes-3.git",
+		RepoBranch:   "main",
+	})
+
+	response = executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+	err = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.NoError(t, err)
+	assert.Equal(t, api.ClustersResponse{
+		Clusters: []api.ClusterView{
+			{
+				ID:     1,
+				Name:   "My Cluster",
+				Token:  "derp",
+				Type:   "existingInfra",
+				Status: "ready",
+				Nodes: []api.NodeView{
+					{
+						Name:           "wks-1",
+						IsControlPlane: true,
+						KubeletVersion: "v1.19.7",
+					},
+				},
+				FluxInfo: []api.FluxInfoView{
+					{
+						Name:       "flux",
+						Namespace:  "wkp-flux",
+						RepoURL:    "git@github.com:weaveworks/fluxes-1.git",
+						RepoBranch: "master",
+					},
+					{
+						Name:       "flux-namespaced",
+						Namespace:  "default",
+						RepoURL:    "git@github.com:weaveworks/fluxes-2.git",
+						RepoBranch: "dev",
+					},
+					{
+						Name:       "flux-system",
+						Namespace:  "kube-system",
+						RepoURL:    "git@github.com:weaveworks/fluxes-3.git",
+						RepoBranch: "main",
 					},
 				},
 			},
@@ -583,11 +720,12 @@ func TestListClusters_StatusCritical(t *testing.T) {
 	assert.Equal(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:     1,
-				Token:  "derp",
-				Status: "notConnected",
-				Name:   "My Cluster",
-				Type:   "",
+				ID:       1,
+				Token:    "derp",
+				Status:   "notConnected",
+				Name:     "My Cluster",
+				Type:     "",
+				FluxInfo: nil,
 			},
 		},
 	}, res)
@@ -657,6 +795,7 @@ func TestListClusters_StatusCritical(t *testing.T) {
 						KubeletVersion: "v1.19.7",
 					},
 				},
+				FluxInfo: nil,
 			},
 		},
 	}, res)
@@ -683,11 +822,12 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 	assert.Equal(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:     1,
-				Token:  "derp",
-				Status: "notConnected",
-				Name:   "My Cluster",
-				Type:   "",
+				ID:       1,
+				Token:    "derp",
+				Status:   "notConnected",
+				Name:     "My Cluster",
+				Type:     "",
+				FluxInfo: nil,
 			},
 		},
 	}, res)
@@ -748,6 +888,7 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 						KubeletVersion: "v1.19.7",
 					},
 				},
+				FluxInfo: nil,
 			},
 		},
 	}, res)
@@ -774,11 +915,12 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 	assert.Equal(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:     1,
-				Token:  "derp",
-				Status: "notConnected",
-				Name:   "My Cluster",
-				Type:   "",
+				ID:       1,
+				Token:    "derp",
+				Status:   "notConnected",
+				Name:     "My Cluster",
+				Type:     "",
+				FluxInfo: nil,
 			},
 		},
 	}, res)
@@ -836,6 +978,7 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 						KubeletVersion: "v1.19.7",
 					},
 				},
+				FluxInfo: nil,
 			},
 		},
 	}, res)
@@ -862,11 +1005,12 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 	assert.Equal(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:     1,
-				Token:  "derp",
-				Status: "notConnected",
-				Name:   "My Cluster",
-				Type:   "",
+				ID:       1,
+				Token:    "derp",
+				Status:   "notConnected",
+				Name:     "My Cluster",
+				Type:     "",
+				FluxInfo: nil,
 			},
 		},
 	}, res)
@@ -924,6 +1068,7 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 						KubeletVersion: "v1.19.7",
 					},
 				},
+				FluxInfo: nil,
 			},
 		},
 	}, res)

@@ -46,6 +46,12 @@ type ClusterListRow struct {
 	CriticalAlertsCount uint
 	AlertsCount         uint
 	UpdatedAt           time.Time
+
+	// for flux info
+	FluxName       string
+	FluxNamespace  string
+	FluxRepoURL    string
+	FluxRepoBranch string
 }
 
 func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
@@ -58,15 +64,20 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 				c.token AS Token, 
 				ci.type AS Type, 
 				ni.name AS NodeName, 
-				ci.updated_at as UpdatedAt,
+				ci.updated_at AS UpdatedAt,
 				ni.is_control_plane AS IsControlPlane, 
 				ni.kubelet_version AS KubeletVersion,
+				fi.name AS FluxName,
+				fi.namespace AS FluxNamespace,
+				fi.repo_url AS FluxRepoURL,
+				fi.repo_branch AS FluxRepoBranch,
 				(select count(*) from alerts a where a.token = c.token and severity = 'critical') as CriticalAlertsCount,
 				(select count(*) from alerts a where a.token = c.token and severity is not null) AS AlertsCount
 			FROM 
 				clusters c 
 				LEFT JOIN cluster_info ci ON c.token = ci.token 
 				LEFT JOIN node_info ni ON c.token = ni.token
+				LEFT JOIN flux_info fi ON c.token = fi.cluster_token
 			WHERE c.deleted_at IS NULL
 		`+extraQuery, extraValues).Scan(&rows).Error; err != nil {
 		return nil, ErrNilDB
@@ -83,23 +94,10 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 				Type:   r.Type,
 				Status: getClusterStatus(r),
 			}
-			// Do not add nodes if they don't exist yet
-			if r.NodeName != "" {
-				c.Nodes = append(c.Nodes, NodeView{
-					Name:           r.NodeName,
-					IsControlPlane: r.IsControlPlane,
-					KubeletVersion: r.KubeletVersion,
-				})
-			}
+			unpackClusterRow(&c, r)
 			clusters[r.Name] = &c
 		} else {
-			// Update existing cluster in map with node
-			n := NodeView{
-				Name:           r.NodeName,
-				IsControlPlane: r.IsControlPlane,
-				KubeletVersion: r.KubeletVersion,
-			}
-			cl.Nodes = append(cl.Nodes, n)
+			unpackClusterRow(cl, r)
 		}
 	}
 
@@ -109,6 +107,36 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 	}
 
 	return clusterList, nil
+}
+
+func unpackClusterRow(c *ClusterView, r ClusterListRow) {
+	// Do not add nodes if they don't exist yet
+	if r.NodeName != "" && !nodeExists(*c, NodeView{
+		Name:           r.NodeName,
+		IsControlPlane: r.IsControlPlane,
+		KubeletVersion: r.KubeletVersion,
+	}) {
+		c.Nodes = append(c.Nodes, NodeView{
+			Name:           r.NodeName,
+			IsControlPlane: r.IsControlPlane,
+			KubeletVersion: r.KubeletVersion,
+		})
+	}
+
+	// Append flux info for the cluster
+	if r.FluxName != "" && !fluxInfoExists(*c, FluxInfoView{
+		r.FluxName,
+		r.FluxNamespace,
+		r.FluxRepoBranch,
+		r.FluxRepoURL,
+	}) {
+		c.FluxInfo = append(c.FluxInfo, FluxInfoView{
+			Name:       r.FluxName,
+			Namespace:  r.FluxNamespace,
+			RepoURL:    r.FluxRepoURL,
+			RepoBranch: r.FluxRepoBranch,
+		})
+	}
 }
 
 func getCluster(db *gorm.DB, id uint) (*ClusterView, error) {
@@ -397,12 +425,20 @@ type NodeView struct {
 }
 
 type ClusterView struct {
-	ID     uint       `json:"id"`
-	Name   string     `json:"name"`
-	Type   string     `json:"type"`
-	Token  string     `json:"token"`
-	Nodes  []NodeView `json:"nodes,omitempty"`
-	Status string     `json:"status"`
+	ID       uint           `json:"id"`
+	Name     string         `json:"name"`
+	Type     string         `json:"type"`
+	Token    string         `json:"token"`
+	Nodes    []NodeView     `json:"nodes,omitempty"`
+	Status   string         `json:"status"`
+	FluxInfo []FluxInfoView `json:"flux_info,omitempty"`
+}
+
+type FluxInfoView struct {
+	Name       string `json:"name"`
+	Namespace  string `json:"namespace"`
+	RepoURL    string `json:"repo_url"`
+	RepoBranch string `json:"repo_branch"`
 }
 
 type ClustersResponse struct {
@@ -449,4 +485,22 @@ func getClusterFromRequest(r *http.Request, db *gorm.DB) (*ClusterView, error) {
 	}
 
 	return getCluster(db, uint(id))
+}
+
+func nodeExists(c ClusterView, n NodeView) bool {
+	for _, existingNode := range c.Nodes {
+		if existingNode.Name == n.Name {
+			return true
+		}
+	}
+	return false
+}
+
+func fluxInfoExists(c ClusterView, fi FluxInfoView) bool {
+	for _, existingFluxInfo := range c.FluxInfo {
+		if existingFluxInfo.Name == fi.Name && existingFluxInfo.Namespace == fi.Namespace {
+			return true
+		}
+	}
+	return false
 }
