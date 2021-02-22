@@ -75,7 +75,7 @@ metadata:
   namespace: weavek8sops
 spec:
   clusterName: derp
-  version: 1.19.2
+  version: 1.19.7
   infrastructureRef:
     apiVersion: "cluster.weave.works/v1alpha3"
     kind: ExistingInfraMachine
@@ -103,7 +103,7 @@ metadata:
   namespace: weavek8sops
 spec:
   clusterName: derp
-  version: 1.19.3
+  version: 1.20.0
   infrastructureRef:
     apiVersion: "cluster.weave.works/v1alpha3"
     kind: ExistingInfraMachine
@@ -132,7 +132,7 @@ metadata:
   namespace: weavek8sops
 spec:
   clusterName: derp
-  version: 1.19.3
+  version: 1.20.0
   infrastructureRef:
     apiVersion: "cluster.weave.works/v1alpha3"
     kind: ExistingInfraMachine
@@ -160,7 +160,7 @@ metadata:
   namespace: weavek8sops
 spec:
   clusterName: derp
-  version: 1.19.3
+  version: 1.20.0
   infrastructureRef:
     apiVersion: "cluster.weave.works/v1alpha3"
     kind: ExistingInfraMachine
@@ -239,7 +239,7 @@ func TestGetMachinesK8sVersions_Standard(t *testing.T) {
 
 	versions, err := GetMachinesK8sVersions("", fileName)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"1.19.2", "1.19.3"}, versions)
+	assert.Equal(t, []string{"1.19.7", "1.20.0"}, versions)
 }
 
 func TestGetMachinesK8sVersions_NoVersion(t *testing.T) {
@@ -256,7 +256,7 @@ func TestUpdateMachinesK8sVersions_Standard(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.Remove(fileName)
 
-	err = UpdateMachinesK8sVersions("", fileName, "1.19.3")
+	err = UpdateMachinesK8sVersions("", fileName, "1.20.0")
 	assert.NoError(t, err)
 
 	content, err := readFile(fileName)

@@ -9,12 +9,12 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/fluxcd/go-git-providers v0.0.4-0.20201110084048-07e37b12abdc
 	github.com/ghodss/yaml v1.0.0
-	github.com/google/go-cmp v0.4.1
+	github.com/google/go-cmp v0.5.2
 	github.com/google/go-containerregistry v0.1.3
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-github/v32 v32.1.0
-	github.com/gorilla/mux v1.7.3
-	github.com/hashicorp/go-uuid v1.0.1 // indirect
+	github.com/googleapis/gnostic v0.5.4 // indirect
+	github.com/gorilla/mux v1.8.0
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
 	github.com/jcmturner/gofork v1.0.0 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
@@ -30,11 +30,11 @@ require (
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/segmentio/ksuid v1.0.2
 	github.com/sirupsen/logrus v1.6.0
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/selenium v0.9.9
-	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.1
+	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.2
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20200918140536-ff126705213e
 	github.com/weaveworks/libgitops v0.0.2
@@ -52,9 +52,9 @@ require (
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.18.8
-	k8s.io/apimachinery v0.18.8
-	k8s.io/client-go v0.18.8
+	k8s.io/api v0.20.2
+	k8s.io/apimachinery v0.20.2
+	k8s.io/client-go v0.20.2
 	sigs.k8s.io/cluster-api v0.3.9
 	sigs.k8s.io/controller-runtime v0.6.3 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.6.0
@@ -64,31 +64,32 @@ replace (
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.7.0
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
 	github.com/docker/distribution => github.com/2opremio/distribution v0.0.0-20190419185413-6c9727e5e5de
-	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.1.0
 	gopkg.in/jcmturner/gokrb5.v6 => github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2
-	k8s.io/api => k8s.io/api v0.18.5
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.18.5
-	k8s.io/apimachinery => k8s.io/apimachinery v0.18.5
-	k8s.io/apiserver => k8s.io/apiserver v0.18.5
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.18.5
-	k8s.io/client-go => k8s.io/client-go v0.18.5
-	k8s.io/cloud-provider => k8s.io/cloud-provider v0.18.5
-	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.18.5
-	k8s.io/code-generator => k8s.io/code-generator v0.18.5
-	k8s.io/component-base => k8s.io/component-base v0.18.5
-	k8s.io/cri-api => k8s.io/cri-api v0.18.5
-	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.18.5
-	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.18.5
-	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.18.5
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
-	k8s.io/kube-proxy => k8s.io/kube-proxy v0.18.5
-	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.18.5
-	k8s.io/kubectl => k8s.io/kubectl v0.18.5
-	k8s.io/kubelet => k8s.io/kubelet v0.18.5
-	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.18.5
-	k8s.io/metrics => k8s.io/metrics v0.18.5
-	k8s.io/node-api => k8s.io/node-api v0.18.5
-	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.18.5
-	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.18.5
-	k8s.io/sample-controller => k8s.io/sample-controller v0.18.5
+	k8s.io/api => k8s.io/api v0.20.2
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.20.2
+	k8s.io/apimachinery => k8s.io/apimachinery v0.20.2
+	k8s.io/apiserver => k8s.io/apiserver v0.20.2
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.20.2
+	k8s.io/client-go => k8s.io/client-go v0.20.2
+	k8s.io/cloud-provider => k8s.io/cloud-provider v0.20.2
+	k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.20.2
+	k8s.io/code-generator => k8s.io/code-generator v0.20.2
+	k8s.io/component-base => k8s.io/component-base v0.20.2
+	k8s.io/component-helpers => k8s.io/component-helpers v0.20.2
+	k8s.io/controller-manager => k8s.io/controller-manager v0.20.2
+	k8s.io/cri-api => k8s.io/cri-api v0.20.2
+	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.20.2
+	k8s.io/kube-aggregator => k8s.io/kube-aggregator v0.20.2
+	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.20.2
+	k8s.io/kube-proxy => k8s.io/kube-proxy v0.20.2
+	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.20.2
+	k8s.io/kubectl => k8s.io/kubectl v0.20.2
+	k8s.io/kubelet => k8s.io/kubelet v0.20.2
+	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.20.2
+	k8s.io/metrics => k8s.io/metrics v0.20.2
+	k8s.io/mount-utils => k8s.io/mount-utils v0.20.3-rc.0
+	k8s.io/node-api => k8s.io/node-api v0.20.2
+	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.20.2
+	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.20.2
+	k8s.io/sample-controller => k8s.io/sample-controller v0.20.2
 )

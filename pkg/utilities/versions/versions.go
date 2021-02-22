@@ -13,7 +13,7 @@ import (
 
 var kubectlDownloadURL = "https://storage.googleapis.com/kubernetes-release/release/%s/bin/linux/amd64/kubectl"
 
-var k8sVersionRegexp = regexp.MustCompile(`^([1][.](16|17|18|19)[.][0-9][0-9]?)$`)
+var k8sVersionRegexp = regexp.MustCompile(`^([1][.](16|17|18|19|20)[.][0-9][0-9]?)$`)
 
 // ValidVersions maps the k8s versions WKP supports
 var ValidVersions = map[string]bool{
@@ -82,7 +82,7 @@ func CheckUpgradeConstraints(oldVersion, newVersion string, skipExistenceCheck b
 func CheckValidVersion(version string) error {
 	if !k8sVersionRegexp.MatchString(version) {
 		return fmt.Errorf(
-			"%s is not a valid Kubernetes version; must be 1.16.x-1.19.x",
+			"%s is not a valid Kubernetes version; must be 1.16.x-1.20.x",
 			version)
 	}
 	return nil

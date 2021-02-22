@@ -9,9 +9,9 @@ import (
 )
 
 func TestCheckUpgradeConstraints(t *testing.T) {
-	assert.Equal(t, fmt.Errorf("1.12.1 is not a valid Kubernetes version; must be 1.16.x-1.19.x"), CheckUpgradeConstraints("1.17.1", "1.12.1", false))
+	assert.Equal(t, fmt.Errorf("1.12.1 is not a valid Kubernetes version; must be 1.16.x-1.20.x"), CheckUpgradeConstraints("1.17.1", "1.12.1", false))
 
-	assert.Equal(t, fmt.Errorf("2.15.1 is not a valid Kubernetes version; must be 1.16.x-1.19.x"), CheckUpgradeConstraints("1.17.1", "2.15.1", false))
+	assert.Equal(t, fmt.Errorf("2.15.1 is not a valid Kubernetes version; must be 1.16.x-1.20.x"), CheckUpgradeConstraints("1.17.1", "2.15.1", false))
 
 	assert.NoError(t, CheckUpgradeConstraints("1.16.3", "1.17.7", false))
 
@@ -22,6 +22,8 @@ func TestCheckUpgradeConstraints(t *testing.T) {
 	assert.NoError(t, CheckUpgradeConstraints("1.16.3", "1.17.99", true))
 
 	assert.NoError(t, CheckUpgradeConstraints("1.18.1", "1.19.0", false))
+
+	assert.NoError(t, CheckUpgradeConstraints("1.19.0", "1.20.0", false))
 }
 
 func TestGetSupportedUpgradeForVersion(t *testing.T) {

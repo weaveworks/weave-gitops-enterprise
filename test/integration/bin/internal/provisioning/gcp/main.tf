@@ -1,5 +1,5 @@
 provider "google" {
-  version = "~> 1.19.0"
+  version = "~> 1.20.0"
 
   # Set the below environment variables:
   # - GOOGLE_CREDENTIALS
