@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -28,6 +29,17 @@ func errorBody(message string) interface{} {
 
 var noInit = errorBody("The database has not been initialised.")
 var noSuchTable = errorBody("no such table: clusters")
+var now = time.Now()
+
+func assertEqualCmp(t *testing.T, want, got interface{}) {
+	//
+	// Use go-cmp to diff things, works for time.Time in an unmarshaled json struct
+	// https://github.com/stretchr/testify/issues/502
+	//
+	// Using cmp.Diff like this gives quite nice output
+	diff := cmp.Diff(want, got)
+	assert.True(t, diff == "", diff)
+}
 
 func doRequest(t *testing.T, handler http.HandlerFunc, method, path, url, data string) (*httptest.ResponseRecorder, interface{}) {
 	body := bytes.NewReader([]byte(data))
@@ -142,25 +154,33 @@ func TestGetCluster(t *testing.T) {
 		{"404 if no cluster in db", "/1", 404, errorBody("cluster not found"), nil},
 		{
 			"200 if cluster is in db",
-			"/1", 200, map[string]interface{}{
+			"/1",
+			200,
+			map[string]interface{}{
 				"id":         float64(1),
 				"name":       "ewq",
 				"token":      "",
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-			}, []models.Cluster{{Name: "ewq"}},
+				"updatedAt":  "0001-01-01T00:00:00Z",
+			},
+			[]models.Cluster{{Name: "ewq"}},
 		},
 		{
 			"Get the correct cluster",
-			"/2", 200, map[string]interface{}{
+			"/2",
+			200,
+			map[string]interface{}{
 				"id":         float64(2),
 				"name":       "dsa",
 				"token":      "dsa",
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-			}, []models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
+				"updatedAt":  "0001-01-01T00:00:00Z",
+			},
+			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 		},
 	}
 
@@ -214,6 +234,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}},
 			map[string]interface{}{
@@ -223,6 +244,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 		},
 		{
@@ -239,6 +261,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 			map[string]interface{}{
@@ -248,6 +271,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 		},
 		{
@@ -264,6 +288,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 			map[string]interface{}{
@@ -273,6 +298,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 		},
 	}
@@ -295,7 +321,7 @@ func TestUpdateCluster(t *testing.T) {
 			response, body := doRequest(
 				t,
 				api.UpdateCluster(db, json.Unmarshal, json.MarshalIndent),
-				"GET",
+				"PUT",
 				"/{id:[0-9]+}",
 				rt.path,
 				dataStr,
@@ -352,9 +378,10 @@ func TestListClusters(t *testing.T) {
 
 	// Agent sends cluster info
 	db.Create(&models.ClusterInfo{
-		UID:   "123",
-		Token: "derp",
-		Type:  "existingInfra",
+		UID:       "123",
+		Token:     "derp",
+		UpdatedAt: now,
+		Type:      "existingInfra",
 	})
 	db.Create(&models.NodeInfo{
 		UID:            "456",
@@ -386,14 +413,15 @@ func TestListClusters(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Code)
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
+	assertEqualCmp(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:     1,
-				Name:   "My Cluster",
-				Token:  "derp",
-				Type:   "existingInfra",
-				Status: "ready",
+				ID:        1,
+				Name:      "My Cluster",
+				Token:     "derp",
+				Type:      "existingInfra",
+				Status:    "ready",
+				UpdatedAt: now,
 				Nodes: []api.NodeView{
 					{
 						Name:           "wks-1",
@@ -451,20 +479,6 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 		},
 	}, res)
 
-	// Agent sends cluster info
-	db.Create(&models.ClusterInfo{
-		UID:   "123",
-		Token: "derp",
-		Type:  "existingInfra",
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "456",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-1",
-		IsControlPlane: true,
-		KubeletVersion: "v1.19.7",
-	})
 	db.Create(&models.FluxInfo{
 		ClusterToken: "derp",
 		Name:         "flux",
@@ -497,21 +511,13 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Code)
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
+	assertEqualCmp(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
 				ID:     1,
 				Name:   "My Cluster",
 				Token:  "derp",
-				Type:   "existingInfra",
-				Status: "ready",
-				Nodes: []api.NodeView{
-					{
-						Name:           "wks-1",
-						IsControlPlane: true,
-						KubeletVersion: "v1.19.7",
-					},
-				},
+				Status: "notConnected",
 				FluxInfo: []api.FluxInfoView{
 					{
 						Name:       "flux",
@@ -713,52 +719,13 @@ func TestListClusters_StatusCritical(t *testing.T) {
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
 
-	// No data
-	response := executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusOK, response.Code)
-	assert.Equal(t, "{\n \"clusters\": []\n}", response.Body.String())
-
 	// Register a cluster
 	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
-	response = executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
-	err = json.Unmarshal(response.Body.Bytes(), &res)
-	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
-			{
-				ID:       1,
-				Token:    "derp",
-				Status:   "notConnected",
-				Name:     "My Cluster",
-				Type:     "",
-				FluxInfo: nil,
-			},
-		},
-	}, res)
-
+	rightNow := time.Now()
 	// Agent sends cluster info
 	db.Create(&models.ClusterInfo{
-		UID:   "123",
-		Token: "derp",
-		Type:  "existingInfra",
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "456",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-1",
-		IsControlPlane: true,
-		KubeletVersion: "v1.19.7",
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "789",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-2",
-		IsControlPlane: false,
-		KubeletVersion: "v1.19.7",
+		Token:     "derp",
+		UpdatedAt: rightNow,
 	})
 
 	// Add a critical alert
@@ -767,7 +734,6 @@ func TestListClusters_StatusCritical(t *testing.T) {
 		Token:    "derp",
 		Severity: "critical",
 	}
-
 	db.Create(&myCriticalAlert)
 
 	// Add a non-critical alert
@@ -776,34 +742,22 @@ func TestListClusters_StatusCritical(t *testing.T) {
 		Token:    "derp",
 		Severity: "info",
 	}
-
 	db.Create(&myNonCriticalAlert)
 
-	response = executeGet(t, db, json.MarshalIndent, "")
+	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
+	var res api.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
+	assertEqualCmp(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:     1,
-				Token:  "derp",
-				Name:   "My Cluster",
-				Type:   "existingInfra",
-				Status: "critical",
-				Nodes: []api.NodeView{
-					{
-						Name:           "wks-1",
-						IsControlPlane: true,
-						KubeletVersion: "v1.19.7",
-					},
-					{
-						Name:           "wks-2",
-						IsControlPlane: false,
-						KubeletVersion: "v1.19.7",
-					},
-				},
-				FluxInfo: nil,
+				ID:        1,
+				Token:     "derp",
+				Name:      "My Cluster",
+				Status:    "critical",
+				UpdatedAt: rightNow,
+				FluxInfo:  nil,
 			},
 		},
 	}, res)
@@ -815,52 +769,14 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
 
-	// No data
-	response := executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusOK, response.Code)
-	assert.Equal(t, "{\n \"clusters\": []\n}", response.Body.String())
-
 	// Register a cluster
 	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
-	response = executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
-	err = json.Unmarshal(response.Body.Bytes(), &res)
-	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
-			{
-				ID:       1,
-				Token:    "derp",
-				Status:   "notConnected",
-				Name:     "My Cluster",
-				Type:     "",
-				FluxInfo: nil,
-			},
-		},
-	}, res)
 
+	rightNow := time.Now()
 	// Agent sends cluster info
 	db.Create(&models.ClusterInfo{
-		UID:   "123",
-		Token: "derp",
-		Type:  "existingInfra",
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "456",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-1",
-		IsControlPlane: true,
-		KubeletVersion: "v1.19.7",
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "789",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-2",
-		IsControlPlane: false,
-		KubeletVersion: "v1.19.7",
+		Token:     "derp",
+		UpdatedAt: rightNow,
 	})
 
 	// Add a non-critical alert
@@ -872,31 +788,20 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 
 	db.Create(&myNonCriticalAlert)
 
-	response = executeGet(t, db, json.MarshalIndent, "")
+	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
+	var res api.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
+	assertEqualCmp(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:     1,
-				Token:  "derp",
-				Name:   "My Cluster",
-				Type:   "existingInfra",
-				Status: "alerting",
-				Nodes: []api.NodeView{
-					{
-						Name:           "wks-1",
-						IsControlPlane: true,
-						KubeletVersion: "v1.19.7",
-					},
-					{
-						Name:           "wks-2",
-						IsControlPlane: false,
-						KubeletVersion: "v1.19.7",
-					},
-				},
-				FluxInfo: nil,
+				ID:        1,
+				Token:     "derp",
+				Name:      "My Cluster",
+				Status:    "alerting",
+				UpdatedAt: rightNow,
+				FluxInfo:  nil,
 			},
 		},
 	}, res)
@@ -908,85 +813,33 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
 
-	// No data
-	response := executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusOK, response.Code)
-	assert.Equal(t, "{\n \"clusters\": []\n}", response.Body.String())
-
 	// Register a cluster
 	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
-	response = executeGet(t, db, json.MarshalIndent, "")
+	// Add last updated 5 minutes ago
+	rightNow := time.Now()
+	count := 5
+	then := rightNow.Add(time.Duration(-count) * time.Minute)
+
+	// Agent sends cluster info
+	db.Create(&models.ClusterInfo{
+		Token:     "derp",
+		UpdatedAt: then,
+	})
+
+	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
 	var res api.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
+	assertEqualCmp(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:       1,
-				Token:    "derp",
-				Status:   "notConnected",
-				Name:     "My Cluster",
-				Type:     "",
-				FluxInfo: nil,
-			},
-		},
-	}, res)
-
-	// Add last updated 5 minutes ago
-	now := time.Now()
-	count := 5
-	then := now.Add(time.Duration(-count) * time.Minute)
-
-	// Agent sends cluster info
-	db.Create(&models.ClusterInfo{
-		UID:       "123",
-		Token:     "derp",
-		Type:      "existingInfra",
-		UpdatedAt: then,
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "456",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-1",
-		IsControlPlane: true,
-		KubeletVersion: "v1.19.7",
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "789",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-2",
-		IsControlPlane: false,
-		KubeletVersion: "v1.19.7",
-	})
-
-	response = executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusOK, response.Code)
-	err = json.Unmarshal(response.Body.Bytes(), &res)
-	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
-			{
-				ID:     1,
-				Token:  "derp",
-				Name:   "My Cluster",
-				Type:   "existingInfra",
-				Status: "lastSeen",
-				Nodes: []api.NodeView{
-					{
-						Name:           "wks-1",
-						IsControlPlane: true,
-						KubeletVersion: "v1.19.7",
-					},
-					{
-						Name:           "wks-2",
-						IsControlPlane: false,
-						KubeletVersion: "v1.19.7",
-					},
-				},
-				FluxInfo: nil,
+				ID:        1,
+				Token:     "derp",
+				Name:      "My Cluster",
+				Status:    "lastSeen",
+				UpdatedAt: then,
+				FluxInfo:  nil,
 			},
 		},
 	}, res)
@@ -998,85 +851,35 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
 
-	// No data
-	response := executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusOK, response.Code)
-	assert.Equal(t, "{\n \"clusters\": []\n}", response.Body.String())
-
 	// Register a cluster
 	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
-	response = executeGet(t, db, json.MarshalIndent, "")
+
+	// Add last updated 40 minutes ago
+	rightNow := time.Now()
+	count := 40
+	then := rightNow.Add(time.Duration(-count) * time.Minute)
+
+	// Agent sends cluster info
+	db.Create(&models.ClusterInfo{
+		Token:     "derp",
+		UpdatedAt: then,
+	})
+
+	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
 	var res api.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
+	assertEqualCmp(t, api.ClustersResponse{
 		Clusters: []api.ClusterView{
 			{
-				ID:       1,
-				Token:    "derp",
-				Status:   "notConnected",
-				Name:     "My Cluster",
-				Type:     "",
-				FluxInfo: nil,
-			},
-		},
-	}, res)
-
-	// Add last updated 40 minutes ago
-	now := time.Now()
-	count := 40
-	then := now.Add(time.Duration(-count) * time.Minute)
-
-	// Agent sends cluster info
-	db.Create(&models.ClusterInfo{
-		UID:       "123",
-		Token:     "derp",
-		Type:      "existingInfra",
-		UpdatedAt: then,
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "456",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-1",
-		IsControlPlane: true,
-		KubeletVersion: "v1.19.7",
-	})
-	db.Create(&models.NodeInfo{
-		UID:            "789",
-		ClusterInfoUID: "123",
-		Token:          "derp",
-		Name:           "wks-2",
-		IsControlPlane: false,
-		KubeletVersion: "v1.19.7",
-	})
-
-	response = executeGet(t, db, json.MarshalIndent, "")
-	assert.Equal(t, http.StatusOK, response.Code)
-	err = json.Unmarshal(response.Body.Bytes(), &res)
-	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
-			{
-				ID:     1,
-				Token:  "derp",
-				Name:   "My Cluster",
-				Type:   "existingInfra",
-				Status: "notConnected",
-				Nodes: []api.NodeView{
-					{
-						Name:           "wks-1",
-						IsControlPlane: true,
-						KubeletVersion: "v1.19.7",
-					},
-					{
-						Name:           "wks-2",
-						IsControlPlane: false,
-						KubeletVersion: "v1.19.7",
-					},
-				},
-				FluxInfo: nil,
+				ID:        1,
+				Token:     "derp",
+				Name:      "My Cluster",
+				Type:      "",
+				Status:    "notConnected",
+				UpdatedAt: then,
+				FluxInfo:  nil,
 			},
 		},
 	}, res)

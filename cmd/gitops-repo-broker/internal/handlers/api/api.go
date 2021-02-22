@@ -74,7 +74,7 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 				fi.repo_url AS FluxRepoURL,
 				fi.repo_branch AS FluxRepoBranch,
 				(select count(*) from alerts a where a.token = c.token and severity = 'critical') as CriticalAlertsCount,
-				(select count(*) from alerts a where a.token = c.token and severity is not null) AS AlertsCount
+				(select count(*) from alerts a where a.token = c.token and severity != 'none' and severity is not null) AS AlertsCount
 			FROM 
 				clusters c 
 				LEFT JOIN cluster_info ci ON c.token = ci.token 
@@ -95,6 +95,7 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 				Token:      r.Token,
 				Type:       r.Type,
 				IngressURL: r.IngressURL,
+				UpdatedAt:  r.UpdatedAt,
 				Status:     getClusterStatus(r),
 			}
 			unpackClusterRow(&c, r)
@@ -269,28 +270,6 @@ func RegisterCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unma
 	}
 }
 
-func getClusterStatus(c ClusterListRow) string {
-	if c.CriticalAlertsCount > 0 {
-		return "critical"
-	}
-	if c.AlertsCount > 0 {
-		return "alerting"
-	}
-
-	timeNow := time.Now()
-	diff := timeNow.Sub(c.UpdatedAt)
-	intDiff := int64(diff / time.Minute)
-
-	if intDiff > 1 && intDiff < 30 {
-		return "lastSeen"
-	}
-	if intDiff > 30 {
-		return "notConnected"
-	}
-
-	return "ready"
-}
-
 func UpdateCluster(db *gorm.DB, unmarshalFn Unmarshal, marshalFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if db == nil {
@@ -435,6 +414,7 @@ type ClusterView struct {
 	IngressURL string         `json:"ingressUrl"`
 	Nodes      []NodeView     `json:"nodes,omitempty"`
 	Status     string         `json:"status"`
+	UpdatedAt  time.Time      `json:"updatedAt"`
 	FluxInfo   []FluxInfoView `json:"flux_info,omitempty"`
 }
 
@@ -468,6 +448,29 @@ type AlertsResponse struct {
 }
 
 // helpers
+
+func getClusterStatus(c ClusterListRow) string {
+	// Connection status first, if its gone away alerts might be stale.
+	timeNow := time.Now()
+	diff := timeNow.Sub(c.UpdatedAt)
+	intDiff := int64(diff / time.Minute)
+
+	if intDiff > 1 && intDiff < 30 {
+		return "lastSeen"
+	}
+	if intDiff > 30 {
+		return "notConnected"
+	}
+
+	if c.CriticalAlertsCount > 0 {
+		return "critical"
+	}
+	if c.AlertsCount > 0 {
+		return "alerting"
+	}
+
+	return "ready"
+}
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}, marshalIndentFn MarshalIndent) {
 	response, err := marshalIndentFn(payload, "", " ")
