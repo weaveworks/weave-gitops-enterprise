@@ -37,6 +37,7 @@ type ClusterListRow struct {
 	ID             uint
 	Name           string
 	Token          string
+	IngressURL     string
 	Type           string
 	NodeName       string
 	IsControlPlane bool
@@ -61,7 +62,8 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 			SELECT
 				c.id AS ID,
 				c.name AS Name, 
-				c.token AS Token, 
+				c.token AS Token,
+				c.ingress_url AS IngressURL, 
 				ci.type AS Type, 
 				ni.name AS NodeName, 
 				ci.updated_at AS UpdatedAt,
@@ -88,11 +90,12 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 		if cl, ok := clusters[r.Name]; !ok {
 			// Add new cluster with node to map
 			c := ClusterView{
-				ID:     r.ID,
-				Name:   r.Name,
-				Token:  r.Token,
-				Type:   r.Type,
-				Status: getClusterStatus(r),
+				ID:         r.ID,
+				Name:       r.Name,
+				Token:      r.Token,
+				Type:       r.Type,
+				IngressURL: r.IngressURL,
+				Status:     getClusterStatus(r),
 			}
 			unpackClusterRow(&c, r)
 			clusters[r.Name] = &c
@@ -425,13 +428,14 @@ type NodeView struct {
 }
 
 type ClusterView struct {
-	ID       uint           `json:"id"`
-	Name     string         `json:"name"`
-	Type     string         `json:"type"`
-	Token    string         `json:"token"`
-	Nodes    []NodeView     `json:"nodes,omitempty"`
-	Status   string         `json:"status"`
-	FluxInfo []FluxInfoView `json:"flux_info,omitempty"`
+	ID         uint           `json:"id"`
+	Name       string         `json:"name"`
+	Type       string         `json:"type"`
+	Token      string         `json:"token"`
+	IngressURL string         `json:"ingressUrl"`
+	Nodes      []NodeView     `json:"nodes,omitempty"`
+	Status     string         `json:"status"`
+	FluxInfo   []FluxInfoView `json:"flux_info,omitempty"`
 }
 
 type FluxInfoView struct {
