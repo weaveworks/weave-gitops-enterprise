@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Slash Command Dispatch
         # @v2
-        uses: weaveworks/slash-command-dispatch@7dd4ee1aa3be41c206a08dba4fa0c486cfd595ee
+        uses: weaveworks/slash-command-dispatch@8567d586a62aded05dd1e770fb09f337a91c7130
         with:
           # This is an Secret in the Weaveworks Organization (not wks repo)
           token: ${{ secrets.WKS_CI_TEST_BOT_TOKEN }}
