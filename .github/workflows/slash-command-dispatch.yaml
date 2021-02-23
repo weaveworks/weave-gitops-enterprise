@@ -15,7 +15,6 @@ jobs:
           # This is an Secret in the Weaveworks Organization (not wks repo)
           token: ${{ secrets.WKS_CI_TEST_BOT_TOKEN }}
           reaction-token: ${{ secrets.WKS_CI_TEST_BOT_TOKEN }}
-          permission: write
           commands: |
             test
 
