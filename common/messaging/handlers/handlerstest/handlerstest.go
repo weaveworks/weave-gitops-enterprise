@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/common/messaging/payload"
 )
@@ -93,4 +95,27 @@ func (c *FakeCloudEventsClient) AssertEventWasSent(t *testing.T, expected payloa
 
 func (c *FakeCloudEventsClient) AssertNoCloudEventsWereSent(t *testing.T) {
 	assert.Empty(t, c.sent)
+}
+
+func (c *FakeCloudEventsClient) AssertGitCommitInfoWasSent(t *testing.T, expected payload.GitCommitInfo) {
+	c.Lock()
+	defer c.Unlock()
+
+	list := make([]payload.GitCommitInfo, 0)
+	var ev payload.GitCommitInfo
+	for _, e := range c.sent {
+		_ = e.DataAs(&ev)
+		list = append(list, ev)
+	}
+
+	var found bool
+	for _, gc := range list {
+		if cmp.Equal(expected, gc, cmpopts.IgnoreFields(payload.UserView{}, "Date")) {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Errorf("Expected to have sent GitCommitInfo %v but has sent instead %v", expected, list)
+	}
 }

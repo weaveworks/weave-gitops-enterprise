@@ -268,7 +268,7 @@ func TestReceiveFluxInfo_NoMatchingCluster(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 	cancel()
 
-	// FluxInfo should be stored as there is no cluster matching the token
+	// FluxInfo should not be stored as there is no cluster matching the token
 	// Query db
 	var fluxes []models.FluxInfo
 	fluxesResult := db.Find(&fluxes)
@@ -943,4 +943,159 @@ func newAlert(generatorURL, finPrint, state string, start, end, update time.Time
 	}
 
 	return alert
+}
+
+func TestReceiveGitCommitInfo(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Create cluster
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
+
+	// Publish event
+	info := payload.GitCommitInfo{
+		Token: "derp",
+		Commit: payload.CommitView{
+			Sha:     "6c4b104bf502bb417aa2d73aac36fcd58f4e15df",
+			Message: "Fixing prod",
+			Author: payload.UserView{
+				Name:  "foo",
+				Email: "foo@weave.works",
+				Date:  time.Now().UTC(),
+			},
+			Committer: payload.UserView{
+				Name:  "bar",
+				Email: "bar@weave.works",
+				Date:  time.Now().UTC(),
+			},
+		},
+	}
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("GitCommitInfo")
+	event.SetTime(time.Now())
+	event.SetSource("test")
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// Query db
+	var commits []models.GitCommit
+	commitsResult := db.Find(&commits)
+	assert.Equal(t, 1, int(commitsResult.RowsAffected))
+	assert.NoError(t, commitsResult.Error)
+
+	actual := commits[0]
+	assert.Equal(t, info.Token, actual.ClusterToken)
+	assert.Equal(t, info.Commit.Sha, actual.Sha)
+	assert.Equal(t, info.Commit.Message, actual.Message)
+	assert.Equal(t, info.Commit.Author.Name, actual.AuthorName)
+	assert.Equal(t, info.Commit.Author.Email, actual.AuthorEmail)
+	assert.Equal(t, info.Commit.Author.Date, actual.AuthorDate)
+	assert.Equal(t, info.Commit.Committer.Name, actual.CommitterName)
+	assert.Equal(t, info.Commit.Committer.Email, actual.CommitterEmail)
+	assert.Equal(t, info.Commit.Committer.Date, actual.CommitterDate)
+}
+
+func TestReceiveGitCommitInfo_NoMatchingCluster(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Publish event
+	info := payload.GitCommitInfo{
+		Token: "derp",
+		Commit: payload.CommitView{
+			Sha:     "6c4b104bf502bb417aa2d73aac36fcd58f4e15df",
+			Message: "Fixing prod",
+			Author: payload.UserView{
+				Name:  "foo",
+				Email: "foo@weave.works",
+				Date:  time.Now().UTC(),
+			},
+			Committer: payload.UserView{
+				Name:  "bar",
+				Email: "bar@weave.works",
+				Date:  time.Now().UTC(),
+			},
+		},
+	}
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("GitCommitInfo")
+	event.SetTime(time.Now())
+	event.SetSource("test")
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// Query db
+	var commits []models.GitCommit
+	commitsResult := db.Find(&commits)
+	assert.Equal(t, 0, int(commitsResult.RowsAffected))
+	assert.NoError(t, commitsResult.Error)
 }

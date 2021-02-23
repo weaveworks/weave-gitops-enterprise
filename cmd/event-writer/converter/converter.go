@@ -142,6 +142,20 @@ func ConvertFluxInfo(fluxInfo payload.FluxInfo) ([]models.FluxInfo, error) {
 	return result, nil
 }
 
+func ConvertGitCommitInfo(commitInfo payload.GitCommitInfo) (models.GitCommit, error) {
+	return models.GitCommit{
+		ClusterToken:   commitInfo.Token,
+		Sha:            commitInfo.Commit.Sha,
+		AuthorName:     commitInfo.Commit.Author.Name,
+		AuthorEmail:    commitInfo.Commit.Author.Email,
+		AuthorDate:     commitInfo.Commit.Author.Date,
+		CommitterName:  commitInfo.Commit.Committer.Name,
+		CommitterEmail: commitInfo.Commit.Committer.Email,
+		CommitterDate:  commitInfo.Commit.Committer.Date,
+		Message:        commitInfo.Commit.Message,
+	}, nil
+}
+
 // SerializeLabelSet flattens a labelset to a string
 func SerializeLabelSet(labels ammodels.LabelSet) string {
 	labelMap := map[string]string(labels)

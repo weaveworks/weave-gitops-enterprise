@@ -56,6 +56,8 @@ func ReceiveEvent(ctx context.Context, event ce.Event) error {
 		return writeAlert(event)
 	case "FluxInfo":
 		return writeFluxInfo(event)
+	case "GitCommitInfo":
+		return writeGitCommitInfo(event)
 	default:
 		log.Warnf("Unknown message type: %s.", event.Type())
 	}
@@ -172,6 +174,46 @@ func writeFluxInfo(event ce.Event) error {
 	utils.DB.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).CreateInBatches(dbFluxInfo, queue.BatchSize)
+
+	return nil
+}
+
+func writeGitCommitInfo(event ce.Event) error {
+	var data payload.GitCommitInfo
+	if err := event.DataAs(&data); err != nil {
+		log.Warnf("Failed to parse event as GitCommitInfo object: %v", err)
+		return err
+	}
+
+	var cluster models.Cluster
+	clusterResult := utils.DB.First(&cluster, "token = ?", data.Token)
+	if errors.Is(clusterResult.Error, gorm.ErrRecordNotFound) {
+		log.Warnf("Received GitCommitInfo for unknown cluster")
+		return fmt.Errorf("Received GitCommitInfo did not match any registered clusters, token: %s", data.Token)
+	}
+	log.Debugf("Received GitCommitInfo for cluster %s", cluster.Name)
+
+	dbCommitInfo, err := converter.ConvertGitCommitInfo(data)
+	if err != nil {
+		log.Warnf("Failed to convert GitCommitInfo object to db model: %v.", err)
+		return err
+	}
+
+	if err := utils.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("cluster_token = ?", data.Token).Delete(models.GitCommit{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&dbCommitInfo).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		log.Errorf("Failed to add commit '%s' to the database: %v.", dbCommitInfo.Sha, err)
+		return err
+	}
+
+	log.Debugf("Commit '%s' added.", dbCommitInfo.Sha)
 
 	return nil
 }

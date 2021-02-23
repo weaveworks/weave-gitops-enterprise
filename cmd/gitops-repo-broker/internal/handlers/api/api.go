@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gorm.io/datatypes"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
+
+	"gorm.io/datatypes"
 
 	"github.com/gorilla/mux"
 
@@ -55,6 +56,13 @@ type ClusterListRow struct {
 	FluxNamespace  string
 	FluxRepoURL    string
 	FluxRepoBranch string
+
+	// Git commit
+	GitCommitAuthorName  string
+	GitCommitAuthorEmail string
+	GitCommitAuthorDate  time.Time
+	GitCommitMessage     string
+	GitCommitSha         string
 }
 
 func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
@@ -76,12 +84,18 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 				fi.repo_url AS FluxRepoURL,
 				fi.repo_branch AS FluxRepoBranch,
 				(select count(*) from alerts a where a.token = c.token and severity = 'critical') as CriticalAlertsCount,
-				(select count(*) from alerts a where a.token = c.token and severity != 'none' and severity is not null) AS AlertsCount
+				(select count(*) from alerts a where a.token = c.token and severity != 'none' and severity is not null) AS AlertsCount,
+				gc.author_name AS GitCommitAuthorName,
+				gc.author_email AS GitCommitAuthorEmail,
+				gc.author_date AS GitCommitAuthorDate,
+				gc.message AS GitCommitMessage,
+				gc.sha AS GitCommitSha
 			FROM 
 				clusters c 
 				LEFT JOIN cluster_info ci ON c.token = ci.token 
 				LEFT JOIN node_info ni ON c.token = ni.token
 				LEFT JOIN flux_info fi ON c.token = fi.cluster_token
+				LEFT JOIN git_commits gc ON c.token = gc.cluster_token
 			WHERE c.deleted_at IS NULL
 		`+extraQuery, extraValues).Scan(&rows).Error; err != nil {
 		return nil, ErrNilDB
@@ -141,6 +155,22 @@ func unpackClusterRow(c *ClusterView, r ClusterListRow) {
 			Namespace:  r.FluxNamespace,
 			RepoURL:    r.FluxRepoURL,
 			RepoBranch: r.FluxRepoBranch,
+		})
+	}
+
+	if r.GitCommitSha != "" && !gitCommitExists(*c, GitCommitView{
+		Sha:         r.GitCommitSha,
+		AuthorName:  r.GitCommitAuthorName,
+		AuthorEmail: r.GitCommitAuthorEmail,
+		AuthorDate:  r.GitCommitAuthorDate,
+		Message:     r.GitCommitMessage,
+	}) {
+		c.GitCommits = append(c.GitCommits, GitCommitView{
+			Sha:         r.GitCommitSha,
+			AuthorName:  r.GitCommitAuthorName,
+			AuthorEmail: r.GitCommitAuthorEmail,
+			AuthorDate:  r.GitCommitAuthorDate,
+			Message:     r.GitCommitMessage,
 		})
 	}
 }
@@ -403,15 +433,16 @@ type NodeView struct {
 }
 
 type ClusterView struct {
-	ID         uint           `json:"id"`
-	Name       string         `json:"name"`
-	Type       string         `json:"type"`
-	Token      string         `json:"token"`
-	IngressURL string         `json:"ingressUrl"`
-	Nodes      []NodeView     `json:"nodes,omitempty"`
-	Status     string         `json:"status"`
-	UpdatedAt  time.Time      `json:"updatedAt"`
-	FluxInfo   []FluxInfoView `json:"flux_info,omitempty"`
+	ID         uint            `json:"id"`
+	Name       string          `json:"name"`
+	Type       string          `json:"type"`
+	Token      string          `json:"token"`
+	IngressURL string          `json:"ingressUrl"`
+	Nodes      []NodeView      `json:"nodes,omitempty"`
+	Status     string          `json:"status"`
+	UpdatedAt  time.Time       `json:"updatedAt"`
+	FluxInfo   []FluxInfoView  `json:"flux_info,omitempty"`
+	GitCommits []GitCommitView `json:"git_commits,omitempty"`
 }
 
 type FluxInfoView struct {
@@ -459,6 +490,14 @@ type AlertsClusterRow struct {
 	ClusterID         uint
 	ClusterName       string
 	ClusterIngressURL string
+}
+
+type GitCommitView struct {
+	Sha         string    `json:"sha"`
+	AuthorName  string    `json:"author_name"`
+	AuthorEmail string    `json:"author_email"`
+	AuthorDate  time.Time `json:"author_date"`
+	Message     string    `json:"message"`
 }
 
 // helpers
@@ -561,4 +600,13 @@ func toAlertResponse(rows []AlertsClusterRow) (*AlertsResponse, error) {
 	}
 
 	return &res, nil
+}
+
+func gitCommitExists(c ClusterView, gc GitCommitView) bool {
+	for _, existingGitCommitInfo := range c.GitCommits {
+		if existingGitCommitInfo.Sha == gc.Sha {
+			return true
+		}
+	}
+	return false
 }

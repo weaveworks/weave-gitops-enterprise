@@ -137,3 +137,15 @@ type FluxInfo struct {
 func (FluxInfo) TableName() string {
 	return "flux_info"
 }
+
+type GitCommit struct {
+	ClusterToken   string `gorm:"primaryKey"`
+	Sha            string `gorm:"primaryKey"`
+	AuthorName     string
+	AuthorEmail    string
+	AuthorDate     time.Time
+	CommitterName  string
+	CommitterEmail string
+	CommitterDate  time.Time
+	Message        string
+}

@@ -91,6 +91,12 @@ func MigrateTables(db *gorm.DB) error {
 		return errors.New("failed to create FluxInfo table")
 	}
 	log.Info("created FluxInfo table")
+
+	err = db.AutoMigrate(&models.GitCommit{})
+	if err != nil {
+		return errors.New("failed to create GitCommits table")
+	}
+	log.Info("created GitCommits table")
 	return nil
 }
 

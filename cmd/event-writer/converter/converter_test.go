@@ -452,3 +452,36 @@ func TestExtractRepoURLfromFluxArgs(t *testing.T) {
 		assert.Equal(t, test.parsedURL, result)
 	}
 }
+
+func TestConvertGitCommitInfo(t *testing.T) {
+	commit := payload.GitCommitInfo{
+		Token: "derp",
+		Commit: payload.CommitView{
+			Sha:     "123",
+			Message: "GitOps ftw",
+			Author: payload.UserView{
+				Name:  "foo",
+				Email: "foo@weave.works",
+				Date:  time.Now().UTC(),
+			},
+			Committer: payload.UserView{
+				Name:  "bar",
+				Email: "bar@weave.works",
+				Date:  time.Now().UTC(),
+			},
+		},
+	}
+
+	dbCommit, err := ConvertGitCommitInfo(commit)
+	assert.NoError(t, err)
+
+	assert.Equal(t, commit.Token, dbCommit.ClusterToken)
+	assert.Equal(t, commit.Commit.Sha, dbCommit.Sha)
+	assert.Equal(t, commit.Commit.Message, dbCommit.Message)
+	assert.Equal(t, commit.Commit.Author.Name, dbCommit.AuthorName)
+	assert.Equal(t, commit.Commit.Author.Email, dbCommit.AuthorEmail)
+	assert.Equal(t, commit.Commit.Author.Date, dbCommit.AuthorDate)
+	assert.Equal(t, commit.Commit.Committer.Name, dbCommit.CommitterName)
+	assert.Equal(t, commit.Commit.Committer.Email, dbCommit.CommitterEmail)
+	assert.Equal(t, commit.Commit.Committer.Date, dbCommit.CommitterDate)
+}

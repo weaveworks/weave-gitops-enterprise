@@ -12,13 +12,15 @@ require (
 	github.com/fluxcd/go-git-providers v0.0.3
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-playground/validator/v10 v10.4.1
-	github.com/google/go-cmp v0.4.1
+	github.com/go-resty/resty/v2 v2.5.0
+	github.com/google/go-cmp v0.5.2
 	github.com/google/go-containerregistry v0.1.3
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-github/v32 v32.1.0
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/mux v1.7.3
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
+	github.com/jarcoal/httpmock v1.0.8
 	github.com/jcmturner/gofork v1.0.0 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/lithammer/dedent v1.1.0

@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/wkp-agent/internal/common"
@@ -18,10 +19,15 @@ import (
 	"k8s.io/client-go/informers"
 )
 
+const (
+	WKPAgentEventSource string = "wkp-agent"
+)
+
 type watchCmdParamSet struct {
-	ClusterInfoPollingInterval time.Duration
-	FluxInfoPollingInterval    time.Duration
-	HealthCheckPort            int
+	ClusterInfoPollingInterval   time.Duration
+	FluxInfoPollingInterval      time.Duration
+	GitCommitInfoPollingInterval time.Duration
+	HealthCheckPort              int
 }
 
 var watchCmdParams watchCmdParamSet
@@ -37,6 +43,7 @@ func init() {
 
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.ClusterInfoPollingInterval, "cluster-info-polling-interval", 10*time.Second, "Polling interval for ClusterInfo")
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.FluxInfoPollingInterval, "flux-info-polling-interval", 10*time.Second, "Polling interval for flux deployment info")
+	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.GitCommitInfoPollingInterval, "git-commit-info-polling-interval", 10*time.Second, "Polling interval for git commit info")
 	watchCmd.PersistentFlags().IntVar(&watchCmdParams.HealthCheckPort, "health-check-port", 8080, "Port to expose health check")
 }
 
@@ -69,19 +76,24 @@ func run(cmd *cobra.Command, args []string) {
 	log.Info("Agent starting watchers.")
 
 	// Watch for Events
-	notifier := handlers.NewEventNotifier(token, "wkp-agent", client)
+	notifier := handlers.NewEventNotifier(token, WKPAgentEventSource, client)
 	events := clusterwatcher.NewWatcher(factory.Core().V1().Events().Informer(), notifier.Notify)
 	go events.Run("Events", 1, ctx.Done())
 
 	// Poll for ClusterInfo
-	clusterInfoSender := handlers.NewClusterInfoSender("wkp-agent", client)
+	clusterInfoSender := handlers.NewClusterInfoSender(WKPAgentEventSource, client)
 	clusterInfo := clusterpoller.NewClusterInfoPoller(token, k8sClient, watchCmdParams.ClusterInfoPollingInterval, clusterInfoSender)
 	go clusterInfo.Run(ctx.Done())
 
 	// Poll for FluxInfo
-	fluxInfoSender := handlers.NewFluxInfoSender("wkp-agent", client)
+	fluxInfoSender := handlers.NewFluxInfoSender(WKPAgentEventSource, client)
 	fluxInfo := clusterpoller.NewFluxInfoPoller(token, k8sClient, watchCmdParams.FluxInfoPollingInterval, fluxInfoSender)
 	go fluxInfo.Run(ctx.Done())
+
+	// Poll for latest Git commit info
+	gitCommitInfoSender := handlers.NewGitCommitInfoSender(WKPAgentEventSource, client)
+	gitCommitInfo := clusterpoller.NewGitCommitInfoPoller(token, k8sClient, watchCmdParams.GitCommitInfoPollingInterval, resty.New(), gitCommitInfoSender)
+	go gitCommitInfo.Run(ctx.Done())
 
 	livenessCheck()
 }

@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/cloudevents/sdk-go/v2 v2.3.1
+	github.com/google/go-cmp v0.5.2
 	github.com/google/uuid v1.2.0
 	github.com/prometheus/alertmanager v0.21.0
 	github.com/sirupsen/logrus v1.7.0
