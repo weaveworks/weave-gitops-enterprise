@@ -441,15 +441,15 @@ type ClusterView struct {
 	Nodes      []NodeView      `json:"nodes,omitempty"`
 	Status     string          `json:"status"`
 	UpdatedAt  time.Time       `json:"updatedAt"`
-	FluxInfo   []FluxInfoView  `json:"flux_info,omitempty"`
+	FluxInfo   []FluxInfoView  `json:"fluxInfo,omitempty"`
 	GitCommits []GitCommitView `json:"git_commits,omitempty"`
 }
 
 type FluxInfoView struct {
 	Name       string `json:"name"`
 	Namespace  string `json:"namespace"`
-	RepoURL    string `json:"repo_url"`
-	RepoBranch string `json:"repo_branch"`
+	RepoURL    string `json:"repoUrl"`
+	RepoBranch string `json:"repoBranch"`
 }
 
 type ClustersResponse struct {
