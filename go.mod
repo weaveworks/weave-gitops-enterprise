@@ -58,6 +58,7 @@ require (
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+	gorm.io/datatypes v1.0.0
 	gorm.io/gorm v1.20.12
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.20.2

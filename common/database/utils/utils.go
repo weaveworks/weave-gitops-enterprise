@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"gorm.io/gorm/logger"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/common/database/models"
@@ -14,7 +15,18 @@ var DB *gorm.DB
 
 // Open creates the SQLite database or connects to an existing database
 func Open(dbURI string) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(dbURI), &gorm.Config{})
+	return OpenDebug(dbURI, false)
+}
+
+func OpenDebug(dbURI string, debug bool) (*gorm.DB, error) {
+	config := &gorm.Config{}
+	if debug {
+		config = &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		}
+	}
+	db, err := gorm.Open(sqlite.Open(dbURI), config)
+
 	if err != nil {
 		return nil, errors.New("failed to connect to database")
 	}

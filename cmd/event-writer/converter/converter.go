@@ -21,11 +21,7 @@ import (
 // ConvertEvent returns a models.Event from a payload.KubernetesEvent which wraps a v1.Event object
 func ConvertEvent(wkpEvent payload.KubernetesEvent) (models.Event, error) {
 	event := wkpEvent.Event
-	eventJSONbytes, err := SerializeEventToJSON(&event)
-	if err != nil {
-		return models.Event{}, err
-	}
-	eventJSON, err := datatypes.JSON.MarshalJSON(eventJSONbytes)
+	eventJSONbytes, err := toJSON(&event)
 	if err != nil {
 		return models.Event{}, err
 	}
@@ -50,7 +46,7 @@ func ConvertEvent(wkpEvent payload.KubernetesEvent) (models.Event, error) {
 		Reason:       event.Reason,
 		Message:      event.Message,
 		Type:         event.Type,
-		RawEvent:     eventJSON,
+		RawEvent:     datatypes.JSON(eventJSONbytes),
 	}
 	return result, nil
 }
@@ -85,24 +81,26 @@ func ConvertNodeInfo(clusterInfo payload.ClusterInfo, clusterID types.UID) ([]mo
 // ConvertAlert returns a models.Alert from a NATS message with alert info
 func ConvertAlert(token string, gAlert *ammodels.GettableAlert) (models.Alert, error) {
 	alert := gAlert
-	alertJSONbytes, err := SerializeAlertToJSON(alert)
+	alertJSONbytes, err := toJSON(alert)
 	if err != nil {
 		return models.Alert{}, err
 	}
-	alertJSON, err := datatypes.JSON.MarshalJSON(alertJSONbytes)
+	annotationsJSONBytes, err := toJSON(alert.Annotations)
+	if err != nil {
+		return models.Alert{}, err
+	}
+	labelsJSONBytes, err := toJSON(alert.Labels)
 	if err != nil {
 		return models.Alert{}, err
 	}
 
-	flattenedLabels := SerializeLabelSet(alert.Alert.Labels)
-	flattenedAnnotations := SerializeLabelSet(alert.Annotations)
 	flattenedInhibitedBy := SerializeStringSlice(alert.Status.InhibitedBy)
 	flattenedSilencedBy := SerializeStringSlice(alert.Status.SilencedBy)
 	Severity := alert.Alert.Labels["severity"]
 
 	result := models.Alert{
 		Token:        token,
-		Annotations:  flattenedAnnotations,
+		Annotations:  datatypes.JSON(annotationsJSONBytes),
 		EndsAt:       time.Time(*alert.EndsAt),
 		Fingerprint:  *alert.Fingerprint,
 		InhibitedBy:  flattenedInhibitedBy,
@@ -112,8 +110,8 @@ func ConvertAlert(token string, gAlert *ammodels.GettableAlert) (models.Alert, e
 		StartsAt:     time.Time(*alert.StartsAt),
 		UpdatedAt:    time.Time(*alert.UpdatedAt),
 		GeneratorURL: alert.Alert.GeneratorURL.String(),
-		Labels:       flattenedLabels,
-		RawAlert:     alertJSON,
+		Labels:       datatypes.JSON(labelsJSONBytes),
+		RawAlert:     datatypes.JSON(alertJSONbytes),
 	}
 
 	return result, nil
@@ -167,20 +165,16 @@ func SerializeStringMap(m map[string]string) string {
 	return b.String()
 }
 
-// SerializeAlertToJSON serializes a alert manager models.Alert object to a byte array
-func SerializeAlertToJSON(a *ammodels.GettableAlert) ([]byte, error) {
+func toJSON(obj interface{}) ([]byte, error) {
 	output := bytes.NewBufferString("")
 	encoder := json.NewEncoder(output)
-	encoder.Encode(a)
+	encoder.Encode(obj)
 	return output.Bytes(), nil
 }
 
 // SerializeEventToJSON serializes a v1.Event object to a byte array
 func SerializeEventToJSON(e *v1.Event) ([]byte, error) {
-	output := bytes.NewBufferString("")
-	encoder := json.NewEncoder(output)
-	encoder.Encode(e)
-	return output.Bytes(), nil
+	return toJSON(e)
 }
 
 // DeserializeJSONToEvent constructs a v1.Event from a byte array and returns a pointer to it

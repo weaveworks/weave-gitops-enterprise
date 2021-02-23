@@ -1,8 +1,10 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"gorm.io/datatypes"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -332,24 +334,30 @@ func ListAlerts(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Response
 			return
 		}
 
-		var rows []models.Alert
+		var rows []AlertsClusterRow
 		err := db.Transaction(func(tx *gorm.DB) error {
 			if err := tx.Raw(`
 			SELECT
 				a.id,
-				a.annotations, 
-				a.ends_at, 
-				a.fingerprint, 
-				a.inhibited_by, 
+				a.annotations,
+				a.ends_at,
+				a.fingerprint,
+				a.inhibited_by,
 				a.silenced_by,
-				a.severity, 
+				a.severity,
 				a.state,
 				a.starts_at,
 				a.updated_at,
 				a.generator_url,
-				a.labels
-			FROM 
-				alerts a
+				a.labels,
+				c.id as ClusterID,
+				c.name as ClusterName,
+				c.ingress_url as ClusterIngressURL
+			FROM
+				alerts a,
+				clusters c
+			WHERE
+				a.token = c.token
 			`).Scan(&rows).Error; err != nil {
 				return err
 			}
@@ -363,23 +371,11 @@ func ListAlerts(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Response
 			return
 		}
 
-		res := AlertsResponse{
-			Alerts: []AlertView{},
-		}
-		for _, r := range rows {
-			res.Alerts = append(res.Alerts, AlertView{
-				ID:          r.ID,
-				Fingerprint: r.Fingerprint,
-				State:       r.State,
-				Severity:    r.Severity,
-				InhibitedBy: r.InhibitedBy,
-				SilencedBy:  r.SilencedBy,
-				Annotations: r.Annotations,
-				Labels:      r.Labels,
-				StartsAt:    r.StartsAt,
-				UpdatedAt:   r.UpdatedAt,
-				EndsAt:      r.EndsAt,
-			})
+		res, err := toAlertResponse(rows)
+		if err != nil {
+			log.Errorf("Failed to generate response for alerts: %v", err)
+			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
+			return
 		}
 
 		respondWithJSON(w, http.StatusOK, res, marshalIndentFn)
@@ -430,21 +426,39 @@ type ClustersResponse struct {
 }
 
 type AlertView struct {
-	ID          uint      `json:"id"`
-	Fingerprint string    `json:"fingerprint"`
-	State       string    `json:"state"`
-	Severity    string    `json:"severity"`
-	InhibitedBy string    `json:"inhibited_by"`
-	SilencedBy  string    `json:"silenced_by"`
-	Annotations string    `json:"annotations"`
-	Labels      string    `json:"labels"`
-	StartsAt    time.Time `json:"starts_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	EndsAt      time.Time `json:"ends_at"`
+	ID          uint                   `json:"id"`
+	Fingerprint string                 `json:"fingerprint"`
+	State       string                 `json:"state"`
+	Severity    string                 `json:"severity"`
+	InhibitedBy string                 `json:"inhibited_by"`
+	SilencedBy  string                 `json:"silenced_by"`
+	Annotations map[string]interface{} `json:"annotations"`
+	Labels      map[string]interface{} `json:"labels"`
+	StartsAt    time.Time              `json:"starts_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+	EndsAt      time.Time              `json:"ends_at"`
+	Cluster     ClusterView            `json:"cluster"`
 }
 
 type AlertsResponse struct {
 	Alerts []AlertView `json:"alerts"`
+}
+
+type AlertsClusterRow struct {
+	ID                uint
+	Fingerprint       string
+	State             string
+	Severity          string
+	InhibitedBy       string
+	SilencedBy        string
+	Annotations       datatypes.JSON
+	Labels            datatypes.JSON
+	StartsAt          time.Time
+	UpdatedAt         time.Time
+	EndsAt            time.Time
+	ClusterID         uint
+	ClusterName       string
+	ClusterIngressURL string
 }
 
 // helpers
@@ -510,4 +524,41 @@ func fluxInfoExists(c ClusterView, fi FluxInfoView) bool {
 		}
 	}
 	return false
+}
+
+func toAlertResponse(rows []AlertsClusterRow) (*AlertsResponse, error) {
+
+	res := AlertsResponse{
+		Alerts: []AlertView{},
+	}
+
+	for _, r := range rows {
+		var labels map[string]interface{}
+		var annotations map[string]interface{}
+		if err := json.Unmarshal(r.Labels, &labels); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(r.Annotations, &annotations); err != nil {
+			return nil, err
+		}
+		res.Alerts = append(res.Alerts, AlertView{
+			ID:          r.ID,
+			Fingerprint: r.Fingerprint,
+			State:       r.State,
+			Severity:    r.Severity,
+			InhibitedBy: r.InhibitedBy,
+			SilencedBy:  r.SilencedBy,
+			Annotations: annotations,
+			Labels:      labels,
+			StartsAt:    r.StartsAt,
+			UpdatedAt:   r.UpdatedAt,
+			EndsAt:      r.EndsAt,
+			Cluster: ClusterView{
+				ID:   r.ClusterID,
+				Name: r.ClusterName,
+			},
+		})
+	}
+
+	return &res, nil
 }

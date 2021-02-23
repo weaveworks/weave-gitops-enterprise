@@ -141,13 +141,11 @@ func writeAlert(event ce.Event) error {
 		dbAlerts = append(dbAlerts, dbAlert)
 	}
 
-	utils.DB.Where("token = ?", data.Token).Delete(models.Alert{})
-
-	utils.DB.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Create(&dbAlerts)
-
-	return nil
+	return utils.DB.Transaction(func(tx *gorm.DB) error {
+		tx.Where("token = ?", data.Token).Delete(models.Alert{})
+		tx.Create(&dbAlerts)
+		return nil
+	})
 }
 
 func writeFluxInfo(event ce.Event) error {

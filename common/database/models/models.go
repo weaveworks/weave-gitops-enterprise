@@ -57,9 +57,10 @@ func (NodeInfo) TableName() string {
 
 // Alert Table
 type Alert struct {
-	ID           uint `gorm:"primaryKey"`
+	ID           uint    `gorm:"primaryKey"`
+	Cluster      Cluster `gorm:"foreignKey:token"`
 	Token        string
-	Annotations  string
+	Annotations  datatypes.JSON
 	EndsAt       time.Time
 	Fingerprint  string
 	InhibitedBy  string
@@ -69,7 +70,7 @@ type Alert struct {
 	StartsAt     time.Time
 	UpdatedAt    time.Time
 	GeneratorURL string
-	Labels       string
+	Labels       datatypes.JSON
 	RawAlert     datatypes.JSON
 }
 

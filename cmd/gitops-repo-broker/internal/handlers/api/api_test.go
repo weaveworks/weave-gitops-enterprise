@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
+	"gorm.io/datatypes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -653,14 +654,24 @@ func TestListAlerts(t *testing.T) {
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
 
+	annotations := map[string]interface{}{"anno": "foo"}
+	labels := map[string]interface{}{"labels": "bar"}
+	annotationJSON, err := toJSON(annotations)
+	assert.NoError(t, err)
+	labelsJSON, err := toJSON(labels)
+	assert.NoError(t, err)
+
+	c := models.Cluster{Name: "My Cluster", Token: "derp"}
+	db.Create(&c)
 	a := models.Alert{
+		Token:       c.Token,
 		Fingerprint: "123",
 		State:       "active",
 		Severity:    "foo",
 		InhibitedBy: "bar",
 		SilencedBy:  "baz",
-		Annotations: "annotations",
-		Labels:      "labels",
+		Annotations: datatypes.JSON(annotationJSON),
+		Labels:      datatypes.JSON(labelsJSON),
 		StartsAt:    time.Now().UTC(),
 		UpdatedAt:   time.Now().UTC(),
 		EndsAt:      time.Now().UTC(),
@@ -680,11 +691,12 @@ func TestListAlerts(t *testing.T) {
 	assert.Equal(t, a.Severity, alert.Severity)
 	assert.Equal(t, a.InhibitedBy, alert.InhibitedBy)
 	assert.Equal(t, a.SilencedBy, alert.SilencedBy)
-	assert.Equal(t, a.Annotations, alert.Annotations)
-	assert.Equal(t, a.Labels, alert.Labels)
+	assert.Equal(t, annotations, alert.Annotations)
+	assert.Equal(t, labels, alert.Labels)
 	assert.Equal(t, a.StartsAt, alert.StartsAt)
 	assert.Equal(t, a.UpdatedAt, alert.UpdatedAt)
 	assert.Equal(t, a.EndsAt, alert.EndsAt)
+	assert.Equal(t, c.Name, alert.Cluster.Name)
 }
 
 type FakeErrorReader struct {
@@ -883,4 +895,11 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 			},
 		},
 	}, res)
+}
+
+func toJSON(obj interface{}) ([]byte, error) {
+	output := bytes.NewBufferString("")
+	encoder := json.NewEncoder(output)
+	encoder.Encode(obj)
+	return output.Bytes(), nil
 }
