@@ -387,7 +387,10 @@ func ListAlerts(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Response
 				alerts a,
 				clusters c
 			WHERE
-				a.token = c.token
+				a.token = c.token and
+				a.severity != 'none' and a.severity is not null
+			ORDER BY
+				a.severity
 			`).Scan(&rows).Error; err != nil {
 				return err
 			}
@@ -593,8 +596,9 @@ func toAlertResponse(rows []AlertsClusterRow) (*AlertsResponse, error) {
 			UpdatedAt:   r.UpdatedAt,
 			EndsAt:      r.EndsAt,
 			Cluster: ClusterView{
-				ID:   r.ClusterID,
-				Name: r.ClusterName,
+				ID:         r.ClusterID,
+				Name:       r.ClusterName,
+				IngressURL: r.ClusterIngressURL,
 			},
 		})
 	}
