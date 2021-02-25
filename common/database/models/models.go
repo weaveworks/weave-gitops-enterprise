@@ -40,7 +40,8 @@ func (ClusterInfo) TableName() string {
 
 // NodeInfo table
 type NodeInfo struct {
-	UID            types.UID `gorm:"primaryKey"`
+	ID             uint `gorm:"primaryKey"`
+	UID            types.UID
 	Token          string
 	ClusterInfoUID types.UID
 	ClusterInfo    ClusterInfo `gorm:"foreignKey:UID"`

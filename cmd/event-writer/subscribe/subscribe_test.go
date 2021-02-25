@@ -396,17 +396,18 @@ func TestReceiveClusterInfo(t *testing.T) {
 
 	// Publish event
 	info := payload.ClusterInfo{
+		Token: "derp",
 		Cluster: payload.Cluster{
 			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
 			Type: "existinginfra",
 			Nodes: []payload.Node{
-				payload.Node{
+				{
 					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
 					Name:           "derp-wks-1",
 					IsControlPlane: true,
 					KubeletVersion: "v1.19.7",
 				},
-				payload.Node{
+				{
 					MachineID:      "953089b9924d3a45febe69bc3add4683",
 					Name:           "derp-wks-2",
 					IsControlPlane: false,
@@ -549,13 +550,13 @@ func TestReceiveClusterInfo_SamePayloadReceivedAgain(t *testing.T) {
 			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
 			Type: "existinginfra",
 			Nodes: []payload.Node{
-				payload.Node{
+				{
 					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
 					Name:           "derp-wks-1",
 					IsControlPlane: true,
 					KubeletVersion: "v1.19.7",
 				},
-				payload.Node{
+				{
 					MachineID:      "953089b9924d3a45febe69bc3add4683",
 					Name:           "derp-wks-2",
 					IsControlPlane: false,
@@ -641,13 +642,13 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
 			Type: "existinginfra",
 			Nodes: []payload.Node{
-				payload.Node{
+				{
 					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
 					Name:           "derp-wks-1",
 					IsControlPlane: true,
 					KubeletVersion: "v1.19.7",
 				},
-				payload.Node{
+				{
 					MachineID:      "953089b9924d3a45febe69bc3add4683",
 					Name:           "derp-wks-2",
 					IsControlPlane: false,
@@ -698,7 +699,7 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
 			Type: "existinginfra",
 			Nodes: []payload.Node{
-				payload.Node{
+				{
 					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
 					Name:           "foo-wks-1",
 					IsControlPlane: true,

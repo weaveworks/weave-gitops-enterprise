@@ -109,17 +109,19 @@ func writeClusterInfo(event ce.Event) error {
 		return err
 	}
 
-	utils.DB.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Create(&dbClusterInfo)
+	return utils.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).Create(&dbClusterInfo).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("token = ?", data.Token).Delete(&models.NodeInfo{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&dbNodeInfoArray).Error; err != nil {
+			return err
+		}
 
-	utils.DB.Where("cluster_info_uid = ?", dbClusterInfo.UID).Delete(models.NodeInfo{})
-
-	utils.DB.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Create(&dbNodeInfoArray)
-
-	return nil
+		return nil
+	})
 }
 
 func writeAlert(event ce.Event) error {
@@ -144,7 +146,7 @@ func writeAlert(event ce.Event) error {
 	}
 
 	return utils.DB.Transaction(func(tx *gorm.DB) error {
-		tx.Where("token = ?", data.Token).Delete(models.Alert{})
+		tx.Where("token = ?", data.Token).Delete(&models.Alert{})
 		tx.Create(&dbAlerts)
 		return nil
 	})
@@ -200,7 +202,7 @@ func writeGitCommitInfo(event ce.Event) error {
 	}
 
 	if err := utils.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("cluster_token = ?", data.Token).Delete(models.GitCommit{}).Error; err != nil {
+		if err := tx.Where("cluster_token = ?", data.Token).Delete(&models.GitCommit{}).Error; err != nil {
 			return err
 		}
 		if err := tx.Create(&dbCommitInfo).Error; err != nil {
