@@ -445,7 +445,7 @@ type ClusterView struct {
 	Status     string          `json:"status"`
 	UpdatedAt  time.Time       `json:"updatedAt"`
 	FluxInfo   []FluxInfoView  `json:"fluxInfo,omitempty"`
-	GitCommits []GitCommitView `json:"git_commits,omitempty"`
+	GitCommits []GitCommitView `json:"gitCommits,omitempty"`
 }
 
 type FluxInfoView struct {
