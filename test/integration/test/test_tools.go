@@ -787,6 +787,40 @@ spec:
 	return fmt.Sprintf(workspaceYamlTemplate, hostName, repoName, orgName, teams, role)
 }
 
+func (c *context) getBranchAndPathWorkspaceYaml(repoName, orgName, teams, branch, path, role, resourceQuotaSpec, limitRangeSpec string) string {
+	workspaceYamlTemplate := `
+apiVersion: wkp.weave.works/v1beta1
+kind: Workspace
+metadata:
+  name: demo
+  namespace: wkp-workspaces
+spec:
+  interval: 1m
+  suspend: false
+  gitProvider:
+    type: github
+    hostname: github.com
+    tokenRef:
+      name: github-token
+  gitRepository:
+    name: %s
+    owner: %s
+    teams: %s
+    branch: %s
+    path: %s
+  clusterScope:
+    role: %s
+    namespaces:
+    - name: demo-app
+    - name: demo-db
+    - name: demo-resource-quota%s
+    - name: demo-limit-range%s
+    networkPolicy: workspace-isolation
+`
+
+	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams, branch, path, role, resourceQuotaSpec, limitRangeSpec)
+}
+
 func (c *context) pushFileToGit(commitMessage, path string) {
 	commitMessage = fmt.Sprintf("-m%s", commitMessage)
 	err := c.runCommandPassThrough("git", "add", path)
