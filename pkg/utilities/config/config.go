@@ -1428,7 +1428,7 @@ func ConfigureHAProxy(conf *WKPConfig, configDir string, loadBalancerSSHPort int
 
 	haproxyResource := &resource.Run{
 		Script:     object.String("mkdir /tmp/haproxy && docker run --detach --name haproxy -v /tmp/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg -v /tmp/haproxy:/var/lib/haproxy -p 6443:6443 haproxy"),
-		UndoScript: object.String("docker rm haproxy || true"),
+		UndoScript: object.String("rm -rv /tmp/haproxy && docker stop haproxy || true && docker rm haproxy || true"),
 	}
 	lbPlanBuilder := plan.NewBuilder()
 	lbPlanBuilder.AddResource("install:base", baseResource)
