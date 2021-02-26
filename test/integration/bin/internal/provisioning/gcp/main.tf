@@ -40,6 +40,17 @@ resource "google_compute_instance" "tf_test_vm" {
     }
   }
 
+  # self destruct after 3 hours to cut down costs
+  # and destroy leftover VMs from cancelled circleci VMs
+  # reference: https://cloud.google.com/community/tutorials/create-a-self-deleting-virtual-machine
+  metadata_startup_script = <<-EOT
+  #!/bin/sh
+  sleep 3h
+  export NAME=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/name -H 'Metadata-Flavor: Google')
+  export ZONE=$(curl -X GET http://metadata.google.internal/computeMetadata/v1/instance/zone -H 'Metadata-Flavor: Google')
+  gcloud --quiet compute instances delete $NAME --zone=$ZONE
+  EOT
+
   metadata {
     ssh-keys = "${var.gcp_username}:${file("${var.gcp_public_key_path}")}"
   }
@@ -57,6 +68,12 @@ resource "google_compute_instance" "tf_test_vm" {
 
   timeouts {
     delete = "10m"
+  }
+
+  service_account {
+    # Add the compute-rw scope so that the VM can delete itself
+    # https://cloud.google.com/sdk/gcloud/reference/alpha/compute/instances/set-scopes#--scopes
+    scopes = ["compute-rw"]
   }
 
   depends_on = ["google_compute_firewall.fw-allow-ping-and-ssh"]
