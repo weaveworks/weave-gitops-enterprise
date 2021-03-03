@@ -66,7 +66,7 @@ type Component struct {
 }
 
 // Sets the timeout for 'kubectl wait' for a deployment
-var defaultDeploymentTimeout = "300s"
+var defaultDeploymentTimeout = "2000s"
 
 // Sets the retries for the pods of a deployment to be scheduled
 var defaultDeploymentRetries = 50
@@ -262,8 +262,13 @@ func (c *context) chooseTestOS() {
 func (c *context) setupCluster() {
 	deleteRepo(c)
 	c.repoExists = true
-	err := c.runCommandPassThrough(c.wkBin, "setup", "run")
-	require.NoError(c.t, err)
+	assert.Empty(c.t, retryProcess(func() string {
+		err := c.runCommandPassThrough(c.wkBin, "setup", "run")
+		if err != nil {
+			return "retry"
+		}
+		return ""
+	}, 5, 60*time.Second))
 }
 
 // cleanupCluster invokes the cleanup.sh script within the context's temporary directory to delete the cluster
@@ -635,6 +640,10 @@ func (c *context) checkPushCount() {
 		lineCount++
 	}
 
+	if err := fileScanner.Err(); err != nil {
+		log.Info("Error on pushCount", err)
+	}
+
 	expectedPushes := 1
 	// ssh/footloose we have to delete the old flux which is another push
 	if os.Getenv("SKIP_COMPONENTS") != "true" && (c.conf.Track == "wks-ssh" || c.conf.Track == "wks-footloose") {
@@ -875,7 +884,7 @@ spec:
 	return fmt.Sprintf(depoymentYaml, name, ns)
 }
 
-func waitCondition(stream io.ReadCloser, timeout time.Duration, condition string, stdout io.Writer) {
+func waitCondition(stream io.ReadCloser, timeout time.Duration, condition string, stdout io.Writer, debugStream bool) {
 
 	done := make(chan error)
 
@@ -883,6 +892,9 @@ func waitCondition(stream io.ReadCloser, timeout time.Duration, condition string
 		scanner := bufio.NewScanner(stream)
 		for scanner.Scan() {
 			line := scanner.Text()
+			if debugStream {
+				fmt.Fprintf(stdout, "condition: %s, line: %s\n", condition, line)
+			}
 			if strings.Contains(line, condition) {
 				done <- nil
 				return

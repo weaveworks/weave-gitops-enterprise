@@ -2,6 +2,7 @@ package git
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"k8s.io/kubernetes/test/e2e/storage/utils"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -123,6 +126,25 @@ func CreateGithubRepoWithDeployKey(
 	if err != nil {
 		return nil, errors.Wrap(err, "private key read")
 	}
+
+	utils.WaitUntil(time.Second*3, time.Second*30, func() bool {
+		c, err := ggp.CreateGithubClient()
+		if err != nil {
+			log.Debug("error creating github client ", err)
+			return false
+		}
+
+		ctx := context.Background()
+
+		orgRepoRef := ggp.NewOrgRepoRef(org, repoName)
+		_, err = c.OrgRepositories().Get(ctx, orgRepoRef)
+		if err != nil {
+			log.Debug("error on get", err)
+			return false
+		}
+		log.Infof("Repo %s exists", qualifiedRepo(org, repoName))
+		return true
+	})
 
 	pubKey := cryptossh.MarshalAuthorizedKey(auth.Signer.PublicKey())
 	log.Infof("Adding Deploy key to the remote git repository %q: %q", qualifiedRepo(org, repoName), pubKey)

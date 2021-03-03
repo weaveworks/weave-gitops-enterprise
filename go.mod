@@ -54,6 +54,7 @@ require (
 	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v0.20.3
+	k8s.io/kubernetes v1.20.2
 	sigs.k8s.io/cluster-api v0.3.9
 	sigs.k8s.io/controller-runtime v0.6.3 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.6.0
