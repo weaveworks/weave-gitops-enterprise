@@ -27,6 +27,7 @@ type watchCmdParamSet struct {
 	ClusterInfoPollingInterval   time.Duration
 	FluxInfoPollingInterval      time.Duration
 	GitCommitInfoPollingInterval time.Duration
+	WorkspaceInfoPollingInterval time.Duration
 	HealthCheckPort              int
 }
 
@@ -44,6 +45,7 @@ func init() {
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.ClusterInfoPollingInterval, "cluster-info-polling-interval", 10*time.Second, "Polling interval for ClusterInfo")
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.FluxInfoPollingInterval, "flux-info-polling-interval", 10*time.Second, "Polling interval for flux deployment info")
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.GitCommitInfoPollingInterval, "git-commit-info-polling-interval", 10*time.Second, "Polling interval for git commit info")
+	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.WorkspaceInfoPollingInterval, "workspace-info-polling-interval", 10*time.Second, "Polling interval for workspace info")
 	watchCmd.PersistentFlags().IntVar(&watchCmdParams.HealthCheckPort, "health-check-port", 8080, "Port to expose health check")
 }
 
@@ -56,9 +58,13 @@ func run(cmd *cobra.Command, args []string) {
 		log.Fatalf("The `%s` environment variable has not been set.  Please set it and try again.", WKPAgentTokenEnvVar)
 	}
 
-	k8sClient, err := clusterclient.GetClient(KubeconfigFile)
+	typedClient, err := clusterclient.GetTypedClient(KubeconfigFile)
 	if err != nil {
-		log.Fatalf("Failed to create Kubernetes client: %s.", err.Error())
+		log.Fatalf("Failed to create typed Kubernetes client: %s.", err.Error())
+	}
+	dynamicClient, err := clusterclient.GetDynamicClient(KubeconfigFile)
+	if err != nil {
+		log.Fatalf("Failed to create dynamic Kubernetes client: %s.", err.Error())
 	}
 	// The defaultResync duration is used as a default value for any handlers
 	// added via AddEventHandler that don't specify a default value. This value
@@ -69,7 +75,7 @@ func run(cmd *cobra.Command, args []string) {
 	// For our use case, if we set this value to anything other than 0, it will
 	// fire OnUpdate calls for existing items in the store even if nothing has changed.
 	// So we want to delay this as much as possible by setting it to 0.
-	factory := informers.NewSharedInformerFactory(k8sClient, 0)
+	factory := informers.NewSharedInformerFactory(typedClient, 0)
 
 	client := common.CreateClient(ctx, NatsURL, Subject)
 
@@ -82,18 +88,22 @@ func run(cmd *cobra.Command, args []string) {
 
 	// Poll for ClusterInfo
 	clusterInfoSender := handlers.NewClusterInfoSender(WKPAgentEventSource, client)
-	clusterInfo := clusterpoller.NewClusterInfoPoller(token, k8sClient, watchCmdParams.ClusterInfoPollingInterval, clusterInfoSender)
+	clusterInfo := clusterpoller.NewClusterInfoPoller(token, typedClient, watchCmdParams.ClusterInfoPollingInterval, clusterInfoSender)
 	go clusterInfo.Run(ctx.Done())
 
 	// Poll for FluxInfo
 	fluxInfoSender := handlers.NewFluxInfoSender(WKPAgentEventSource, client)
-	fluxInfo := clusterpoller.NewFluxInfoPoller(token, k8sClient, watchCmdParams.FluxInfoPollingInterval, fluxInfoSender)
+	fluxInfo := clusterpoller.NewFluxInfoPoller(token, typedClient, watchCmdParams.FluxInfoPollingInterval, fluxInfoSender)
 	go fluxInfo.Run(ctx.Done())
 
 	// Poll for latest Git commit info
 	gitCommitInfoSender := handlers.NewGitCommitInfoSender(WKPAgentEventSource, client)
-	gitCommitInfo := clusterpoller.NewGitCommitInfoPoller(token, k8sClient, watchCmdParams.GitCommitInfoPollingInterval, resty.New(), gitCommitInfoSender)
+	gitCommitInfo := clusterpoller.NewGitCommitInfoPoller(token, typedClient, watchCmdParams.GitCommitInfoPollingInterval, resty.New(), gitCommitInfoSender)
 	go gitCommitInfo.Run(ctx.Done())
+
+	workspaceInfoSender := handlers.NewWorkspaceInfoSender(WKPAgentEventSource, client)
+	workspaceInfo := clusterpoller.NewWorkspaceInfoPoller(token, dynamicClient, watchCmdParams.WorkspaceInfoPollingInterval, workspaceInfoSender)
+	go workspaceInfo.Run(ctx.Done())
 
 	livenessCheck()
 }

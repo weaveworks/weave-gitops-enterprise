@@ -50,23 +50,16 @@ func (p *FluxInfoPoller) Run(stopCh <-chan struct{}) {
 func (p *FluxInfoPoller) runWorker() {
 	potentialFluxDeployments := make([]appsv1.Deployment, 0)
 
-	namespaces, err := p.clientset.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{})
+	deployments, err := p.clientset.AppsV1().Deployments("").List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-		log.Errorf("Unable to get list of namespaces from API server: %v", err)
+		log.Errorf("Unable to get list of deployments from API server: %v", err)
 		return
 	}
 
-	for _, ns := range namespaces.Items {
-		deployments, err := p.clientset.AppsV1().Deployments(ns.ObjectMeta.Name).List(context.Background(), metav1.ListOptions{})
-		if err != nil {
-			log.Errorf("Unable to get list of deployments in ns %s from API server: %v", ns.ObjectMeta.Name, err)
-			return
-		}
-		for _, deployment := range deployments.Items {
-			if deployment.Spec.Selector != nil && deployment.Spec.Selector.MatchLabels != nil {
-				if deployment.Spec.Selector.MatchLabels["name"] == FluxDeploymentLabel {
-					potentialFluxDeployments = append(potentialFluxDeployments, deployment)
-				}
+	for _, deployment := range deployments.Items {
+		if deployment.Spec.Selector != nil && deployment.Spec.Selector.MatchLabels != nil {
+			if deployment.Spec.Selector.MatchLabels["name"] == FluxDeploymentLabel {
+				potentialFluxDeployments = append(potentialFluxDeployments, deployment)
 			}
 		}
 	}

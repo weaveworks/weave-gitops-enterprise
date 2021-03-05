@@ -1100,3 +1100,148 @@ func TestReceiveGitCommitInfo_NoMatchingCluster(t *testing.T) {
 	assert.Equal(t, 0, int(commitsResult.RowsAffected))
 	assert.NoError(t, commitsResult.Error)
 }
+
+func TestReceiveWorkspaceInfo(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Create cluster
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
+
+	// Publish event
+	info := payload.WorkspaceInfo{
+		Token: "derp",
+		Workspaces: []payload.Workspace{
+			{
+				Name:      "foo-ws",
+				Namespace: "foo-ns",
+			},
+			{
+				Name:      "bar-ws",
+				Namespace: "bar-ns",
+			},
+		},
+	}
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("WorkspaceInfo")
+	event.SetTime(time.Now())
+	event.SetSource("test")
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// Query db
+	var workspaces []models.Workspace
+	workspacesResult := db.Find(&workspaces)
+	assert.Equal(t, 2, int(workspacesResult.RowsAffected))
+	assert.NoError(t, workspacesResult.Error)
+
+	ws1 := workspaces[0]
+	assert.Equal(t, info.Token, ws1.ClusterToken)
+	assert.Equal(t, info.Workspaces[0].Name, ws1.Name)
+	assert.Equal(t, info.Workspaces[0].Namespace, ws1.Namespace)
+	ws2 := workspaces[1]
+	assert.Equal(t, info.Token, ws2.ClusterToken)
+	assert.Equal(t, info.Workspaces[1].Name, ws2.Name)
+	assert.Equal(t, info.Workspaces[1].Namespace, ws2.Namespace)
+}
+
+func TestReceiveWorkspaceInfo_NoMatchingCluster(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Publish event
+	info := payload.WorkspaceInfo{
+		Token: "derp",
+		Workspaces: []payload.Workspace{
+			{
+				Name:      "foo-ws",
+				Namespace: "foo-ns",
+			},
+			{
+				Name:      "bar-ws",
+				Namespace: "bar-ns",
+			},
+		},
+	}
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("WorkspaceInfo")
+	event.SetTime(time.Now())
+	event.SetSource("test")
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// Query db
+	var workspaces []models.Workspace
+	workspacesResult := db.Find(&workspaces)
+	assert.Equal(t, 0, int(workspacesResult.RowsAffected))
+	assert.NoError(t, workspacesResult.Error)
+}

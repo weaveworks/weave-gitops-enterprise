@@ -485,3 +485,28 @@ func TestConvertGitCommitInfo(t *testing.T) {
 	assert.Equal(t, commit.Commit.Committer.Email, dbCommit.CommitterEmail)
 	assert.Equal(t, commit.Commit.Committer.Date, dbCommit.CommitterDate)
 }
+
+func TestConvertWorkspaceInfo(t *testing.T) {
+	info := payload.WorkspaceInfo{
+		Token: "derp",
+		Workspaces: []payload.Workspace{
+			{
+				Name:      "foo-ws",
+				Namespace: "foo-ns",
+			},
+			{
+				Name:      "bar-ws",
+				Namespace: "bar-ns",
+			},
+		},
+	}
+
+	dbWorkspaces := ConvertWorkspaceInfo(info)
+
+	assert.Equal(t, info.Token, dbWorkspaces[0].ClusterToken)
+	assert.Equal(t, info.Workspaces[0].Name, dbWorkspaces[0].Name)
+	assert.Equal(t, info.Workspaces[0].Namespace, dbWorkspaces[0].Namespace)
+	assert.Equal(t, info.Token, dbWorkspaces[1].ClusterToken)
+	assert.Equal(t, info.Workspaces[1].Name, dbWorkspaces[1].Name)
+	assert.Equal(t, info.Workspaces[1].Namespace, dbWorkspaces[1].Namespace)
+}

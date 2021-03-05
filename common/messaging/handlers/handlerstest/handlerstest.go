@@ -119,3 +119,17 @@ func (c *FakeCloudEventsClient) AssertGitCommitInfoWasSent(t *testing.T, expecte
 		t.Errorf("Expected to have sent GitCommitInfo %v but has sent instead %v", expected, list)
 	}
 }
+
+func (c *FakeCloudEventsClient) AssertWorkspaceInfoWasSent(t *testing.T, expected payload.WorkspaceInfo) {
+	c.Lock()
+	defer c.Unlock()
+
+	list := make([]payload.WorkspaceInfo, 0)
+	var ev payload.WorkspaceInfo
+	for _, e := range c.sent {
+		_ = e.DataAs(&ev)
+		list = append(list, ev)
+	}
+
+	assert.Subset(t, list, []payload.WorkspaceInfo{expected})
+}

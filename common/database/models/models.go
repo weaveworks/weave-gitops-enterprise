@@ -90,22 +90,6 @@ type GitRepository struct {
 	RawGitRepo        datatypes.JSON
 }
 
-// Workspace table
-type Workspace struct {
-	gorm.Model
-	Name                string
-	Namespace           string
-	Namespaces          string
-	MemberRole          string
-	GitProviderHostname string
-	GitProvider         GitProvider `gorm:"foreignKey:Hostname"`
-	GitRepositoryID     string
-	// Setting as primary key the ID. Git repos can share the same URL
-	// but have different branches
-	GitRepository GitRepository `gorm:"foreignKey:ID"`
-	RawWorkspace  datatypes.JSON
-}
-
 // GitProvider table
 type GitProvider struct {
 	gorm.Model
@@ -149,4 +133,10 @@ type GitCommit struct {
 	CommitterEmail string
 	CommitterDate  time.Time
 	Message        string
+}
+
+type Workspace struct {
+	ClusterToken string `gorm:"primaryKey"`
+	Name         string `gorm:"primaryKey"`
+	Namespace    string `gorm:"primaryKey"`
 }

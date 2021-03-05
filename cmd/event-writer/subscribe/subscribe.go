@@ -58,6 +58,8 @@ func ReceiveEvent(ctx context.Context, event ce.Event) error {
 		return writeFluxInfo(event)
 	case "GitCommitInfo":
 		return writeGitCommitInfo(event)
+	case "WorkspaceInfo":
+		return writeWorkspaceInfo(event)
 	default:
 		log.Warnf("Unknown message type: %s.", event.Type())
 	}
@@ -216,6 +218,42 @@ func writeGitCommitInfo(event ce.Event) error {
 	}
 
 	log.Debugf("Commit '%s' added.", dbCommitInfo.Sha)
+
+	return nil
+}
+
+func writeWorkspaceInfo(event ce.Event) error {
+	var data payload.WorkspaceInfo
+	if err := event.DataAs(&data); err != nil {
+		log.Warnf("Failed to parse event as WorkspaceInfo object: %v", err)
+		return err
+	}
+
+	var cluster models.Cluster
+	clusterResult := utils.DB.First(&cluster, "token = ?", data.Token)
+	if errors.Is(clusterResult.Error, gorm.ErrRecordNotFound) {
+		log.Warnf("Received WorkspaceInfo for unknown cluster")
+		return fmt.Errorf("Received WorkspaceInfo did not match any registered clusters, token: %s", data.Token)
+	}
+	log.Debugf("Received WorkspaceInfo for cluster %s", cluster.Name)
+
+	dbWorkspaces := converter.ConvertWorkspaceInfo(data)
+
+	if err := utils.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("cluster_token = ?", data.Token).Delete(&models.Workspace{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&dbWorkspaces).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		log.Errorf("Failed to add workspaces '%s' to the database: %v.", dbWorkspaces, err)
+		return err
+	}
+
+	log.Debugf("Workspaces '%s' added.", dbWorkspaces)
 
 	return nil
 }

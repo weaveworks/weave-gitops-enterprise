@@ -156,6 +156,20 @@ func ConvertGitCommitInfo(commitInfo payload.GitCommitInfo) (models.GitCommit, e
 	}, nil
 }
 
+func ConvertWorkspaceInfo(workspaceInfo payload.WorkspaceInfo) []models.Workspace {
+	result := []models.Workspace{}
+
+	for _, ws := range workspaceInfo.Workspaces {
+		result = append(result, models.Workspace{
+			ClusterToken: workspaceInfo.Token,
+			Name:         ws.Name,
+			Namespace:    ws.Namespace,
+		})
+	}
+
+	return result
+}
+
 // SerializeLabelSet flattens a labelset to a string
 func SerializeLabelSet(labels ammodels.LabelSet) string {
 	labelMap := map[string]string(labels)
