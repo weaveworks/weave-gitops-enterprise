@@ -2,7 +2,6 @@ package git
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -127,31 +126,27 @@ func CreateGithubRepoWithDeployKey(
 		return nil, errors.Wrap(err, "private key read")
 	}
 
-	utils.WaitUntil(time.Second*3, time.Second*30, func() bool {
-		c, err := ggp.CreateGithubClient()
-		if err != nil {
-			log.Debug("error creating github client ", err)
-			return false
-		}
-
-		ctx := context.Background()
-
-		orgRepoRef := ggp.NewOrgRepoRef(org, repoName)
-		_, err = c.OrgRepositories().Get(ctx, orgRepoRef)
-		if err != nil {
-			log.Debug("error on get", err)
-			return false
-		}
-		log.Infof("Repo %s exists", qualifiedRepo(org, repoName))
-		return true
-	})
-
 	pubKey := cryptossh.MarshalAuthorizedKey(auth.Signer.PublicKey())
 	log.Infof("Adding Deploy key to the remote git repository %q: %q", qualifiedRepo(org, repoName), pubKey)
 	fullRepoName := fmt.Sprintf("%s/%s", org, repoName)
-	err = ggp.RegisterDeployKey(fullRepoName, "wkp-gitops-key", string(pubKey), false)
+
+	utils.WaitUntil(time.Second*3, time.Second*30, func() bool {
+		err = ggp.RegisterDeployKey(fullRepoName, "wkp-gitops-key", string(pubKey), false)
+		if err != nil {
+			log.Debug("error registering deploy key", err)
+			if strings.Contains(err.Error(), "the requested resource was not found") {
+				log.Debug("repo doesn't exists yet, retying")
+				return false
+			}
+			err = errors.Wrap(err, "register deploy key")
+			log.Debug("unknown error, retrying ", err)
+			return false
+		}
+		log.Info("Deploy key added")
+		return true
+	})
 	if err != nil {
-		return nil, errors.Wrap(err, "register deploy key")
+		return nil, err
 	}
 
 	gr := &GitRepo{
