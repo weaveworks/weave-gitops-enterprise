@@ -102,7 +102,7 @@ workflows:
           filters:
             branches:
               only:
-                - release-2.4
+                - master
     jobs:
       - build
       - third-party-dependencies-check:

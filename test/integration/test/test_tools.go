@@ -74,7 +74,7 @@ type Component struct {
 }
 
 // Sets the timeout for 'kubectl wait' for a deployment
-var defaultDeploymentTimeout = "2000s"
+var defaultTimeout = "2000s"
 
 // Sets the retries for the pods of a deployment/statefulset to be scheduled
 var defaultRetries = 50
