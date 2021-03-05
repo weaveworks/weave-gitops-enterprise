@@ -63,7 +63,8 @@ type WKPConfig struct {
 
 // Map of WKP features that can be toggled on/off
 type EnabledFeatures struct {
-	TeamWorkspaces bool `yaml:"teamWorkspaces"`
+	TeamWorkspaces  bool `yaml:"teamWorkspaces"`
+	FleetManagement bool `yaml:"fleetManagement"`
 }
 
 // Parameters specific to eks

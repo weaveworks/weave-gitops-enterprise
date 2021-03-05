@@ -80,7 +80,7 @@ var defaultRetries = 50
 var defaultRetryInterval = 8
 
 // All the components of a WKP cluster, ordered by deployment time
-var allComponents = func(track string) []Component {
+var allComponents = func(conf *config.WKPConfig) []Component {
 	var components = []Component{
 		{"wkp-flux", "flux", Deployment},
 		{"wkp-flux", "flux-helm-operator", Deployment},
@@ -96,11 +96,14 @@ var allComponents = func(track string) []Component {
 		{"wkp-ui", "wkp-ui-server", Deployment},
 		{"wkp-ui", "wkp-ui-nginx-ingress-controller", Deployment},
 		{"wkp-ui", "wkp-ui-nginx-ingress-controller-default-backend", Deployment},
-		{"wkp-mccp", "nats", StatefulSet},
 	}
 
-	if track == "wks-ssh" || track == "wks-footloose" {
+	if conf.Track == "wks-ssh" || conf.Track == "wks-footloose" {
 		components = append(components, Component{"weavek8sops", "wks-controller", Deployment})
+	}
+
+	if conf.EnabledFeatures.FleetManagement {
+		components = append(components, Component{"wkp-mccp", "nats", StatefulSet})
 	}
 
 	return components
@@ -377,7 +380,7 @@ func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int)
 
 // isClusterRunning checks if all expected components are running
 func (c *context) isClusterRunning() bool {
-	for _, component := range allComponents(c.conf.Track) {
+	for _, component := range allComponents(c.conf) {
 		if !c.checkComponentRunning(component) {
 			return false
 		}
