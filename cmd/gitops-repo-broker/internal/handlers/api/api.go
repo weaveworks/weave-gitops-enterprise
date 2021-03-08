@@ -63,6 +63,10 @@ type ClusterListRow struct {
 	GitCommitAuthorDate  time.Time
 	GitCommitMessage     string
 	GitCommitSha         string
+
+	// Workspace
+	WorkspaceName      string
+	WorkspaceNamespace string
 }
 
 func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
@@ -89,13 +93,16 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 				gc.author_email AS GitCommitAuthorEmail,
 				gc.author_date AS GitCommitAuthorDate,
 				gc.message AS GitCommitMessage,
-				gc.sha AS GitCommitSha
+				gc.sha AS GitCommitSha,
+				ws.name AS WorkspaceName,
+				ws.namespace AS WorkspaceNamespace
 			FROM 
 				clusters c 
 				LEFT JOIN cluster_info ci ON c.token = ci.token 
 				LEFT JOIN node_info ni ON c.token = ni.token
 				LEFT JOIN flux_info fi ON c.token = fi.cluster_token
 				LEFT JOIN git_commits gc ON c.token = gc.cluster_token
+				LEFT JOIN workspaces ws ON c.token = ws.cluster_token
 			WHERE c.deleted_at IS NULL
 		`+extraQuery, extraValues).Scan(&rows).Error; err != nil {
 		return nil, ErrNilDB
@@ -172,6 +179,15 @@ func unpackClusterRow(c *ClusterView, r ClusterListRow) {
 			AuthorDate:  r.GitCommitAuthorDate,
 			Message:     r.GitCommitMessage,
 		})
+	}
+
+	wsView := WorkspaceView{
+		Name:      r.WorkspaceName,
+		Namespace: r.WorkspaceNamespace,
+	}
+
+	if r.WorkspaceName != "" && !workspaceExists(*c, wsView) {
+		c.Workspaces = append(c.Workspaces, wsView)
 	}
 }
 
@@ -446,6 +462,7 @@ type ClusterView struct {
 	UpdatedAt  time.Time       `json:"updatedAt"`
 	FluxInfo   []FluxInfoView  `json:"fluxInfo,omitempty"`
 	GitCommits []GitCommitView `json:"gitCommits,omitempty"`
+	Workspaces []WorkspaceView `json:"workspaces,omitempty"`
 }
 
 type FluxInfoView struct {
@@ -501,6 +518,11 @@ type GitCommitView struct {
 	AuthorEmail string    `json:"author_email"`
 	AuthorDate  time.Time `json:"author_date"`
 	Message     string    `json:"message"`
+}
+
+type WorkspaceView struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 }
 
 // helpers
@@ -609,6 +631,15 @@ func toAlertResponse(rows []AlertsClusterRow) (*AlertsResponse, error) {
 func gitCommitExists(c ClusterView, gc GitCommitView) bool {
 	for _, existingGitCommitInfo := range c.GitCommits {
 		if existingGitCommitInfo.Sha == gc.Sha {
+			return true
+		}
+	}
+	return false
+}
+
+func workspaceExists(c ClusterView, ws WorkspaceView) bool {
+	for _, existingWorkspace := range c.Workspaces {
+		if existingWorkspace.Name == ws.Name && existingWorkspace.Namespace == ws.Namespace {
 			return true
 		}
 	}

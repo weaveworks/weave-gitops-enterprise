@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"gorm.io/datatypes"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
+	"gorm.io/datatypes"
 
 	"github.com/gorilla/mux"
 
@@ -409,6 +410,11 @@ func TestListClusters(t *testing.T) {
 		RepoURL:      "git@github.com:weaveworks/fluxes-1.git",
 		RepoBranch:   "master",
 	})
+	db.Create(&models.Workspace{
+		ClusterToken: "derp",
+		Name:         "foo",
+		Namespace:    "wkp-workspaces",
+	})
 
 	response = executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
@@ -441,6 +447,12 @@ func TestListClusters(t *testing.T) {
 						Namespace:  "wkp-flux",
 						RepoURL:    "git@github.com:weaveworks/fluxes-1.git",
 						RepoBranch: "master",
+					},
+				},
+				Workspaces: []api.WorkspaceView{
+					{
+						Name:      "foo",
+						Namespace: "wkp-workspaces",
 					},
 				},
 			},
@@ -537,6 +549,84 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 						Namespace:  "kube-system",
 						RepoURL:    "git@github.com:weaveworks/fluxes-3.git",
 						RepoBranch: "main",
+					},
+				},
+			},
+		},
+	}, res)
+}
+
+func TestListCluster_MultipleWorkspaces(t *testing.T) {
+	db, err := utils.Open("")
+	assert.NoError(t, err)
+
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+
+	// No data
+	response := executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+	assert.Equal(t, "{\n \"clusters\": []\n}", response.Body.String())
+
+	// Register a cluster
+	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
+	response = executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+	var res api.ClustersResponse
+	err = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.NoError(t, err)
+	assert.Equal(t, api.ClustersResponse{
+		Clusters: []api.ClusterView{
+			{
+				ID:       1,
+				Name:     "My Cluster",
+				Token:    "derp",
+				Status:   "notConnected",
+				Type:     "",
+				FluxInfo: nil,
+			},
+		},
+	}, res)
+
+	db.Create(&models.Workspace{
+		ClusterToken: "derp",
+		Name:         "ws-1",
+		Namespace:    "wkp-workspaces",
+	})
+	db.Create(&models.Workspace{
+		ClusterToken: "derp",
+		Name:         "ws-2",
+		Namespace:    "wkp-workspaces",
+	})
+	db.Create(&models.Workspace{
+		ClusterToken: "derp",
+		Name:         "ws-3",
+		Namespace:    "wkp-workspaces",
+	})
+
+	response = executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+	err = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.NoError(t, err)
+	assertEqualCmp(t, api.ClustersResponse{
+		Clusters: []api.ClusterView{
+			{
+				ID:     1,
+				Name:   "My Cluster",
+				Token:  "derp",
+				Status: "notConnected",
+				Workspaces: []api.WorkspaceView{
+					{
+						Name:      "ws-1",
+						Namespace: "wkp-workspaces",
+					},
+					{
+						Name:      "ws-2",
+						Namespace: "wkp-workspaces",
+					},
+					{
+						Name:      "ws-3",
+						Namespace: "wkp-workspaces",
 					},
 				},
 			},
