@@ -770,6 +770,14 @@ func (c *context) runAndCheckError(name string, arg ...string) {
 	require.NoError(c.t, err)
 }
 
+// Run the given command from current directory.
+func runCommandFromCurrentDir(name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 // Run a command in c.tmpDir, passing through stdout/stderr to parent's
 func (c *context) runCommandPassThrough(name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)

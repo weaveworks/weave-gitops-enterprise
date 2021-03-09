@@ -8,6 +8,7 @@ sealedSecretsCertificate: ''
 sealedSecretsPrivateKey: ''
 enabledFeatures:
   teamWorkspaces: true
+  fleetManagement: true
 eksConfig:
   clusterRegion: 'eu-west-3'
   kubernetesVersion: '1.18'
