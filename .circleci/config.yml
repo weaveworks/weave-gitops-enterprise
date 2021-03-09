@@ -90,6 +90,10 @@ workflows:
       - workspaces-tests
       - existing-cluster-tests
       - cluster-components-on-kind-1-18
+      - build
+      - third-party-dependencies-check:
+          requires:
+            - build
 
   nightly:
     triggers:
@@ -106,6 +110,8 @@ workflows:
       - cluster-components-gcp:
           <<: *nightlyTestConfig
       - upgrade-to-latest-patch:
+          <<: *nightlyTestConfig
+      - workspaces-tests:
           <<: *nightlyTestConfig
 
   weekly:
