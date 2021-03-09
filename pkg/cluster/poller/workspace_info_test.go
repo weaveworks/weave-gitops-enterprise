@@ -16,6 +16,10 @@ import (
 	"k8s.io/client-go/dynamic/fake"
 )
 
+var gvrToListKind = map[schema.GroupVersionResource]string{
+	clusterpoller.WorkspaceGVR: "WorkspacesList",
+}
+
 func TestWorkspaceInfoPoller(t *testing.T) {
 	testCases := []struct {
 		name         string
@@ -42,12 +46,12 @@ func TestWorkspaceInfoPoller(t *testing.T) {
 				Token: "derp",
 				Workspaces: []payload.Workspace{
 					{
-						Name:      "foo-ws",
-						Namespace: "foo-ns",
-					},
-					{
 						Name:      "bar-ws",
 						Namespace: "bar-ns",
+					},
+					{
+						Name:      "foo-ws",
+						Namespace: "foo-ns",
 					},
 				},
 			},
@@ -57,7 +61,7 @@ func TestWorkspaceInfoPoller(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
-			clientset := fake.NewSimpleDynamicClient(runtime.NewScheme(), tt.clusterState...)
+			clientset := fake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), gvrToListKind, tt.clusterState...)
 			client := handlerstest.NewFakeCloudEventsClient()
 			sender := handlers.NewWorkspaceInfoSender("test", client)
 			poller := clusterpoller.NewWorkspaceInfoPoller(tt.token, clientset, time.Second, sender)

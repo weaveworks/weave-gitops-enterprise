@@ -13,6 +13,12 @@ import (
 	"k8s.io/client-go/dynamic"
 )
 
+var WorkspaceGVR = schema.GroupVersionResource{
+	Group:    "wkp.weave.works",
+	Version:  "v1beta1",
+	Resource: "workspaces",
+}
+
 type WorkspaceInfoPoller struct {
 	token    string
 	client   dynamic.Interface
@@ -39,10 +45,9 @@ func (p *WorkspaceInfoPoller) Run(stopCh <-chan struct{}) {
 }
 
 func (p *WorkspaceInfoPoller) runWorker() {
-	workspaceRes := schema.GroupVersionResource{Group: "wkp.weave.works", Version: "v1beta1", Resource: "workspaces"}
-	result, err := p.client.Resource(workspaceRes).Namespace("").List(context.TODO(), metav1.ListOptions{})
+	result, err := p.client.Resource(WorkspaceGVR).Namespace("").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		log.Errorf("Unable to list resources of type %s: %v", workspaceRes, err)
+		log.Errorf("Unable to list resources of type %s: %v", WorkspaceGVR, err)
 		return
 	}
 
