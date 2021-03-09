@@ -130,15 +130,6 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 
 	c.checkPushCount()
 
-	// Check that all components are functioning
-	if !c.shouldSkipComponents() {
-		// Check for all expected pods
-		log.Info("Checking that expected pods are running...")
-		if assert.True(t, c.isClusterRunning()) {
-			log.Info("All pods are running.")
-		}
-	}
-
 	// Wait for all nodes to be up
 	expectedNodes := 3
 	if c.conf.Track == "wks-ssh" {
