@@ -96,7 +96,7 @@ var _ = Describe("WKP UI", func() {
 
 	It("Verify Kubernetes Version", func() {
 
-		var expectedVersion = "v1.19.3"
+		var expectedVersion = "v1.20.2"
 		dashboardPage := pages.Dashboard(webDriver)
 		By("Then I should see the correct Kubernetes Version next to the cluster name", func() {
 			Eventually(dashboardPage.K8SVersion).Should(HaveText(expectedVersion))

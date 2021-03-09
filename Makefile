@@ -141,15 +141,15 @@ user-guide/public: $(USER_GUIDE_SOURCES)
 
 # # Third-party build dependencies
 # SCA_DEPS = \
-# 	go.mod \
-# 	ui/package.json \
-# 	wkp-cluster-components/package.json \
-# 	setup/wk-quickstart/setup/dependencies.toml \
-# 	$(shell find wkp-cluster-components/templates -name 'helm-release.yaml' -prune -print)
+#	go.mod \
+#	ui/package.json \
+#	wkp-cluster-components/package.json \
+#	setup/wk-quickstart/setup/dependencies.toml \
+#	$(shell find wkp-cluster-components/templates -name 'helm-release.yaml' -prune -print)
 
 # # Generate the third-party deps page for the user-guide if any of the deps have changed
 # user-guide/content/deps/_index.md: $(SCA_DEPS)
-# 	bin/sca-generate-deps.sh
+#	bin/sca-generate-deps.sh
 
 pkg/guide/assets_vfsdata.go: user-guide/public
 

@@ -14,7 +14,7 @@ eksConfig:
   nodeGroups: []
   managedNodeGroupFile: ''
 wksConfig:
-  kubernetesVersion: '1.19.3'
+  kubernetesVersion: '1.20.2'
   serviceCIDRBlocks: [192.168.0.0/16]
   podCIDRBlocks: [172.30.0.0/16]
   minDiskSpace: 5
@@ -41,6 +41,9 @@ wksConfig:
       - role: worker
         privateAddress: PRIVATE_IP
         publicAddress: PUBLIC_IP
+  flavor:
+    name: ''
+    manifestURL: ''
   footlooseConfig:
     backend: docker
     controlPlaneNodes: 2
