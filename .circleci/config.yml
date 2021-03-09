@@ -16,8 +16,8 @@ defaults: &defaults
   working_directory: /src/github.com/weaveworks/wks
 
 integrationTestCommonEnv: &integrationTestCommonEnv
-  GOURL: https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz
-  GOCHECKSUM: 512103d7ad296467814a6e3f635631bd35574cab3369a97a323c9a585ccaa569
+  GOURL: https://dl.google.com/go/go1.15.8.linux-amd64.tar.gz
+  GOCHECKSUM: d3379c32a90fdf9382166f8f48034c459a8cc433730bc9476d39d9082c94583b
   GOROOT: /home/circleci/goroot
   GOPATH: /home/circleci/go
   SRCDIR: /home/circleci/src/github.com/weaveworks/wks
@@ -102,7 +102,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - release-2.4
     jobs:
       - build
       - third-party-dependencies-check:
@@ -253,7 +253,7 @@ commands:
     parameters:
       version:
         type: string
-        default: "1.19.3"
+        default: "1.20.2"
     steps:
       - run:
           name: Create cluster
@@ -569,7 +569,6 @@ jobs:
             # Skip the y/n prompt when installing wks-components
             export SKIP_PROMPT=1
             go test -v -run TestClusterCreation --timeout=99999s
-
             eksctl delete cluster -f eks-cluster.yaml
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
@@ -598,7 +597,7 @@ jobs:
 
             cd test/integration/test
             export SKIP_COMPONENTS=true
-            export UPGRADE_VERSIONS='1.17.13,1.18.10,1.19.3'
+            export UPGRADE_VERSIONS='1.18.16,1.19.8,1.20.2'
             export CLUSTER_VERSIONS='1.17.7'
 
             # e.g. wkp-ci-test-bot from 1passwords
@@ -616,7 +615,7 @@ jobs:
           IMAGE_NAME: centos-cloud/centos-7
           NUM_MASTERS: 1
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: '1.17.13,1.18.10,1.19.3'
+          CLUSTER_VERSIONS: '1.18.16,1.19.8,1.20.2'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -653,6 +652,7 @@ jobs:
 
             # e.g. wkp-ci-test-bot from 1passwords
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            go test -v -run TestFlavoredClusterCreation --timeout=99999s
             go test -v -run TestClusterCreation --timeout=99999s
             cp /root/.ssh/weaveworks_cit_id_rsa /root/.ssh/id_rsa
 
@@ -683,7 +683,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: false
-          CLUSTER_VERSIONS: '1.17.13,1.18.10,1.19.3'
+          CLUSTER_VERSIONS: '1.18.16,1.19.8,1.20.2'
           SKIP_COMPONENTS: true
 
   creation-ssh-gcp-centos-lb:
@@ -696,7 +696,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: true
-          CLUSTER_VERSIONS: '1.19.3'
+          CLUSTER_VERSIONS: '1.20.2'
           SKIP_COMPONENTS: true
 
   upgrade-ssh-gcp-centos: &upgrade-ssh-gcp-centos
@@ -709,7 +709,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
-          UPGRADE_VERSIONS: '1.17.13,1.18.10,1.19.3'
+          UPGRADE_VERSIONS: '1.18.16,1.19.8,1.20.2'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
@@ -753,8 +753,8 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: true
-          SKIP_COMPONENTS: true
-          UPGRADE_VERSIONS: '1.17.13,1.18.10,1.19.3'
+          SKIP_COMPONENTS: false
+          UPGRADE_VERSIONS: '1.18.16,1.19.8,1.20.2'
 
   upgrade-to-latest-patch: &upgrade-ssh-gcp-centos
     docker:
@@ -767,7 +767,7 @@ jobs:
           USE_LB: false
           SKIP_COMPONENTS: true
           STARTING_VERSION: '1.17.3'
-          SUPPORTED_MINOR_VERSIONS: '1.17,1.18,1.19'
+          SUPPORTED_MINOR_VERSIONS: '1.18,1.19,1.20'
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
@@ -811,7 +811,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: ubuntu-os-cloud/ubuntu-1804-lts
-          CLUSTER_VERSIONS: '1.17.13,1.18.10,1.19.3'
+          CLUSTER_VERSIONS: '1.18.16,1.19.8,1.20.2'
           SKIP_COMPONENTS: true
           NUM_MASTERS: 1
           NUM_WORKERS: 2
@@ -826,7 +826,7 @@ jobs:
           USE_LB: true
           NUM_MASTERS: 3
           NUM_WORKERS: 2
-          CLUSTER_VERSIONS: '1.19.3'
+          CLUSTER_VERSIONS: '1.20.2'
           SKIP_COMPONENTS: true
 
   ui-backend-integration-tests:
@@ -852,7 +852,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           SKIP_COMPONENTS: false
-          CLUSTER_VERSIONS: '1.19.3'
+          CLUSTER_VERSIONS: '1.20.2'
           NUM_MASTERS: 1
           NUM_WORKERS: 1
           IMAGE_NAME: centos-cloud/centos-7
@@ -953,7 +953,7 @@ jobs:
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
           when: on_fail
       - run-sonobuoy-tests:
-          version: '1.18.10'
+          version: '1.18.16'
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
           name: Destroy GCP resources
@@ -966,7 +966,7 @@ jobs:
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
           when: on_fail
       - run-sonobuoy-tests:
-          version: '1.19.3'
+          version: '1.20.2'
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
           name: Destroy GCP resources
@@ -982,11 +982,11 @@ jobs:
       - store_test_results:
           path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results
       - store_artifacts:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.17.13.tar.gz
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.18.16.tar.gz
       - store_artifacts:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.18.10.tar.gz
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.19.8.tar.gz
       - store_artifacts:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.19.3.tar.gz
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.20.2.tar.gz
 
   preflight-ssh-gcp-centos: &preflight-ssh-gcp-centos
     docker:
@@ -998,7 +998,7 @@ jobs:
           NUM_MASTERS: 1
           NUM_WORKERS: 1
           USE_LB: false
-          CLUSTER_VERSIONS: '1.19.3'
+          CLUSTER_VERSIONS: '1.20.2'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -1047,7 +1047,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 5 # 1 + 4 spare machines
           USE_LB: true
-          CLUSTER_VERSIONS: '1.19.3'
+          CLUSTER_VERSIONS: '1.20.2'
           SKIP_COMPONENTS: true
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -1117,7 +1117,7 @@ jobs:
           NUM_MASTERS: 1
           NUM_WORKERS: 1 # 1 + 3 spare machines
           USE_LB: false
-          CLUSTER_VERSIONS: '1.19.3'
+          CLUSTER_VERSIONS: '1.20.2'
           SKIP_COMPONENTS: false
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:

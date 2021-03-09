@@ -100,7 +100,7 @@ func TestRequiredGlobals(t *testing.T) {
 		{validTrackEKSWithGitURL, "<nil>"},
 		{validTrackSSH, "<nil>"},
 		{validTrackFootloose, "<nil>"},
-		{invalidClusterName, `Invalid clusterName: "wk-FOO", a DNS-1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`},
+		{invalidClusterName, `Invalid clusterName: "wk-FOO", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`},
 		{invalidLongClusterName, `Invalid clusterName: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", must be no more than 253 characters`},
 		{invalidTrack, "track must be one of: 'eks', 'wks-ssh', 'wks-footloose' or 'wks-components'"},
 		{missingTrack, "track must be specified"},
@@ -343,6 +343,13 @@ wksConfig:
   podCIDRBlocks: [192.168.1.0/16]
 `
 
+const validWKSK8s120 = `
+wksConfig:
+  kubernetesVersion: "1.20.0"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+`
+
 const missingWKSK8sVersion = `
 wksConfig:
   serviceCIDRBlocks: [10.96.0.0/12]
@@ -436,6 +443,46 @@ wksConfig:
       value: docker
 `
 
+// valid eks-d usage
+const validEKS_D = `
+wksConfig:
+  cni: 'kubectl create -f https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/quick-install.yaml'
+  flavor:
+    name: 'eks-d'
+    manifestURL: 'https://distro.eks.amazonaws.com/kubernetes-1-18/kubernetes-1-18-eks-1.yaml'
+  kubernetesVersion: "1.18.9"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+experimentalFeatures:
+  eks-d: true
+`
+
+// disabled eks-d
+const disabledEKS_D = `
+track: "wks-ssh"
+gitProvider: "github"
+gitProviderOrg: "station"
+clusterName: "sandimas"
+dockerIOUser: "billspreston"
+dockerIOPasswordFile: "testdata/passwordFile"
+wksConfig:
+  sshConfig:
+    sshKeyFile: "testdata/sshKey"
+    machines:
+    - role: master
+      publicAddress: 172.17.20.5
+    - role: worker
+      publicAddress: 172.17.20.6
+  cni: 'kubectl create -f https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/quick-install.yaml'
+  flavor:
+    name: 'eks-d'
+    manifestURL: 'https://distro.eks.amazonaws.com/kubernetes-1-18/kubernetes-1-18-eks-1.yaml'
+  kubernetesVersion: "1.18.9"
+  serviceCIDRBlocks: [10.96.0.0/12]
+  podCIDRBlocks: [192.168.1.0/16]
+experimentalFeatures:
+`
+
 func TestInvalidWKSValues(t *testing.T) {
 	testinput := []struct {
 		config   string
@@ -445,7 +492,7 @@ func TestInvalidWKSValues(t *testing.T) {
 		{missingServiceCIDRBlocks, "A service CIDR block must be specified"},
 		{missingPodCIDRBlocks, "A pod CIDR block must be specified"},
 		{invalidWKSK8sVersion,
-			"1.15.1 is not a valid Kubernetes version; must be 1.16.x-1.19.x"},
+			"1.15.1 is not a valid Kubernetes version; must be 1.16.x-1.20.x"},
 		{invalidServiceCIDRBlock, "1000.96.0.0/12 is not a valid CIDR specification"},
 		{invalidPodCIDRBlock, "192.1680.1.0/16 is not a valid CIDR specification"},
 		{invalidControlPlaneLbAddress1, "192.1680.1.0 is not a valid control plane load balancer address; must be a valid IP address or a domain name"},
@@ -468,6 +515,7 @@ func TestValidWKSValues(t *testing.T) {
 		{validWKSK8s117},
 		{validWKSK8s118},
 		{validWKSK8s119},
+		{validWKSK8s120},
 		{validExtraArguments},
 		{validControlPlaneLbAddress1},
 		{validControlPlaneLbAddress2},
@@ -774,5 +822,13 @@ func TestClusterVersion(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, strings.Contains(c, "kubernetesVersion: "+testvals.ver))
 	}
+}
 
+func TestExperimentalFeatures(t *testing.T) {
+	_, err := unmarshalConfig([]byte(validEKS_D))
+	require.NoError(t, err)
+	conf, err := unmarshalConfig([]byte(disabledEKS_D))
+	require.NoError(t, err)
+	err = processConfig(conf)
+	assert.Equal(t, "Flavors and CNI overrides are not enabled; enable the experimental 'eks-d' feature to use them", fmt.Sprintf("%v", err))
 }
