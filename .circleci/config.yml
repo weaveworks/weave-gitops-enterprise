@@ -637,7 +637,8 @@ jobs:
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
 
             go test -v -run TestClusterCreation --timeout=99999s
-
+            # Wait for cluster to settle
+            sleep 60
             export SELENIUM_DEBUG=true
             ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
             cd ../../acceptance/test/
