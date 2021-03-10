@@ -72,6 +72,9 @@ workflows:
             branches:
               only:
                 - master
+      - acceptance-tests:
+          requires:
+            - build
 
   run-integration-tests:
     when: << pipeline.parameters.run_integration_tests >>
@@ -580,6 +583,85 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=$WKP_EKS_AWS_SECRET_ACCESS_KEY
             eksctl delete cluster -f eks-cluster.yaml || echo "no worries"
           when: on_fail
+
+  acceptance-tests:
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 1
+          NUM_WORKERS: 1
+          USE_LB: false
+          SKIP_COMPONENTS: false
+          UPGRADE_VERSIONS: '1.19.3'
+      - image: selenium/standalone-chrome:latest
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          name: Setup base config.yaml
+          command: |
+            cd test/integration/test
+            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
+            # create file with docker password
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
+            sed -i "s/track:.*/track: wks-ssh/" config.yaml
+            sed -i "s/sshUser:.*/sshUser: weaveworks-cit/" config.yaml
+            sed -i "s|sshKeyFile:.*|sshKeyFile: /root/.ssh/weaveworks_cit_id_rsa|" config.yaml
+            sed -i "s|podCIDRBlocks:.*|podCIDRBlocks: [$POD_CIDR_BLOCK]|" config.yaml
+            sed -i "s|serviceCIDRBlocks:.*|serviceCIDRBlocks: [$SERVICE_CIDR_BLOCK]|" config.yaml
+      - run:
+          name: Run Acceptance Tests
+          no_output_timeout: 20m
+          command: |
+
+            export PATH=$GOROOT/bin:$PATH
+            export CLEANUP_REPO=false
+            cd test/integration/test
+
+            lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
+            export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
+            export USE_IMAGE=0
+            # provision $NUM_HOSTS GCE VMs
+            ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export ADD_TEAM_WORKSPACE_TOKEN=true
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
+
+            go test -v -run TestClusterCreation --timeout=99999s
+            # Wait for cluster to settle
+            sleep 60
+            export SELENIUM_DEBUG=true
+            ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
+            cd ../../acceptance/test/
+            go test -v
+
+            if [ $CLEANUP_REPO != "false" ]; then
+              hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+            fi
+
+            cd ../../integration/test
+            
+            ../bin/internal/run-integration-tests.sh destroy
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy GCP resources
+          command: |
+            cd test/integration/test
+            ../bin/internal/run-integration-tests.sh destroy
+          when: on_fail
+      - store_artifacts:
+          path: /tmp/workspace
+      - store_test_results:
+          path: /tmp/workspace
 
   integration-tests-creation-footloose:
     machine:

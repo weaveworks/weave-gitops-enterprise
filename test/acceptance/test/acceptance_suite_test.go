@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path"
 	"testing"
 	"time"
@@ -63,8 +64,23 @@ func GomegaFail(message string, callerSkip ...int) {
 		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
 	}
 
+	//Show pods
+	showItems("pods")
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
+}
+
+// Run a command, passing through stdout/stderr to the OS standard streams
+func runCommandPassThrough(name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+// showItems displays the current set of a specified object type in tabular format
+func showItems(itemType string) error {
+	return runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 }
 
 func TestAcceptance(t *testing.T) {

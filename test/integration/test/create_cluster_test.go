@@ -130,15 +130,6 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 
 	c.checkPushCount()
 
-	// Check that all components are functioning
-	if !c.shouldSkipComponents() {
-		// Check for all expected pods
-		log.Info("Checking that expected pods are running...")
-		if assert.True(t, c.isClusterRunning()) {
-			log.Info("All pods are running.")
-		}
-	}
-
 	// Wait for all nodes to be up
 	expectedNodes := 3
 	if c.conf.Track == "wks-ssh" {
@@ -148,6 +139,44 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 	// We don't care about the cluster if you're running on this track
 	if c.conf.Track != "wks-components" {
 		c.checkClusterAtExpectedNumberOfNodes(expectedNodes)
+	}
+
+	// Label the worker node for mccp db.
+	runCommandFromCurrentDir("../bin/internal/label-worker-node.sh")
+
+	// Check that all components are functioning
+	if !c.shouldSkipComponents() {
+		// Check for all expected pods
+		log.Info("Checking that expected pods are running...")
+		if assert.True(t, c.isClusterRunning()) {
+			log.Info("All pods are running.")
+		}
+	}
+
+	//Add workspace provider token
+	if os.Getenv("ADD_TEAM_WORKSPACE_TOKEN") == "true" {
+		log.Info("Creating the secret with github token for the workspace")
+		_, stderr, err := runCommand(c, c.wkBin, "workspaces", "add-provider",
+			"--type", "github",
+			"--token", os.Getenv("WORKSPACES_ORG_ADMIN_TOKEN"),
+			"--secret-name", "github-token",
+			"--git-commit-push")
+		assert.NoError(c.t, err, string(stderr))
+
+		retryUntilCreated(c, "secret", "wkp-workspaces", "github-token")
+
+		assert.True(t, c.checkComponentRunning(
+			Component{Name: "wkp-workspaces-controller", Namespace: "wkp-workspaces", Type: Deployment}))
+
+		assert.True(t, c.checkComponentRunning(
+			Component{Name: "kustomize-controller", Namespace: "wkp-workspaces", Type: Deployment}))
+
+		assert.True(t, c.checkComponentRunning(
+			Component{Name: "notification-controller", Namespace: "wkp-workspaces", Type: Deployment}))
+
+		assert.True(t, c.checkComponentRunning(
+			Component{Name: "source-controller", Namespace: "wkp-workspaces", Type: Deployment}))
+
 	}
 
 	if c.conf.Track == "wks-footloose" {
