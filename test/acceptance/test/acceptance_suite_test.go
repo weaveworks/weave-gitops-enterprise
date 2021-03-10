@@ -64,6 +64,8 @@ func GomegaFail(message string, callerSkip ...int) {
 		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
 	}
 
+	//Show pods
+	showItems("pods")
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
 }
