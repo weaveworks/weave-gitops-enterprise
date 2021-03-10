@@ -58,9 +58,6 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - acceptance-tests:
-          requires:
-            - build
       - container-tests
       - unit-tests
       - unit-tests-with-coverage
