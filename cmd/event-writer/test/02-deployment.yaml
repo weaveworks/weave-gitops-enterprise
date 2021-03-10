@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wkp-mccp-database-inspector
-  namespace: wkp-mccp
+  namespace: wkp-gitops-repo-broker
 spec:
   replicas: 1
   selector:
@@ -14,11 +14,11 @@ spec:
         app: mccp-database-inspector
     spec:
       nodeSelector:
-        mccp-dev-node: "true"
+        mccp-dev-node: 'true'
       containers:
         - name: inspector
           image: database-inspector-image
-          command: ["tail", "-f", "/dev/null"]
+          command: ['tail', '-f', '/dev/null']
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: database-volume

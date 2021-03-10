@@ -75,12 +75,7 @@ func enqueueEvent(event ce.Event) {
 	}
 	log.Info(fmt.Sprintf("received event: %+v %+v %+v\n", data.Event.Name, data.Event.Namespace, data.Event.Message))
 
-	dbEvent, err := converter.ConvertEvent(*data)
-	if err != nil {
-		log.Warn(fmt.Sprintf("failed to convert event to db model: %s\n", err.Error()))
-		return
-	}
-
+	dbEvent := converter.ConvertEvent(*data)
 	queue.EventQueue = append(queue.EventQueue, dbEvent)
 }
 
@@ -99,17 +94,9 @@ func writeClusterInfo(event ce.Event) error {
 
 	log.Infof("Received ClusterInfo: %s %s.", data.Cluster.ID, data.Cluster.Type)
 
-	dbClusterInfo, err := converter.ConvertClusterInfo(data)
-	if err != nil {
-		log.Warnf("Failed to convert ClusterInfo object to db model: %v.", err)
-		return err
-	}
+	dbClusterInfo := converter.ConvertClusterInfo(data)
 
-	dbNodeInfoArray, err := converter.ConvertNodeInfo(data, dbClusterInfo.UID)
-	if err != nil {
-		log.Warnf("Failed to convert NodeInfo array to db model: %v.", err)
-		return err
-	}
+	dbNodeInfoArray := converter.ConvertNodeInfo(data, dbClusterInfo.UID)
 
 	return utils.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).Create(&dbClusterInfo).Error; err != nil {
@@ -139,16 +126,12 @@ func writeAlert(event ce.Event) error {
 	var dbAlerts []models.Alert
 
 	for _, alert := range data.Alerts {
-		dbAlert, err := converter.ConvertAlert(data.Token, alert)
-		if err != nil {
-			log.Warnf("Failed to convert Alert object to db model: %v.", err)
-			return err
-		}
+		dbAlert := converter.ConvertAlert(data.Token, alert)
 		dbAlerts = append(dbAlerts, dbAlert)
 	}
 
 	return utils.DB.Transaction(func(tx *gorm.DB) error {
-		tx.Where("token = ?", data.Token).Delete(&models.Alert{})
+		tx.Where("cluster_token = ?", data.Token).Delete(&models.Alert{})
 		tx.Create(&dbAlerts)
 		return nil
 	})
@@ -169,11 +152,7 @@ func writeFluxInfo(event ce.Event) error {
 	}
 	log.Infof("received FluxInfo for cluster %s", cluster.Name)
 
-	dbFluxInfo, err := converter.ConvertFluxInfo(data)
-	if err != nil {
-		log.Warnf("failed to convert FluxInfo object to db model: %v", err)
-		return err
-	}
+	dbFluxInfo := converter.ConvertFluxInfo(data)
 
 	utils.DB.Clauses(clause.OnConflict{
 		UpdateAll: true,
@@ -197,11 +176,7 @@ func writeGitCommitInfo(event ce.Event) error {
 	}
 	log.Debugf("Received GitCommitInfo for cluster %s", cluster.Name)
 
-	dbCommitInfo, err := converter.ConvertGitCommitInfo(data)
-	if err != nil {
-		log.Warnf("Failed to convert GitCommitInfo object to db model: %v.", err)
-		return err
-	}
+	dbCommitInfo := converter.ConvertGitCommitInfo(data)
 
 	if err := utils.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("cluster_token = ?", data.Token).Delete(&models.GitCommit{}).Error; err != nil {

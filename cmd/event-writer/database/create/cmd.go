@@ -20,20 +20,32 @@ var Cmd = &cobra.Command{
 }
 
 type paramSet struct {
-	dbURI string
+	URI      string
+	Type     string
+	Name     string
+	User     string
+	Password string
 }
 
 var globalParams paramSet
 
 func init() {
-	Cmd.Flags().StringVar(&globalParams.dbURI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
+	Cmd.Flags().StringVar(&globalParams.URI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
+	Cmd.Flags().StringVar(&globalParams.Type, "db-type", os.Getenv("DB_TYPE"), "database type, supported types [sqlite, postgres]")
+	Cmd.Flags().StringVar(&globalParams.Name, "db-name", os.Getenv("DB_NAME"), "database name, applicable if type is postgres")
+	Cmd.Flags().StringVar(&globalParams.User, "db-user", os.Getenv("DB_USER"), "database user")
+	Cmd.Flags().StringVar(&globalParams.Password, "db-password", os.Getenv("DB_PASSWORD"), "database password")
 }
 
 func runCommand(globalParams paramSet) error {
-	if globalParams.dbURI == "" {
+	if globalParams.URI == "" {
 		return errors.New("--db-uri not provided and $DB_URI not set")
 	}
-	db, err := utils.Open(globalParams.dbURI)
+	if globalParams.Type == "" {
+		return errors.New("--db-type not provided and $DB_TYPE not set")
+	}
+
+	db, err := utils.Open(globalParams.URI, globalParams.Type, globalParams.Name, globalParams.User, globalParams.Password)
 	if err != nil {
 		return err
 	}

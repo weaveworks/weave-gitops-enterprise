@@ -46,8 +46,12 @@ func init() {
 	cmd.Flags().DurationVar(&globalParams.HttpWriteTimeout, "http-write-timeout", 30*time.Second, "WriteTimeout is the maximum duration before timing out writes of the response.")
 
 	cmd.Flags().StringVar(&globalParams.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
-	cmd.Flags().StringVar(&globalParams.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wkp-mccp:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&globalParams.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wkp-gitops-repo-broker:4222", "Value used to populate the nats URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&globalParams.DbURI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
+	cmd.Flags().StringVar(&globalParams.DbType, "db-type", os.Getenv("DB_TYPE"), "database type, supported types [sqlite, postgres]")
+	cmd.Flags().StringVar(&globalParams.DbName, "db-name", os.Getenv("DB_NAME"), "database name, applicable if type is postgres")
+	cmd.Flags().StringVar(&globalParams.DbUser, "db-user", os.Getenv("DB_USER"), "database user")
+	cmd.Flags().StringVar(&globalParams.DbPassword, "db-password", os.Getenv("DB_PASSWORD"), "database password")
 }
 
 func main() {

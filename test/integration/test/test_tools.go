@@ -99,7 +99,7 @@ var allComponents = func(track string) []Component {
 		{"wkp-ui", "wkp-ui-server", Deployment},
 		{"wkp-ui", "wkp-ui-nginx-ingress-controller", Deployment},
 		{"wkp-ui", "wkp-ui-nginx-ingress-controller-default-backend", Deployment},
-		{"wkp-mccp", "nats", StatefulSet},
+		{"wkp-gitops-repo-broker", "nats", StatefulSet},
 	}
 
 	if track == "wks-ssh" || track == "wks-footloose" {

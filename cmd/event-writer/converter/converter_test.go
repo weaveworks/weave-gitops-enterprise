@@ -115,8 +115,7 @@ func TestSerializeEventToJSON(t *testing.T) {
 	testEvent := newEvent(reason, kind, namespace, name)
 
 	// Serialize a v1.Event to the gorm JSON datatype as byte array
-	b, err := SerializeEventToJSON(&testEvent.Event)
-	assert.NoError(t, err)
+	b := SerializeEventToJSON(&testEvent.Event)
 	assert.Contains(t, string(b), reason)
 	assert.Contains(t, string(b), namespace)
 	assert.Contains(t, string(b), name)
@@ -130,8 +129,7 @@ func TestDeserializeEventToJSON(t *testing.T) {
 	testEvent := newEvent(reason, kind, namespace, name)
 
 	// First serialize a v1.Event to the gorm JSON datatype as byte array
-	b, err := SerializeEventToJSON(&testEvent.Event)
-	assert.NoError(t, err)
+	b := SerializeEventToJSON(&testEvent.Event)
 
 	// Recreate the v1.Event struct and compare the fields
 	parsedEvent, err := DeserializeJSONToEvent(b)
@@ -149,8 +147,7 @@ func TestConvertEvent(t *testing.T) {
 	testEvent := newEvent(reason, kind, namespace, name)
 
 	// Convert v1.Event to models.Event
-	dbEvent, err := ConvertEvent(testEvent)
-	assert.NoError(t, err)
+	dbEvent := ConvertEvent(testEvent)
 
 	// Ensure that the reason is written correctly
 	assert.Equal(t, dbEvent.Reason, reason)
@@ -170,8 +167,7 @@ func TestConvertClusterInfo(t *testing.T) {
 	testClusterInfo := newClusterInfo("8cb9581a-1de1-4a7b-ab2d-16791acc8f74", "existingInfra")
 
 	// Convert payload.ClusterInfo to models.ClusterInfo
-	dbClusterInfo, err := ConvertClusterInfo(testClusterInfo)
-	assert.NoError(t, err)
+	dbClusterInfo := ConvertClusterInfo(testClusterInfo)
 
 	assert.Equal(t, testClusterInfo.Cluster.ID, string(dbClusterInfo.UID))
 	assert.Equal(t, testClusterInfo.Cluster.Type, dbClusterInfo.Type)
@@ -181,8 +177,7 @@ func TestConvertNodeInfo(t *testing.T) {
 	testClusterInfo := newClusterInfo("8cb9581a-1de1-4a7b-ab2d-16791acc8f74", "existingInfra")
 
 	// Convert payload.ClusterInfo to models.ClusterInfo
-	dbClusterInfo, err := ConvertClusterInfo(testClusterInfo)
-	assert.NoError(t, err)
+	dbClusterInfo := ConvertClusterInfo(testClusterInfo)
 
 	cp := newNodeInfo("3f28d1dd7291784ed454f52ba0937337", "foo-wks-1", "v1.19.3", true)
 	worker := newNodeInfo("953089b9924d3a45febe69bc3add4683", "foo-wks-2", "v1.19.4", false)
@@ -190,8 +185,7 @@ func TestConvertNodeInfo(t *testing.T) {
 	testClusterInfo.Cluster.Nodes = append(testClusterInfo.Cluster.Nodes, worker)
 
 	// Convert payload.ClusterInfo to models.ClusterInfo
-	dbNodeInfo, err := ConvertNodeInfo(testClusterInfo, dbClusterInfo.UID)
-	assert.NoError(t, err)
+	dbNodeInfo := ConvertNodeInfo(testClusterInfo, dbClusterInfo.UID)
 
 	assert.Len(t, dbNodeInfo, 2)
 	assert.Equal(t, cp.MachineID, string(dbNodeInfo[0].UID))
@@ -340,8 +334,7 @@ func TestConvertFluxInfo(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, err := ConvertFluxInfo(test.message)
-		assert.NoError(t, err)
+		result := ConvertFluxInfo(test.message)
 		assert.Equal(t, test.result, result)
 	}
 }
@@ -372,10 +365,9 @@ func TestConvertAlert(t *testing.T) {
 		startDate, endDate, updatedDate, annot, labls, strSlice, strSlice, receivrs)
 
 	// Convert payload.PrometheusAlerts to models.Alert
-	dbAlert, err := ConvertAlert("derp", &alert)
-	assert.NoError(t, err)
+	dbAlert := ConvertAlert("derp", &alert)
 
-	assert.Equal(t, "derp", dbAlert.Token)
+	assert.Equal(t, "derp", dbAlert.ClusterToken)
 	assert.Equal(t, "active", dbAlert.State)
 	assert.Equal(t, endDate, dbAlert.EndsAt)
 	assert.Equal(t, startDate, dbAlert.StartsAt)
@@ -472,8 +464,7 @@ func TestConvertGitCommitInfo(t *testing.T) {
 		},
 	}
 
-	dbCommit, err := ConvertGitCommitInfo(commit)
-	assert.NoError(t, err)
+	dbCommit := ConvertGitCommitInfo(commit)
 
 	assert.Equal(t, commit.Token, dbCommit.ClusterToken)
 	assert.Equal(t, commit.Commit.Sha, dbCommit.Sha)

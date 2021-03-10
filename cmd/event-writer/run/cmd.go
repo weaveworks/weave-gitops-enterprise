@@ -32,6 +32,10 @@ type paramSet struct {
 	natsURL      string
 	natsSubject  string
 	dbURI        string
+	dbType       string
+	dbName       string
+	dbUser       string
+	dbPassword   string
 	timeInterval int
 	batchSize    int
 }
@@ -42,6 +46,10 @@ func init() {
 	Cmd.Flags().StringVar(&globalParams.natsURL, "nats-url", os.Getenv("NATS_URL"), "URL of the NATS server to connect to")
 	Cmd.Flags().StringVar(&globalParams.natsSubject, "nats-subject", ">", "NATS subject to subscribe to")
 	Cmd.Flags().StringVar(&globalParams.dbURI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
+	Cmd.Flags().StringVar(&globalParams.dbType, "db-type", os.Getenv("DB_TYPE"), "database type, supported types [sqlite, postgres]")
+	Cmd.Flags().StringVar(&globalParams.dbName, "db-name", os.Getenv("DB_NAME"), "database name")
+	Cmd.Flags().StringVar(&globalParams.dbUser, "db-user", os.Getenv("DB_USER"), "database user")
+	Cmd.Flags().StringVar(&globalParams.dbPassword, "db-password", os.Getenv("DB_PASSWORD"), "database password")
 	Cmd.Flags().IntVar(&globalParams.timeInterval, "time-interval", 3, "time interval in seconds for writing messages to the DB")
 	Cmd.Flags().IntVar(&globalParams.batchSize, "batch-size", 100, "batch size of writes")
 	Cmd.PersistentFlags().IntVar(&LogLevel, "log-level", 4, "logging level (0-6)")
@@ -63,7 +71,7 @@ func runCommand(globalParams paramSet) error {
 	initializeQueues(globalParams)
 
 	// Connect to the DB
-	_, err := utils.Open(globalParams.dbURI)
+	_, err := utils.Open(globalParams.dbURI, globalParams.dbType, globalParams.dbName, globalParams.dbUser, globalParams.dbPassword)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("failed to connect to the database at %s", globalParams.dbURI))
 	}

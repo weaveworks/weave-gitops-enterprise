@@ -19,12 +19,9 @@ import (
 )
 
 // ConvertEvent returns a models.Event from a payload.KubernetesEvent which wraps a v1.Event object
-func ConvertEvent(wkpEvent payload.KubernetesEvent) (models.Event, error) {
+func ConvertEvent(wkpEvent payload.KubernetesEvent) models.Event {
 	event := wkpEvent.Event
-	eventJSONbytes, err := toJSON(&event)
-	if err != nil {
-		return models.Event{}, err
-	}
+	eventJSONbytes := toJSON(&event)
 
 	flattenedLabels := SerializeStringMap(event.ObjectMeta.Labels)
 	flattenedAnnotations := SerializeStringMap(event.ObjectMeta.Annotations)
@@ -48,22 +45,22 @@ func ConvertEvent(wkpEvent payload.KubernetesEvent) (models.Event, error) {
 		Type:         event.Type,
 		RawEvent:     datatypes.JSON(eventJSONbytes),
 	}
-	return result, nil
+	return result
 }
 
 // ConvertClusterInfo returns a models.ClusterInfo from a NATS message with cluster info
-func ConvertClusterInfo(clusterInfo payload.ClusterInfo) (models.ClusterInfo, error) {
+func ConvertClusterInfo(clusterInfo payload.ClusterInfo) models.ClusterInfo {
 	cluster := clusterInfo.Cluster
 	result := models.ClusterInfo{
 		Token: clusterInfo.Token,
 		UID:   types.UID(cluster.ID),
 		Type:  cluster.Type,
 	}
-	return result, nil
+	return result
 }
 
 // ConvertNodeInfo returns a models.Node from a NATS message with node info
-func ConvertNodeInfo(clusterInfo payload.ClusterInfo, clusterID types.UID) ([]models.NodeInfo, error) {
+func ConvertNodeInfo(clusterInfo payload.ClusterInfo, clusterID types.UID) []models.NodeInfo {
 	result := []models.NodeInfo{}
 	for _, nodeInfo := range clusterInfo.Cluster.Nodes {
 		result = append(result, models.NodeInfo{
@@ -75,31 +72,22 @@ func ConvertNodeInfo(clusterInfo payload.ClusterInfo, clusterID types.UID) ([]mo
 			KubeletVersion: nodeInfo.KubeletVersion,
 		})
 	}
-	return result, nil
+	return result
 }
 
 // ConvertAlert returns a models.Alert from a NATS message with alert info
-func ConvertAlert(token string, gAlert *ammodels.GettableAlert) (models.Alert, error) {
+func ConvertAlert(token string, gAlert *ammodels.GettableAlert) models.Alert {
 	alert := gAlert
-	alertJSONbytes, err := toJSON(alert)
-	if err != nil {
-		return models.Alert{}, err
-	}
-	annotationsJSONBytes, err := toJSON(alert.Annotations)
-	if err != nil {
-		return models.Alert{}, err
-	}
-	labelsJSONBytes, err := toJSON(alert.Labels)
-	if err != nil {
-		return models.Alert{}, err
-	}
+	alertJSONbytes := toJSON(alert)
+	annotationsJSONBytes := toJSON(alert.Annotations)
+	labelsJSONBytes := toJSON(alert.Labels)
 
 	flattenedInhibitedBy := SerializeStringSlice(alert.Status.InhibitedBy)
 	flattenedSilencedBy := SerializeStringSlice(alert.Status.SilencedBy)
 	Severity := alert.Alert.Labels["severity"]
 
 	result := models.Alert{
-		Token:        token,
+		ClusterToken: token,
 		Annotations:  datatypes.JSON(annotationsJSONBytes),
 		EndsAt:       time.Time(*alert.EndsAt),
 		Fingerprint:  *alert.Fingerprint,
@@ -114,11 +102,11 @@ func ConvertAlert(token string, gAlert *ammodels.GettableAlert) (models.Alert, e
 		RawAlert:     datatypes.JSON(alertJSONbytes),
 	}
 
-	return result, nil
+	return result
 }
 
 // ConvertFluxInfo returns a models.FluxInfo from a NATS message with cluster info
-func ConvertFluxInfo(fluxInfo payload.FluxInfo) ([]models.FluxInfo, error) {
+func ConvertFluxInfo(fluxInfo payload.FluxInfo) []models.FluxInfo {
 	result := []models.FluxInfo{}
 
 	for _, fluxDeploymentInfo := range fluxInfo.Deployments {
@@ -139,10 +127,10 @@ func ConvertFluxInfo(fluxInfo payload.FluxInfo) ([]models.FluxInfo, error) {
 			})
 	}
 
-	return result, nil
+	return result
 }
 
-func ConvertGitCommitInfo(commitInfo payload.GitCommitInfo) (models.GitCommit, error) {
+func ConvertGitCommitInfo(commitInfo payload.GitCommitInfo) models.GitCommit {
 	return models.GitCommit{
 		ClusterToken:   commitInfo.Token,
 		Sha:            commitInfo.Commit.Sha,
@@ -153,7 +141,7 @@ func ConvertGitCommitInfo(commitInfo payload.GitCommitInfo) (models.GitCommit, e
 		CommitterEmail: commitInfo.Commit.Committer.Email,
 		CommitterDate:  commitInfo.Commit.Committer.Date,
 		Message:        commitInfo.Commit.Message,
-	}, nil
+	}
 }
 
 func ConvertWorkspaceInfo(workspaceInfo payload.WorkspaceInfo) []models.Workspace {
@@ -193,15 +181,15 @@ func SerializeStringMap(m map[string]string) string {
 	return b.String()
 }
 
-func toJSON(obj interface{}) ([]byte, error) {
+func toJSON(obj interface{}) []byte {
 	output := bytes.NewBufferString("")
 	encoder := json.NewEncoder(output)
 	encoder.Encode(obj)
-	return output.Bytes(), nil
+	return output.Bytes()
 }
 
 // SerializeEventToJSON serializes a v1.Event object to a byte array
-func SerializeEventToJSON(e *v1.Event) ([]byte, error) {
+func SerializeEventToJSON(e *v1.Event) []byte {
 	return toJSON(e)
 }
 

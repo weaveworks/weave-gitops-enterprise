@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -26,8 +25,7 @@ var (
 )
 
 func TestDBInsertSuite(t *testing.T) {
-	testDB, err := utils.Open("test.db")
-	defer os.Remove("test.db")
+	testDB, err := utils.Open("", "sqlite", "", "", "")
 
 	assert.NoError(t, err)
 	err = utils.MigrateTables(testDB)

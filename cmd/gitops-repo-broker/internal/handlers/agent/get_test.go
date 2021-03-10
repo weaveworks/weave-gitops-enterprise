@@ -16,7 +16,7 @@ import (
 )
 
 func TestGet(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -40,7 +40,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGet_ClusterNotFound(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)

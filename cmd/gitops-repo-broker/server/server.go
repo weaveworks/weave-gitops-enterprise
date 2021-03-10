@@ -30,6 +30,10 @@ type ParamSet struct {
 	AgentTemplateNatsURL         string
 	AgentTemplateAlertmanagerURL string
 	DbURI                        string
+	DbName                       string
+	DbUser                       string
+	DbPassword                   string
+	DbType                       string
 }
 
 func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
@@ -39,7 +43,7 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 	}
 
 	started := time.Now()
-	db, err := utils.Open(params.DbURI)
+	db, err := utils.Open(params.DbURI, params.DbType, params.DbName, params.DbUser, params.DbPassword)
 	if err != nil {
 		return nil, err
 	}

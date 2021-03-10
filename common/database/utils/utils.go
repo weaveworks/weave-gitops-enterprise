@@ -2,10 +2,13 @@ package utils
 
 import (
 	"errors"
+	"fmt"
+
 	"gorm.io/gorm/logger"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/common/database/models"
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -13,9 +16,20 @@ import (
 // DB ref contains a pointer to the MCCP database
 var DB *gorm.DB
 
-// Open creates the SQLite database or connects to an existing database
-func Open(dbURI string) (*gorm.DB, error) {
-	return OpenDebug(dbURI, false)
+// Open creates the database or connects to an existing database
+func Open(uri, dbType, dbName, user, password string) (*gorm.DB, error) {
+	if dbType == "postgres" {
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable TimeZone=UTC", uri, user, password, dbName)
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect to database %s with provided username and password", uri)
+		}
+		DB = db
+		return db, nil
+	} else if dbType == "sqlite" {
+		return OpenDebug(uri, false)
+	}
+	return nil, fmt.Errorf("unsupported database type %s", dbType)
 }
 
 func OpenDebug(dbURI string, debug bool) (*gorm.DB, error) {
@@ -38,65 +52,22 @@ func OpenDebug(dbURI string, debug bool) (*gorm.DB, error) {
 // MigrateTables creates the database tables given a gorm.DB
 func MigrateTables(db *gorm.DB) error {
 	// Migrate the schema
-	err := db.AutoMigrate(&models.Event{})
+	err := db.AutoMigrate(
+		&models.Event{},
+		&models.Cluster{},
+		&models.ClusterInfo{},
+		&models.NodeInfo{},
+		&models.Alert{},
+		&models.GitRepository{},
+		&models.GitProvider{},
+		&models.Workspace{},
+		&models.FluxInfo{},
+		&models.GitCommit{},
+	)
 	if err != nil {
-		return errors.New("failed to create Events table")
+		return errors.New("failed to create tables")
 	}
-	log.Info("created Events table")
-
-	err = db.AutoMigrate(&models.Cluster{})
-	if err != nil {
-		return errors.New("failed to create Clusters table")
-	}
-	log.Info("created Cluster table")
-
-	err = db.AutoMigrate(&models.ClusterInfo{})
-	if err != nil {
-		return errors.New("failed to create ClusterInfo table")
-	}
-	log.Info("created ClusterInfo table")
-
-	err = db.AutoMigrate(&models.NodeInfo{})
-	if err != nil {
-		return errors.New("failed to create NodeInfo table")
-	}
-	log.Info("created NodeInfo table")
-
-	err = db.AutoMigrate(&models.Alert{})
-	if err != nil {
-		return errors.New("failed to create Alert table")
-	}
-	log.Info("created Alert table")
-
-	err = db.AutoMigrate(&models.GitRepository{})
-	if err != nil {
-		return errors.New("failed to create GitRepository table")
-	}
-	log.Info("created GitRepository table")
-
-	err = db.AutoMigrate(&models.GitProvider{})
-	if err != nil {
-		return errors.New("failed to create GitProviders table")
-	}
-	log.Info("created GitProviders table")
-
-	err = db.AutoMigrate(&models.Workspace{})
-	if err != nil {
-		return errors.New("failed to create Workspaces table")
-	}
-	log.Info("created Workspaces table")
-
-	err = db.AutoMigrate(&models.FluxInfo{})
-	if err != nil {
-		return errors.New("failed to create FluxInfo table")
-	}
-	log.Info("created FluxInfo table")
-
-	err = db.AutoMigrate(&models.GitCommit{})
-	if err != nil {
-		return errors.New("failed to create GitCommits table")
-	}
-	log.Info("created GitCommits table")
+	log.Info("created all database tables")
 	return nil
 }
 

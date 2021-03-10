@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -42,6 +43,7 @@ type ClusterListRow struct {
 	Token          string
 	IngressURL     string
 	Type           string
+	UpdatedAt      time.Time
 	NodeName       string
 	IsControlPlane bool
 	KubeletVersion string
@@ -49,7 +51,6 @@ type ClusterListRow struct {
 	// for alerts
 	CriticalAlertsCount uint
 	AlertsCount         uint
-	UpdatedAt           time.Time
 
 	// for flux info
 	FluxName       string
@@ -70,42 +71,57 @@ type ClusterListRow struct {
 }
 
 func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
+	queryString := `
+	SELECT
+		c.id AS ID,
+		c.name AS Name, 
+		c.token AS Token,
+		c.ingress_url AS IngressURL, 
+		ci.type AS Type, 
+		ni.name AS NodeName, 
+		ci.updated_at AS UpdatedAt,
+		ni.is_control_plane AS IsControlPlane, 
+		ni.kubelet_version AS KubeletVersion,
+		fi.name AS FluxName,
+		fi.namespace AS FluxNamespace,
+		fi.repo_url AS FluxRepoURL,
+		fi.repo_branch AS FluxRepoBranch,
+		(select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') as CriticalAlertsCount,
+		(select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) AS AlertsCount,
+		gc.author_name AS GitCommitAuthorName,
+		gc.author_email AS GitCommitAuthorEmail,
+		gc.author_date AS GitCommitAuthorDate,
+		gc.message AS GitCommitMessage,
+		gc.sha AS GitCommitSha,
+		ws.name AS WorkspaceName,
+		ws.namespace AS WorkspaceNamespace
+	FROM 
+		clusters c 
+		LEFT JOIN cluster_info ci ON c.token = ci.token 
+		LEFT JOIN node_info ni ON c.token = ni.token
+		LEFT JOIN flux_info fi ON c.token = fi.cluster_token
+		LEFT JOIN git_commits gc ON c.token = gc.cluster_token
+		LEFT JOIN workspaces ws ON c.token = ws.cluster_token
+	WHERE c.deleted_at IS NULL
+`
 
 	var rows []ClusterListRow
-	if err := db.Raw(`
-			SELECT
-				c.id AS ID,
-				c.name AS Name, 
-				c.token AS Token,
-				c.ingress_url AS IngressURL, 
-				ci.type AS Type, 
-				ni.name AS NodeName, 
-				ci.updated_at AS UpdatedAt,
-				ni.is_control_plane AS IsControlPlane, 
-				ni.kubelet_version AS KubeletVersion,
-				fi.name AS FluxName,
-				fi.namespace AS FluxNamespace,
-				fi.repo_url AS FluxRepoURL,
-				fi.repo_branch AS FluxRepoBranch,
-				(select count(*) from alerts a where a.token = c.token and severity = 'critical') as CriticalAlertsCount,
-				(select count(*) from alerts a where a.token = c.token and severity != 'none' and severity is not null) AS AlertsCount,
-				gc.author_name AS GitCommitAuthorName,
-				gc.author_email AS GitCommitAuthorEmail,
-				gc.author_date AS GitCommitAuthorDate,
-				gc.message AS GitCommitMessage,
-				gc.sha AS GitCommitSha,
-				ws.name AS WorkspaceName,
-				ws.namespace AS WorkspaceNamespace
-			FROM 
-				clusters c 
-				LEFT JOIN cluster_info ci ON c.token = ci.token 
-				LEFT JOIN node_info ni ON c.token = ni.token
-				LEFT JOIN flux_info fi ON c.token = fi.cluster_token
-				LEFT JOIN git_commits gc ON c.token = gc.cluster_token
-				LEFT JOIN workspaces ws ON c.token = ws.cluster_token
-			WHERE c.deleted_at IS NULL
-		`+extraQuery, extraValues).Scan(&rows).Error; err != nil {
-		return nil, ErrNilDB
+	if db.Dialector.Name() == "postgres" {
+		DB, err := db.DB()
+		if err != nil {
+			return []ClusterView{}, err
+		}
+		result, err := DB.Query(queryString + extraQuery)
+		if err != nil {
+			return []ClusterView{}, err
+		}
+		for result.Next() {
+			rows = append(rows, clusterListRowScan(result))
+		}
+	} else {
+		if err := db.Raw(queryString+extraQuery, extraValues).Scan(&rows).Error; err != nil {
+			return nil, ErrNilDB
+		}
 	}
 
 	clusters := map[string]*ClusterView{}
@@ -134,6 +150,36 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 	}
 
 	return clusterList, nil
+}
+
+func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
+	var row ClusterListRow
+	cols, _ := sqlResult.Columns()
+	fmt.Printf("sqlResult: %+v\n", cols)
+	sqlResult.Scan(
+		&row.ID,
+		&row.Name,
+		&row.Token,
+		&row.IngressURL,
+		&row.Type,
+		&row.NodeName,
+		&row.UpdatedAt,
+		&row.IsControlPlane,
+		&row.KubeletVersion,
+		&row.FluxName,
+		&row.FluxNamespace,
+		&row.FluxRepoURL,
+		&row.FluxRepoBranch,
+		&row.CriticalAlertsCount,
+		&row.AlertsCount,
+		&row.GitCommitAuthorName,
+		&row.GitCommitAuthorEmail,
+		&row.GitCommitAuthorDate,
+		&row.GitCommitMessage,
+		&row.GitCommitSha,
+		&row.WorkspaceName,
+		&row.WorkspaceNamespace)
+	return row
 }
 
 func unpackClusterRow(c *ClusterView, r ClusterListRow) {
@@ -403,7 +449,7 @@ func ListAlerts(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Response
 				alerts a,
 				clusters c
 			WHERE
-				a.token = c.token and
+				a.cluster_token = c.token and
 				a.severity != 'none' and a.severity is not null
 			ORDER BY
 				a.severity

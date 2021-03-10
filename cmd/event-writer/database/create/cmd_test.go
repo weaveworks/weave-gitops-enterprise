@@ -13,19 +13,29 @@ func TestRunCommand(t *testing.T) {
 	}{
 		{
 			paramSet{
-				dbURI: "test.db",
+				URI:  "test.db",
+				Type: "",
+			},
+			"--db-type not provided and $DB_TYPE not set",
+		},
+		{
+			paramSet{
+				URI:  "test.db",
+				Type: "sqlite",
 			},
 			"",
 		},
 		{
 			paramSet{
-				dbURI: "",
+				URI:  "",
+				Type: "sqlite",
 			},
 			"--db-uri not provided and $DB_URI not set",
 		},
 		{
 			paramSet{
-				dbURI: "/derp/test.db",
+				URI:  "/derp/test.db",
+				Type: "sqlite",
 			},
 			"failed to connect to database",
 		},

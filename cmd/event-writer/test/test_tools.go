@@ -29,8 +29,7 @@ func dbEventFromFile(t *testing.T, path string) (models.Event, error) {
 	event, err := converter.DeserializeJSONToEvent(data)
 	assert.NoError(t, err)
 
-	dbEvent, err := converter.ConvertEvent(payload.KubernetesEvent{Event: *event})
-	assert.NoError(t, err)
+	dbEvent := converter.ConvertEvent(payload.KubernetesEvent{Event: *event})
 	return dbEvent, nil
 }
 

@@ -78,7 +78,7 @@ func TestNilDb(t *testing.T) {
 }
 
 func TestNoTables(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 
 	noTablesHandlers := []struct {
@@ -105,7 +105,7 @@ func TestNoTables(t *testing.T) {
 }
 
 func TestJSONMarshalErrors(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -188,7 +188,7 @@ func TestGetCluster(t *testing.T) {
 
 	for _, rt := range requestTests {
 		t.Run(rt.description, func(t *testing.T) {
-			db, err := utils.Open("")
+			db, err := utils.Open("", "sqlite", "", "", "")
 			assert.NoError(t, err)
 			err = utils.MigrateTables(db)
 			assert.NoError(t, err)
@@ -306,7 +306,7 @@ func TestUpdateCluster(t *testing.T) {
 	}
 	for _, rt := range requestTests {
 		t.Run(rt.description, func(t *testing.T) {
-			db, err := utils.Open("")
+			db, err := utils.Open("", "sqlite", "", "", "")
 			assert.NoError(t, err)
 			err = utils.MigrateTables(db)
 			assert.NoError(t, err)
@@ -348,7 +348,7 @@ func TestUpdateCluster(t *testing.T) {
 }
 
 func TestListClusters(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -461,7 +461,7 @@ func TestListClusters(t *testing.T) {
 }
 
 func TestListCluster_MultipleFluxInfo(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 
 	err = utils.MigrateTables(db)
@@ -557,7 +557,7 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 }
 
 func TestListCluster_MultipleWorkspaces(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 
 	err = utils.MigrateTables(db)
@@ -644,7 +644,7 @@ func executeGet(t *testing.T, db *gorm.DB, fn api.MarshalIndent, url string) *ht
 }
 
 func TestRegisterCluster_IOError(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 
 	response := executePost(t, FakeErrorReader{}, db, json.Unmarshal, json.MarshalIndent, nil)
@@ -653,7 +653,7 @@ func TestRegisterCluster_IOError(t *testing.T) {
 }
 
 func TestRegisterCluster_JSONError(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -683,7 +683,7 @@ func TestRegisterCluster_JSONError(t *testing.T) {
 }
 
 func TestRegisterCluster_TokenGenerationError(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -698,7 +698,7 @@ func TestRegisterCluster_TokenGenerationError(t *testing.T) {
 }
 
 func TestRegisterCluster_ValidateRequestBody(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -714,7 +714,7 @@ func TestRegisterCluster_ValidateRequestBody(t *testing.T) {
 }
 
 func TestRegisterCluster(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -739,7 +739,7 @@ func executePost(t *testing.T, r io.Reader, db *gorm.DB, unmarshalFn api.Unmarsh
 }
 
 func TestListAlerts(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -754,17 +754,17 @@ func TestListAlerts(t *testing.T) {
 	c := models.Cluster{Name: "My Cluster", Token: "derp"}
 	db.Create(&c)
 	a := models.Alert{
-		Token:       c.Token,
-		Fingerprint: "123",
-		State:       "active",
-		Severity:    "foo",
-		InhibitedBy: "bar",
-		SilencedBy:  "baz",
-		Annotations: datatypes.JSON(annotationJSON),
-		Labels:      datatypes.JSON(labelsJSON),
-		StartsAt:    time.Now().UTC(),
-		UpdatedAt:   time.Now().UTC(),
-		EndsAt:      time.Now().UTC(),
+		ClusterToken: c.Token,
+		Fingerprint:  "123",
+		State:        "active",
+		Severity:     "foo",
+		InhibitedBy:  "bar",
+		SilencedBy:   "baz",
+		Annotations:  datatypes.JSON(annotationJSON),
+		Labels:       datatypes.JSON(labelsJSON),
+		StartsAt:     time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
+		EndsAt:       time.Now().UTC(),
 	}
 	db.Create(&a)
 	response, _ := doRequest(t, api.ListAlerts(db, json.MarshalIndent), "GET", "/", "/", "")
@@ -816,7 +816,7 @@ func (f FakeTokenGenerator) Generate() (string, error) {
 }
 
 func TestListClusters_StatusCritical(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -832,17 +832,17 @@ func TestListClusters_StatusCritical(t *testing.T) {
 
 	// Add a critical alert
 	myCriticalAlert := models.Alert{
-		ID:       135,
-		Token:    "derp",
-		Severity: "critical",
+		ID:           135,
+		ClusterToken: "derp",
+		Severity:     "critical",
 	}
 	db.Create(&myCriticalAlert)
 
 	// Add a non-critical alert
 	myNonCriticalAlert := models.Alert{
-		ID:       246,
-		Token:    "derp",
-		Severity: "info",
+		ID:           246,
+		ClusterToken: "derp",
+		Severity:     "info",
 	}
 	db.Create(&myNonCriticalAlert)
 
@@ -866,7 +866,7 @@ func TestListClusters_StatusCritical(t *testing.T) {
 }
 
 func TestListClusters_StatusAlerting(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -883,9 +883,9 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 
 	// Add a non-critical alert
 	myNonCriticalAlert := models.Alert{
-		ID:       246,
-		Token:    "derp",
-		Severity: "info",
+		ID:           246,
+		ClusterToken: "derp",
+		Severity:     "info",
 	}
 
 	db.Create(&myNonCriticalAlert)
@@ -910,7 +910,7 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 }
 
 func TestListClusters_StatusLastSeen(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)
@@ -948,7 +948,7 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 }
 
 func TestListClusters_StatusNotConnected(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 	err = utils.MigrateTables(db)
 	assert.NoError(t, err)

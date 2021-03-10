@@ -3,6 +3,15 @@ package test
 import (
 	gcontext "context"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"sync"
+	"testing"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
@@ -14,15 +23,7 @@ import (
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/database/utils"
 	"gorm.io/gorm"
-	"io/ioutil"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"net/http"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"sync"
-	"testing"
-	"time"
 )
 
 func getLocalPath(localPath string) string {
@@ -50,6 +51,7 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 func RunBroker(ctx gcontext.Context, dbURI string) error {
 	srv, err := broker.NewServer(ctx, broker.ParamSet{
 		DbURI:       dbURI,
+		DbType:      "sqlite",
 		PrivKeyFile: dbURI,
 	})
 	if err != nil {
@@ -85,7 +87,7 @@ func GetDB(t *testing.T) (*gorm.DB, string) {
 	f, err := ioutil.TempFile("", "mccpdb")
 	dbURI := f.Name()
 	require.NoError(t, err)
-	db, err := utils.Open(dbURI)
+	db, err := utils.Open(dbURI, "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)

@@ -44,7 +44,7 @@ type NodeInfo struct {
 	UID            types.UID
 	Token          string
 	ClusterInfoUID types.UID
-	ClusterInfo    ClusterInfo `gorm:"foreignKey:UID"`
+	ClusterInfo    ClusterInfo `gorm:"foreignKey:ClusterInfoUID"`
 	Name           string
 	IsControlPlane bool
 	KubeletVersion string
@@ -58,9 +58,8 @@ func (NodeInfo) TableName() string {
 
 // Alert Table
 type Alert struct {
-	ID           uint    `gorm:"primaryKey"`
-	Cluster      Cluster `gorm:"foreignKey:token"`
-	Token        string
+	ID           uint `gorm:"primaryKey"`
+	ClusterToken string
 	Annotations  datatypes.JSON
 	EndsAt       time.Time
 	Fingerprint  string
@@ -78,12 +77,12 @@ type Alert struct {
 // GitRepository table
 type GitRepository struct {
 	gorm.Model
-	URL               string `gorm:"primaryKey"`
+	URL               string `gorm:"uniqueConstraint"`
 	Namespace         string
 	SecretRef         string
 	Interval          time.Time
 	Timeout           time.Time
-	Branch            string `gorm:"primaryKey"`
+	Branch            string
 	Ignore            *string
 	Suspend           bool
 	GitImplementation string
@@ -109,10 +108,9 @@ type Cluster struct {
 
 // FluxInfo table
 type FluxInfo struct {
-	ClusterToken string  `gorm:"primaryKey"`
-	Cluster      Cluster `gorm:"foreignKey:ClusterToken"`
-	Name         string  `gorm:"primaryKey"`
-	Namespace    string  `gorm:"primaryKey"`
+	ClusterToken string `gorm:"primaryKey"`
+	Name         string `gorm:"primaryKey"`
+	Namespace    string `gorm:"primaryKey"`
 	Args         string
 	Image        string
 	RepoURL      string

@@ -3,7 +3,6 @@ package subscribe_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -76,7 +75,18 @@ func TestReceiveEvent(t *testing.T) {
 	queue.LastWriteTimestamp = time.Now()
 	queue.TimeInterval = time.Duration(50) * time.Second
 
-	ceEvent, err := newCloudEvent("Event", testEvent)
+	// Ensure that messages with unknown types are dropped
+	ceEvent, err := newCloudEvent("WrongType", testEvent)
+	assert.NoError(t, err)
+
+	err = subscribe.ReceiveEvent(context.Background(), *ceEvent)
+	assert.NoError(t, err)
+
+	// Ensure the event queue length is 0
+	assert.Equal(t, len(queue.EventQueue), 0)
+
+	// Send again with the correct type
+	ceEvent, err = newCloudEvent("Event", testEvent)
 	assert.NoError(t, err)
 
 	err = subscribe.ReceiveEvent(context.Background(), *ceEvent)
@@ -101,7 +111,7 @@ func generateRandomEventQueue(length int) []models.Event {
 	q := []models.Event{}
 	for i := 0; i < length; i++ {
 		randomEvent := newk8sEvent(test.RandomString(8), test.RandomString(8), test.RandomString(8))
-		dbEvent, _ := converter.ConvertEvent(randomEvent)
+		dbEvent := converter.ConvertEvent(randomEvent)
 		q = append(q, dbEvent)
 	}
 	return q
@@ -109,8 +119,7 @@ func generateRandomEventQueue(length int) []models.Event {
 
 func TestBatchWrite(t *testing.T) {
 	testDB := utils.DB
-	testDB, err := utils.Open("test.db")
-	defer os.Remove("test.db")
+	testDB, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
 
 	err = utils.MigrateTables(testDB)
@@ -206,7 +215,7 @@ func TestReceiveFluxInfo_NoMatchingCluster(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -281,7 +290,7 @@ func TestReceiveFluxInfo(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -370,7 +379,7 @@ func TestReceiveClusterInfo(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -459,7 +468,7 @@ func TestReceiveClusterInfo_PayloadNotClusterInfo(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -520,7 +529,7 @@ func TestReceiveClusterInfo_SamePayloadReceivedAgain(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -612,7 +621,7 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -745,7 +754,7 @@ func TestReceiveAlert(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -811,10 +820,10 @@ func TestReceiveAlert(t *testing.T) {
 	err = event.SetData(ce.ApplicationJSON, info)
 	require.NoError(t, err)
 	// Give enough time for subscriber to subscribe to subject and process the event
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 	cancel()
 
 	// Query db
@@ -824,7 +833,7 @@ func TestReceiveAlert(t *testing.T) {
 	assert.Equal(t, 1, int(alertsResult.RowsAffected))
 	assert.NoError(t, alertsResult.Error)
 
-	assert.Equal(t, info.Token, string(alerts[0].Token))
+	assert.Equal(t, info.Token, string(alerts[0].ClusterToken))
 }
 
 func TestReceiveAlert_SameAlertReceivedAgain(t *testing.T) {
@@ -832,7 +841,7 @@ func TestReceiveAlert_SameAlertReceivedAgain(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -911,7 +920,7 @@ func TestReceiveAlert_SameAlertReceivedAgain(t *testing.T) {
 	assert.Equal(t, 1, int(alertsResult.RowsAffected))
 	assert.NoError(t, alertsResult.Error)
 
-	assert.Equal(t, info.Token, string(alerts[0].Token))
+	assert.Equal(t, info.Token, string(alerts[0].ClusterToken))
 }
 
 func newAlert(generatorURL, finPrint, state string, start, end, update time.Time,
@@ -951,7 +960,7 @@ func TestReceiveGitCommitInfo(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -1038,7 +1047,7 @@ func TestReceiveGitCommitInfo_NoMatchingCluster(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -1106,7 +1115,7 @@ func TestReceiveWorkspaceInfo(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -1187,7 +1196,7 @@ func TestReceiveWorkspaceInfo_NoMatchingCluster(t *testing.T) {
 	defer cancel()
 
 	// Create an in-memory database
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)

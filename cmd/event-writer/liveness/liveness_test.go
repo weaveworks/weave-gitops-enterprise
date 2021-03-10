@@ -28,7 +28,7 @@ func TestStartedHandler(t *testing.T) {
 }
 
 func TestHealthzHandler(t *testing.T) {
-	db, err := utils.Open("")
+	db, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -46,7 +46,7 @@ func TestHealthzHandler(t *testing.T) {
 }
 
 func TestHealthzHandler_DatabaseNotReady(t *testing.T) {
-	_, err := utils.Open("")
+	_, err := utils.Open("", "sqlite", "", "", "")
 	require.NoError(t, err)
 
 	handler := healthzHandler()
