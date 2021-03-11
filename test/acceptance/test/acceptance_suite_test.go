@@ -25,7 +25,7 @@ var seleniumServiceUrl string
 
 const wkpUrl = "http://localhost:8090"
 
-const ARTEFACTS_BASE_DIR string = "/tmp/workspace/"
+const ARTEFACTS_BASE_DIR string = "/tmp/workspace/test/"
 const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
 const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "wkp_junit.xml"
 

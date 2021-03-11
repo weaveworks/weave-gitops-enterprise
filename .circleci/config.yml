@@ -661,9 +661,9 @@ jobs:
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
       - store_artifacts:
-          path: /tmp/workspace
+          path: /tmp/workspace/test
       - store_test_results:
-          path: /tmp/workspace
+          path: /tmp/workspace/test
 
   integration-tests-creation-footloose:
     machine:
