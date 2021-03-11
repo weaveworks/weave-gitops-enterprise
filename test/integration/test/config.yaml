@@ -9,6 +9,15 @@ sealedSecretsPrivateKey: ''
 enabledFeatures:
   teamWorkspaces: true
   fleetManagement: true
+fleetManagementDB:
+  databaseType: 'sqlite'
+  databaseURI: '/var/database/mccp.db'
+  sqliteConfig:
+    hostPathVolume: true
+    path: '/home/wks/database'
+    persistentVolumeClaim: false
+  postgresConfig:
+    databaseName: 'postgres'
 eksConfig:
   clusterRegion: 'eu-west-3'
   kubernetesVersion: '1.18'
@@ -21,12 +30,12 @@ wksConfig:
   minDiskSpace: 5
   apiServerArguments:
     - name: alsologtostderr
-      value: "true"
+      value: 'true'
     - name: audit-log-maxsize
-      value: "10000"
+      value: '10000'
   kubeletArguments:
     - name: alsologtostderr
-      value: "true"
+      value: 'true'
     - name: container-runtime
       value: docker
   sshConfig:
