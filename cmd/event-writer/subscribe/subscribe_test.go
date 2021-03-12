@@ -1173,7 +1173,7 @@ func TestReceiveWorkspaceInfo(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
+	defer cancel()
 
 	// Query db
 	var workspaces []models.Workspace

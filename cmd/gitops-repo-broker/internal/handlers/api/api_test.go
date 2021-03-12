@@ -447,6 +447,7 @@ func TestListClusters(t *testing.T) {
 						Namespace:  "wkp-flux",
 						RepoURL:    "git@github.com:weaveworks/fluxes-1.git",
 						RepoBranch: "master",
+						LogInfo:    datatypes.JSON{'n', 'u', 'l', 'l'},
 					},
 				},
 				Workspaces: []api.WorkspaceView{
@@ -500,6 +501,7 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 		Image:        "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
 		RepoURL:      "git@github.com:weaveworks/fluxes-1.git",
 		RepoBranch:   "master",
+		Syncs:        datatypes.JSON{'n', 'u', 'l', 'l'},
 	})
 	db.Create(&models.FluxInfo{
 		ClusterToken: "derp",
@@ -509,6 +511,7 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 		Image:        "docker.io/fluxcd/flux:v0.8.1",
 		RepoURL:      "git@github.com:weaveworks/fluxes-2.git",
 		RepoBranch:   "dev",
+		Syncs:        datatypes.JSON{'n', 'u', 'l', 'l'},
 	})
 	db.Create(&models.FluxInfo{
 		ClusterToken: "derp",
@@ -518,6 +521,7 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 		Image:        "docker.io/fluxcd/flux:v0.8.1",
 		RepoURL:      "git@github.com:weaveworks/fluxes-3.git",
 		RepoBranch:   "main",
+		Syncs:        datatypes.JSON{'n', 'u', 'l', 'l'},
 	})
 
 	response = executeGet(t, db, json.MarshalIndent, "")
@@ -537,18 +541,21 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 						Namespace:  "wkp-flux",
 						RepoURL:    "git@github.com:weaveworks/fluxes-1.git",
 						RepoBranch: "master",
+						LogInfo:    datatypes.JSON{'n', 'u', 'l', 'l'},
 					},
 					{
 						Name:       "flux-namespaced",
 						Namespace:  "default",
 						RepoURL:    "git@github.com:weaveworks/fluxes-2.git",
 						RepoBranch: "dev",
+						LogInfo:    datatypes.JSON{'n', 'u', 'l', 'l'},
 					},
 					{
 						Name:       "flux-system",
 						Namespace:  "kube-system",
 						RepoURL:    "git@github.com:weaveworks/fluxes-3.git",
 						RepoBranch: "main",
+						LogInfo:    datatypes.JSON{'n', 'u', 'l', 'l'},
 					},
 				},
 			},

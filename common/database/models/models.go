@@ -115,6 +115,7 @@ type FluxInfo struct {
 	Image        string
 	RepoURL      string
 	RepoBranch   string
+	Syncs        datatypes.JSON
 }
 
 func (FluxInfo) TableName() string {

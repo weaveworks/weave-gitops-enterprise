@@ -11,6 +11,7 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/fluxcd/go-git-providers v0.0.4-0.20201110084048-07e37b12abdc
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-resty/resty/v2 v2.5.0
 	github.com/google/go-cmp v0.5.2

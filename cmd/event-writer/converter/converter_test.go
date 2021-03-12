@@ -1,13 +1,18 @@
 package converter
 
 import (
+	"bytes"
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/go-openapi/strfmt"
 	ammodels "github.com/prometheus/alertmanager/api/v2/models"
+	"github.com/sirupsen/logrus"
+	logrustest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/messaging/payload"
+	"gorm.io/datatypes"
 
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
@@ -76,6 +81,16 @@ func newAlert(generatorURL, finPrint, state string, start, end, update time.Time
 	}
 
 	return alert
+}
+
+func TestToJSONErr(t *testing.T) {
+	logsHook := logrustest.NewGlobal()
+	defer logsHook.Reset()
+
+	// un-encodable object
+	value := toJSON(make(chan int))
+	assert.Equal(t, value, []byte{})
+	assertErrorsLoggedContains(t, logsHook, "Error converting %!s(chan int")
 }
 
 func TestSerializeLabelSet(t *testing.T) {
@@ -202,6 +217,21 @@ func TestConvertNodeInfo(t *testing.T) {
 }
 
 func TestConvertFluxInfo(t *testing.T) {
+	logs := []payload.FluxLogInfo{
+		{
+			Timestamp: "2021-03-04T02:45:05.544496465Z",
+			URL:       "ssh://git@github.com/foot/wk-test.git",
+			Branch:    "master",
+			Head:      "abc",
+			Event:     "",
+		},
+	}
+
+	output := &bytes.Buffer{}
+	encoder := json.NewEncoder(output)
+	encoder.Encode(logs)
+	logsJSONBytes := output.Bytes()
+
 	tests := []struct {
 		message payload.FluxInfo
 		result  []models.FluxInfo
@@ -234,6 +264,15 @@ func TestConvertFluxInfo(t *testing.T) {
 							"--git-branch=master",
 							"--registry-exclude-image=*"},
 						Image: "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+						Syncs: []payload.FluxLogInfo{
+							{
+								Timestamp: "2021-03-04T02:45:05.544496465Z",
+								URL:       "ssh://git@github.com/foot/wk-test.git",
+								Branch:    "master",
+								Head:      "abc",
+								Event:     "",
+							},
+						},
 					},
 				},
 			},
@@ -246,6 +285,7 @@ func TestConvertFluxInfo(t *testing.T) {
 					Image:        "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
 					RepoURL:      "git@github.com:dinosk/fluxes-1.git",
 					RepoBranch:   "master",
+					Syncs:        datatypes.JSON(logsJSONBytes),
 				},
 			},
 		},
@@ -269,6 +309,15 @@ func TestConvertFluxInfo(t *testing.T) {
 							"--git-branch=master",
 							"--registry-exclude-image=*"},
 						Image: "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
+						Syncs: []payload.FluxLogInfo{
+							{
+								Timestamp: "2021-03-04T02:45:05.544496465Z",
+								URL:       "ssh://git@github.com/foot/wk-test.git",
+								Branch:    "master",
+								Head:      "abc",
+								Event:     "",
+							},
+						},
 					},
 					{
 						Name:      "flux-2",
@@ -282,6 +331,15 @@ func TestConvertFluxInfo(t *testing.T) {
 							"--git-branch=main",
 							"--registry-exclude-image=*"},
 						Image: "myuser/custom-flux:gd677dc0a",
+						Syncs: []payload.FluxLogInfo{
+							{
+								Timestamp: "2021-03-04T02:45:05.544496465Z",
+								URL:       "ssh://git@github.com/foot/wk-test.git",
+								Branch:    "master",
+								Head:      "abc",
+								Event:     "",
+							},
+						},
 					},
 					{
 						Name:      "flux-3",
@@ -298,6 +356,15 @@ func TestConvertFluxInfo(t *testing.T) {
 							"--git-branch=dev",
 							"--registry-exclude-image=*"},
 						Image: "docker.io/weaveworks/flux:latest",
+						Syncs: []payload.FluxLogInfo{
+							{
+								Timestamp: "2021-03-04T02:45:05.544496465Z",
+								URL:       "ssh://git@github.com/foot/wk-test.git",
+								Branch:    "master",
+								Head:      "abc",
+								Event:     "",
+							},
+						},
 					},
 				},
 			},
@@ -310,6 +377,7 @@ func TestConvertFluxInfo(t *testing.T) {
 					Image:        "docker.io/weaveworks/wkp-jk-init:v2.0.3-RC.1-2-gd677dc0a",
 					RepoURL:      "git@github.com:dinosk/fluxes-1.git",
 					RepoBranch:   "master",
+					Syncs:        datatypes.JSON(logsJSONBytes),
 				},
 				{
 					ClusterToken: "derp",
@@ -319,6 +387,7 @@ func TestConvertFluxInfo(t *testing.T) {
 					Image:        "myuser/custom-flux:gd677dc0a",
 					RepoURL:      "git@github.com:weaveworks/foo.git",
 					RepoBranch:   "main",
+					Syncs:        datatypes.JSON(logsJSONBytes),
 				},
 				{
 					ClusterToken: "derp",
@@ -328,6 +397,7 @@ func TestConvertFluxInfo(t *testing.T) {
 					Image:        "docker.io/weaveworks/flux:latest",
 					RepoURL:      "git@github.com:test/test-flux.git",
 					RepoBranch:   "dev",
+					Syncs:        datatypes.JSON(logsJSONBytes),
 				},
 			},
 		},
@@ -500,4 +570,14 @@ func TestConvertWorkspaceInfo(t *testing.T) {
 	assert.Equal(t, info.Token, dbWorkspaces[1].ClusterToken)
 	assert.Equal(t, info.Workspaces[1].Name, dbWorkspaces[1].Name)
 	assert.Equal(t, info.Workspaces[1].Namespace, dbWorkspaces[1].Namespace)
+}
+
+func assertErrorsLoggedContains(t *testing.T, logsHook *logrustest.Hook, needle string) {
+	actualErrorLogs := ""
+	for _, en := range logsHook.Entries {
+		if en.Level == logrus.ErrorLevel {
+			actualErrorLogs = actualErrorLogs + en.Message
+		}
+	}
+	assert.Contains(t, actualErrorLogs, needle)
 }

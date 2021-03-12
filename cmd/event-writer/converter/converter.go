@@ -8,6 +8,7 @@ import (
 	"time"
 
 	ammodels "github.com/prometheus/alertmanager/api/v2/models"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/messaging/payload"
 	"gorm.io/datatypes"
@@ -115,6 +116,9 @@ func ConvertFluxInfo(fluxInfo payload.FluxInfo) []models.FluxInfo {
 		fluxRepoBranch := ExtractRepoBranchfromFluxArgs(fluxDeploymentInfo.Args)
 
 		flattenedArgs := SerializeStringSlice(fluxDeploymentInfo.Args)
+
+		logsJSONBytes := toJSON(fluxDeploymentInfo.Syncs)
+
 		result = append(result,
 			models.FluxInfo{
 				ClusterToken: fluxInfo.Token,
@@ -124,6 +128,7 @@ func ConvertFluxInfo(fluxInfo payload.FluxInfo) []models.FluxInfo {
 				Image:        fluxDeploymentInfo.Image,
 				RepoURL:      fluxRepoURL,
 				RepoBranch:   fluxRepoBranch,
+				Syncs:        datatypes.JSON(logsJSONBytes),
 			})
 	}
 
@@ -184,7 +189,10 @@ func SerializeStringMap(m map[string]string) string {
 func toJSON(obj interface{}) []byte {
 	output := bytes.NewBufferString("")
 	encoder := json.NewEncoder(output)
-	encoder.Encode(obj)
+	err := encoder.Encode(obj)
+	if err != nil {
+		log.Errorf("Error converting %s to json: %v", obj, err)
+	}
 	return output.Bytes()
 }
 

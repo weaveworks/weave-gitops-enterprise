@@ -57,6 +57,7 @@ type ClusterListRow struct {
 	FluxNamespace  string
 	FluxRepoURL    string
 	FluxRepoBranch string
+	FluxLogInfo    datatypes.JSON
 
 	// Git commit
 	GitCommitAuthorName  string
@@ -86,6 +87,7 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 		fi.namespace AS FluxNamespace,
 		fi.repo_url AS FluxRepoURL,
 		fi.repo_branch AS FluxRepoBranch,
+		fi.Syncs AS FluxLogInfo,
 		(select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') as CriticalAlertsCount,
 		(select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) AS AlertsCount,
 		gc.author_name AS GitCommitAuthorName,
@@ -170,6 +172,7 @@ func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 		&row.FluxNamespace,
 		&row.FluxRepoURL,
 		&row.FluxRepoBranch,
+		&row.FluxLogInfo,
 		&row.CriticalAlertsCount,
 		&row.AlertsCount,
 		&row.GitCommitAuthorName,
@@ -202,12 +205,14 @@ func unpackClusterRow(c *ClusterView, r ClusterListRow) {
 		r.FluxNamespace,
 		r.FluxRepoBranch,
 		r.FluxRepoURL,
+		r.FluxLogInfo,
 	}) {
 		c.FluxInfo = append(c.FluxInfo, FluxInfoView{
 			Name:       r.FluxName,
 			Namespace:  r.FluxNamespace,
 			RepoURL:    r.FluxRepoURL,
 			RepoBranch: r.FluxRepoBranch,
+			LogInfo:    r.FluxLogInfo,
 		})
 	}
 
@@ -512,10 +517,11 @@ type ClusterView struct {
 }
 
 type FluxInfoView struct {
-	Name       string `json:"name"`
-	Namespace  string `json:"namespace"`
-	RepoURL    string `json:"repoUrl"`
-	RepoBranch string `json:"repoBranch"`
+	Name       string         `json:"name"`
+	Namespace  string         `json:"namespace"`
+	RepoURL    string         `json:"repoUrl"`
+	RepoBranch string         `json:"repoBranch"`
+	LogInfo    datatypes.JSON `json:"logInfo"`
 }
 
 type ClustersResponse struct {
