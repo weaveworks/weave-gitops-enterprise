@@ -20,26 +20,31 @@ import (
 )
 
 // ToSubject subscribes to a subject given a nats connection
-func ToSubject(ctx context.Context, server string, subject string, fn interface{}) error {
-	// Channel Subscriber
-	log.Debug("Creating new cloudevents NATS consumer.")
-	p, err := cenats.NewConsumer(server, subject, cenats.NatsOptions())
+func ToSubject(ctx context.Context, server string, subject string, queueGroup string, fn interface{}) error {
+	log.Debug("creating new cloudevents NATS consumer")
+
+	opts := []cenats.ProtocolOption{}
+	if queueGroup != "" {
+		opts = append(opts, cenats.WithConsumerOptions(cenats.WithQueueSubscriber(queueGroup)))
+	}
+
+	p, err := cenats.NewProtocol(server, subject, subject, cenats.NatsOptions(), opts...)
 	if err != nil {
-		log.Fatalf("Failed to create NATS consumer: %v.", err)
+		log.Fatalf("failed to create NATS consumer: %v.", err)
 	}
 
 	defer p.Close(ctx)
 
-	log.Debugf("Creating client for NATS server: %v.", p.Conn.Servers())
-	c, err := ce.NewClient(p)
+	log.Debugf("creating client for NATS server: %v,", p.Conn.Servers())
+	c, err := ce.NewClient(p.Consumer)
 	if err != nil {
-		log.Fatalf("Failed to create NATS client: %v.", err)
+		log.Fatalf("failed to create NATS client: %v.", err)
 	}
 
 	for {
 		log.Debug("Starting NATS receiver.")
 		if err := c.StartReceiver(ctx, fn); err != nil {
-			log.Warnf("Failed to start NATS receiver: %v.", err)
+			log.Warnf("failed to start NATS receiver: %v.", err.Error())
 		}
 	}
 }
@@ -61,7 +66,7 @@ func ReceiveEvent(ctx context.Context, event ce.Event) error {
 	case "WorkspaceInfo":
 		return writeWorkspaceInfo(event)
 	default:
-		log.Warnf("Unknown message type: %s.", event.Type())
+		log.Warnf("unknown message type: %s", event.Type())
 	}
 
 	return nil
@@ -70,10 +75,9 @@ func ReceiveEvent(ctx context.Context, event ce.Event) error {
 func enqueueEvent(event ce.Event) {
 	data := &payload.KubernetesEvent{}
 	if err := event.DataAs(data); err != nil {
-		log.Warn(fmt.Sprintf("failed to parse event: %s\n", err.Error()))
-		return
+		log.Warnf("failed to parse event: %s\n", err.Error())
 	}
-	log.Info(fmt.Sprintf("received event: %+v %+v %+v\n", data.Event.Name, data.Event.Namespace, data.Event.Message))
+	log.Infof("received event: %+v %+v %+v\n", data.Event.Name, data.Event.Namespace, data.Event.Message)
 
 	dbEvent := converter.ConvertEvent(*data)
 	queue.EventQueue = append(queue.EventQueue, dbEvent)
@@ -277,7 +281,6 @@ func EmptyAllQueues() {
 // UpdateLastWriteTimestamp sets the last write timestamp to time.Now()
 func UpdateLastWriteTimestamp() {
 	lastWriteTimestamp := time.Now()
-
-	log.Debug(fmt.Sprintf("setting last write timestamp to %s", lastWriteTimestamp.String()))
+	log.Debugf("setting last write timestamp to %s", lastWriteTimestamp.String())
 	queue.LastWriteTimestamp = lastWriteTimestamp
 }

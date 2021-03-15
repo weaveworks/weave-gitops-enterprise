@@ -29,15 +29,16 @@ var Cmd = &cobra.Command{
 }
 
 type paramSet struct {
-	natsURL      string
-	natsSubject  string
-	dbURI        string
-	dbType       string
-	dbName       string
-	dbUser       string
-	dbPassword   string
-	timeInterval int
-	batchSize    int
+	natsURL        string
+	natsSubject    string
+	natsQueueGroup string
+	dbURI          string
+	dbType         string
+	dbName         string
+	dbUser         string
+	dbPassword     string
+	timeInterval   int
+	batchSize      int
 }
 
 var globalParams paramSet
@@ -45,6 +46,7 @@ var globalParams paramSet
 func init() {
 	Cmd.Flags().StringVar(&globalParams.natsURL, "nats-url", os.Getenv("NATS_URL"), "URL of the NATS server to connect to")
 	Cmd.Flags().StringVar(&globalParams.natsSubject, "nats-subject", ">", "NATS subject to subscribe to")
+	Cmd.Flags().StringVar(&globalParams.natsQueueGroup, "nats-queue-group", os.Getenv("NATS_QUEUE_GROUP"), "NATS queue group for this event-writer instance")
 	Cmd.Flags().StringVar(&globalParams.dbURI, "db-uri", os.Getenv("DB_URI"), "URI of the database")
 	Cmd.Flags().StringVar(&globalParams.dbType, "db-type", os.Getenv("DB_TYPE"), "database type, supported types [sqlite, postgres]")
 	Cmd.Flags().StringVar(&globalParams.dbName, "db-name", os.Getenv("DB_NAME"), "database name")
@@ -73,17 +75,17 @@ func runCommand(globalParams paramSet) error {
 	// Connect to the DB
 	_, err := utils.Open(globalParams.dbURI, globalParams.dbType, globalParams.dbName, globalParams.dbUser, globalParams.dbPassword)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("failed to connect to the database at %s", globalParams.dbURI))
+		log.Fatalf("failed to connect to the database at %s", globalParams.dbURI)
 	}
 
 	go liveness.StartLivenessProcess()
 
 	log.Info(fmt.Printf("subscribing to %s at NATS server %s\n", globalParams.natsSubject, globalParams.natsURL))
-	err = subscribe.ToSubject(context.Background(), globalParams.natsURL, globalParams.natsSubject, subscribe.ReceiveEvent)
+	err = subscribe.ToSubject(context.Background(), globalParams.natsURL, globalParams.natsSubject, globalParams.natsQueueGroup, subscribe.ReceiveEvent)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("failed to subscribe to NATS server %s and subject %s", globalParams.natsURL, globalParams.natsSubject))
+		log.Fatalf("failed to subscribe to NATS server %s and subject %s", globalParams.natsURL, globalParams.natsSubject)
 	}
-	log.Info(fmt.Printf("unsubscribed from %s", globalParams.natsSubject))
+	log.Infof("unsubscribed from %s", globalParams.natsSubject)
 	return nil
 }
 

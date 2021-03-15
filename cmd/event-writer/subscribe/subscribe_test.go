@@ -226,7 +226,7 @@ func TestReceiveFluxInfo_NoMatchingCluster(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -303,7 +303,7 @@ func TestReceiveFluxInfo(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -390,7 +390,7 @@ func TestReceiveClusterInfo(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -479,7 +479,7 @@ func TestReceiveClusterInfo_PayloadNotClusterInfo(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -540,7 +540,7 @@ func TestReceiveClusterInfo_SamePayloadReceivedAgain(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -632,7 +632,7 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -765,7 +765,7 @@ func TestReceiveAlert(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -852,7 +852,7 @@ func TestReceiveAlert_SameAlertReceivedAgain(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -971,7 +971,7 @@ func TestReceiveGitCommitInfo(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -1058,7 +1058,7 @@ func TestReceiveGitCommitInfo_NoMatchingCluster(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -1126,7 +1126,7 @@ func TestReceiveWorkspaceInfo(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
@@ -1207,7 +1207,7 @@ func TestReceiveWorkspaceInfo_NoMatchingCluster(t *testing.T) {
 
 	// Start subscriber
 	go func() {
-		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", subscribe.ReceiveEvent)
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
 		require.NoError(t, err)
 	}()
 
