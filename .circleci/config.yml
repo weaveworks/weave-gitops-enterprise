@@ -118,6 +118,7 @@ workflows:
           <<: *nightlyTestConfig
       - ssh-key-file-variations:
           <<: *nightlyTestConfig
+
   weekly:
     triggers:
       - schedule:
@@ -130,6 +131,8 @@ workflows:
     jobs:
       - build
       - conformance-tests-sonobuoy:
+          <<: *nightlyTestConfig
+      - vulnerability-detection:
           <<: *nightlyTestConfig
 
 commands:
@@ -1424,3 +1427,89 @@ jobs:
           when: on_fail
       - store_artifacts:
           path: /tmp/artifacts
+
+  vulnerability-detection:
+    machine:
+      image: ubuntu-2004:202010-01
+    environment:
+      <<: *integrationTestCommonEnv
+      FS_SCAN_SNYK: true
+      FS_SCAN_TRIVY: true
+      IMAGE_SCAN_SNYK: true
+      IMAGE_SCAN_TRIVY: true
+    steps:
+      - checkout
+      - add-go-mod-ssh-keys
+      - run: 
+          name: Login at dockerhub
+          command: |
+            docker login -u ${DOCKER_IO_USER} -p ${DOCKER_IO_PASSWORD}
+      - run:
+          name: Install snyk and authenticate
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+
+            npm install -g snyk
+            snyk auth ${WKP_SNYK_API_TOKEN}
+      - run:
+          name: Install trivy
+          command: |
+            # Install trivy
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+      - run:
+          name: Scan wks repo [snyk]
+          command: |
+            if ${FS_SCAN_SNYK}; then
+              snyk test --all-projects --severity-threshold=medium --json-file-output=/tmp/snyk-filesystem-results.json -d || true
+            fi
+      - run:
+          name: Scan wks repo [trivy]
+          command: |
+            if ${FS_SCAN_TRIVY}; then
+              touch /tmp/trivy-filesystem-results.txt
+              sudo trivy fs --exit-code=0  . > /tmp/trivy-filesystem-results.txt
+            fi
+      - run:
+          name: Scan docker images [snyk]
+          command: |
+            if ${IMAGE_SCAN_SNYK}; then
+              touch /tmp/snyk-all-container-results.json
+              # Create the goroot dir if not exists so that make install runs
+              mkdir -p $GOROOT
+              
+              # Run it once to download the go dependencies
+              # so that the second time it is run the output is only the images
+              make images
+              
+              IMAGE_TAG=$(./tools/image-tag)
+              for IMAGE in $(make images);
+              do
+                snyk container test ${IMAGE}:${IMAGE_TAG} --json-file-output=/tmp/snyk-container-results-${IMAGE}-${IMAGE_TAG}.json || true
+              done
+            fi
+      - run:
+          name: Scan docker images [trivy]
+          command: |
+            if ${IMAGE_SCAN_TRIVY}; then
+              mkdir -p $GOROOT
+
+              # Run it once to download the go dependencies
+              # so that the second time it is run the output is only the images
+              make images
+
+              touch /tmp/trivy-all-container-results.txt
+              touch /tmp/trivy-container-results.txt
+              
+              IMAGE_TAG=$(./tools/image-tag)
+              for IMAGE in $(make images);
+              do
+                sudo trivy image --exit-code=0 --output /tmp/trivy-container-results-${IMAGE}-${IMAGE_TAG}.txt ${IMAGE}:${IMAGE_TAG} || true
+                cat /tmp/trivy-container-results-${IMAGE}-${IMAGE_TAG}.txt >> /tmp/trivy-all-container-results.txt || true
+              done
+            fi
+      - store_artifacts:
+          path: /tmp/snyk-filesystem-results.json
+      - store_artifacts:
+          path: /tmp/trivy-filesystem-results.txt
+      - store_artifacts:
+          path: /tmp/trivy-all-container-results.txt
