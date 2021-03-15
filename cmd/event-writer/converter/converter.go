@@ -32,7 +32,7 @@ func ConvertEvent(wkpEvent payload.KubernetesEvent) models.Event {
 	registrationTimestamp.Scan(time.Now())
 
 	result := models.Event{
-		Token:        wkpEvent.Token,
+		ClusterToken: wkpEvent.Token,
 		UID:          event.ObjectMeta.UID,
 		CreatedAt:    creationTimestamp,
 		RegisteredAt: registrationTimestamp,
@@ -53,9 +53,9 @@ func ConvertEvent(wkpEvent payload.KubernetesEvent) models.Event {
 func ConvertClusterInfo(clusterInfo payload.ClusterInfo) models.ClusterInfo {
 	cluster := clusterInfo.Cluster
 	result := models.ClusterInfo{
-		Token: clusterInfo.Token,
-		UID:   types.UID(cluster.ID),
-		Type:  cluster.Type,
+		ClusterToken: clusterInfo.Token,
+		UID:          types.UID(cluster.ID),
+		Type:         cluster.Type,
 	}
 	return result
 }
@@ -65,7 +65,7 @@ func ConvertNodeInfo(clusterInfo payload.ClusterInfo, clusterID types.UID) []mod
 	result := []models.NodeInfo{}
 	for _, nodeInfo := range clusterInfo.Cluster.Nodes {
 		result = append(result, models.NodeInfo{
-			Token:          clusterInfo.Token,
+			ClusterToken:   clusterInfo.Token,
 			UID:            types.UID(nodeInfo.MachineID),
 			ClusterInfoUID: clusterID,
 			Name:           nodeInfo.Name,

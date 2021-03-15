@@ -67,6 +67,7 @@ func TestNilDb(t *testing.T) {
 		api.ListClusters(nil, nil),
 		api.RegisterCluster(nil, nil, nil, nil, nil),
 		api.UpdateCluster(nil, nil, nil),
+		api.UnregisterCluster(nil),
 	}
 	for i, fn := range nilDbHandlers {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
@@ -380,15 +381,15 @@ func TestListClusters(t *testing.T) {
 
 	// Agent sends cluster info
 	db.Create(&models.ClusterInfo{
-		UID:       "123",
-		Token:     "derp",
-		UpdatedAt: now,
-		Type:      "existingInfra",
+		UID:          "123",
+		ClusterToken: "derp",
+		UpdatedAt:    now,
+		Type:         "existingInfra",
 	})
 	db.Create(&models.NodeInfo{
 		UID:            "456",
 		ClusterInfoUID: "123",
-		Token:          "derp",
+		ClusterToken:   "derp",
 		Name:           "wks-1",
 		IsControlPlane: true,
 		KubeletVersion: "v1.19.7",
@@ -396,7 +397,7 @@ func TestListClusters(t *testing.T) {
 	db.Create(&models.NodeInfo{
 		UID:            "789",
 		ClusterInfoUID: "123",
-		Token:          "derp",
+		ClusterToken:   "derp",
 		Name:           "wks-2",
 		IsControlPlane: false,
 		KubeletVersion: "v1.19.7",
@@ -796,32 +797,6 @@ func TestListAlerts(t *testing.T) {
 	assert.Equal(t, c.Name, alert.Cluster.Name)
 }
 
-type FakeErrorReader struct {
-}
-
-func (r FakeErrorReader) Read(b []byte) (n int, err error) {
-	return 0, errors.New("oops")
-}
-
-type FakeTokenGenerator struct {
-	token string
-	err   error
-}
-
-func NewFakeTokenGenerator(token string, err error) FakeTokenGenerator {
-	return FakeTokenGenerator{
-		token: token,
-		err:   err,
-	}
-}
-
-func (f FakeTokenGenerator) Generate() (string, error) {
-	if f.err != nil {
-		return "", f.err
-	}
-	return f.token, nil
-}
-
 func TestListClusters_StatusCritical(t *testing.T) {
 	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
@@ -833,8 +808,8 @@ func TestListClusters_StatusCritical(t *testing.T) {
 	rightNow := time.Now()
 	// Agent sends cluster info
 	db.Create(&models.ClusterInfo{
-		Token:     "derp",
-		UpdatedAt: rightNow,
+		ClusterToken: "derp",
+		UpdatedAt:    rightNow,
 	})
 
 	// Add a critical alert
@@ -884,8 +859,8 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 	rightNow := time.Now()
 	// Agent sends cluster info
 	db.Create(&models.ClusterInfo{
-		Token:     "derp",
-		UpdatedAt: rightNow,
+		ClusterToken: "derp",
+		UpdatedAt:    rightNow,
 	})
 
 	// Add a non-critical alert
@@ -931,8 +906,8 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 
 	// Agent sends cluster info
 	db.Create(&models.ClusterInfo{
-		Token:     "derp",
-		UpdatedAt: then,
+		ClusterToken: "derp",
+		UpdatedAt:    then,
 	})
 
 	response := executeGet(t, db, json.MarshalIndent, "")
@@ -970,8 +945,8 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 
 	// Agent sends cluster info
 	db.Create(&models.ClusterInfo{
-		Token:     "derp",
-		UpdatedAt: then,
+		ClusterToken: "derp",
+		UpdatedAt:    then,
 	})
 
 	response := executeGet(t, db, json.MarshalIndent, "")
@@ -994,9 +969,177 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 	}, res)
 }
 
+func TestUnregisterCluster(t *testing.T) {
+	testCases := []struct {
+		name                 string
+		path                 string
+		clustersBefore       []models.Cluster // clusters in db before DELETE
+		dependentStateBefore []interface{}    // dependent state in db before DELETE
+		responseCode         int
+		clustersAfter        []models.Cluster // clusters in db after DELETE
+		dependentStateAfter  []interface{}    // dependent state in db after DELETE
+	}{
+		{
+			name:           "Unregister an existing cluster",
+			path:           "/1",
+			clustersBefore: []models.Cluster{{Name: "foo", Token: "t1"}, {Name: "bar", Token: "t2"}},
+			dependentStateBefore: []interface{}{
+				&models.Event{UID: "foo", ClusterToken: "t1"}, &models.Event{UID: "bar", ClusterToken: "t2"},
+				&models.ClusterInfo{UID: "foo", ClusterToken: "t1"}, &models.ClusterInfo{UID: "bar", ClusterToken: "t2"},
+				&models.NodeInfo{UID: "foo", ClusterToken: "t1"}, &models.NodeInfo{UID: "bar", ClusterToken: "t2"},
+				&models.Alert{ID: 1, ClusterToken: "t1"}, &models.Alert{ID: 2, ClusterToken: "t2"},
+				&models.FluxInfo{Name: "foo", ClusterToken: "t1"}, &models.FluxInfo{Name: "bar", ClusterToken: "t2"},
+				&models.GitCommit{Sha: "foo", ClusterToken: "t1"}, &models.GitCommit{Sha: "bar", ClusterToken: "t2"},
+				&models.Workspace{Name: "foo", ClusterToken: "t1"}, &models.Workspace{Name: "bar", ClusterToken: "t2"},
+			},
+			responseCode: http.StatusNoContent,
+			dependentStateAfter: []interface{}{
+				models.Event{UID: "bar", ClusterToken: "t2"},
+				models.ClusterInfo{UID: "bar", ClusterToken: "t2"},
+				models.NodeInfo{UID: "bar", ClusterToken: "t2"},
+				models.Alert{ID: 2, ClusterToken: "t2"},
+				models.FluxInfo{Name: "bar", ClusterToken: "t2"},
+				models.GitCommit{Sha: "bar", ClusterToken: "t2"},
+				models.Workspace{Name: "bar", ClusterToken: "t2"},
+			},
+		},
+		{
+			name:           "Unregister a non-existing cluster",
+			path:           "/2",
+			clustersBefore: []models.Cluster{{Name: "foo"}},
+			responseCode:   http.StatusNotFound,
+		},
+		{
+			name:         "Id param not a unint number",
+			path:         "/foo",
+			responseCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			db, err := utils.Open("", "sqlite", "", "", "")
+			assert.NoError(t, err)
+			err = utils.MigrateTables(db)
+			assert.NoError(t, err)
+			// Setup state before DELETE
+			db.Create(tc.clustersBefore)
+			for _, o := range tc.dependentStateBefore {
+				db.Create(o)
+			}
+
+			// Unregister cluster
+			response, _ := doRequest(t, api.UnregisterCluster(db), "DELETE", "/{id}", tc.path, "")
+			assert.Equal(t, tc.responseCode, response.Code)
+
+			if tc.responseCode >= 200 && tc.responseCode <= 299 {
+				// Expect 404 when getting cluster, if previous request was successful
+				response, _ := doRequest(t, api.FindCluster(db, json.MarshalIndent), "GET", "/{id}", tc.path, "")
+				assert.Equal(t, http.StatusNotFound, response.Code)
+
+				var expectedEvents []models.Event
+				var expectedClusterInfo []models.ClusterInfo
+				var expectedNodeInfo []models.NodeInfo
+				var expectedAlerts []models.Alert
+				var expectedFluxInfo []models.FluxInfo
+				var expectedGitCommits []models.GitCommit
+				var expectedWorkspaces []models.Workspace
+				for _, i := range tc.dependentStateAfter {
+					switch v := i.(type) {
+					case models.Event:
+						expectedEvents = append(expectedEvents, i.(models.Event))
+					case models.ClusterInfo:
+						expectedClusterInfo = append(expectedClusterInfo, i.(models.ClusterInfo))
+					case models.NodeInfo:
+						expectedNodeInfo = append(expectedNodeInfo, i.(models.NodeInfo))
+					case models.Alert:
+						expectedAlerts = append(expectedAlerts, i.(models.Alert))
+					case models.FluxInfo:
+						expectedFluxInfo = append(expectedFluxInfo, i.(models.FluxInfo))
+					case models.GitCommit:
+						expectedGitCommits = append(expectedGitCommits, i.(models.GitCommit))
+					case models.Workspace:
+						expectedWorkspaces = append(expectedWorkspaces, i.(models.Workspace))
+					default:
+						fmt.Printf("Unknown type %T!\n", v)
+					}
+				}
+
+				var actualEvents []models.Event
+				result := db.Find(&actualEvents)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualEvents, len(expectedEvents))
+				assert.Subset(t, actualEvents, expectedEvents)
+
+				var actualClusterInfo []models.ClusterInfo
+				result = db.Find(&actualClusterInfo)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualClusterInfo, len(expectedClusterInfo))
+				assert.Equal(t, actualClusterInfo[0].UID, expectedClusterInfo[0].UID)
+
+				var actualNodeInfo []models.NodeInfo
+				result = db.Find(&actualNodeInfo)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualNodeInfo, len(expectedNodeInfo))
+				assert.Equal(t, actualNodeInfo[0].Name, expectedNodeInfo[0].Name)
+
+				var actualAlerts []models.Alert
+				result = db.Find(&actualAlerts)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualAlerts, len(expectedAlerts))
+				assert.Equal(t, actualAlerts[0].ID, expectedAlerts[0].ID)
+
+				var actualFluxInfo []models.FluxInfo
+				result = db.Find(&actualFluxInfo)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualFluxInfo, len(expectedFluxInfo))
+				assert.Subset(t, actualFluxInfo, expectedFluxInfo)
+
+				var actualGitCommits []models.GitCommit
+				result = db.Find(&actualGitCommits)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualGitCommits, len(expectedGitCommits))
+				assert.Subset(t, actualGitCommits, expectedGitCommits)
+
+				var actualWorkspaces []models.Workspace
+				result = db.Find(&actualWorkspaces)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualWorkspaces, len(expectedWorkspaces))
+				assert.Subset(t, actualWorkspaces, expectedWorkspaces)
+			}
+		})
+	}
+}
+
 func toJSON(obj interface{}) ([]byte, error) {
 	output := bytes.NewBufferString("")
 	encoder := json.NewEncoder(output)
 	encoder.Encode(obj)
 	return output.Bytes(), nil
+}
+
+type FakeErrorReader struct {
+}
+
+func (r FakeErrorReader) Read(b []byte) (n int, err error) {
+	return 0, errors.New("oops")
+}
+
+type FakeTokenGenerator struct {
+	token string
+	err   error
+}
+
+func NewFakeTokenGenerator(token string, err error) FakeTokenGenerator {
+	return FakeTokenGenerator{
+		token: token,
+		err:   err,
+	}
+}
+
+func (f FakeTokenGenerator) Generate() (string, error) {
+	if f.err != nil {
+		return "", f.err
+	}
+	return f.token, nil
 }

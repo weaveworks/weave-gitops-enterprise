@@ -98,19 +98,25 @@ func writeClusterInfo(event ce.Event) error {
 
 	dbNodeInfoArray := converter.ConvertNodeInfo(data, dbClusterInfo.UID)
 
-	return utils.DB.Transaction(func(tx *gorm.DB) error {
+	err := utils.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.OnConflict{UpdateAll: true}).Create(&dbClusterInfo).Error; err != nil {
-			return err
+			return fmt.Errorf("failed to create a new ClusterInfo record for Cluster with token %q: %w", data.Token, err)
 		}
-		if err := tx.Where("token = ?", data.Token).Delete(&models.NodeInfo{}).Error; err != nil {
-			return err
+		if err := tx.Where("cluster_token = ?", data.Token).Delete(&models.NodeInfo{}).Error; err != nil {
+			return fmt.Errorf("failed to delete existing NodeInfo records for Cluster with token %q: %w", data.Token, err)
 		}
 		if err := tx.Create(&dbNodeInfoArray).Error; err != nil {
-			return err
+			return fmt.Errorf("failed to create new NodeInfo records for Cluster with token %q: %w", data.Token, err)
 		}
 
 		return nil
 	})
+
+	if err != nil {
+		log.Errorf("Failed to write ClusterInfo record: %v", err)
+	}
+
+	return err
 }
 
 func writeAlert(event ce.Event) error {

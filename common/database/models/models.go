@@ -4,14 +4,20 @@ import (
 	"time"
 
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+// Embedded struct similar to gorm.Model but excluding DeletedAt field since we do hard deletes.
+type Model struct {
+	ID        uint `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
 
 // Event table, ref: https://godoc.org/k8s.io/api/core/v1#Event
 type Event struct {
 	UID          types.UID `gorm:"primaryKey"`
-	Token        string
+	ClusterToken string
 	CreatedAt    datatypes.Date
 	RegisteredAt datatypes.Date
 	Name         string
@@ -27,11 +33,11 @@ type Event struct {
 
 // ClusterInfo table
 type ClusterInfo struct {
-	UID       types.UID `gorm:"primaryKey"`
-	Token     string
-	Type      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	UID          types.UID `gorm:"primaryKey"`
+	ClusterToken string
+	Type         string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 func (ClusterInfo) TableName() string {
@@ -42,7 +48,7 @@ func (ClusterInfo) TableName() string {
 type NodeInfo struct {
 	ID             uint `gorm:"primaryKey"`
 	UID            types.UID
-	Token          string
+	ClusterToken   string
 	ClusterInfoUID types.UID
 	ClusterInfo    ClusterInfo `gorm:"foreignKey:ClusterInfoUID"`
 	Name           string
@@ -74,33 +80,9 @@ type Alert struct {
 	RawAlert     datatypes.JSON
 }
 
-// GitRepository table
-type GitRepository struct {
-	gorm.Model
-	URL               string `gorm:"uniqueConstraint"`
-	Namespace         string
-	SecretRef         string
-	Interval          time.Time
-	Timeout           time.Time
-	Branch            string
-	Ignore            *string
-	Suspend           bool
-	GitImplementation string
-	RawGitRepo        datatypes.JSON
-}
-
-// GitProvider table
-type GitProvider struct {
-	gorm.Model
-	Hostname        string `gorm:"primaryKey"`
-	Type            string
-	SecretName      string
-	SecretNamespace string
-}
-
 // Cluster table. Stores cluster configuration.
 type Cluster struct {
-	gorm.Model
+	Model
 	Token      string `gorm:"uniqueIndex"`
 	Name       string `gorm:"uniqueIndex"`
 	IngressURL string

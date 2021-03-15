@@ -58,8 +58,6 @@ func MigrateTables(db *gorm.DB) error {
 		&models.ClusterInfo{},
 		&models.NodeInfo{},
 		&models.Alert{},
-		&models.GitRepository{},
-		&models.GitProvider{},
 		&models.Workspace{},
 		&models.FluxInfo{},
 		&models.GitCommit{},
@@ -78,8 +76,6 @@ func HasAllTables(db *gorm.DB) bool {
 		db.Migrator().HasTable(&models.ClusterInfo{}) &&
 		db.Migrator().HasTable(&models.NodeInfo{}) &&
 		db.Migrator().HasTable(&models.Alert{}) &&
-		db.Migrator().HasTable(&models.GitProvider{}) &&
-		db.Migrator().HasTable(&models.GitRepository{}) &&
 		db.Migrator().HasTable(&models.FluxInfo{}) &&
 		db.Migrator().HasTable(&models.Workspace{}) {
 		return true

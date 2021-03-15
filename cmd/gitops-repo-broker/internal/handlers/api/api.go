@@ -72,6 +72,8 @@ type ClusterListRow struct {
 }
 
 func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
+	// The `WHERE 1=1` clause is a null condition that allows us to append more clauses to this query by concatenating them
+	// without worrying about including a WHERE clause beforehand.
 	queryString := `
 	SELECT
 		c.id AS ID,
@@ -99,12 +101,13 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 		ws.namespace AS WorkspaceNamespace
 	FROM 
 		clusters c 
-		LEFT JOIN cluster_info ci ON c.token = ci.token 
-		LEFT JOIN node_info ni ON c.token = ni.token
+		LEFT JOIN cluster_info ci ON c.token = ci.cluster_token 
+		LEFT JOIN node_info ni ON c.token = ni.cluster_token
 		LEFT JOIN flux_info fi ON c.token = fi.cluster_token
 		LEFT JOIN git_commits gc ON c.token = gc.cluster_token
 		LEFT JOIN workspaces ws ON c.token = ws.cluster_token
-	WHERE c.deleted_at IS NULL
+	WHERE
+		1 = 1
 `
 
 	var rows []ClusterListRow
@@ -482,6 +485,65 @@ func ListAlerts(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Response
 	}
 }
 
+func UnregisterCluster(db *gorm.DB) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if db == nil {
+			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
+			return
+		}
+
+		id, err := getClusterIDFromRequest(r)
+		if err != nil {
+			log.Errorf("Parameter 'id' is not a uint: %v", err)
+			common.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+
+		cluster, err := getCluster(db, uint(id))
+		if err != nil {
+			common.WriteError(w, err, http.StatusInternalServerError)
+			log.Errorf("Failed to load cluster(%d): %v", id, err)
+			return
+		}
+
+		if cluster == nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Errorf("Cluster(%d) was not found", id)
+			return
+		}
+
+		err = db.Transaction(func(tx *gorm.DB) error {
+			dependentObjectsToDelete := []interface{}{
+				&models.Event{},
+				&models.NodeInfo{},
+				&models.ClusterInfo{},
+				&models.Alert{},
+				&models.FluxInfo{},
+				&models.GitCommit{},
+				&models.Workspace{},
+			}
+
+			for _, o := range dependentObjectsToDelete {
+				if err := tx.Where("cluster_token = ?", cluster.Token).Delete(o).Error; err != nil {
+					return fmt.Errorf("failed to delete %T records when unregistering Cluster %q: %w", o, cluster.Token, err)
+				}
+			}
+
+			if err := tx.Delete(&models.Cluster{}, id).Error; err != nil {
+				return fmt.Errorf("failed to delete Cluster(%d) record when unregistering Cluster %q: %w", id, cluster.Token, err)
+			}
+
+			return nil
+		})
+		if err != nil {
+			log.Errorf("Failed to unregister Cluster(%d): %v", id, err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
+}
+
 // types
 
 type ClusterRegistrationRequest struct {
@@ -614,14 +676,18 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}, marsh
 }
 
 func getClusterFromRequest(r *http.Request, db *gorm.DB) (*ClusterView, error) {
-	vars := mux.Vars(r)
-	idString := vars["id"]
-	id, err := strconv.ParseUint(idString, 10, 64)
+	id, err := getClusterIDFromRequest(r)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse id %v: %v", idString, err)
+		return nil, fmt.Errorf("Failed to parse id: %v", err)
 	}
 
 	return getCluster(db, uint(id))
+}
+
+func getClusterIDFromRequest(r *http.Request) (uint64, error) {
+	vars := mux.Vars(r)
+	idString := vars["id"]
+	return strconv.ParseUint(idString, 10, 64)
 }
 
 func nodeExists(c ClusterView, n NodeView) bool {
