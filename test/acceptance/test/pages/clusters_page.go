@@ -26,6 +26,11 @@ type ClustersPage struct {
 	FiringAlertsNavCtl   *agouti.Selection
 	ClustersListSection  *agouti.Selection
 	ClustersListHeader   *agouti.Selection
+	HeaderName           *agouti.Selection
+	HeaderIcon           *agouti.Selection
+	HeaderStatus         *agouti.Selection
+	HeaderGitActivity    *agouti.Selection
+	HeaderNodeVersion    *agouti.Selection
 	NoClusterConfigured  *agouti.Selection
 	ClustersList         *agouti.MultiSelection
 	SupportEmailLink     *agouti.Selection
@@ -65,6 +70,11 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		FiringAlertsNavCtl:   webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[2]/div/p/span/span[2]`),
 		ClustersListSection:  webDriver.Find(`#clusters-list`),
 		ClustersListHeader:   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead`),
+		HeaderName:           webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[1]/span`),
+		HeaderIcon:           webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
+		HeaderStatus:         webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
+		HeaderGitActivity:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
+		HeaderNodeVersion:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
 		NoClusterConfigured:  webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
 		ClustersList:         webDriver.AllByXPath(`//*[@id="clusters-list"]/div/table/tbody/tr`),
 		SupportEmailLink:     webDriver.FindByLink(`support@weave.works`)}
