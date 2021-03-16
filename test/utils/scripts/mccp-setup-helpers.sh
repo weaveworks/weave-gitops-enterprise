@@ -20,7 +20,7 @@ function reset_mccp {
     echo $EVENT_WRITER_POD
     echo $GITOPS_BROKER_POD
     kubectl exec -n wkp-gitops-repo-broker $EVENT_WRITER_POD -- rm /var/database/mccp.db
-    kubectl delete -n wkp-gitops-repo-brokerpod $EVENT_WRITER_POD
+    kubectl delete -n wkp-gitops-repo-broker pod $EVENT_WRITER_POD
     kubectl delete -n wkp-gitops-repo-broker pod $GITOPS_BROKER_POD
 }
 
