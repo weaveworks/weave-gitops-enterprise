@@ -15,7 +15,7 @@ function label_worker_node {
 }
 
 function reset_mccp {
-    EVENT_WRITER_POD=$(kubectl get pods -n wkp-mccp|grep wkp-event-writer|tr -s ' '|cut -f1 -d ' ')
+    EVENT_WRITER_POD=$(kubectl get pods -n wkp-gitops-repo-broker|grep wkp-event-writer|tr -s ' '|cut -f1 -d ' ')
     GITOPS_BROKER_POD=$(kubectl get pods -n wkp-gitops-repo-broker|grep gitops-repo-broker|tr -s ' '|cut -f1 -d ' ')
     echo $EVENT_WRITER_POD
     echo $GITOPS_BROKER_POD
