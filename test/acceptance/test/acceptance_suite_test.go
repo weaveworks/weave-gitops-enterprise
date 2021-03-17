@@ -31,7 +31,6 @@ const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "wkp_junit.xml"
 
 const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second //15 seconds
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute  //5 Minutes
-const ASSERTION_2MINUTES_TIME_OUT time.Duration = 5 * time.Minute //2 Minutes
 const ASSERTION_5MINUTES_TIME_OUT time.Duration = 5 * time.Minute //5 Minutes
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
