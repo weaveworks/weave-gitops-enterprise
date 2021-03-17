@@ -82,3 +82,7 @@ or to run the unit tests and build all container images:
 ```console
 make check
 ```
+
+### Integration Tests
+
+- [`notes on running integration tests`](/docs/integration-tests/index.md)
