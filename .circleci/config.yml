@@ -593,7 +593,7 @@ jobs:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: centos-cloud/centos-7
           NUM_MASTERS: 1
-          NUM_WORKERS: 1
+          NUM_WORKERS: 2
           USE_LB: false
           SKIP_COMPONENTS: false
           UPGRADE_VERSIONS: '1.19.3'
