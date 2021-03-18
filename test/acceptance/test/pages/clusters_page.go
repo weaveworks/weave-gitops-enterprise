@@ -76,7 +76,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderGitActivity:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
 		HeaderNodeVersion:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
 		NoClusterConfigured:  webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
-		ClustersList:         webDriver.AllByXPath(`//*[@id="clusters-list"]/div/table/tbody/tr`),
+		ClustersList:         webDriver.All(`#clusters-list > div > table > tbody > tr`),
 		SupportEmailLink:     webDriver.FindByLink(`support@weave.works`)}
 
 	return &clustersPage
