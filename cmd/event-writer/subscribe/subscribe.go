@@ -189,7 +189,14 @@ func writeGitCommitInfo(event ce.Event) error {
 	dbCommitInfo := converter.ConvertGitCommitInfo(data)
 
 	if err := utils.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("cluster_token = ?", data.Token).Delete(&models.GitCommit{}).Error; err != nil {
+		// Get current time then get the time 24 hours ago AddDate(year, month, day)
+		timeNow := time.Now().UTC()
+		then := timeNow.AddDate(0, 0, -1)
+		var lastCommit time.Time
+
+		// Keep all git commits from the last 24hours + 1 in case there's nothing in the last 24hours.
+		tx.Raw("SELECT author_date FROM git_commits WHERE cluster_token = ? and author_date < ? ORDER BY author_date desc LIMIT 1", data.Token, then).Scan(&lastCommit)
+		if err := tx.Where("cluster_token = ? and author_date < ?", data.Token, lastCommit).Delete(&models.GitCommit{}).Error; err != nil {
 			return err
 		}
 		if err := tx.Create(&dbCommitInfo).Error; err != nil {

@@ -1110,6 +1110,174 @@ func TestReceiveGitCommitInfo_NoMatchingCluster(t *testing.T) {
 	assert.NoError(t, commitsResult.Error)
 }
 
+func TestReceiveGitCommitInfo_DeleteOldCommits(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("", "sqlite", "", "", "")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Create cluster
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
+
+	// Add old commits
+	rightNow := time.Now().UTC()
+	count := 60
+	oneHourAgo := rightNow.Add(time.Duration(-count) * time.Minute)
+	threeDays := rightNow.AddDate(0, 0, -3)
+	fourDays := rightNow.AddDate(0, 0, -4)
+	fiveDays := rightNow.AddDate(0, 0, -5)
+
+	db.Create(&models.GitCommit{
+		ClusterToken:   "derp",
+		Sha:            "b218b84857d6d181efe58c1c12b9cef31b78cda9",
+		AuthorName:     "foo",
+		AuthorEmail:    "foo@weave.works",
+		AuthorDate:     fiveDays,
+		CommitterName:  "bar",
+		CommitterEmail: "bar@weave.works",
+		CommitterDate:  fiveDays,
+		Message:        "Fixing prod - 5 days",
+	})
+	db.Create(&models.GitCommit{
+		ClusterToken:   "derp",
+		Sha:            "e5bc909de4c00a5266878bdea494203b9936328c",
+		AuthorName:     "foo",
+		AuthorEmail:    "foo@weave.works",
+		AuthorDate:     fourDays,
+		CommitterName:  "bar",
+		CommitterEmail: "bar@weave.works",
+		CommitterDate:  fourDays,
+		Message:        "Fixing prod - 4 days",
+	})
+	db.Create(&models.GitCommit{
+		ClusterToken:   "derp",
+		Sha:            "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+		AuthorName:     "foo",
+		AuthorEmail:    "foo@weave.works",
+		AuthorDate:     threeDays,
+		CommitterName:  "bar",
+		CommitterEmail: "bar@weave.works",
+		CommitterDate:  threeDays,
+		Message:        "Fixing prod - 3 days",
+	})
+	utils.DB.Create(&models.GitCommit{
+		ClusterToken:   "derp",
+		Sha:            "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+		AuthorName:     "foo",
+		AuthorEmail:    "foo@weave.works",
+		AuthorDate:     oneHourAgo,
+		CommitterName:  "bar",
+		CommitterEmail: "bar@weave.works",
+		CommitterDate:  oneHourAgo,
+		Message:        "Fixing prod - 1 hour",
+	})
+
+	// Publish event
+	info := payload.GitCommitInfo{
+		Token: "derp",
+		Commit: payload.CommitView{
+			Sha:     "6c4b104bf502bb417aa2d73aac36fcd58f4e15df",
+			Message: "Fixing prod - now",
+			Author: payload.UserView{
+				Name:  "foo",
+				Email: "foo@weave.works",
+				Date:  rightNow,
+			},
+			Committer: payload.UserView{
+				Name:  "bar",
+				Email: "bar@weave.works",
+				Date:  rightNow,
+			},
+		},
+	}
+
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("GitCommitInfo")
+	event.SetTime(time.Now())
+	event.SetSource("test")
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// Expected results
+	expected := []models.GitCommit{
+		{
+			ClusterToken:   "derp",
+			Sha:            "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+			AuthorName:     "foo",
+			AuthorEmail:    "foo@weave.works",
+			AuthorDate:     threeDays,
+			CommitterName:  "bar",
+			CommitterEmail: "bar@weave.works",
+			CommitterDate:  threeDays,
+			Message:        "Fixing prod - 3 days",
+		},
+		{
+			ClusterToken:   "derp",
+			Sha:            "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+			AuthorName:     "foo",
+			AuthorEmail:    "foo@weave.works",
+			AuthorDate:     oneHourAgo,
+			CommitterName:  "bar",
+			CommitterEmail: "bar@weave.works",
+			CommitterDate:  oneHourAgo,
+			Message:        "Fixing prod - 1 hour",
+		},
+		{
+			ClusterToken:   "derp",
+			Sha:            "6c4b104bf502bb417aa2d73aac36fcd58f4e15df",
+			AuthorName:     "foo",
+			AuthorEmail:    "foo@weave.works",
+			AuthorDate:     rightNow,
+			CommitterName:  "bar",
+			CommitterEmail: "bar@weave.works",
+			CommitterDate:  rightNow,
+			Message:        "Fixing prod - now",
+		},
+	}
+
+	// Query db
+	var commits []models.GitCommit
+	commitsResult := db.Find(&commits)
+	assert.Equal(t, 3, int(commitsResult.RowsAffected))
+	assert.NoError(t, commitsResult.Error)
+	assert.Equal(t, expected, commits)
+}
+
 func TestReceiveWorkspaceInfo(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
