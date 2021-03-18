@@ -119,7 +119,7 @@ var _ = Describe("WKP UI", func() {
 				cmp := pages.FindClusterComponent(componentsPage, expectedName)
 				Expect(cmp).NotTo(Equal(nil))
 				Expect(cmp.Name).To(Equal(expectedName))
-				Expect(cmp.Status).To(Equal("ok"))
+				Eventually(cmp.StatusNode, ASSERTION_1MINUTE_TIME_OUT).Should(HaveAttribute("data-status", "ok"))
 			}
 		})
 	})
