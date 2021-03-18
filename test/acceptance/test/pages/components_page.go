@@ -10,8 +10,8 @@ type ComponentsPage struct {
 }
 
 type ClusterComponent struct {
-	Name   string
-	Status string
+	Name       string
+	StatusNode *agouti.Selection
 }
 
 //Dashboard initialises the page object
@@ -29,9 +29,8 @@ func FindClusterComponent(componentsPage *ComponentsPage, componentName string) 
 		listItemNode := componentsPage.ClusterComponentsList.At(i)
 		name, _ := listItemNode.FindByClass("cluster-component-name").Text()
 		statusNode := listItemNode.FindByXPath(`*[@data-status]`)
-		status, _ := statusNode.Attribute("data-status")
 		if name == componentName {
-			return &ClusterComponent{Name: name, Status: status}
+			return &ClusterComponent{Name: name, StatusNode: statusNode}
 		}
 	}
 	return &ClusterComponent{}
