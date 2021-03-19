@@ -1252,6 +1252,7 @@ jobs:
           <<: *setup-base-gce-config-yaml
       - run:
           name: Run e2e tests
+          no_output_timeout: 20m
           command: |
             export PATH=$GOROOT/bin:$PATH
 
