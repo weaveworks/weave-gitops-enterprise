@@ -2,12 +2,14 @@ package api_test
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 	"time"
 
@@ -31,7 +33,7 @@ func errorBody(message string) interface{} {
 
 var noInit = errorBody("The database has not been initialised.")
 var noSuchTable = errorBody("no such table: clusters")
-var now = time.Now()
+var now = sql.NullTime{Time: time.Now(), Valid: true}
 
 func assertEqualCmp(t *testing.T, want, got interface{}) {
 	//
@@ -166,7 +168,7 @@ func TestGetCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  "0001-01-01T00:00:00Z",
+				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
 			},
 			[]models.Cluster{{Name: "ewq"}},
 		},
@@ -181,7 +183,7 @@ func TestGetCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  "0001-01-01T00:00:00Z",
+				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 		},
@@ -237,7 +239,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  "0001-01-01T00:00:00Z",
+				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}},
 			map[string]interface{}{
@@ -247,7 +249,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  "0001-01-01T00:00:00Z",
+				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
 			},
 		},
 		{
@@ -264,7 +266,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  "0001-01-01T00:00:00Z",
+				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 			map[string]interface{}{
@@ -274,7 +276,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  "0001-01-01T00:00:00Z",
+				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
 			},
 		},
 		{
@@ -291,7 +293,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  "0001-01-01T00:00:00Z",
+				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 			map[string]interface{}{
@@ -301,7 +303,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  "0001-01-01T00:00:00Z",
+				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
 			},
 		},
 	}
@@ -383,7 +385,7 @@ func TestListClusters(t *testing.T) {
 	db.Create(&models.ClusterInfo{
 		UID:          "123",
 		ClusterToken: "derp",
-		UpdatedAt:    now,
+		UpdatedAt:    now.Time,
 		Type:         "existingInfra",
 	})
 	db.Create(&models.NodeInfo{
@@ -460,6 +462,223 @@ func TestListClusters(t *testing.T) {
 			},
 		},
 	}, res)
+}
+
+func TestListClustersSorting(t *testing.T) {
+	db, err := utils.Open("", "sqlite", "", "", "")
+	assert.NoError(t, err)
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+
+	// No data
+	response := executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+	assert.Equal(t, "{\n \"clusters\": []\n}", response.Body.String())
+
+	defaultOrder := []api.ClusterView{
+		{
+			ID:       1,
+			Name:     "My Cluster",
+			Token:    "derp",
+			Status:   "notConnected",
+			Type:     "",
+			FluxInfo: nil,
+		},
+		{
+			ID:       4,
+			Name:     "ec2-cluster",
+			Token:    "nerp",
+			Status:   "notConnected",
+			Type:     "",
+			FluxInfo: nil,
+		},
+		{
+			ID:       2,
+			Name:     "gcp-cluster",
+			Token:    "berp",
+			Status:   "notConnected",
+			Type:     "",
+			FluxInfo: nil,
+		},
+		{
+			ID:       3,
+			Name:     "packet-cluster",
+			Token:    "merp",
+			Status:   "notConnected",
+			Type:     "",
+			FluxInfo: nil,
+		},
+	}
+
+	tests := []struct {
+		clusters       []models.Cluster
+		sortQuery      string
+		expectedResult []api.ClusterView
+		reversed       bool
+	}{
+		{
+			clusters: []models.Cluster{
+				{
+					Name:  "My Cluster",
+					Token: "derp",
+				},
+				{
+					Name:  "gcp-cluster",
+					Token: "berp",
+				},
+				{
+					Name:  "packet-cluster",
+					Token: "merp",
+				},
+				{
+					Name:  "ec2-cluster",
+					Token: "nerp",
+				},
+			},
+			sortQuery:      "",
+			expectedResult: defaultOrder,
+			reversed:       false,
+		},
+		{
+			clusters:       []models.Cluster{},
+			sortQuery:      "/clusters?sortBy=Name&order=ASC",
+			expectedResult: defaultOrder,
+			reversed:       false,
+		},
+		{
+			clusters:       []models.Cluster{},
+			sortQuery:      "/clusters?sortBy=Name&order=DESC",
+			expectedResult: defaultOrder,
+			reversed:       true,
+		},
+		{
+			clusters:  []models.Cluster{},
+			sortQuery: "/clusters?sortBy=Token&order=ASC",
+			expectedResult: []api.ClusterView{
+				{
+					ID:       2,
+					Name:     "gcp-cluster",
+					Token:    "berp",
+					Status:   "notConnected",
+					Type:     "",
+					FluxInfo: nil,
+				},
+				{
+					ID:       1,
+					Name:     "My Cluster",
+					Token:    "derp",
+					Status:   "notConnected",
+					Type:     "",
+					FluxInfo: nil,
+				},
+				{
+					ID:       3,
+					Name:     "packet-cluster",
+					Token:    "merp",
+					Status:   "notConnected",
+					Type:     "",
+					FluxInfo: nil,
+				},
+				{
+					ID:       4,
+					Name:     "ec2-cluster",
+					Token:    "nerp",
+					Status:   "notConnected",
+					Type:     "",
+					FluxInfo: nil,
+				},
+			},
+		},
+		{
+			clusters: []models.Cluster{
+				{
+					Name:       "Thy Cluster",
+					Token:      "perp",
+					IngressURL: "http://googel",
+				},
+				{
+					Name:       "Bye Cluster",
+					Token:      "lerp",
+					IngressURL: "http://googel",
+				},
+			},
+			sortQuery: "/clusters?sortBy=IngressURL,Name&order=ASC",
+			expectedResult: []api.ClusterView{
+				{
+					ID:       1,
+					Name:     "My Cluster",
+					Token:    "derp",
+					Status:   "notConnected",
+					Type:     "",
+					FluxInfo: nil,
+				},
+				{
+					ID:       4,
+					Name:     "ec2-cluster",
+					Token:    "nerp",
+					Status:   "notConnected",
+					Type:     "",
+					FluxInfo: nil,
+				},
+				{
+					ID:       2,
+					Name:     "gcp-cluster",
+					Token:    "berp",
+					Status:   "notConnected",
+					Type:     "",
+					FluxInfo: nil,
+				},
+				{
+					ID:       3,
+					Name:     "packet-cluster",
+					Token:    "merp",
+					Status:   "notConnected",
+					Type:     "",
+					FluxInfo: nil,
+				},
+				{
+					ID:         6,
+					Name:       "Bye Cluster",
+					Token:      "lerp",
+					Status:     "notConnected",
+					Type:       "",
+					FluxInfo:   nil,
+					IngressURL: "http://googel",
+				},
+				{
+					ID:         5,
+					Name:       "Thy Cluster",
+					Token:      "perp",
+					Status:     "notConnected",
+					Type:       "",
+					FluxInfo:   nil,
+					IngressURL: "http://googel",
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		if len(test.clusters) > 0 {
+			db.CreateInBatches(test.clusters, 100)
+		}
+
+		// Test query without any parameters
+		response = executeGet(t, db, json.MarshalIndent, test.sortQuery)
+		assert.Equal(t, http.StatusOK, response.Code)
+		var res api.ClustersResponse
+		err = json.Unmarshal(response.Body.Bytes(), &res)
+		assert.NoError(t, err)
+
+		// If the expected result is reused in a following test case, it'll now be reversed
+		if test.reversed {
+			reverseAny(test.expectedResult)
+		}
+
+		assert.Equal(t, api.ClustersResponse{
+			Clusters: test.expectedResult,
+		}, res)
+	}
 }
 
 func TestListCluster_MultipleFluxInfo(t *testing.T) {
@@ -840,7 +1059,7 @@ func TestListClusters_StatusCritical(t *testing.T) {
 				Token:     "derp",
 				Name:      "My Cluster",
 				Status:    "critical",
-				UpdatedAt: rightNow,
+				UpdatedAt: sql.NullTime{Time: rightNow, Valid: true},
 				FluxInfo:  nil,
 			},
 		},
@@ -884,7 +1103,7 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 				Token:     "derp",
 				Name:      "My Cluster",
 				Status:    "alerting",
-				UpdatedAt: rightNow,
+				UpdatedAt: sql.NullTime{Time: rightNow, Valid: true},
 				FluxInfo:  nil,
 			},
 		},
@@ -922,7 +1141,7 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 				Token:     "derp",
 				Name:      "My Cluster",
 				Status:    "lastSeen",
-				UpdatedAt: then,
+				UpdatedAt: sql.NullTime{Time: then, Valid: true},
 				FluxInfo:  nil,
 			},
 		},
@@ -962,7 +1181,7 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 				Name:      "My Cluster",
 				Type:      "",
 				Status:    "notConnected",
-				UpdatedAt: then,
+				UpdatedAt: sql.NullTime{Time: then, Valid: true},
 				FluxInfo:  nil,
 			},
 		},
@@ -1142,4 +1361,12 @@ func (f FakeTokenGenerator) Generate() (string, error) {
 		return "", f.err
 	}
 	return f.token, nil
+}
+
+func reverseAny(s interface{}) {
+	n := reflect.ValueOf(s).Len()
+	swap := reflect.Swapper(s)
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		swap(i, j)
+	}
 }

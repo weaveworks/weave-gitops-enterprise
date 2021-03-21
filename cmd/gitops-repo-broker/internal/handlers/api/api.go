@@ -24,6 +24,7 @@ import (
 var (
 	ErrNilDB          = errors.New("The database has not been initialised.")
 	ErrInvalidPayload = errors.New("Invalid payload")
+	ErrRowUnpack      = errors.New("Error constructing response")
 )
 
 // Signature for json.MarshalIndent accepted as a method parameter for unit tests
@@ -39,39 +40,45 @@ type GenerateToken func() (string, error)
 
 type ClusterListRow struct {
 	ID             uint
-	Name           string
-	Token          string
-	IngressURL     string
-	Type           string
-	UpdatedAt      time.Time
-	NodeName       string
-	IsControlPlane bool
-	KubeletVersion string
+	Name           sql.NullString
+	Token          sql.NullString
+	IngressURL     sql.NullString
+	Type           sql.NullString
+	NodeName       sql.NullString
+	UpdatedAt      sql.NullTime
+	IsControlPlane sql.NullBool
+	KubeletVersion sql.NullString
 
 	// for alerts
 	CriticalAlertsCount uint
 	AlertsCount         uint
 
 	// for flux info
-	FluxName       string
-	FluxNamespace  string
-	FluxRepoURL    string
-	FluxRepoBranch string
-	FluxLogInfo    datatypes.JSON
+	FluxName       sql.NullString
+	FluxNamespace  sql.NullString
+	FluxRepoURL    sql.NullString
+	FluxRepoBranch sql.NullString
+	FluxLogInfo    *datatypes.JSON
 
 	// Git commit
-	GitCommitAuthorName  string
-	GitCommitAuthorEmail string
-	GitCommitAuthorDate  time.Time
-	GitCommitMessage     string
-	GitCommitSha         string
+	GitCommitAuthorName  sql.NullString
+	GitCommitAuthorEmail sql.NullString
+	GitCommitAuthorDate  sql.NullTime
+	GitCommitMessage     sql.NullString
+	GitCommitSha         sql.NullString
 
 	// Workspace
-	WorkspaceName      string
-	WorkspaceNamespace string
+	WorkspaceName      sql.NullString
+	WorkspaceNamespace sql.NullString
+
+	ClusterStatus string
 }
 
+const sqliteClusterInfoTimeDifference = "strftime('%s', 'now') - strftime('%s', ci.updated_at)"
+const postgresClusterInfoTimeDifference = "EXTRACT(EPOCH FROM (NOW() - ci.updated_at))"
+
 func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]ClusterView, error) {
+	var resultOrder []string
 	// The `WHERE 1=1` clause is a null condition that allows us to append more clauses to this query by concatenating them
 	// without worrying about including a WHERE clause beforehand.
 	queryString := `
@@ -98,7 +105,15 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 		gc.message AS GitCommitMessage,
 		gc.sha AS GitCommitSha,
 		ws.name AS WorkspaceName,
-		ws.namespace AS WorkspaceNamespace
+		ws.namespace AS WorkspaceNamespace,
+		CASE
+			WHEN %[1]s IS NULL OR 
+				 %[1]s > 1800 THEN 'notConnected'
+			WHEN %[1]s BETWEEN 60 AND 1800 THEN 'lastSeen'
+			WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') > 0 THEN 'critical'
+			WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
+		ELSE 'ready'
+		END AS ClusterStatus
 	FROM 
 		clusters c 
 		LEFT JOIN cluster_info ci ON c.token = ci.cluster_token 
@@ -116,6 +131,7 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 		if err != nil {
 			return []ClusterView{}, err
 		}
+		queryString = fmt.Sprintf(queryString, postgresClusterInfoTimeDifference)
 		result, err := DB.Query(queryString + extraQuery)
 		if err != nil {
 			return []ClusterView{}, err
@@ -124,34 +140,41 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 			rows = append(rows, clusterListRowScan(result))
 		}
 	} else {
-		if err := db.Raw(queryString+extraQuery, extraValues).Scan(&rows).Error; err != nil {
+		queryString = fmt.Sprintf(queryString, sqliteClusterInfoTimeDifference)
+		if err := db.Raw(queryString + extraQuery).Scan(&rows).Error; err != nil {
 			return nil, ErrNilDB
 		}
 	}
 
 	clusters := map[string]*ClusterView{}
 	for _, r := range rows {
-		if cl, ok := clusters[r.Name]; !ok {
+		fmt.Println("cluster status in row: ", r.ClusterStatus)
+		resultOrder = insertUnique(resultOrder, r.Name.String)
+		if cl, ok := clusters[r.Name.String]; !ok {
 			// Add new cluster with node to map
 			c := ClusterView{
 				ID:         r.ID,
-				Name:       r.Name,
-				Token:      r.Token,
-				Type:       r.Type,
-				IngressURL: r.IngressURL,
+				Name:       r.Name.String,
+				Token:      r.Token.String,
+				Type:       r.Type.String,
+				IngressURL: r.IngressURL.String,
 				UpdatedAt:  r.UpdatedAt,
-				Status:     getClusterStatus(r),
+				Status:     r.ClusterStatus,
 			}
 			unpackClusterRow(&c, r)
-			clusters[r.Name] = &c
+			clusters[r.Name.String] = &c
 		} else {
 			unpackClusterRow(cl, r)
 		}
 	}
 
 	clusterList := []ClusterView{}
-	for _, c := range clusters {
-		clusterList = append(clusterList, *c)
+	for _, c := range resultOrder {
+		clusterItem, ok := clusters[c]
+		if !ok {
+			return nil, ErrRowUnpack
+		}
+		clusterList = append(clusterList, *clusterItem)
 	}
 
 	return clusterList, nil
@@ -161,7 +184,8 @@ func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 	var row ClusterListRow
 	cols, _ := sqlResult.Columns()
 	fmt.Printf("sqlResult: %+v\n", cols)
-	sqlResult.Scan(
+	// fmt.Println("full sqlResult: %+v\n", sqlResult.Scan)
+	err := sqlResult.Scan(
 		&row.ID,
 		&row.Name,
 		&row.Token,
@@ -184,69 +208,82 @@ func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 		&row.GitCommitMessage,
 		&row.GitCommitSha,
 		&row.WorkspaceName,
-		&row.WorkspaceNamespace)
+		&row.WorkspaceNamespace,
+		&row.ClusterStatus)
+	if err != nil {
+		log.Debug("error while scanning sql row: ", err)
+		fmt.Println("error while scanning sql row: ", err)
+	}
+	fmt.Println("returning scanned row: ", row)
 	return row
 }
 
 func unpackClusterRow(c *ClusterView, r ClusterListRow) {
 	// Do not add nodes if they don't exist yet
-	if r.NodeName != "" && !nodeExists(*c, NodeView{
-		Name:           r.NodeName,
-		IsControlPlane: r.IsControlPlane,
-		KubeletVersion: r.KubeletVersion,
+	if r.NodeName.Valid && !nodeExists(*c, NodeView{
+		Name:           r.NodeName.String,
+		IsControlPlane: r.IsControlPlane.Bool,
+		KubeletVersion: r.KubeletVersion.String,
 	}) {
 		c.Nodes = append(c.Nodes, NodeView{
-			Name:           r.NodeName,
-			IsControlPlane: r.IsControlPlane,
-			KubeletVersion: r.KubeletVersion,
+			Name:           r.NodeName.String,
+			IsControlPlane: r.IsControlPlane.Bool,
+			KubeletVersion: r.KubeletVersion.String,
 		})
 	}
 
 	// Append flux info for the cluster
-	if r.FluxName != "" && !fluxInfoExists(*c, FluxInfoView{
-		r.FluxName,
-		r.FluxNamespace,
-		r.FluxRepoBranch,
-		r.FluxRepoURL,
-		r.FluxLogInfo,
+	var fluxLogInfo datatypes.JSON
+	if r.FluxLogInfo != nil {
+		fluxLogInfo = *r.FluxLogInfo
+	}
+	if r.FluxName.Valid && !fluxInfoExists(*c, FluxInfoView{
+		r.FluxName.String,
+		r.FluxNamespace.String,
+		r.FluxRepoBranch.String,
+		r.FluxRepoURL.String,
+		fluxLogInfo,
 	}) {
 		c.FluxInfo = append(c.FluxInfo, FluxInfoView{
-			Name:       r.FluxName,
-			Namespace:  r.FluxNamespace,
-			RepoURL:    r.FluxRepoURL,
-			RepoBranch: r.FluxRepoBranch,
-			LogInfo:    r.FluxLogInfo,
+			Name:       r.FluxName.String,
+			Namespace:  r.FluxNamespace.String,
+			RepoURL:    r.FluxRepoURL.String,
+			RepoBranch: r.FluxRepoBranch.String,
+			LogInfo:    fluxLogInfo,
 		})
 	}
 
-	if r.GitCommitSha != "" && !gitCommitExists(*c, GitCommitView{
-		Sha:         r.GitCommitSha,
-		AuthorName:  r.GitCommitAuthorName,
-		AuthorEmail: r.GitCommitAuthorEmail,
+	if r.GitCommitSha.Valid && !gitCommitExists(*c, GitCommitView{
+		Sha:         r.GitCommitSha.String,
+		AuthorName:  r.GitCommitAuthorName.String,
+		AuthorEmail: r.GitCommitAuthorEmail.String,
 		AuthorDate:  r.GitCommitAuthorDate,
-		Message:     r.GitCommitMessage,
+		Message:     r.GitCommitMessage.String,
 	}) {
 		c.GitCommits = append(c.GitCommits, GitCommitView{
-			Sha:         r.GitCommitSha,
-			AuthorName:  r.GitCommitAuthorName,
-			AuthorEmail: r.GitCommitAuthorEmail,
+			Sha:         r.GitCommitSha.String,
+			AuthorName:  r.GitCommitAuthorName.String,
+			AuthorEmail: r.GitCommitAuthorEmail.String,
 			AuthorDate:  r.GitCommitAuthorDate,
-			Message:     r.GitCommitMessage,
+			Message:     r.GitCommitMessage.String,
 		})
 	}
 
-	wsView := WorkspaceView{
-		Name:      r.WorkspaceName,
-		Namespace: r.WorkspaceNamespace,
+	var wsView WorkspaceView
+	if r.WorkspaceName.Valid && r.WorkspaceNamespace.Valid {
+		wsView = WorkspaceView{
+			Name:      r.WorkspaceName.String,
+			Namespace: r.WorkspaceNamespace.String,
+		}
 	}
 
-	if r.WorkspaceName != "" && !workspaceExists(*c, wsView) {
+	if r.WorkspaceName.Valid && !workspaceExists(*c, wsView) {
 		c.Workspaces = append(c.Workspaces, wsView)
 	}
 }
 
 func getCluster(db *gorm.DB, id uint) (*ClusterView, error) {
-	clusters, err := getClusters(db, " AND c.id = ?", id)
+	clusters, err := getClusters(db, fmt.Sprintf(" AND c.id = %d", id))
 	if err != nil {
 		return nil, err
 	}
@@ -280,13 +317,34 @@ func FindCluster(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Respons
 }
 
 func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
+	extraQuery := ""
 	return func(w http.ResponseWriter, r *http.Request) {
 		if db == nil {
 			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
 			return
 		}
 
-		clusters, err := getClusters(db, "")
+		// Read sort-by-column from the url string if provided, otherwise default to sorting by cluster name
+		sortColumn := "Name"
+		sortByParam, ok := r.URL.Query()["sortBy"]
+		if ok {
+			log.Debugf("sorting by column: %s\n", sortByParam)
+			sortColumn = sortByParam[0]
+		}
+
+		// Read sort order from the url string if provided, otherwise sort desc
+		sortOrder := "ASC"
+		sortOrderParam, ok := r.URL.Query()["order"]
+		if ok {
+			log.Debugf("sorting by order: %s\n", sortOrderParam)
+			if sortOrderParam[0] == "ASC" || sortOrderParam[0] == "DESC" {
+				sortOrder = sortOrderParam[0]
+			}
+		}
+
+		extraQuery = fmt.Sprintf(" ORDER BY %s %s", sortColumn, sortOrder)
+
+		clusters, err := getClusters(db, extraQuery)
 		if err != nil {
 			common.WriteError(w, err, http.StatusInternalServerError)
 			return
@@ -572,7 +630,7 @@ type ClusterView struct {
 	IngressURL string          `json:"ingressUrl"`
 	Nodes      []NodeView      `json:"nodes,omitempty"`
 	Status     string          `json:"status"`
-	UpdatedAt  time.Time       `json:"updatedAt"`
+	UpdatedAt  sql.NullTime    `json:"updatedAt"`
 	FluxInfo   []FluxInfoView  `json:"fluxInfo,omitempty"`
 	GitCommits []GitCommitView `json:"gitCommits,omitempty"`
 	Workspaces []WorkspaceView `json:"workspaces,omitempty"`
@@ -627,11 +685,11 @@ type AlertsClusterRow struct {
 }
 
 type GitCommitView struct {
-	Sha         string    `json:"sha"`
-	AuthorName  string    `json:"author_name"`
-	AuthorEmail string    `json:"author_email"`
-	AuthorDate  time.Time `json:"author_date"`
-	Message     string    `json:"message"`
+	Sha         string       `json:"sha"`
+	AuthorName  string       `json:"author_name"`
+	AuthorEmail string       `json:"author_email"`
+	AuthorDate  sql.NullTime `json:"author_date"`
+	Message     string       `json:"message"`
 }
 
 type WorkspaceView struct {
@@ -640,30 +698,6 @@ type WorkspaceView struct {
 }
 
 // helpers
-
-func getClusterStatus(c ClusterListRow) string {
-	// Connection status first, if its gone away alerts might be stale.
-	timeNow := time.Now()
-	diff := timeNow.Sub(c.UpdatedAt)
-	intDiff := int64(diff / time.Minute)
-
-	if intDiff > 1 && intDiff < 30 {
-		return "lastSeen"
-	}
-	if intDiff > 30 {
-		return "notConnected"
-	}
-
-	if c.CriticalAlertsCount > 0 {
-		return "critical"
-	}
-	if c.AlertsCount > 0 {
-		return "alerting"
-	}
-
-	return "ready"
-}
-
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}, marshalIndentFn MarshalIndent) {
 	response, err := marshalIndentFn(payload, "", " ")
 	if err != nil {
@@ -762,4 +796,15 @@ func workspaceExists(c ClusterView, ws WorkspaceView) bool {
 		}
 	}
 	return false
+}
+
+// Utility function to keep order of SQL result while unpacking result rows
+func insertUnique(resultOrder []string, name string) []string {
+	for _, existingName := range resultOrder {
+		if existingName == name {
+			return resultOrder
+		}
+	}
+	resultOrder = append(resultOrder, name)
+	return resultOrder
 }
