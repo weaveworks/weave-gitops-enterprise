@@ -158,7 +158,7 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 				Token:      r.Token.String,
 				Type:       r.Type.String,
 				IngressURL: r.IngressURL.String,
-				UpdatedAt:  r.UpdatedAt,
+				UpdatedAt:  r.UpdatedAt.Time,
 				Status:     r.ClusterStatus,
 			}
 			unpackClusterRow(&c, r)
@@ -183,8 +183,7 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 	var row ClusterListRow
 	cols, _ := sqlResult.Columns()
-	fmt.Printf("sqlResult: %+v\n", cols)
-	// fmt.Println("full sqlResult: %+v\n", sqlResult.Scan)
+	log.Debugf("sqlResult: %+v\n", cols)
 	err := sqlResult.Scan(
 		&row.ID,
 		&row.Name,
@@ -212,9 +211,7 @@ func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 		&row.ClusterStatus)
 	if err != nil {
 		log.Debug("error while scanning sql row: ", err)
-		fmt.Println("error while scanning sql row: ", err)
 	}
-	fmt.Println("returning scanned row: ", row)
 	return row
 }
 
@@ -630,7 +627,7 @@ type ClusterView struct {
 	IngressURL string          `json:"ingressUrl"`
 	Nodes      []NodeView      `json:"nodes,omitempty"`
 	Status     string          `json:"status"`
-	UpdatedAt  sql.NullTime    `json:"updatedAt"`
+	UpdatedAt  time.Time       `json:"updatedAt"`
 	FluxInfo   []FluxInfoView  `json:"fluxInfo,omitempty"`
 	GitCommits []GitCommitView `json:"gitCommits,omitempty"`
 	Workspaces []WorkspaceView `json:"workspaces,omitempty"`

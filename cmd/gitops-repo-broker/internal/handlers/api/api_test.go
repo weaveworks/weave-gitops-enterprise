@@ -2,7 +2,6 @@ package api_test
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -33,7 +32,7 @@ func errorBody(message string) interface{} {
 
 var noInit = errorBody("The database has not been initialised.")
 var noSuchTable = errorBody("no such table: clusters")
-var now = sql.NullTime{Time: time.Now(), Valid: true}
+var now = time.Now()
 
 func assertEqualCmp(t *testing.T, want, got interface{}) {
 	//
@@ -168,7 +167,7 @@ func TestGetCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 			[]models.Cluster{{Name: "ewq"}},
 		},
@@ -183,7 +182,7 @@ func TestGetCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 		},
@@ -239,7 +238,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}},
 			map[string]interface{}{
@@ -249,7 +248,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 		},
 		{
@@ -266,7 +265,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 			map[string]interface{}{
@@ -276,7 +275,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 		},
 		{
@@ -293,7 +292,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 			[]models.Cluster{{Name: "ewq", Token: "ewq"}, {Name: "dsa", Token: "dsa"}},
 			map[string]interface{}{
@@ -303,7 +302,7 @@ func TestUpdateCluster(t *testing.T) {
 				"type":       "",
 				"ingressUrl": "",
 				"status":     "notConnected",
-				"updatedAt":  map[string]interface{}{"Time": "0001-01-01T00:00:00Z", "Valid": false},
+				"updatedAt":  "0001-01-01T00:00:00Z",
 			},
 		},
 	}
@@ -385,7 +384,7 @@ func TestListClusters(t *testing.T) {
 	db.Create(&models.ClusterInfo{
 		UID:          "123",
 		ClusterToken: "derp",
-		UpdatedAt:    now.Time,
+		UpdatedAt:    now,
 		Type:         "existingInfra",
 	})
 	db.Create(&models.NodeInfo{
@@ -1059,7 +1058,7 @@ func TestListClusters_StatusCritical(t *testing.T) {
 				Token:     "derp",
 				Name:      "My Cluster",
 				Status:    "critical",
-				UpdatedAt: sql.NullTime{Time: rightNow, Valid: true},
+				UpdatedAt: rightNow,
 				FluxInfo:  nil,
 			},
 		},
@@ -1103,7 +1102,7 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 				Token:     "derp",
 				Name:      "My Cluster",
 				Status:    "alerting",
-				UpdatedAt: sql.NullTime{Time: rightNow, Valid: true},
+				UpdatedAt: rightNow,
 				FluxInfo:  nil,
 			},
 		},
@@ -1141,7 +1140,7 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 				Token:     "derp",
 				Name:      "My Cluster",
 				Status:    "lastSeen",
-				UpdatedAt: sql.NullTime{Time: then, Valid: true},
+				UpdatedAt: then,
 				FluxInfo:  nil,
 			},
 		},
@@ -1181,7 +1180,7 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 				Name:      "My Cluster",
 				Type:      "",
 				Status:    "notConnected",
-				UpdatedAt: sql.NullTime{Time: then, Valid: true},
+				UpdatedAt: then,
 				FluxInfo:  nil,
 			},
 		},
