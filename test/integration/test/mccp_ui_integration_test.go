@@ -22,9 +22,63 @@ import (
 	broker "github.com/weaveworks/wks/cmd/gitops-repo-broker/server"
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/database/utils"
+	acceptancetest "github.com/weaveworks/wks/test/acceptance/test"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
+
+//
+// Test suite
+//
+
+const uiURL = "http://localhost:4046"
+const brokerURL = "http://localhost:8000"
+const seleniumURL = "http://localhost:4444/wd/hub"
+
+var db *gorm.DB
+var dbURI string
+
+var _ = Describe("Integration suite", func() {
+
+	var page *agouti.Page
+
+	BeforeEach(func() {
+		db.Where("1 = 1").Delete(&models.Cluster{})
+		c := models.Cluster{Name: "ewq"}
+		db.Create(&c)
+	})
+
+	BeforeEach(func() {
+		var err error
+		page, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
+			"chromeOptions": map[string][]string{
+				"args": {
+					"--disable-gpu",
+					"--no-sandbox",
+				}}}))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(page.Navigate(uiURL + "/clusters")).To(Succeed())
+	})
+
+	Describe("Cluster page", func() {
+		AfterEach(func() {
+			Expect(page.Destroy()).To(Succeed())
+		})
+
+		It("should say Clusters in the title", func() {
+			Eventually(page).Should(HaveTitle("WKP · Clusters"))
+		})
+
+		It("should have a single cluster named ewq", func() {
+			Eventually(page.All("table tbody tr")).Should(HaveCount(1))
+			Eventually(page.First("table tbody tr td")).Should(HaveText("ewq"))
+		})
+	})
+})
+
+//
+// Helpers
+//
 
 func getLocalPath(localPath string) string {
 	testDir, _ := os.Getwd()
@@ -85,6 +139,7 @@ func RunUIServer(ctx gcontext.Context, brokerURL string) {
 
 func GetDB(t *testing.T) (*gorm.DB, string) {
 	f, err := ioutil.TempFile("", "mccpdb")
+	log.Infof("db at %v", f.Name())
 	dbURI := f.Name()
 	require.NoError(t, err)
 	db, err := utils.Open(dbURI, "sqlite", "", "", "")
@@ -92,12 +147,6 @@ func GetDB(t *testing.T) (*gorm.DB, string) {
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
 	return db, dbURI
-}
-
-func AddCluster(t *testing.T, db *gorm.DB) {
-	c := models.Cluster{Name: "ewq"}
-	result := db.Create(&c)
-	require.NoError(t, result.Error)
 }
 
 func waitFor200(ctx gcontext.Context, url string, timeout time.Duration) error {
@@ -117,16 +166,15 @@ func waitFor200(ctx gcontext.Context, url string, timeout time.Duration) error {
 	}, waitCtx.Done())
 }
 
+//
+// "main"
+//
+
 func TestMccpUI(t *testing.T) {
-	uiURL := "http://localhost:4046"
-	brokerURL := "http://localhost:8000"
-	// Where it runs locally / circle
-	seleniumURL := "http://localhost:4444/wd/hub"
+	db, dbURI = GetDB(t)
 
 	var wg sync.WaitGroup
 	ctx, cancel := gcontext.WithCancel(gcontext.Background())
-
-	db, dbURI := GetDB(t)
 
 	// Increment the WaitGroup synchronously in the main method, to avoid
 	// racing with the goroutine starting.
@@ -154,35 +202,18 @@ func TestMccpUI(t *testing.T) {
 	require.NoError(t, err)
 
 	RegisterFailHandler(Fail)
-	var page *agouti.Page
 
-	AddCluster(t, db)
+	mccpRunner := acceptancetest.DatabaseMCCPTestRunner{DB: db}
+	acceptancetest.DescribeMCCPAcceptance(mccpRunner)
+	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
+	acceptancetest.SetWkpUrl(uiURL)
 
-	Describe("Clusters page", func() {
-		BeforeEach(func() {
-			var err error
-			page, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string][]string{
-					"args": {
-						"--disable-gpu",
-						"--no-sandbox",
-					}}}))
-			require.NoError(t, err)
-			Expect(page.Navigate(uiURL + "/clusters")).To(Succeed())
-		})
-
-		AfterEach(func() {
-			Expect(page.Destroy()).To(Succeed())
-		})
-
-		It("should say Clusters in the title", func() {
-			Eventually(page).Should(HaveTitle("WKP · Clusters"))
-		})
-
-		It("should have a single cluster named ewq", func() {
-			Eventually(page.All("table tbody tr")).Should(HaveCount(1))
-			Eventually(page.First("table tbody tr td")).Should(HaveText("ewq"))
-		})
+	AfterSuite(func() {
+		webDriver := acceptancetest.GetWebDriver()
+		//Tear down the suite level setup
+		if webDriver != nil {
+			Expect(webDriver.Destroy()).To(Succeed())
+		}
 	})
 
 	RunSpecs(t, "Integration Suite")

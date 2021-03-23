@@ -10,13 +10,6 @@ import (
 	"github.com/weaveworks/wks/test/acceptance/test/pages"
 )
 
-var n = 1
-
-func TakeNextScreenshot() {
-	TakeScreenShot(fmt.Sprintf("test-%v", n))
-	n += 1
-}
-
 var _ = Describe("WKP UI", func() {
 
 	BeforeEach(func() {

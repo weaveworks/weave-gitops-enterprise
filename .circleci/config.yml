@@ -75,6 +75,7 @@ workflows:
       - acceptance-tests:
           requires:
             - build
+            - ui-backend-integration-tests
 
   run-integration-tests:
     when: << pipeline.parameters.run_integration_tests >>
@@ -654,7 +655,7 @@ jobs:
             fi
 
             cd ../../integration/test
-            
+
             ../bin/internal/run-integration-tests.sh destroy
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
@@ -1442,7 +1443,7 @@ jobs:
     steps:
       - checkout
       - add-go-mod-ssh-keys
-      - run: 
+      - run:
           name: Login at dockerhub
           command: |
             docker login -u ${DOCKER_IO_USER} -p ${DOCKER_IO_PASSWORD}
