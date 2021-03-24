@@ -127,6 +127,21 @@ func (b DatabaseMCCPTestRunner) KubectlApply(tokenURL string) error {
 		ClusterToken: token,
 		UpdatedAt:    time.Now().UTC(),
 	})
+	b.DB.Create(&models.GitCommit{
+		ClusterToken: token,
+		Sha:          "abcdef123456",
+		AuthorName:   "Alice",
+		AuthorEmail:  "alice@acme.org",
+		AuthorDate:   time.Now().UTC().Add(time.Hour * -1),
+		Message:      "Fixed it",
+	})
+	b.DB.Create(&models.FluxInfo{
+		ClusterToken: token,
+		Name:         "flux",
+		Namespace:    "wkp-flux",
+		RepoURL:      "git@github.com:wkp/my-cluster",
+		RepoBranch:   "main",
+	})
 	return nil
 }
 
