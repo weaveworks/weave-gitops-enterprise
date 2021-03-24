@@ -823,7 +823,7 @@ jobs:
           NUM_MASTERS: 3
           NUM_WORKERS: 1
           USE_LB: true
-          CLUSTER_VERSIONS: '1.19.8,1.20.2'
+          CLUSTER_VERSIONS: '1.20.2'
           SKIP_COMPONENTS: true
 
   creation-ssh-gcp-centos-lb:
