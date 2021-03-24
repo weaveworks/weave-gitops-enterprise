@@ -24,6 +24,10 @@ func TestCheckUpgradeConstraints(t *testing.T) {
 	assert.NoError(t, CheckUpgradeConstraints("1.18.1", "1.19.0", false))
 
 	assert.NoError(t, CheckUpgradeConstraints("1.19.0", "1.20.0", false))
+
+	assert.Equal(t, fmt.Errorf("downgrade not supported"), CheckUpgradeConstraints("1.20.0", "1.19.0", false))
+
+	assert.Equal(t, fmt.Errorf("downgrade not supported"), CheckUpgradeConstraints("1.20.4", "1.20.2", false))
 }
 
 func TestGetSupportedUpgradeForVersion(t *testing.T) {
