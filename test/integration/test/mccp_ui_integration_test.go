@@ -13,6 +13,7 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
@@ -166,6 +167,18 @@ func waitFor200(ctx gcontext.Context, url string, timeout time.Duration) error {
 	}, waitCtx.Done())
 }
 
+func gomegaFail(message string, callerSkip ...int) {
+	fmt.Println("gomegaFail:")
+	fmt.Println(message)
+	webDriver := acceptancetest.GetWebDriver()
+	if webDriver != nil {
+		filepath := acceptancetest.TakeScreenShot(acceptancetest.String(16)) //Save the screenshot of failure
+		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
+	}
+	// Pass this down to the default handler for onward processing
+	Fail(message, callerSkip...)
+}
+
 //
 // "main"
 //
@@ -201,8 +214,19 @@ func TestMccpUI(t *testing.T) {
 	err := waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
 	require.NoError(t, err)
 
+	//
+	// Test env stuff
+	//
 	RegisterFailHandler(Fail)
+	// Screenshot on fail
+	RegisterFailHandler(gomegaFail)
+	// Screenshots
+	_ = os.RemoveAll(acceptancetest.ARTEFACTS_BASE_DIR)
+	_ = os.MkdirAll(acceptancetest.SCREENSHOTS_DIR, 0700)
+	// WKP-UI can be a bit slow
+	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_DEFAULT_TIME_OUT)
 
+	// Load up the acceptance suite suite
 	mccpRunner := acceptancetest.DatabaseMCCPTestRunner{DB: db}
 	acceptancetest.DescribeMCCPAcceptance(mccpRunner)
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
@@ -216,5 +240,8 @@ func TestMccpUI(t *testing.T) {
 		}
 	})
 
-	RunSpecs(t, "Integration Suite")
+	// JUnit style test report
+	junitReporter := reporters.NewJUnitReporter(acceptancetest.JUNIT_TEST_REPORT_FILE)
+	// Run it!
+	RunSpecsWithDefaultAndCustomReporters(t, "WKP Integration Suite", []Reporter{junitReporter})
 }

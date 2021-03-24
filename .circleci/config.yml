@@ -970,9 +970,15 @@ jobs:
           name: Run tests
           command: |
             export PATH=$GOROOT/bin:$PATH
+            export SELENIUM_DEBUG=true
+
             make ui-build-for-tests
             cd test/integration/test
             go test -v -run TestMccpUI --timeout=99999s
+      - store_artifacts:
+          path: /tmp/workspace/test
+      - store_test_results:
+          path: /tmp/workspace/test
 
   cluster-components-gcp:
     docker:
