@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"fmt"
+
 	"github.com/sclevine/agouti"
 )
 
@@ -8,7 +10,7 @@ type clusterInformation struct {
 	Name          *agouti.Selection
 	Icon          *agouti.Selection
 	Status        *agouti.Selection
-	GitMessage    *agouti.Selection
+	GitActivity   *agouti.Selection
 	NodesVersions *agouti.Selection
 	GitRepoURL    *agouti.Selection
 	EditCluster   *agouti.Selection
@@ -36,34 +38,15 @@ type ClustersPage struct {
 
 // FindClusterInList finds the cluster with given name
 func FindClusterInList(clustersPage *ClustersPage, clusterName string) *clusterInformation {
-	count, _ := clustersPage.ClustersList.Count()
-	for i := 0; i < count; i++ {
-		cluster := clustersPage.ClustersList.At(i)
-		name, _ := cluster.FindByXPath(`td[1]`).Text()
-
-		if name == clusterName {
-			return &clusterInformation{
-				Name:          cluster.FindByXPath(`td[1]`),
-				Icon:          cluster.FindByXPath(`td[2]`),
-				Status:        cluster.FindByXPath(`td[3]`),
-				GitMessage:    cluster.FindByXPath(`td[4]`),
-				NodesVersions: cluster.FindByXPath(`td[5]`),
-				GitRepoURL:    cluster.FindByXPath(`td[6]`),
-				EditCluster:   cluster.FindByXPath(`td[7]`),
-			}
-		}
-	}
-
-	// So you can return something to Eventually that won't panic
-	nullSelector := clustersPage.HeaderName.Find("#null-selector-foo")
+	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr[data-cluster-name="%s"]`, clusterName))
 	return &clusterInformation{
-		Name:          nullSelector,
-		Icon:          nullSelector,
-		Status:        nullSelector,
-		GitMessage:    nullSelector,
-		NodesVersions: nullSelector,
-		GitRepoURL:    nullSelector,
-		EditCluster:   nullSelector,
+		Name:          cluster.FindByXPath(`td[1]`),
+		Icon:          cluster.FindByXPath(`td[2]`),
+		Status:        cluster.FindByXPath(`td[3]`),
+		GitActivity:   cluster.FindByXPath(`td[4]`).Find("svg"),
+		NodesVersions: cluster.FindByXPath(`td[5]`),
+		GitRepoURL:    cluster.FindByXPath(`td[6]`),
+		EditCluster:   cluster.FindByXPath(`td[7]`),
 	}
 }
 
@@ -84,7 +67,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderGitActivity:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
 		HeaderNodeVersion:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
 		NoClusterConfigured:  webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
-		ClustersList:         webDriver.All(`#clusters-list > div > table > tbody > tr`),
+		ClustersList:         webDriver.All(`#clusters-list > div > table`),
 		SupportEmailLink:     webDriver.FindByLink(`support@weave.works`)}
 
 	return &clustersPage
