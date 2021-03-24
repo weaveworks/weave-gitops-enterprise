@@ -1,0 +1,20 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: wkp-cluster
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 3
+    volumeSize: 80
+    ssh:
+      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
+
+#   # if using eksConfig.uiALBIngress in setup/config.yaml
+#   # uncomment this to ensure the IAM roles are configured
+#   iam:
+#     withAddonPolicies:
+#       albIngress: true
