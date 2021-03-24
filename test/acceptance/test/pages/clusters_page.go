@@ -1,8 +1,6 @@
 package pages
 
 import (
-	"fmt"
-
 	"github.com/sclevine/agouti"
 )
 
@@ -44,7 +42,6 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *clusterI
 		name, _ := cluster.FindByXPath(`td[1]`).Text()
 
 		if name == clusterName {
-			fmt.Println(clusterName)
 			return &clusterInformation{
 				Name:          cluster.FindByXPath(`td[1]`),
 				Icon:          cluster.FindByXPath(`td[2]`),
@@ -56,7 +53,18 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *clusterI
 			}
 		}
 	}
-	return &clusterInformation{}
+
+	// So you can return something to Eventually that won't panic
+	nullSelector := clustersPage.HeaderName.Find("#null-selector-foo")
+	return &clusterInformation{
+		Name:          nullSelector,
+		Icon:          nullSelector,
+		Status:        nullSelector,
+		GitMessage:    nullSelector,
+		NodesVersions: nullSelector,
+		GitRepoURL:    nullSelector,
+		EditCluster:   nullSelector,
+	}
 }
 
 //GetClustersPage initialises the webDriver object

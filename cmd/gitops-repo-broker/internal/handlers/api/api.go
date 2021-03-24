@@ -148,7 +148,6 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 
 	clusters := map[string]*ClusterView{}
 	for _, r := range rows {
-		fmt.Println("cluster status in row: ", r.ClusterStatus)
 		resultOrder = insertUnique(resultOrder, r.Name.String)
 		if cl, ok := clusters[r.Name.String]; !ok {
 			// Add new cluster with node to map
