@@ -295,6 +295,16 @@ eksConfig:
   managedNodeGroupFile: "628wanda496"
 `
 
+const validEksctlConfigFilePath = `
+eksConfig:
+  configFilePath: "./testdata/eksctl-config.yaml"
+`
+
+const invalidEksctlConfigFilePath = `
+eksConfig:
+  configFilePath: "./testdata/doesnt-exist-eksctl-config.yaml"
+`
+
 func TestRequiredEKSValues(t *testing.T) {
 	testinput := []struct {
 		config   string
@@ -306,7 +316,10 @@ func TestRequiredEKSValues(t *testing.T) {
 		{missingK8sVersion, "A Kubernetes version must be specified"},
 		{missingClusterRegion, "clusterRegion must be specified"},
 		{invalidK8sVersion, `Kubernetes version must be one of: "1.16", "1.17" or "1.18"`},
-		{invalidManagedNodeGroupFile, `no file found at path: "628wanda496" for field: "managedNodeGroupFile"`}}
+		{invalidManagedNodeGroupFile, `no file found at path: "628wanda496" for field: "managedNodeGroupFile"`},
+		{validEksctlConfigFilePath, "<nil>"},
+		{invalidEksctlConfigFilePath, "could not find eksctl config file at path: ./testdata/doesnt-exist-eksctl-config.yaml"},
+	}
 	for _, testvals := range testinput {
 		conf, err := unmarshalConfig([]byte(testvals.config))
 		require.NoError(t, err)

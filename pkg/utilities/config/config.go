@@ -80,6 +80,7 @@ type EKSConfig struct {
 	NodeGroups           []NodeGroupConfig `yaml:"nodeGroups"`
 	ManagedNodeGroupFile string            `yaml:"managedNodeGroupFile"`
 	UIALBIngress         bool              `yaml:"uiALBIngress"`
+	ConfigFilePath       string            `yaml:"configFilePath"`
 }
 
 type NodeGroupConfig struct {
@@ -722,6 +723,16 @@ func validateExperimentalFeatures(config *WKPConfig) error {
 
 // eks values
 func checkRequiredEKSValues(eksConfig *EKSConfig) error {
+	if eksConfig.ConfigFilePath != "" {
+		if _, err := os.Stat(eksConfig.ConfigFilePath); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("could not find eksctl config file at path: %s", eksConfig.ConfigFilePath)
+			}
+		} else {
+			return nil
+		}
+	}
+
 	if eksConfig.ClusterRegion == "" {
 		return fmt.Errorf("clusterRegion must be specified")
 	}
@@ -1031,7 +1042,11 @@ func GenerateEnvironmentFromConfig(config *WKPConfig) string {
 	str.WriteString(fmt.Sprintf("export SEALED_SECRETS_CERT=%s\n", config.SealedSecretsCert))
 	str.WriteString(fmt.Sprintf("export SEALED_SECRETS_KEY=%s\n", config.SealedSecretsKey))
 	if config.Track == "eks" {
-		str.WriteString(fmt.Sprintf("export REGION=%s\n", config.EKSConfig.ClusterRegion))
+		if config.EKSConfig.ConfigFilePath != "" {
+			str.WriteString(fmt.Sprintf("export EKSCTL_CONFIG_FILE=%s\n", config.EKSConfig.ConfigFilePath))
+		} else {
+			str.WriteString(fmt.Sprintf("export REGION=%s\n", config.EKSConfig.ClusterRegion))
+		}
 	} else {
 		str.WriteString(fmt.Sprintf("export KUBERNETES_VERSION=%s\n", config.WKSConfig.KubernetesVersion))
 		str.WriteString(fmt.Sprintf("export SSH_KEY_FILE=%s\n", config.WKSConfig.SSHConfig.SSHKeyFile))
