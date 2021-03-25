@@ -119,9 +119,9 @@ workflows:
           <<: *nightlyTestConfig
       - ssh-key-file-variations:
           <<: *nightlyTestConfig
-      - creation-gcp-rhel-k8s120-lb:
+      - creation-gcp-rhel7-k8s120-lb:
           <<: *nightlyTestConfig
-      - creation-gcp-rhel-k8s119-lb:
+      - creation-gcp-rhel7-k8s119-lb:
           <<: *nightlyTestConfig
 
   weekly:
@@ -817,7 +817,7 @@ jobs:
           CLUSTER_VERSIONS: '1.18.16,1.19.8,1.20.2'
           SKIP_COMPONENTS: true
 
-  creation-gcp-rhel-k8s120-lb:
+  creation-gcp-rhel7-k8s120-lb:
     <<: *creation-ssh-gcp-centos
     docker:
       - image: quay.io/wks/build:master-134af34f
@@ -830,7 +830,7 @@ jobs:
           CLUSTER_VERSIONS: '1.20.2'
           SKIP_COMPONENTS: true
 
-  creation-gcp-rhel-k8s119-lb:
+  creation-gcp-rhel7-k8s119-lb:
     <<: *creation-ssh-gcp-centos
     docker:
       - image: quay.io/wks/build:master-134af34f
