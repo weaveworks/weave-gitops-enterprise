@@ -43,7 +43,7 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *clusterI
 		Name:          cluster.FindByXPath(`td[1]`),
 		Icon:          cluster.FindByXPath(`td[2]`),
 		Status:        cluster.FindByXPath(`td[3]`),
-		GitActivity:   cluster.FindByXPath(`td[4]`).Find("svg"),
+		GitActivity:   cluster.FindByXPath(`td[4]`),
 		NodesVersions: cluster.FindByXPath(`td[5]`),
 		GitRepoURL:    cluster.FindByXPath(`td[6]`),
 		EditCluster:   cluster.FindByXPath(`td[7]`),
@@ -67,7 +67,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderGitActivity:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
 		HeaderNodeVersion:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
 		NoClusterConfigured:  webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
-		ClustersList:         webDriver.All(`#clusters-list > div > table`),
+		ClustersList:         webDriver.All(`#clusters-list > div > table > tbody`),
 		SupportEmailLink:     webDriver.FindByLink(`support@weave.works`)}
 
 	return &clustersPage
