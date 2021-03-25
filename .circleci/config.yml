@@ -824,7 +824,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: rhel-cloud/rhel-7-v20210217
-          NUM_MASTERS: 3
+          NUM_MASTERS: 1
           NUM_WORKERS: 1
           USE_LB: true
           CLUSTER_VERSIONS: '1.20.2'
@@ -837,7 +837,7 @@ jobs:
         environment:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: rhel-cloud/rhel-7-v20210217
-          NUM_MASTERS: 3
+          NUM_MASTERS: 1
           NUM_WORKERS: 1
           USE_LB: true 
           CLUSTER_VERSIONS: '1.19.8'
