@@ -426,48 +426,52 @@ func RegisterCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unma
 	}
 }
 
-func UpdateCluster(db *gorm.DB, unmarshalFn Unmarshal, marshalFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
+func UpdateCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unmarshal, marshalFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if db == nil {
 			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
 			return
 		}
 
-		err := db.Transaction(func(tx *gorm.DB) error {
-			cluster, err := getClusterFromRequest(r, tx)
-			if err != nil {
+		reqBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			common.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+
+		updated := &ClusterUpdateRequest{}
+		if err := unmarshalFn(reqBody, updated); err != nil {
+			common.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		err = validate.Struct(updated)
+		if err != nil {
+			log.Errorf("Failed to validate payload: %v", err)
+			common.WriteError(w, ErrInvalidPayload, http.StatusBadRequest)
+			return
+		}
+
+		id, err := getClusterIDFromRequest(r)
+		if err != nil {
+			log.Errorf("Failed to get id param from path: %v", err)
+			common.WriteError(w, ErrInvalidPayload, http.StatusBadRequest)
+			return
+		}
+
+		err = db.Transaction(func(tx *gorm.DB) error {
+			cluster := models.Cluster{}
+			if err := tx.First(&cluster, id).Error; err != nil {
 				return err
 			}
-			if cluster == nil {
-				common.WriteError(w, fmt.Errorf("cluster not found"), http.StatusNotFound)
-				return nil
-			}
 
-			reqBody, err := ioutil.ReadAll(r.Body)
-			if err != nil {
-				common.WriteError(w, err, http.StatusBadRequest)
-				return nil
-			}
-
-			clusterUpdates := &models.Cluster{}
-			if err := unmarshalFn(reqBody, clusterUpdates); err != nil {
+			cluster.Name = updated.Name
+			cluster.IngressURL = updated.IngressURL
+			if err := tx.Save(cluster).Error; err != nil {
 				return err
 			}
 
-			c := models.Cluster{}
-			tx.First(&c, cluster.ID)
-			c.IngressURL = clusterUpdates.IngressURL
-			c.Name = clusterUpdates.Name
-			// This particular variant of `Updates` (with a struct), does non-zero checking
-			// and so don't update the Name or IngressURL if they are "zero"
-			// https://gorm.io/docs/update.html#Update-Selected-Fields
-			result := tx.Model(c).Updates(c)
-			if result.Error != nil {
-				common.WriteError(w, result.Error, http.StatusBadRequest)
-				return nil
-			}
-
-			clusterView, err := getCluster(tx, c.ID)
+			clusterView, err := getCluster(tx, uint(id))
 			if err != nil {
 				return err
 			}
@@ -476,6 +480,10 @@ func UpdateCluster(db *gorm.DB, unmarshalFn Unmarshal, marshalFn MarshalIndent) 
 		})
 
 		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				common.WriteError(w, fmt.Errorf("cluster not found"), http.StatusNotFound)
+				return
+			}
 			common.WriteError(w, err, http.StatusInternalServerError)
 		}
 	}
@@ -610,6 +618,11 @@ type ClusterRegistrationResponse struct {
 	Name       string `json:"name"`
 	IngressURL string `json:"ingressUrl"`
 	Token      string `json:"token"`
+}
+
+type ClusterUpdateRequest struct {
+	Name       string `json:"name" validate:"required"`
+	IngressURL string `json:"ingressUrl" validate:"omitempty,url"`
 }
 
 type NodeView struct {

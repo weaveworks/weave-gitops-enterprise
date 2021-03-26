@@ -67,7 +67,7 @@ func TestNilDb(t *testing.T) {
 		api.ListAlerts(nil, nil),
 		api.ListClusters(nil, nil),
 		api.RegisterCluster(nil, nil, nil, nil, nil),
-		api.UpdateCluster(nil, nil, nil),
+		api.UpdateCluster(nil, nil, nil, nil),
 		api.UnregisterCluster(nil),
 	}
 	for i, fn := range nilDbHandlers {
@@ -94,12 +94,12 @@ func TestNoTables(t *testing.T) {
 			api.RegisterCluster(db, validator.New(), json.Unmarshal, nil, NewFakeTokenGenerator("derp", nil).Generate),
 			noSuchTable,
 		},
-		{api.UpdateCluster(db, json.Unmarshal, nil), noInit},
+		{api.UpdateCluster(db, validator.New(), json.Unmarshal, nil), noSuchTable},
 	}
 
 	for i, tt := range noTablesHandlers {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
-			response, body := doRequest(t, tt.handler, "GET", "/{id:[0-9]+}", "/1", `{ "name": "ewq" }`)
+			response, body := doRequest(t, tt.handler, "GET", "/{id:[0-9]+}", "/1", `{ "id": 1, "name": "ewq" }`)
 			assert.Equal(t, http.StatusInternalServerError, response.Code)
 			assert.Equal(t, tt.message, body)
 		})
@@ -127,7 +127,7 @@ func TestJSONMarshalErrors(t *testing.T) {
 		{api.ListAlerts(db, marshalError), ""},
 		{api.ListClusters(db, marshalError), ""},
 		{api.RegisterCluster(db, validator.New(), json.Unmarshal, marshalError, NewFakeTokenGenerator("derp", nil).Generate), `{ "name": "ewq" }`},
-		{api.UpdateCluster(db, json.Unmarshal, marshalError), `{ "name": "ewq2" }`},
+		{api.UpdateCluster(db, validator.New(), json.Unmarshal, marshalError), `{ "id": 1, "name": "ewq2" }`},
 	}
 
 	for i, tt := range unmarshallErrors {
@@ -223,7 +223,17 @@ func TestUpdateCluster(t *testing.T) {
 		getResponse  interface{}
 	}{
 		{"404 if no :id", "/", nil, 404, "404 page not found\n", nil, nil},
-		{"404 if no cluster in db", "/1", nil, 404, errorBody("cluster not found"), nil, nil},
+		{
+			"404 if no cluster in db",
+			"/1",
+			map[string]interface{}{
+				"name": "ewq1",
+			},
+			404,
+			errorBody("cluster not found"),
+			nil,
+			nil,
+		},
 		{
 			"200 if cluster is in db",
 			"/1",
@@ -282,6 +292,7 @@ func TestUpdateCluster(t *testing.T) {
 			"Can't update token",
 			"/2",
 			map[string]interface{}{
+				"name":  "dsa",
 				"token": "newtoken",
 			},
 			200,
@@ -324,7 +335,7 @@ func TestUpdateCluster(t *testing.T) {
 			}
 			response, body := doRequest(
 				t,
-				api.UpdateCluster(db, json.Unmarshal, json.MarshalIndent),
+				api.UpdateCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent),
 				"PUT",
 				"/{id:[0-9]+}",
 				rt.path,
