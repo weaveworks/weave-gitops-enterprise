@@ -7,13 +7,14 @@ import (
 )
 
 type clusterInformation struct {
-	Name          *agouti.Selection
-	Icon          *agouti.Selection
-	Status        *agouti.Selection
-	GitActivity   *agouti.Selection
-	NodesVersions *agouti.Selection
-	GitRepoURL    *agouti.Selection
-	EditCluster   *agouti.Selection
+	Name           *agouti.Selection
+	Icon           *agouti.Selection
+	Status         *agouti.Selection
+	GitActivity    *agouti.Selection
+	NodesVersions  *agouti.Selection
+	TeamWorkspaces *agouti.Selection
+	GitRepoURL     *agouti.Selection
+	EditCluster    *agouti.Selection
 }
 
 //ClustersPage elements
@@ -40,13 +41,14 @@ type ClustersPage struct {
 func FindClusterInList(clustersPage *ClustersPage, clusterName string) *clusterInformation {
 	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr[data-cluster-name="%s"]`, clusterName))
 	return &clusterInformation{
-		Name:          cluster.FindByXPath(`td[1]`),
-		Icon:          cluster.FindByXPath(`td[2]`),
-		Status:        cluster.FindByXPath(`td[3]`),
-		GitActivity:   cluster.FindByXPath(`td[4]`),
-		NodesVersions: cluster.FindByXPath(`td[5]`),
-		GitRepoURL:    cluster.FindByXPath(`td[6]`),
-		EditCluster:   cluster.FindByXPath(`td[7]`),
+		Name:           cluster.FindByXPath(`td[1]`),
+		Icon:           cluster.FindByXPath(`td[2]`),
+		Status:         cluster.FindByXPath(`td[3]`),
+		GitActivity:    cluster.FindByXPath(`td[4]`),
+		NodesVersions:  cluster.FindByXPath(`td[5]`),
+		TeamWorkspaces: cluster.FindByXPath(`td[6]`),
+		GitRepoURL:     cluster.FindByXPath(`td[7]`),
+		EditCluster:    cluster.FindByXPath(`td[8]`),
 	}
 }
 
