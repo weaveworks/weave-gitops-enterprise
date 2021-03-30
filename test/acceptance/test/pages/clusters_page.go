@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/sclevine/agouti"
 )
@@ -17,6 +18,13 @@ type clusterInformation struct {
 	EditCluster    *agouti.Selection
 }
 
+type alertInformation struct {
+	Severity    *agouti.Selection
+	Message     *agouti.Selection
+	ClusterName *agouti.Selection
+	TimeStamp   *agouti.Selection
+}
+
 //ClustersPage elements
 type ClustersPage struct {
 	ClusterCount         *agouti.Selection
@@ -27,6 +35,8 @@ type ClustersPage struct {
 	FiringAlertsNavCtl   *agouti.Selection
 	ClustersListSection  *agouti.Selection
 	ClustersListHeader   *agouti.Selection
+	FiringAlertsPerPage  *agouti.Selection
+	FiringAlerts         *agouti.MultiSelection
 	HeaderName           *agouti.Selection
 	HeaderIcon           *agouti.Selection
 	HeaderStatus         *agouti.Selection
@@ -52,6 +62,25 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *clusterI
 	}
 }
 
+func FindAlertInFiringAlertsWidget(clustersPage *ClustersPage, alertName string) *alertInformation {
+	count, _ := clustersPage.FiringAlerts.Count()
+	for i := 0; i < count; i++ {
+		alert := clustersPage.FiringAlerts.At(i)
+		message, _ := alert.FindByXPath(`td[2]`).Text()
+
+		if strings.Contains(message, alertName) {
+			return &alertInformation{
+				Severity:    alert.FindByXPath(`td[1]`),
+				Message:     alert.FindByXPath(`td[2]`),
+				ClusterName: alert.FindByXPath(`td[3]`),
+				TimeStamp:   alert.FindByXPath(`td[4]`)}
+		}
+
+	}
+
+	return nil
+}
+
 //GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
@@ -61,6 +90,8 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		FiringAlertsSection:  webDriver.Find(`#firing-alerts`),
 		FiringAlertsHeader:   webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[1]/div`),
 		FiringAlertsNavCtl:   webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[2]/div/p/span/span[2]`),
+		FiringAlertsPerPage:  webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[3]`),
+		FiringAlerts:         webDriver.All(`#firing-alerts > div > table > tbody > tr`),
 		ClustersListSection:  webDriver.Find(`#clusters-list`),
 		ClustersListHeader:   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead`),
 		HeaderName:           webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[1]/span`),
