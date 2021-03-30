@@ -14,6 +14,8 @@ type ClusterConnectionPage struct {
 	ConnectionInstructions   *agouti.Selection
 	ConnectionStatus         *agouti.Selection
 	ButtonClose              *agouti.Selection
+	DisconnectTab            *agouti.Selection
+	ButtonRemoveCluster      *agouti.Selection
 }
 
 //GetClusterConnectionPage initialises the webDriver object
@@ -27,6 +29,8 @@ func GetClusterConnectionPage(webDriver *agouti.Page) *ClusterConnectionPage {
 		ConnectionInstructions:   webDriver.Find(`#instructions`),
 		ConnectionStatus:         webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/form/div[1]/div/div[2]/div[2]`),
 		ButtonClose:              webDriver.Find(`#connection-popup button[type="submit"]`),
+		DisconnectTab:            webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/div/div[3]`),
+		ButtonRemoveCluster:      webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/form/div[1]/div/div[3]/button/span`),
 	}
 
 	return &clusterConnPage
