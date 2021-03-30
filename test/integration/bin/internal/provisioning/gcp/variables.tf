@@ -53,7 +53,7 @@ variable "gcp_size" {
   #   $ gcloud compute machine-types list
   description = "Google Cloud Platform's selected machine size"
 
-  default = "n1-standard-2"
+  default = "n1-standard-4"
 }
 
 variable "gcp_region" {
