@@ -845,3 +845,151 @@ func TestExperimentalFeatures(t *testing.T) {
 	err = processConfig(conf)
 	assert.Equal(t, "Flavors and CNI overrides are not enabled; enable the experimental 'eks-d' feature to use them", fmt.Sprintf("%v", err))
 }
+
+const validSqlite = `
+fleetManagementDB:
+  databaseType: 'sqlite'
+  databaseURI: '/var/database/mccp.db'
+  sqliteConfig:
+    hostPathVolume: true
+    path: '/home/wks/database'
+    persistentVolumeClaim: false
+  postgresConfig:
+    databaseName: 'postgres'
+`
+
+const invalidSqlite = `
+fleetManagementDB:
+  databaseType: 'sqlite'
+  databaseURI: '/var/database/mccp.db'
+  sqliteConfig:
+    hostPathVolume: true
+    path: '/home/wks/database'
+    persistentVolumeClaim: true
+  postgresConfig:
+    databaseName: 'postgres'
+`
+
+const missingSqlite = `
+fleetManagementDB:
+  databaseType: 'sqlite'
+  databaseURI: '/var/database/mccp.db'
+  postgresConfig:
+    databaseName: 'postgres'
+`
+
+const validPostgres = `
+fleetManagementDB:
+  databaseType: 'postgres'
+  databaseURI: 'postgres-service:5432'
+  sqliteConfig:
+    hostPathVolume: true
+    path: '/home/wks/database'
+    persistentVolumeClaim: false
+  postgresConfig:
+    databaseName: 'test'
+`
+
+const missingPostgres = `
+fleetManagementDB:
+  databaseType: 'postgres'
+  databaseURI: 'postgres-service'
+  sqliteConfig:
+    hostPathVolume: true
+    path: '/home/wks/database'
+    persistentVolumeClaim: true
+`
+
+const unsupportedDB = `
+fleetManagementDB:
+  databaseType: 'mysql'
+  databaseURI: 'postgres-service'
+  sqliteConfig:
+    hostPathVolume: true
+    path: '/home/wks/database'
+    persistentVolumeClaim: true
+`
+
+func TestRequiredFleetManagementDBValues(t *testing.T) {
+	testinput := []struct {
+		config   string
+		errorMsg string
+	}{
+		{validSqlite, "<nil>"},
+		{invalidSqlite, "sqliteConfig: please set either HostPathVolume or PersistentVolumeClaim"},
+		{missingSqlite, "fleetManagementDB: missing sqliteConfig section from config.yaml"},
+		{validPostgres, "<nil>"},
+		{missingPostgres, "fleetManagementDB: missing postgresConfig section from config.yaml"},
+		{unsupportedDB, "fleetManagementDB: unsupported database type, supported values: sqlite, postgres"},
+	}
+	// {invalidSSHKeyFile, `no file found at path: "8128goober" for field: "sshKeyFile"`}}
+
+	for _, testvals := range testinput {
+		conf, err := unmarshalConfig([]byte(testvals.config))
+		require.NoError(t, err)
+		err = checkRequiredFleetManagementDBValues(&conf.FleetManagementDB)
+		assert.Equal(t, testvals.errorMsg, fmt.Sprintf("%v", err))
+	}
+}
+
+const validMissingFleetManagementDB = `
+track: "wks-ssh"
+clusterName: ""
+dockerIOUser: "TheodoreLogan"
+dockerIOPasswordFile: "testdata/passwordFile"
+gitProvider: "github"
+gitProviderOrg: "test-org"
+wksConfig:
+  kubernetesVersion: 1.19.3
+  serviceCIDRBlocks: [192.168.0.0/16]
+  podCIDRBlocks: [172.30.0.0/16]
+  minDiskSpace: 5
+  sshConfig:
+    machines:
+    - role: master
+      publicAddress: 172.17.20.5
+    - role: worker
+      publicAddress: 172.17.20.6
+enabledFeatures:
+  fleetManagement: false
+`
+
+const invalidMissingFleetManagementDB = `
+track: "wks-ssh"
+clusterName: ""
+dockerIOUser: "TheodoreLogan"
+dockerIOPasswordFile: "testdata/passwordFile"
+gitProvider: "github"
+gitProviderOrg: "test-org"
+wksConfig:
+  kubernetesVersion: 1.19.3
+  serviceCIDRBlocks: [192.168.0.0/16]
+  podCIDRBlocks: [172.30.0.0/16]
+  minDiskSpace: 5
+  sshConfig:
+    machines:
+    - role: master
+      publicAddress: 172.17.20.5
+    - role: worker
+      publicAddress: 172.17.20.6
+enabledFeatures:
+  fleetManagement: true
+`
+
+func TestRequiredFleetManagementDBValuesIfEnabled(t *testing.T) {
+	testinput := []struct {
+		config   string
+		errorMsg string
+	}{
+		{validMissingFleetManagementDB, "<nil>"},
+		{invalidMissingFleetManagementDB, "fleet management feature is enabled, but its database configuration is missing from config.yaml"},
+	}
+	// {invalidSSHKeyFile, `no file found at path: "8128goober" for field: "sshKeyFile"`}}
+
+	for _, testvals := range testinput {
+		conf, err := unmarshalConfig([]byte(testvals.config))
+		require.NoError(t, err)
+		err = checkRequiredValues(conf)
+		assert.Equal(t, testvals.errorMsg, fmt.Sprintf("%v", err))
+	}
+}

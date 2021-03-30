@@ -57,9 +57,30 @@ type WKPConfig struct {
 	SealedSecretsKey     string               `yaml:"sealedSecretsPrivateKey"`
 	EnabledFeatures      EnabledFeatures      `yaml:"enabledFeatures"`
 	ExperimentalFeatures ExperimentalFeatures `yaml:"experimentalFeatures,omitempty"`
+	FleetManagementDB    FleetManagementDB    `yaml:"fleetManagementDB,omitempty"`
 	EKSConfig            EKSConfig            `yaml:"eksConfig"`
 	WKSConfig            WKSConfig            `yaml:"wksConfig"`
 	ImageRepository      string               `yaml:"imageRepository"`
+}
+
+// Map of the database configuration used for the MCCP
+type FleetManagementDB struct {
+	DatabaseType   string         `yaml:"databaseType"`
+	DatabaseURI    string         `yaml:"databaseURI"`
+	SqliteConfig   SqliteConfig   `yaml:"sqliteConfig,omitempty"`
+	PostgresConfig PostgresConfig `yaml:"postgresConfig,omitempty"`
+}
+
+// Map of the sqlite configuration
+type SqliteConfig struct {
+	HostPathVolume        bool   `yaml:"hostPathVolume"`
+	Path                  string `yaml:"path"`
+	PersistentVolumeClaim bool   `yaml:"persistentVolumeClaim"`
+}
+
+// Map of the postgres configuration
+type PostgresConfig struct {
+	DatabaseName string `yaml:"databaseName"`
 }
 
 // Map of WKP features that can be toggled on/off
@@ -933,6 +954,36 @@ func checkRequiredFootlooseValues(footlooseConfig *FootlooseConfig) error {
 	return nil
 }
 
+// If fleetManagement is enabled, assert that the values set in fleetManagementDB are valid
+func checkRequiredFleetManagementDBValues(config *FleetManagementDB) error {
+	emptyFleetManagementDBConfig := FleetManagementDB{}
+	emptySqliteConfig := SqliteConfig{}
+	emptyPostgresConfig := PostgresConfig{}
+
+	if *config == emptyFleetManagementDBConfig {
+		return errors.New("fleet management feature is enabled, but its database configuration is missing from config.yaml")
+	}
+
+	switch config.DatabaseType {
+	case "sqlite":
+		if config.SqliteConfig == emptySqliteConfig {
+			return errors.New("fleetManagementDB: missing sqliteConfig section from config.yaml")
+		}
+
+		if config.SqliteConfig.HostPathVolume && config.SqliteConfig.PersistentVolumeClaim {
+			return errors.New("sqliteConfig: please set either HostPathVolume or PersistentVolumeClaim")
+		}
+	case "postgres":
+		if config.PostgresConfig == emptyPostgresConfig {
+			return errors.New("fleetManagementDB: missing postgresConfig section from config.yaml")
+		}
+	default:
+		return errors.New("fleetManagementDB: unsupported database type, supported values: sqlite, postgres")
+	}
+
+	return nil
+}
+
 func checkRequiredValues(config *WKPConfig) error {
 	if err := checkRequiredGlobalValues(config); err != nil {
 		return err
@@ -964,6 +1015,12 @@ func checkRequiredValues(config *WKPConfig) error {
 		}
 	case "wks-footloose":
 		if err := checkRequiredFootlooseValues(&config.WKSConfig.FootlooseConfig); err != nil {
+			return err
+		}
+	}
+
+	if config.EnabledFeatures.FleetManagement {
+		if err := checkRequiredFleetManagementDBValues(&config.FleetManagementDB); err != nil {
 			return err
 		}
 	}
