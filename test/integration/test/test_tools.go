@@ -633,6 +633,29 @@ func getAllReadyPodsFromNode(t *testing.T, env []string, node string) []string {
 	return result
 }
 
+func getNodeNameByPrivateIp(t *testing.T, env []string, privateIP string) string {
+	cmdItems := []string{"kubectl", "get", "nodes", "-o",
+		`jsonpath={range .items[*]}{"\n"}{@.metadata.name}:{range @.status.addresses[?(@.type=="InternalIP")]}{@.address}{end}{end}`}
+
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	cmd.Env = env
+	cmdResults, err := cmd.CombinedOutput()
+	if err != nil {
+		assert.FailNowf(t, "Failed to get node name by private", "ip=%s, err=%s", privateIP, err)
+	}
+	nodeStrings := strings.Split(string(cmdResults), "\n")
+	name := ""
+	for _, nstr := range nodeStrings {
+		// ip-10-18-12-226.ec2.internal:10.18.12.226
+		if strings.Contains(nstr, privateIP) {
+			parts := strings.Split(nstr, ":")
+			name = parts[0]
+			break
+		}
+	}
+	return name
+}
+
 func getFileInfo(t *testing.T, path string) *git.ObjectInfo {
 	info, err := git.GetFileObjectInfo(path)
 	assert.NoError(t, err)
