@@ -386,7 +386,7 @@ func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int)
 		len(getAllNodeVersions(c.t, c.env)))
 }
 
-// checkClusterAtExpectedNumberOfNodes waits for the cluster to reach the requested number of nodes
+// checkNodeAtExpectedNumberOfReadyPods waits for the cluster to reach the requested number of nodes
 func (c *context) checkNodeAtExpectedNumberOfReadyPods(expectedNumberOfPods int, node string) {
 	retryInfo := &connectRetryInfo{0, 6}
 	for retry := 0; retry < 10; retry++ {
