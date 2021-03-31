@@ -158,22 +158,22 @@ var _ = Describe("Integration suite", func() {
 
 			It("Should sort the cluster by status initially", func() {
 				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
-					"cluster-3-alerting",
 					"cluster-2-critical",
+					"cluster-3-alerting",
 					"cluster-5-last-seen",
-					"cluster-4-not-connected",
 					"cluster-1-ready",
+					"cluster-4-not-connected",
 				})
 			})
 
 			It("should reverse the order when I click on the status header", func() {
 				pages.GetClustersPage(webDriver).HeaderStatus.Click()
 				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
-					"cluster-1-ready",
 					"cluster-4-not-connected",
+					"cluster-1-ready",
 					"cluster-5-last-seen",
-					"cluster-2-critical",
 					"cluster-3-alerting",
+					"cluster-2-critical",
 				})
 			})
 
@@ -276,7 +276,7 @@ func GetDB(t *testing.T) (*gorm.DB, string) {
 	log.Infof("db at %v", f.Name())
 	dbURI := f.Name()
 	require.NoError(t, err)
-	db, err := utils.Open(dbURI, "sqlite", "", "", "")
+	db, err := utils.OpenDebug(dbURI, true)
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)

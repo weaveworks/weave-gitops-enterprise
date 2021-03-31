@@ -82,45 +82,48 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 	// The `WHERE 1=1` clause is a null condition that allows us to append more clauses to this query by concatenating them
 	// without worrying about including a WHERE clause beforehand.
 	queryString := `
-	SELECT
-		c.id AS ID,
-		c.name AS Name, 
-		c.token AS Token,
-		c.ingress_url AS IngressURL, 
-		ci.type AS Type, 
-		ni.name AS NodeName, 
-		ci.updated_at AS UpdatedAt,
-		ni.is_control_plane AS IsControlPlane, 
-		ni.kubelet_version AS KubeletVersion,
-		fi.name AS FluxName,
-		fi.namespace AS FluxNamespace,
-		fi.repo_url AS FluxRepoURL,
-		fi.repo_branch AS FluxRepoBranch,
-		fi.Syncs AS FluxLogInfo,
-		(select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') as CriticalAlertsCount,
-		(select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) AS AlertsCount,
-		gc.author_name AS GitCommitAuthorName,
-		gc.author_email AS GitCommitAuthorEmail,
-		gc.author_date AS GitCommitAuthorDate,
-		gc.message AS GitCommitMessage,
-		gc.sha AS GitCommitSha,
-		ws.name AS WorkspaceName,
-		ws.namespace AS WorkspaceNamespace,
-		CASE
-			WHEN %[1]s IS NULL OR 
-				 %[1]s > 1800 THEN 'notConnected'
-			WHEN %[1]s BETWEEN 60 AND 1800 THEN 'lastSeen'
-			WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') > 0 THEN 'critical'
-			WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
-		ELSE 'ready'
-		END AS ClusterStatus
-	FROM 
-		clusters c 
-		LEFT JOIN cluster_info ci ON c.token = ci.cluster_token 
-		LEFT JOIN node_info ni ON c.token = ni.cluster_token
-		LEFT JOIN flux_info fi ON c.token = fi.cluster_token
-		LEFT JOIN git_commits gc ON c.token = gc.cluster_token
-		LEFT JOIN workspaces ws ON c.token = ws.cluster_token
+	SELECT *
+	FROM (
+		SELECT
+			c.id AS ID,
+			c.name AS Name,
+			c.token AS Token,
+			c.ingress_url AS IngressURL,
+			ci.type AS Type,
+			ni.name AS NodeName,
+			ci.updated_at AS UpdatedAt,
+			ni.is_control_plane AS IsControlPlane,
+			ni.kubelet_version AS KubeletVersion,
+			fi.name AS FluxName,
+			fi.namespace AS FluxNamespace,
+			fi.repo_url AS FluxRepoURL,
+			fi.repo_branch AS FluxRepoBranch,
+			fi.Syncs AS FluxLogInfo,
+			(select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') as CriticalAlertsCount,
+			(select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) AS AlertsCount,
+			gc.author_name AS GitCommitAuthorName,
+			gc.author_email AS GitCommitAuthorEmail,
+			gc.author_date AS GitCommitAuthorDate,
+			gc.message AS GitCommitMessage,
+			gc.sha AS GitCommitSha,
+			ws.name AS WorkspaceName,
+			ws.namespace AS WorkspaceNamespace,
+			CASE
+				WHEN %[1]s IS NULL OR 
+					%[1]s > 1800 THEN 'notConnected'
+				WHEN %[1]s BETWEEN 60 AND 1800 THEN 'lastSeen'
+				WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') > 0 THEN 'critical'
+				WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
+			ELSE 'ready'
+			END AS ClusterStatus
+		FROM
+			clusters c
+			LEFT JOIN cluster_info ci ON c.token = ci.cluster_token
+			LEFT JOIN node_info ni ON c.token = ni.cluster_token
+			LEFT JOIN flux_info fi ON c.token = fi.cluster_token
+			LEFT JOIN git_commits gc ON c.token = gc.cluster_token
+			LEFT JOIN workspaces ws ON c.token = ws.cluster_token
+	) T
 	WHERE
 		1 = 1
 `
@@ -132,7 +135,8 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 			return []ClusterView{}, err
 		}
 		queryString = fmt.Sprintf(queryString, postgresClusterInfoTimeDifference)
-		result, err := DB.Query(queryString + extraQuery)
+		log.Debugf("raw query: %s\n", queryString+extraQuery)
+		result, err := DB.Query(queryString+extraQuery, extraValues...)
 		if err != nil {
 			return []ClusterView{}, err
 		}
@@ -141,7 +145,7 @@ func getClusters(db *gorm.DB, extraQuery string, extraValues ...interface{}) ([]
 		}
 	} else {
 		queryString = fmt.Sprintf(queryString, sqliteClusterInfoTimeDifference)
-		if err := db.Raw(queryString + extraQuery).Scan(&rows).Error; err != nil {
+		if err := db.Raw(queryString+extraQuery, extraValues...).Scan(&rows).Error; err != nil {
 			return nil, ErrNilDB
 		}
 	}
@@ -279,7 +283,7 @@ func unpackClusterRow(c *ClusterView, r ClusterListRow) {
 }
 
 func getCluster(db *gorm.DB, id uint) (*ClusterView, error) {
-	clusters, err := getClusters(db, fmt.Sprintf(" AND c.id = %d", id))
+	clusters, err := getClusters(db, fmt.Sprintf(" AND ID = %d", id))
 	if err != nil {
 		return nil, err
 	}
@@ -324,8 +328,11 @@ func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Respon
 		sortColumn := "Name"
 		sortByParam, ok := r.URL.Query()["sortBy"]
 		if ok {
-			log.Debugf("sorting by column: %s\n", sortByParam)
-			sortColumn = sortByParam[0]
+			p := sortByParam[0]
+			log.Debugf("sorting by column: %s\n", p)
+			if p == "Name" || p == "ClusterStatus" || p == "Token" || p == "IngressURL" {
+				sortColumn = sortByParam[0]
+			}
 		}
 
 		// Read sort order from the url string if provided, otherwise sort desc
@@ -338,7 +345,20 @@ func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Respon
 			}
 		}
 
-		extraQuery = fmt.Sprintf(" ORDER BY %s %s", sortColumn, sortOrder)
+		extraQuery = fmt.Sprintf(`
+			ORDER BY %s %s, Name ASC
+		`, sortColumn, sortOrder)
+		if sortColumn == "ClusterStatus" {
+			extraQuery = fmt.Sprintf(`
+				ORDER BY CASE
+					WHEN ClusterStatus = 'critical' then 1
+					WHEN ClusterStatus = 'alerting' then 2
+					WHEN ClusterStatus = 'lastSeen' then 3
+					WHEN ClusterStatus = 'ready' then 4
+					ELSE 5
+				END
+				%s, Name ASC`, sortOrder)
+		}
 
 		clusters, err := getClusters(db, extraQuery)
 		if err != nil {

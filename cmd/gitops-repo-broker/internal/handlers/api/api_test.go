@@ -612,7 +612,7 @@ func TestListClustersSorting(t *testing.T) {
 					IngressURL: "http://googel",
 				},
 			},
-			sortQuery: "/clusters?sortBy=IngressURL,Name&order=ASC",
+			sortQuery: "/clusters?sortBy=IngressURL&order=ASC",
 			expectedResult: []api.ClusterView{
 				{
 					ID:       1,
@@ -669,25 +669,27 @@ func TestListClustersSorting(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if len(test.clusters) > 0 {
-			db.CreateInBatches(test.clusters, 100)
-		}
+		t.Run(test.sortQuery, func(t *testing.T) {
+			if len(test.clusters) > 0 {
+				db.CreateInBatches(test.clusters, 100)
+			}
 
-		// Test query without any parameters
-		response = executeGet(t, db, json.MarshalIndent, test.sortQuery)
-		assert.Equal(t, http.StatusOK, response.Code)
-		var res api.ClustersResponse
-		err = json.Unmarshal(response.Body.Bytes(), &res)
-		assert.NoError(t, err)
+			// Test query without any parameters
+			response = executeGet(t, db, json.MarshalIndent, test.sortQuery)
+			assert.Equal(t, http.StatusOK, response.Code)
+			var res api.ClustersResponse
+			err = json.Unmarshal(response.Body.Bytes(), &res)
+			assert.NoError(t, err)
 
-		// If the expected result is reused in a following test case, it'll now be reversed
-		if test.reversed {
-			reverseAny(test.expectedResult)
-		}
+			// If the expected result is reused in a following test case, it'll now be reversed
+			if test.reversed {
+				reverseAny(test.expectedResult)
+			}
 
-		assert.Equal(t, api.ClustersResponse{
-			Clusters: test.expectedResult,
-		}, res)
+			assert.Equal(t, api.ClustersResponse{
+				Clusters: test.expectedResult,
+			}, res)
+		})
 	}
 }
 
