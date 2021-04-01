@@ -375,7 +375,7 @@ func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int)
 	for retry := 0; retry < 90; retry++ {
 		c.checkProgress(retryInfo)
 		nodes := getAllReadyNodes(c.t, c.env)
-		log.Infof("Retry: %d, Expected: %d, Count: %d", retry, expectedNumberOfNodes, len(nodes))
+		log.Infof("Nodes => Retry: %d, Expected: %d, Count: %d", retry, expectedNumberOfNodes, len(nodes))
 		if len(nodes) == expectedNumberOfNodes {
 			log.Infof("Reached expected node count")
 			return
@@ -384,6 +384,22 @@ func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int)
 	}
 	assert.FailNowf(c.t, "Never reached expected node count", "Expected: %d, got: %d", expectedNumberOfNodes,
 		len(getAllNodeVersions(c.t, c.env)))
+}
+
+// checkNodeAtExpectedNumberOfReadyPods waits for the cluster to reach the requested number of nodes
+func (c *context) checkNodeAtExpectedNumberOfReadyPods(expectedNumberOfPods int, node string) {
+	retryInfo := &connectRetryInfo{0, 6}
+	for retry := 0; retry < 10; retry++ {
+		c.checkProgress(retryInfo)
+		pods := getAllReadyPodsFromNode(c.t, c.env, node)
+		log.Infof("Pods => Retry: %d, Expected: %d, Count: %d", retry, expectedNumberOfPods, len(pods))
+		if len(pods) >= expectedNumberOfPods {
+			log.Infof("Reached expected node count")
+			return
+		}
+		time.Sleep(30 * time.Second)
+	}
+	assert.FailNow(c.t, "Never reached expected pod count")
 }
 
 // isClusterRunning checks if all expected components are running
@@ -592,6 +608,52 @@ func getAllReadyNodes(t *testing.T, env []string) []string {
 		}
 	}
 	return result
+}
+
+func getAllReadyPodsFromNode(t *testing.T, env []string, node string) []string {
+	nodeSelector := fmt.Sprintf("spec.nodeName=%s", node)
+	cmdItems := []string{"kubectl", "get", "pods", "--all-namespaces", "--field-selector", nodeSelector, "-o",
+		`jsonpath={range .items[*]}{"\n"}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}`}
+
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	cmd.Env = env
+	cmdResults, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Infof("Failed to retrieve ready pods: %s from node: %s", cmdResults, node)
+		return nil
+	}
+	nodeStrings := strings.Split(string(cmdResults), "\n")
+	result := []string{}
+	for _, nstr := range nodeStrings {
+		// kube-proxy-nxnf8:Initialized=True;Ready=False;ContainersReady=False;PodScheduled=True;
+		if strings.Contains(nstr, "ContainersReady=True") {
+			result = append(result, nstr)
+		}
+	}
+	return result
+}
+
+func getNodeNameByPrivateIp(t *testing.T, env []string, privateIP string) string {
+	cmdItems := []string{"kubectl", "get", "nodes", "-o",
+		`jsonpath={range .items[*]}{"\n"}{@.metadata.name}:{range @.status.addresses[?(@.type=="InternalIP")]}{@.address}{end}{end}`}
+
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	cmd.Env = env
+	cmdResults, err := cmd.CombinedOutput()
+	if err != nil {
+		assert.FailNowf(t, "Failed to get node name by private", "ip=%s, err=%s", privateIP, err)
+	}
+	nodeStrings := strings.Split(string(cmdResults), "\n")
+	name := ""
+	for _, nstr := range nodeStrings {
+		// ip-10-18-12-226.ec2.internal:10.18.12.226
+		if strings.Contains(nstr, privateIP) {
+			parts := strings.Split(nstr, ":")
+			name = parts[0]
+			break
+		}
+	}
+	return name
 }
 
 func getFileInfo(t *testing.T, path string) *git.ObjectInfo {
