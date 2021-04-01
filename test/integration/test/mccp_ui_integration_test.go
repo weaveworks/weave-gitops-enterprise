@@ -43,6 +43,7 @@ var db *gorm.DB
 var dbURI string
 
 func resetDb(db *gorm.DB) {
+	// https://gorm.io/docs/delete.html#Block-Global-Delete
 	db.Where("1 = 1").Delete(&models.Cluster{})
 	db.Where("1 = 1").Delete(&models.Alert{})
 	db.Where("1 = 1").Delete(&models.ClusterInfo{})
@@ -102,39 +103,84 @@ func createCluster(db *gorm.DB, name, status string) {
 	}
 }
 
+func AssertTooltipContains(page *pages.ClustersPage, element *agouti.Selection, text string) {
+	Eventually(element).Should(BeFound())
+	Expect(element.MouseToElement()).Should(Succeed())
+	Eventually(page.Tooltip).Should(BeFound())
+	Eventually(page.Tooltip, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(MatchText(text))
+}
+
+var intWebDriver *agouti.Page
+
 var _ = Describe("Integration suite", func() {
 
-	var webDriver *agouti.Page
+	var page *pages.ClustersPage
 
 	BeforeEach(func() {
 		var err error
-		webDriver, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-			"chromeOptions": map[string][]string{
-				"args": {
-					"--disable-gpu",
-					"--no-sandbox",
-				}}}))
-		Expect(err).NotTo(HaveOccurred())
-		Expect(webDriver.Navigate(uiURL + "/clusters")).To(Succeed())
+		if intWebDriver == nil {
+			intWebDriver, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
+				"chromeOptions": map[string][]string{
+					"args": {
+						"--disable-gpu",
+						"--no-sandbox",
+					}}}))
+			Expect(err).NotTo(HaveOccurred())
+		}
+
+		// reload fresh page each time
+		Expect(intWebDriver.Navigate(uiURL + "/clusters")).To(Succeed())
+		page = pages.GetClustersPage(intWebDriver)
+		resetDb(db)
 	})
 
-	AfterEach(func() {
-		Expect(webDriver.Destroy()).To(Succeed())
-	})
-
-	Describe("Cluster page", func() {
-		BeforeEach(func() {
-			resetDb(db)
-			db.Create(&models.Cluster{Name: "ewq"})
+	Describe("Tooltips!", func() {
+		Describe("The column header tooltips", func() {
+			It("should show a tooltip containing 'name' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderName, "Name")
+			})
+			It("should show a tooltip containing 'version' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderNodeVersion, "version")
+			})
+			It("should show a tooltip containing 'status' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderStatus, "status")
+			})
+			It("should show a tooltip containing 'git' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderGitActivity, "git")
+			})
+			It("should show a tooltip containing 'workspaces' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderWorkspaces, "Workspaces")
+			})
 		})
-		Describe("How the page should look", func() {
-			It("should say Clusters in the title", func() {
-				Eventually(webDriver).Should(HaveTitle("WKP · Clusters"))
+
+		Describe("Cluster row tooltips", func() {
+			var cluster *pages.ClusterInformation
+
+			BeforeEach(func() {
+				name := "ewq"
+				createCluster(db, name, "Last seen")
+				db.Create(&models.NodeInfo{
+					ClusterToken:   name,
+					Name:           "cp-1",
+					IsControlPlane: true,
+					KubeletVersion: "v1.19",
+				})
+				db.Create(&models.Workspace{
+					ClusterToken: name,
+					Name:         "app-dev",
+					Namespace:    "wkp-workspaces",
+				})
+				cluster = pages.FindClusterInList(page, name)
 			})
 
-			It("should have a single cluster named ewq", func() {
-				Eventually(webDriver.All("table tbody tr")).Should(HaveCount(1))
-				Eventually(webDriver.First("table tbody tr td")).Should(HaveText("ewq"))
+			It("should show a tooltip containing with cp/version on mouse over", func() {
+				AssertTooltipContains(page, cluster.NodesVersions, "1 Control plane nodes v1.19")
+			})
+			It("should show a tooltip containing app-dev on mouse over", func() {
+				AssertTooltipContains(page, cluster.TeamWorkspaces, "app-dev")
+			})
+			It("should show a tooltip on status column cluster w/ last seen", func() {
+				AssertTooltipContains(page, cluster.Status, "Last seen")
 			})
 		})
 	})
@@ -142,7 +188,6 @@ var _ = Describe("Integration suite", func() {
 	Describe("Sorting clusters!", func() {
 		BeforeEach(func() {
 			// Create some stuff in the db
-			resetDb(db)
 			createCluster(db, "cluster-1-ready", "Ready")
 			createCluster(db, "cluster-2-critical", "Critical")
 			createCluster(db, "cluster-3-alerting", "Alerting")
@@ -152,12 +197,11 @@ var _ = Describe("Integration suite", func() {
 
 		Describe("How clicking on the headers should sort things", func() {
 			It("Should have some items in the table", func() {
-				clustersPage := pages.GetClustersPage(webDriver)
-				Eventually(clustersPage.ClustersList.All("tr")).Should(HaveCount(5))
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
 			})
 
 			It("Should sort the cluster by status initially", func() {
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
+				AssertClusterOrder(page, []string{
 					"cluster-2-critical",
 					"cluster-3-alerting",
 					"cluster-5-last-seen",
@@ -167,8 +211,8 @@ var _ = Describe("Integration suite", func() {
 			})
 
 			It("should reverse the order when I click on the status header", func() {
-				pages.GetClustersPage(webDriver).HeaderStatus.Click()
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
+				Expect(page.HeaderStatus.Click()).Should(Succeed())
+				AssertClusterOrder(page, []string{
 					"cluster-4-not-connected",
 					"cluster-1-ready",
 					"cluster-5-last-seen",
@@ -178,8 +222,8 @@ var _ = Describe("Integration suite", func() {
 			})
 
 			It("It should sort by name asc when you click on the name header", func() {
-				pages.GetClustersPage(webDriver).HeaderName.Click()
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
+				Expect(page.HeaderName.Click()).Should(Succeed())
+				AssertClusterOrder(page, []string{
 					"cluster-1-ready",
 					"cluster-2-critical",
 					"cluster-3-alerting",
@@ -189,16 +233,16 @@ var _ = Describe("Integration suite", func() {
 			})
 
 			It("It should sort by name desc when you click on the name header again", func() {
-				pages.GetClustersPage(webDriver).HeaderName.Click()
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
+				Expect(page.HeaderName.Click()).Should(Succeed())
+				AssertClusterOrder(page, []string{
 					"cluster-1-ready",
 					"cluster-2-critical",
 					"cluster-3-alerting",
 					"cluster-4-not-connected",
 					"cluster-5-last-seen",
 				})
-				pages.GetClustersPage(webDriver).HeaderName.Click()
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
+				Expect(page.HeaderName.Click()).Should(Succeed())
+				AssertClusterOrder(page, []string{
 					"cluster-5-last-seen",
 					"cluster-4-not-connected",
 					"cluster-3-alerting",
@@ -365,6 +409,9 @@ func TestMccpUI(t *testing.T) {
 			Expect(webDriver.Destroy()).To(Succeed())
 		}
 
+		if intWebDriver != nil {
+			Expect(intWebDriver.Destroy()).To(Succeed())
+		}
 		// Clean up ui-server and broker
 		cancel()
 		// Wait for the child goroutine to finish, which will only occur when

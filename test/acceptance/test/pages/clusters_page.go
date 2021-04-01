@@ -7,7 +7,7 @@ import (
 	"github.com/sclevine/agouti"
 )
 
-type clusterInformation struct {
+type ClusterInformation struct {
 	Name           *agouti.Selection
 	Icon           *agouti.Selection
 	Status         *agouti.Selection
@@ -41,16 +41,18 @@ type ClustersPage struct {
 	HeaderIcon           *agouti.Selection
 	HeaderStatus         *agouti.Selection
 	HeaderGitActivity    *agouti.Selection
+	HeaderWorkspaces     *agouti.Selection
 	HeaderNodeVersion    *agouti.Selection
 	NoClusterConfigured  *agouti.Selection
-	ClustersList         *agouti.MultiSelection
+	ClustersList         *agouti.Selection
+	Tooltip              *agouti.Selection
 	SupportEmailLink     *agouti.Selection
 }
 
 // FindClusterInList finds the cluster with given name
-func FindClusterInList(clustersPage *ClustersPage, clusterName string) *clusterInformation {
+func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterInformation {
 	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr[data-cluster-name="%s"]`, clusterName))
-	return &clusterInformation{
+	return &ClusterInformation{
 		Name:           cluster.FindByXPath(`td[1]`),
 		Icon:           cluster.FindByXPath(`td[2]`),
 		Status:         cluster.FindByXPath(`td[3]`),
@@ -99,8 +101,10 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderStatus:         webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
 		HeaderGitActivity:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
 		HeaderNodeVersion:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
+		HeaderWorkspaces:     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[6]/span`),
 		NoClusterConfigured:  webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
-		ClustersList:         webDriver.All(`#clusters-list > div > table > tbody`),
+		ClustersList:         webDriver.Find(`#clusters-list > div > table > tbody`),
+		Tooltip:              webDriver.Find(`div[role="tooltip"]`),
 		SupportEmailLink:     webDriver.FindByLink(`support@weave.works`)}
 
 	return &clustersPage
