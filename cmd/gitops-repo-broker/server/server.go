@@ -34,6 +34,7 @@ type ParamSet struct {
 	DbUser                       string
 	DbPassword                   string
 	DbType                       string
+	DbBusyTimeout                string
 }
 
 func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
@@ -42,8 +43,16 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 		return nil, err
 	}
 
+	uri := params.DbURI
+	if params.DbType == "sqlite" {
+		uri, err = utils.GetSqliteUri(params.DbURI, params.DbBusyTimeout)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	started := time.Now()
-	db, err := utils.Open(params.DbURI, params.DbType, params.DbName, params.DbUser, params.DbPassword)
+	db, err := utils.Open(uri, params.DbType, params.DbName, params.DbUser, params.DbPassword)
 	if err != nil {
 		return nil, err
 	}

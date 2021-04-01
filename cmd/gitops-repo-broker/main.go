@@ -52,6 +52,7 @@ func init() {
 	cmd.Flags().StringVar(&globalParams.DbName, "db-name", os.Getenv("DB_NAME"), "database name, applicable if type is postgres")
 	cmd.Flags().StringVar(&globalParams.DbUser, "db-user", os.Getenv("DB_USER"), "database user")
 	cmd.Flags().StringVar(&globalParams.DbPassword, "db-password", os.Getenv("DB_PASSWORD"), "database password")
+	cmd.Flags().StringVar(&globalParams.DbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 }
 
 func main() {
