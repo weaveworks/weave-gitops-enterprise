@@ -218,6 +218,25 @@ spec:
         files:
         - source:
             configmap: repo
+            key: google-cloud.repo
+            contents: |
+                [google-compute-engine]
+                name=Google Compute Engine
+                baseurl=https://packages.cloud.google.com/yum/repos/google-compute-engine-el7-x86_64-stable
+                enabled=1
+                gpgcheck=1
+                repo_gpgcheck=0
+                gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+                [google-cloud-sdk]
+                name=Google Cloud SDK
+                baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el7-x86_64
+                enabled=1
+                gpgcheck=1
+                repo_gpgcheck=0
+                gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+          destination: /etc/yum.repos.d/google-cloud.repo
+        - source:
+            configmap: repo
             key: kubernetes.repo
             contents: |
                 [kubernetes]
@@ -225,7 +244,7 @@ spec:
                 baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
                 enabled=1
                 gpgcheck=1
-                repo_gpgcheck=1
+                repo_gpgcheck=0
                 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
                 exclude=kube*
           destination: /etc/yum.repos.d/kubernetes.repo
