@@ -110,6 +110,25 @@ func AssertTooltipContains(page *pages.ClustersPage, element *agouti.Selection, 
 	Eventually(page.Tooltip, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(MatchText(text))
 }
 
+func createNodeInfo(db *gorm.DB, clusterName, name, version string, isControlPlane bool) {
+	var cluster models.Cluster
+	var clusterInfo models.ClusterInfo
+	db.Where("Name = ?", clusterName).First(&cluster)
+	db.Where("cluster_token = ?", cluster.Token).First(&clusterInfo)
+
+	db.Create(&models.NodeInfo{
+		ClusterToken:   cluster.Token,
+		Name:           name,
+		IsControlPlane: isControlPlane,
+		KubeletVersion: version,
+	})
+}
+
+func AssertRowCellContains(element *agouti.Selection, text string) {
+	Eventually(element).Should(BeFound())
+	Eventually(element, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText(text))
+}
+
 var intWebDriver *agouti.Page
 
 var _ = Describe("Integration suite", func() {
@@ -249,6 +268,74 @@ var _ = Describe("Integration suite", func() {
 					"cluster-2-critical",
 					"cluster-1-ready",
 				})
+			})
+		})
+	})
+
+	Describe("Version(Nodes)", func() {
+		BeforeEach(func() {
+			// Similar control planes, different worker nodes
+			createCluster(db, "cluster-1", "Last seen")
+			createNodeInfo(db, "cluster-1", "cp-1", "v1.19.7", true)
+			createNodeInfo(db, "cluster-1", "cp-2", "v1.19.7", true)
+			createNodeInfo(db, "cluster-1", "worker-1", "v1.19.4", false)
+			createNodeInfo(db, "cluster-1", "worker-2", "v1.19.4", false)
+
+			// Different control planes and similar worker nodes
+			createCluster(db, "cluster-2", "Last seen")
+			createNodeInfo(db, "cluster-2", "cp-1", "v1.19.7", true)
+			createNodeInfo(db, "cluster-2", "cp-2", "v1.19.4", true)
+			createNodeInfo(db, "cluster-2", "worker-1", "v1.19.4", false)
+			createNodeInfo(db, "cluster-2", "worker-2", "v1.19.4", false)
+
+			// Similar control planes and worker nodes
+			createCluster(db, "cluster-3", "Last seen")
+			createNodeInfo(db, "cluster-3", "cp-1", "v1.19.7", true)
+			createNodeInfo(db, "cluster-3", "worker-1", "v1.19.7", false)
+			createNodeInfo(db, "cluster-3", "worker-2", "v1.19.7", false)
+
+			// Similar worker nodes
+			createCluster(db, "cluster-4", "Last seen")
+			createNodeInfo(db, "cluster-4", "worker-1", "v1.19.7", false)
+			createNodeInfo(db, "cluster-4", "worker-2", "v1.19.7", false)
+
+			// Different worker nodes
+			createCluster(db, "cluster-5", "Last seen")
+			createNodeInfo(db, "cluster-5", "worker-1", "v1.19.7", false)
+			createNodeInfo(db, "cluster-5", "worker-2", "v1.19.7", false)
+			createNodeInfo(db, "cluster-5", "worker-3", "v1.19.4", false)
+		})
+
+		Describe("The column header", func() {
+			It("should have Version ( Nodes ) text", func() {
+				Eventually(page.HeaderNodeVersion).Should(HaveText("Version ( Nodes )"))
+			})
+		})
+
+		Describe("The variations of versions", func() {
+			It("should verify similar control planes and different worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-1")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2CP )v1.19.4 ( 2 )")
+			})
+
+			It("should verify Different control planes and similar worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-2")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 1CP )v1.19.4 ( 1CP | 2 )")
+			})
+
+			It("should verify similar control planes and similar worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-3")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 1CP | 2 )")
+			})
+
+			It("should verify similar worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-4")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2 )")
+			})
+
+			It("should verify different worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-5")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2 )v1.19.4 ( 1 )")
 			})
 		})
 	})
