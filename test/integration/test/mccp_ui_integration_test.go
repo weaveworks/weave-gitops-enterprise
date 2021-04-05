@@ -129,6 +129,23 @@ func AssertRowCellContains(element *agouti.Selection, text string) {
 	Eventually(element, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText(text))
 }
 
+func createFluxInfo(db *gorm.DB, clusterName, name, namespace, repoURL, repoBranch string) {
+	image := "docker.io/fluxcd/flux:v0.8.1"
+
+	var cluster models.Cluster
+	db.Where("Name = ?", clusterName).First(&cluster)
+
+	db.Create(&models.FluxInfo{
+		ClusterToken: cluster.Token,
+		Name:         name,
+		Namespace:    namespace,
+		Args:         "",
+		Image:        image,
+		RepoURL:      repoURL,
+		RepoBranch:   repoBranch,
+	})
+}
+
 var intWebDriver *agouti.Page
 
 var _ = Describe("Integration suite", func() {
@@ -337,6 +354,42 @@ var _ = Describe("Integration suite", func() {
 				cluster := pages.FindClusterInList(page, "cluster-5")
 				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2 )v1.19.4 ( 1 )")
 			})
+		})
+	})
+
+	Describe("View git repo", func() {
+
+		BeforeEach(func() {
+			// No flux instance installed
+			createCluster(db, "no-flux-cluster", "Last seen")
+
+			// One flux instance installed
+			createCluster(db, "one-flux-cluster", "Last seen")
+			createFluxInfo(db, "one-flux-cluster", "flux-1", "default", "git@github.com:weaveworks/fluxes-1.git", "master")
+
+			// More than one flux instance installed
+			createCluster(db, "two-flux-cluster", "Last seen")
+			createFluxInfo(db, "two-flux-cluster", "flux-3", "wkp-flux", "git@github.com:weaveworks/fluxes-2.git", "main")
+			createFluxInfo(db, "two-flux-cluster", "flux-4", "kube-system", "git@github.com:weaveworks/fluxes-3.git", "dev")
+		})
+
+		It("should show no button when no flux instance is installed", func() {
+			cluster := pages.FindClusterInList(page, "no-flux-cluster")
+			Eventually(cluster.GitRepoURL).Should(BeFound())
+			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText("Repo not available"))
+		})
+
+		It("should show enabled button when one flux instance is installed", func() {
+			cluster := pages.FindClusterInList(page, "one-flux-cluster")
+			Eventually(cluster.GitRepoURL).Should(BeFound())
+			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(BeEnabled())
+			Eventually(cluster.GitRepoURL.Find("a"), acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(BeFound())
+		})
+
+		It("should show disabled button when more than one flux instance is installed", func() {
+			cluster := pages.FindClusterInList(page, "two-flux-cluster")
+			Eventually(cluster.GitRepoURL).Should(BeFound())
+			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText("Repo not available"))
 		})
 	})
 })
