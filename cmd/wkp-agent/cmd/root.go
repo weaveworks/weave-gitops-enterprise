@@ -16,6 +16,7 @@ var (
 	Subject        string
 	KubeconfigFile string
 	LogLevel       int
+	SendEvents     bool
 )
 
 const (
@@ -41,6 +42,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&Subject, "subject", "weave.wkp.agent.events", "NATS subject to send Kubernetes events to")
 	rootCmd.PersistentFlags().StringVar(&KubeconfigFile, "kubeconfig", "", "absolute path to the kubeconfig file")
 	rootCmd.PersistentFlags().IntVar(&LogLevel, "log-level", 4, "logging level (0-6)")
+	rootCmd.PersistentFlags().BoolVar(&SendEvents, "send-events", false, "enable/disable sending events (default: false)")
 	_ = rootCmd.ParseFlags(os.Args)
 }
 

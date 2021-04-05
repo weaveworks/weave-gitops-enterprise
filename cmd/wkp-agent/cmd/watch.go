@@ -81,10 +81,12 @@ func run(cmd *cobra.Command, args []string) {
 
 	log.Info("Agent starting watchers.")
 
-	// Watch for Events
-	notifier := handlers.NewEventNotifier(token, WKPAgentEventSource, client)
-	events := clusterwatcher.NewWatcher(factory.Core().V1().Events().Informer(), notifier.Notify)
-	go events.Run("Events", 1, ctx.Done())
+	if SendEvents {
+		// Watch for Events
+		notifier := handlers.NewEventNotifier(token, WKPAgentEventSource, client)
+		events := clusterwatcher.NewWatcher(factory.Core().V1().Events().Informer(), notifier.Notify)
+		go events.Run("Events", 1, ctx.Done())
+	}
 
 	// Poll for ClusterInfo
 	clusterInfoSender := handlers.NewClusterInfoSender(WKPAgentEventSource, client)
