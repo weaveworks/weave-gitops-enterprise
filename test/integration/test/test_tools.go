@@ -789,6 +789,17 @@ func (c *context) runCommandPassThrough(name string, arg ...string) error {
 	return cmd.Run()
 }
 
+// Run kubectl to print all events to stdout, and carry on running in background
+func (c *context) showAllEvents() {
+	go func() {
+		for {
+			err := c.runCommandPassThrough("kubectl", "get", "events", "--all-namespaces", "--watch-only")
+			fmt.Fprintf(os.Stderr, "kubectl get events exited: %v\n", err)
+			time.Sleep(time.Second) // don't restart too quickly
+		}
+	}()
+}
+
 // findTeamAccess returns team access permission to a specific repo
 func (c *context) findTeamAccess(orgName, repoName, teamName string) (gitprovider.TeamAccess, error) {
 	ggpClient, err := ggp.CreateGithubClient()
