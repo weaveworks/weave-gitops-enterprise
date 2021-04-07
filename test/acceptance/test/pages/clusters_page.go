@@ -18,7 +18,7 @@ type ClusterInformation struct {
 	EditCluster    *agouti.Selection
 }
 
-type alertInformation struct {
+type AlertInformation struct {
 	Severity    *agouti.Selection
 	Message     *agouti.Selection
 	ClusterName *agouti.Selection
@@ -64,23 +64,30 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 	}
 }
 
-func FindAlertInFiringAlertsWidget(clustersPage *ClustersPage, alertName string) *alertInformation {
+func FindAlertInFiringAlertsWidget(clustersPage *ClustersPage, alertName string) *AlertInformation {
+	for _, a := range AlertsFiringInAlertsWidget(clustersPage) {
+		text, _ := a.Message.Text()
+		if strings.Contains(text, alertName) {
+			return a
+		}
+	}
+	return nil
+}
+
+func AlertsFiringInAlertsWidget(clustersPage *ClustersPage) []*AlertInformation {
+	alertInfos := []*AlertInformation{}
 	count, _ := clustersPage.FiringAlerts.Count()
 	for i := 0; i < count; i++ {
 		alert := clustersPage.FiringAlerts.At(i)
-		message, _ := alert.FindByXPath(`td[2]`).Text()
-
-		if strings.Contains(message, alertName) {
-			return &alertInformation{
-				Severity:    alert.FindByXPath(`td[1]`),
-				Message:     alert.FindByXPath(`td[2]`),
-				ClusterName: alert.FindByXPath(`td[3]`),
-				TimeStamp:   alert.FindByXPath(`td[4]`)}
-		}
+		alertInfos = append(alertInfos, &AlertInformation{
+			Severity:    alert.FindByXPath(`td[1]`),
+			Message:     alert.FindByXPath(`td[2]`),
+			ClusterName: alert.FindByXPath(`td[3]`),
+			TimeStamp:   alert.FindByXPath(`td[4]`),
+		})
 
 	}
-
-	return nil
+	return alertInfos
 }
 
 //GetClustersPage initialises the webDriver object

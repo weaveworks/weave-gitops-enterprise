@@ -49,16 +49,15 @@ func resetDb(db *gorm.DB) {
 	db.Where("1 = 1").Delete(&models.ClusterInfo{})
 }
 
-func createAlert(db *gorm.DB, token, name, severity, message string, fireFor time.Duration) {
+func createAlert(db *gorm.DB, token, name, severity, message string, fireFor time.Duration, startsAt time.Time) {
 	labels := fmt.Sprintf(`{ "alertname": "%s", "severity": "%s" }`, name, severity)
 	annotations := fmt.Sprintf(`{ "message": "%s" }`, message)
 	db.Create(&models.Alert{
 		ClusterToken: token,
-		UpdatedAt:    time.Now().UTC(),
 		Labels:       datatypes.JSON(labels),
 		Annotations:  datatypes.JSON(annotations),
 		Severity:     severity,
-		StartsAt:     time.Now().UTC().Add(fireFor * -1),
+		StartsAt:     startsAt,
 		EndsAt:       time.Now().UTC().Add(fireFor),
 	})
 }
@@ -67,6 +66,20 @@ func AssertClusterOrder(clustersPage *pages.ClustersPage, clusterNames []string)
 	for i, v := range clusterNames {
 		Eventually(clustersPage.ClustersList.Find(fmt.Sprintf("tr:nth-child(%d) td:nth-child(1)", i+1))).Should(MatchText(v))
 	}
+}
+
+func AssertAlertsOrder(clustersPage *pages.ClustersPage, alertNames []string) {
+	getAlertNames := func() []string {
+		names := []string{}
+		for _, a := range pages.AlertsFiringInAlertsWidget(clustersPage) {
+			name, _ := a.Message.Text()
+			names = append(names, name)
+		}
+		return names
+	}
+
+	Eventually(getAlertNames, acceptancetest.ASSERTION_10SECONDS_TIME_OUT).Should(Equal(alertNames))
+	Consistently(getAlertNames, acceptancetest.ASSERTION_10SECONDS_TIME_OUT).Should(Equal(alertNames))
 }
 
 func createCluster(db *gorm.DB, name, status string) {
@@ -92,14 +105,14 @@ func createCluster(db *gorm.DB, name, status string) {
 			ClusterToken: name,
 			UpdatedAt:    time.Now().UTC(),
 		})
-		createAlert(db, name, "ExampleAlert", "warning", "oh no", time.Second*30)
+		createAlert(db, name, "ExampleAlert", "warning", "oh no", time.Second*30, time.Now().UTC())
 	} else if status == "Critical" {
 		db.Create(&models.ClusterInfo{
 			UID:          types.UID(name),
 			ClusterToken: name,
 			UpdatedAt:    time.Now().UTC(),
 		})
-		createAlert(db, name, "ExampleAlert", "critical", "oh no", time.Second*30)
+		createAlert(db, name, "ExampleAlert", "critical", "oh no", time.Second*30, time.Now().UTC())
 	}
 }
 
@@ -390,6 +403,29 @@ var _ = Describe("Integration suite", func() {
 			cluster := pages.FindClusterInList(page, "two-flux-cluster")
 			Eventually(cluster.GitRepoURL).Should(BeFound())
 			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText("Repo not available"))
+		})
+	})
+
+	Describe("The alerts widget!", func() {
+		clusterName := "my-cluster"
+
+		createRecentAlert := func(name, severity string, ago time.Duration) {
+			createAlert(db, clusterName, name, severity, "", time.Second*30, time.Now().UTC().Add(ago*-1))
+		}
+
+		BeforeEach(func() {
+			createCluster(db, clusterName, "Ready")
+			createRecentAlert("alert1", "critical", time.Hour*2)
+			createRecentAlert("alert2", "warning", time.Hour*1)
+			createRecentAlert("alert3", "warning", time.Hour*3)
+		})
+
+		It("should sort the alerts by starts at", func() {
+			AssertAlertsOrder(page, []string{
+				"alert2",
+				"alert1",
+				"alert3",
+			})
 		})
 	})
 })

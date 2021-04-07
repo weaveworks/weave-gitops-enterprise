@@ -46,6 +46,7 @@ const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
 const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "wkp_junit.xml"
 
 const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second
+const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
 const ASSERTION_1SECOND_TIME_OUT time.Duration = 1 * time.Second
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
 const ASSERTION_5MINUTES_TIME_OUT time.Duration = 5 * time.Minute

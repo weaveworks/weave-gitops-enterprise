@@ -542,7 +542,7 @@ func ListAlerts(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Response
 				a.cluster_token = c.token and
 				a.severity != 'none' and a.severity is not null
 			ORDER BY
-				a.updated_at DESC
+				a.starts_at DESC
 			`).Scan(&rows).Error; err != nil {
 				return err
 			}
