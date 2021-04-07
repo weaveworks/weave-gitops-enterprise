@@ -600,7 +600,11 @@ jobs:
           NUM_WORKERS: 2
           USE_LB: false
           SKIP_COMPONENTS: false
-          UPGRADE_VERSIONS: '1.19.3'
+          MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
+          # Uses a pre existing GCE cluster
+          # Its cluster repo is at https://github.com/wkp-example-org/mccp-acceptance-tests-gce
+          # If the env var below is set, the test will connect the gce cluster to mccp
+          CONNECT_GCE_LEAF_TEST: 'true' 
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -642,7 +646,29 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
 
+            # decode kubeconfig and store at path set in MCCP_GCE_LEAF_KUBECONFIG
+            echo $WKP_ACCEPTANCE_GCE_KUBECONFIG
+            echo $WKP_ACCEPTANCE_GCE_KUBECONFIG | base64 -d > $MCCP_GCE_LEAF_KUBECONFIG
+
             go test -v -run TestClusterCreation --timeout=99999s
+
+            # Update the natsURL in components.js to the node's public IP for the agent in the
+            # GCE cluster to be able to connect
+            cd /tmp/cluster_dir
+            WORKER_NODE_EXTERNAL_IP=$(grep "publicAddress" setup/config.yaml | tail -n 1 | xargs | cut -f 2 -d ' ')
+            echo "found worker node ip in config.yaml ${WORKER_NODE_EXTERNAL_IP}"
+            NATS_NODEPORT=$(kubectl get service -n wkp-gitops-repo-broker nats-client -ojsonpath='{.spec.ports[0].nodePort}')
+            echo "found node port for nats-client service ${NATS_NODEPORT}"
+            sed -i "s/\"natsURL\":.*/\"natsURL\": \"$WORKER_NODE_EXTERNAL_IP:$NATS_NODEPORT\",/" cluster/platform/components.js
+
+            git diff
+            git add cluster/platform/components.js
+            git commit -m"Update nats url in components.js"
+            git push
+            cd -
+
+            kubectl get pods -A
+
             # Wait for cluster to settle
             sleep 60
             export SELENIUM_DEBUG=true

@@ -91,9 +91,9 @@ func TakeNextScreenshot() {
 type MCCPTestRunner interface {
 	ResetDatabase() error
 	FireAlert(name, severity, message string, fireFor time.Duration) error
-	KubectlApply(tokenURL string) error
-	KubectlDelete(tokenURL string) error
-	KubectlDeleteAllAgents() error
+	KubectlApply(env []string, tokenURL string) error
+	KubectlDelete(env []string, tokenURL string) error
+	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
 	AddWorkspace(clusterName string) error
@@ -121,7 +121,7 @@ func (b DatabaseMCCPTestRunner) ResetDatabase() error {
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) KubectlApply(tokenURL string) error {
+func (b DatabaseMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
 	bits := strings.Split(tokenURL, "=")
 	token := bits[len(bits)-1]
 	b.DB.Create(&models.ClusterInfo{
@@ -147,7 +147,7 @@ func (b DatabaseMCCPTestRunner) KubectlApply(tokenURL string) error {
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) KubectlDelete(tokenURL string) error {
+func (b DatabaseMCCPTestRunner) KubectlDelete(env []string, tokenURL string) error {
 	//
 	// No more cluster_infos will be created anyway..
 	// FIXME: maybe we add a polling loop that keeps creating cluster_info while its connected
@@ -155,7 +155,7 @@ func (b DatabaseMCCPTestRunner) KubectlDelete(tokenURL string) error {
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) KubectlDeleteAllAgents() error {
+func (b DatabaseMCCPTestRunner) KubectlDeleteAllAgents(env []string) error {
 	// No more cluster_infos will be created anyway..
 	return nil
 }
@@ -214,19 +214,19 @@ func (b RealMCCPTestRunner) TimeTravelToAlertsResolved() error {
 }
 
 func (b RealMCCPTestRunner) ResetDatabase() error {
-	return runCommandPassThrough("../../utils/scripts/mccp-setup-helpers.sh", "reset")
+	return runCommandPassThrough([]string{}, "../../utils/scripts/mccp-setup-helpers.sh", "reset")
 }
 
-func (b RealMCCPTestRunner) KubectlApply(tokenURL string) error {
-	return runCommandPassThrough("kubectl", "apply", "-f", tokenURL)
+func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
+	return runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
 }
 
-func (b RealMCCPTestRunner) KubectlDelete(tokenURL string) error {
-	return runCommandPassThrough("kubectl", "delete", "-f", tokenURL)
+func (b RealMCCPTestRunner) KubectlDelete(env []string, tokenURL string) error {
+	return runCommandPassThrough(env, "kubectl", "delete", "-f", tokenURL)
 }
 
-func (b RealMCCPTestRunner) KubectlDeleteAllAgents() error {
-	return runCommandPassThrough("kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
+func (b RealMCCPTestRunner) KubectlDeleteAllAgents(env []string) error {
+	return runCommandPassThrough(env, "kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
 }
 
 func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
@@ -291,13 +291,24 @@ func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor ti
 }
 
 func (b RealMCCPTestRunner) AddWorkspace(clusterName string) error {
-	return runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
+	return runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
-func runCommandPassThrough(name string, arg ...string) error {
+func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
+	if len(env) > 0 {
+		cmd.Env = env
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+func getEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+	return value
 }

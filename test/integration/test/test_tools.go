@@ -175,9 +175,10 @@ func (c *context) checkResourceRunning(component Component) bool {
 // test tasks. Methods on the context object can be used to implement integration tests and manage
 // temporary directories, git repositories, and clusters.
 func getContext(t *testing.T) *context {
-	tmpDir, err := ioutil.TempDir("", "tmp_dir")
+	tmpDirPath := "/tmp/cluster_dir"
+	err := os.Mkdir(tmpDirPath, 0755)
 	require.NoError(t, err)
-	return getContextFrom(t, tmpDir)
+	return getContextFrom(t, tmpDirPath)
 }
 
 func getContextFrom(t *testing.T, tmpDir string) *context {
