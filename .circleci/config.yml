@@ -106,7 +106,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - release-2.5
     jobs:
       - build
       - third-party-dependencies-check:
@@ -128,7 +128,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - release-2.5
     jobs:
       - build
       - conformance-tests-sonobuoy:
