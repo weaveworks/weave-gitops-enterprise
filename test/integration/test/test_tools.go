@@ -109,6 +109,8 @@ var allComponents = func(track string) []Component {
 	return components
 }
 
+var tmpDirPath = "/tmp/cluster_dir"
+
 func (c *context) checkComponentRunning(component Component) bool {
 	found := false
 	for retry := 0; retry < defaultRetries; retry++ {
@@ -175,7 +177,6 @@ func (c *context) checkResourceRunning(component Component) bool {
 // test tasks. Methods on the context object can be used to implement integration tests and manage
 // temporary directories, git repositories, and clusters.
 func getContext(t *testing.T) *context {
-	tmpDirPath := "/tmp/cluster_dir"
 	err := os.Mkdir(tmpDirPath, 0755)
 	require.NoError(t, err)
 	return getContextFrom(t, tmpDirPath)
