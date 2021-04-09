@@ -282,9 +282,21 @@ eksConfig:
   kubernetesVersion: "1.16"
 `
 
-const invalidK8sVersion = `
+const invalidK8sVersion1 = `
 eksConfig:
   kubernetesVersion: "1.15"
+  clusterRegion: "eu-north-1"
+`
+
+const invalidK8sVersion2 = `
+eksConfig:
+  kubernetesVersion: "1.20"
+  clusterRegion: "eu-north-1"
+`
+
+const latestK8sVersion = `
+eksConfig:
+  kubernetesVersion: "1.19"
   clusterRegion: "eu-north-1"
 `
 
@@ -315,7 +327,9 @@ func TestRequiredEKSValues(t *testing.T) {
 		{invalidNodeGroup, "A node group must have a capacity of at least 1"},
 		{missingK8sVersion, "A Kubernetes version must be specified"},
 		{missingClusterRegion, "clusterRegion must be specified"},
-		{invalidK8sVersion, `Kubernetes version must be one of: "1.16", "1.17" or "1.18"`},
+		{invalidK8sVersion1, `Kubernetes version must be one of: "1.16", "1.17", "1.18" or "1.19"`},
+		{invalidK8sVersion2, `Kubernetes version must be one of: "1.16", "1.17", "1.18" or "1.19"`},
+		{latestK8sVersion, "<nil>"},
 		{invalidManagedNodeGroupFile, `no file found at path: "628wanda496" for field: "managedNodeGroupFile"`},
 		{validEksctlConfigFilePath, "<nil>"},
 		{invalidEksctlConfigFilePath, "could not find eksctl config file at path: ./testdata/doesnt-exist-eksctl-config.yaml"},
