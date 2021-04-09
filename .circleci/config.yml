@@ -601,10 +601,15 @@ jobs:
           USE_LB: false
           SKIP_COMPONENTS: false
           MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
+          MCCP_EKS_LEAF_KUBECONFIG: '/tmp/mccp-eks-leaf-kubeconfig'
           # Uses a pre existing GCE cluster
           # Its cluster repo is at https://github.com/wkp-example-org/mccp-acceptance-tests-gce
           # If the env var below is set, the test will connect the gce cluster to mccp
-          CONNECT_GCE_LEAF_TEST: 'true' 
+          CONNECT_GCE_LEAF_TEST: 'true'
+          # Uses a pre existing EKS cluster
+          # This is not a WKP cluster.
+          # If the env var below is set, the test will connect the eks cluster to mccp
+          CONNECT_EKS_LEAF_TEST: 'true'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -634,6 +639,13 @@ jobs:
             export CLEANUP_REPO=false
             cd test/integration/test
 
+            # install iam-auth
+            curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/aws-iam-authenticator
+            chmod +x ./aws-iam-authenticator
+            sudo mv ./aws-iam-authenticator /usr/local/bin
+            export AWS_ACCESS_KEY_ID=$WKP_EKS_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$WKP_EKS_AWS_SECRET_ACCESS_KEY
+
             lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
             export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
             export USE_IMAGE=0
@@ -646,9 +658,13 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
 
-            # decode kubeconfig and store at path set in MCCP_GCE_LEAF_KUBECONFIG
+            # decode GCE kubeconfig and store at path set in MCCP_GCE_LEAF_KUBECONFIG
             echo $WKP_ACCEPTANCE_GCE_KUBECONFIG
             echo $WKP_ACCEPTANCE_GCE_KUBECONFIG | base64 -d > $MCCP_GCE_LEAF_KUBECONFIG
+
+            # decode EKS kubeconfig and store at path set in MCCP_EKS_LEAF_KUBECONFIG
+            echo $WKP_ACCEPTANCE_EKS_KUBECONFIG
+            echo $WKP_ACCEPTANCE_EKS_KUBECONFIG | base64 -d > $MCCP_EKS_LEAF_KUBECONFIG
 
             go test -v -run TestClusterCreation --timeout=99999s
 
