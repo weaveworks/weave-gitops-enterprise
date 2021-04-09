@@ -110,7 +110,7 @@ godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFi
 
 DEPS=$(call godeps,./cmd/wk)
 
-GENERATED = pkg/guide/assets_vfsdata.go pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
+GENERATED = pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
 
 # .uptodate files are for Docker builds, which should happen outside of the container
 cmd/wks-ci/checks/policy/.uptodate: cmd/policy/policy
@@ -150,8 +150,6 @@ user-guide/public: $(USER_GUIDE_SOURCES)
 # # Generate the third-party deps page for the user-guide if any of the deps have changed
 # user-guide/content/deps/_index.md: $(SCA_DEPS)
 #	bin/sca-generate-deps.sh
-
-pkg/guide/assets_vfsdata.go: user-guide/public
 
 POLICIES=$(shell find pkg/opa/policy/rego -name '*.rego' -print)
 pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
@@ -211,9 +209,6 @@ else # not BUILD_IN_CONTAINER
 
 user-guide/public:
 	cd user-guide && ./make-static.sh $(VERSION)
-
-pkg/guide/assets_vfsdata.go:
-	go generate ./pkg/guide
 
 pkg/opa/policy/policy_vfsdata.go:
 	go generate ./pkg/opa/policy
