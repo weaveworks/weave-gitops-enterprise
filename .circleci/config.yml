@@ -131,7 +131,9 @@ workflows:
                 - release-2.5
     jobs:
       - build
-      - conformance-tests-sonobuoy:
+      - conformance-tests-sonobuoy-p1:
+          <<: *nightlyTestConfig
+      - conformance-tests-sonobuoy-p2:
           <<: *nightlyTestConfig
       - vulnerability-detection:
           <<: *nightlyTestConfig
@@ -1092,7 +1094,7 @@ jobs:
       - store_test_results:
           path: /tmp/workspace
 
-  conformance-tests-sonobuoy:
+  conformance-tests-sonobuoy-p1:
     <<: *creation-ssh-gcp-centos
     docker:
       - image: quay.io/wks/build:master-134af34f
@@ -1111,23 +1113,10 @@ jobs:
       - run:
           name: Install sonobuoy
           command: |
-            wget https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.19.0/sonobuoy_0.19.0_linux_amd64.tar.gz
-            tar -xvzf sonobuoy_0.19.0_linux_amd64.tar.gz
+            wget https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.50.0/sonobuoy_0.50.0_linux_amd64.tar.gz
+            tar -xvzf sonobuoy_0.50.0_linux_amd64.tar.gz
             chmod +x sonobuoy
             mv ./sonobuoy /usr/local/bin/sonobuoy
-      - run-sonobuoy-tests:
-          version: '1.17.13'
-      - run:
-          # Ensures that the GCP resources are deleted even if the previous step fails
-          name: Destroy GCP resources
-          command: |
-            cd test/integration/test
-            ../bin/internal/run-integration-tests.sh destroy
-
-            # delete the github repository if it's hanging
-            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-            hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
-          when: on_fail
       - run-sonobuoy-tests:
           version: '1.18.16'
       - run:
@@ -1141,6 +1130,50 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
           when: on_fail
+      - run-sonobuoy-tests:
+          version: '1.19.8'
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy GCP resources
+          command: |
+            cd test/integration/test
+            ../bin/internal/run-integration-tests.sh destroy
+
+            # delete the github repository if it's hanging
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+          when: on_fail
+          # Store sonobuoy results as artifact
+      - store_test_results:
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-part-1
+      - store_artifacts:
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.18.16.tar.gz
+      - store_artifacts:
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.19.8.tar.gz
+
+  conformance-tests-sonobuoy-p2:
+    <<: *creation-ssh-gcp-centos
+    docker:
+      - image: quay.io/wks/build:master-134af34f
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: centos-cloud/centos-7
+          USE_LB: false
+          NUM_MASTERS: 3
+          NUM_WORKERS: 2
+          SKIP_COMPONENTS: true
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          <<: *setup-base-gce-config-yaml
+      - run:
+          name: Install sonobuoy
+          command: |
+            wget https://github.com/vmware-tanzu/sonobuoy/releases/download/v0.50.0/sonobuoy_0.50.0_linux_amd64.tar.gz
+            tar -xvzf sonobuoy_0.50.0_linux_amd64.tar.gz
+            chmod +x sonobuoy
+            mv ./sonobuoy /usr/local/bin/sonobuoy
       - run-sonobuoy-tests:
           version: '1.20.2'
       - run:
@@ -1156,11 +1189,7 @@ jobs:
           when: on_fail
           # Store sonobuoy results as artifact
       - store_test_results:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results
-      - store_artifacts:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.18.16.tar.gz
-      - store_artifacts:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.19.8.tar.gz
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-part-2
       - store_artifacts:
           path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.20.2.tar.gz
 
