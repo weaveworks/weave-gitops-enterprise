@@ -218,6 +218,31 @@ func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 	return row
 }
 
+func alertListRowScan(sqlResult *sql.Rows) AlertsClusterRow {
+	var row AlertsClusterRow
+	cols, _ := sqlResult.Columns()
+	log.Debugf("sqlResult: %+v\n", cols)
+	err := sqlResult.Scan(
+		&row.ID,
+		&row.Annotations,
+		&row.EndsAt,
+		&row.Fingerprint,
+		&row.InhibitedBy,
+		&row.SilencedBy,
+		&row.Severity,
+		&row.State,
+		&row.StartsAt,
+		&row.UpdatedAt,
+		&row.Labels,
+		&row.ClusterID,
+		&row.ClusterName,
+		&row.ClusterIngressURL)
+	if err != nil {
+		log.Debug("error while scanning sql row: ", err)
+	}
+	return row
+}
+
 func unpackClusterRow(c *ClusterView, r ClusterListRow) {
 	// Do not add nodes if they don't exist yet
 	if r.NodeName.Valid && !nodeExists(*c, NodeView{
@@ -510,50 +535,64 @@ func UpdateCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unmars
 }
 
 func ListAlerts(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.ResponseWriter, r *http.Request) {
+	alertsQuery := `
+		SELECT
+			a.id,
+			a.annotations,
+			a.ends_at,
+			a.fingerprint,
+			a.inhibited_by,
+			a.silenced_by,
+			a.severity,
+			a.state,
+			a.starts_at,
+			a.updated_at,
+			a.labels,
+			c.id as ClusterID,
+			c.name as ClusterName,
+			c.ingress_url as ClusterIngressURL
+		FROM
+			alerts a,
+			clusters c
+		WHERE
+			a.cluster_token = c.token and
+			a.severity != 'none' and a.severity is not null
+		ORDER BY
+			a.starts_at DESC
+		`
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if db == nil {
 			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
 			return
 		}
-
 		var rows []AlertsClusterRow
-		err := db.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Raw(`
-			SELECT
-				a.id,
-				a.annotations,
-				a.ends_at,
-				a.fingerprint,
-				a.inhibited_by,
-				a.silenced_by,
-				a.severity,
-				a.state,
-				a.starts_at,
-				a.updated_at,
-				a.generator_url,
-				a.labels,
-				c.id as ClusterID,
-				c.name as ClusterName,
-				c.ingress_url as ClusterIngressURL
-			FROM
-				alerts a,
-				clusters c
-			WHERE
-				a.cluster_token = c.token and
-				a.severity != 'none' and a.severity is not null
-			ORDER BY
-				a.starts_at DESC
-			`).Scan(&rows).Error; err != nil {
-				return err
+		if db.Dialector.Name() == "postgres" {
+			DB, err := db.DB()
+			if err != nil {
+				return
 			}
 
-			return nil
-		})
-
-		if err != nil {
-			log.Errorf("Failed to query for alerts: %v", err)
-			common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
-			return
+			log.Debugf("raw query: %s\n", alertsQuery)
+			result, err := DB.Query(alertsQuery)
+			if err != nil {
+				return
+			}
+			for result.Next() {
+				rows = append(rows, alertListRowScan(result))
+			}
+		} else {
+			err := db.Transaction(func(tx *gorm.DB) error {
+				if err := tx.Raw(alertsQuery).Scan(&rows).Error; err != nil {
+					return err
+				}
+				return nil
+			})
+			if err != nil {
+				log.Errorf("Failed to query for alerts: %v", err)
+				common.WriteError(w, ErrNilDB, http.StatusInternalServerError)
+				return
+			}
 		}
 
 		res, err := toAlertResponse(rows)
