@@ -254,7 +254,7 @@ commands:
       - run:
           name: download kind
           command: |
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.10.0/kind-linux-amd64
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
 
@@ -594,7 +594,7 @@ jobs:
 
   acceptance-tests:
     docker:
-      - image: quay.io/wks/build:master-134af34f
+      - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
         environment:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: centos-cloud/centos-7
@@ -612,10 +612,14 @@ jobs:
           # This is not a WKP cluster.
           # If the env var below is set, the test will connect the eks cluster to mccp
           CONNECT_EKS_LEAF_TEST: 'true'
+          CONNECT_KIND_WKP_LEAF_TEST: 'true'
+          MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-wkp-leaf-kubeconfig'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
+      - install-kind
+      - setup_remote_docker
       - run:
           name: Setup base config.yaml
           command: |
@@ -636,8 +640,8 @@ jobs:
           name: Run Acceptance Tests
           no_output_timeout: 20m
           command: |
-
             export PATH=$GOROOT/bin:$PATH
+            # This needs to be set to false otherwise the local repo is deleted at the end of the creation test
             export CLEANUP_REPO=false
             cd test/integration/test
 
@@ -686,14 +690,52 @@ jobs:
             cd -
 
             kubectl get pods -A
-
             # Wait for cluster to settle
             sleep 60
+
+            set -x
+            # Install socat locally and start port-forwarding service (required for CircleCI)
+            apt-get install -y curl ca-certificates liblz4-tool rsync socat
+            ../../utils/scripts/start-portforward-service.sh start
+
+            # Create a kind cluster
+            kind create cluster --name my-kind-cluster-01 --config kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
+            # Start port-forward session (required for CircleCI)
+            APISERVER_PORT_WKP=$(kubectl --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG config view -o jsonpath='{.clusters[].cluster.server}' | cut -d: -f 3 -)
+            ../../utils/scripts/portforward.sh $APISERVER_PORT_WKP
+            # Install cluster components
+            export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
+            export SKIP_PROMPT=1
+            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM-$RANDOM"
+            wkp_kind_cluster_dir=$(mktemp -d)
+            cd $wkp_kind_cluster_dir
+            $CIRCLE_WORKING_DIRECTORY/cmd/wk/wk setup install --entitlements=$CIRCLE_WORKING_DIRECTORY/test/ci-wks-unlimited.entitlements
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/track:.*/track: wks-components/" $wkp_kind_cluster_dir/setup/config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" $wkp_kind_cluster_dir/setup/config.yaml
+            sed -i "s/gitProvider:.*/gitProvider: github/" $wkp_kind_cluster_dir/setup/config.yaml
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" $wkp_kind_cluster_dir/setup/config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" $wkp_kind_cluster_dir/setup/config.yaml 
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" $wkp_kind_cluster_dir/setup/config.yaml 
+            $CIRCLE_WORKING_DIRECTORY/cmd/wk/wk setup run --entitlements=$CIRCLE_WORKING_DIRECTORY/test/ci-wks-unlimited.entitlements
+            # Wait until pods are running
+            kubectl wait nodes --all --for=condition=ready --timeout=120s || true
+            kubectl wait pods -n kube-system -l tier=control-plane --for=condition=ready --timeout=120s || true
+            kubectl wait deployment.apps/coredns -n kube-system --for=condition=available --timeout=120s || true
+            kubectl get pods -A
+            kubectl get nodes
+            cd $CIRCLE_WORKING_DIRECTORY/test/integration/test
+            
+            # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
+            unset KUBECONFIG
+            kubectl get pods -A
             export SELENIUM_DEBUG=true
             ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
             cd ../../acceptance/test/
             go test -v --timeout=99999s
 
+            # Delete the repo backing one of the kind clusters
+            hub delete -y "${WKP_GITHUB_ORG}/${CLUSTER_NAME}"
             if [ $CLEANUP_REPO != "false" ]; then
               hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
             fi

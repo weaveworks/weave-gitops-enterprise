@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 	"text/template"
 	"time"
 
@@ -49,6 +49,7 @@ const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second
 const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
 const ASSERTION_1SECOND_TIME_OUT time.Duration = 1 * time.Second
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
+const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
 const ASSERTION_5MINUTES_TIME_OUT time.Duration = 5 * time.Minute
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
@@ -123,8 +124,12 @@ func (b DatabaseMCCPTestRunner) ResetDatabase() error {
 }
 
 func (b DatabaseMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
-	bits := strings.Split(tokenURL, "=")
-	token := bits[len(bits)-1]
+	u, err := url.Parse(tokenURL)
+	if err != nil {
+		return err
+	}
+	token := u.Query()["token"][0]
+
 	b.DB.Create(&models.ClusterInfo{
 		UID:          types.UID(String(10)),
 		ClusterToken: token,
@@ -219,7 +224,24 @@ func (b RealMCCPTestRunner) ResetDatabase() error {
 }
 
 func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
-	return runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
+	fmt.Println("Leaf cluster pods before apply")
+	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
+		fmt.Printf("Error getting leaf cluster pods before apply: %v\n", err)
+	}
+	fmt.Println("Leaf cluster events before apply")
+	if err := runCommandPassThrough(env, "kubectl", "get", "events", "-A"); err != nil {
+		fmt.Printf("Error getting leaf cluster events before apply: %v\n", err)
+	}
+	err := runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
+	fmt.Println("Leaf cluster pods after apply")
+	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
+		fmt.Printf("Error getting leaf cluster pods after apply: %v\n", err)
+	}
+	fmt.Println("Leaf cluster events after apply")
+	if err := runCommandPassThrough(env, "kubectl", "get", "events", "-A"); err != nil {
+		fmt.Printf("Error getting leaf cluster events after apply: %v\n", err)
+	}
+	return err
 }
 
 func (b RealMCCPTestRunner) KubectlDelete(env []string, tokenURL string) error {
