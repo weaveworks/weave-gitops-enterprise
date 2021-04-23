@@ -1133,7 +1133,9 @@ jobs:
           when: on_fail
           # Store sonobuoy results as artifact
       - store_test_results:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-part-1
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results/1.18.16
+      - store_test_results:
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results/1.19.8
       - store_artifacts:
           path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.18.16.tar.gz
       - store_artifacts:
@@ -1163,7 +1165,7 @@ jobs:
             chmod +x sonobuoy
             mv ./sonobuoy /usr/local/bin/sonobuoy
       - run-sonobuoy-tests:
-          version: '1.20.2'
+          version: '1.20.5'
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
           name: Destroy GCP resources
@@ -1177,9 +1179,9 @@ jobs:
           when: on_fail
           # Store sonobuoy results as artifact
       - store_test_results:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-part-2
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results/1.20.5
       - store_artifacts:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.20.2.tar.gz
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.20.5.tar.gz
 
   preflight-ssh-gcp-centos: &preflight-ssh-gcp-centos
     docker:
