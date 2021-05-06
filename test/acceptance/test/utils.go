@@ -50,7 +50,7 @@ const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
 const ASSERTION_1SECOND_TIME_OUT time.Duration = 1 * time.Second
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
 const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
-const ASSERTION_5MINUTES_TIME_OUT time.Duration = 5 * time.Minute
+const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

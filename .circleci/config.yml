@@ -614,6 +614,7 @@ jobs:
           CONNECT_EKS_LEAF_TEST: 'true'
           CONNECT_KIND_WKP_LEAF_TEST: 'true'
           MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-wkp-leaf-kubeconfig'
+          RUN_MCCP_SUITE_WITH_POSTGRES: 'true'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -732,7 +733,50 @@ jobs:
             export SELENIUM_DEBUG=true
             ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
             cd ../../acceptance/test/
+            export ACCEPTANCE_TESTS_DATABASE_TYPE=sqlite
             go test -v --timeout=99999s
+            
+            if [ ${RUN_MCCP_SUITE_WITH_POSTGRES} ]; then
+              # Deploy postgres
+              kubectl apply -f postgres-manifests.yaml
+
+              # Wait for the postgres deployment to rollout
+              kubectl wait --for=condition=available --timeout=600s deployment/postgres
+
+              cd /tmp/cluster_dir
+              # Get the IP of the postgres service
+              POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
+              sed -i "s/databaseType:.*/databaseType: postgres/" setup/config.yaml
+              sed -i "s/databaseURI:.*/databaseURI: $POSTGRES_CLUSTER_IP/" setup/config.yaml
+              git pull
+              git add setup/config.yaml
+              git commit -m "Set database type to postgres"
+              git push origin master
+
+              kubectl create secret generic -n wkp-gitops-repo-broker mccp-db-credentials --from-literal=username=postgres --from-literal=password=password -oyaml --dry-run > mccp-db-credentials.yaml
+              kubectl apply -f mccp-db-credentials.yaml
+
+              kubectl get pods -A
+
+              RETRIES=0
+              MAX_RETRIES=10
+              until [ ${DB_TYPE} == 'postgres' ]
+              do
+                DB_TYPE=$(kubectl get deployment -n wkp-gitops-repo-broker wkp-event-writer -ojsonpath='{.spec.template.spec.containers[0].env[?(@.name=="DB_TYPE")].value}')
+                echo "Database type should be postgres: ${DB_TYPE}"
+                sleep 5
+                RETRIES=$((RETRIES+1))
+                if [ $RETRIES -ge $MAX_RETRIES ]; then
+                  echo "database type did not update to postgres"
+                  exit 1
+                fi
+              done
+
+              # Run acceptance-tests again with postgres
+              cd $CIRCLE_WORKING_DIRECTORY/test/acceptance/test
+              ACCEPTANCE_TESTS_DATABASE_TYPE=postgres
+              go test -v --timeout=99999s
+            fi
 
             # Delete the repo backing one of the kind clusters
             hub delete -y "${WKP_GITHUB_ORG}/${CLUSTER_NAME}"
