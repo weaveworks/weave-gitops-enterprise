@@ -999,6 +999,8 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
+      - store_artifacts:
+          path: /tmp/wks-controller-logs.txt
 
   upgrade-ssh-gcp-centos-lb:
     <<: *upgrade-ssh-gcp-centos
