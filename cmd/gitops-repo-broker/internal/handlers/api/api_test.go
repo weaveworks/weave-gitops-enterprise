@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"gorm.io/datatypes"
+	"k8s.io/apimachinery/pkg/util/uuid"
 
 	"github.com/gorilla/mux"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api"
+	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api/views"
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/database/utils"
 	"gorm.io/gorm"
@@ -375,11 +377,11 @@ func TestListClusters(t *testing.T) {
 	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
 	response = executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
+	var res views.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assert.Equal(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:       1,
 				Name:     "My Cluster",
@@ -433,8 +435,8 @@ func TestListClusters(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Code)
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assertEqualCmp(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:        1,
 				Name:      "My Cluster",
@@ -442,7 +444,7 @@ func TestListClusters(t *testing.T) {
 				Type:      "existingInfra",
 				Status:    "ready",
 				UpdatedAt: now,
-				Nodes: []api.NodeView{
+				Nodes: []views.NodeView{
 					{
 						Name:           "wks-1",
 						IsControlPlane: true,
@@ -454,7 +456,7 @@ func TestListClusters(t *testing.T) {
 						KubeletVersion: "v1.19.7",
 					},
 				},
-				FluxInfo: []api.FluxInfoView{
+				FluxInfo: []views.FluxInfoView{
 					{
 						Name:       "flux",
 						Namespace:  "wkp-flux",
@@ -463,7 +465,7 @@ func TestListClusters(t *testing.T) {
 						LogInfo:    datatypes.JSON{'n', 'u', 'l', 'l'},
 					},
 				},
-				Workspaces: []api.WorkspaceView{
+				Workspaces: []views.WorkspaceView{
 					{
 						Name:      "foo",
 						Namespace: "wkp-workspaces",
@@ -485,7 +487,7 @@ func TestListClustersSorting(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Code)
 	assert.Equal(t, "{\n \"clusters\": []\n}", response.Body.String())
 
-	defaultOrder := []api.ClusterView{
+	defaultOrder := []views.ClusterView{
 		{
 			ID:       1,
 			Name:     "My Cluster",
@@ -523,7 +525,7 @@ func TestListClustersSorting(t *testing.T) {
 	tests := []struct {
 		clusters       []models.Cluster
 		sortQuery      string
-		expectedResult []api.ClusterView
+		expectedResult []views.ClusterView
 		reversed       bool
 	}{
 		{
@@ -564,7 +566,7 @@ func TestListClustersSorting(t *testing.T) {
 		{
 			clusters:  []models.Cluster{},
 			sortQuery: "/clusters?sortBy=Token&order=ASC",
-			expectedResult: []api.ClusterView{
+			expectedResult: []views.ClusterView{
 				{
 					ID:       2,
 					Name:     "gcp-cluster",
@@ -613,7 +615,7 @@ func TestListClustersSorting(t *testing.T) {
 				},
 			},
 			sortQuery: "/clusters?sortBy=IngressURL&order=ASC",
-			expectedResult: []api.ClusterView{
+			expectedResult: []views.ClusterView{
 				{
 					ID:       1,
 					Name:     "My Cluster",
@@ -677,7 +679,7 @@ func TestListClustersSorting(t *testing.T) {
 			// Test query without any parameters
 			response = executeGet(t, db, json.MarshalIndent, test.sortQuery)
 			assert.Equal(t, http.StatusOK, response.Code)
-			var res api.ClustersResponse
+			var res views.ClustersResponse
 			err = json.Unmarshal(response.Body.Bytes(), &res)
 			assert.NoError(t, err)
 
@@ -686,7 +688,7 @@ func TestListClustersSorting(t *testing.T) {
 				reverseAny(test.expectedResult)
 			}
 
-			assert.Equal(t, api.ClustersResponse{
+			assert.Equal(t, views.ClustersResponse{
 				Clusters: test.expectedResult,
 			}, res)
 		})
@@ -709,11 +711,11 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
 	response = executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
+	var res views.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assert.Equal(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:       1,
 				Name:     "My Cluster",
@@ -760,14 +762,14 @@ func TestListCluster_MultipleFluxInfo(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Code)
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assertEqualCmp(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:     1,
 				Name:   "My Cluster",
 				Token:  "derp",
 				Status: "notConnected",
-				FluxInfo: []api.FluxInfoView{
+				FluxInfo: []views.FluxInfoView{
 					{
 						Name:       "flux",
 						Namespace:  "wkp-flux",
@@ -811,11 +813,11 @@ func TestListCluster_MultipleWorkspaces(t *testing.T) {
 	db.Create(&models.Cluster{Name: "My Cluster", Token: "derp"})
 	response = executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
+	var res views.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assert.Equal(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assert.Equal(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:       1,
 				Name:     "My Cluster",
@@ -847,14 +849,14 @@ func TestListCluster_MultipleWorkspaces(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.Code)
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assertEqualCmp(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:     1,
 				Name:   "My Cluster",
 				Token:  "derp",
 				Status: "notConnected",
-				Workspaces: []api.WorkspaceView{
+				Workspaces: []views.WorkspaceView{
 					{
 						Name:      "ws-1",
 						Namespace: "wkp-workspaces",
@@ -871,6 +873,94 @@ func TestListCluster_MultipleWorkspaces(t *testing.T) {
 			},
 		},
 	}, res)
+}
+
+func TestListClusters_Pagination(t *testing.T) {
+	db, err := utils.Open("", "sqlite", "", "", "")
+	assert.NoError(t, err)
+
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+
+	var clusters []*models.Cluster
+	for i := 1; i <= 25; i++ {
+		token := fmt.Sprintf("Token-%d", i)
+		c := &models.Cluster{Name: fmt.Sprintf("Cluster %3d", i), Token: token}
+		db.Create(c)
+		ci := &models.ClusterInfo{UID: uuid.NewUUID(), ClusterToken: token, Type: "aws"}
+		db.Create(ci)
+		for k := 1; k <= 3; k++ {
+			ni := &models.NodeInfo{UID: uuid.NewUUID(), ClusterToken: token, IsControlPlane: true, ClusterInfo: *ci}
+			db.Create(ni)
+		}
+		for k := 1; k <= 5; k++ {
+			ni := &models.NodeInfo{UID: uuid.NewUUID(), ClusterToken: token, IsControlPlane: false, ClusterInfo: *ci}
+			db.Create(ni)
+		}
+		clusters = append(clusters, c)
+	}
+
+	// Default pagination size is 10
+	response := executeGet(t, db, json.MarshalIndent, "/clusters")
+	assert.Equal(t, http.StatusOK, response.Code)
+	var res views.ClustersResponse
+	err = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.NoError(t, err)
+	assert.Equal(t, 10, len(res.Clusters))
+	assert.Equal(t, getIDsFromModels(clusters[0:10]), getIDsFromViews(res.Clusters))
+	assert.Equal(t, response.Result().Header["Content-Range"][0], "clusters */25")
+
+	response = executeGet(t, db, json.MarshalIndent, "/clusters?per_page=5&page=1")
+	assert.Equal(t, http.StatusOK, response.Code)
+	_ = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.Equal(t, 10, len(res.Clusters))
+	assert.Equal(t, getIDsFromModels(clusters[0:10]), getIDsFromViews(res.Clusters))
+	assert.Equal(t, response.Result().Header["Content-Range"][0], "clusters */25")
+
+	response = executeGet(t, db, json.MarshalIndent, "/clusters?per_page=15&page=1")
+	assert.Equal(t, http.StatusOK, response.Code)
+	_ = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.Equal(t, 15, len(res.Clusters))
+	assert.Equal(t, getIDsFromModels(clusters[0:15]), getIDsFromViews(res.Clusters))
+	assert.Equal(t, response.Result().Header["Content-Range"][0], "clusters */25")
+
+	response = executeGet(t, db, json.MarshalIndent, "/clusters?per_page=15&page=2")
+	assert.Equal(t, http.StatusOK, response.Code)
+	_ = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.Equal(t, 10, len(res.Clusters))
+	assert.Equal(t, getIDsFromModels(clusters[15:25]), getIDsFromViews(res.Clusters))
+	assert.Equal(t, response.Result().Header["Content-Range"][0], "clusters */25")
+
+	response = executeGet(t, db, json.MarshalIndent, "/clusters?per_page=15&page=3")
+	assert.Equal(t, http.StatusOK, response.Code)
+	_ = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.Equal(t, 0, len(res.Clusters))
+	assert.Equal(t, response.Result().Header["Content-Range"][0], "clusters */25")
+
+	response = executeGet(t, db, json.MarshalIndent, "/clusters?page=0")
+	assert.Equal(t, http.StatusOK, response.Code)
+	_ = json.Unmarshal(response.Body.Bytes(), &res)
+	assert.Equal(t, 10, len(res.Clusters))
+	assert.Equal(t, getIDsFromModels(clusters[0:10]), getIDsFromViews(res.Clusters))
+	assert.Equal(t, response.Result().Header["Content-Range"][0], "clusters */25")
+}
+
+func getIDsFromModels(clusters []*models.Cluster) []int {
+	var ids []int
+	for _, c := range clusters {
+		ids = append(ids, int(c.ID))
+	}
+	return ids
+}
+
+func getIDsFromViews(views []views.ClusterView) []int {
+	var ids []int
+
+	for _, v := range views {
+		ids = append(ids, int(v.ID))
+	}
+
+	return ids
 }
 
 func executeGet(t *testing.T, db *gorm.DB, fn api.MarshalIndent, url string) *httptest.ResponseRecorder {
@@ -906,7 +996,7 @@ func TestRegisterCluster_JSONError(t *testing.T) {
 	}
 
 	// Request body
-	data, _ := json.MarshalIndent(api.ClusterRegistrationRequest{
+	data, _ := json.MarshalIndent(views.ClusterRegistrationRequest{
 		Name: "derp",
 	}, "", " ")
 
@@ -928,7 +1018,7 @@ func TestRegisterCluster_TokenGenerationError(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Request body
-	data, _ := json.MarshalIndent(api.ClusterRegistrationRequest{
+	data, _ := json.MarshalIndent(views.ClusterRegistrationRequest{
 		Name: "derp",
 	}, "", " ")
 	response := executePost(t, bytes.NewReader(data), db, json.Unmarshal, json.MarshalIndent, NewFakeTokenGenerator("", errors.New("error generating token")).Generate)
@@ -943,7 +1033,7 @@ func TestRegisterCluster_ValidateRequestBody(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Request body
-	data, _ := json.MarshalIndent(api.ClusterRegistrationRequest{
+	data, _ := json.MarshalIndent(views.ClusterRegistrationRequest{
 		Name:       "derp",
 		IngressURL: "not a url",
 	}, "", " ")
@@ -959,7 +1049,7 @@ func TestRegisterCluster(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Request body
-	data, _ := json.MarshalIndent(api.ClusterRegistrationRequest{
+	data, _ := json.MarshalIndent(views.ClusterRegistrationRequest{
 		Name:       "derp",
 		IngressURL: "http://localhost:8000/ui",
 	}, "", " ")
@@ -1009,7 +1099,7 @@ func TestListAlerts(t *testing.T) {
 	response, _ := doRequest(t, api.ListAlerts(db, json.MarshalIndent), "GET", "/", "/", "")
 	assert.Equal(t, http.StatusOK, response.Code)
 
-	var payload api.AlertsResponse
+	var payload views.AlertsResponse
 	err = json.Unmarshal(response.Body.Bytes(), &payload)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Alerts, 1)
@@ -1061,11 +1151,11 @@ func TestListClusters_StatusCritical(t *testing.T) {
 
 	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
+	var res views.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assertEqualCmp(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:        1,
 				Token:     "derp",
@@ -1105,11 +1195,11 @@ func TestListClusters_StatusAlerting(t *testing.T) {
 
 	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
+	var res views.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assertEqualCmp(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:        1,
 				Token:     "derp",
@@ -1143,11 +1233,11 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 
 	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
+	var res views.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assertEqualCmp(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:        1,
 				Token:     "derp",
@@ -1182,11 +1272,11 @@ func TestListClusters_StatusNotConnected(t *testing.T) {
 
 	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
-	var res api.ClustersResponse
+	var res views.ClustersResponse
 	err = json.Unmarshal(response.Body.Bytes(), &res)
 	assert.NoError(t, err)
-	assertEqualCmp(t, api.ClustersResponse{
-		Clusters: []api.ClusterView{
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
 			{
 				ID:        1,
 				Token:     "derp",
