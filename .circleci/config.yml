@@ -614,7 +614,7 @@ jobs:
           CONNECT_EKS_LEAF_TEST: 'true'
           CONNECT_KIND_WKP_LEAF_TEST: 'true'
           MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-wkp-leaf-kubeconfig'
-          RUN_MCCP_SUITE_WITH_POSTGRES: 'true'
+          RUN_MCCP_SUITE_WITH_POSTGRES: 'false'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
@@ -736,7 +736,7 @@ jobs:
             export ACCEPTANCE_TESTS_DATABASE_TYPE=sqlite
             go test -v --timeout=99999s
             
-            if [ ${RUN_MCCP_SUITE_WITH_POSTGRES} ]; then
+            if [ ${RUN_MCCP_SUITE_WITH_POSTGRES} == "true" ]; then
               # Deploy postgres
               kubectl apply -f postgres-manifests.yaml
 
