@@ -305,7 +305,6 @@ var _ = Describe("Integration suite", func() {
 
 	FDescribe("Pagination", func() {
 		BeforeEach(func() {
-			resetDb(db)
 			for i := 1; i < 16; i++ {
 				createCluster(db, "cluster"+strconv.Itoa(i), "Ready")
 			}
