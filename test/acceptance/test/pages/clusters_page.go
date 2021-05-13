@@ -118,10 +118,10 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		ClustersList:                   webDriver.Find(`#clusters-list > div > table > tbody`),
 		Tooltip:                        webDriver.Find(`div[role="tooltip"]`),
 		SupportEmailLink:               webDriver.FindByLink(`support@weave.works`),
-		ClustersListPaginationNext:     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/button[3]`),
-		ClustersListPaginationPrevious: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/button[2]`),
-		ClustersListPaginationLast:     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/button[4]`),
-		ClustersListPaginationFirst:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/button[1]`),
+		ClustersListPaginationNext:     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[3]`),
+		ClustersListPaginationPrevious: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[2]`),
+		ClustersListPaginationLast:     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[4]`),
+		ClustersListPaginationFirst:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[1]`),
 		// add selection of per page
 		ClustersListPaginationPerPageDropdown: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/div`),
 	}
