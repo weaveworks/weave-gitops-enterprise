@@ -235,7 +235,7 @@ var _ = Describe("Integration suite", func() {
 		})
 	})
 
-	FDescribe("Sorting clusters!", func() {
+	Describe("Sorting clusters!", func() {
 		BeforeEach(func() {
 			// Create some stuff in the db
 			createCluster(db, "cluster-1-ready", "Ready")
@@ -303,9 +303,8 @@ var _ = Describe("Integration suite", func() {
 		})
 	})
 
-	Describe("Pagination", func() {
+	FDescribe("Pagination", func() {
 		BeforeEach(func() {
-			resetDb(db)
 			for i := 1; i < 16; i++ {
 				createCluster(db, "cluster"+strconv.Itoa(i), "Ready")
 			}
@@ -317,12 +316,12 @@ var _ = Describe("Integration suite", func() {
 			})
 
 			It("Should get the next 5 clusters when I click on the forward pagination control", func() {
+				// time.Sleep(2 * time.Second)
 				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
 				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
 			})
 
 			It("Should get the previous 10 clusters when I click on the previous pagination control", func() {
-				// Eventually(page.ClustersListPaginationPrevious).Should(BeFound())
 				Expect(page.ClustersListPaginationPrevious.Click()).Should(Succeed())
 				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
 			})
