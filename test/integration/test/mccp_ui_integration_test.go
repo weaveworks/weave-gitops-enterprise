@@ -303,7 +303,7 @@ var _ = Describe("Integration suite", func() {
 		})
 	})
 
-	FDescribe("Pagination", func() {
+	Describe("Pagination", func() {
 		BeforeEach(func() {
 			for i := 1; i < 16; i++ {
 				createCluster(db, "cluster"+strconv.Itoa(i), "Ready")
