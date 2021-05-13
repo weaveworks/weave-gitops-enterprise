@@ -27,26 +27,31 @@ type AlertInformation struct {
 
 //ClustersPage elements
 type ClustersPage struct {
-	ClusterCount         *agouti.Selection
-	ConnectClusterButton *agouti.Selection
-	NoFiringAlertMessage *agouti.Selection
-	FiringAlertsSection  *agouti.Selection
-	FiringAlertsHeader   *agouti.Selection
-	FiringAlertsNavCtl   *agouti.Selection
-	ClustersListSection  *agouti.Selection
-	ClustersListHeader   *agouti.Selection
-	FiringAlertsPerPage  *agouti.Selection
-	FiringAlerts         *agouti.MultiSelection
-	HeaderName           *agouti.Selection
-	HeaderIcon           *agouti.Selection
-	HeaderStatus         *agouti.Selection
-	HeaderGitActivity    *agouti.Selection
-	HeaderWorkspaces     *agouti.Selection
-	HeaderNodeVersion    *agouti.Selection
-	NoClusterConfigured  *agouti.Selection
-	ClustersList         *agouti.Selection
-	Tooltip              *agouti.Selection
-	SupportEmailLink     *agouti.Selection
+	ClusterCount                          *agouti.Selection
+	ConnectClusterButton                  *agouti.Selection
+	NoFiringAlertMessage                  *agouti.Selection
+	FiringAlertsSection                   *agouti.Selection
+	FiringAlertsHeader                    *agouti.Selection
+	FiringAlertsNavCtl                    *agouti.Selection
+	ClustersListSection                   *agouti.Selection
+	ClustersListHeader                    *agouti.Selection
+	FiringAlertsPerPage                   *agouti.Selection
+	FiringAlerts                          *agouti.MultiSelection
+	HeaderName                            *agouti.Selection
+	HeaderIcon                            *agouti.Selection
+	HeaderStatus                          *agouti.Selection
+	HeaderGitActivity                     *agouti.Selection
+	HeaderWorkspaces                      *agouti.Selection
+	HeaderNodeVersion                     *agouti.Selection
+	NoClusterConfigured                   *agouti.Selection
+	ClustersList                          *agouti.Selection
+	Tooltip                               *agouti.Selection
+	SupportEmailLink                      *agouti.Selection
+	ClustersListPaginationNext            *agouti.Selection
+	ClustersListPaginationPrevious        *agouti.Selection
+	ClustersListPaginationLast            *agouti.Selection
+	ClustersListPaginationFirst           *agouti.Selection
+	ClustersListPaginationPerPageDropdown *agouti.Selection
 }
 
 // FindClusterInList finds the cluster with given name
@@ -93,26 +98,33 @@ func AlertsFiringInAlertsWidget(clustersPage *ClustersPage) []*AlertInformation 
 //GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
-		ClusterCount:         webDriver.FindByXPath(`//*[@id="count-header"]/div/div[2]`),
-		ConnectClusterButton: webDriver.Find(`#connect-cluster`),
-		NoFiringAlertMessage: webDriver.FindByXPath(`//*[@id="app"]/div/div[2]/div[1]/i`),
-		FiringAlertsSection:  webDriver.Find(`#firing-alerts`),
-		FiringAlertsHeader:   webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[1]/div`),
-		FiringAlertsNavCtl:   webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[2]/div/p/span/span[2]`),
-		FiringAlertsPerPage:  webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[3]`),
-		FiringAlerts:         webDriver.All(`#firing-alerts > div > table > tbody > tr`),
-		ClustersListSection:  webDriver.Find(`#clusters-list`),
-		ClustersListHeader:   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead`),
-		HeaderName:           webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[1]/span`),
-		HeaderIcon:           webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
-		HeaderStatus:         webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
-		HeaderGitActivity:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
-		HeaderNodeVersion:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
-		HeaderWorkspaces:     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[6]/span`),
-		NoClusterConfigured:  webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
-		ClustersList:         webDriver.Find(`#clusters-list > div > table > tbody`),
-		Tooltip:              webDriver.Find(`div[role="tooltip"]`),
-		SupportEmailLink:     webDriver.FindByLink(`support@weave.works`)}
+		ClusterCount:                   webDriver.FindByXPath(`//*[@id="count-header"]/div/div[2]`),
+		ConnectClusterButton:           webDriver.Find(`#connect-cluster`),
+		NoFiringAlertMessage:           webDriver.FindByXPath(`//*[@id="app"]/div/div[2]/div[1]/i`),
+		FiringAlertsSection:            webDriver.Find(`#firing-alerts`),
+		FiringAlertsHeader:             webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[1]/div`),
+		FiringAlertsNavCtl:             webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[2]/div/p/span/span[2]`),
+		FiringAlertsPerPage:            webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[3]`),
+		FiringAlerts:                   webDriver.All(`#firing-alerts > div > table > tbody > tr`),
+		ClustersListSection:            webDriver.Find(`#clusters-list`),
+		ClustersListHeader:             webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead`),
+		HeaderName:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[1]/span`),
+		HeaderIcon:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
+		HeaderStatus:                   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
+		HeaderGitActivity:              webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
+		HeaderNodeVersion:              webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
+		HeaderWorkspaces:               webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[6]/span`),
+		NoClusterConfigured:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
+		ClustersList:                   webDriver.Find(`#clusters-list > div > table > tbody`),
+		Tooltip:                        webDriver.Find(`div[role="tooltip"]`),
+		SupportEmailLink:               webDriver.FindByLink(`support@weave.works`),
+		ClustersListPaginationNext:     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/button[3]`),
+		ClustersListPaginationPrevious: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/button[2]`),
+		ClustersListPaginationLast:     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/button[4]`),
+		ClustersListPaginationFirst:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/button[1]`),
+		// add selection of per page
+		ClustersListPaginationPerPageDropdown: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/div`),
+	}
 
 	return &clustersPage
 }

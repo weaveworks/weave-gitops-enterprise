@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -183,7 +184,7 @@ var _ = Describe("Integration suite", func() {
 		resetDb(db)
 	})
 
-	FDescribe("Tooltips!", func() {
+	Describe("Tooltips!", func() {
 		Describe("The column header tooltips", func() {
 			It("should show a tooltip containing 'name' on mouse over", func() {
 				AssertTooltipContains(page, page.HeaderName, "Name")
@@ -234,7 +235,7 @@ var _ = Describe("Integration suite", func() {
 		})
 	})
 
-	Describe("Sorting clusters!", func() {
+	FDescribe("Sorting clusters!", func() {
 		BeforeEach(func() {
 			// Create some stuff in the db
 			createCluster(db, "cluster-1-ready", "Ready")
@@ -306,7 +307,7 @@ var _ = Describe("Integration suite", func() {
 		BeforeEach(func() {
 			resetDb(db)
 			for i := 1; i < 16; i++ {
-				createCluster(db, fmt.Sprintf("cluster", i), "Ready")
+				createCluster(db, "cluster"+strconv.Itoa(i), "Ready")
 			}
 		})
 
@@ -316,29 +317,31 @@ var _ = Describe("Integration suite", func() {
 			})
 
 			It("Should get the next 5 clusters when I click on the forward pagination control", func() {
-				Expect(pages.ClustersListPaginationNext.Click()).Should(Succeed())
+				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
 				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
 			})
 
 			It("Should get the previous 10 clusters when I click on the previous pagination control", func() {
-				Expect(pages.ClustersListPaginationPrevious.Click()).Should(Succeed())
+				// Eventually(page.ClustersListPaginationPrevious).Should(BeFound())
+				Expect(page.ClustersListPaginationPrevious.Click()).Should(Succeed())
 				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
 			})
 
 			It("Should go to the last page when I click on the last page control", func() {
-		        Expect(pages.ClustersListPaginationLast.Click()).Should(Succeed())
-				Eventually(clustersPage.ClustersList.All("tr")).Should(HaveCount(5))
+				Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
 			})
 
 			It("Should go to the first page when I click on the first page control", func() {
-		        Expect(pages.ClustersListPaginationFirst.Click()).Should(Succeed())
-				Eventually(clustersPage.ClustersList.All("tr")).Should(HaveCount(10))
+				Expect(page.ClustersListPaginationFirst.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
 			})
 
 			It("Should update the list of clusters on the page if the per page control is clicked", func() {
-		        Expect(pages.ClustersListPaginationPerPageDropdown.Click()).Should(Succeed())
-				Eventually(clustersPage.ClustersList.All("tr")).Should(HaveCount(15))
+				Expect(page.ClustersListPaginationPerPageDropdown.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(15))
 			})
+		})
 	})
 
 	Describe("Version(Nodes)", func() {
