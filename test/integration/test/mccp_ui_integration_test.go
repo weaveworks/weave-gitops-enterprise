@@ -183,7 +183,7 @@ var _ = Describe("Integration suite", func() {
 		resetDb(db)
 	})
 
-	Describe("Tooltips!", func() {
+	FDescribe("Tooltips!", func() {
 		Describe("The column header tooltips", func() {
 			It("should show a tooltip containing 'name' on mouse over", func() {
 				AssertTooltipContains(page, page.HeaderName, "Name")
@@ -300,6 +300,45 @@ var _ = Describe("Integration suite", func() {
 				})
 			})
 		})
+	})
+
+	Describe("Pagination", func() {
+		BeforeEach(func() {
+			resetDb(db)
+			for i := 1; i < 16; i++ {
+				createCluster(db, fmt.Sprintf("cluster", i), "Ready")
+			}
+		})
+
+		Describe("How clicking the pagination controls should filter clusters", func() {
+			It("Should have 10 clusters to begin with", func() {
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should get the next 5 clusters when I click on the forward pagination control", func() {
+				Expect(pages.ClustersListPaginationNext.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
+			})
+
+			It("Should get the previous 10 clusters when I click on the previous pagination control", func() {
+				Expect(pages.ClustersListPaginationPrevious.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should go to the last page when I click on the last page control", func() {
+		        Expect(pages.ClustersListPaginationLast.Click()).Should(Succeed())
+				Eventually(clustersPage.ClustersList.All("tr")).Should(HaveCount(5))
+			})
+
+			It("Should go to the first page when I click on the first page control", func() {
+		        Expect(pages.ClustersListPaginationFirst.Click()).Should(Succeed())
+				Eventually(clustersPage.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should update the list of clusters on the page if the per page control is clicked", func() {
+		        Expect(pages.ClustersListPaginationPerPageDropdown.Click()).Should(Succeed())
+				Eventually(clustersPage.ClustersList.All("tr")).Should(HaveCount(15))
+			})
 	})
 
 	Describe("Version(Nodes)", func() {
