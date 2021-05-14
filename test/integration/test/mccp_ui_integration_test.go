@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -298,6 +299,61 @@ var _ = Describe("Integration suite", func() {
 					"cluster-2-critical",
 					"cluster-1-ready",
 				})
+			})
+		})
+	})
+
+	Describe("Pagination", func() {
+		BeforeEach(func() {
+			for i := 1; i < 16; i++ {
+				createCluster(db, "cluster"+strconv.Itoa(i), "Ready")
+			}
+		})
+
+		Describe("How clicking the pagination controls should filter clusters", func() {
+			It("Should have 10 clusters to begin with", func() {
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should get the next 5 clusters when I click on the forward pagination control", func() {
+				// wait for the next button to be on the page and click it
+				Eventually(page.ClustersListPaginationNext).Should(BeFound())
+				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
+			})
+
+			It("Should get the previous 10 clusters when I click on the previous pagination control", func() {
+				// wait for the next button to be on the page and click it
+				Eventually(page.ClustersListPaginationNext).Should(BeFound())
+				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
+				// wait for the back button to be on the page and click it
+				Eventually(page.ClustersListPaginationPrevious).Should(BeFound())
+				Expect(page.ClustersListPaginationPrevious.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should go to the last page when I click on the last page control", func() {
+				// wait for the last page button to be on the page and click it
+				Eventually(page.ClustersListPaginationLast).Should(BeFound())
+				Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
+			})
+
+			It("Should go to the first page when I click on the first page control", func() {
+				// wait for the last page button to be on the page and click it
+				Eventually(page.ClustersListPaginationLast).Should(BeFound())
+				Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
+				// wait for the first page button to be on the page and click it
+				Eventually(page.ClustersListPaginationFirst).Should(BeFound())
+				Expect(page.ClustersListPaginationFirst.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should update the list of clusters on the page if the 20 clusters per page option is clicked", func() {
+				Eventually(page.ClustersListPaginationPerPageDropdown).Should(BeFound())
+				Expect(page.ClustersListPaginationPerPageDropdown.Click()).Should(Succeed())
+				Expect(page.ClustersListPaginationPerPageDropdownSecond.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(15))
 			})
 		})
 	})
