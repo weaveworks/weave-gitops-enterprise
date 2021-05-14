@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -43,21 +44,21 @@ var db *gorm.DB
 var dbURI string
 
 func resetDb(db *gorm.DB) {
+	// https://gorm.io/docs/delete.html#Block-Global-Delete
 	db.Where("1 = 1").Delete(&models.Cluster{})
 	db.Where("1 = 1").Delete(&models.Alert{})
 	db.Where("1 = 1").Delete(&models.ClusterInfo{})
 }
 
-func createAlert(db *gorm.DB, token, name, severity, message string, fireFor time.Duration) {
+func createAlert(db *gorm.DB, token, name, severity, message string, fireFor time.Duration, startsAt time.Time) {
 	labels := fmt.Sprintf(`{ "alertname": "%s", "severity": "%s" }`, name, severity)
 	annotations := fmt.Sprintf(`{ "message": "%s" }`, message)
 	db.Create(&models.Alert{
 		ClusterToken: token,
-		UpdatedAt:    time.Now().UTC(),
 		Labels:       datatypes.JSON(labels),
 		Annotations:  datatypes.JSON(annotations),
 		Severity:     severity,
-		StartsAt:     time.Now().UTC().Add(fireFor * -1),
+		StartsAt:     startsAt,
 		EndsAt:       time.Now().UTC().Add(fireFor),
 	})
 }
@@ -66,6 +67,20 @@ func AssertClusterOrder(clustersPage *pages.ClustersPage, clusterNames []string)
 	for i, v := range clusterNames {
 		Eventually(clustersPage.ClustersList.Find(fmt.Sprintf("tr:nth-child(%d) td:nth-child(1)", i+1))).Should(MatchText(v))
 	}
+}
+
+func AssertAlertsOrder(clustersPage *pages.ClustersPage, alertNames []string) {
+	getAlertNames := func() []string {
+		names := []string{}
+		for _, a := range pages.AlertsFiringInAlertsWidget(clustersPage) {
+			name, _ := a.Message.Text()
+			names = append(names, name)
+		}
+		return names
+	}
+
+	Eventually(getAlertNames, acceptancetest.ASSERTION_10SECONDS_TIME_OUT).Should(Equal(alertNames))
+	Consistently(getAlertNames, acceptancetest.ASSERTION_10SECONDS_TIME_OUT).Should(Equal(alertNames))
 }
 
 func createCluster(db *gorm.DB, name, status string) {
@@ -91,50 +106,131 @@ func createCluster(db *gorm.DB, name, status string) {
 			ClusterToken: name,
 			UpdatedAt:    time.Now().UTC(),
 		})
-		createAlert(db, name, "ExampleAlert", "warning", "oh no", time.Second*30)
+		createAlert(db, name, "ExampleAlert", "warning", "oh no", time.Second*30, time.Now().UTC())
 	} else if status == "Critical" {
 		db.Create(&models.ClusterInfo{
 			UID:          types.UID(name),
 			ClusterToken: name,
 			UpdatedAt:    time.Now().UTC(),
 		})
-		createAlert(db, name, "ExampleAlert", "critical", "oh no", time.Second*30)
+		createAlert(db, name, "ExampleAlert", "critical", "oh no", time.Second*30, time.Now().UTC())
 	}
 }
 
+func AssertTooltipContains(page *pages.ClustersPage, element *agouti.Selection, text string) {
+	Eventually(element).Should(BeFound())
+	Expect(element.MouseToElement()).Should(Succeed())
+	Eventually(page.Tooltip).Should(BeFound())
+	Eventually(page.Tooltip, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(MatchText(text))
+}
+
+func createNodeInfo(db *gorm.DB, clusterName, name, version string, isControlPlane bool) {
+	var cluster models.Cluster
+	var clusterInfo models.ClusterInfo
+	db.Where("Name = ?", clusterName).First(&cluster)
+	db.Where("cluster_token = ?", cluster.Token).First(&clusterInfo)
+
+	db.Create(&models.NodeInfo{
+		ClusterToken:   cluster.Token,
+		Name:           name,
+		IsControlPlane: isControlPlane,
+		KubeletVersion: version,
+	})
+}
+
+func AssertRowCellContains(element *agouti.Selection, text string) {
+	Eventually(element).Should(BeFound())
+	Eventually(element, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText(text))
+}
+
+func createFluxInfo(db *gorm.DB, clusterName, name, namespace, repoURL, repoBranch string) {
+	image := "docker.io/fluxcd/flux:v0.8.1"
+
+	var cluster models.Cluster
+	db.Where("Name = ?", clusterName).First(&cluster)
+
+	db.Create(&models.FluxInfo{
+		ClusterToken: cluster.Token,
+		Name:         name,
+		Namespace:    namespace,
+		Args:         "",
+		Image:        image,
+		RepoURL:      repoURL,
+		RepoBranch:   repoBranch,
+	})
+}
+
+var intWebDriver *agouti.Page
+
 var _ = Describe("Integration suite", func() {
 
-	var webDriver *agouti.Page
+	var page *pages.ClustersPage
 
 	BeforeEach(func() {
 		var err error
-		webDriver, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-			"chromeOptions": map[string][]string{
-				"args": {
-					"--disable-gpu",
-					"--no-sandbox",
-				}}}))
-		Expect(err).NotTo(HaveOccurred())
-		Expect(webDriver.Navigate(uiURL + "/clusters")).To(Succeed())
+		if intWebDriver == nil {
+			intWebDriver, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
+				"chromeOptions": map[string][]string{
+					"args": {
+						"--disable-gpu",
+						"--no-sandbox",
+					}}}))
+			Expect(err).NotTo(HaveOccurred())
+		}
+
+		// reload fresh page each time
+		Expect(intWebDriver.Navigate(uiURL + "/clusters")).To(Succeed())
+		page = pages.GetClustersPage(intWebDriver)
+		resetDb(db)
 	})
 
-	AfterEach(func() {
-		Expect(webDriver.Destroy()).To(Succeed())
-	})
-
-	Describe("Cluster page", func() {
-		BeforeEach(func() {
-			resetDb(db)
-			db.Create(&models.Cluster{Name: "ewq"})
+	Describe("Tooltips!", func() {
+		Describe("The column header tooltips", func() {
+			It("should show a tooltip containing 'name' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderName, "Name")
+			})
+			It("should show a tooltip containing 'version' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderNodeVersion, "version")
+			})
+			It("should show a tooltip containing 'status' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderStatus, "status")
+			})
+			It("should show a tooltip containing 'git' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderGitActivity, "git")
+			})
+			It("should show a tooltip containing 'workspaces' on mouse over", func() {
+				AssertTooltipContains(page, page.HeaderWorkspaces, "Workspaces")
+			})
 		})
-		Describe("How the page should look", func() {
-			It("should say Clusters in the title", func() {
-				Eventually(webDriver).Should(HaveTitle("WKP · Clusters"))
+
+		Describe("Cluster row tooltips", func() {
+			var cluster *pages.ClusterInformation
+
+			BeforeEach(func() {
+				name := "ewq"
+				createCluster(db, name, "Last seen")
+				db.Create(&models.NodeInfo{
+					ClusterToken:   name,
+					Name:           "cp-1",
+					IsControlPlane: true,
+					KubeletVersion: "v1.19",
+				})
+				db.Create(&models.Workspace{
+					ClusterToken: name,
+					Name:         "app-dev",
+					Namespace:    "wkp-workspaces",
+				})
+				cluster = pages.FindClusterInList(page, name)
 			})
 
-			It("should have a single cluster named ewq", func() {
-				Eventually(webDriver.All("table tbody tr")).Should(HaveCount(1))
-				Eventually(webDriver.First("table tbody tr td")).Should(HaveText("ewq"))
+			It("should show a tooltip containing with cp/version on mouse over", func() {
+				AssertTooltipContains(page, cluster.NodesVersions, "1 Control plane nodes v1.19")
+			})
+			It("should show a tooltip containing app-dev on mouse over", func() {
+				AssertTooltipContains(page, cluster.TeamWorkspaces, "app-dev")
+			})
+			It("should show a tooltip on status column cluster w/ last seen", func() {
+				AssertTooltipContains(page, cluster.Status, "Last seen")
 			})
 		})
 	})
@@ -142,7 +238,6 @@ var _ = Describe("Integration suite", func() {
 	Describe("Sorting clusters!", func() {
 		BeforeEach(func() {
 			// Create some stuff in the db
-			resetDb(db)
 			createCluster(db, "cluster-1-ready", "Ready")
 			createCluster(db, "cluster-2-critical", "Critical")
 			createCluster(db, "cluster-3-alerting", "Alerting")
@@ -152,34 +247,33 @@ var _ = Describe("Integration suite", func() {
 
 		Describe("How clicking on the headers should sort things", func() {
 			It("Should have some items in the table", func() {
-				clustersPage := pages.GetClustersPage(webDriver)
-				Eventually(clustersPage.ClustersList.All("tr")).Should(HaveCount(5))
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
 			})
 
 			It("Should sort the cluster by status initially", func() {
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
-					"cluster-3-alerting",
+				AssertClusterOrder(page, []string{
 					"cluster-2-critical",
+					"cluster-3-alerting",
 					"cluster-5-last-seen",
-					"cluster-4-not-connected",
 					"cluster-1-ready",
+					"cluster-4-not-connected",
 				})
 			})
 
 			It("should reverse the order when I click on the status header", func() {
-				pages.GetClustersPage(webDriver).HeaderStatus.Click()
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
-					"cluster-1-ready",
+				Expect(page.HeaderStatus.Click()).Should(Succeed())
+				AssertClusterOrder(page, []string{
 					"cluster-4-not-connected",
+					"cluster-1-ready",
 					"cluster-5-last-seen",
-					"cluster-2-critical",
 					"cluster-3-alerting",
+					"cluster-2-critical",
 				})
 			})
 
 			It("It should sort by name asc when you click on the name header", func() {
-				pages.GetClustersPage(webDriver).HeaderName.Click()
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
+				Expect(page.HeaderName.Click()).Should(Succeed())
+				AssertClusterOrder(page, []string{
 					"cluster-1-ready",
 					"cluster-2-critical",
 					"cluster-3-alerting",
@@ -189,22 +283,204 @@ var _ = Describe("Integration suite", func() {
 			})
 
 			It("It should sort by name desc when you click on the name header again", func() {
-				pages.GetClustersPage(webDriver).HeaderName.Click()
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
+				Expect(page.HeaderName.Click()).Should(Succeed())
+				AssertClusterOrder(page, []string{
 					"cluster-1-ready",
 					"cluster-2-critical",
 					"cluster-3-alerting",
 					"cluster-4-not-connected",
 					"cluster-5-last-seen",
 				})
-				pages.GetClustersPage(webDriver).HeaderName.Click()
-				AssertClusterOrder(pages.GetClustersPage(webDriver), []string{
+				Expect(page.HeaderName.Click()).Should(Succeed())
+				AssertClusterOrder(page, []string{
 					"cluster-5-last-seen",
 					"cluster-4-not-connected",
 					"cluster-3-alerting",
 					"cluster-2-critical",
 					"cluster-1-ready",
 				})
+			})
+		})
+	})
+
+	Describe("Pagination", func() {
+		BeforeEach(func() {
+			for i := 1; i < 16; i++ {
+				createCluster(db, "cluster"+strconv.Itoa(i), "Ready")
+			}
+		})
+
+		Describe("How clicking the pagination controls should filter clusters", func() {
+			It("Should have 10 clusters to begin with", func() {
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should get the next 5 clusters when I click on the forward pagination control", func() {
+				// wait for the next button to be on the page and click it
+				Eventually(page.ClustersListPaginationNext).Should(BeFound())
+				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
+			})
+
+			It("Should get the previous 10 clusters when I click on the previous pagination control", func() {
+				// wait for the next button to be on the page and click it
+				Eventually(page.ClustersListPaginationNext).Should(BeFound())
+				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
+				// wait for the back button to be on the page and click it
+				Eventually(page.ClustersListPaginationPrevious).Should(BeFound())
+				Expect(page.ClustersListPaginationPrevious.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should go to the last page when I click on the last page control", func() {
+				// wait for the last page button to be on the page and click it
+				Eventually(page.ClustersListPaginationLast).Should(BeFound())
+				Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
+			})
+
+			It("Should go to the first page when I click on the first page control", func() {
+				// wait for the last page button to be on the page and click it
+				Eventually(page.ClustersListPaginationLast).Should(BeFound())
+				Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
+				// wait for the first page button to be on the page and click it
+				Eventually(page.ClustersListPaginationFirst).Should(BeFound())
+				Expect(page.ClustersListPaginationFirst.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+			})
+
+			It("Should update the list of clusters on the page if the 20 clusters per page option is clicked", func() {
+				Eventually(page.ClustersListPaginationPerPageDropdown).Should(BeFound())
+				Expect(page.ClustersListPaginationPerPageDropdown.Click()).Should(Succeed())
+				Expect(page.ClustersListPaginationPerPageDropdownSecond.Click()).Should(Succeed())
+				Eventually(page.ClustersList.All("tr")).Should(HaveCount(15))
+			})
+		})
+	})
+
+	Describe("Version(Nodes)", func() {
+		BeforeEach(func() {
+			// Similar control planes, different worker nodes
+			createCluster(db, "cluster-1", "Last seen")
+			createNodeInfo(db, "cluster-1", "cp-1", "v1.19.7", true)
+			createNodeInfo(db, "cluster-1", "cp-2", "v1.19.7", true)
+			createNodeInfo(db, "cluster-1", "worker-1", "v1.19.4", false)
+			createNodeInfo(db, "cluster-1", "worker-2", "v1.19.4", false)
+
+			// Different control planes and similar worker nodes
+			createCluster(db, "cluster-2", "Last seen")
+			createNodeInfo(db, "cluster-2", "cp-1", "v1.19.7", true)
+			createNodeInfo(db, "cluster-2", "cp-2", "v1.19.4", true)
+			createNodeInfo(db, "cluster-2", "worker-1", "v1.19.4", false)
+			createNodeInfo(db, "cluster-2", "worker-2", "v1.19.4", false)
+
+			// Similar control planes and worker nodes
+			createCluster(db, "cluster-3", "Last seen")
+			createNodeInfo(db, "cluster-3", "cp-1", "v1.19.7", true)
+			createNodeInfo(db, "cluster-3", "worker-1", "v1.19.7", false)
+			createNodeInfo(db, "cluster-3", "worker-2", "v1.19.7", false)
+
+			// Similar worker nodes
+			createCluster(db, "cluster-4", "Last seen")
+			createNodeInfo(db, "cluster-4", "worker-1", "v1.19.7", false)
+			createNodeInfo(db, "cluster-4", "worker-2", "v1.19.7", false)
+
+			// Different worker nodes
+			createCluster(db, "cluster-5", "Last seen")
+			createNodeInfo(db, "cluster-5", "worker-1", "v1.19.7", false)
+			createNodeInfo(db, "cluster-5", "worker-2", "v1.19.7", false)
+			createNodeInfo(db, "cluster-5", "worker-3", "v1.19.4", false)
+		})
+
+		Describe("The column header", func() {
+			It("should have Version ( Nodes ) text", func() {
+				Eventually(page.HeaderNodeVersion).Should(HaveText("Version ( Nodes )"))
+			})
+		})
+
+		Describe("The variations of versions", func() {
+			It("should verify similar control planes and different worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-1")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2CP )v1.19.4 ( 2 )")
+			})
+
+			It("should verify Different control planes and similar worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-2")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 1CP )v1.19.4 ( 1CP | 2 )")
+			})
+
+			It("should verify similar control planes and similar worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-3")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 1CP | 2 )")
+			})
+
+			It("should verify similar worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-4")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2 )")
+			})
+
+			It("should verify different worker nodes", func() {
+				cluster := pages.FindClusterInList(page, "cluster-5")
+				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2 )v1.19.4 ( 1 )")
+			})
+		})
+	})
+
+	Describe("View git repo", func() {
+
+		BeforeEach(func() {
+			// No flux instance installed
+			createCluster(db, "no-flux-cluster", "Last seen")
+
+			// One flux instance installed
+			createCluster(db, "one-flux-cluster", "Last seen")
+			createFluxInfo(db, "one-flux-cluster", "flux-1", "default", "git@github.com:weaveworks/fluxes-1.git", "master")
+
+			// More than one flux instance installed
+			createCluster(db, "two-flux-cluster", "Last seen")
+			createFluxInfo(db, "two-flux-cluster", "flux-3", "wkp-flux", "git@github.com:weaveworks/fluxes-2.git", "main")
+			createFluxInfo(db, "two-flux-cluster", "flux-4", "kube-system", "git@github.com:weaveworks/fluxes-3.git", "dev")
+		})
+
+		It("should show no button when no flux instance is installed", func() {
+			cluster := pages.FindClusterInList(page, "no-flux-cluster")
+			Eventually(cluster.GitRepoURL).Should(BeFound())
+			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText("Repo not available"))
+		})
+
+		It("should show enabled button when one flux instance is installed", func() {
+			cluster := pages.FindClusterInList(page, "one-flux-cluster")
+			Eventually(cluster.GitRepoURL).Should(BeFound())
+			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(BeEnabled())
+			Eventually(cluster.GitRepoURL.Find("a"), acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(BeFound())
+		})
+
+		It("should show disabled button when more than one flux instance is installed", func() {
+			cluster := pages.FindClusterInList(page, "two-flux-cluster")
+			Eventually(cluster.GitRepoURL).Should(BeFound())
+			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText("Repo not available"))
+		})
+	})
+
+	Describe("The alerts widget!", func() {
+		clusterName := "my-cluster"
+
+		createRecentAlert := func(name, severity string, ago time.Duration) {
+			createAlert(db, clusterName, name, severity, "", time.Second*30, time.Now().UTC().Add(ago*-1))
+		}
+
+		BeforeEach(func() {
+			createCluster(db, clusterName, "Ready")
+			createRecentAlert("alert1", "critical", time.Hour*2)
+			createRecentAlert("alert2", "warning", time.Hour*1)
+			createRecentAlert("alert3", "warning", time.Hour*3)
+		})
+
+		It("should sort the alerts by starts at", func() {
+			AssertAlertsOrder(page, []string{
+				"alert2",
+				"alert1",
+				"alert3",
 			})
 		})
 	})
@@ -276,7 +552,7 @@ func GetDB(t *testing.T) (*gorm.DB, string) {
 	log.Infof("db at %v", f.Name())
 	dbURI := f.Name()
 	require.NoError(t, err)
-	db, err := utils.Open(dbURI, "sqlite", "", "", "")
+	db, err := utils.OpenDebug(dbURI, true)
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)
@@ -365,6 +641,9 @@ func TestMccpUI(t *testing.T) {
 			Expect(webDriver.Destroy()).To(Succeed())
 		}
 
+		if intWebDriver != nil {
+			Expect(intWebDriver.Destroy()).To(Succeed())
+		}
 		// Clean up ui-server and broker
 		cancel()
 		// Wait for the child goroutine to finish, which will only occur when

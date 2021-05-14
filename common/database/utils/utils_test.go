@@ -47,3 +47,26 @@ func TestMigrateTables(t *testing.T) {
 
 	assert.True(t, HasAllTables(testDB))
 }
+
+func TestGetSqliteUri(t *testing.T) {
+	urlTests := []struct {
+		description string
+		uri         string
+		busyTimeout string
+		expected    string
+		err         error
+	}{
+		{"basic", "/db/mccp.db", "5000", "/db/mccp.db?_busy_timeout=5000", nil},
+		{"already there", "/db/mccp.db?_busy_timeout=10000", "5000", "/db/mccp.db?_busy_timeout=10000", nil},
+		{"preserves existing", "/db/mccp.db?foo=bar", "5000", "/db/mccp.db?_busy_timeout=5000&foo=bar", nil},
+		{"don't set for in memory", "", "5000", "", nil},
+	}
+
+	for _, tt := range urlTests {
+		t.Run(tt.description, func(t *testing.T) {
+			result, err := GetSqliteUri(tt.uri, tt.busyTimeout)
+			assert.Equal(t, tt.expected, result)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}

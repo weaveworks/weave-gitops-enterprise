@@ -28,7 +28,7 @@ func GomegaFail(message string, callerSkip ...int) {
 
 // showItems displays the current set of a specified object type in tabular format
 func showItems(itemType string) error {
-	return runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+	return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 }
 
 func TestAcceptance(t *testing.T) {

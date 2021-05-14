@@ -37,6 +37,7 @@ type paramSet struct {
 	dbName         string
 	dbUser         string
 	dbPassword     string
+	dbBusyTimeout  string
 	timeInterval   int
 	batchSize      int
 }
@@ -52,6 +53,7 @@ func init() {
 	Cmd.Flags().StringVar(&globalParams.dbName, "db-name", os.Getenv("DB_NAME"), "database name")
 	Cmd.Flags().StringVar(&globalParams.dbUser, "db-user", os.Getenv("DB_USER"), "database user")
 	Cmd.Flags().StringVar(&globalParams.dbPassword, "db-password", os.Getenv("DB_PASSWORD"), "database password")
+	Cmd.Flags().StringVar(&globalParams.dbBusyTimeout, "db-busy-timeout", "5000", "Sqlite busy timeout option in milliseconds")
 	Cmd.Flags().IntVar(&globalParams.timeInterval, "time-interval", 3, "time interval in seconds for writing messages to the DB")
 	Cmd.Flags().IntVar(&globalParams.batchSize, "batch-size", 100, "batch size of writes")
 	Cmd.PersistentFlags().IntVar(&LogLevel, "log-level", 4, "logging level (0-6)")
@@ -73,7 +75,16 @@ func runCommand(globalParams paramSet) error {
 	initializeQueues(globalParams)
 
 	// Connect to the DB
-	_, err := utils.Open(globalParams.dbURI, globalParams.dbType, globalParams.dbName, globalParams.dbUser, globalParams.dbPassword)
+
+	uri := globalParams.dbURI
+	var err error
+	if globalParams.dbType == "sqlite" {
+		uri, err = utils.GetSqliteUri(globalParams.dbURI, globalParams.dbBusyTimeout)
+		if err != nil {
+			return err
+		}
+	}
+	_, err = utils.Open(uri, globalParams.dbType, globalParams.dbName, globalParams.dbUser, globalParams.dbPassword)
 	if err != nil {
 		log.Fatalf("failed to connect to the database at %s", globalParams.dbURI)
 	}

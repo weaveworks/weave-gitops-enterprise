@@ -403,6 +403,13 @@ func TestReceiveClusterInfo(t *testing.T) {
 	publisher, err := ce.NewClient(sender)
 	require.NoError(t, err)
 
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
+
 	// Publish event
 	info := payload.ClusterInfo{
 		Token: "derp",
@@ -553,8 +560,16 @@ func TestReceiveClusterInfo_SamePayloadReceivedAgain(t *testing.T) {
 	publisher, err := ce.NewClient(sender)
 	require.NoError(t, err)
 
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
+
 	// Publish event
 	info := payload.ClusterInfo{
+		Token: "derp",
 		Cluster: payload.Cluster{
 			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
 			Type: "existinginfra",
@@ -645,8 +660,16 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 	publisher, err := ce.NewClient(sender)
 	require.NoError(t, err)
 
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
+
 	// Publish event
 	info := payload.ClusterInfo{
+		Token: "derp",
 		Cluster: payload.Cluster{
 			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
 			Type: "existinginfra",
@@ -704,6 +727,7 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 
 	// Publish 2nd event
 	info2 := payload.ClusterInfo{
+		Token: "derp",
 		Cluster: payload.Cluster{
 			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
 			Type: "existinginfra",
@@ -749,7 +773,173 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 	assert.Equal(t, info2.Cluster.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
 }
 
+func TestReceiveClusterInfo__NoMatchingCluster(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("", "sqlite", "", "", "")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Publish event
+	info := payload.ClusterInfo{
+		Token: "derp",
+		Cluster: payload.Cluster{
+			ID:   "8cb9581a-1de1-4a7b-ab2d-16791acc8f74",
+			Type: "existinginfra",
+			Nodes: []payload.Node{
+				{
+					MachineID:      "3f28d1dd7291784ed454f52ba0937337",
+					Name:           "derp-wks-1",
+					IsControlPlane: true,
+					KubeletVersion: "v1.19.7",
+				},
+				{
+					MachineID:      "953089b9924d3a45febe69bc3add4683",
+					Name:           "derp-wks-2",
+					IsControlPlane: false,
+					KubeletVersion: "v1.19.3",
+				},
+			},
+		},
+	}
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("ClusterInfo")
+	event.SetTime(time.Now())
+	event.SetSource("test")
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+	cancel()
+
+	// Query db
+	var clusterInfos []models.ClusterInfo
+	clustersResult := db.Find(&clusterInfos)
+	assert.Equal(t, 0, int(clustersResult.RowsAffected))
+	assert.NoError(t, clustersResult.Error)
+}
+
 func TestReceiveAlert(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create an in-memory database
+	db, err := utils.Open("", "sqlite", "", "", "")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+	defer s.Shutdown()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	defer sender.Close(ctx)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
+
+	// Alert dates
+	startDate := time.Now()
+	endDate := startDate.Add(time.Duration(60) * time.Minute)
+	updatedDate := startDate.Add(time.Duration(30) * time.Minute)
+
+	annot := ammodels.LabelSet{
+		"summary":     "Instance down",
+		"description": "Instance has been down for more than 5 minutes.",
+	}
+	labls := ammodels.LabelSet{
+		"severity": "critical",
+	}
+
+	var strSlice = []string{"Test1", "Test2", "Test3"}
+
+	receiverName := "My Receiver 1"
+	receivr := ammodels.Receiver{
+		Name: &receiverName,
+	}
+	receivrs := []*ammodels.Receiver{&receivr}
+
+	gAlert := newAlert("example.com", "test fingerprint", "active",
+		startDate, endDate, updatedDate, annot, labls, strSlice, strSlice, receivrs)
+
+	// Publish event
+	info := payload.PrometheusAlerts{
+		Token: "derp",
+		Alerts: ammodels.GettableAlerts{
+			&gAlert,
+		},
+	}
+	event := ce.NewEvent()
+	event.SetID(uuid.New().String())
+	event.SetType("PrometheusAlerts")
+	event.SetSource("test")
+	event.SetDataContentType("application/json")
+	event.SetDataSchema("test")
+	event.SetSubject("test Alert")
+	event.SetTime(time.Now())
+	err = event.SetData(ce.ApplicationJSON, info)
+	require.NoError(t, err)
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(1 * time.Second)
+	err = publisher.Send(ctx, event)
+	require.NoError(t, err)
+	time.Sleep(1 * time.Second)
+	cancel()
+
+	// Query db
+	var alerts []models.Alert
+	alertsResult := db.Find(&alerts)
+	t.Log(alerts)
+	assert.Equal(t, 1, int(alertsResult.RowsAffected))
+	assert.NoError(t, alertsResult.Error)
+
+	assert.Equal(t, info.Token, string(alerts[0].ClusterToken))
+}
+
+func TestReceiveAlert_NoMatchingCluster(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -830,10 +1020,8 @@ func TestReceiveAlert(t *testing.T) {
 	var alerts []models.Alert
 	alertsResult := db.Find(&alerts)
 	t.Log(alerts)
-	assert.Equal(t, 1, int(alertsResult.RowsAffected))
+	assert.Equal(t, 0, int(alertsResult.RowsAffected))
 	assert.NoError(t, alertsResult.Error)
-
-	assert.Equal(t, info.Token, string(alerts[0].ClusterToken))
 }
 
 func TestReceiveAlert_SameAlertReceivedAgain(t *testing.T) {
@@ -864,6 +1052,13 @@ func TestReceiveAlert_SameAlertReceivedAgain(t *testing.T) {
 	defer sender.Close(ctx)
 	publisher, err := ce.NewClient(sender)
 	require.NoError(t, err)
+
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	utils.DB.Create(&cluster)
 
 	// Alert dates
 	startDate := time.Now()

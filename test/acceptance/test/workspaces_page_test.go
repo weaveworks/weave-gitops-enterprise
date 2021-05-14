@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -74,12 +75,8 @@ var _ = Describe("Workspaces", func() {
 
 		TakeNextScreenshot()
 
-		workspaces := webDriver.All(".MuiTableBody-root tr")
-		Eventually(workspaces, 60*time.Second).Should(HaveCount(1))
-
-		workspace := webDriver.First(".MuiTableBody-root tr td")
-		name, err := workspace.Text()
-		Expect(err).NotTo(HaveOccurred())
-		Expect(name).To(Equal("devs-workspace"))
+		workspaceRow := webDriver.Find(fmt.Sprintf(`tr[data-workspace-name="%s"]`, "devs-workspace"))
+		Eventually(workspaceRow, 60*time.Second).Should(BeFound())
+		Eventually(workspaceRow.First("td")).Should(HaveText("devs-workspace"))
 	})
 })

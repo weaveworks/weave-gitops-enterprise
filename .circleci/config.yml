@@ -258,7 +258,7 @@ commands:
       - run:
           name: download kind
           command: |
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.9.0/kind-linux-amd64
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.10.0/kind-linux-amd64
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
 
@@ -598,7 +598,7 @@ jobs:
 
   acceptance-tests:
     docker:
-      - image: quay.io/wks/build:master-134af34f
+      - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
         environment:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: centos-cloud/centos-7
@@ -606,11 +606,25 @@ jobs:
           NUM_WORKERS: 2
           USE_LB: false
           SKIP_COMPONENTS: false
-          UPGRADE_VERSIONS: '1.19.3'
+          MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
+          MCCP_EKS_LEAF_KUBECONFIG: '/tmp/mccp-eks-leaf-kubeconfig'
+          # Uses a pre existing GCE cluster
+          # Its cluster repo is at https://github.com/wkp-example-org/mccp-acceptance-tests-gce
+          # If the env var below is set, the test will connect the gce cluster to mccp
+          CONNECT_GCE_LEAF_TEST: 'true'
+          # Uses a pre existing EKS cluster
+          # This is not a WKP cluster.
+          # If the env var below is set, the test will connect the eks cluster to mccp
+          CONNECT_EKS_LEAF_TEST: 'true'
+          CONNECT_KIND_WKP_LEAF_TEST: 'true'
+          MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-wkp-leaf-kubeconfig'
+          RUN_MCCP_SUITE_WITH_POSTGRES: 'false'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
+      - install-kind
+      - setup_remote_docker
       - run:
           name: Setup base config.yaml
           command: |
@@ -631,10 +645,17 @@ jobs:
           name: Run Acceptance Tests
           no_output_timeout: 20m
           command: |
-
             export PATH=$GOROOT/bin:$PATH
+            # This needs to be set to false otherwise the local repo is deleted at the end of the creation test
             export CLEANUP_REPO=false
             cd test/integration/test
+
+            # install iam-auth
+            curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/aws-iam-authenticator
+            chmod +x ./aws-iam-authenticator
+            sudo mv ./aws-iam-authenticator /usr/local/bin
+            export AWS_ACCESS_KEY_ID=$WKP_EKS_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$WKP_EKS_AWS_SECRET_ACCESS_KEY
 
             lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
             export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
@@ -648,14 +669,121 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
 
+            # decode GCE kubeconfig and store at path set in MCCP_GCE_LEAF_KUBECONFIG
+            echo $WKP_ACCEPTANCE_GCE_KUBECONFIG
+            echo $WKP_ACCEPTANCE_GCE_KUBECONFIG | base64 -d > $MCCP_GCE_LEAF_KUBECONFIG
+
+            # decode EKS kubeconfig and store at path set in MCCP_EKS_LEAF_KUBECONFIG
+            echo $WKP_ACCEPTANCE_EKS_KUBECONFIG
+            echo $WKP_ACCEPTANCE_EKS_KUBECONFIG | base64 -d > $MCCP_EKS_LEAF_KUBECONFIG
+
             go test -v -run TestClusterCreation --timeout=99999s
+
+            # Update the natsURL in components.js to the node's public IP for the agent in the
+            # GCE cluster to be able to connect
+            cd /tmp/cluster_dir
+            WORKER_NODE_EXTERNAL_IP=$(grep "publicAddress" setup/config.yaml | tail -n 1 | xargs | cut -f 2 -d ' ')
+            echo "found worker node ip in config.yaml ${WORKER_NODE_EXTERNAL_IP}"
+            NATS_NODEPORT=$(kubectl get service -n wkp-gitops-repo-broker nats-client -ojsonpath='{.spec.ports[0].nodePort}')
+            echo "found node port for nats-client service ${NATS_NODEPORT}"
+            sed -i "s/\"natsURL\":.*/\"natsURL\": \"$WORKER_NODE_EXTERNAL_IP:$NATS_NODEPORT\",/" cluster/platform/components.js
+
+            git diff
+            git add cluster/platform/components.js
+            git commit -m"Update nats url in components.js"
+            git push
+            cd -
+
+            kubectl get pods -A
             # Wait for cluster to settle
             sleep 60
+
+            set -x
+            # Install socat locally and start port-forwarding service (required for CircleCI)
+            apt-get install -y curl ca-certificates liblz4-tool rsync socat
+            ../../utils/scripts/start-portforward-service.sh start
+
+            # Create a kind cluster
+            kind create cluster --name my-kind-cluster-01 --config kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
+            # Start port-forward session (required for CircleCI)
+            APISERVER_PORT_WKP=$(kubectl --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG config view -o jsonpath='{.clusters[].cluster.server}' | cut -d: -f 3 -)
+            ../../utils/scripts/portforward.sh $APISERVER_PORT_WKP
+            # Install cluster components
+            export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
+            export SKIP_PROMPT=1
+            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM-$RANDOM"
+            wkp_kind_cluster_dir=$(mktemp -d)
+            cd $wkp_kind_cluster_dir
+            $CIRCLE_WORKING_DIRECTORY/cmd/wk/wk setup install --entitlements=$CIRCLE_WORKING_DIRECTORY/test/ci-wks-unlimited.entitlements
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/track:.*/track: wks-components/" $wkp_kind_cluster_dir/setup/config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" $wkp_kind_cluster_dir/setup/config.yaml
+            sed -i "s/gitProvider:.*/gitProvider: github/" $wkp_kind_cluster_dir/setup/config.yaml
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" $wkp_kind_cluster_dir/setup/config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" $wkp_kind_cluster_dir/setup/config.yaml 
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" $wkp_kind_cluster_dir/setup/config.yaml 
+            $CIRCLE_WORKING_DIRECTORY/cmd/wk/wk setup run --entitlements=$CIRCLE_WORKING_DIRECTORY/test/ci-wks-unlimited.entitlements
+            # Wait until pods are running
+            kubectl wait nodes --all --for=condition=ready --timeout=120s || true
+            kubectl wait pods -n kube-system -l tier=control-plane --for=condition=ready --timeout=120s || true
+            kubectl wait deployment.apps/coredns -n kube-system --for=condition=available --timeout=120s || true
+            kubectl get pods -A
+            kubectl get nodes
+            cd $CIRCLE_WORKING_DIRECTORY/test/integration/test
+            
+            # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
+            unset KUBECONFIG
+            kubectl get pods -A
             export SELENIUM_DEBUG=true
             ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
             cd ../../acceptance/test/
-            go test -v
+            export ACCEPTANCE_TESTS_DATABASE_TYPE=sqlite
+            go test -v --timeout=99999s
+            
+            if [ ${RUN_MCCP_SUITE_WITH_POSTGRES} == "true" ]; then
+              # Deploy postgres
+              kubectl apply -f postgres-manifests.yaml
 
+              # Wait for the postgres deployment to rollout
+              kubectl wait --for=condition=available --timeout=600s deployment/postgres
+
+              cd /tmp/cluster_dir
+              # Get the IP of the postgres service
+              POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
+              sed -i "s/databaseType:.*/databaseType: postgres/" setup/config.yaml
+              sed -i "s/databaseURI:.*/databaseURI: $POSTGRES_CLUSTER_IP/" setup/config.yaml
+              git pull
+              git add setup/config.yaml
+              git commit -m "Set database type to postgres"
+              git push origin master
+
+              kubectl create secret generic -n wkp-gitops-repo-broker mccp-db-credentials --from-literal=username=postgres --from-literal=password=password -oyaml --dry-run > mccp-db-credentials.yaml
+              kubectl apply -f mccp-db-credentials.yaml
+
+              kubectl get pods -A
+
+              RETRIES=0
+              MAX_RETRIES=10
+              until [ ${DB_TYPE} == 'postgres' ]
+              do
+                DB_TYPE=$(kubectl get deployment -n wkp-gitops-repo-broker wkp-event-writer -ojsonpath='{.spec.template.spec.containers[0].env[?(@.name=="DB_TYPE")].value}')
+                echo "Database type should be postgres: ${DB_TYPE}"
+                sleep 5
+                RETRIES=$((RETRIES+1))
+                if [ $RETRIES -ge $MAX_RETRIES ]; then
+                  echo "database type did not update to postgres"
+                  exit 1
+                fi
+              done
+
+              # Run acceptance-tests again with postgres
+              cd $CIRCLE_WORKING_DIRECTORY/test/acceptance/test
+              ACCEPTANCE_TESTS_DATABASE_TYPE=postgres
+              go test -v --timeout=99999s
+            fi
+
+            # Delete the repo backing one of the kind clusters
+            hub delete -y "${WKP_GITHUB_ORG}/${CLUSTER_NAME}"
             if [ $CLEANUP_REPO != "false" ]; then
               hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
             fi
@@ -901,6 +1029,8 @@ jobs:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
           when: on_fail
+      - store_artifacts:
+          path: /tmp/wks-controller-logs.txt
 
   upgrade-ssh-gcp-centos-lb:
     <<: *upgrade-ssh-gcp-centos
@@ -1133,9 +1263,7 @@ jobs:
           when: on_fail
           # Store sonobuoy results as artifact
       - store_test_results:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results/1.18.16
-      - store_test_results:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results/1.19.8
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-part-1
       - store_artifacts:
           path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.18.16.tar.gz
       - store_artifacts:
@@ -1179,9 +1307,9 @@ jobs:
           when: on_fail
           # Store sonobuoy results as artifact
       - store_test_results:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results/1.20.5
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-part-2
       - store_artifacts:
-          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.20.5.tar.gz
+          path: /home/circleci/src/github.com/weaveworks/wks/test/integration/test/sonobuoy-test-results-1.20.2.tar.gz
 
   preflight-ssh-gcp-centos: &preflight-ssh-gcp-centos
     docker:

@@ -1,4 +1,4 @@
-FROM scratch
+FROM docker.io/governmentpaas/git-ssh
 
 COPY wkp-agent /
 

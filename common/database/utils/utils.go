@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net/url"
 
 	"gorm.io/gorm/logger"
 
@@ -47,6 +48,25 @@ func OpenDebug(dbURI string, debug bool) (*gorm.DB, error) {
 	// Set the global database Ref
 	DB = db
 	return db, nil
+}
+
+func GetSqliteUri(uri, dbBusyTimeout string) (string, error) {
+	// Don't set for in mem
+	if uri == "" {
+		return "", nil
+	}
+
+	u, err := url.Parse(uri)
+	if err != nil {
+		return "", err
+	}
+	// if _busy_timeout not already set
+	if u.Query().Get("_busy_timeout") == "" {
+		values := u.Query()
+		values.Set("_busy_timeout", dbBusyTimeout)
+		u.RawQuery = values.Encode()
+	}
+	return u.String(), nil
 }
 
 // MigrateTables creates the database tables given a gorm.DB

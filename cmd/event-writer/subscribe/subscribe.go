@@ -96,6 +96,12 @@ func writeClusterInfo(event ce.Event) error {
 		return errors.New("failed to parse event as ClusterInfo object")
 	}
 
+	var cluster models.Cluster
+	clusterResult := utils.DB.First(&cluster, "token = ?", data.Token)
+	if errors.Is(clusterResult.Error, gorm.ErrRecordNotFound) {
+		log.Warnf("Received ClusterInfo for unknown cluster")
+		return fmt.Errorf("Received ClusterInfo did not match any registered clusters, token: %s", data.Token)
+	}
 	log.Infof("Received ClusterInfo: %s %s.", data.Cluster.ID, data.Cluster.Type)
 
 	dbClusterInfo := converter.ConvertClusterInfo(data)
@@ -129,6 +135,13 @@ func writeAlert(event ce.Event) error {
 	if err := event.DataAs(&data); err != nil {
 		log.Warnf("Failed to parse event as Alert object: %v.", err)
 		return err
+	}
+
+	var cluster models.Cluster
+	clusterResult := utils.DB.First(&cluster, "token = ?", data.Token)
+	if errors.Is(clusterResult.Error, gorm.ErrRecordNotFound) {
+		log.Warnf("Received Alert for unknown cluster")
+		return fmt.Errorf("Received Alert did not match any registered clusters, token: %s", data.Token)
 	}
 
 	log.Infof("Received Alert")

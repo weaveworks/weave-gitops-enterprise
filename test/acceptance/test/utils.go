@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 	"text/template"
 	"time"
 
@@ -45,9 +45,12 @@ const ARTEFACTS_BASE_DIR string = "/tmp/workspace/test/"
 const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
 const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "wkp_junit.xml"
 
-const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second // 15 seconds
-const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute  // 1 Minute
-const ASSERTION_5MINUTES_TIME_OUT time.Duration = 5 * time.Minute // 5 Minutes
+const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second
+const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
+const ASSERTION_1SECOND_TIME_OUT time.Duration = 1 * time.Second
+const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
+const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
+const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -90,11 +93,12 @@ func TakeNextScreenshot() {
 type MCCPTestRunner interface {
 	ResetDatabase() error
 	FireAlert(name, severity, message string, fireFor time.Duration) error
-	KubectlApply(tokenURL string) error
-	KubectlDelete(tokenURL string) error
-	KubectlDeleteAllAgents() error
+	KubectlApply(env []string, tokenURL string) error
+	KubectlDelete(env []string, tokenURL string) error
+	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
+	AddWorkspace(clusterName string) error
 }
 
 // "DB" backend that creates/delete rows
@@ -119,9 +123,13 @@ func (b DatabaseMCCPTestRunner) ResetDatabase() error {
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) KubectlApply(tokenURL string) error {
-	bits := strings.Split(tokenURL, "=")
-	token := bits[len(bits)-1]
+func (b DatabaseMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
+	u, err := url.Parse(tokenURL)
+	if err != nil {
+		return err
+	}
+	token := u.Query()["token"][0]
+
 	b.DB.Create(&models.ClusterInfo{
 		UID:          types.UID(String(10)),
 		ClusterToken: token,
@@ -145,7 +153,7 @@ func (b DatabaseMCCPTestRunner) KubectlApply(tokenURL string) error {
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) KubectlDelete(tokenURL string) error {
+func (b DatabaseMCCPTestRunner) KubectlDelete(env []string, tokenURL string) error {
 	//
 	// No more cluster_infos will be created anyway..
 	// FIXME: maybe we add a polling loop that keeps creating cluster_info while its connected
@@ -153,7 +161,7 @@ func (b DatabaseMCCPTestRunner) KubectlDelete(tokenURL string) error {
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) KubectlDeleteAllAgents() error {
+func (b DatabaseMCCPTestRunner) KubectlDeleteAllAgents(env []string) error {
 	// No more cluster_infos will be created anyway..
 	return nil
 }
@@ -186,6 +194,19 @@ func (b DatabaseMCCPTestRunner) FireAlert(name, severity, message string, fireFo
 	return nil
 }
 
+func (b DatabaseMCCPTestRunner) AddWorkspace(clusterName string) error {
+	var firstCluster models.Cluster
+	b.DB.Where("Name = ?", clusterName).First(&firstCluster)
+
+	b.DB.Create(&models.Workspace{
+		ClusterToken: firstCluster.Token,
+		Name:         "mccp-devs-workspace",
+		Namespace:    "wkp-workspace",
+	})
+
+	return nil
+}
+
 // "Real" backend that call kubectl and posts to alertmanagement
 
 type RealMCCPTestRunner struct{}
@@ -199,19 +220,36 @@ func (b RealMCCPTestRunner) TimeTravelToAlertsResolved() error {
 }
 
 func (b RealMCCPTestRunner) ResetDatabase() error {
-	return runCommandPassThrough("../../utils/scripts/mccp-setup-helpers.sh", "reset")
+	return runCommandPassThrough([]string{}, "../../utils/scripts/mccp-setup-helpers.sh", "reset")
 }
 
-func (b RealMCCPTestRunner) KubectlApply(tokenURL string) error {
-	return runCommandPassThrough("kubectl", "apply", "-f", tokenURL)
+func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
+	fmt.Println("Leaf cluster pods before apply")
+	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
+		fmt.Printf("Error getting leaf cluster pods before apply: %v\n", err)
+	}
+	fmt.Println("Leaf cluster events before apply")
+	if err := runCommandPassThrough(env, "kubectl", "get", "events", "-A"); err != nil {
+		fmt.Printf("Error getting leaf cluster events before apply: %v\n", err)
+	}
+	err := runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
+	fmt.Println("Leaf cluster pods after apply")
+	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
+		fmt.Printf("Error getting leaf cluster pods after apply: %v\n", err)
+	}
+	fmt.Println("Leaf cluster events after apply")
+	if err := runCommandPassThrough(env, "kubectl", "get", "events", "-A"); err != nil {
+		fmt.Printf("Error getting leaf cluster events after apply: %v\n", err)
+	}
+	return err
 }
 
-func (b RealMCCPTestRunner) KubectlDelete(tokenURL string) error {
-	return runCommandPassThrough("kubectl", "delete", "-f", tokenURL)
+func (b RealMCCPTestRunner) KubectlDelete(env []string, tokenURL string) error {
+	return runCommandPassThrough(env, "kubectl", "delete", "-f", tokenURL)
 }
 
-func (b RealMCCPTestRunner) KubectlDeleteAllAgents() error {
-	return runCommandPassThrough("kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
+func (b RealMCCPTestRunner) KubectlDeleteAllAgents(env []string) error {
+	return runCommandPassThrough(env, "kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
 }
 
 func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
@@ -275,10 +313,25 @@ func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor ti
 	return nil
 }
 
+func (b RealMCCPTestRunner) AddWorkspace(clusterName string) error {
+	return runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
+}
+
 // Run a command, passing through stdout/stderr to the OS standard streams
-func runCommandPassThrough(name string, arg ...string) error {
+func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
+	if len(env) > 0 {
+		cmd.Env = env
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+func getEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+	return value
 }

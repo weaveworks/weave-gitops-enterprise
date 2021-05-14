@@ -109,6 +109,8 @@ var allComponents = func(track string) []Component {
 	return components
 }
 
+var tmpDirPath = "/tmp/cluster_dir"
+
 func (c *context) checkComponentRunning(component Component) bool {
 	found := false
 	for retry := 0; retry < defaultRetries; retry++ {
@@ -175,9 +177,9 @@ func (c *context) checkResourceRunning(component Component) bool {
 // test tasks. Methods on the context object can be used to implement integration tests and manage
 // temporary directories, git repositories, and clusters.
 func getContext(t *testing.T) *context {
-	tmpDir, err := ioutil.TempDir("", "tmp_dir")
+	err := os.Mkdir(tmpDirPath, 0755)
 	require.NoError(t, err)
-	return getContextFrom(t, tmpDir)
+	return getContextFrom(t, tmpDirPath)
 }
 
 func getContextFrom(t *testing.T, tmpDir string) *context {
@@ -849,6 +851,17 @@ func (c *context) runCommandPassThrough(name string, arg ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+// Run kubectl to print all events to stdout, and carry on running in background
+func (c *context) showAllEvents() {
+	go func() {
+		for {
+			err := c.runCommandPassThrough("kubectl", "get", "events", "--all-namespaces", "--watch-only")
+			fmt.Fprintf(os.Stderr, "kubectl get events exited: %v\n", err)
+			time.Sleep(time.Second) // don't restart too quickly
+		}
+	}()
 }
 
 // findTeamAccess returns team access permission to a specific repo
