@@ -83,12 +83,13 @@ func AssertAlertsOrder(clustersPage *pages.ClustersPage, alertNames []string) {
 	Consistently(getAlertNames, acceptancetest.ASSERTION_10SECONDS_TIME_OUT).Should(Equal(alertNames))
 }
 
-func createCluster(db *gorm.DB, name, status string) {
+func createCluster(db *gorm.DB, name string, clusterType string, status string) {
 	db.Create(&models.Cluster{Name: name, Token: name})
 	if status == "Ready" {
 		db.Create(&models.ClusterInfo{
 			UID:          types.UID(name),
 			ClusterToken: name,
+			Type:         clusterType,
 			UpdatedAt:    time.Now().UTC(),
 		})
 	} else if status == "Not Connected" {
@@ -98,12 +99,14 @@ func createCluster(db *gorm.DB, name, status string) {
 		db.Create(&models.ClusterInfo{
 			UID:          types.UID(name),
 			ClusterToken: name,
+			Type:         clusterType,
 			UpdatedAt:    time.Now().UTC().Add(time.Minute * -2),
 		})
 	} else if status == "Alerting" {
 		db.Create(&models.ClusterInfo{
 			UID:          types.UID(name),
 			ClusterToken: name,
+			Type:         clusterType,
 			UpdatedAt:    time.Now().UTC(),
 		})
 		createAlert(db, name, "ExampleAlert", "warning", "oh no", time.Second*30, time.Now().UTC())
@@ -111,6 +114,7 @@ func createCluster(db *gorm.DB, name, status string) {
 		db.Create(&models.ClusterInfo{
 			UID:          types.UID(name),
 			ClusterToken: name,
+			Type:         clusterType,
 			UpdatedAt:    time.Now().UTC(),
 		})
 		createAlert(db, name, "ExampleAlert", "critical", "oh no", time.Second*30, time.Now().UTC())
@@ -122,6 +126,14 @@ func AssertTooltipContains(page *pages.ClustersPage, element *agouti.Selection, 
 	Expect(element.MouseToElement()).Should(Succeed())
 	Eventually(page.Tooltip).Should(BeFound())
 	Eventually(page.Tooltip, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(MatchText(text))
+}
+
+func AssertClusterIconIsDisplayed(icon *agouti.Selection, shouldBeFound bool) {
+	if shouldBeFound {
+		Eventually(icon, acceptancetest.ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+	} else {
+		Eventually(icon, acceptancetest.ASSERTION_1MINUTE_TIME_OUT).ShouldNot(BeFound())
+	}
 }
 
 func createNodeInfo(db *gorm.DB, clusterName, name, version string, isControlPlane bool) {
@@ -208,7 +220,7 @@ var _ = Describe("Integration suite", func() {
 
 			BeforeEach(func() {
 				name := "ewq"
-				createCluster(db, name, "Last seen")
+				createCluster(db, name, "", "Last seen")
 				db.Create(&models.NodeInfo{
 					ClusterToken:   name,
 					Name:           "cp-1",
@@ -235,14 +247,44 @@ var _ = Describe("Integration suite", func() {
 		})
 	})
 
+	Describe("Cluster type icons!", func() {
+		var kindCluster *pages.ClusterInformation
+		var gkeCluster *pages.ClusterInformation
+		var awsCluster *pages.ClusterInformation
+		var eiCluster *pages.ClusterInformation
+		var unknownCluster *pages.ClusterInformation
+
+		BeforeEach(func() {
+			createCluster(db, "kind", "kind", "Last seen")
+			createCluster(db, "gke", "gke", "Last seen")
+			createCluster(db, "aws", "aws", "Last seen")
+			createCluster(db, "existingInfra", "existingInfra", "Last seen")
+			createCluster(db, "unknown", "unknown", "Last seen")
+		})
+
+		It("should show the corresponding cluster type icon if exists", func() {
+			kindCluster = pages.FindClusterInList(page, "kind")
+			gkeCluster = pages.FindClusterInList(page, "gke")
+			awsCluster = pages.FindClusterInList(page, "aws")
+			eiCluster = pages.FindClusterInList(page, "existingInfra")
+			unknownCluster = pages.FindClusterInList(page, "unknown")
+
+			AssertClusterIconIsDisplayed(kindCluster.Icon, true)
+			AssertClusterIconIsDisplayed(gkeCluster.Icon, true)
+			AssertClusterIconIsDisplayed(awsCluster.Icon, true)
+			AssertClusterIconIsDisplayed(eiCluster.Icon, true)
+			AssertClusterIconIsDisplayed(unknownCluster.Icon, false)
+		})
+	})
+
 	Describe("Sorting clusters!", func() {
 		BeforeEach(func() {
 			// Create some stuff in the db
-			createCluster(db, "cluster-1-ready", "Ready")
-			createCluster(db, "cluster-2-critical", "Critical")
-			createCluster(db, "cluster-3-alerting", "Alerting")
-			createCluster(db, "cluster-4-not-connected", "Not Connected")
-			createCluster(db, "cluster-5-last-seen", "Last seen")
+			createCluster(db, "cluster-1-ready", "", "Ready")
+			createCluster(db, "cluster-2-critical", "", "Critical")
+			createCluster(db, "cluster-3-alerting", "", "Alerting")
+			createCluster(db, "cluster-4-not-connected", "", "Not Connected")
+			createCluster(db, "cluster-5-last-seen", "", "Last seen")
 		})
 
 		Describe("How clicking on the headers should sort things", func() {
@@ -361,32 +403,32 @@ var _ = Describe("Integration suite", func() {
 	Describe("Version(Nodes)", func() {
 		BeforeEach(func() {
 			// Similar control planes, different worker nodes
-			createCluster(db, "cluster-1", "Last seen")
+			createCluster(db, "cluster-1", "", "Last seen")
 			createNodeInfo(db, "cluster-1", "cp-1", "v1.19.7", true)
 			createNodeInfo(db, "cluster-1", "cp-2", "v1.19.7", true)
 			createNodeInfo(db, "cluster-1", "worker-1", "v1.19.4", false)
 			createNodeInfo(db, "cluster-1", "worker-2", "v1.19.4", false)
 
 			// Different control planes and similar worker nodes
-			createCluster(db, "cluster-2", "Last seen")
+			createCluster(db, "cluster-2", "", "Last seen")
 			createNodeInfo(db, "cluster-2", "cp-1", "v1.19.7", true)
 			createNodeInfo(db, "cluster-2", "cp-2", "v1.19.4", true)
 			createNodeInfo(db, "cluster-2", "worker-1", "v1.19.4", false)
 			createNodeInfo(db, "cluster-2", "worker-2", "v1.19.4", false)
 
 			// Similar control planes and worker nodes
-			createCluster(db, "cluster-3", "Last seen")
+			createCluster(db, "cluster-3", "", "Last seen")
 			createNodeInfo(db, "cluster-3", "cp-1", "v1.19.7", true)
 			createNodeInfo(db, "cluster-3", "worker-1", "v1.19.7", false)
 			createNodeInfo(db, "cluster-3", "worker-2", "v1.19.7", false)
 
 			// Similar worker nodes
-			createCluster(db, "cluster-4", "Last seen")
+			createCluster(db, "cluster-4", "", "Last seen")
 			createNodeInfo(db, "cluster-4", "worker-1", "v1.19.7", false)
 			createNodeInfo(db, "cluster-4", "worker-2", "v1.19.7", false)
 
 			// Different worker nodes
-			createCluster(db, "cluster-5", "Last seen")
+			createCluster(db, "cluster-5", "", "Last seen")
 			createNodeInfo(db, "cluster-5", "worker-1", "v1.19.7", false)
 			createNodeInfo(db, "cluster-5", "worker-2", "v1.19.7", false)
 			createNodeInfo(db, "cluster-5", "worker-3", "v1.19.4", false)
@@ -430,14 +472,14 @@ var _ = Describe("Integration suite", func() {
 
 		BeforeEach(func() {
 			// No flux instance installed
-			createCluster(db, "no-flux-cluster", "Last seen")
+			createCluster(db, "no-flux-cluster", "", "Last seen")
 
 			// One flux instance installed
-			createCluster(db, "one-flux-cluster", "Last seen")
+			createCluster(db, "one-flux-cluster", "", "Last seen")
 			createFluxInfo(db, "one-flux-cluster", "flux-1", "default", "git@github.com:weaveworks/fluxes-1.git", "master")
 
 			// More than one flux instance installed
-			createCluster(db, "two-flux-cluster", "Last seen")
+			createCluster(db, "two-flux-cluster", "", "Last seen")
 			createFluxInfo(db, "two-flux-cluster", "flux-3", "wkp-flux", "git@github.com:weaveworks/fluxes-2.git", "main")
 			createFluxInfo(db, "two-flux-cluster", "flux-4", "kube-system", "git@github.com:weaveworks/fluxes-3.git", "dev")
 		})
@@ -470,7 +512,7 @@ var _ = Describe("Integration suite", func() {
 		}
 
 		BeforeEach(func() {
-			createCluster(db, clusterName, "Ready")
+			createCluster(db, clusterName, "", "Ready")
 			createRecentAlert("alert1", "critical", time.Hour*2)
 			createRecentAlert("alert2", "warning", time.Hour*1)
 			createRecentAlert("alert3", "warning", time.Hour*3)

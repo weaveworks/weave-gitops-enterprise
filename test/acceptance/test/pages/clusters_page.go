@@ -60,7 +60,7 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr[data-cluster-name="%s"]`, clusterName))
 	return &ClusterInformation{
 		Name:           cluster.FindByXPath(`td[1]`),
-		Icon:           cluster.FindByXPath(`td[2]`),
+		Icon:           cluster.FindByXPath(`td[2]`).Find(`svg`),
 		Status:         cluster.FindByXPath(`td[3]`),
 		GitActivity:    cluster.FindByXPath(`td[4]`),
 		NodesVersions:  cluster.FindByXPath(`td[5]`),
