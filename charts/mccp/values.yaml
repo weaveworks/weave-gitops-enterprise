@@ -47,9 +47,8 @@ wkp-ui:
   featureGates:
     fleetManagement: true
   image:
-    tag: mccp-helm-chart-1176ca3b
-    pullSecrets:
-      - docker-io-pull-secret
+    tag: v2.5.0
+    pullSecrets: []
   ingress:
     annotations:
       kubernetes.io/ingress.class: mccp-nginx
