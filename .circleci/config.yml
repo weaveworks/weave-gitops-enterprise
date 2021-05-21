@@ -65,20 +65,10 @@ workflows:
       - fast-integration-tests:
           requires:
             - build
-      - trigger-integration-tests:
-          requires:
-            - fast-integration-tests
-          filters:
-            branches:
-              only:
-                - master
       - mccp-acceptance-tests:
           requires:
             - build
             - ui-backend-integration-tests
-      - wkp-acceptance-tests:
-          requires:
-            - build
 
   run-integration-tests:
     when: << pipeline.parameters.run_integration_tests >>
@@ -97,10 +87,7 @@ workflows:
       - workspaces-tests
       - existing-cluster-tests
       - cluster-components-on-kind-1-18
-      - build
-      - third-party-dependencies-check:
-          requires:
-            - build
+      - wkp-acceptance-tests
 
   nightly:
     triggers:
@@ -116,13 +103,13 @@ workflows:
           <<: *nightlyTestConfig
       - upgrade-to-latest-patch:
           <<: *nightlyTestConfig
-      - workspaces-tests:
-          <<: *nightlyTestConfig
       - ssh-key-file-variations:
           <<: *nightlyTestConfig
       - creation-gcp-rhel7-k8s120-lb:
           <<: *nightlyTestConfig
       - creation-gcp-rhel7-k8s119-lb:
+          <<: *nightlyTestConfig
+      - trigger-integration-tests:
           <<: *nightlyTestConfig
 
   weekly:
