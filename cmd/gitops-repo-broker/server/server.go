@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/agent"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/branches"
@@ -40,7 +41,7 @@ type ParamSet struct {
 func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 	privKey, err := ioutil.ReadFile(params.PrivKeyFile)
 	if err != nil {
-		return nil, err
+		log.Info("Error reading private key, starting in MCCP only mode")
 	}
 
 	uri := params.DbURI

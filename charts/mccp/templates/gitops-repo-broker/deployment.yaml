@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mccp.fullname" . }}-gitops-repo-broker
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: gitops-repo-broker
+  template:
+    metadata:
+      labels:
+        name: gitops-repo-broker
+        {{- include "mccp.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if eq .Values.dbConfig.databaseType "sqlite" }}
+      {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
+      nodeSelector:
+        wkp-database-volume-node: "true"
+      {{- end }}
+      {{- end }}
+      volumes:
+      - name: git-key
+        secret:
+          secretName: git-deploy-key
+          defaultMode: 0400 # when mounted read-only, we won't be able to chmod
+      - name: ssh-config
+        configMap:
+          name: gitops-broker-ssh-config
+      {{- if eq .Values.dbConfig.databaseType "sqlite" }}
+      - name: database-volume
+        {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
+        hostPath:
+          path: {{ .Values.dbConfig.sqliteConfig.path }}
+        {{- end }}
+        {{- if .Values.dbConfig.sqliteConfig.persistentVolumeClaim }}
+        persistentVolumeClaim:
+          claimName: mccp-volume
+        {{- end }}
+      {{- end }}
+      containers:
+      - name: gitops-repo-broker
+        image: {{ .Values.images.gitopsRepoBroker }}
+        imagePullPolicy: IfNotPresent
+        args:
+        - --git-url=dummy
+        - --git-branch=main
+        - --git-private-key-file=/etc/wkp-gitops-repo-broker/ssh/identity
+        # NATS_AUTH_TOKEN comes from nats-env-vars-secret
+        - --agent-template-nats-url={{ .Values.agentTemplate.natsScheme }}://$(NATS_AUTH_TOKEN)@{{ .Values.agentTemplate.natsURL }}
+
+        envFrom:
+        - secretRef:
+            name: nats-env-vars-secret
+
+        env:
+          - name: DB_URI
+            value: {{ .Values.dbConfig.databaseURI }}
+          - name: DB_TYPE
+            value: {{ .Values.dbConfig.databaseType }}
+          - name: DB_NAME
+            value: {{ .Values.dbConfig.postgresConfig.databaseName }}
+          {{- if eq .Values.dbConfig.databaseType "postgres" }}
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: mccp-db-credentials
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mccp-db-credentials
+                key: password
+          {{- end }}
+        volumeMounts:
+        - name: git-key
+          mountPath: /etc/wkp-gitops-repo-broker/ssh # to match location given in image's /etc/ssh/config
+          readOnly: true # this will be the case perforce in K8s >=1.10
+        - name: ssh-config
+          mountPath: /root/.ssh
+        {{- if eq .Values.dbConfig.databaseType "sqlite" }}
+        - name: database-volume
+          mountPath: /var/database
+        {{- end }}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        ports:
+        - containerPort: 8000 # informational
+        livenessProbe:
+          httpGet:
+            path: /gitops/healthz
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 3
+          periodSeconds: 5

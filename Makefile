@@ -49,6 +49,10 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))):$(IMAGE_TAG)
 	touch $@
 
+charts:
+	sed -i "s|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker.*|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker:$(IMAGE_TAG)|" charts/mccp/values.yaml
+	sed -i "s|eventWriter: docker.io/weaveworks/wkp-event-writer.*|eventWriter: docker.io/weaveworks/wkp-event-writer:$(IMAGE_TAG)|" charts/mccp/values.yaml
+
 # Get a list of directories containing Dockerfiles
 DOCKERFILES := $(shell find . \
 	-name tools -prune -o \

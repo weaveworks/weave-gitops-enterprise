@@ -1,0 +1,72 @@
+# Default values for mccp.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+
+images:
+  eventWriter: docker.io/weaveworks/wkp-event-writer:v2.5.0
+  gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker:v2.5.0
+
+dbConfig:
+  databaseType: sqlite
+  databaseURI: /var/database/mccp.db
+  sqliteConfig:
+    hostPathVolume: true
+    path: /home/wks/database
+    persistentVolumeClaim: false
+  postgresConfig:
+    databaseName: postgres
+
+gitopsRepoBroker:
+  gitDeployKeySecretName: ''
+  sshConfigMapName: ''
+
+agentTemplate:
+  natsScheme: nats
+  natsURL: nats-client.wkp-mccp:4222
+
+nats:
+  auth:
+    enabled: true
+    user: ''
+    token: $NATS_AUTH_TOKEN
+  client:
+    service:
+      type: NodePort
+  extraEnvVarsSecret: nats-env-vars-secret
+
+nginx-ingress-controller:
+  ingressClass: mccp-nginx
+  config:
+    ssl-redirect: 'false'
+
+wkp-ui:
+  featureGates:
+    fleetManagement: true
+  image:
+    tag: mccp-helm-chart-1176ca3b
+    pullSecrets:
+      - docker-io-pull-secret
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: mccp-nginx
+  config:
+    featureGates:
+      fleetManagement: true
+    clusterInfo:
+      name: 'MCCP'
+    homepage:
+      # disable all the other bits of wkp-ui
+      alertNotifications:
+        enabled: false
+      clusterResources:
+        enabled: false
+      nodesOverview:
+        enabled: false
+      clusterComponents:
+        enabled: false
+      gitBranches:
+        enabled: false

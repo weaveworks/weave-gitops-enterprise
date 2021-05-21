@@ -59,3 +59,6 @@ tf.json
 
 #IDE specific folder
 .idea
+
+# ignore sub-charts pulled in during dev
+charts/mccp/charts

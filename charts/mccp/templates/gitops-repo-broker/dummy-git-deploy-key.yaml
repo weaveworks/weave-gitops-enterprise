@@ -1,0 +1,11 @@
+{{- if eq .Values.gitopsRepoBroker.gitDeployKeySecretName "" }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: git-deploy-key
+  namespace: {{ .Release.Namespace | quote }}
+type: Opaque
+data:
+  identity: {{ "dummy" | b64enc }}
+{{- end }}

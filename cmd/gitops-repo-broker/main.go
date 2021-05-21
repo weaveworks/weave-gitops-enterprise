@@ -33,14 +33,8 @@ var globalParams server.ParamSet
 
 func init() {
 	cmd.Flags().StringVar(&globalParams.PrivKeyFile, "git-private-key-file", "", "Path to a SSH private key that is authorized for pull/push from/to the git repo specified by --git-url")
-	cobra.MarkFlagRequired(cmd.Flags(), "private-key-file")
-
 	cmd.Flags().StringVar(&globalParams.GitURL, "git-url", "", "Remote URL of the GitOps repository. Only the SSH protocol is supported. No HTTP/HTTPS.")
-	cobra.MarkFlagRequired(cmd.Flags(), "git-url")
-
 	cmd.Flags().StringVar(&globalParams.GitBranch, "git-branch", "master", "Branch that will be used by GitOps")
-	cobra.MarkFlagRequired(cmd.Flags(), "git-branch")
-
 	cmd.Flags().StringVar(&globalParams.GitPath, "git-path", "/", "Subdirectory of the GitOps repository where configuration as code can be found.")
 	cmd.Flags().DurationVar(&globalParams.HttpReadTimeout, "http-read-timeout", 30*time.Second, "ReadTimeout is the maximum duration for reading the entire request, including the body.")
 	cmd.Flags().DurationVar(&globalParams.HttpWriteTimeout, "http-write-timeout", 30*time.Second, "WriteTimeout is the maximum duration before timing out writes of the response.")

@@ -1,0 +1,12 @@
+dependencies:
+- name: nats
+  repository: https://charts.bitnami.com/bitnami
+  version: 6.1.2
+- name: nginx-ingress-controller
+  repository: https://charts.bitnami.com/bitnami
+  version: 7.4.7
+- name: wkp-ui
+  repository: file://../../ui/chart/wkp-ui
+  version: 0.1.0
+digest: sha256:aff11aae02e840a2397d5001f5739765895a43511d8f145300ddd4a2df0064db
+generated: "2021-05-11T20:02:33.709847+02:00"
