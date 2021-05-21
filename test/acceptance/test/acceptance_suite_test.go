@@ -44,7 +44,14 @@ func TestAcceptance(t *testing.T) {
 	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
 
-	DescribeMCCPAcceptance(RealMCCPTestRunner{})
+	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
+		DescribeMCCPAcceptance(RealMCCPTestRunner{})
+	}
+
+	if os.Getenv("WKP_ACCEPTANCE") == "true" {
+		DescribeWKPUIAcceptance()
+		DescribeWorkspacesAcceptance()
+	}
 
 	//JUnit style test report
 	junitReporter := reporters.NewJUnitReporter(JUNIT_TEST_REPORT_FILE)

@@ -72,10 +72,13 @@ workflows:
             branches:
               only:
                 - master
-      - acceptance-tests:
+      - mccp-acceptance-tests:
           requires:
             - build
             - ui-backend-integration-tests
+      - wkp-acceptance-tests:
+          requires:
+            - build
 
   run-integration-tests:
     when: << pipeline.parameters.run_integration_tests >>
@@ -110,8 +113,6 @@ workflows:
     jobs:
       - build
       - third-party-dependencies-check:
-          <<: *nightlyTestConfig
-      - cluster-components-gcp:
           <<: *nightlyTestConfig
       - upgrade-to-latest-patch:
           <<: *nightlyTestConfig
@@ -596,7 +597,7 @@ jobs:
             eksctl delete cluster -f eks-cluster.yaml || echo "no worries"
           when: on_fail
 
-  acceptance-tests:
+  mccp-acceptance-tests:
     docker:
       - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
         environment:
@@ -606,6 +607,8 @@ jobs:
           NUM_WORKERS: 2
           USE_LB: false
           SKIP_COMPONENTS: false
+          # Only run MCCP Acceptance tests (not wkp)
+          MCCP_ACCEPTANCE: true
           MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
           MCCP_EKS_LEAF_KUBECONFIG: '/tmp/mccp-eks-leaf-kubeconfig'
           # Uses a pre existing GCE cluster
@@ -790,6 +793,85 @@ jobs:
 
             cd ../../integration/test
 
+            ../bin/internal/run-integration-tests.sh destroy
+      - run:
+          # Ensures that the GCP resources are deleted even if the previous step fails
+          name: Destroy GCP resources
+          command: |
+            cd test/integration/test
+            ../bin/internal/run-integration-tests.sh destroy
+          when: on_fail
+      - store_artifacts:
+          path: /tmp/workspace/test
+      - store_test_results:
+          path: /tmp/workspace/test
+
+  wkp-acceptance-tests:
+    docker:
+      - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
+        environment:
+          <<: *integrationTestCommonEnv
+          IMAGE_NAME: centos-cloud/centos-7
+          NUM_MASTERS: 1
+          NUM_WORKERS: 2
+          USE_LB: false
+          SKIP_COMPONENTS: false
+          # Only run WKP Acceptance tests (not mccp)
+          WKP_ACCEPTANCE: true
+      - image: selenium/standalone-chrome:latest
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    steps:
+      - setup-integration-test-env
+      - run:
+          name: Setup base config.yaml
+          command: |
+            cd test/integration/test
+            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
+            # create file with docker password
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
+            sed -i "s/track:.*/track: wks-ssh/" config.yaml
+            sed -i "s/sshUser:.*/sshUser: weaveworks-cit/" config.yaml
+            sed -i "s|sshKeyFile:.*|sshKeyFile: /root/.ssh/weaveworks_cit_id_rsa|" config.yaml
+            sed -i "s|podCIDRBlocks:.*|podCIDRBlocks: [$POD_CIDR_BLOCK]|" config.yaml
+            sed -i "s|serviceCIDRBlocks:.*|serviceCIDRBlocks: [$SERVICE_CIDR_BLOCK]|" config.yaml
+      - run:
+          name: Run Acceptance Tests
+          no_output_timeout: 20m
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            # This needs to be set to false otherwise the local repo is deleted at the end of the creation test
+            export CLEANUP_REPO=false
+            cd test/integration/test
+
+            lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
+            export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
+            export USE_IMAGE=0
+            # provision $NUM_HOSTS GCE VMs
+            ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
+
+            # e.g. wkp-ci-test-bot from 1passwords
+            export ADD_TEAM_WORKSPACE_TOKEN=true
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
+
+            go test -v -run TestClusterCreation --timeout=99999s
+
+            export SELENIUM_DEBUG=true
+
+            ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
+            cd ../../acceptance/test/
+            go test -v --timeout=99999s
+
+            if [ $CLEANUP_REPO != "false" ]; then
+              hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
+            fi
+
+            cd ../../integration/test
             ../bin/internal/run-integration-tests.sh destroy
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
@@ -1141,76 +1223,6 @@ jobs:
           path: /tmp/workspace/test
       - store_test_results:
           path: /tmp/workspace/test
-
-  cluster-components-gcp:
-    docker:
-      - image: quay.io/wks/build:master-134af34f
-        environment:
-          <<: *integrationTestCommonEnv
-          SKIP_COMPONENTS: false
-          CLUSTER_VERSIONS: '1.20.2'
-          NUM_MASTERS: 1
-          NUM_WORKERS: 1
-          IMAGE_NAME: centos-cloud/centos-7
-      - image: selenium/standalone-chrome:latest
-    working_directory: /home/circleci/src/github.com/weaveworks/wks
-    steps:
-      - setup-integration-test-env
-      - run:
-          <<: *setup-base-gce-config-yaml
-      - run:
-          name: Run e2e tests
-          command: |
-            export PATH=$GOROOT/bin:$PATH
-
-            cd test/integration/test
-            # WKP UI reads values from the repository
-            export CLEANUP_REPO=false
-
-            # provision GCE VMs
-            USE_IMAGE=0 NUM_HOSTS=2 ../bin/internal/run-integration-tests.sh up
-            ../bin/internal/update-config-with-node-info.sh 1 false
-
-            # e.g. wkp-ci-test-bot from 1passwords
-            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-            export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
-
-            # Create a cluster and test workspaces
-            # FIXME: this is quite brittle and prone to breaking
-            # We use the first workspaces test to create a cluster and load in a provider token so we can
-            # start creating workspaces via the UI here.
-            go test -v -run "TestWorkspaces/Test that workspaces components are running" --timeout=99999s
-
-            # Wait for that test to propagate and settle
-            sleep 120
-
-            export SELENIUM_DEBUG=true
-            ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
-            cd ../../acceptance/test/
-            go test -v
-
-            if [ $CLEANUP_REPO != "false" ]; then
-              hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
-            fi
-
-            cd ../../integration/test
-            ../bin/internal/run-integration-tests.sh destroy
-      - run:
-          # Ensures that the GCP resources are deleted even if the previous step fails
-          name: Destroy GCP resources
-          command: |
-            cd test/integration/test
-            ../bin/internal/run-integration-tests.sh destroy
-
-            # delete the github repository if it's hanging
-            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
-            hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
-          when: on_fail
-          # Store artefacts
-      - store_artifacts:
-          path: /tmp/workspace
-      - store_test_results:
-          path: /tmp/workspace
 
   conformance-tests-sonobuoy-p1:
     <<: *creation-ssh-gcp-centos
