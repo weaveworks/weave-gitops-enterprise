@@ -44,11 +44,13 @@ func TestAcceptance(t *testing.T) {
 	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
 
+	defaultSuite := true
 	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
 		DescribeMCCPAcceptance(RealMCCPTestRunner{})
+		defaultSuite = false
 	}
 
-	if os.Getenv("WKP_ACCEPTANCE") == "true" {
+	if os.Getenv("WKP_ACCEPTANCE") == "true" || defaultSuite {
 		DescribeWKPUIAcceptance()
 		DescribeWorkspacesAcceptance()
 	}
