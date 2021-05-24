@@ -21,6 +21,9 @@ dbConfig:
     databaseName: postgres
 
 gitopsRepoBroker:
+  gitRepo:
+    url: ''
+    branch: ''
   gitDeployKeySecretName: ''
   sshConfigMapName: ''
 

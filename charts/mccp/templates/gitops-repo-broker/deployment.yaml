@@ -50,8 +50,8 @@ spec:
         image: {{ .Values.images.gitopsRepoBroker }}
         imagePullPolicy: IfNotPresent
         args:
-        - --git-url=dummy
-        - --git-branch=main
+        - --git-url={{ default "" .Values.gitopsRepoBroker.gitRepo.url }}
+        - --git-branch={{ default "" .Values.gitopsRepoBroker.gitRepo.branch }}
         - --git-private-key-file=/etc/wkp-gitops-repo-broker/ssh/identity
         # NATS_AUTH_TOKEN comes from nats-env-vars-secret
         - --agent-template-nats-url={{ .Values.agentTemplate.natsScheme }}://$(NATS_AUTH_TOKEN)@{{ .Values.agentTemplate.natsURL }}
