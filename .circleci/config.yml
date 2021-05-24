@@ -595,7 +595,7 @@ jobs:
           USE_LB: false
           SKIP_COMPONENTS: false
           # Only run MCCP Acceptance tests (not wkp)
-          MCCP_ACCEPTANCE: true
+          MCCP_ACCEPTANCE: false
           MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
           MCCP_EKS_LEAF_KUBECONFIG: '/tmp/mccp-eks-leaf-kubeconfig'
           # Uses a pre existing GCE cluster
