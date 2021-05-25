@@ -61,14 +61,14 @@ workflows:
       - container-tests
       - unit-tests
       - unit-tests-with-coverage
-      - ui-backend-integration-tests
+      - mccp-ui-backend-integration-tests
       - fast-integration-tests:
           requires:
             - build
       - mccp-acceptance-tests:
           requires:
             - build
-            - ui-backend-integration-tests
+            - mccp-ui-backend-integration-tests
 
   run-integration-tests:
     when: << pipeline.parameters.run_integration_tests >>
@@ -616,9 +616,9 @@ jobs:
           <<: *integrationTestCommonEnv
           IMAGE_NAME: centos-cloud/centos-7
           NUM_MASTERS: 1
-          NUM_WORKERS: 2
+          NUM_WORKERS: 1
           USE_LB: false
-          SKIP_COMPONENTS: false
+          SKIP_COMPONENTS: true
           # Only run MCCP Acceptance tests (not wkp)
           MCCP_ACCEPTANCE: true
           MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
@@ -639,6 +639,13 @@ jobs:
     steps:
       - setup-integration-test-env
       - install-kind
+      - run:
+          name: Install helm
+          command: |
+            # install helm
+            curl -L https://get.helm.sh/helm-v3.5.4-linux-amd64.tar.gz | tar xvz
+            sudo mv linux-amd64/helm /usr/bin/helm
+            sudo chmod +x /usr/bin/helm
       - setup_remote_docker
       - run:
           name: Setup base config.yaml
@@ -679,8 +686,6 @@ jobs:
             ../bin/internal/run-integration-tests.sh up
             ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
 
-            # e.g. wkp-ci-test-bot from 1passwords
-            export ADD_TEAM_WORKSPACE_TOKEN=true
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
 
@@ -699,15 +704,32 @@ jobs:
             cd /tmp/cluster_dir
             WORKER_NODE_EXTERNAL_IP=$(grep "publicAddress" setup/config.yaml | tail -n 1 | xargs | cut -f 2 -d ' ')
             echo "found worker node ip in config.yaml ${WORKER_NODE_EXTERNAL_IP}"
-            NATS_NODEPORT=$(kubectl get service -n wkp-gitops-repo-broker nats-client -ojsonpath='{.spec.ports[0].nodePort}')
-            echo "found node port for nats-client service ${NATS_NODEPORT}"
-            sed -i "s/\"natsURL\":.*/\"natsURL\": \"$WORKER_NODE_EXTERNAL_IP:$NATS_NODEPORT\",/" cluster/platform/components.js
-
-            git diff
-            git add cluster/platform/components.js
-            git commit -m"Update nats url in components.js"
-            git push
+            NATS_NODEPORT=31490
             cd -
+
+            kubectl create namespace prom
+            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+            helm repo update
+            helm install my-prom prometheus-community/kube-prometheus-stack \
+              --namespace prom \
+              --version 14.4.0 \
+              --values ../../utils/data/mccp-prometheus-values.yaml
+
+            kubectl create namespace mccp
+
+            kubectl create secret docker-registry docker-io-pull-secret \
+              --namespace mccp \
+              --docker-username="${DOCKER_IO_USER}" \
+              --docker-password="${DOCKER_IO_PASSWORD}" 
+
+            CHART_VERSION=$(git describe --always --match "v*")
+            helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
+            helm repo update
+            helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
+              --set "imagePullSecrets[0].name=docker-io-pull-secret" \
+              --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
+              --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
+              --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}"
 
             kubectl get pods -A
             # Wait for cluster to settle
@@ -737,6 +759,8 @@ jobs:
             sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" $wkp_kind_cluster_dir/setup/config.yaml
             sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" $wkp_kind_cluster_dir/setup/config.yaml 
             sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" $wkp_kind_cluster_dir/setup/config.yaml 
+            # don't skip the components we need those
+            export SKIP_COMPONENTS=false
             $CIRCLE_WORKING_DIRECTORY/cmd/wk/wk setup run --entitlements=$CIRCLE_WORKING_DIRECTORY/test/ci-wks-unlimited.entitlements
             # Wait until pods are running
             kubectl wait nodes --all --for=condition=ready --timeout=120s || true
@@ -744,13 +768,20 @@ jobs:
             kubectl wait deployment.apps/coredns -n kube-system --for=condition=available --timeout=120s || true
             kubectl get pods -A
             kubectl get nodes
-            cd $CIRCLE_WORKING_DIRECTORY/test/integration/test
-            
+            $CIRCLE_WORKING_DIRECTORY/cmd/wk/wk workspaces add-provider \
+                --type github \
+                --token "${WORKSPACES_ORG_ADMIN_TOKEN}" \
+                --secret-name github-token \
+                --git-commit-push \
+                --entitlements=$CIRCLE_WORKING_DIRECTORY/test/ci-wks-unlimited.entitlements
             # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
             unset KUBECONFIG
+ 
+            cd $CIRCLE_WORKING_DIRECTORY/test/integration/test
+            
             kubectl get pods -A
             export SELENIUM_DEBUG=true
-            ../../../cmd/wk/wk ui --entitlements=../../ci-wks-unlimited.entitlements --launch-browser=false  &
+            kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
             cd ../../acceptance/test/
             export ACCEPTANCE_TESTS_DATABASE_TYPE=sqlite
             go test -v --timeout=99999s
@@ -1213,7 +1244,7 @@ jobs:
           CLUSTER_VERSIONS: '1.20.2'
           SKIP_COMPONENTS: true
 
-  ui-backend-integration-tests:
+  mccp-ui-backend-integration-tests:
     docker:
       - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
         environment:

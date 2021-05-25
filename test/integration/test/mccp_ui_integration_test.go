@@ -191,7 +191,7 @@ var _ = Describe("Integration suite", func() {
 		}
 
 		// reload fresh page each time
-		Expect(intWebDriver.Navigate(uiURL + "/clusters")).To(Succeed())
+		Expect(intWebDriver.Navigate(uiURL)).To(Succeed())
 		page = pages.GetClustersPage(intWebDriver)
 		resetDb(db)
 	})
@@ -594,7 +594,7 @@ func GetDB(t *testing.T) (*gorm.DB, string) {
 	log.Infof("db at %v", f.Name())
 	dbURI := f.Name()
 	require.NoError(t, err)
-	db, err := utils.OpenDebug(dbURI, true)
+	db, err := utils.OpenDebug(dbURI, false)
 	require.NoError(t, err)
 	err = utils.MigrateTables(db)
 	require.NoError(t, err)

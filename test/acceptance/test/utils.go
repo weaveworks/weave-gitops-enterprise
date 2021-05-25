@@ -98,7 +98,7 @@ type MCCPTestRunner interface {
 	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
-	AddWorkspace(clusterName string) error
+	AddWorkspace(env []string, clusterName string) error
 }
 
 // "DB" backend that creates/delete rows
@@ -194,7 +194,7 @@ func (b DatabaseMCCPTestRunner) FireAlert(name, severity, message string, fireFo
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) AddWorkspace(clusterName string) error {
+func (b DatabaseMCCPTestRunner) AddWorkspace(env []string, clusterName string) error {
 	var firstCluster models.Cluster
 	b.DB.Where("Name = ?", clusterName).First(&firstCluster)
 
@@ -313,8 +313,8 @@ func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor ti
 	return nil
 }
 
-func (b RealMCCPTestRunner) AddWorkspace(clusterName string) error {
-	return runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
+func (b RealMCCPTestRunner) AddWorkspace(env []string, clusterName string) error {
+	return runCommandPassThrough(env, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams

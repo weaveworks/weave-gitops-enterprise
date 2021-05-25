@@ -47,8 +47,6 @@ nginx-ingress-controller:
     ssl-redirect: 'false'
 
 wkp-ui:
-  featureGates:
-    fleetManagement: true
   image:
     tag: v2.5.0
     pullSecrets: []
@@ -57,18 +55,9 @@ wkp-ui:
       kubernetes.io/ingress.class: mccp-nginx
   config:
     featureGates:
+      # only enable the mccp
       fleetManagement: true
+      dashboard: false
+      teamWorkspaces: false
     clusterInfo:
       name: 'MCCP'
-    homepage:
-      # disable all the other bits of wkp-ui
-      alertNotifications:
-        enabled: false
-      clusterResources:
-        enabled: false
-      nodesOverview:
-        enabled: false
-      clusterComponents:
-        enabled: false
-      gitBranches:
-        enabled: false
