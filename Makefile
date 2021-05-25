@@ -1,4 +1,4 @@
-.PHONY: all install clean images lint unit-tests check wksctl-version generate-manifests ui-build-for-tests
+.PHONY: all install clean images lint unit-tests check wksctl-version generate-manifests ui-build-for-tests update-mccp-chart-values update-wkp-ui-chart-values
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -49,9 +49,12 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))):$(IMAGE_TAG)
 	touch $@
 
-charts:
-	sed -i "s|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker.*|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker:$(IMAGE_TAG)|" charts/mccp/values.yaml
-	sed -i "s|eventWriter: docker.io/weaveworks/wkp-event-writer.*|eventWriter: docker.io/weaveworks/wkp-event-writer:$(IMAGE_TAG)|" charts/mccp/values.yaml
+update-mccp-chart-values: update-wkp-ui-chart-values
+	sed -i "s|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker.*|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
+	sed -i "s|eventWriter: docker.io/weaveworks/wkp-event-writer.*|eventWriter: docker.io/weaveworks/wkp-event-writer:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
+
+update-wkp-ui-chart-values:
+	sed -i "s|tag: .*|tag: $(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 
 # Get a list of directories containing Dockerfiles
 DOCKERFILES := $(shell find . \

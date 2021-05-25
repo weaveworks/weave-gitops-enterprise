@@ -308,13 +308,6 @@ jobs:
       - checkout
       - add-go-mod-ssh-keys
       - setup_remote_docker
-      - run:
-          name: Install helm
-          command: |
-            # install helm
-            curl -L https://get.helm.sh/helm-v2.17.0-linux-amd64.tar.gz | tar xvz
-            sudo mv linux-amd64/helm /usr/bin/helm
-            sudo chmod +x /usr/bin/helm
       - run: touch ./wks-build/.uptodate
       - run: make -j4 BUILD_IN_CONTAINER=false
       - deploy:
@@ -335,18 +328,50 @@ jobs:
               aws s3 cp cmd/wk/wk s3://weaveworks-wkp/wk-master-linux-amd64
             fi
       - run:
-          name: Publish helm chart
+          name: Install helm v2
+          command: |
+            # install helm 2
+            curl -L https://get.helm.sh/helm-v2.17.0-linux-amd64.tar.gz | tar xvz
+            sudo mv linux-amd64/helm /usr/bin/helm2
+            sudo chmod +x /usr/bin/helm2
+      - run:
+          name: Publish helm v2 charts
+          command: |
+            export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
+            export HELM=helm2
+
+            TAG=$(git describe --always)
+            IMAGE_TAG=$(./tools/image-tag)
+
+            CHART_VALUES_PATH=./ui/chart/wkp-ui/values.yaml
+            # Update the wkp-ui chart values.yaml file with the current image tag
+            make update-wkp-ui-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+            # Publish the wkp-ui Helm v2 chart
+            ./bin/publish-chart-to-s3.sh $TAG $IMAGE_TAG ./ui/chart/wkp-ui 2
+      - run:
+          name: Install helm v3
+          command: |
+            # install helm
+            curl -L https://get.helm.sh/helm-v3.5.4-linux-amd64.tar.gz | tar xvz
+            sudo mv linux-amd64/helm /usr/bin/helm
+            sudo chmod +x /usr/bin/helm
+      - run:
+          name: Publish helm v3 charts
           command: |
             export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
 
             TAG=$(git describe --always)
             IMAGE_TAG=$(./tools/image-tag)
+            
+            CHART_VALUES_PATH=./charts/mccp/values.yaml
+            # Update the MCCP chart values.yaml file with the current image tag
+            make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
 
-            cd ui
-            ./tools/publish-chart-to-s3.sh $TAG $IMAGE_TAG
-            aws s3 cp pkg/index.yaml s3://weaveworks-wkp/charts/
-            aws s3 cp pkg/*.tgz s3://weaveworks-wkp/charts/
+            # Publish the MCCP Helm v3 chart
+            ./bin/publish-chart-to-s3.sh $TAG $IMAGE_TAG ./charts/mccp 3
       - persist_to_workspace:
           root: .
           paths:
