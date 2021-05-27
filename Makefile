@@ -95,6 +95,7 @@ check: all lint unit-tests container-tests
 
 LOCAL_BINARIES = \
 	cmd/wk/wk \
+	cmd/mccp/mccp \
 	cmd/wks-entitle/wks-entitle \
 	cmd/update-manifest/update-manifest
 
@@ -167,6 +168,9 @@ pkg/setup/setup_vfsdata.go: $(SETUP)
 cmd/wk/wk: $(DEPS) $(GENERATED)
 cmd/wk/wk: cmd/wk/*.go
 
+cmd/mccp/mccp: $(DEPS) $(GENERATED)
+cmd/mccp/mccp: cmd/mccp/*.go
+
 cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go $(GENERATED)
 
 ENTITLE_DEPS=$(call godeps,./cmd/wks-entitle)
@@ -235,6 +239,9 @@ wksctl-version:
 
 cmd/wk/wk:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wk/*.go
+
+cmd/mccp/mccp:
+	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/mccp/*.go
 
 cmd/wks-ci/checks/policy/policy:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/checks/policy/*.go
