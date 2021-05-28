@@ -447,7 +447,7 @@ jobs:
 
             # Upload a "master" binary for easy access to latest master build
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              aws s3 cp cmd/wk/mccp-darwin-amd64 s3://weaveworks-wkp/mccp-master-darwin-amd64
+              aws s3 cp cmd/mccp/mccp-darwin-amd64 s3://weaveworks-wkp/mccp-master-darwin-amd64
             fi
 
   unit-tests:
@@ -761,7 +761,7 @@ jobs:
               --docker-username="${DOCKER_IO_USER}" \
               --docker-password="${DOCKER_IO_PASSWORD}" 
 
-            CHART_VERSION=$(git describe --always --match "v*")
+            CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
             helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
             helm repo update
             helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
