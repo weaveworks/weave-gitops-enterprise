@@ -2,11 +2,15 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	log "github.com/sirupsen/logrus"
-	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
+	capiv1 "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/server"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/utils"
 )
 
 func NewAPIServerCommand() *cobra.Command {
@@ -17,29 +21,42 @@ func NewAPIServerCommand() *cobra.Command {
 
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			StartServer()
-			return nil
+			return StartServer()
 		},
 	}
 	return cmd
 }
 
-
-func NewServer(ctx context.Context) *http.Server {
-	r := mux.NewRouter()
-
-	r.HandleFunc("/templates", templates.List(context.Background())).Methods("GET")
-
-	srv := &http.Server{
-		Handler: r,
-		Addr:    "0.0.0.0:8000",
-	}
-
-	return srv
+func StartServer() error {
+	return RunInProcessGateway(context.Background(), "0.0.0.0:8000")
 }
 
-func StartServer() {
-	s := NewServer(context.Background())
-	log.Info("Starting capi-server...")
-	s.ListenAndServe()
+// RunInProcessGateway starts the invoke in process http gateway.
+func RunInProcessGateway(ctx context.Context, addr string, opts ...runtime.ServeMuxOption) error {
+	mux := runtime.NewServeMux(opts...)
+
+	clientset, err := utils.GetClientsetFromKubeconfig()
+	if err != nil {
+		return fmt.Errorf("failed to get clientset: %s\n", err)
+	}
+
+	capiv1.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(*clientset))
+	s := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	go func() {
+		<-ctx.Done()
+		log.Infof("Shutting down the http gateway server")
+		if err := s.Shutdown(context.Background()); err != nil {
+			log.Errorf("Failed to shutdown http gateway server: %v", err)
+		}
+	}()
+
+	if err := s.ListenAndServe(); err != http.ErrServerClosed {
+		log.Errorf("Failed to listen and serve: %v", err)
+		return err
+	}
+	return nil
 }

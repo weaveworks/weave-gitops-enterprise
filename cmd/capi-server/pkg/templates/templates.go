@@ -2,16 +2,13 @@ package templates
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"os"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi-templates/flavours"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 )
 
@@ -58,12 +55,7 @@ func renderTemplate(template []byte, params TemplateParams) ([]byte, error) {
 	return processedYAML, nil
 }
 
-func loadTemplatesFromConfigmap(ctx context.Context, namespace string, name string) (map[string]*flavours.CAPITemplate, error) {
-	clientset, err := utils.GetClientsetFromKubeconfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get clientset: %s\n", err)
-	}
-
+func LoadTemplatesFromConfigmap(ctx context.Context, clientset kubernetes.Clientset, namespace string, name string) (map[string]*flavours.CAPITemplate, error) {
 	log.Debugf("querying kubernetes for configmap: %s/%s\n", namespace, name)
 	templateConfigMap, err := clientset.CoreV1().ConfigMaps(namespace).Get(ctx, name, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
@@ -78,16 +70,4 @@ func loadTemplatesFromConfigmap(ctx context.Context, namespace string, name stri
 		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %s\n", err)
 	}
 	return tm, nil
-}
-
-func List(ctx context.Context) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Debugf("loading templates from configmap %s/%s", os.Getenv("POD_NAMESPACE"), os.Getenv("TEMPLATE_CONFIGMAP_NAME"))
-		tl, err := loadTemplatesFromConfigmap(ctx, os.Getenv("POD_NAMESPACE"), os.Getenv("TEMPLATE_CONFIGMAP_NAME"))
-		if err != nil {
-			utils.WriteError(w, err, http.StatusInternalServerError)
-		}
-		log.Debugf("loaded templates from configmap %s/%s: %v", os.Getenv("POD_NAMESPACE"), os.Getenv("TEMPLATE_CONFIGMAP_NAME"), tl)
-		utils.RespondWithJSON(w, http.StatusOK, tl, json.MarshalIndent)
-	}
 }

@@ -1,0 +1,6 @@
+output:
+  pkg/openapi-client/capi_server.go
+package: capi_server
+generate:
+  - types
+  - client

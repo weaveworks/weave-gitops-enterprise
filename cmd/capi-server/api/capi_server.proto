@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package capi_server.v1;
+
+option go_package = "github.com/weaveworks/wks/cmd/capi-server/proto/capi_server";
+
+import "google/api/annotations.proto";
+
+service ClustersService {
+  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
+    option (google.api.http) = {
+      get : "/v1/templates"
+    };
+  }
+}
+
+message ListTemplatesRequest {}
+
+message Param {
+  string name = 1;
+  string description = 2;
+}
+
+message Template {
+  string name = 1;
+  string description = 2;
+  string version = 3;
+  repeated Param params = 4;
+}
+
+message ListTemplatesResponse {
+  repeated Template templates = 1;
+  int32 total = 2;
+}
