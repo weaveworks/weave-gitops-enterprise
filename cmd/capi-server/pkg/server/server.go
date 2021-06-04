@@ -38,5 +38,5 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1.ListTemplatesReq
 		})
 	}
 
-	return &capiv1.ListTemplatesResponse{Templates: templates}, err
+	return &capiv1.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
 }

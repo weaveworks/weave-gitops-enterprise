@@ -3,11 +3,13 @@ import useClusters from '../../contexts/Clusters';
 import { Cluster } from '../../types/kubernetes';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { OnClickAction, SectionHeader } from '../Layout/SectionHeader';
-import { faPlug } from '@fortawesome/free-solid-svg-icons';
+import { faPlug, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Snackbar } from '@material-ui/core';
 import { ClustersTable } from './Table';
 import { FinishMessage } from '../Shared';
 import { ConnectClusterDialog } from './Connect/ConnectDialog';
+import { useHistory } from 'react-router-dom';
+import useTemplates from '../../contexts/Templates';
 
 const MCCP: FC = () => {
   const {
@@ -30,20 +32,36 @@ const MCCP: FC = () => {
     token: '',
   };
 
+  const history = useHistory();
+  const { activeTemplate } = useTemplates();
+
+  const handleAddCluster = () => {
+    if (activeTemplate === null) {
+      history.push('/templates');
+      return null;
+    }
+    history.push(`/templates/${activeTemplate.name}/create`);
+  };
+
   return (
     <PageTemplate documentTitle="WeGo · Clusters">
       <span id="count-header">
         <SectionHeader
-          action={
+          actions={[
+            <OnClickAction
+              id="create-cluster"
+              icon={faPlus}
+              onClick={handleAddCluster}
+              text="Create a cluster with template"
+            />,
             <OnClickAction
               id="connect-cluster"
               icon={faPlug}
               onClick={() => setClusterToEdit(NEW_CLUSTER)}
               text="Connect a cluster"
-            />
-          }
-          count={count}
-          title="Clusters"
+            />,
+          ]}
+          path={[{ label: 'Clusters', url: 'clusters', count }]}
         />
       </span>
       {clusterToEdit && (

@@ -1,15 +1,17 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"encoding/json"
 	"os"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
 
+	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	log "github.com/sirupsen/logrus"
 )
 
 // Signature for json.MarshalIndent accepted as a method parameter for unit tests

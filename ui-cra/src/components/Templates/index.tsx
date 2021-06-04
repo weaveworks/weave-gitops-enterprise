@@ -1,34 +1,32 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
-import Template from './Card';
-import { makeStyles } from '@material-ui/core/styles';
+import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
+import useClusters from '../../contexts/Clusters';
+import useTemplates from '../../contexts/Templates';
+import { SectionHeader } from '../Layout/SectionHeader';
 
-const useStyles = makeStyles({
-  gridContainer: {
-    paddingRight: '40px',
-  },
-});
+const TemplatesDashboard: FC = () => {
+  const { templates } = useTemplates();
+  const clustersCount = useClusters().count;
+  const templatesCount = templates.length;
 
-const TemplatesDashboard = () => {
-  const classes = useStyles();
   return (
     <PageTemplate documentTitle="WeGO · Templates">
-      <Grid
-        container
-        spacing={4}
-        className={classes.gridContainer}
-        justify="center"
-      >
-        <Grid item xs={12} sm={6} md={4}>
-          <Template />
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Template />
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Template />
-        </Grid>
+      <span id="count-header">
+        <SectionHeader
+          path={[
+            { label: 'Clusters', url: 'clusters', count: clustersCount },
+            { label: 'Templates', url: 'templates', count: templatesCount },
+          ]}
+        />
+      </span>
+      <Grid container spacing={4} justify="center">
+        {templates.map((template: any, index: number) => (
+          <Grid key={index} item xs={12} sm={6} md={4}>
+            <TemplateCard template={template} />
+          </Grid>
+        ))}
       </Grid>
     </PageTemplate>
   );

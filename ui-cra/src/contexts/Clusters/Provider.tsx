@@ -69,6 +69,10 @@ const ClustersProvider: FC = ({ children }) => {
       });
   };
 
+  const addCluster = (cluster: Cluster) => {
+    console.log('addCluster has been called');
+  };
+
   // Poll workspaces periodically if the listing is enabled.
   useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [
     order,
@@ -89,6 +93,7 @@ const ClustersProvider: FC = ({ children }) => {
         handleSetPageParams,
         order,
         orderBy,
+        addCluster,
       }}
     >
       {/* TODO: Create loader */}

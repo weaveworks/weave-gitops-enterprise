@@ -13,16 +13,14 @@ import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Box from '@material-ui/core/Box';
-import Select from '@material-ui/core/Select';
-import TablePagination, {
-  LabelDisplayedRowsArgs,
-} from '@material-ui/core/TablePagination';
 import moment from 'moment';
 import { Theme } from 'weaveworks-ui-components';
-import { Count, SectionHeader } from './Layout/SectionHeader';
-import { SelectInputProps } from '@material-ui/core/Select/SelectInput';
+import { SectionHeader } from './Layout/SectionHeader';
 import { ClusterNameLink, NotAvailable } from './Shared';
 import { PageTemplate } from './Layout/PageTemplate';
+import { Pagination } from './Pagination';
+import { TableFooter } from '@material-ui/core';
+import useClusters from '../contexts/Clusters';
 
 const alertColor = ({
   severity,
@@ -49,7 +47,9 @@ const ErrorWrapper = styled.span`
 `;
 
 const useStyles = makeStyles(t => ({
-  table: {},
+  table: {
+    whiteSpace: 'nowrap',
+  },
   head: {
     backgroundColor: t.palette.common.white,
     color: t.palette.text.secondary,
@@ -97,61 +97,34 @@ const DescriptionCell = styled(TableCell)`
   }
 `;
 
-const InlineCount = styled(Count.withComponent('span'))`
-  font-size: 14px;
-  display: inline-block;
-  margin-left: 4px;
-`;
-
-const Num = styled.span`
-  font-weight: bold;
-`;
-
-const AlertHeader = styled(SectionHeader)`
-  flex-grow: 0;
-`;
-
-const PageMeta = styled.span`
-  display: inline-block;
-  width: 100px;
-  text-align: right;
-`;
-
-const labelDisplayedRows = ({ from, to, count }: LabelDisplayedRowsArgs) => (
-  <PageMeta>
-    <Num>{from}</Num>{' '}
-    <>
-      to <Num>{to}</Num>
-    </>{' '}
-    of <InlineCount size="small">{count}</InlineCount>
-  </PageMeta>
-);
-
 export const AlertsDashboard: FC = () => {
   const classes = useStyles();
+  const clustersCount = useClusters().count;
   const { alerts, error } = useAlerts();
   const [page, setPage] = React.useState<number>(0);
   const [perPage, setPerPage] = useLocalStorage<number>(
     'mccp.alerts.perPage',
-    3,
+    10,
   );
 
-  const pagedAlerts = get(chunk(alerts, perPage ?? 3), [page]);
-  const onChangePage = (
-    event: React.MouseEvent<HTMLButtonElement> | null,
-    pagerNumber: number,
-  ) => {
-    setPage(pagerNumber);
+  const pagedAlerts = get(chunk(alerts, perPage), [page]);
+
+  const handleSetPageParams = (page: number, perPage: number) => {
+    setPage(page);
+    setPerPage(perPage);
   };
-  const handleChangeRowsPerPage: SelectInputProps['onChange'] = ev => {
-    setPerPage(parseInt(String(ev.target.value), 10));
-    setPage(0);
-  };
+
+  const alertsCount = alerts?.length;
 
   return (
     <PageTemplate documentTitle="WeGo · Alerts">
       <span id="count-header">
-        <SectionHeader title="Alerts" count={alerts.length ?? 0} />
+        <SectionHeader
+          path={[
+            { label: 'Clusters', url: 'clusters', count: clustersCount },
+            { label: 'Alerts', url: 'alerts', count: alertsCount },
+          ]}
+        />
       </span>
       <Paper id="firing-alerts">
         {!alerts || alerts.length === 0 ? (
@@ -164,78 +137,51 @@ export const AlertsDashboard: FC = () => {
             )}
           </Box>
         ) : (
-          <Box py={1} mb={3}>
-            <Box
-              height="32px"
-              display="flex"
-              alignItems="center"
-              px={2}
-              color="text.secondary"
-            >
-              <AlertHeader size="small" title="Firing alerts" />
-              <TablePagination
-                component="div"
-                count={alerts.length}
-                rowsPerPageOptions={[]}
-                rowsPerPage={perPage ?? 3}
-                labelDisplayedRows={labelDisplayedRows}
-                page={page}
-                onChangePage={onChangePage}
-                backIconButtonProps={{ size: 'small' }}
-                nextIconButtonProps={{ size: 'small' }}
-              />
-              <Box ml="auto" alignItems="center" display="flex" fontSize="14px">
-                <Box mr={1}>Per page</Box>
-                <Select
-                  native
-                  value={perPage}
-                  onChange={handleChangeRowsPerPage}
-                  inputProps={{
-                    className: classes.perPageInput,
-                  }}
-                >
-                  <option value={1}>1</option>
-                  <option value={3}>3</option>
-                  <option value={10}>10</option>
-                </Select>
-              </Box>
-            </Box>
-            <Table
-              className={classes.table}
-              size="small"
-              aria-label="a dense table"
-            >
-              <TableBody>
-                {pagedAlerts.map(alert => (
-                  <TableRow key={alert.id}>
-                    <SeverityCell severity={alert.severity}>
-                      {alert.severity ? (
-                        alert.severity
-                      ) : (
-                        <NotAvailable>No severity</NotAvailable>
-                      )}
-                    </SeverityCell>
-                    <DescriptionCell severity={alert.severity}>
-                      <div
-                        title={alert.annotations.description}
-                        className={classes.cellContent}
-                      >
-                        {alert.labels.alertname}{' '}
-                        {alert.annotations.description ||
-                          alert.annotations.message}
-                      </div>
-                    </DescriptionCell>
-                    <TableCell className={classes.clusterNameCell}>
-                      <ClusterNameLink cluster={alert.cluster} />
-                    </TableCell>
-                    <TableCell className={classes.createdCell}>
-                      {moment(alert.starts_at).fromNow()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
+          <Table
+            className={classes.table}
+            size="small"
+            aria-label="a dense table"
+          >
+            <TableBody>
+              {pagedAlerts.map(alert => (
+                <TableRow key={alert.id}>
+                  <SeverityCell severity={alert.severity}>
+                    {alert.severity ? (
+                      alert.severity
+                    ) : (
+                      <NotAvailable>No severity</NotAvailable>
+                    )}
+                  </SeverityCell>
+                  <DescriptionCell severity={alert.severity}>
+                    <div
+                      title={alert.annotations.description}
+                      className={classes.cellContent}
+                    >
+                      {alert.labels.alertname}{' '}
+                      {alert.annotations.description ||
+                        alert.annotations.message}
+                    </div>
+                  </DescriptionCell>
+                  <TableCell className={classes.clusterNameCell}>
+                    <ClusterNameLink cluster={alert.cluster} />
+                  </TableCell>
+                  <TableCell className={classes.createdCell}>
+                    {moment(alert.starts_at).fromNow()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              {alertsCount === 0 ? null : (
+                <TableRow>
+                  <Pagination
+                    count={alertsCount}
+                    onSelectPageParams={handleSetPageParams}
+                  />
+                </TableRow>
+              )}
+            </TableFooter>
+          </Table>
         )}
       </Paper>
     </PageTemplate>

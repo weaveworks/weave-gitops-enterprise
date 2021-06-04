@@ -1,11 +1,12 @@
 import React, { FC, ReactElement } from 'react';
 import styled, { css } from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
-import { darken, transparentize } from 'polished';
+import { darken } from 'polished';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { SafeAnchor } from '../Shared';
+import { Breadcrumb, Breadcrumbs } from '../Breadcrumbs';
 
 interface Size {
   size?: 'small';
@@ -54,26 +55,6 @@ const Icon = styled.div`
   margin-right: ${theme.spacing.xs};
 `;
 
-const Title = styled.div<Size>`
-  margin-right: ${({ size }) =>
-    size === 'small' ? theme.spacing.xxs : theme.spacing.xs};
-  white-space: nowrap;
-`;
-
-export const Count = styled.div<Size>`
-  background: ${({ size }) =>
-    size === 'small'
-      ? transparentize(0.5, theme.colors.purple100)
-      : theme.colors.purple100};
-  padding: 4px 8px;
-  align-self: center;
-  font-size: ${({ size }) =>
-    size === 'small' ? theme.spacing.small : theme.fontSizes.normal};
-  color: ${theme.colors.gray600};
-  margin-left: ${theme.spacing.xs};
-  border-radius: ${theme.borderRadius.soft};
-`;
-
 export const ActionIcon = styled(FontAwesomeIcon)`
   margin-right: ${theme.spacing.xs};
 `;
@@ -112,29 +93,22 @@ type SectionHeaderAction =
   | ReactElement<typeof AnchorAction>;
 
 interface Props extends Size {
-  action?: SectionHeaderAction | null;
-  count?: number | null;
+  actions?: SectionHeaderAction[] | null;
   icon?: JSX.Element | null;
-  title: string;
   className?: string;
+  path: Breadcrumb[];
 }
 
 export const SectionHeader: FC<Props> = ({
-  action,
+  actions,
   children,
-  count,
-  icon,
   size,
-  title,
   className,
+  path,
 }) => (
   <Wrapper className={className} size={size}>
-    <Title role="heading" size={size}>
-      {title}
-    </Title>
-    {count !== null && <Count size={size}>{count}</Count>}
-    {icon && <Icon>{icon}</Icon>}
-    {action}
+    <Breadcrumbs path={path} />
+    {actions?.map(action => action)}
     {children}
   </Wrapper>
 );

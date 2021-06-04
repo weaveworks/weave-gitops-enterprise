@@ -88,7 +88,15 @@ interface Colors {
   blue700: 'hsl(191, 100%, 35%)'; // #0092b3
   blue800: 'hsl(191, 100%, 30%)'; // #007d99
   graphThemes: {
-    blue: ['#c7e9b4', '#7ecdbb', '#1eb5eb', '#1d91bf', '#235fa9', '#253393', '#084181'];
+    blue: [
+      '#c7e9b4',
+      '#7ecdbb',
+      '#1eb5eb',
+      '#1d91bf',
+      '#235fa9',
+      '#253393',
+      '#084181',
+    ];
     mixed: [
       '#c7e9b4',
       '#c1d4e7',
@@ -105,7 +113,15 @@ interface Colors {
       '#084181',
       '#0b0533',
     ];
-    purple: ['#c1d4e7', '#9fbddb', '#8d95c6', '#8282ab', '#89429e', '#800f7a', '#0b0533'];
+    purple: [
+      '#c1d4e7',
+      '#9fbddb',
+      '#8d95c6',
+      '#8282ab',
+      '#89429e',
+      '#800f7a',
+      '#0b0533',
+    ];
   }; // Used by PrometheusGraph component
   gray50: 'hsl(0, 0%, 96%)'; // #f4f4f4
   gray100: 'hsl(0, 0%, 90%)'; // #e6e6e6
@@ -253,7 +269,10 @@ declare module 'weaveworks-ui-components' {
   export const Dropdown: React.ComponentType<{
     disabled?: boolean;
     items: DropdownItem[];
-    onChange?: (event: React.FormEvent<HTMLInputElement>, value: string) => void;
+    onChange?: (
+      event: React.FormEvent<HTMLInputElement>,
+      value: string,
+    ) => void;
     placeholder?: string;
     value?: string;
     width?: string;
@@ -316,12 +335,15 @@ declare module 'weaveworks-ui-components' {
 
 declare module 'weaveworks-ui-components/lib/theme/selectors' {
   export const spacing = (spacing: keyof Spacing) => '' as ValueOf<Spacing>;
-  export const fontSize = (fontSize: keyof FontSizes) => '' as ValueOf<FontSizes>;
+  export const fontSize = (fontSize: keyof FontSizes) =>
+    '' as ValueOf<FontSizes>;
 
   // NOTE: `color` is intentionally left out here since the true color object doesn't actually fit with what styled-components expect since it contains nested objects (e.g. `graphThemes`).
   // export const color = (color: keyof Colors) => '' as ValueOf<Colors>;
-  export const borderRadius = (borderRadius: keyof BorderRadius) => '' as ValueOf<BorderRadius>;
-  export const boxShadow = (boxShadow: keyof BoxShadow) => '' as ValueOf<BoxShadow>;
+  export const borderRadius = (borderRadius: keyof BorderRadius) =>
+    '' as ValueOf<BorderRadius>;
+  export const boxShadow = (boxShadow: keyof BoxShadow) =>
+    '' as ValueOf<BoxShadow>;
 }
 
 declare module 'weaveworks-ui-components/lib/theme' {

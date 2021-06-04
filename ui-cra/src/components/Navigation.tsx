@@ -4,16 +4,7 @@ import theme from 'weaveworks-ui-components/lib/theme';
 import { NavLink } from 'react-router-dom';
 import WeaveLogo from '../assets/img/wego.svg';
 import { makeStyles } from '@material-ui/core/styles';
-
-const Bar = styled.div`
-  background-color: ${theme.colors.white};
-  box-shadow: ${theme.boxShadow.light};
-  padding: 20px;
-`;
-
-const Content = styled.div`
-  align-items: center;
-`;
+import Box from '@material-ui/core/Box';
 
 const navItemPadding = css`
   padding: 0 ${theme.spacing.small};
@@ -23,11 +14,10 @@ const itemCss = css`
   /* breaking from std. spacing as */
   display: flex;
   font-size: ${20}px;
-  line-height: ${theme.spacing.xxl};
-  height: ${theme.spacing.xxl};
+  line-height: ${theme.spacing.xl};
+  height: ${theme.spacing.xl};
   box-sizing: border-box;
   color: ${theme.colors.black};
-  overflow: auto;
   ${navItemPadding}
 `;
 
@@ -60,13 +50,16 @@ const NavItem = styled(NavLink).attrs({
   }
 `;
 
-export const FlexSpacer = styled.div`
-  flex: 1;
-`;
-
 const useStyles = makeStyles({
   root: {
-    height: '100vh',
+    padding: theme.spacing.medium,
+    alignItems: 'center',
+  },
+  bold: {
+    fontWeight: 600,
+  },
+  section: {
+    paddingBottom: theme.spacing.small,
   },
 });
 
@@ -74,15 +67,22 @@ export const Navigation: FC = () => {
   const classes = useStyles();
 
   return (
-    <Bar className={classes.root}>
-      <Content>
+    <Box className={classes.root} bgcolor={theme.colors.white}>
+      <Box className={classes.section}>
         <Title title="Home">
           <Logo />
         </Title>
-        <NavItem to="/clusters">Clusters</NavItem>
+        <NavItem className={classes.bold} to="/clusters">
+          Clusters
+        </NavItem>
         <NavItem to="/templates">Templates</NavItem>
         <NavItem to="/alerts">Alerts</NavItem>
-      </Content>
-    </Bar>
+      </Box>
+      <Box className={classes.section}>
+        <NavItem className={classes.bold} to="/applications">
+          Applications
+        </NavItem>
+      </Box>
+    </Box>
   );
 };

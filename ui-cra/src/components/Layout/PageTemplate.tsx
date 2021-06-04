@@ -16,9 +16,7 @@ export const PageTemplate: FC<Props> = ({ children, documentTitle }) => {
 
   return (
     <>
-      <PageWrapper>
-        {children}
-      </PageWrapper>
+      <PageWrapper>{children}</PageWrapper>
       <Footer />
     </>
   );

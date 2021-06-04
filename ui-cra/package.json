@@ -39,7 +39,6 @@
     "weaveworks-ui-components": "0.22.4",
     "web-vitals": "^1.0.1"
   },
-  "proxy": "http://localhost:8090",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
