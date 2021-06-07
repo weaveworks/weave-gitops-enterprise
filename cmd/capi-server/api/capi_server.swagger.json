@@ -37,6 +37,66 @@
           "ClustersService"
         ]
       }
+    },
+    "/v1/templates/{templateName}/params": {
+      "get": {
+        "operationId": "ClustersService_ListTemplateParams",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplateParamsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/templates/{templateName}/render": {
+      "post": {
+        "operationId": "ClustersService_RenderTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -70,6 +130,17 @@
         }
       }
     },
+    "v1ListTemplateParamsResponse": {
+      "type": "object",
+      "properties": {
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Param"
+          }
+        }
+      }
+    },
     "v1ListTemplatesResponse": {
       "type": "object",
       "properties": {
@@ -92,6 +163,14 @@
           "type": "string"
         },
         "description": {
+          "type": "string"
+        }
+      }
+    },
+    "v1RenderTemplateResponse": {
+      "type": "object",
+      "properties": {
+        "renderedTemplate": {
           "type": "string"
         }
       }

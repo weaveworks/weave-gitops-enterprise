@@ -3,13 +3,13 @@ package templates
 import (
 	"context"
 	"fmt"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi-templates/flavours"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 )
 
 // TemplateParams is a map of parameter to value for rendering templates.
@@ -31,30 +31,6 @@ type Library interface {
 	TemplateLister
 }
 
-// RenderTemplate renders the named template loading it from the library, and combining it with the provided parameters.
-func RenderTemplate(ctx context.Context, getter TemplateGetter, name string, params TemplateParams) ([]byte, error) {
-	template, err := getter.Get(ctx, name)
-	if err != nil {
-		return nil, fmt.Errorf("could not find template %q: %w", name, err)
-	}
-	return renderTemplate(template, params)
-}
-
-// renderTemplate renders a template given a body and parameters to fill in the template fields.
-func renderTemplate(template []byte, params TemplateParams) ([]byte, error) {
-	proc := yamlprocessor.NewSimpleProcessor()
-	processedYAML, err := proc.Process(template, func(key string) (string, error) {
-		if value, ok := params[key]; ok {
-			return value, nil
-		}
-		return "", fmt.Errorf("failed to find template parameter %q", key)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to render template: %w", err)
-	}
-	return processedYAML, nil
-}
-
 func LoadTemplatesFromConfigmap(ctx context.Context, clientset kubernetes.Clientset, namespace string, name string) (map[string]*flavours.CAPITemplate, error) {
 	log.Debugf("querying kubernetes for configmap: %s/%s\n", namespace, name)
 	templateConfigMap, err := clientset.CoreV1().ConfigMaps(namespace).Get(ctx, name, metav1.GetOptions{})
@@ -70,4 +46,41 @@ func LoadTemplatesFromConfigmap(ctx context.Context, clientset kubernetes.Client
 		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %s\n", err)
 	}
 	return tm, nil
+}
+
+func GetTemplate(ctx context.Context, clientset kubernetes.Clientset, namespace, cmName, tmName string) (*flavours.CAPITemplate, error) {
+	tm := &flavours.CAPITemplate{}
+	tl, err := LoadTemplatesFromConfigmap(ctx, clientset, namespace, cmName)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, template := range tl {
+		if tmName == template.ObjectMeta.Name {
+			tm = template
+		}
+	}
+	return tm, nil
+}
+
+func GetTemplateParams(ctx context.Context, clientset kubernetes.Clientset, namespace, cmName, tmName string) ([]flavours.Param, error) {
+	tm, err := GetTemplate(ctx, clientset, namespace, cmName, tmName)
+	if err != nil {
+		return nil, err
+	}
+	return flavours.ParamsFromSpec(tm.Spec)
+}
+
+// TODO: move this into a grpc handler
+func RenderTemplate(ctx context.Context, clientset kubernetes.Clientset, namespace, cmName, tmName string, vars map[string]string) ([][]byte, error) {
+	tm, err := GetTemplate(ctx, clientset, os.Getenv("POD_NAMESPACE"), os.Getenv("TEMPLATE_CONFIGMAP_NAME"), tmName)
+	if err != nil {
+		return nil, err
+	}
+
+	render, err := flavours.Render(tm.Spec, vars)
+	if err != nil {
+		return nil, err
+	}
+	return render, nil
 }

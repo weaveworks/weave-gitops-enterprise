@@ -1,7 +1,6 @@
 .PHONY: generate
 generate:
 	@buf generate
-	oapi-codegen -config oapi-codegen.config.yaml api/capi_server.swagger.json
 
 .PHONY: install
 install:
@@ -10,8 +9,7 @@ install:
 		google.golang.org/protobuf/cmd/protoc-gen-go \
 		google.golang.org/grpc/cmd/protoc-gen-go-grpc \
 		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
-		github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts \
-		github.com/deepmap/oapi-codegen/cmd/oapi-codegen
+		github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts
 
 .PHONY: build
 build:

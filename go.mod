@@ -14,7 +14,7 @@ require (
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-resty/resty/v2 v2.5.0
-	github.com/google/go-cmp v0.5.2
+	github.com/google/go-cmp v0.5.5
 	github.com/google/go-containerregistry v0.1.3
 	github.com/google/go-github/v26 v26.1.3
 	github.com/google/go-github/v32 v32.1.0
@@ -53,6 +53,8 @@ require (
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/tools v0.0.0-20200916195026-c9a70fc28ce3
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect

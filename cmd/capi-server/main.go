@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/weaveworks/wks/cmd/capi-server/app"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/wks/cmd/capi-server/app"
 )
 
 func init() {
@@ -28,4 +28,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-

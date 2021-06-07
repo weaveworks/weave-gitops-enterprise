@@ -4,6 +4,11 @@ The `capi-server` HTTP API is generated from this here `capi_server.proto` proto
 
 See the [API Standardisation doc](https://gist.github.com/bigkevmcd/d97ddd38c5d82430bdc85f783e26b72e) for motivation.
 
+## Get the tooling in place.
+
+1. Install `buf`, [instructions](https://docs.buf.build/installation)
+2. Install all the protobuf plugins `(cd cmd/capi-server && make install)`
+
 ## How to add a new HTTP endpoint
 
 1. Add a new `rpc` declaration to the `service` following the pattern there.
