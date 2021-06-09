@@ -26,9 +26,9 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1.ListTemplatesReq
 
 	// FIXME: probably a clever way to do this conversion / align types
 	for _, t := range tl {
-		params := []*capiv1.Param{}
+		params := []*capiv1.Parameter{}
 		for _, p := range t.Spec.Params {
-			params = append(params, &capiv1.Param{
+			params = append(params, &capiv1.Parameter{
 				Name:        p.Name,
 				Description: p.Description,
 			})
@@ -36,7 +36,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1.ListTemplatesReq
 		templates = append(templates, &capiv1.Template{
 			Name:        t.GetName(),
 			Description: t.Spec.Description,
-			Params:      params,
+			Parameters:  params,
 		})
 	}
 
@@ -48,20 +48,20 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1.ListTemplat
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template params for %v", msg.TemplateName)
 	}
-	params := []*capiv1.Param{}
+	params := []*capiv1.Parameter{}
 	for _, p := range templateParams {
-		params = append(params, &capiv1.Param{
+		params = append(params, &capiv1.Parameter{
 			Name:        p.Name,
 			Description: p.Description,
 			// TODO: add other param properties to the protobuf and here.
 		})
 	}
 
-	return &capiv1.ListTemplateParamsResponse{Params: params}, err
+	return &capiv1.ListTemplateParamsResponse{Parameters: params}, err
 }
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1.RenderTemplateRequest) (*capiv1.RenderTemplateResponse, error) {
-	tm, err := templates.RenderTemplate(ctx, s.clientset, os.Getenv("POD_NAMESPACE"), os.Getenv("TEMPLATE_CONFIGMAP_NAME"), msg.TemplateName, msg.Params)
+	tm, err := templates.RenderTemplate(ctx, s.clientset, os.Getenv("POD_NAMESPACE"), os.Getenv("TEMPLATE_CONFIGMAP_NAME"), msg.TemplateName, msg.Values.Values)
 	if err != nil {
 		return nil, fmt.Errorf("error rendering template %v", msg.TemplateName)
 	}

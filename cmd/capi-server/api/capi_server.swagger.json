@@ -91,6 +91,14 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ParameterValues"
+            }
           }
         ],
         "tags": [
@@ -133,10 +141,10 @@
     "v1ListTemplateParamsResponse": {
       "type": "object",
       "properties": {
-        "params": {
+        "parameters": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Param"
+            "$ref": "#/definitions/v1Parameter"
           }
         }
       }
@@ -156,7 +164,7 @@
         }
       }
     },
-    "v1Param": {
+    "v1Parameter": {
       "type": "object",
       "properties": {
         "name": {
@@ -164,6 +172,17 @@
         },
         "description": {
           "type": "string"
+        }
+      }
+    },
+    "v1ParameterValues": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },
@@ -187,10 +206,10 @@
         "version": {
           "type": "string"
         },
-        "params": {
+        "parameters": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Param"
+            "$ref": "#/definitions/v1Parameter"
           }
         }
       }

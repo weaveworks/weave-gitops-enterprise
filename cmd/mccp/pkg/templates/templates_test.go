@@ -2,6 +2,7 @@ package templates_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -19,7 +20,7 @@ func TestListTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no templates",
-			expected: "No templates were found in \"In-memory fake\"\n",
+			expected: "No templates found.",
 		},
 		{
 			name: "templates includes just name",
@@ -31,27 +32,21 @@ func TestListTemplates(t *testing.T) {
 					Name: "template-b",
 				},
 			},
-			expected: "Retrieved templates from \"In-memory fake\".\nName: template-a\nName: template-b\n",
+			expected: "NAME\tDESCRIPTION\ntemplate-a\ntemplate-b\n",
 		},
 		{
 			name: "templates include all fields",
 			ts: []templates.Template{
 				{
-					Name:                   "template-a",
-					Description:            "a desc",
-					Version:                "1.0.1",
-					InfrastructureProvider: "Amazon EKS",
-					Author:                 "Nigel Potter",
+					Name:        "template-a",
+					Description: "a desc",
 				},
 				{
-					Name:                   "template-b",
-					Description:            "b desc",
-					Version:                "1.0.2",
-					InfrastructureProvider: "Azure AKS",
-					Author:                 "Nigel Potter",
+					Name:        "template-b",
+					Description: "b desc",
 				},
 			},
-			expected: "Retrieved templates from \"In-memory fake\".\nName: template-a\nDescription: a desc\nInfrastructure Provider: Amazon EKS\nVersion: 1.0.1\nAuthor: Nigel Potter\nName: template-b\nDescription: b desc\nInfrastructure Provider: Azure AKS\nVersion: 1.0.2\nAuthor: Nigel Potter\n",
+			expected: "NAME\tDESCRIPTION\ntemplate-a\ta desc\ntemplate-b\tb desc\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -62,7 +57,7 @@ func TestListTemplates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewFakeTemplateRetriever(tt.ts, tt.err)
+			r := NewFakeTemplateRetriever(tt.ts, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.ListTemplates(r, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -73,14 +68,145 @@ func TestListTemplates(t *testing.T) {
 	}
 }
 
+func TestListTemplateParameters(t *testing.T) {
+	tests := []struct {
+		name             string
+		tps              []templates.TemplateParameter
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:     "no templates",
+			expected: "No template parameters found.",
+		},
+		{
+			name: "template parameters include just name",
+			tps: []templates.TemplateParameter{
+				{
+					Name: "template-param-a",
+				},
+				{
+					Name: "template-param-b",
+				},
+			},
+			expected: "NAME\tDESCRIPTION\ntemplate-param-a\ntemplate-param-b\n",
+		},
+		{
+			name: "templates include all fields",
+			tps: []templates.TemplateParameter{
+				{
+					Name:        "template-param-a",
+					Description: "a desc",
+				},
+				{
+					Name:        "template-param-b",
+					Description: "b desc",
+				},
+			},
+			expected: "NAME\tDESCRIPTION\ntemplate-param-a\ta desc\ntemplate-param-b\tb desc\n",
+		},
+		{
+			name:             "error retrieving templates",
+			err:              fmt.Errorf("oops something went wrong"),
+			expectedErrorStr: "unable to retrieve template parameters from \"In-memory fake\": oops something went wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewFakeTemplateRetriever(nil, tt.tps, "", tt.err)
+			w := new(bytes.Buffer)
+			err := templates.ListTemplateParameters("foo", r, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
+func TestRenderTemplate(t *testing.T) {
+	tests := []struct {
+		name             string
+		result           string
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:     "no result returned",
+			expected: "No template found.",
+		},
+		{
+			name:             "error returned",
+			err:              errors.New("expected param CLUSTER_NAME to be passed"),
+			expectedErrorStr: "unable to render template: expected param CLUSTER_NAME to be passed",
+		},
+		{
+			name: "result is rendered to output",
+			result: `apiVersion: cluster.x-k8s.io/v1alpha3
+				kind: Cluster
+				metadata:
+					name: foo
+				spec:
+					clusterNetwork:
+					pods:
+						cidrBlocks:
+						- 192.168.0.0/16
+					controlPlaneRef:
+					apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+					kind: KubeadmControlPlane
+					name: foo-control-plane
+					infrastructureRef:
+					apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+					kind: AWSCluster
+					name: foo`,
+			expected: `apiVersion: cluster.x-k8s.io/v1alpha3
+				kind: Cluster
+				metadata:
+					name: foo
+				spec:
+					clusterNetwork:
+					pods:
+						cidrBlocks:
+						- 192.168.0.0/16
+					controlPlaneRef:
+					apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+					kind: KubeadmControlPlane
+					name: foo-control-plane
+					infrastructureRef:
+					apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+					kind: AWSCluster
+					name: foo`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewFakeTemplateRetriever(nil, nil, tt.result, tt.err)
+			w := new(bytes.Buffer)
+			err := templates.RenderTemplate("foo", nil, r, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
 type FakeTemplateRetriever struct {
 	ts  []templates.Template
+	tps []templates.TemplateParameter
+	s   string
 	err error
 }
 
-func NewFakeTemplateRetriever(ts []templates.Template, err error) FakeTemplateRetriever {
+func NewFakeTemplateRetriever(ts []templates.Template, tps []templates.TemplateParameter, s string, err error) FakeTemplateRetriever {
 	return FakeTemplateRetriever{
 		ts:  ts,
+		tps: tps,
+		s:   s,
 		err: err,
 	}
 }
@@ -89,10 +215,26 @@ func (r FakeTemplateRetriever) Source() string {
 	return "In-memory fake"
 }
 
-func (r FakeTemplateRetriever) Retrieve() ([]templates.Template, error) {
+func (r FakeTemplateRetriever) RetrieveTemplates() ([]templates.Template, error) {
 	if r.err != nil {
 		return nil, r.err
 	}
 
 	return r.ts, nil
+}
+
+func (r FakeTemplateRetriever) RetrieveTemplateParameters(name string) ([]templates.TemplateParameter, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+
+	return r.tps, nil
+}
+
+func (r FakeTemplateRetriever) RenderTemplateWithParameters(name string, values map[string]string) (string, error) {
+	if r.err != nil {
+		return "", r.err
+	}
+
+	return r.s, nil
 }
