@@ -35,12 +35,12 @@ func StartServer() error {
 func RunInProcessGateway(ctx context.Context, addr string, opts ...runtime.ServeMuxOption) error {
 	mux := runtime.NewServeMux(opts...)
 
-	clientset, err := utils.GetClientsetFromKubeconfig()
+	clientset, crdRestClient, err := utils.GetClientsetFromKubeconfig()
 	if err != nil {
 		return fmt.Errorf("failed to get clientset: %s\n", err)
 	}
 
-	capiv1.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(*clientset))
+	capiv1.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(*clientset, crdRestClient))
 	s := &http.Server{
 		Addr:    addr,
 		Handler: mux,

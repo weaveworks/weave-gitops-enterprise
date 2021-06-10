@@ -35,6 +35,7 @@ export type Template = {
   description?: string
   version?: string
   parameters?: Parameter[]
+  body?: string
 }
 
 export type Parameter = {

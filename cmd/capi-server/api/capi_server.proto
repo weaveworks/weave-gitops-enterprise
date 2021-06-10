@@ -44,6 +44,7 @@ message Template {
   string description = 2;
   string version = 3;
   repeated Parameter parameters = 4;
+  string body = 5;
 }
 
 message Parameter {

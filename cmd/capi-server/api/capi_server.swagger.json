@@ -211,6 +211,9 @@
           "items": {
             "$ref": "#/definitions/v1Parameter"
           }
+        },
+        "body": {
+          "type": "string"
         }
       }
     }
