@@ -190,19 +190,10 @@ cmd/git-provider-service/git-provider-service: $(call godeps,./cmd/git-provider-
 cmd/gitops-repo-broker/gitops-repo-broker: $(call godeps,./cmd/gitops-repo-broker)
 cmd/ui-server/ui-server: cmd/ui-server/*.go
 
-UI_CODE_DEPS = $(shell find ui/src -name '*.jsx' -or -name '*.json')
-UI_BUILD_DEPS = \
-	ui/.babelrc.js \
-	ui/.eslintrc.js \
-	ui/server.js \
-	ui/yarn.lock \
-	ui/webpack.common.js \
-	ui/webpack.production.js
-UI_DEPS = $(UI_CODE_DEPS) $(UI_BUILD_DEPS)
-ui/build: $(UI_DEPS) user-guide/public
-
-cmd/ui-server/html: ui/build
-	cp -r ui/build $@
+cmd/ui-server/html: ui/build ui-cra/build
+	mkdir -p $@
+	cp -r ui/build $@/wkp-ui
+	cp -r ui-cra/build $@/mccp
 
 ifeq ($(BUILD_IN_CONTAINER),true)
 
@@ -280,9 +271,13 @@ cmd/wkp-agent/wkp-agent:
 cmd/ui-server/ui-server:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/ui-server/*.go
 
-ui/build:
+ui/build: user-guide/public
 	cd ui && yarn install --frozen-lockfile && yarn lint && yarn test && yarn build
 	cp -r user-guide/public ui/build/docs
+
+ui-cra/build: user-guide/public
+	cd ui-cra && yarn install --frozen-lockfile && yarn build
+	cp -r user-guide/public ui-cra/build/docs
 
 wkp-cluster-components/build:
 	cd wkp-cluster-components && \
@@ -316,7 +311,7 @@ unit-tests: $(GENERATED)
 endif # BUILD_IN_CONTAINER
 
 ui-build-for-tests:
-	cd ui && yarn install && yarn build
+	cd ui-cra && yarn install && yarn build
 
 install: $(LOCAL_BINARIES)
 	cp $(LOCAL_BINARIES) `go env GOPATH`/bin

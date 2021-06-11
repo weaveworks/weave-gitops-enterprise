@@ -47,6 +47,8 @@ nginx-ingress-controller:
     ssl-redirect: 'false'
 
 wkp-ui:
+  server:
+    htmlRootPath: html/mccp
   image:
     tag: v2.5.0
     pullSecrets: []

@@ -224,22 +224,10 @@ func (b RealMCCPTestRunner) ResetDatabase() error {
 }
 
 func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
-	fmt.Println("Leaf cluster pods before apply")
-	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
-		fmt.Printf("Error getting leaf cluster pods before apply: %v\n", err)
-	}
-	fmt.Println("Leaf cluster events before apply")
-	if err := runCommandPassThrough(env, "kubectl", "get", "events", "-A"); err != nil {
-		fmt.Printf("Error getting leaf cluster events before apply: %v\n", err)
-	}
 	err := runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
 	fmt.Println("Leaf cluster pods after apply")
 	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
 		fmt.Printf("Error getting leaf cluster pods after apply: %v\n", err)
-	}
-	fmt.Println("Leaf cluster events after apply")
-	if err := runCommandPassThrough(env, "kubectl", "get", "events", "-A"); err != nil {
-		fmt.Printf("Error getting leaf cluster events after apply: %v\n", err)
 	}
 	return err
 }

@@ -104,14 +104,14 @@ const SvgCanvas = styled.svg<{ axisOnHover: boolean }>`
 
 type CommitRenderer = (commit: JSX.Element, key: Key, data: any) => JSX.Element;
 
-interface Point {
+interface PointType {
   ts: Date;
   status: string;
 }
 
 interface SparkTimelineProps {
   axisOnHover: boolean;
-  data: Point[];
+  data: PointType[];
   showHeadLabel: boolean;
   renderCommit?: CommitRenderer;
 }
@@ -136,7 +136,7 @@ export const SparkTimeline: FC<SparkTimelineProps> = ({ data, ...props }) => {
 
 interface GroupedPoints {
   index: number;
-  data: Point[];
+  data: PointType[];
 }
 
 interface SparkTimelineInnerProps {

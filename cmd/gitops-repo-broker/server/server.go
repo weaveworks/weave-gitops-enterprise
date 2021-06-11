@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -36,6 +37,7 @@ type ParamSet struct {
 	DbPassword                   string
 	DbType                       string
 	DbBusyTimeout                string
+	Port                         string
 }
 
 func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
@@ -91,7 +93,7 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 
 	srv := &http.Server{
 		Handler: r,
-		Addr:    "0.0.0.0:8000",
+		Addr:    fmt.Sprintf("0.0.0.0:%s", params.Port),
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: params.HttpWriteTimeout,
 		ReadTimeout:  params.HttpReadTimeout,

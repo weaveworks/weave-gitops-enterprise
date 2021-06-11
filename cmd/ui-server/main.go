@@ -15,6 +15,7 @@ type paramSet struct {
 	gitDeployKeyFile string
 	gitURL           string
 	gitPollInterval  time.Duration
+	htmlRootPath     string
 }
 
 type spaFileSystem struct {
@@ -35,10 +36,11 @@ func main() {
 	flag.StringVar(&params.gitDeployKeyFile, "git-deploy-key-file", "private-key", "")
 	flag.StringVar(&params.gitURL, "git-url", "git@github.com:weaveworks/test-wkp.git", "")
 	flag.DurationVar(&params.gitPollInterval, "git-poll-interval", 15*time.Second, "")
+	flag.StringVar(&params.htmlRootPath, "html-root-path", "html/wkp-ui", "")
 	flag.Parse()
 
 	// Serve the UI
-	fs := http.FileServer(&spaFileSystem{http.Dir("html")})
+	fs := http.FileServer(&spaFileSystem{http.Dir(params.htmlRootPath)})
 	http.Handle("/", http.StripPrefix("/", fs))
 
 	log.Println("Listening on", params.port)

@@ -215,6 +215,7 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
           )}
           {formState.activeIndex > 0 && (
             <Button
+              className="close-button"
               onClick={() => {
                 onFinish({ success: true, message: '' });
               }}

@@ -241,6 +241,7 @@ declare module 'weaveworks-ui-components' {
   export interface Theme extends UITheme {}
 
   export const Button: React.ComponentType<{
+    className?: string;
     danger?: boolean;
     disabled?: boolean;
     onClick?: (event?: React.MouseEvent<HTMLButtonElement>) => void;

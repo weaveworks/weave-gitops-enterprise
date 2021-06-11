@@ -4,7 +4,7 @@ import { request } from '../../utils/request';
 import { Templates } from './index';
 
 const TemplatesProvider: FC = ({ children }) => {
-  const [loading, setLoading] = useState<boolean>(true);
+  const [, setLoading] = useState<boolean>(true);
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -41,7 +41,7 @@ const TemplatesProvider: FC = ({ children }) => {
 
   useEffect(() => {
     fetchTemplates();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Templates.Provider

@@ -51,10 +51,6 @@ const ActionButton = styled.button`
   }
 `;
 
-const Icon = styled.div`
-  margin-right: ${theme.spacing.xs};
-`;
-
 export const ActionIcon = styled(FontAwesomeIcon)`
   margin-right: ${theme.spacing.xs};
 `;

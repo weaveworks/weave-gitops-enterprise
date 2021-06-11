@@ -36,7 +36,7 @@ import (
 // Test suite
 //
 
-const uiURL = "http://localhost:4046"
+const uiURL = "http://localhost:5000"
 const brokerURL = "http://localhost:8000"
 const seleniumURL = "http://localhost:4444/wd/hub"
 
@@ -516,6 +516,7 @@ var _ = Describe("Integration suite", func() {
 			createRecentAlert("alert1", "critical", time.Hour*2)
 			createRecentAlert("alert2", "warning", time.Hour*1)
 			createRecentAlert("alert3", "warning", time.Hour*3)
+			Expect(intWebDriver.Navigate(uiURL + "/alerts")).To(Succeed())
 		})
 
 		It("should sort the alerts by starts at", func() {
@@ -556,6 +557,7 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 
 func RunBroker(ctx gcontext.Context, dbURI string) error {
 	srv, err := broker.NewServer(ctx, broker.ParamSet{
+		Port:        "8090",
 		DbURI:       dbURI,
 		DbType:      "sqlite",
 		PrivKeyFile: dbURI,
@@ -567,17 +569,13 @@ func RunBroker(ctx gcontext.Context, dbURI string) error {
 }
 
 func RunUIServer(ctx gcontext.Context, brokerURL string) {
+	// is configured to proxy to
+	// - 8000 for clusters-service
+	// - 8090 for gitops-broker
 	cmd := exec.CommandContext(ctx, "node", "server.js")
-	cmd.Dir = getLocalPath("ui")
+	cmd.Dir = getLocalPath("ui-cra")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = append(
-		os.Environ(),
-		[]string{
-			"NODE_ENV=production",
-			"API_SERVER=" + brokerURL,
-		}...,
-	)
 	err := cmd.Start()
 
 	if err != nil {
