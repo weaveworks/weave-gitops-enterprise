@@ -49,9 +49,22 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))):$(IMAGE_TAG)
 	touch $@
 
+WEAVE_GITOPS_CLUSTERS_SERVICE := docker.io/weaveworks/weave-gitops-clusters-service
+cmd/capi-server/$(UPTODATE): cmd/capi-server/Dockerfile cmd/capi-server/*
+	$(SUDO) docker build \
+		--build-arg=version=$(VERSION) \
+		--build-arg=image_tag=$(IMAGE_TAG) \
+		--build-arg=revision=$(GIT_REVISION) \
+		--tag $(WEAVE_GITOPS_CLUSTERS_SERVICE) \
+		--file cmd/capi-server/Dockerfile \
+		$(@D)/
+	$(SUDO) docker tag $(WEAVE_GITOPS_CLUSTERS_SERVICE) $(WEAVE_GITOPS_CLUSTERS_SERVICE):$(IMAGE_TAG)
+	touch $@
+
 update-mccp-chart-values: update-wkp-ui-chart-values
 	sed -i "s|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker.*|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 	sed -i "s|eventWriter: docker.io/weaveworks/wkp-event-writer.*|eventWriter: docker.io/weaveworks/wkp-event-writer:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
+	sed -i "s|clustersService: docker.io/weaveworks/weave-gitops-clusters-service.*|clustersService: docker.io/weaveworks/weave-gitops-clusters-service:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 
 update-wkp-ui-chart-values:
 	sed -i "s|tag: .*|tag: $(IMAGE_TAG)|" $(CHART_VALUES_PATH)
@@ -71,6 +84,7 @@ DOCKERFILES := $(shell find . \
 UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
 DOCKER_IMAGE_DIRS := $(patsubst %/Dockerfile,%,$(DOCKERFILES))
 IMAGE_NAMES := $(foreach dir,$(DOCKER_IMAGE_DIRS),$(patsubst %,$(IMAGE_PREFIX)%,$(subst wkp-,,$(shell basename $(dir)))))
+IMAGE_NAMES += $(WEAVE_GITOPS_CLUSTERS_SERVICE)
 images:
 	$(info $(IMAGE_NAMES))
 	@echo > /dev/null

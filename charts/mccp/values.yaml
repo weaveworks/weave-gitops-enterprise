@@ -9,6 +9,7 @@ fullnameOverride: ''
 images:
   eventWriter: docker.io/weaveworks/wkp-event-writer:v2.5.0
   gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker:v2.5.0
+  clustersService: docker.io/weaveworks/weave-gitops-clusters-service:v0.0.2
 
 dbConfig:
   databaseType: sqlite

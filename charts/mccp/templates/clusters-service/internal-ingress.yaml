@@ -1,0 +1,23 @@
+---
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: mccp-nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /v1/$1
+  labels:
+    app: clusters-service
+  name: clusters-service
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              serviceName: clusters-service
+              servicePort: 8000
+            path: /v1/?(.*)
