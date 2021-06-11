@@ -24,7 +24,9 @@ crd-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and 
 crd-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+# To regenerate the CRD after changes to api/v1/capitemplate_types.go, run make crd-generate
+# Note that controller-gen needs to be in $PATH
+CONTROLLER_GEN = controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
 
