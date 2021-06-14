@@ -7,18 +7,24 @@ import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
 const navItemPadding = css`
-  padding: 0 ${theme.spacing.small};
+  padding: 0 ${theme.spacing.small} ${theme.spacing.small}
+    ${theme.spacing.small};
+`;
+
+const navItemMargin = css`
+  margin: 0 0 ${theme.spacing.small} 0;
 `;
 
 const itemCss = css`
   /* breaking from std. spacing as */
   display: flex;
   font-size: ${20}px;
-  line-height: ${theme.spacing.xl};
-  height: ${theme.spacing.xl};
+  line-height: ${theme.spacing.large};
+  height: ${theme.spacing.large};
   box-sizing: border-box;
   color: ${theme.colors.black};
   ${navItemPadding}
+  ${navItemMargin}
 `;
 
 const itemActiveCss = css`
@@ -28,14 +34,14 @@ const itemActiveCss = css`
 const Title = styled.div`
   display: flex;
   justify-content: center;
-  padding-top: ${theme.spacing.small};
+  padding-top: ${theme.spacing.large};
   background: #00b3ec;
-  max-height: 64px;
+  max-height: 112px;
 `;
 
 const Logo = styled.div`
   width: 130px;
-  height: 64px;
+  height: 112px;
   background: url(${WeaveGitOps});
   background-repeat: no-repeat;
 `;
