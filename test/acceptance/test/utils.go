@@ -23,7 +23,7 @@ import (
 var webDriver *agouti.Page
 var gitProvider string
 var seleniumServiceUrl string
-var wkpUrl = "http://localhost:8090"
+var defaultUIURL = "http://localhost:8090"
 
 func GetWebDriver() *agouti.Page {
 	return webDriver
@@ -33,8 +33,15 @@ func SetWebDriver(wb *agouti.Page) {
 	webDriver = wb
 }
 
-func SetWkpUrl(url string) {
-	wkpUrl = url
+func GetWkpUrl() string {
+	if os.Getenv("TEST_UI_URL") != "" {
+		return os.Getenv("TEST_UI_URL")
+	}
+	return defaultUIURL
+}
+
+func SetDefaultUIURL(url string) {
+	defaultUIURL = url
 }
 
 func SetSeleniumServiceUrl(url string) {
@@ -281,7 +288,7 @@ func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor ti
 	}
 
 	fmt.Print(populated.String())
-	req, err := http.NewRequest("POST", wkpUrl+"/alertmanager/api/v2/alerts", &populated)
+	req, err := http.NewRequest("POST", GetWkpUrl()+"/alertmanager/api/v2/alerts", &populated)
 	if err != nil {
 		return err
 	}

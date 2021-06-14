@@ -66,7 +66,7 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		NodesVersions:  cluster.FindByXPath(`td[5]`),
 		TeamWorkspaces: cluster.FindByXPath(`td[6]`),
 		GitRepoURL:     cluster.FindByXPath(`td[7]`),
-		EditCluster:    cluster.FindByXPath(`td[8]`),
+		EditCluster:    cluster.FindByXPath(`td[8]`).Find("button"),
 	}
 }
 

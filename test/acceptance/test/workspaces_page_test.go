@@ -31,7 +31,7 @@ func DescribeWorkspacesAcceptance() {
 				Expect(err).NotTo(HaveOccurred())
 			}
 
-			workspacesUrl := wkpUrl + "/workspaces"
+			workspacesUrl := GetWkpUrl() + "/workspaces"
 			By("When I navigate to WKP dashboard", func() {
 				Expect(webDriver.Navigate(workspacesUrl)).To(Succeed())
 			})

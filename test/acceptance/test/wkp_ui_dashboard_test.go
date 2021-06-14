@@ -39,7 +39,7 @@ func DescribeWKPUIAcceptance() {
 
 			By("When I navigate to WKP dashboard", func() {
 
-				Expect(webDriver.Navigate(wkpUrl)).To(Succeed())
+				Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
 
 			})
 		})

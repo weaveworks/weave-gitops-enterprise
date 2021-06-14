@@ -1,9 +1,7 @@
 # EKS friendly values
 # -------------------
 defaultRules:
-  rules:
-    etcd: false
-    kubeScheduler: false
+  create: false
 # Not monitoring etcd, kube-scheduler, or kube-controller-manager because it is managed by EKS
 kubeControllerManager:
   enabled: false

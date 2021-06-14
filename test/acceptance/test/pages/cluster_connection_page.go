@@ -24,13 +24,13 @@ func GetClusterConnectionPage(webDriver *agouti.Page) *ClusterConnectionPage {
 		ClusterConnectionPopup:   webDriver.Find(`#connection-popup`),
 		ClusterName:              webDriver.Find(`#Name-input`),
 		ClusterIngressURL:        webDriver.FindByXPath(`//*[@id="Ingress URL-input"]`),
-		ClusterSaveAndNext:       webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/form/div[2]/button/span`),
+		ClusterSaveAndNext:       webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/form/div[2]/button`),
 		ButtonClusterSaveAndNext: webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/form/div[2]/button`),
 		ConnectionInstructions:   webDriver.Find(`#instructions`),
 		ConnectionStatus:         webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/form/div[1]/div/div[2]/div[2]`),
 		ButtonClose:              webDriver.Find(`#connection-popup .close-button`),
 		DisconnectTab:            webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/div/div[3]`),
-		ButtonRemoveCluster:      webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/form/div[1]/div/div[3]/button/span`),
+		ButtonRemoveCluster:      webDriver.FindByXPath(`//*[@id="connection-popup"]/div[2]/div/form/div[1]/div/div[3]/button`),
 	}
 
 	return &clusterConnPage

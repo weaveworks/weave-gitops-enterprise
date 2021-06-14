@@ -672,7 +672,7 @@ func TestMccpUI(t *testing.T) {
 	mccpRunner := acceptancetest.DatabaseMCCPTestRunner{DB: db}
 	acceptancetest.DescribeMCCPAcceptance(mccpRunner)
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
-	acceptancetest.SetWkpUrl(uiURL)
+	acceptancetest.SetDefaultUIURL(uiURL)
 
 	AfterSuite(func() {
 		webDriver := acceptancetest.GetWebDriver()

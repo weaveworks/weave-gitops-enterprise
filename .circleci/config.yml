@@ -755,12 +755,10 @@ jobs:
               --values ../../utils/data/mccp-prometheus-values.yaml
 
             kubectl create namespace mccp
-
             kubectl create secret docker-registry docker-io-pull-secret \
               --namespace mccp \
               --docker-username="${DOCKER_IO_USER}" \
               --docker-password="${DOCKER_IO_PASSWORD}" 
-
             CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
             helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
             helm repo update
