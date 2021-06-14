@@ -99,7 +99,7 @@ func AlertsFiringInAlertsWidget(clustersPage *ClustersPage) []*AlertInformation 
 //GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
-		ClusterCount:                          webDriver.Find(`#count-header .section-header-count`),
+		ClusterCount:                          webDriver.Find(`.count-header .section-header-count`),
 		ConnectClusterButton:                  webDriver.Find(`#connect-cluster`),
 		NoFiringAlertMessage:                  webDriver.Find(`#firing-alerts i`),
 		FiringAlertsSection:                   webDriver.Find(`#firing-alerts`),

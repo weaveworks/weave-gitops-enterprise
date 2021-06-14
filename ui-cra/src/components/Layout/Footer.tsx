@@ -1,10 +1,10 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { pageDimensionsCss } from './ContentWrapper';
+import { contentDimensionsCss } from './ContentWrapper';
 import { spacing } from 'weaveworks-ui-components/lib/theme/selectors';
 
 const Wrapper = styled.div`
-  ${pageDimensionsCss}
+  ${contentDimensionsCss}
   display: flex;
   flex-direction: column;
   align-items: flex-end;

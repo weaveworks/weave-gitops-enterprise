@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 import { Cluster } from '../../types/kubernetes';
 import { requestWithHeaders } from '../../utils/request';
 import { useInterval } from '../../utils/use-interval';
@@ -41,7 +41,7 @@ const ClustersProvider: FC = ({ children }) => {
     pageParams.page + 1
   }&per_page=${pageParams.perPage}`;
 
-  const fetchClusters = () => {
+  const fetchClusters = useCallback(() => {
     // abort any inflight requests
     abortController?.abort();
 
@@ -67,13 +67,12 @@ const ClustersProvider: FC = ({ children }) => {
         setDisabled(false);
         setAbortController(null);
       });
-  };
+  }, [abortController, clustersParameters]);
 
-  const addCluster = (cluster: Cluster) => {
+  const addCluster = useCallback((data: any) => {
     console.log('addCluster has been called');
-  };
+  }, []);
 
-  // Poll workspaces periodically if the listing is enabled.
   useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [
     order,
     orderBy,

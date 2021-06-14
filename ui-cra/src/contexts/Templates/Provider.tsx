@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { Template } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Templates } from './index';
@@ -13,7 +13,7 @@ const TemplatesProvider: FC = ({ children }) => {
 
   const templatesUrl = '/v1/templates';
 
-  const fetchTemplates = () => {
+  const fetchTemplates = useCallback(() => {
     // abort any inflight requests
     abortController?.abort();
 
@@ -37,7 +37,7 @@ const TemplatesProvider: FC = ({ children }) => {
         setLoading(false);
         setAbortController(null);
       });
-  };
+  }, [abortController]);
 
   useEffect(() => {
     fetchTemplates();

@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { NavLink } from 'react-router-dom';
-import WeaveLogo from '../assets/img/wego.svg';
+import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
@@ -25,15 +25,18 @@ const itemActiveCss = css`
   border-left: 4px solid ${theme.colors.blue400};
 `;
 
-const Title = styled.a`
+const Title = styled.div`
   display: flex;
   justify-content: center;
+  padding-top: ${theme.spacing.small};
+  background: #00b3ec;
+  max-height: 64px;
 `;
 
 const Logo = styled.div`
-  width: 80px;
-  height: 80px;
-  background: url(${WeaveLogo});
+  width: 130px;
+  height: 64px;
+  background: url(${WeaveGitOps});
   background-repeat: no-repeat;
 `;
 
@@ -67,22 +70,24 @@ export const Navigation: FC = () => {
   const classes = useStyles();
 
   return (
-    <Box className={classes.root} bgcolor={theme.colors.white}>
-      <Box className={classes.section}>
-        <Title title="Home">
-          <Logo />
-        </Title>
-        <NavItem className={classes.bold} to="/clusters">
-          Clusters
-        </NavItem>
-        <NavItem to="/templates">Templates</NavItem>
-        <NavItem to="/alerts">Alerts</NavItem>
+    <>
+      <Title title="Home">
+        <Logo />
+      </Title>
+      <Box className={classes.root} bgcolor={theme.colors.white}>
+        <Box className={classes.section}>
+          <NavItem className={classes.bold} to="/clusters">
+            Clusters
+          </NavItem>
+          <NavItem to="/templates">Templates</NavItem>
+          <NavItem to="/alerts">Alerts</NavItem>
+        </Box>
+        <Box className={classes.section}>
+          <NavItem className={classes.bold} to="/applications">
+            Applications
+          </NavItem>
+        </Box>
       </Box>
-      <Box className={classes.section}>
-        <NavItem className={classes.bold} to="/applications">
-          Applications
-        </NavItem>
-      </Box>
-    </Box>
+    </>
   );
 };

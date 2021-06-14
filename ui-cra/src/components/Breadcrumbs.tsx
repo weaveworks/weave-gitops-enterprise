@@ -17,27 +17,31 @@ const Container = styled.div`
   height: 32px;
 `;
 
+const Span = styled.span`
+  color: ${({ theme }) => theme.colors.white};
+`;
+
+const Link = styled.a`
+  color: ${({ theme }) => theme.colors.white};
+`;
+
 export const Title = styled.div<Size>`
   margin-right: ${({ size }) =>
     size === 'small' ? weaveTheme.spacing.xxs : weaveTheme.spacing.xs};
   white-space: nowrap;
 `;
 
-const Link = styled.a`
-  color: ${({ theme }) => theme.colors.black};
-`;
-
 export const Count = styled.div<Size>`
   background: ${({ size }) =>
     size === 'small'
-      ? transparentize(0.5, weaveTheme.colors.purple100)
-      : weaveTheme.colors.purple100};
+      ? transparentize(0.5, weaveTheme.colors.white)
+      : weaveTheme.colors.white};
   padding: 4px 8px;
   align-self: center;
   font-size: ${({ size }) =>
     size === 'small' ? weaveTheme.spacing.small : weaveTheme.fontSizes.normal};
-  color: ${weaveTheme.colors.gray600};
-  margin-left: ${weaveTheme.spacing.xs};
+  color: #00b3ec;
+  margin-left: ${weaveTheme.spacing.xxs};
   border-radius: ${weaveTheme.borderRadius.soft};
 `;
 
@@ -76,7 +80,7 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
             </div>
           )}
           {isEmpty(url) ? (
-            label
+            <Span>{label}</Span>
           ) : (
             <>
               <Title role="heading" size={size}>

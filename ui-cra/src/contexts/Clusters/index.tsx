@@ -11,7 +11,7 @@ interface ClustersContext {
   handleSetPageParams: (page: number, perPage: number) => void;
   order: string;
   orderBy: string;
-  addCluster: (cluster: Cluster) => void;
+  addCluster: (data: any) => void;
 }
 
 export const Clusters = createContext<ClustersContext | null>(null);

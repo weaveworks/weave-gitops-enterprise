@@ -1,5 +1,5 @@
 export type Param = {
-  name?: string;
+  name: string;
   description?: string;
 };
 
@@ -7,7 +7,7 @@ export type Template = {
   name?: string;
   description?: string;
   version?: string;
-  params?: Param[];
+  parameters?: Param[];
 };
 
 export type ListTemplatesResponse = {

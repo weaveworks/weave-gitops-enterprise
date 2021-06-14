@@ -95,6 +95,11 @@ export const muiTheme = createMuiTheme({
         justifyContent: 'center',
       },
     },
+    MuiInputLabel: {
+      formControl: {
+        transform: 'none',
+      },
+    },
   },
   palette: {
     primary: {

@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 import { Alert } from '../../types/kubernetes';
 import { request } from '../../utils/request';
 import { useInterval } from '../../utils/use-interval';
@@ -15,7 +15,7 @@ const AlertsProvider: FC = ({ children }) => {
 
   const alertsUrl = '/gitops/api/alerts';
 
-  const fetchAlerts = () => {
+  const fetchAlerts = useCallback(() => {
     // abort any inflight requests
     abortController?.abort();
 
@@ -39,17 +39,12 @@ const AlertsProvider: FC = ({ children }) => {
         setLoading(false);
         setAbortController(null);
       });
-  };
+  }, [abortController]);
 
   useInterval(() => fetchAlerts(), ALERTS_POLL_INTERVAL, true, []);
 
   return (
-    <Alerts.Provider
-      value={{
-        alerts,
-        error,
-      }}
-    >
+    <Alerts.Provider value={{ alerts, error }}>
       {loading && !alerts ? 'loader' : children}
     </Alerts.Provider>
   );

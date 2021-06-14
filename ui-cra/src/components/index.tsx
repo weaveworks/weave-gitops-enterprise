@@ -19,9 +19,8 @@ import {
 } from '@material-ui/core/styles';
 import AddCluster from './Clusters/Create';
 import TemplatesProvider from '../contexts/Templates/Provider';
-import Box from '@material-ui/core/Box';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Compose from './ProvidersCompose';
+import Box from '@material-ui/core/Box';
 
 const drawerWidth = 240;
 
@@ -36,22 +35,33 @@ const useStyles = makeStyles((theme: Theme) =>
         flexShrink: 0,
       },
     },
+    appBar: {
+      [theme.breakpoints.up('sm')]: {
+        width: `calc(100% - ${drawerWidth}px)`,
+        marginLeft: drawerWidth,
+      },
+      backgroundColor: '#00b3ec',
+      boxShadow: 'none',
+    },
     menuButton: {
       [theme.breakpoints.up('sm')]: {
         display: 'none',
       },
-      marginLeft: weaveTheme.spacing.small,
+      marginLeft: 0,
     },
     menuButtonBox: {
-      padding: weaveTheme.spacing.medium,
-      alignItems: 'center',
+      height: '64px',
+      background: '#00b3ec',
+      display: 'flex',
+      justifyContent: 'center',
     },
+    toolbar: theme.mixins.toolbar,
     drawerPaper: {
       width: drawerWidth,
+      border: 'none',
     },
     content: {
       flexGrow: 1,
-      padding: weaveTheme.spacing.small,
     },
   }),
 );
@@ -66,22 +76,22 @@ const ResponsiveDrawer = () => {
   };
 
   return (
-    <Compose components={[ClustersProvider, TemplatesProvider, AlertsProvider]}>
+    <Compose components={[TemplatesProvider, ClustersProvider, AlertsProvider]}>
       <div className={classes.root}>
         <CssBaseline />
+        <Box className={classes.menuButtonBox}>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            className={classes.menuButton}
+          >
+            <MenuIcon />
+          </IconButton>
+        </Box>
         <nav className={classes.drawer} aria-label="mailbox folders">
           <Hidden smUp implementation="css">
-            <Box className={classes.menuButtonBox}>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                className={classes.menuButton}
-              >
-                <MenuIcon />
-              </IconButton>
-            </Box>
             <Drawer
               variant="temporary"
               anchor={theme.direction === 'rtl' ? 'right' : 'left'}
@@ -94,7 +104,9 @@ const ResponsiveDrawer = () => {
                 keepMounted: true, // Better open performance on mobile.
               }}
             >
-              <Navigation />;
+              <div className={classes.toolbar}>
+                <Navigation />
+              </div>
             </Drawer>
           </Hidden>
           <Hidden xsDown implementation="css">
@@ -105,7 +117,9 @@ const ResponsiveDrawer = () => {
               variant="permanent"
               open
             >
-              <Navigation />;
+              <div className={classes.toolbar}>
+                <Navigation />
+              </div>
             </Drawer>
           </Hidden>
         </nav>

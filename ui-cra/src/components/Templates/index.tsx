@@ -1,10 +1,27 @@
 import React, { FC } from 'react';
+import randomColor from 'randomcolor';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
 import useClusters from '../../contexts/Clusters';
 import useTemplates from '../../contexts/Templates';
 import { SectionHeader } from '../Layout/SectionHeader';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+
+const getColor = (seed: number) => {
+  if (seed % 2 === 0) {
+    return randomColor({
+      luminosity: 'bright',
+      seed: String(seed),
+      hue: 'blue',
+    });
+  }
+  return randomColor({
+    luminosity: 'bright',
+    seed: String(seed),
+    hue: 'orange',
+  });
+};
 
 const TemplatesDashboard: FC = () => {
   const { templates } = useTemplates();
@@ -13,21 +30,21 @@ const TemplatesDashboard: FC = () => {
 
   return (
     <PageTemplate documentTitle="WeGO · Templates">
-      <span id="count-header">
-        <SectionHeader
-          path={[
-            { label: 'Clusters', url: 'clusters', count: clustersCount },
-            { label: 'Templates', url: 'templates', count: templatesCount },
-          ]}
-        />
-      </span>
-      <Grid container spacing={4} justify="center">
-        {templates.map((template: any, index: number) => (
-          <Grid key={index} item xs={12} sm={6} md={4}>
-            <TemplateCard template={template} />
-          </Grid>
-        ))}
-      </Grid>
+      <SectionHeader
+        path={[
+          { label: 'Clusters', url: 'clusters', count: clustersCount },
+          { label: 'Templates', url: 'templates', count: templatesCount },
+        ]}
+      />
+      <ContentWrapper>
+        <Grid container spacing={3} justify="center">
+          {templates.map((template: any, index: number) => (
+            <Grid key={index} item xs={12} sm={6} md={3}>
+              <TemplateCard template={template} color={getColor(index)} />
+            </Grid>
+          ))}
+        </Grid>
+      </ContentWrapper>
     </PageTemplate>
   );
 };

@@ -13,6 +13,8 @@ data:
       params:
         - name: CLUSTER_NAME
           description: This is used for the cluster naming.
+        - name: REGION
+          description: Cluster region.
       resourcetemplates:
       - apiVersion: cluster.x-k8s.io/v1alpha3
         kind: Cluster
@@ -40,6 +42,10 @@ data:
       params:
         - name: CLUSTER_NAME
           description: This is used for the cluster naming.
+        - name: REGION
+          description: Cluster region.
+        - name: SOME_OTHER_PARAM
+          description: Some other param.
       resourcetemplates:
       - apiVersion: cluster.x-k8s.io/v1alpha3
         kind: Cluster
@@ -67,6 +73,8 @@ data:
       params:
         - name: CLUSTER_NAME
           description: This is used for the cluster naming.
+        - name: REGION
+          description: Cluster region.
       resourcetemplates:
       - apiVersion: cluster.x-k8s.io/v1alpha3
         kind: Cluster
@@ -94,6 +102,8 @@ data:
       params:
         - name: CLUSTER_NAME
           description: This is used for the cluster naming.
+        - name: REGION
+          description: Cluster region.
       resourcetemplates:
       - apiVersion: cluster.x-k8s.io/v1alpha3
         kind: Cluster
