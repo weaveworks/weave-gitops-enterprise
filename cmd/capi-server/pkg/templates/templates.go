@@ -3,28 +3,23 @@ package templates
 import (
 	"context"
 	"fmt"
-	"os"
 
 	log "github.com/sirupsen/logrus"
-	appv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1"
+	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi/flavours"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// TemplateParams is a map of parameter to value for rendering templates.
-type TemplateParams map[string]string
 
 // TemplateGetter implementations get templates by name.
 type TemplateGetter interface {
-	Get(ctx context.Context, name string) ([]byte, error)
+	Get(ctx context.Context, name string) (*capiv1.CAPITemplate, error)
 }
 
 // TemplateLister implementations list templates from a Library.
 type TemplateLister interface {
-	List(ctx context.Context) (map[string][]byte, error)
+	List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error)
 }
 
 // Library represents a library of Templates indexed by name.
@@ -33,72 +28,85 @@ type Library interface {
 	TemplateLister
 }
 
-func LoadTemplatesFromConfigmap(ctx context.Context, clientset kubernetes.Clientset, namespace string, name string) (map[string]*appv1.CAPITemplate, error) {
-	log.Debugf("querying kubernetes for configmap: %s/%s\n", namespace, name)
-	templateConfigMap, err := clientset.CoreV1().ConfigMaps(namespace).Get(ctx, name, metav1.GetOptions{})
+type ConfigMapLibrary struct {
+	Client        client.Client
+	ConfigMapName string
+	Namespace     string
+}
+
+func (lib *ConfigMapLibrary) List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error) {
+	fmt.Printf("querying kubernetes for configmap: %s/%s\n", lib.Namespace, lib.ConfigMapName)
+
+	templateConfigMap := &v1.ConfigMap{}
+	err := lib.Client.Get(ctx, client.ObjectKey{
+		Namespace: lib.Namespace,
+		Name:      lib.ConfigMapName,
+	}, templateConfigMap)
 	if errors.IsNotFound(err) {
-		return nil, fmt.Errorf("configmap %s not found in %s namespace\n", name, namespace)
+		return nil, fmt.Errorf("configmap %s not found in %s namespace", lib.ConfigMapName, lib.Namespace)
 	} else if err != nil {
-		return nil, fmt.Errorf("error getting configmap: %s\n", err)
+		return nil, fmt.Errorf("error getting configmap: %s", err)
 	}
 	log.Debugf("got template configmap: %v\n", templateConfigMap)
 
 	tm, err := flavours.ParseConfigMap(*templateConfigMap)
 	if errors.IsNotFound(err) {
-		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %s\n", err)
+		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %s", err)
 	}
 	return tm, nil
 }
 
-func GetTemplate(ctx context.Context, crdRestClient *rest.RESTClient, namespace, tmName string) (*appv1.CAPITemplate, error) {
-	capiTemplate := appv1.CAPITemplate{}
-	log.Infof("getting capitemplate: %s\n", tmName)
-	err := crdRestClient.Get().Namespace(namespace).Resource("capitemplates").Name(tmName).Do(ctx).Into(&capiTemplate)
+func (lib *ConfigMapLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITemplate, error) {
+	allTemplates, err := lib.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var foundTemplate *capiv1.CAPITemplate
+	for _, tm := range allTemplates {
+		if tm.Name == name {
+			foundTemplate = tm
+		}
+	}
+	if foundTemplate == nil {
+		return nil, fmt.Errorf("capitemplate %s not found in configmap %s/%s", name, lib.Namespace, lib.ConfigMapName)
+	}
+
+	return foundTemplate, nil
+}
+
+type CRDLibrary struct {
+	Client    client.Client
+	Namespace string
+}
+
+func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITemplate, error) {
+	capiTemplate := capiv1.CAPITemplate{}
+	log.Infof("getting capitemplate: %s\n", name)
+	err := lib.Client.Get(ctx, client.ObjectKey{
+		Namespace: lib.Namespace,
+		Name:      name,
+	}, &capiTemplate)
 	log.Infof("err: %s\n", err)
 	if err != nil {
-		return nil, fmt.Errorf("error getting capitemplate %s/%s: %s\n", namespace, tmName, err)
+		return nil, fmt.Errorf("error getting capitemplate %s/%s: %s", lib.Namespace, name, err)
 	}
 	log.Infof("got capitemplate: %v\n", capiTemplate)
 
 	return &capiTemplate, nil
 }
 
-func GetTemplateParams(ctx context.Context, crdRestClient *rest.RESTClient, namespace, tmName string) ([]flavours.Param, error) {
-	tm, err := GetTemplate(ctx, crdRestClient, namespace, tmName)
+func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error) {
+	log.Debugf("querying namespace %s for CAPITemplate resources\n", lib.Namespace)
+	capiTemplateList := capiv1.CAPITemplateList{}
+	err := lib.Client.List(ctx, &capiTemplateList, client.InNamespace(lib.Namespace))
 	if err != nil {
-		return nil, err
-	}
-	return flavours.ParamsFromSpec(tm.Spec)
-}
-
-// TODO: move this into a grpc handler
-func RenderTemplate(ctx context.Context, crdRestClient *rest.RESTClient, namespace, tmName string, vars map[string]string) ([][]byte, error) {
-	log.Infof("rendering template with vars: %v", vars)
-	tm, err := GetTemplate(ctx, crdRestClient, os.Getenv("POD_NAMESPACE"), tmName)
-	if err != nil {
-		return nil, err
-	}
-	log.Infof("got template: %v", tm.ObjectMeta.Name)
-
-	render, err := flavours.Render(tm.Spec, vars)
-	if err != nil {
-		return nil, err
-	}
-	return render, nil
-}
-
-func LoadTemplatesFromCustomResources(ctx context.Context, crdRestClient *rest.RESTClient, namespace string) (map[string]*appv1.CAPITemplate, error) {
-	log.Debugf("querying namespace %s for CAPITemplate resources\n", namespace)
-	capiTemplateList := appv1.CAPITemplateList{}
-	err := crdRestClient.Get().Resource("capitemplates").Do(ctx).Into(&capiTemplateList)
-	if err != nil {
-		return nil, fmt.Errorf("error getting capitemplates: %s\n", err)
+		return nil, fmt.Errorf("error getting capitemplates: %s", err)
 	}
 	log.Debugf("got capitemplates: %v\n", capiTemplateList.Items)
 
-	result := map[string]*appv1.CAPITemplate{}
-	for _, ct := range capiTemplateList.Items {
-		result[ct.ObjectMeta.Name] = &ct
+	result := map[string]*capiv1.CAPITemplate{}
+	for i, ct := range capiTemplateList.Items {
+		result[ct.ObjectMeta.Name] = &capiTemplateList.Items[i]
 	}
 	return result, nil
 }

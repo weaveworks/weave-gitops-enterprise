@@ -4,32 +4,25 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi/flavours"
 	capiv1 "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
-	utils "github.com/weaveworks/wks/cmd/capi-server/pkg/utils"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/utils"
 )
 
 type server struct {
-	clientset kubernetes.Clientset
-	crdRestClient *rest.RESTClient
+	library templates.Library
 	capiv1.UnimplementedClustersServiceServer
 }
 
-func NewClusterServer(clientset kubernetes.Clientset, crdRestClient *rest.RESTClient) capiv1.ClustersServiceServer {
-	return &server{clientset: clientset, crdRestClient: crdRestClient}
+func NewClusterServer(library templates.Library) capiv1.ClustersServiceServer {
+	return &server{library: library}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1.ListTemplatesRequest) (*capiv1.ListTemplatesResponse, error) {
-	tl, err := templates.LoadTemplatesFromCustomResources(ctx, s.crdRestClient, os.Getenv("POD_NAMESPACE"))
-	if err != nil {
-		return nil, err
-	}
-
+	tl, err := s.library.List(ctx)
 	templates := []*capiv1.Template{}
 
 	// FIXME: probably a clever way to do this conversion / align types
@@ -54,8 +47,8 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1.ListTemplatesReq
 		templates = append(templates, &capiv1.Template{
 			Name:        t.GetName(),
 			Description: t.Spec.Description,
-			Parameters:      params,
-			Body: string(responseBody),
+			Parameters:  params,
+			Body:        string(responseBody),
 		})
 	}
 
@@ -63,10 +56,15 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1.ListTemplatesReq
 }
 
 func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1.ListTemplateParamsRequest) (*capiv1.ListTemplateParamsResponse, error) {
-	templateParams, err := templates.GetTemplateParams(ctx, s.crdRestClient, os.Getenv("POD_NAMESPACE"), msg.TemplateName)
+	tm, err := s.library.Get(ctx, msg.TemplateName)
 	if err != nil {
-		return nil, fmt.Errorf("error looking up template params for %v", msg.TemplateName)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
+	templateParams, err := flavours.ParamsFromSpec(tm.Spec)
+	if err != nil {
+		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.TemplateName, err)
+	}
+
 	params := []*capiv1.Parameter{}
 	for _, p := range templateParams {
 		params = append(params, &capiv1.Parameter{
@@ -81,12 +79,16 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1.ListTemplat
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1.RenderTemplateRequest) (*capiv1.RenderTemplateResponse, error) {
 	log.Infof("message with params: %v", msg.Values)
-	tm, err := templates.RenderTemplate(ctx, s.crdRestClient, os.Getenv("POD_NAMESPACE"), msg.TemplateName, msg.Values.Values)
+	tm, err := s.library.Get(ctx, msg.TemplateName)
 	if err != nil {
-		return nil, fmt.Errorf("error rendering template %v", msg.TemplateName)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+	}
+	templateBits, err := flavours.Render(tm.Spec, msg.Values.Values)
+	if err != nil {
+		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
 	}
 
-	result := bytes.Join(tm, []byte("\n---\n"))
+	result := bytes.Join(templateBits, []byte("\n---\n"))
 	resultStr := string(result[:])
 
 	return &capiv1.RenderTemplateResponse{RenderedTemplate: resultStr}, err

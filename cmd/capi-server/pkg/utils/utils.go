@@ -1,17 +1,17 @@
 package utils
 
 import (
-	"encoding/json"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/client-go/tools/clientcmd"
-	appv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1"
+	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/tools/clientcmd"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -63,7 +63,7 @@ func GetClientsetFromKubeconfig() (*kubernetes.Clientset, *rest.RESTClient, erro
 
 func getRestClientForConfig(config *rest.Config) (*rest.RESTClient, error) {
 	crdConfig := *config
-	crdConfig.ContentConfig.GroupVersion = &appv1.GroupVersion
+	crdConfig.ContentConfig.GroupVersion = &capiv1.GroupVersion
 	crdConfig.APIPath = "/apis"
 	crdConfig.NegotiatedSerializer = serializer.NewCodecFactory(scheme.Scheme)
 	crdConfig.UserAgent = rest.DefaultKubernetesUserAgent()
@@ -103,11 +103,11 @@ func WriteError(w http.ResponseWriter, appError error, code int) {
 	fmt.Fprintln(w, string(payload))
 }
 
-func B64ResourceTemplate(rt appv1.CAPIResourceTemplate) ([]byte, error) {
+func B64ResourceTemplate(rt capiv1.CAPIResourceTemplate) ([]byte, error) {
 	rtBytes, err := json.Marshal(rt)
-    if err != nil {
-        return nil, fmt.Errorf("failed to marshal resource template: %s", err)
-    }
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal resource template: %s", err)
+	}
 
 	rtBytesB64 := Base64Encode(rtBytes)
 	return rtBytesB64, nil
