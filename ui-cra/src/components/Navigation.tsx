@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { NavLink } from 'react-router-dom';
-import WeaveGitOps from '../assets/img/weave-logo.svg';
+import WeaveGitOps from '../assets/img/weave-logo-no-text.svg';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
@@ -32,16 +32,19 @@ const itemActiveCss = css`
 `;
 
 const Title = styled.div`
+  align-items: center;
   display: flex;
-  justify-content: center;
-  padding-top: ${theme.spacing.large};
+  color: ${theme.colors.white};
+  font-size: ${20}px;
+  margin: 0 0 ${theme.spacing.base} 0;
+  padding-left: ${theme.spacing.small};
   background: #00b3ec;
-  max-height: 112px;
+  height: ${80}px;
 `;
 
 const Logo = styled.div`
-  width: 130px;
-  height: 112px;
+  width: 70px;
+  height: 40px;
   background: url(${WeaveGitOps});
   background-repeat: no-repeat;
 `;
@@ -79,6 +82,7 @@ export const Navigation: FC = () => {
     <>
       <Title title="Home">
         <Logo />
+        <b>Weave</b>GitOps
       </Title>
       <Box className={classes.root} bgcolor={theme.colors.white}>
         <Box className={classes.section}>

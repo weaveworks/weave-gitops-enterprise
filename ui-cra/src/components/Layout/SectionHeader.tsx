@@ -14,7 +14,7 @@ const Wrapper = styled.div<Size>`
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
   margin: 0 0 ${({ size }) => (size === 'small' ? 0 : theme.spacing.base)} 0;
   background: #00b3ec;
-  height: ${112}px;
+  height: ${80}px;
   flex-grow: 1;
   padding-left: ${theme.spacing.large};
   position: sticky;
