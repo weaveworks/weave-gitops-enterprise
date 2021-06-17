@@ -20,6 +20,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ include "mccp.serviceAccountName" . }}
       {{- if eq .Values.dbConfig.databaseType "sqlite" }}
       {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
       nodeSelector:

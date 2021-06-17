@@ -11,6 +11,15 @@ images:
   gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker:v2.5.0
   clustersService: docker.io/weaveworks/weave-gitops-clusters-service:v0.0.2
 
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
 dbConfig:
   databaseType: sqlite
   databaseURI: /var/database/mccp.db
