@@ -516,7 +516,7 @@ var _ = Describe("Integration suite", func() {
 			createRecentAlert("alert1", "critical", time.Hour*2)
 			createRecentAlert("alert2", "warning", time.Hour*1)
 			createRecentAlert("alert3", "warning", time.Hour*3)
-			Expect(intWebDriver.Navigate(uiURL + "/alerts")).To(Succeed())
+			Expect(intWebDriver.Navigate(uiURL + "/clusters/alerts")).To(Succeed())
 		})
 
 		It("should sort the alerts by starts at", func() {

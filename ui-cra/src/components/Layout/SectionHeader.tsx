@@ -25,7 +25,7 @@ const Wrapper = styled.div<Size>`
 interface Props extends Size {
   icon?: JSX.Element | null;
   className?: string;
-  path: Breadcrumb[];
+  path?: Breadcrumb[];
 }
 
 export const SectionHeader: FC<Props> = ({
@@ -35,7 +35,7 @@ export const SectionHeader: FC<Props> = ({
   path,
 }) => (
   <Wrapper className={className} size={size}>
-    <Breadcrumbs path={path} />
+    {path ? <Breadcrumbs path={path} /> : null}
     {children}
   </Wrapper>
 );

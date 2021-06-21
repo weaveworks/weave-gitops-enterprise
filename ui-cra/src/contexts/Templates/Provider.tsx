@@ -5,43 +5,50 @@ import { Templates } from './index';
 
 const TemplatesProvider: FC = ({ children }) => {
   const [, setLoading] = useState<boolean>(true);
-  const [abortController, setAbortController] =
-    useState<AbortController | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [PRPreview, setPRPreview] = useState<string | null>(null);
 
   const templatesUrl = '/v1/templates';
 
-  const fetchTemplates = useCallback(() => {
-    // abort any inflight requests
-    abortController?.abort();
+  const getTemplate = (templateName: string) =>
+    templates.find(template => template.name === templateName) || null;
 
-    const newAbortController = new AbortController();
-    setAbortController(newAbortController);
+  const renderTemplate = useCallback(
+    ({ ...data }) => {
+      setLoading(true);
+      request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
+        body: JSON.stringify({ values: data }),
+      })
+        .then(data => {
+          setPRPreview(data.renderedTemplate);
+        })
+        .catch(err => setError(err.message))
+        .finally(() => {
+          setLoading(false);
+        });
+    },
+    [activeTemplate],
+  );
+
+  const addCluster = useCallback(({ ...data }) => {
+    console.log('addCluster has been called with', data);
+    setActiveTemplate(null);
+  }, []);
+
+  useEffect(() => {
     setLoading(true);
     request('GET', templatesUrl, {
       cache: 'no-store',
-      signal: newAbortController.signal,
     })
       .then(res => {
         setTemplates(res.templates);
         setError(null);
       })
-      .catch(err => {
-        if (err.name !== 'AbortError') {
-          setError(err.message);
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-        setAbortController(null);
-      });
-  }, [abortController]);
-
-  useEffect(() => {
-    fetchTemplates();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <Templates.Provider
@@ -50,6 +57,10 @@ const TemplatesProvider: FC = ({ children }) => {
         activeTemplate,
         setActiveTemplate,
         error,
+        addCluster,
+        renderTemplate,
+        PRPreview,
+        getTemplate,
       }}
     >
       {children}

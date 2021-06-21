@@ -52,10 +52,10 @@ const MCCP: FC = () => {
 
   const handleAddCluster = useCallback(() => {
     if (activeTemplate === null) {
-      history.push('/templates');
+      history.push('/clusters/templates');
       return null;
     }
-    history.push(`/templates/${activeTemplate.name}/create`);
+    history.push(`/clusters/templates/${activeTemplate.name}/create`);
   }, [activeTemplate, history]);
 
   return (

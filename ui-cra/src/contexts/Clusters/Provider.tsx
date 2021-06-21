@@ -22,7 +22,7 @@ const ClustersProvider: FC = ({ children }) => {
     perPage: 10,
   });
   const [count, setCount] = useState<number | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -69,10 +69,6 @@ const ClustersProvider: FC = ({ children }) => {
       });
   }, [abortController, clustersParameters]);
 
-  const addCluster = useCallback((data: any) => {
-    console.log('addCluster has been called');
-  }, []);
-
   useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [
     order,
     orderBy,
@@ -92,7 +88,6 @@ const ClustersProvider: FC = ({ children }) => {
         handleSetPageParams,
         order,
         orderBy,
-        addCluster,
       }}
     >
       {/* TODO: Create loader */}

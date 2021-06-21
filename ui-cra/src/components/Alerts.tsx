@@ -123,7 +123,7 @@ export const AlertsDashboard: FC = () => {
         <SectionHeader
           path={[
             { label: 'Clusters', url: 'clusters', count: clustersCount },
-            { label: 'Alerts', url: 'alerts', count: alertsCount },
+            { label: 'Alerts', url: 'clusters/alerts', count: alertsCount },
           ]}
         />
       </span>

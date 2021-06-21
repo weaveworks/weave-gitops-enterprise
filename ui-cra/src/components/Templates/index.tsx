@@ -32,8 +32,12 @@ const TemplatesDashboard: FC = () => {
     <PageTemplate documentTitle="WeGO · Templates">
       <SectionHeader
         path={[
-          { label: 'Clusters', url: 'clusters', count: clustersCount },
-          { label: 'Templates', url: 'templates', count: templatesCount },
+          { label: 'Clusters', url: '/', count: clustersCount },
+          {
+            label: 'Templates',
+            url: '/clusters/templates',
+            count: templatesCount,
+          },
         ]}
       />
       <ContentWrapper>

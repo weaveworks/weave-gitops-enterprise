@@ -5,32 +5,27 @@ import { transparentize } from 'polished';
 import { ReactComponent as BreadcrumbDivider } from '../assets/img/breadcrumb-divider.svg';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
-
 interface Size {
   size?: 'small';
 }
-
 const Container = styled.div`
   align-items: flex-end;
   display: flex;
+  justify-content: center;
   font-size: ${20}px;
   height: 32px;
 `;
-
 const Span = styled.span`
   color: ${({ theme }) => theme.colors.white};
 `;
-
 const Link = styled.a`
   color: ${({ theme }) => theme.colors.white};
 `;
-
 export const Title = styled.div<Size>`
   margin-right: ${({ size }) =>
     size === 'small' ? weaveTheme.spacing.xxs : weaveTheme.spacing.xs};
   white-space: nowrap;
 `;
-
 export const Count = styled.div<Size>`
   background: ${({ size }) =>
     size === 'small'
@@ -44,32 +39,30 @@ export const Count = styled.div<Size>`
   margin-left: ${weaveTheme.spacing.xxs};
   border-radius: ${weaveTheme.borderRadius.soft};
 `;
-
 export interface Breadcrumb {
   label: string;
   url?: string;
   count?: number | null;
 }
-
 interface Props extends Size {
   path: Breadcrumb[];
 }
-
 const useStyles = makeStyles(() =>
   createStyles({
     path: {
       display: 'flex',
     },
     divider: {
-      paddingLeft: weaveTheme.spacing.medium,
-      paddingRight: weaveTheme.spacing.medium,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingLeft: weaveTheme.spacing.small,
+      paddingRight: weaveTheme.spacing.small,
     },
   }),
 );
-
 export const Breadcrumbs: FC<Props> = ({ path, size }) => {
   const classes = useStyles();
-
   return (
     <Container>
       {path.map(({ label, url, count }, index) => (

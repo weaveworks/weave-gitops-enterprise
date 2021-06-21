@@ -25,7 +25,7 @@ const TemplateCard: FC<{ template: Template; color: string }> = ({
   const { setActiveTemplate } = useTemplates();
   const handleCreateClick = () => {
     setActiveTemplate(template);
-    history.push(`/templates/${template.name}/create`);
+    history.push(`/clusters/templates/${template.name}/create`);
   };
 
   return (

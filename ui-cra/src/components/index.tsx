@@ -21,6 +21,10 @@ import AddCluster from './Clusters/Create';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import Compose from './ProvidersCompose';
 import Box from '@material-ui/core/Box';
+import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { PageTemplate } from './Layout/PageTemplate';
+import { SectionHeader } from './Layout/SectionHeader';
+import { ContentWrapper } from './Layout/ContentWrapper';
 
 const drawerWidth = 240;
 
@@ -50,10 +54,13 @@ const useStyles = makeStyles((theme: Theme) =>
       marginLeft: 0,
     },
     menuButtonBox: {
-      height: '64px',
+      height: '80px',
       background: '#00b3ec',
       display: 'flex',
       justifyContent: 'center',
+      position: 'sticky',
+      top: '0',
+      zIndex: 2,
     },
     toolbar: theme.mixins.toolbar,
     drawerPaper: {
@@ -62,6 +69,12 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     content: {
       flexGrow: 1,
+    },
+    error: {
+      paddingTop: `${weaveTheme.spacing.large}`,
+      fontSize: `${weaveTheme.fontSizes.large}`,
+      display: 'flex',
+      justifyContent: 'center',
     },
   }),
 );
@@ -74,6 +87,17 @@ const ResponsiveDrawer = () => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  const handle404 = () => (
+    <PageTemplate documentTitle="WeGO · Templates">
+      <SectionHeader />
+      <ContentWrapper>
+        <Box className={classes.error}>
+          <p>We couldn't find the page that you are looking for.</p>
+        </Box>
+      </ContentWrapper>
+    </PageTemplate>
+  );
 
   return (
     <Compose components={[TemplatesProvider, ClustersProvider, AlertsProvider]}>
@@ -129,10 +153,15 @@ const ResponsiveDrawer = () => {
             <Route
               component={AddCluster}
               exact
-              path="/templates/:templateName/create"
+              path="/clusters/templates/:templateName/create"
             />
-            <Route component={TemplatesDashboard} exact path="/templates" />
-            <Route component={AlertsDashboard} exact path="/alerts" />
+            <Route
+              component={TemplatesDashboard}
+              exact
+              path="/clusters/templates"
+            />
+            <Route component={AlertsDashboard} exact path="/clusters/alerts" />
+            <Route render={handle404} />
           </Switch>
         </main>
       </div>

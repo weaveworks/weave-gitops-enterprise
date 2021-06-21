@@ -28,7 +28,7 @@ const itemCss = css`
 `;
 
 const itemActiveCss = css`
-  border-left: 4px solid ${theme.colors.blue400};
+  border-right: 4px solid ${theme.colors.blue400};
 `;
 
 const Title = styled.div`
@@ -52,7 +52,7 @@ const Logo = styled.div`
 //  How to mix NavLink and SC? Like so:
 //  https://github.com/styled-components/styled-components/issues/184
 
-const NavItem = styled(NavLink).attrs({
+export const NavItem = styled(NavLink).attrs({
   activeClassName: 'nav-link-active',
 })`
   ${itemCss}
@@ -64,7 +64,8 @@ const NavItem = styled(NavLink).attrs({
 
 const useStyles = makeStyles({
   root: {
-    padding: theme.spacing.medium,
+    paddingTop: theme.spacing.medium,
+    paddingLeft: theme.spacing.medium,
     alignItems: 'center',
   },
   bold: {
@@ -86,11 +87,13 @@ export const Navigation: FC = () => {
       </Title>
       <Box className={classes.root} bgcolor={theme.colors.white}>
         <Box className={classes.section}>
-          <NavItem className={classes.bold} to="/clusters">
+          <NavItem className={classes.bold} to="/clusters" exact>
             Clusters
           </NavItem>
-          <NavItem to="/templates">Templates</NavItem>
-          <NavItem to="/alerts">Alerts</NavItem>
+          <NavItem to="/clusters/templates">Templates</NavItem>
+          <NavItem to="/clusters/alerts" exact>
+            Alerts
+          </NavItem>
         </Box>
         <Box className={classes.section}>
           <NavItem className={classes.bold} to="/applications">
