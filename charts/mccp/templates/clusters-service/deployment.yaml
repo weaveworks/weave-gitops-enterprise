@@ -60,6 +60,8 @@ spec:
                   name: mccp-db-credentials
                   key: password
             {{- end }}
+            - name: POD_NAMESPACE
+              value: default
           {{- if eq .Values.dbConfig.databaseType "sqlite" }}
           volumeMounts:
             - name: database-volume
