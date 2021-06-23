@@ -30,6 +30,11 @@ dbConfig:
   postgresConfig:
     databaseName: postgres
 
+config:
+  gitProvider:
+    type: github
+    hostname: github.com
+
 gitopsRepoBroker:
   gitRepo:
     url: ''

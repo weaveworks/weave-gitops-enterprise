@@ -21,6 +21,11 @@ type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
+	// Creates a pull request for a cluster template.
+	// The template name and values will be used to
+	// create a new branch for which a new pull request
+	// will be created.
+	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -58,6 +63,15 @@ func (c *clustersServiceClient) RenderTemplate(ctx context.Context, in *RenderTe
 	return out, nil
 }
 
+func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error) {
+	out := new(CreatePullRequestResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/CreatePullRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -65,6 +79,11 @@ type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
+	// Creates a pull request for a cluster template.
+	// The template name and values will be used to
+	// create a new branch for which a new pull request
+	// will be created.
+	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -80,6 +99,9 @@ func (UnimplementedClustersServiceServer) ListTemplateParams(context.Context, *L
 }
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
+}
+func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -148,6 +170,24 @@ func _ClustersService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_CreatePullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePullRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CreatePullRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/CreatePullRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CreatePullRequest(ctx, req.(*CreatePullRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +206,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenderTemplate",
 			Handler:    _ClustersService_RenderTemplate_Handler,
+		},
+		{
+			MethodName: "CreatePullRequest",
+			Handler:    _ClustersService_CreatePullRequest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

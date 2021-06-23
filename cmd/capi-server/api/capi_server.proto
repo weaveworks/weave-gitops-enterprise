@@ -25,6 +25,17 @@ service ClustersService {
       body: "values"
     };
   }
+  // Creates a pull request for a cluster template.
+  // The template name and values will be used to 
+  // create a new branch for which a new pull request
+  // will be created.
+  rpc CreatePullRequest(CreatePullRequestRequest)
+      returns (CreatePullRequestResponse) {
+    option (google.api.http) = {
+      post: "/v1/pulls"
+      body: "*"
+    };
+  }
 }
 
 message ListTemplatesRequest {}
@@ -36,8 +47,34 @@ message ListTemplatesResponse {
 message ListTemplateParamsRequest { string template_name = 1; }
 message ListTemplateParamsResponse { repeated Parameter parameters = 1; }
 
-message RenderTemplateRequest { string template_name = 1; ParameterValues values = 2;}
+message RenderTemplateRequest { 
+  string template_name = 1; 
+  ParameterValues values = 2;
+}
 message RenderTemplateResponse { string renderedTemplate = 1; }
+
+message CreatePullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2; 
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The name of the template to create a pull request for.
+  string template_name = 6; 
+  // The values that populate the template's parameters.
+  map<string, string> parameter_values = 7;
+  // The commit message
+  string commit_message = 8;
+}
+message CreatePullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
+}
 
 message Template {
   string name = 1;

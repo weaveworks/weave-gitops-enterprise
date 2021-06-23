@@ -34,3 +34,12 @@ controller-gen: ## Download controller-gen locally if necessary.
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+
+.PHONY: unit-tests
+unit-tests:
+	@go test -v ./...
+
+# Runs all tests, including integration tests
+.PHONY: tests
+tests:
+	@go test -v ./... -tags=integration

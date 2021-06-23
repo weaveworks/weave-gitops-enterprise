@@ -8,14 +8,16 @@ import (
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	capi_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/server"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
+	capi_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/server"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
 )
 
 func NewAPIServerCommand() *cobra.Command {
@@ -47,14 +49,15 @@ func StartServer() error {
 		Client:    kubeClient,
 		Namespace: os.Getenv("POD_NAMESPACE"),
 	}
-	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library)
+	provider := git.NewGitProviderService()
+	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, opts ...grpc_runtime.ServeMuxOption) error {
+func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, opts ...grpc_runtime.ServeMuxOption) error {
 	mux := grpc_runtime.NewServeMux(opts...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library))
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider))
 	s := &http.Server{
 		Addr:    addr,
 		Handler: mux,

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	apiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
 	capiv1 "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -93,7 +94,7 @@ func TestListTemplates(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default")
+			s := createServer(tt.clusterState, "capi-templates", "default", nil)
 
 			listTemplatesRequest := new(capiv1.ListTemplatesRequest)
 
@@ -142,7 +143,7 @@ func TestListTemplateParams(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default")
+			s := createServer(tt.clusterState, "capi-templates", "default", nil)
 
 			listTemplateParamsRequest := new(capiv1.ListTemplateParamsRequest)
 			listTemplateParamsRequest.TemplateName = "cluster-template-1"
@@ -183,7 +184,7 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default")
+			s := createServer(tt.clusterState, "capi-templates", "default", nil)
 
 			renderTemplateRequest := &capiv1.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
@@ -211,7 +212,86 @@ func TestRenderTemplate(t *testing.T) {
 	}
 }
 
-func createServer(clusterState []runtime.Object, configMapName, namespace string) capiv1.ClustersServiceServer {
+func TestCreatePullRequest(t *testing.T) {
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		provider     git.Provider
+		req          *capiv1.CreatePullRequestRequest
+		expected     string
+		err          error
+	}{
+		{
+			name: "validation errors",
+			req:  &capiv1.CreatePullRequestRequest{},
+			err:  errors.New("8 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nrepository url must be specified\nhead branch must be specified\nbase branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+		},
+		{
+			name: "pull request failed",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			provider: NewFakeGitProvider("", errors.New("oops")),
+			req: &capiv1.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+			},
+			err: errors.New("oops"),
+		},
+		{
+			name: "create pull request",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil),
+			req: &capiv1.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider)
+			ctx := context.Background()
+
+			createPullRequestResponse, err := s.CreatePullRequest(ctx, tt.req)
+
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to create a pull request:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
+					t.Fatalf("pull request url didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider) capiv1.ClustersServiceServer {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -228,7 +308,8 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 		Client:        cl,
 		ConfigMapName: configMapName,
 		Namespace:     namespace,
-	})
+	}, provider)
+
 	return s
 }
 
@@ -285,4 +366,23 @@ func rawExtension(s string) runtime.RawExtension {
 	return runtime.RawExtension{
 		Raw: []byte(s),
 	}
+}
+
+func NewFakeGitProvider(url string, err error) git.Provider {
+	return &FakeGitProvider{
+		url: url,
+		err: err,
+	}
+}
+
+type FakeGitProvider struct {
+	url string
+	err error
+}
+
+func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+	return &git.WriteFilesToBranchAndCreatePullRequestResponse{WebURL: p.url}, nil
 }

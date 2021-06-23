@@ -30,6 +30,21 @@ export type RenderTemplateResponse = {
   renderedTemplate?: string
 }
 
+export type CreatePullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  templateName?: string
+  parameterValues?: {[key: string]: string}
+  commitMessage?: string
+}
+
+export type CreatePullRequestResponse = {
+  webUrl?: string
+}
+
 export type Template = {
   name?: string
   description?: string
@@ -56,5 +71,8 @@ export class ClustersService {
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req["values"])})
+  }
+  static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
+    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/pulls`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }
