@@ -180,6 +180,7 @@ const AddCluster: FC = () => {
     return (
       <PageTemplate documentTitle="WeGo · Create new cluster">
         <SectionHeader
+          className="count-header"
           path={[
             { label: 'Clusters', url: '/', count },
             { label: 'Create new cluster' },

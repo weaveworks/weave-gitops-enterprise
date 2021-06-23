@@ -7,7 +7,6 @@ import (
 	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -72,12 +71,6 @@ func runServer(params paramSet) error {
 			log.Fatalf("failed to send, %v", result)
 		}
 	}, params.alertmanagerPollInterval, ctx.Done())
-
-	r.HandleFunc("/api/alertmanager_webhook", alertmanager.NewWebhookHandler(func(ce event.Event) {
-		if result := client.Send(ctx, ce); cloudevents.IsUndelivered(result) {
-			log.Fatalf("failed to send, %v", result)
-		}
-	})).Methods("POST")
 
 	started := time.Now()
 	r.HandleFunc("/healthz", healthcheck.Healthz(started))

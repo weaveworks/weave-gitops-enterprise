@@ -21,6 +21,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/wks/cmd/capi-server/app"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
 	broker "github.com/weaveworks/wks/cmd/gitops-repo-broker/server"
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/database/utils"
@@ -28,16 +31,21 @@ import (
 	"github.com/weaveworks/wks/test/acceptance/test/pages"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	v1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 //
 // Test suite
 //
 
+const capiServerPort = "8000"
+const brokerPort = "8090"
 const uiURL = "http://localhost:5000"
-const brokerURL = "http://localhost:8000"
 const seleniumURL = "http://localhost:4444/wd/hub"
 
 var db *gorm.DB
@@ -557,7 +565,7 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 
 func RunBroker(ctx gcontext.Context, dbURI string) error {
 	srv, err := broker.NewServer(ctx, broker.ParamSet{
-		Port:        "8090",
+		Port:        brokerPort,
 		DbURI:       dbURI,
 		DbType:      "sqlite",
 		PrivKeyFile: dbURI,
@@ -568,7 +576,16 @@ func RunBroker(ctx gcontext.Context, dbURI string) error {
 	return ListenAndServe(ctx, srv)
 }
 
-func RunUIServer(ctx gcontext.Context, brokerURL string) {
+func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client) error {
+	library := &templates.CRDLibrary{
+		Client:    cl,
+		Namespace: "default",
+	}
+
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil)
+}
+
+func RunUIServer(ctx gcontext.Context) {
 	// is configured to proxy to
 	// - 8000 for clusters-service
 	// - 8090 for gitops-broker
@@ -635,6 +652,17 @@ func gomegaFail(message string, callerSkip ...int) {
 func TestMccpUI(t *testing.T) {
 	db, dbURI = GetDB(t)
 
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		v1.AddToScheme,
+		capiv1.AddToScheme,
+	}
+	schemeBuilder.AddToScheme(scheme)
+
+	cl := fake.NewClientBuilder().
+		WithScheme(scheme).
+		Build()
+
 	var wg sync.WaitGroup
 	ctx, cancel := gcontext.WithCancel(gcontext.Background())
 
@@ -648,7 +676,12 @@ func TestMccpUI(t *testing.T) {
 	}()
 	wg.Add(1)
 	go func() {
-		RunUIServer(ctx, brokerURL)
+		RunUIServer(ctx)
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		RunCAPIServer(t, ctx, cl)
 		wg.Done()
 	}()
 
@@ -666,11 +699,11 @@ func TestMccpUI(t *testing.T) {
 	_ = os.RemoveAll(acceptancetest.ARTEFACTS_BASE_DIR)
 	_ = os.MkdirAll(acceptancetest.SCREENSHOTS_DIR, 0700)
 	// WKP-UI can be a bit slow
-	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_DEFAULT_TIME_OUT)
+	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
 
 	// Load up the acceptance suite suite
-	mccpRunner := acceptancetest.DatabaseMCCPTestRunner{DB: db}
-	acceptancetest.DescribeMCCPAcceptance(mccpRunner)
+	mccpRunner := acceptancetest.DatabaseMCCPTestRunner{DB: db, Client: cl}
+	acceptancetest.DescribeMCCPTemplates(mccpRunner)
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
 	acceptancetest.SetDefaultUIURL(uiURL)
 

@@ -8,7 +8,7 @@ parameters:
 # https://circleci.com/blog/circleci-hacks-reuse-yaml-in-your-circleci-config-with-yaml/
 defaults: &defaults
   docker:
-    - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
+    - image: docker.io/weaveworks/wkp-wks-build:WKP-2167-user-acceptance-test-8cb85019
       environment:
         GOFLAGS: -p=4 # see https://github.com/golang/go/issues/26186#issuecomment-435544512 for more info. Docker in Circle incorrectly reports number of CPUs and causes OOM errors
         GOPATH: /go/
@@ -16,10 +16,8 @@ defaults: &defaults
   working_directory: /src/github.com/weaveworks/wks
 
 integrationTestCommonEnv: &integrationTestCommonEnv
-  GOURL: https://dl.google.com/go/go1.15.8.linux-amd64.tar.gz
-  GOCHECKSUM: d3379c32a90fdf9382166f8f48034c459a8cc433730bc9476d39d9082c94583b
-  GO116URL: https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
-  GO116CHECKSUM: b12c23023b68de22f74c0524f10b753e7b08b1504cb7e417eccebdd3fae49061
+  GOURL: https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+  GOCHECKSUM: b12c23023b68de22f74c0524f10b753e7b08b1504cb7e417eccebdd3fae49061
   GOROOT: /home/circleci/goroot
   GOPATH: /home/circleci/go
   SRCDIR: /home/circleci/src/github.com/weaveworks/wks
@@ -303,19 +301,6 @@ commands:
             cd test/integration/test
             ../bin/internal/run-integration-tests.sh destroy
 
-  install-go-116:
-    steps:
-      - run:
-          name: Install Go 1.16
-          command: |
-            go version
-            # Delete previous Go version
-            rm -rf $GOROOT
-            (cd ~ && curl --silent -L $GO116URL -o go.tar.gz && echo "$GO116CHECKSUM go.tar.gz" | sha256sum -c)
-            mkdir -p $GOROOT && tar xf ~/go.tar.gz -C $GOROOT --strip-components 1
-            echo 'export PATH=$GOROOT/bin:$PATH' >> $BASH_ENV
-            export PATH=$GOROOT/bin:$PATH
-            go version
 jobs:
   build:
     <<: *defaults
@@ -569,7 +554,7 @@ jobs:
   # Can be a bit faster
   fast-integration-tests:
     docker:
-      - image: quay.io/wks/build:master-134af34f
+      - image: docker.io/weaveworks/wkp-wks-build:WKP-2167-user-acceptance-test-8cb85019
     environment:
       <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
@@ -611,13 +596,12 @@ jobs:
 
   fast-integration-tests-go-116:
     docker:
-      - image: quay.io/wks/build:master-134af34f
+      - image: docker.io/weaveworks/wkp-wks-build:WKP-2167-user-acceptance-test-8cb85019
     environment:
       <<: *integrationTestCommonEnv
     working_directory: /home/circleci/src/github.com/weaveworks/wks
     steps:
       - setup-integration-test-env
-      - install-go-116
       - run:
           name: Run e2e tests
           command: |
@@ -1325,7 +1309,7 @@ jobs:
 
   mccp-ui-backend-integration-tests:
     docker:
-      - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca
+      - image: docker.io/weaveworks/wkp-wks-build:WKP-2167-user-acceptance-test-8cb85019
         environment:
           <<: *integrationTestCommonEnv
       - image: selenium/standalone-chrome:latest

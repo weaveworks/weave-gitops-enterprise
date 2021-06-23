@@ -96,13 +96,13 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITempla
 }
 
 func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error) {
-	log.Debugf("querying namespace %s for CAPITemplate resources\n", lib.Namespace)
+	log.Infof("querying namespace %s for CAPITemplate resources\n", lib.Namespace)
 	capiTemplateList := capiv1.CAPITemplateList{}
 	err := lib.Client.List(ctx, &capiTemplateList, client.InNamespace(lib.Namespace))
 	if err != nil {
 		return nil, fmt.Errorf("error getting capitemplates: %s", err)
 	}
-	log.Debugf("got capitemplates: %v\n", capiTemplateList.Items)
+	log.Infof("got capitemplates: %v\n", capiTemplateList.Items)
 
 	result := map[string]*capiv1.CAPITemplate{}
 	for i, ct := range capiTemplateList.Items {

@@ -119,14 +119,13 @@ export const AlertsDashboard: FC = () => {
 
   return (
     <PageTemplate documentTitle="WeGo · Alerts">
-      <span id="count-header">
-        <SectionHeader
-          path={[
-            { label: 'Clusters', url: 'clusters', count: clustersCount },
-            { label: 'Alerts', url: 'clusters/alerts', count: alertsCount },
-          ]}
-        />
-      </span>
+      <SectionHeader
+        className="count-header"
+        path={[
+          { label: 'Clusters', url: 'clusters', count: clustersCount },
+          { label: 'Alerts', url: 'clusters/alerts', count: alertsCount },
+        ]}
+      />
       <ContentWrapper>
         <Paper id="firing-alerts">
           {!alerts || alerts.length === 0 ? (

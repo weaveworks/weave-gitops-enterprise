@@ -2,22 +2,29 @@ package acceptance
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"text/template"
 	"time"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
 	"github.com/weaveworks/wks/common/database/models"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/types"
+	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var webDriver *agouti.Page
@@ -106,12 +113,15 @@ type MCCPTestRunner interface {
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
 	AddWorkspace(env []string, clusterName string) error
+	CreateApplyCapitemplates(templateCount int) []string
+	DeleteApplyCapiTemplates(templateFiles []string)
 }
 
 // "DB" backend that creates/delete rows
 
 type DatabaseMCCPTestRunner struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	Client goclient.Client
 }
 
 func (b DatabaseMCCPTestRunner) TimeTravelToLastSeen() error {
@@ -214,6 +224,32 @@ func (b DatabaseMCCPTestRunner) AddWorkspace(env []string, clusterName string) e
 	return nil
 }
 
+func (b DatabaseMCCPTestRunner) CreateApplyCapitemplates(templateCount int) []string {
+	templateFiles, err := generateTestCapiTemplates(templateCount, "test_capi_template")
+	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
+	By("Apply/Insall CAPITemplate templates", func() {
+		for _, fileName := range templateFiles {
+			template, err := capi.ParseFile(fileName)
+			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
+			err = b.Client.Create(context.Background(), template)
+			Expect(err).To(BeNil(), "Failed to create CAPITemplate template files")
+		}
+	})
+
+	return templateFiles
+}
+
+func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
+	By("Delete CAPITemplate templates", func() {
+		for _, fileName := range templateFiles {
+			template, err := capi.ParseFile(fileName)
+			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
+			err = b.Client.Delete(context.Background(), template)
+			Expect(err).To(BeNil(), "Failed to create CAPITemplate template files")
+		}
+	})
+}
+
 // "Real" backend that call kubectl and posts to alertmanagement
 
 type RealMCCPTestRunner struct{}
@@ -312,6 +348,35 @@ func (b RealMCCPTestRunner) AddWorkspace(env []string, clusterName string) error
 	return runCommandPassThrough(env, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
 }
 
+// This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability
+func (b RealMCCPTestRunner) CreateApplyCapitemplates(templateCount int) []string {
+	templateFiles, err := generateTestCapiTemplates(templateCount, "test_capi_template")
+	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
+
+	By("Apply/Insall CAPITemplate templates", func() {
+		for _, fileName := range templateFiles {
+			err = runCommandPassThrough([]string{}, "kubectl", "apply", "-f", fileName)
+			Expect(err).To(BeNil(), "Failed to apply/install CAPITemplate template files")
+		}
+	})
+
+	return templateFiles
+}
+
+// This function deletes the test capiTemplate files and do the kubectl delete to clean the cluster
+func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
+	By("Delete CAPITemplate templates", func() {
+
+		for _, fileName := range templateFiles {
+			err := b.KubectlDelete([]string{}, fileName)
+			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template")
+		}
+	})
+
+	err := deleteFiles(templateFiles)
+	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
+}
+
 // Run a command, passing through stdout/stderr to the OS standard streams
 func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
@@ -329,4 +394,55 @@ func getEnv(key, fallback string) string {
 		value = fallback
 	}
 	return value
+}
+
+// This function generates multiple capitemplate files from a single capitemplate to be used as test data
+func generateTestCapiTemplates(templateCount int, templateName string) (templateFiles []string, err error) {
+	// Read input capitemplate
+	contents, err := ioutil.ReadFile("../../utils/data/capi-server_v1_capitemplate.yaml")
+
+	if err != nil {
+		return templateFiles, err
+	}
+
+	// Prepare  data to insert into the template.
+	type TemplateInput struct {
+		Count int
+	}
+
+	// Create a new template and parse the letter into it.
+	t := template.Must(template.New("capi-template").Parse(string(contents)))
+
+	// Execute the template for each count.
+	for i := 0; i < templateCount; i++ {
+		input := TemplateInput{i}
+
+		fileName := fmt.Sprintf("%s%d.yaml", templateName, i)
+
+		f, err := os.Create(filepath.Join(os.TempDir(), fileName))
+		if err != nil {
+			return templateFiles, err
+		}
+		templateFiles = append(templateFiles, f.Name())
+
+		err = t.Execute(f, input)
+		if err != nil {
+			log.Println("executing template:", err)
+		}
+
+		f.Close()
+	}
+
+	return templateFiles, nil
+}
+
+// Utility function to deletes all the files passed in a list
+func deleteFiles(fileName []string) error {
+	for _, name := range fileName {
+		err := os.Remove(name)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

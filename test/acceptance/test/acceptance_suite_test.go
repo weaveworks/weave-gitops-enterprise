@@ -46,7 +46,8 @@ func TestAcceptance(t *testing.T) {
 
 	defaultSuite := true
 	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
-		DescribeMCCPAcceptance(RealMCCPTestRunner{})
+		DescribeMCCPClusters(RealMCCPTestRunner{})
+		DescribeMCCPTemplates(RealMCCPTestRunner{})
 		defaultSuite = false
 	}
 

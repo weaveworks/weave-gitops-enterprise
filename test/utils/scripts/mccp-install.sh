@@ -21,7 +21,7 @@ kubectl create secret docker-registry docker-io-pull-secret \
 CHART_VERSION=$(git describe --always --match "weave-gitops*" --abbrev=8 HEAD| sed 's/^[^0-9]*//')
 helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
 helm repo update
-helm upgrade --install my-mccp wkpv3/mccp --version "v${CHART_VERSION}" --namespace mccp \
+helm upgrade --install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
   --set "imagePullSecrets[0].name=docker-io-pull-secret" \
   --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
   --set "nats.client.service.nodePort=${NATS_NODEPORT}" \

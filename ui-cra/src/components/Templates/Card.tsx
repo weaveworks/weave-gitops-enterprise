@@ -29,7 +29,7 @@ const TemplateCard: FC<{ template: Template; color: string }> = ({
   };
 
   return (
-    <Card>
+    <Card data-template-name={template.name}>
       <CardActionArea>
         <CardMedia>
           <Image color={color} />

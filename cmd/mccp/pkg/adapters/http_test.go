@@ -43,7 +43,7 @@ func TestRetrieveTemplates(t *testing.T) {
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
-				assert.EqualError(t, err, "unable to GET templates from \"https://weave.works/api/v1/templates\": Get https://weave.works/api/v1/templates: oops")
+				assert.EqualError(t, err, "unable to GET templates from \"https://weave.works/api/v1/templates\": Get \"https://weave.works/api/v1/templates\": oops")
 			},
 		},
 		{
@@ -92,7 +92,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params\": Get https://weave.works/api/v1/templates/cluster-template/params: oops")
+				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params\": Get \"https://weave.works/api/v1/templates/cluster-template/params\": oops")
 			},
 		},
 		{
@@ -153,7 +153,7 @@ spec:
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render\": Post https://weave.works/api/v1/templates/cluster-template/render: oops")
+				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render\": Post \"https://weave.works/api/v1/templates/cluster-template/render\": oops")
 			},
 		},
 		{
