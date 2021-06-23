@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi/flavours"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -77,7 +77,7 @@ func TestListTemplateFromCRDs(t *testing.T) {
 
 func mustParseTemplate(t *testing.T, data string) *capiv1.CAPITemplate {
 	t.Helper()
-	parsed, err := flavours.ParseBytes([]byte(data), "a-key")
+	parsed, err := capi.ParseBytes([]byte(data), "a-key")
 	if err != nil {
 		t.Fatal(err)
 	}

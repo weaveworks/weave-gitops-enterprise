@@ -1,0 +1,14 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template2
+spec:
+  resourcetemplates:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "${CLUSTER_NAME"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+      kind: AWSMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME-md-0"

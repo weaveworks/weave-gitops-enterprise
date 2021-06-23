@@ -228,6 +228,12 @@
           "items": {
             "$ref": "#/definitions/v1Parameter"
           }
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TemplateObject"
+          }
         }
       }
     },
@@ -254,6 +260,15 @@
         },
         "description": {
           "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -296,6 +311,29 @@
         },
         "body": {
           "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TemplateObject"
+          }
+        }
+      }
+    },
+    "v1TemplateObject": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     }

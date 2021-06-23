@@ -19,6 +19,7 @@ export type ListTemplateParamsRequest = {
 
 export type ListTemplateParamsResponse = {
   parameters?: Parameter[]
+  objects?: TemplateObject[]
 }
 
 export type RenderTemplateRequest = {
@@ -51,11 +52,20 @@ export type Template = {
   version?: string
   parameters?: Parameter[]
   body?: string
+  objects?: TemplateObject[]
 }
 
 export type Parameter = {
   name?: string
   description?: string
+  required?: boolean
+  options?: string[]
+}
+
+export type TemplateObject = {
+  kind?: string
+  apiVersion?: string
+  parameters?: string[]
 }
 
 export type ParameterValues = {

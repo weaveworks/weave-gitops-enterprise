@@ -6,7 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi/flavours"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,7 +49,7 @@ func (lib *ConfigMapLibrary) List(ctx context.Context) (map[string]*capiv1.CAPIT
 	}
 	log.Debugf("got template configmap: %v\n", templateConfigMap)
 
-	tm, err := flavours.ParseConfigMap(*templateConfigMap)
+	tm, err := capi.ParseConfigMap(*templateConfigMap)
 	if errors.IsNotFound(err) {
 		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %s", err)
 	}
