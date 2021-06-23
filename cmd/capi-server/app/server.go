@@ -47,7 +47,7 @@ func StartServer() error {
 	}
 	library := &templates.CRDLibrary{
 		Client:    kubeClient,
-		Namespace: os.Getenv("POD_NAMESPACE"),
+		Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 	}
 	provider := git.NewGitProviderService()
 	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider)

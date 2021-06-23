@@ -144,15 +144,24 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	path := fmt.Sprintf("management/%s.yaml", clusterName)
 	content := string(result[:])
 
+	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
+	if msg.RepositoryUrl != "" {
+		repositoryURL = msg.RepositoryUrl
+	}
+	baseBranch := os.Getenv("CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH")
+	if msg.BaseBranch != "" {
+		baseBranch = msg.BaseBranch
+	}
+
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider: git.GitProvider{
 			Type:     os.Getenv("GIT_PROVIDER_TYPE"),
 			Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
 			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
 		},
-		RepositoryURL: msg.RepositoryUrl,
+		RepositoryURL: repositoryURL,
 		HeadBranch:    msg.HeadBranch,
-		BaseBranch:    msg.BaseBranch,
+		BaseBranch:    baseBranch,
 		Title:         msg.Title,
 		Description:   msg.Description,
 		CommitMessage: msg.CommitMessage,
@@ -183,16 +192,8 @@ func validate(msg *capiv1_proto.CreatePullRequestRequest) error {
 		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
 	}
 
-	if msg.RepositoryUrl == "" {
-		err = multierror.Append(err, fmt.Errorf("repository url must be specified"))
-	}
-
 	if msg.HeadBranch == "" {
 		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
-	}
-
-	if msg.BaseBranch == "" {
-		err = multierror.Append(err, fmt.Errorf("base branch must be specified"))
 	}
 
 	if msg.Title == "" {

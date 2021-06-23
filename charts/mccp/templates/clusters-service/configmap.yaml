@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mccp.fullname" . }}-cluster-service
+  namespace: {{ .Release.Namespace }}
+data:
+  GIT_PROVIDER_TYPE: {{ .Values.config.git.type }}
+  GIT_PROVIDER_HOSTNAME: {{ .Values.config.git.hostname }}
+  CAPI_TEMPLATES_NAMESPACE: {{ .Values.config.capi.namespace }}
+  CAPI_TEMPLATES_REPOSITORY_URL: {{ .Values.config.capi.repositoryURL | quote }}
+  CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}

@@ -246,7 +246,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "validation errors",
 			req:  &capiv1_protos.CreatePullRequestRequest{},
-			err:  errors.New("8 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nrepository url must be specified\nhead branch must be specified\nbase branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			err:  errors.New("6 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
 		},
 		{
 			name: "pull request failed",

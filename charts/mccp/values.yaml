@@ -31,9 +31,13 @@ dbConfig:
     databaseName: postgres
 
 config:
-  gitProvider:
+  git:
     type: github
     hostname: github.com
+  capi:
+    namespace: default
+    repositoryURL: ''
+    baseBranch: main
 
 gitopsRepoBroker:
   gitRepo:
