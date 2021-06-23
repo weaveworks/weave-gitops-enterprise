@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"sort"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi/flavours"
@@ -52,6 +53,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1.ListTemplatesReq
 		})
 	}
 
+	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
 	return &capiv1.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
 }
 
