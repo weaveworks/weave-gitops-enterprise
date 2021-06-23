@@ -69,6 +69,10 @@ func TestParseFileFromFS(t *testing.T) {
 					Name:        "AWS_SSH_KEY_NAME",
 					Description: "A description",
 				},
+				{
+					Name:    "AWS_NODE_MACHINE_TYPE",
+					Options: []string{"big", "small"},
+				},
 			},
 
 			ResourceTemplates: []capiv1.CAPIResourceTemplate{},

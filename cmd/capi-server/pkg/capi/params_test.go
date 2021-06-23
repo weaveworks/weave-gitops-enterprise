@@ -20,7 +20,7 @@ func TestParamsFromSpec(t *testing.T) {
 		},
 		{
 			"testdata/template2.yaml", []Param{
-				{Name: "AWS_NODE_MACHINE_TYPE"},
+				{Name: "AWS_NODE_MACHINE_TYPE", Options: []string{"big", "small"}},
 				{Name: "AWS_SSH_KEY_NAME", Description: "A description"},
 				{Name: "CLUSTER_NAME"},
 			},

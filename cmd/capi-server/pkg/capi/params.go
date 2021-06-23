@@ -26,6 +26,7 @@ func ParamsFromSpec(s capiv1.CAPITemplateSpec) ([]Param, error) {
 	for _, v := range s.Params {
 		if m, ok := paramsMeta[v.Name]; ok {
 			m.Description = v.Description
+			m.Options = v.Options
 			paramsMeta[v.Name] = m
 		}
 	}

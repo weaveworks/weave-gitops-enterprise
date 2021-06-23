@@ -7,6 +7,8 @@ spec:
   params:
     - name: AWS_SSH_KEY_NAME
       description: A description
+    - name: AWS_NODE_MACHINE_TYPE
+      options: ["big", "small"]
   resourcetemplates:
   - apiVersion: cluster.x-k8s.io/v1alpha3
     kind: Cluster
