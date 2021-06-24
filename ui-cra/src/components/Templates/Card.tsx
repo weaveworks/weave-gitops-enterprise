@@ -11,16 +11,26 @@ import useTemplates from '../../contexts/Templates';
 import styled from 'styled-components';
 import { OnClickAction } from '../Action';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { createStyles, makeStyles } from '@material-ui/core';
 
 const Image = styled.div<{ color: string }>`
   background: ${props => props.color};
   height: ${140}px;
 `;
 
+const useStyles = makeStyles(() =>
+  createStyles({
+    root: {
+      borderRadius: '8px',
+    },
+  }),
+);
+
 const TemplateCard: FC<{ template: Template; color: string }> = ({
   template,
   color,
 }) => {
+  const classes = useStyles();
   const history = useHistory();
   const { setActiveTemplate } = useTemplates();
   const handleCreateClick = () => {
@@ -29,7 +39,7 @@ const TemplateCard: FC<{ template: Template; color: string }> = ({
   };
 
   return (
-    <Card data-template-name={template.name}>
+    <Card className={classes.root} data-template-name={template.name}>
       <CardActionArea>
         <CardMedia>
           <Image color={color} />

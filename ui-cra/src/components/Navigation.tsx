@@ -7,8 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
 const navItemPadding = css`
-  padding: 0 ${theme.spacing.small} ${theme.spacing.small}
-    ${theme.spacing.small};
+  padding: 0 ${theme.spacing.small} ${theme.spacing.small} 0;
 `;
 
 const navItemMargin = css`
@@ -36,10 +35,11 @@ const Title = styled.div`
   display: flex;
   color: ${theme.colors.white};
   font-size: ${20}px;
-  margin: 0 0 ${theme.spacing.base} 0;
   padding-left: ${theme.spacing.small};
   background: #00b3ec;
   height: ${80}px;
+  position: sticky;
+  top: 0;
 `;
 
 const Logo = styled.div`
@@ -67,6 +67,9 @@ const useStyles = makeStyles({
     paddingTop: theme.spacing.medium,
     paddingLeft: theme.spacing.medium,
     alignItems: 'center',
+    marginTop: theme.spacing.small,
+    height: '100vh',
+    borderTopRightRadius: theme.spacing.xs,
   },
   bold: {
     fontWeight: 600,

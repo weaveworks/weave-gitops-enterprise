@@ -12,7 +12,6 @@ const Wrapper = styled.div<Size>`
   display: flex;
   color: ${({ size }) => (size === 'small' ? theme.colors.gray600 : 'inherit')};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
-  margin: 0 0 ${({ size }) => (size === 'small' ? 0 : theme.spacing.base)} 0;
   background: #00b3ec;
   height: ${80}px;
   flex-grow: 1;

@@ -12,8 +12,7 @@ import useClusters from '../../../contexts/Clusters';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
-import Divider from '@material-ui/core/Divider';
-import { useHistory, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Form from '@rjsf/material-ui';
 import { JSONSchema7 } from 'json-schema';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -23,11 +22,16 @@ import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
 import { NavItem } from '../../Navigation';
 import { Input } from '../../../utils/form';
+import { Loader } from '../../Loader';
+import Divider from '@material-ui/core/Divider';
+import { useHistory } from 'react-router-dom';
 
 const StepNavItem = styled(NavItem)`
   font-size: ${weaveTheme.fontSizes.normal};
+  justify-content: flex-end;
 `;
 
+const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
 const xs = weaveTheme.spacing.xs;
@@ -38,20 +42,28 @@ const useStyles = makeStyles(theme =>
     form: {
       paddingTop: base,
     },
+    create: {
+      paddingTop: small,
+    },
     title: {
-      color: `${weaveTheme.colors.gray600}`,
+      fontSize: weaveTheme.fontSizes.large,
+      fontWeight: 600,
+      paddingBottom: weaveTheme.spacing.medium,
+      color: weaveTheme.colors.gray600,
     },
     sectionTitle: {
+      fontSize: weaveTheme.fontSizes.large,
       paddingTop: base,
       paddingBottom: base,
     },
     divider: {
-      marginTop: xxs,
-      marginBottom: xxs,
+      marginTop: medium,
+      marginBottom: base,
     },
     textarea: {
       width: '100%',
       padding: xs,
+      border: '1px solid #E5E5E5',
     },
     previewCTA: {
       display: 'flex',
@@ -78,7 +90,6 @@ const useStyles = makeStyles(theme =>
         order: 1,
         flexDirection: 'row',
       },
-      marginTop: base,
       paddingRight: xxs,
     },
   }),
@@ -87,22 +98,25 @@ const useStyles = makeStyles(theme =>
 const AddCluster: FC = () => {
   const classes = useStyles();
   const {
+    getTemplate,
     activeTemplate,
     setActiveTemplate,
     renderTemplate,
     PRPreview,
+    PRurl,
+    setPRurl,
+    creatingPR,
     addCluster,
-    getTemplate,
   } = useTemplates();
-  const { count } = useClusters();
+  const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
   const [openPreview, setOpenPreview] = useState(false);
   const [branchName, setBranchName] = useState<string>('default');
   const [pullRequestTitle, setPullRequestTitle] = useState<string>('default');
   const [commitMessage, setCommitMessage] = useState<string>('default');
-  const history = useHistory();
   const rows = (PRPreview?.split('\n').length || 0) - 1;
   const { templateName } = useParams<{ templateName: string }>();
+  const history = useHistory();
 
   const handlePreview = useCallback(
     (event: ISubmitEvent<any>) => {
@@ -131,15 +145,23 @@ const AddCluster: FC = () => {
   );
 
   const handleAddCluster = useCallback(() => {
-    addCluster({ ...formData, branchName, pullRequestTitle, commitMessage });
-    history.push('/clusters');
+    addCluster({
+      head_branch: branchName,
+      title: pullRequestTitle,
+      description: 'This PR creates a new Kubernetes cluster',
+      template_name: activeTemplate?.name,
+      commit_message: commitMessage,
+      parameter_values: {
+        ...formData,
+      },
+    });
   }, [
     addCluster,
     formData,
-    history,
     branchName,
     pullRequestTitle,
     commitMessage,
+    activeTemplate?.name,
   ]);
 
   const required = useMemo(() => {
@@ -174,7 +196,18 @@ const AddCluster: FC = () => {
     if (!activeTemplate) {
       setActiveTemplate(getTemplate(templateName));
     }
-  }, [activeTemplate, getTemplate, setActiveTemplate, templateName]);
+    return history.listen(() => {
+      setPRurl(null);
+      setActiveTemplate(null);
+    });
+  }, [
+    activeTemplate,
+    getTemplate,
+    setActiveTemplate,
+    templateName,
+    setPRurl,
+    history,
+  ]);
 
   return useMemo(() => {
     return (
@@ -182,16 +215,16 @@ const AddCluster: FC = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/', count },
+            { label: 'Clusters', url: '/', count: clustersCount },
             { label: 'Create new cluster' },
           ]}
         />
         <ContentWrapper>
           <Grid container spacing={3}>
             <Grid className={classes.main} item xs={12} md={10}>
-              <h3 className={classes.title}>
+              <div className={classes.title}>
                 Create new cluster with template
-              </h3>
+              </div>
               Template: {activeTemplate?.name}
               <Form
                 className={classes.form}
@@ -206,45 +239,75 @@ const AddCluster: FC = () => {
                 </div>
               </Form>
               {openPreview ? (
-                <div>
-                  <Divider className={classes.divider} />
+                <>
                   <div className={classes.sectionTitle}>
                     <span>Preview & Commit</span>
                   </div>
-                  <textarea
-                    className={classes.textarea}
-                    rows={rows}
-                    value={PRPreview || 'No preview available'}
-                    readOnly
-                  />
-                  You may edit these as part of the pull request with your git
-                  provider.
-                  <Input
-                    label="Create branch"
-                    onChange={handleChangeBranchName}
-                  />
-                  <Input
-                    label="Title pull request"
-                    onChange={handleChangePullRequestTitle}
-                  />
-                  <Input
-                    label="Commit message"
-                    onChange={handleChangeCommitMessage}
-                  />
-                  <div className={classes.createCTA} onClick={handleAddCluster}>
-                    <Button>Create Pull Request on GitHub</Button>
-                  </div>
-                </div>
+                  {PRPreview ? (
+                    <>
+                      <textarea
+                        className={classes.textarea}
+                        rows={rows}
+                        value={PRPreview}
+                        readOnly
+                      />
+                      <span>
+                        You may edit these as part of the pull request with your
+                        git provider.
+                      </span>
+                      <>
+                        <Divider className={classes.divider} />
+                        <div className={classes.sectionTitle}>
+                          <span>GitOps</span>
+                        </div>
+                        <Input
+                          label="Create branch"
+                          onChange={handleChangeBranchName}
+                        />
+                        <Input
+                          label="Title pull request"
+                          onChange={handleChangePullRequestTitle}
+                        />
+                        <Input
+                          label="Commit message"
+                          onChange={handleChangeCommitMessage}
+                        />
+                        <div
+                          className={classes.createCTA}
+                          onClick={handleAddCluster}
+                        >
+                          <Button>Create Pull Request on GitHub</Button>
+                        </div>
+                        {creatingPR ? (
+                          <>
+                            <Divider className={classes.divider} />
+                            <Loader />
+                          </>
+                        ) : null}
+                        {PRurl && !creatingPR ? (
+                          <>
+                            <Divider className={classes.divider} />
+                            <span>
+                              You can access your newly created PR&nbsp;
+                              <a href={PRurl} target="_blank" rel="noreferrer">
+                                here.
+                              </a>
+                            </span>
+                          </>
+                        ) : null}
+                      </>
+                    </>
+                  ) : (
+                    <Loader />
+                  )}
+                </>
               ) : null}
             </Grid>
-            <Grid
-              className={classes.steps}
-              item
-              md={2}
-              style={{ visibility: 'hidden' }}
-            >
-              {['step1', 'step2', 'step3', 'step4', 'step5'].map(step => (
-                <StepNavItem to={`#${step}`}>{step}</StepNavItem>
+            <Grid className={classes.steps} item md={2}>
+              {['Cluster'].map((step, index) => (
+                <StepNavItem key={index} to={`#${step}`}>
+                  {step}
+                </StepNavItem>
               ))}
             </Grid>
           </Grid>
@@ -252,7 +315,7 @@ const AddCluster: FC = () => {
       </PageTemplate>
     );
   }, [
-    count,
+    clustersCount,
     activeTemplate?.name,
     classes,
     formData,
@@ -261,10 +324,12 @@ const AddCluster: FC = () => {
     schema,
     openPreview,
     PRPreview,
+    PRurl,
     rows,
     handleChangeBranchName,
     handleChangeCommitMessage,
     handleChangePullRequestTitle,
+    creatingPR,
   ]);
 };
 

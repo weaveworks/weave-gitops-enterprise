@@ -593,6 +593,14 @@ func RunUIServer(ctx gcontext.Context) {
 	cmd.Dir = getLocalPath("ui-cra")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = append(
+		os.Environ(),
+		[]string{
+			"GITOPS_HOST=http://localhost:" + brokerPort,
+			"CAPI_SERVER_HOST=http://localhost:" + capiServerPort,
+		}...,
+	)
+
 	err := cmd.Start()
 
 	if err != nil {

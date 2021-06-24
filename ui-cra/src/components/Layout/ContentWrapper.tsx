@@ -11,10 +11,12 @@ export const PageWrapper = styled.div`
 `;
 
 export const contentDimensionsCss = css`
-  padding: 0 ${spacing('large')};
+  padding: ${spacing('large')};
 `;
 
 export const ContentWrapper = styled.div`
   ${contentDimensionsCss}
-  margin: ${spacing('small')} auto;
+  margin: ${spacing('small')};
+  background-color: white;
+  border-radius: ${spacing('xs')};
 `;

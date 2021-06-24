@@ -54,6 +54,7 @@ export const muiTheme = createMuiTheme({
         flexGrow: 1,
       },
       input: {
+        border: '1px solid #E5E5E5',
         borderRadius: 2,
         position: 'relative',
         backgroundColor: defaultTheme.palette.common.white,

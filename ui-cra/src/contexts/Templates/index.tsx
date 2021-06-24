@@ -3,6 +3,7 @@ import { Template } from '../../types/custom';
 
 interface TemplatesContext {
   templates: Template[] | [];
+  loading: boolean;
   activeTemplate: Template | null;
   setActiveTemplate: Dispatch<React.SetStateAction<Template | null>>;
   error: string | null;
@@ -10,6 +11,9 @@ interface TemplatesContext {
   renderTemplate: (data: any) => void;
   getTemplate: (templateName: string) => Template | null;
   PRPreview: string | null;
+  creatingPR: boolean;
+  PRurl: string | null;
+  setPRurl: Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const Templates = createContext<TemplatesContext | null>(null);

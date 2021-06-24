@@ -66,12 +66,12 @@ const useStyles = makeStyles((theme: Theme) =>
     drawerPaper: {
       width: drawerWidth,
       border: 'none',
+      background: '#E6E6E6',
     },
     content: {
       flexGrow: 1,
     },
     error: {
-      paddingTop: `${weaveTheme.spacing.large}`,
       fontSize: `${weaveTheme.fontSizes.large}`,
       display: 'flex',
       justifyContent: 'center',
@@ -89,7 +89,7 @@ const ResponsiveDrawer = () => {
   };
 
   const handle404 = () => (
-    <PageTemplate documentTitle="WeGO · Templates">
+    <PageTemplate documentTitle="WeGO · NotFound">
       <SectionHeader />
       <ContentWrapper>
         <Box className={classes.error}>

@@ -4,11 +4,13 @@ import { request } from '../../utils/request';
 import { Templates } from './index';
 
 const TemplatesProvider: FC = ({ children }) => {
-  const [, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
+  const [creatingPR, setCreatingPR] = useState<boolean>(false);
+  const [PRurl, setPRurl] = useState<string | null>(null);
 
   const templatesUrl = '/v1/templates';
 
@@ -33,8 +35,13 @@ const TemplatesProvider: FC = ({ children }) => {
   );
 
   const addCluster = useCallback(({ ...data }) => {
-    console.log('addCluster has been called with', data);
-    setActiveTemplate(null);
+    setCreatingPR(true);
+    request('POST', '/v1/pulls', {
+      body: JSON.stringify(data),
+    })
+      .then(data => setPRurl(data.webUrl))
+      .catch(err => setError(err.message))
+      .finally(() => setCreatingPR(false));
   }, []);
 
   useEffect(() => {
@@ -54,13 +61,17 @@ const TemplatesProvider: FC = ({ children }) => {
     <Templates.Provider
       value={{
         templates,
+        loading,
         activeTemplate,
         setActiveTemplate,
+        getTemplate,
         error,
         addCluster,
         renderTemplate,
         PRPreview,
-        getTemplate,
+        creatingPR,
+        PRurl,
+        setPRurl,
       }}
     >
       {children}

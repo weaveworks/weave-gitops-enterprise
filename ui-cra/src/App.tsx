@@ -33,7 +33,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: ${theme.colors.purple25};
+    background: #e6e6e6;
     color: ${theme.textColor};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};

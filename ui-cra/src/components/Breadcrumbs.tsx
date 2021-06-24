@@ -79,11 +79,9 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
               <Title role="heading" size={size}>
                 <Link href={url}>{label}</Link>
               </Title>
-              {count !== null && (
-                <Count className="section-header-count" size={size}>
-                  {count}
-                </Count>
-              )}
+              <Count className="section-header-count" size={size}>
+                {count || 0}
+              </Count>
             </>
           )}
         </div>

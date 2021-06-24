@@ -26,6 +26,13 @@ const ActionsWrapper = styled.div<Size>`
   }
 `;
 
+const Title = styled.div`
+  font-size: ${theme.fontSizes.large};
+  font-weight: 600;
+  padding-bottom: ${theme.spacing.medium};
+  color: ${theme.colors.gray600};
+`;
+
 const MCCP: FC = () => {
   const {
     clusters,
@@ -65,6 +72,7 @@ const MCCP: FC = () => {
         path={[{ label: 'Clusters', url: 'clusters', count }]}
       />
       <ContentWrapper>
+        <Title>Connected clusters dashboard</Title>
         <ActionsWrapper>
           <OnClickAction
             id="create-cluster"

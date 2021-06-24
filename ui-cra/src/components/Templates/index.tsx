@@ -7,6 +7,7 @@ import useClusters from '../../contexts/Clusters';
 import useTemplates from '../../contexts/Templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
+import { Loader } from '../Loader';
 
 const getColor = (seed: number) => {
   if (seed % 2 === 0) {
@@ -24,7 +25,7 @@ const getColor = (seed: number) => {
 };
 
 const TemplatesDashboard: FC = () => {
-  const { templates } = useTemplates();
+  const { templates, loading } = useTemplates();
   const clustersCount = useClusters().count;
   const templatesCount = templates.length;
 
@@ -32,7 +33,7 @@ const TemplatesDashboard: FC = () => {
     <PageTemplate documentTitle="WeGO · Templates">
       <SectionHeader
         path={[
-          { label: 'Clusters', url: '/', count: clustersCount },
+          { label: 'Clusters', url: '/clusters', count: clustersCount },
           {
             label: 'Templates',
             url: '/clusters/templates',
@@ -41,13 +42,17 @@ const TemplatesDashboard: FC = () => {
         ]}
       />
       <ContentWrapper>
-        <Grid container spacing={3} justify="center">
-          {templates.map((template: any, index: number) => (
-            <Grid key={index} item xs={12} sm={6} md={3}>
-              <TemplateCard template={template} color={getColor(index)} />
-            </Grid>
-          ))}
-        </Grid>
+        {!loading ? (
+          <Grid container spacing={3} justify="center">
+            {templates.map((template: any, index: number) => (
+              <Grid key={index} item xs={12} sm={6} md={3}>
+                <TemplateCard template={template} color={getColor(index)} />
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Loader />
+        )}
       </ContentWrapper>
     </PageTemplate>
   );
