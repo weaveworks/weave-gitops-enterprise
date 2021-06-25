@@ -24,7 +24,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 		BeforeEach(func() {
 
 			By("Given I have a mccp binary installed on my local machine", func() {
-				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue(), "mccp binry can not be found.")
+				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", MCCP_BIN_PATH))
 			})
 		})
 

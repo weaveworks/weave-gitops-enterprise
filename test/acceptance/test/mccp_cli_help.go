@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"fmt"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
@@ -20,7 +21,7 @@ func verifyUsageText(session *gexec.Session) {
 		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("mccp [command]"))
 	})
 
-	By("And Avalaible-Commands category", func() {
+	By("And Available-Commands category", func() {
 		Eventually(session).Should(gbytes.Say("Available Commands:"))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`help[\s]+Help about any command`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`templates[\s]+Interact with CAPI templates`))
@@ -49,7 +50,7 @@ func DescribeMccpCliHelp() {
 		BeforeEach(func() {
 
 			By("Given I have a mccp binary installed on my local machine", func() {
-				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue(), "mccp binary cannot be found.")
+				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", MCCP_BIN_PATH))
 			})
 		})
 
