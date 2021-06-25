@@ -12,7 +12,7 @@ import (
 )
 
 func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
-	var _ = Describe("MCCP Help Tests", func() {
+	var _ = Describe("MCCP List Tests", func() {
 
 		MCCP_BIN_PATH := GetMCCBinPath()
 		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
@@ -24,7 +24,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 		BeforeEach(func() {
 
 			By("Given I have a mccp binary installed on my local machine", func() {
-				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue())
+				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue(), "mccp binry can not be found.")
 			})
 		})
 

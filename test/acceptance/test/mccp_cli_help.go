@@ -49,7 +49,7 @@ func DescribeMccpCliHelp() {
 		BeforeEach(func() {
 
 			By("Given I have a mccp binary installed on my local machine", func() {
-				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue())
+				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue(), "mccp binary cannot be found.")
 			})
 		})
 

@@ -684,6 +684,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
+          MCCP_BIN_PATH: $CIRCLE_WORKING_DIRECTORY/cmd/mccp/mccp
           # Only run MCCP Acceptance tests (not wkp)
           MCCP_ACCEPTANCE: true
           MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
