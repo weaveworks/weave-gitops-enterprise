@@ -57,9 +57,9 @@ func TestListTemplates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewFakeTemplateRetriever(tt.ts, nil, "", tt.err)
+			c := NewFakeClient(tt.ts, nil, "", tt.err)
 			w := new(bytes.Buffer)
-			err := templates.ListTemplates(r, w)
+			err := templates.ListTemplates(c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -115,9 +115,9 @@ func TestListTemplateParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewFakeTemplateRetriever(nil, tt.tps, "", tt.err)
+			c := NewFakeClient(nil, tt.tps, "", tt.err)
 			w := new(bytes.Buffer)
-			err := templates.ListTemplateParameters("foo", r, w)
+			err := templates.ListTemplateParameters("foo", c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -184,9 +184,9 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := NewFakeTemplateRetriever(nil, nil, tt.result, tt.err)
+			c := NewFakeClient(nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
-			err := templates.RenderTemplate("foo", nil, r, w)
+			err := templates.RenderTemplate("foo", nil, c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -195,15 +195,48 @@ func TestRenderTemplate(t *testing.T) {
 	}
 }
 
-type FakeTemplateRetriever struct {
+func TestCreatePullRequest(t *testing.T) {
+	tests := []struct {
+		name             string
+		result           string
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:             "error returned",
+			err:              errors.New("something went wrong"),
+			expectedErrorStr: "unable to create pull request: something went wrong",
+		},
+		{
+			name:     "pull request created",
+			result:   "https://github.com/org/repo/pull/1",
+			expected: "Created pull request: https://github.com/org/repo/pull/1\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewFakeClient(nil, nil, tt.result, tt.err)
+			w := new(bytes.Buffer)
+			err := templates.CreatePullRequest(templates.CreatePullRequestForTemplateParams{}, c, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
+type FakeClient struct {
 	ts  []templates.Template
 	tps []templates.TemplateParameter
 	s   string
 	err error
 }
 
-func NewFakeTemplateRetriever(ts []templates.Template, tps []templates.TemplateParameter, s string, err error) FakeTemplateRetriever {
-	return FakeTemplateRetriever{
+func NewFakeClient(ts []templates.Template, tps []templates.TemplateParameter, s string, err error) *FakeClient {
+	return &FakeClient{
 		ts:  ts,
 		tps: tps,
 		s:   s,
@@ -211,30 +244,38 @@ func NewFakeTemplateRetriever(ts []templates.Template, tps []templates.TemplateP
 	}
 }
 
-func (r FakeTemplateRetriever) Source() string {
+func (c *FakeClient) Source() string {
 	return "In-memory fake"
 }
 
-func (r FakeTemplateRetriever) RetrieveTemplates() ([]templates.Template, error) {
-	if r.err != nil {
-		return nil, r.err
+func (c *FakeClient) RetrieveTemplates() ([]templates.Template, error) {
+	if c.err != nil {
+		return nil, c.err
 	}
 
-	return r.ts, nil
+	return c.ts, nil
 }
 
-func (r FakeTemplateRetriever) RetrieveTemplateParameters(name string) ([]templates.TemplateParameter, error) {
-	if r.err != nil {
-		return nil, r.err
+func (c *FakeClient) RetrieveTemplateParameters(name string) ([]templates.TemplateParameter, error) {
+	if c.err != nil {
+		return nil, c.err
 	}
 
-	return r.tps, nil
+	return c.tps, nil
 }
 
-func (r FakeTemplateRetriever) RenderTemplateWithParameters(name string, values map[string]string) (string, error) {
-	if r.err != nil {
-		return "", r.err
+func (c *FakeClient) RenderTemplateWithParameters(name string, values map[string]string) (string, error) {
+	if c.err != nil {
+		return "", c.err
 	}
 
-	return r.s, nil
+	return c.s, nil
+}
+
+func (c *FakeClient) CreatePullRequestForTemplate(params templates.CreatePullRequestForTemplateParams) (string, error) {
+	if c.err != nil {
+		return "", c.err
+	}
+
+	return c.s, nil
 }

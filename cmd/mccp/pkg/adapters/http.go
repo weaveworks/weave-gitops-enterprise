@@ -6,31 +6,46 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
+	capiv1_protos "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
 )
 
-type HttpTemplateRetriever struct {
+type ServiceError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+// An HTTP client of the cluster service.
+type HttpClient struct {
 	baseURI *url.URL
 	client  *resty.Client
 }
 
-func NewHttpTemplateRetriever(endpoint string, client *resty.Client) (*HttpTemplateRetriever, error) {
+// NewHttpClient creates a new HTTP client of the cluster service. The endpoint
+// is expected to be an absolute HTTP URI.
+func NewHttpClient(endpoint string, client *resty.Client) (*HttpClient, error) {
 	u, err := url.ParseRequestURI(endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	client = client.SetHostURL(u.String())
-	return &HttpTemplateRetriever{
+	return &HttpClient{
 		baseURI: u,
 		client:  client,
 	}, nil
 }
 
-func (c *HttpTemplateRetriever) RetrieveTemplates() ([]templates.Template, error) {
+// Source returns the endpoint of the cluster service
+func (c *HttpClient) Source() string {
+	return c.baseURI.String()
+}
+
+// RetrieveTemplates returns the list of all templates of the cluster service.
+func (c *HttpClient) RetrieveTemplates() ([]templates.Template, error) {
 	endpoint := "v1/templates"
 
-	var templateList TemplateList
+	var templateList capiv1_protos.ListTemplatesResponse
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetResult(&templateList).
@@ -55,14 +70,12 @@ func (c *HttpTemplateRetriever) RetrieveTemplates() ([]templates.Template, error
 	return ts, nil
 }
 
-func (c *HttpTemplateRetriever) Source() string {
-	return c.baseURI.String()
-}
-
-func (c *HttpTemplateRetriever) RetrieveTemplateParameters(name string) ([]templates.TemplateParameter, error) {
+// RetrieveTemplateParameters returns the list of all parameters of the
+// specified template.
+func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.TemplateParameter, error) {
 	endpoint := "v1/templates/{name}/params"
 
-	var templateParameterList TemplateParameterList
+	var templateParameterList capiv1_protos.ListTemplateParamsResponse
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
@@ -81,7 +94,7 @@ func (c *HttpTemplateRetriever) RetrieveTemplateParameters(name string) ([]templ
 	}
 
 	var tps []templates.TemplateParameter
-	for _, p := range templateParameterList.TemplateParameters {
+	for _, p := range templateParameterList.Parameters {
 		tps = append(tps, templates.TemplateParameter{
 			Name:        p.Name,
 			Description: p.Description,
@@ -91,8 +104,20 @@ func (c *HttpTemplateRetriever) RetrieveTemplateParameters(name string) ([]templ
 	return tps, nil
 }
 
-func (c *HttpTemplateRetriever) RenderTemplateWithParameters(name string, parameters map[string]string) (string, error) {
+// RenderTemplateWithParameters returns a YAML representation of the specified
+// template populated with the supplied parameters.
+func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[string]string) (string, error) {
 	endpoint := "v1/templates/{name}/render"
+
+	// POST request payload
+	type TemplateParameterValues struct {
+		Values map[string]string `json:"values"`
+	}
+
+	// POST response payload
+	type RenderedTemplate struct {
+		Template string `json:"renderedTemplate"`
+	}
 
 	var renderedTemplate RenderedTemplate
 	var serviceErr *ServiceError
@@ -121,33 +146,57 @@ func (c *HttpTemplateRetriever) RenderTemplateWithParameters(name string, parame
 	return renderedTemplate.Template, nil
 }
 
-type TemplateList struct {
-	Templates []Template `json:"templates"`
-}
+// CreatePullRequestForTemplate commits the YAML template to the specified
+// branch and creates a pull request of that branch.
+func (c *HttpClient) CreatePullRequestForTemplate(params templates.CreatePullRequestForTemplateParams) (string, error) {
+	endpoint := "v1/pulls"
 
-type Template struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
+	// POST request payload
+	type CreatePullRequestForTemplateRequest struct {
+		RepositoryURL   string            `json:"repositoryUrl"`
+		HeadBranch      string            `json:"headBranch"`
+		BaseBranch      string            `json:"baseBranch"`
+		Title           string            `json:"title"`
+		Description     string            `json:"description"`
+		TemplateName    string            `json:"templateName"`
+		ParameterValues map[string]string `json:"parameter_values"`
+		CommitMessage   string            `json:"commitMessage"`
+	}
 
-type TemplateParameterList struct {
-	TemplateParameters []TemplateParameter `json:"parameters"`
-}
+	// POST response payload
+	type CreatePullRequestForTemplateResponse struct {
+		WebURL string `json:"webUrl"`
+	}
 
-type TemplateParameter struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
+	var result CreatePullRequestForTemplateResponse
+	var serviceErr *ServiceError
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetBody(CreatePullRequestForTemplateRequest{
+			RepositoryURL:   params.RepositoryURL,
+			HeadBranch:      params.HeadBranch,
+			BaseBranch:      params.BaseBranch,
+			Title:           params.Title,
+			Description:     params.Description,
+			TemplateName:    params.TemplateName,
+			ParameterValues: params.ParameterValues,
+			CommitMessage:   params.CommitMessage,
+		}).
+		SetResult(&result).
+		SetError(&serviceErr).
+		Post(endpoint)
 
-type TemplateParameterValues struct {
-	Values map[string]string `json:"values"`
-}
+	if serviceErr != nil {
+		return "", fmt.Errorf("unable to POST template and create pull request to %q: %s", res.Request.URL, serviceErr.Message)
+	}
 
-type RenderedTemplate struct {
-	Template string `json:"renderedTemplate"`
-}
+	if err != nil {
+		return "", fmt.Errorf("unable to POST template and create pull request to %q: %w", res.Request.URL, err)
+	}
 
-type ServiceError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	if res.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	return result.WebURL, nil
 }

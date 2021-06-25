@@ -62,7 +62,7 @@ func TestRetrieveTemplates(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", BaseURI+"/v1/templates", tt.responder)
 
-			r, err := adapters.NewHttpTemplateRetriever(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client)
 			assert.NoError(t, err)
 			ts, err := r.RetrieveTemplates()
 			tt.assertFunc(t, ts, err)
@@ -111,7 +111,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", BaseURI+"/v1/templates/cluster-template/params", tt.responder)
 
-			r, err := adapters.NewHttpTemplateRetriever(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client)
 			assert.NoError(t, err)
 			ts, err := r.RetrieveTemplateParameters("cluster-template")
 			tt.assertFunc(t, ts, err)
@@ -150,6 +150,13 @@ spec:
 			},
 		},
 		{
+			name:      "service error",
+			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("testdata/service_error.json")),
+			assertFunc: func(t *testing.T, result string, err error) {
+				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render\": something bad happened")
+			},
+		},
+		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, result string, err error) {
@@ -172,9 +179,60 @@ spec:
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", BaseURI+"/v1/templates/cluster-template/render", tt.responder)
 
-			r, err := adapters.NewHttpTemplateRetriever(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client)
 			assert.NoError(t, err)
 			result, err := r.RenderTemplateWithParameters("cluster-template", nil)
+			tt.assertFunc(t, result, err)
+		})
+	}
+}
+
+func TestCreatePullRequestForTemplate(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, result string, err error)
+	}{
+		{
+			name:      "pull request created",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/pull_request_created.json")),
+			assertFunc: func(t *testing.T, result string, err error) {
+				assert.Equal(t, result, "https://github.com/org/repo/pull/1")
+			},
+		},
+		{
+			name:      "service error",
+			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("testdata/service_error.json")),
+			assertFunc: func(t *testing.T, result string, err error) {
+				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/pulls\": something bad happened")
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, result string, err error) {
+				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/pulls\": Post \"https://weave.works/api/v1/pulls\": oops")
+			},
+		},
+		{
+			name:      "unexpected status code",
+			responder: httpmock.NewStringResponder(400, ""),
+			assertFunc: func(t *testing.T, result string, err error) {
+				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/pulls\" was 400")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("POST", BaseURI+"/v1/pulls", tt.responder)
+
+			c, err := adapters.NewHttpClient(BaseURI, client)
+			assert.NoError(t, err)
+			result, err := c.CreatePullRequestForTemplate(templates.CreatePullRequestForTemplateParams{})
 			tt.assertFunc(t, result, err)
 		})
 	}

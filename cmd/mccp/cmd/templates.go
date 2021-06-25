@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +18,5 @@ var (
 
 func init() {
 	rootCmd.AddCommand(templatesCmd)
-	templatesCmd.PersistentFlags().StringVarP(&endpoint, "endpoint", "e", "", "The CAPI templates HTTP API endpoint")
-	templatesCmd.MarkPersistentFlagRequired("endpoint")
+	templatesCmd.PersistentFlags().StringVarP(&endpoint, "endpoint", "e", os.Getenv("CAPI_TEMPLATES_API_URL"), "The CAPI templates HTTP API endpoint")
 }

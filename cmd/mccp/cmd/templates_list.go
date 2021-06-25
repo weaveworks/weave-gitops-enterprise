@@ -23,6 +23,8 @@ var templatesListCmd = &cobra.Command{
 		}
 		return nil
 	},
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }
 
 func init() {
@@ -30,7 +32,7 @@ func init() {
 }
 
 func templatesListCmdRun(cmd *cobra.Command, args []string) error {
-	r, err := adapters.NewHttpTemplateRetriever(endpoint, resty.New())
+	r, err := adapters.NewHttpClient(endpoint, resty.New())
 	if err != nil {
 		return err
 	}

@@ -19,6 +19,12 @@ type TemplateRenderer interface {
 	RenderTemplateWithParameters(name string, parameters map[string]string) (string, error)
 }
 
+// TemplatePullRequester implementers must return the web URI of the pull
+// request.
+type TemplatePullRequester interface {
+	CreatePullRequestForTemplate(params CreatePullRequestForTemplateParams) (string, error)
+}
+
 type Template struct {
 	Name        string
 	Description string
@@ -27,6 +33,17 @@ type Template struct {
 type TemplateParameter struct {
 	Name        string
 	Description string
+}
+
+type CreatePullRequestForTemplateParams struct {
+	TemplateName    string
+	ParameterValues map[string]string
+	RepositoryURL   string
+	HeadBranch      string
+	BaseBranch      string
+	Title           string
+	Description     string
+	CommitMessage   string
 }
 
 func ListTemplates(r TemplatesRetriever, w io.Writer) error {
@@ -90,6 +107,17 @@ func RenderTemplate(name string, parameters map[string]string, r TemplateRendere
 	}
 
 	fmt.Fprintf(w, "No template found.")
+
+	return nil
+}
+
+func CreatePullRequest(params CreatePullRequestForTemplateParams, r TemplatePullRequester, w io.Writer) error {
+	res, err := r.CreatePullRequestForTemplate(params)
+	if err != nil {
+		return fmt.Errorf("unable to create pull request: %w", err)
+	}
+
+	fmt.Fprintf(w, "Created pull request: %s\n", res)
 
 	return nil
 }

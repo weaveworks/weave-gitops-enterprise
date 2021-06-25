@@ -303,7 +303,6 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 		})
 
 		It("Verify connect a cluster input field validation", func() {
-			clustersPage := pages.GetClustersPage(webDriver)
 			clusterNameMax := String(300)
 			fmt.Printf("Generated a new cluster name! %s\n", clusterNameMax)
 			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterNameMax)
