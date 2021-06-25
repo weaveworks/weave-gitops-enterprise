@@ -21,14 +21,9 @@ func GomegaFail(message string, callerSkip ...int) {
 	}
 
 	//Show pods
-	showItems("pods")
+	showItems("")
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
-}
-
-// showItems displays the current set of a specified object type in tabular format
-func showItems(itemType string) error {
-	return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 }
 
 func TestAcceptance(t *testing.T) {
@@ -46,8 +41,12 @@ func TestAcceptance(t *testing.T) {
 
 	defaultSuite := true
 	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
-		DescribeMCCPClusters(RealMCCPTestRunner{})
-		DescribeMCCPTemplates(RealMCCPTestRunner{})
+
+		// Runs the UI tests
+		DescribeSpecsMccpUi(RealMCCPTestRunner{})
+		// Runs the CLI tests
+		DescribeSpecsMccpCli(RealMCCPTestRunner{})
+
 		defaultSuite = false
 	}
 

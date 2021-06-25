@@ -31,6 +31,8 @@ var webDriver *agouti.Page
 var gitProvider string
 var seleniumServiceUrl string
 var defaultUIURL = "http://localhost:8090"
+var defaultMccpBinPath = "/usr/local/bin/mccp"
+var defaultCapiEndpointURL = "http://localhost:8090"
 
 func GetWebDriver() *agouti.Page {
 	return webDriver
@@ -40,11 +42,25 @@ func SetWebDriver(wb *agouti.Page) {
 	webDriver = wb
 }
 
+func GetMCCBinPath() string {
+	if os.Getenv("MCCP_BIN_PATH") != "" {
+		return os.Getenv("MCCP_BIN_PATH")
+	}
+	return defaultMccpBinPath
+}
+
 func GetWkpUrl() string {
 	if os.Getenv("TEST_UI_URL") != "" {
 		return os.Getenv("TEST_UI_URL")
 	}
 	return defaultUIURL
+}
+
+func GetCapiEndpointUrl() string {
+	if os.Getenv("TEST_CAPI_ENDPOINT_URL") != "" {
+		return os.Getenv("TEST_CAPI_ENDPOINT_URL")
+	}
+	return defaultCapiEndpointURL
 }
 
 func SetDefaultUIURL(url string) {
@@ -100,6 +116,18 @@ func TakeNextScreenshot() {
 	n += 1
 }
 
+// Describes all the UI acceptance tests
+func DescribeSpecsMccpUi(mccpTestRunner MCCPTestRunner) {
+	DescribeMCCPClusters(mccpTestRunner)
+	DescribeMCCPTemplates(mccpTestRunner)
+}
+
+// Describes all the CLI acceptance tests
+func DescribeSpecsMccpCli(mccpTestRunner MCCPTestRunner) {
+	DescribeMccpCliHelp()
+	DescribeMccpCliList(mccpTestRunner)
+}
+
 // Interface that can be implemented either with:
 // - "Real" commands like "exec(kubectl...)"
 // - "Mock" commands like db.Create(cluster_info...)
@@ -113,7 +141,7 @@ type MCCPTestRunner interface {
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
 	AddWorkspace(env []string, clusterName string) error
-	CreateApplyCapitemplates(templateCount int) []string
+	CreateApplyCapitemplates(templateCount int, templateFile string) []string
 	DeleteApplyCapiTemplates(templateFiles []string)
 }
 
@@ -224,8 +252,8 @@ func (b DatabaseMCCPTestRunner) AddWorkspace(env []string, clusterName string) e
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) CreateApplyCapitemplates(templateCount int) []string {
-	templateFiles, err := generateTestCapiTemplates(templateCount, "test_capi_template")
+func (b DatabaseMCCPTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
+	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
 	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
 	By("Apply/Insall CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
@@ -349,8 +377,8 @@ func (b RealMCCPTestRunner) AddWorkspace(env []string, clusterName string) error
 }
 
 // This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability
-func (b RealMCCPTestRunner) CreateApplyCapitemplates(templateCount int) []string {
-	templateFiles, err := generateTestCapiTemplates(templateCount, "test_capi_template")
+func (b RealMCCPTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
+	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
 	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
 
 	By("Apply/Insall CAPITemplate templates", func() {
@@ -396,10 +424,18 @@ func getEnv(key, fallback string) string {
 	return value
 }
 
+// showItems displays the current set of a specified object type in tabular format
+func showItems(itemType string) error {
+	if itemType != "" {
+		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+	}
+	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+}
+
 // This function generates multiple capitemplate files from a single capitemplate to be used as test data
-func generateTestCapiTemplates(templateCount int, templateName string) (templateFiles []string, err error) {
+func generateTestCapiTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
 	// Read input capitemplate
-	contents, err := ioutil.ReadFile("../../utils/data/capi-server_v1_capitemplate.yaml")
+	contents, err := ioutil.ReadFile(fmt.Sprintf("../../utils/data/%s", templateFile))
 
 	if err != nil {
 		return templateFiles, err
@@ -417,7 +453,7 @@ func generateTestCapiTemplates(templateCount int, templateName string) (template
 	for i := 0; i < templateCount; i++ {
 		input := TemplateInput{i}
 
-		fileName := fmt.Sprintf("%s%d.yaml", templateName, i)
+		fileName := fmt.Sprintf("%s%d", templateFile, i)
 
 		f, err := os.Create(filepath.Join(os.TempDir(), fileName))
 		if err != nil {
@@ -445,4 +481,14 @@ func deleteFiles(fileName []string) error {
 		}
 	}
 	return nil
+}
+
+// Utility function to check if file exists
+func FileExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
