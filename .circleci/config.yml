@@ -152,6 +152,24 @@ commands:
               curl -o "$DST_PATH" https://s3.amazonaws.com/weaveworks-wkp/wk-${TAG}-linux-amd64
               chmod +x "$DST_PATH"
             fi
+  get-mccp-binary:
+    description: Get the mccp binary from workspace or s3
+    steps:
+      - run:
+          name: Get the mccp binary from workspace or s3
+          command: |
+            DST_PATH=cmd/mccp/mccp
+
+            # get a mccp binary from the attached workspace to use in the integration test
+            SRC_PATH=/tmp/workspace/cmd/mccp/mccp
+            if [ -f "$SRC_PATH" ]; then
+              cp "$SRC_PATH" "$DST_PATH"
+            else
+              TAG=$(./tools/image-tag)
+              # TAG=master
+              curl -o "$DST_PATH" https://s3.amazonaws.com/weaveworks-wkp/mccp-${TAG}-linux-amd64
+              chmod +x "$DST_PATH"
+            fi
 
   install-integration-test-deps:
     description: Install go, kubectl and hub for the integration tests
@@ -242,6 +260,7 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - get-wk-binary
+      - get-mccp-binary
 
   install-kind:
     description: 'Installs kind'
@@ -397,6 +416,7 @@ jobs:
           paths:
             - kubectl
             - cmd/wk/wk
+            - cmd/mccp/mccp
             - cmd/mock-https-authz-server/server
             - ui/node_modules
             - wkp-cluster-components/node_modules
@@ -684,6 +704,7 @@ jobs:
           NUM_WORKERS: 1
           USE_LB: false
           SKIP_COMPONENTS: true
+          MCCP_BIN_PATH: /home/circleci/src/github.com/weaveworks/wks/cmd/mccp/mccp
           # Only run MCCP Acceptance tests (not wkp)
           MCCP_ACCEPTANCE: true
           MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'

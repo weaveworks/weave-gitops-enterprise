@@ -1,0 +1,49 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: eks-fargate-template-{{.Count}}
+  namespace: default
+spec:
+  description: This is eks fargate template-{{.Count}}
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+      options: []
+      required: true
+  resourcetemplates:
+    - apiVersion: cluster.x-k8s.io/v1alpha4
+      kind: Cluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+      spec:
+        clusterNetwork:
+          pods:
+            cidrBlocks: ["192.168.0.0/16"]
+        infrastructureRef:
+          apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+          kind: AWSManagedCluster
+          name: "${CLUSTER_NAME}"
+        controlPlaneRef:
+          kind: AWSManagedControlPlane
+          apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+          name: "${CLUSTER_NAME}-control-plane"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+      kind: AWSManagedCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+    - kind: AWSManagedControlPlane
+      apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+      spec:
+        region: "${AWS_REGION}"
+        sshKeyName: "${AWS_SSH_KEY_NAME}"
+        version: "${KUBERNETES_VERSION}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+      kind: AWSFargateProfile
+      metadata:
+        name: "${CLUSTER_NAME}-fargate-0"
+      spec:
+        clusterName: mb-test-1
+        selectors:
+          - namespace: default

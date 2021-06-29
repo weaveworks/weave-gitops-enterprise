@@ -711,9 +711,10 @@ func TestMccpUI(t *testing.T) {
 
 	// Load up the acceptance suite suite
 	mccpRunner := acceptancetest.DatabaseMCCPTestRunner{DB: db, Client: cl}
-	acceptancetest.DescribeMCCPTemplates(mccpRunner)
+
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
 	acceptancetest.SetDefaultUIURL(uiURL)
+	acceptancetest.DescribeSpecsMccpUi(mccpRunner)
 
 	AfterSuite(func() {
 		webDriver := acceptancetest.GetWebDriver()
