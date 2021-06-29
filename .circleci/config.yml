@@ -784,6 +784,9 @@ jobs:
             echo $WKP_ACCEPTANCE_EKS_KUBECONFIG | base64 -d > $MCCP_EKS_LEAF_KUBECONFIG
 
             go test -v -run TestClusterCreation --timeout=99999s
+            # Delete flux, it tries to update all the docker images and fails
+            # as it doesn't have auth and then we blow through our docker hub api quota
+            kubectl delete deployment flux --namespace weavek8sops
 
             # Update the natsURL in components.js to the node's public IP for the agent in the
             # GCE cluster to be able to connect
