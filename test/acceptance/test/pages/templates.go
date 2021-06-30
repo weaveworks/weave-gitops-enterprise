@@ -18,7 +18,7 @@ func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
 		TemplateHeader: webDriver.Find(`div[role="heading"] a[href="/clusters/templates"]`),
 		TemplateCount:  webDriver.FindByXPath(`//*[@href="/clusters/templates"]/parent::div[@role="heading"]/following-sibling::div`),
-		TemplateTiles:  webDriver.All(`.MuiPaper-root.MuiCard-root`),
+		TemplateTiles:  webDriver.All(`[data-template-name]`),
 	}
 
 	return &templatesPage
@@ -30,7 +30,6 @@ type TemplateTile struct {
 	CreateTemplate *agouti.Selection
 }
 
-// Find required template tile in TemplateTiles
 func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateTile {
 	tileNode := webDriver.Find(fmt.Sprintf(`[data-template-name="%s"]`, templateName))
 	return &TemplateTile{
@@ -38,4 +37,14 @@ func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateTile 
 		Description:    tileNode.Find(`button > div.MuiCardContent-root > p`),
 		CreateTemplate: tileNode.Find(`#create-cluster`),
 	}
+}
+
+func (t TemplatesPage) GetTemplateTileList() []string {
+	tileCount, _ := t.TemplateTiles.Count()
+	titles := make([]string, tileCount)
+
+	for i := 0; i < tileCount; i++ {
+		titles[i], _ = t.TemplateTiles.At(i).Text()
+	}
+	return titles
 }

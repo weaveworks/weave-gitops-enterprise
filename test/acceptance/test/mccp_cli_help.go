@@ -124,5 +124,47 @@ func DescribeMccpCliHelp() {
 			})
 
 		})
+
+		It("Verify that mccp command prints the sub help text for the render command", func() {
+
+			By("When I run the command 'mccp templates render help'", func() {
+				command := exec.Command(MCCP_BIN_PATH, "templates", "render", "--help", "--endpoint", CAPI_ENDPOINT_URL)
+				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			By("Then I should see help message printed with the product name", func() {
+				Eventually(session).Should(gbytes.Say("Render CAPI template"))
+			})
+
+			By("And Usage category", func() {
+				Eventually(session).Should(gbytes.Say("Usage:"))
+				Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("mccp templates render [flags]"))
+			})
+
+			By("And Examples category", func() {
+				Eventually(session).Should(gbytes.Say("Examples:"))
+				Eventually(session).Should(gbytes.Say("mccp templates render <template-name>"))
+			})
+
+			By("And Flags category", func() {
+				Eventually(session).Should(gbytes.Say("Flags:"))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-h, --help[\s]+help for render`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--create-pr[\s]+Indicates whether to create a pull request for the CAPI template`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--list-parameters[\s]+The CAPI templates HTTP API endpoint`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-base string[\s]+The base branch to open the pull request against`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-branch string[\s]+The branch to create the pull request from`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-commit-message string[\s]+The commit message to use when adding the CAPI template`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-description string[\s]+The description of the pull request`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-repo string[\s]+The repository to open a pull request against`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-title string[\s]+The title of the pull request`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--set stringArray[\s]+Set parameter values on the command line \(can specify multiple or separate values with commas: key1=val1,key2=val2\)`))
+			})
+
+			By("And  Global Flags category", func() {
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string\s+The CAPI templates HTTP API endpoint`))
+			})
+
+		})
 	})
 }
