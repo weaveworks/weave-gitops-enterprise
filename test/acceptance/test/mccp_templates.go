@@ -219,7 +219,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				By("Then I should preview the PR", func() {
 					Expect(createPage.PreviewPR.Submit()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
-					Expect(preview.PreviewLabel).Should(BeFound())
+					Eventually(preview.PreviewLabel).Should(BeFound())
 
 					Expect(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
 					Expect(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+name: %[1]v`, clusterName))))
@@ -265,7 +265,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
-					Expect(gitops.GitOpsLabel).Should(BeFound())
+					Eventually(gitops.GitOpsLabel).Should(BeFound())
+
+					gitops.ScrollIntoView(webDriver, gitops.GitOpsLabel)
+
 					Expect(gitops.GitOpsFeilds[0].Label).Should(BeFound())
 					Expect(gitops.GitOpsFeilds[1].Label).Should(BeFound())
 					Expect(gitops.GitOpsFeilds[2].Label).Should(BeFound())

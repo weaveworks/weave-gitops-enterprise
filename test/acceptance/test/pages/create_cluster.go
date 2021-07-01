@@ -30,6 +30,19 @@ type GitOps struct {
 	CreatePR     *agouti.Selection
 }
 
+// scrolls the element into view
+func (g GitOps) ScrollIntoView(webDriver *agouti.Page, selection *agouti.Selection) {
+	xpath := ""
+
+	if selection == g.GitOpsLabel {
+		xpath = `//*/span[text()="GitOps"]`
+	}
+
+	script := fmt.Sprintf(`var elmnt = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; elmnt.scrollIntoView();`, xpath)
+	var result interface{}
+	webDriver.RunScript(script, map[string]interface{}{"xpath": xpath}, &result)
+}
+
 //CreateCluster initialises the webDriver object
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
