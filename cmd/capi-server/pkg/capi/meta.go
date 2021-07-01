@@ -27,7 +27,7 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 		if err := uv.UnmarshalJSON(v.RawExtension.Raw); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
 		}
-		objects = append(objects, Object{Kind: uv.GetKind(), APIVersion: uv.GetAPIVersion(), Params: tv})
+		objects = append(objects, Object{Kind: uv.GetKind(), APIVersion: uv.GetAPIVersion(), Params: tv, Name: uv.GetName()})
 	}
 
 	enriched, err := ParamsFromSpec(s.Spec)
@@ -47,6 +47,7 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 type Object struct {
 	Kind       string   `json:"kind"`
 	APIVersion string   `json:"apiVersion"`
+	Name       string   `json:"name"`
 	Params     []string `json:"params"`
 }
 
