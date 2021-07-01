@@ -22,12 +22,14 @@ func TestParseTemplateMeta(t *testing.T) {
 			{
 				Kind:       "Cluster",
 				APIVersion: "cluster.x-k8s.io/v1alpha3",
+				Name:       "${CLUSTER_NAME}",
 				Params:     []string{"CLUSTER_NAME"},
 			},
 			{
 				Kind:       "AWSMachineTemplate",
 				APIVersion: "infrastructure.cluster.x-k8s.io/v1alpha3",
 				Params:     []string{"CLUSTER_NAME"},
+				Name:       "${CLUSTER_NAME}-md-0",
 			},
 		},
 		Params: []Param{
