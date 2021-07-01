@@ -2,6 +2,7 @@ apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
   name: cluster-template-development-{{.Count}}
+  namespace: default
 spec:
   description: This is the std. CAPD template{{.Count}}
   params:
