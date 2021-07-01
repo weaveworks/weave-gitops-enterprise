@@ -6,7 +6,6 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import styled from 'styled-components';
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import { PageTemplate } from '../../Layout/PageTemplate';
@@ -17,19 +16,17 @@ import Form from '@rjsf/material-ui';
 import { JSONSchema7 } from 'json-schema';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button } from 'weaveworks-ui-components';
-import { ISubmitEvent } from '@rjsf/core';
+import { ISubmitEvent, ObjectFieldTemplateProps } from '@rjsf/core';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
-import { NavItem } from '../../Navigation';
 import { Input } from '../../../utils/form';
 import { Loader } from '../../Loader';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
-
-const StepNavItem = styled(NavItem)`
-  font-size: ${weaveTheme.fontSizes.normal};
-  justify-content: flex-end;
-`;
+import * as Grouped from './Form/GroupedSchema';
+import * as UiTemplate from './Form/UITemplate';
+import FormSteps from './Form/Steps';
+import FormStepsNavigation from './Form/StepsNavigation';
 
 const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
@@ -76,19 +73,18 @@ const useStyles = makeStyles(theme =>
       justifyContent: 'center',
       paddingTop: base,
     },
-    main: {
-      order: 1,
-      [theme.breakpoints.down('sm')]: {
-        order: 2,
+    grid: {
+      [theme.breakpoints.down('md')]: {
+        justifyContent: 'flex-end',
       },
     },
+    main: {},
     steps: {
       display: 'flex',
       flexDirection: 'column',
-      order: 2,
       [theme.breakpoints.down('sm')]: {
-        order: 1,
-        flexDirection: 'row',
+        visibility: 'hidden',
+        height: 0,
       },
       paddingRight: xxs,
     },
@@ -110,6 +106,7 @@ const AddCluster: FC = () => {
   } = useTemplates();
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
+  const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [branchName, setBranchName] = useState<string>('default');
   const [pullRequestTitle, setPullRequestTitle] = useState<string>('default');
@@ -117,6 +114,7 @@ const AddCluster: FC = () => {
   const rows = (PRPreview?.split('\n').length || 0) - 1;
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
+  const [activeStep, setActiveStep] = useState<string>('');
 
   const handlePreview = useCallback(
     (event: ISubmitEvent<any>) => {
@@ -164,10 +162,6 @@ const AddCluster: FC = () => {
     activeTemplate?.name,
   ]);
 
-  const required = useMemo(() => {
-    return activeTemplate?.parameters?.map(param => param.name);
-  }, [activeTemplate]);
-
   const parameters = useMemo(() => {
     return (
       activeTemplate?.parameters?.map(param => {
@@ -185,17 +179,40 @@ const AddCluster: FC = () => {
 
   const schema: JSONSchema7 = useMemo(() => {
     return {
-      title: 'Cluster',
       type: 'object',
-      required,
       properties,
     };
-  }, [properties, required]);
+  }, [properties]);
+
+  // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
+  const sections = useMemo(() => {
+    const groups =
+      activeTemplate?.objects.reduce(
+        (accumulator, item) =>
+          Object.assign(accumulator, {
+            [item.kind]: item.parameters,
+          }),
+        {},
+      ) || {};
+    Object.assign(groups, { 'ui:template': 'box' });
+    return [groups];
+  }, [activeTemplate]);
+
+  const uiSchema = useMemo(() => {
+    return {
+      'ui:groups': sections,
+      'ui:template': (props: ObjectFieldTemplateProps) => (
+        <Grouped.ObjectFieldTemplate {...props} />
+      ),
+    };
+  }, [sections]);
 
   useEffect(() => {
     if (!activeTemplate) {
       setActiveTemplate(getTemplate(templateName));
     }
+    const steps = activeTemplate?.objects?.map(object => object.kind) || [];
+    setSteps(steps);
     return history.listen(() => {
       setPRurl(null);
       setActiveTemplate(null);
@@ -220,8 +237,8 @@ const AddCluster: FC = () => {
           ]}
         />
         <ContentWrapper>
-          <Grid container spacing={3}>
-            <Grid className={classes.main} item xs={12} md={10}>
+          <Grid className={classes.grid} container spacing={3}>
+            <Grid className={classes.main} item xs={12} md={9}>
               <div className={classes.title}>
                 Create new cluster with template
               </div>
@@ -233,6 +250,12 @@ const AddCluster: FC = () => {
                 formData={formData}
                 onSubmit={handlePreview}
                 onError={() => console.log('errors')}
+                uiSchema={uiSchema}
+                formContext={{
+                  templates: FormSteps,
+                  activeStep,
+                }}
+                {...UiTemplate}
               >
                 <div className={classes.previewCTA}>
                   <Button>Preview PR</Button>
@@ -303,12 +326,12 @@ const AddCluster: FC = () => {
                 </>
               ) : null}
             </Grid>
-            <Grid className={classes.steps} item md={2}>
-              {['Cluster'].map((step, index) => (
-                <StepNavItem key={index} to={`#${step}`}>
-                  {step}
-                </StepNavItem>
-              ))}
+            <Grid className={classes.steps} item md={3}>
+              <FormStepsNavigation
+                steps={steps}
+                activeStep={activeStep}
+                setActiveStep={setActiveStep}
+              />
             </Grid>
           </Grid>
         </ContentWrapper>
@@ -322,6 +345,7 @@ const AddCluster: FC = () => {
     handlePreview,
     handleAddCluster,
     schema,
+    uiSchema,
     openPreview,
     PRPreview,
     PRurl,
@@ -330,6 +354,8 @@ const AddCluster: FC = () => {
     handleChangeCommitMessage,
     handleChangePullRequestTitle,
     creatingPR,
+    steps,
+    activeStep,
   ]);
 };
 
