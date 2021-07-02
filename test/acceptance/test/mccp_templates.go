@@ -12,6 +12,11 @@ import (
 	"github.com/weaveworks/wks/test/acceptance/test/pages"
 )
 
+type TemplateField struct {
+	Name  string
+	Value string
+}
+
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 	var _ = Describe("Multi-Cluster Control Plane UI", func() {
@@ -197,24 +202,62 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				clusterName := "my-eks-cluster"
 				region := "east"
 				sshKey := "abcdef1234567890"
-				k8Version := "1.19"
-				By("And set template parameter values", func() {
-					templateParam := createPage.GetTemplateParameter("CLUSTER_NAME")
-					Expect(templateParam.Label).Should(MatchText("CLUSTER_NAME.*"))
-					Expect(templateParam.Feild.SendKeys(clusterName)).To(Succeed())
+				k8Version := "1.19.7"
+				paramSection := make(map[string][]TemplateField)
+				paramSection["Cluster"] = []TemplateField{
+					{
+						Name:  "CLUSTER_NAME",
+						Value: clusterName,
+					},
+				}
+				paramSection["AWSManagedCluster"] = []TemplateField{
+					{
+						Name:  "CLUSTER_NAME",
+						Value: "",
+					},
+				}
+				paramSection["AWSManagedControlPlane"] = []TemplateField{
+					{
+						Name:  "AWS_REGION",
+						Value: region,
+					},
+					{
+						Name:  "AWS_SSH_KEY_NAME",
+						Value: sshKey,
+					},
+					{
+						Name:  "CLUSTER_NAME",
+						Value: "",
+					},
+					{
+						Name:  "KUBERNETES_VERSION",
+						Value: k8Version,
+					},
+				}
+				paramSection["AWSFargateProfile"] = []TemplateField{
+					{
+						Name:  "CLUSTER_NAME",
+						Value: "",
+					},
+				}
 
-					templateParam = createPage.GetTemplateParameter("AWS_REGION")
-					Expect(templateParam.Label).Should(MatchText("AWS_REGION.*"))
-					Expect(templateParam.Feild.SendKeys(region)).To(Succeed())
+				for section, parameters := range paramSection {
+					By(fmt.Sprintf("And verify the template sections %s", section), func() {
+						templateSection := createPage.GetTemplateSection(webDriver, section)
+						Expect(templateSection.Name).Should(HaveText(section))
+						Expect(len(templateSection.Fields)).Should(Equal(len(parameters)), "Count of Cluster object parameters is not equal to expected count")
 
-					templateParam = createPage.GetTemplateParameter("AWS_SSH_KEY_NAME")
-					Expect(templateParam.Label).Should(MatchText("AWS_SSH_KEY_NAME.*"))
-					Expect(templateParam.Feild.SendKeys(sshKey)).To(Succeed())
-
-					templateParam = createPage.GetTemplateParameter("KUBERNETES_VERSION")
-					Expect(templateParam.Label).Should(MatchText("KUBERNETES_VERSION.*"))
-					Expect(templateParam.Feild.SendKeys(k8Version)).To(Succeed())
-				})
+						for i := 0; i < len(parameters); i++ {
+							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
+							if parameters[i].Value != "" {
+								// we are only setting parameter value once and it should be applied to all sections comtaining the same parameter
+								By("And set template parameter values", func() {
+									Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
+								})
+							}
+						}
+					})
+				}
 
 				By("Then I should preview the PR", func() {
 					Expect(createPage.PreviewPR.Submit()).To(Succeed())
@@ -224,7 +267,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
 					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+name: %[1]v`, clusterName))))
-					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+name: %[1]v-control-plane\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: "%[4]v"`, clusterName, region, sshKey, k8Version))))
+					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+name: %[1]v-control-plane\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: %[4]v`, clusterName, region, sshKey, k8Version))))
 					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+name: %[1]v-fargate-0`, clusterName))))
 				})
 			})
@@ -246,19 +289,42 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 
-				By("And set template parameter values", func() {
-					clusterName := "my-development-cluster"
-					templateParam := createPage.GetTemplateParameter("CLUSTER_NAME")
-					Expect(templateParam.Feild.SendKeys(clusterName)).To(Succeed())
+				clusterName := "quick-capd-cluster"
+				namespace := "quick-capi"
+				k8Version := "1.19.7"
 
-					namespace := "mccp-dev"
-					templateParam = createPage.GetTemplateParameter("NAMESPACE")
-					Expect(templateParam.Feild.SendKeys(namespace)).To(Succeed())
+				paramSection := make(map[string][]TemplateField)
+				paramSection["MachineDeployment"] = []TemplateField{
+					{
+						Name:  "CLUSTER_NAME",
+						Value: clusterName,
+					},
+					{
+						Name:  "KUBERNETES_VERSION",
+						Value: k8Version,
+					},
+					{
+						Name:  "NAMESPACE",
+						Value: namespace,
+					},
+				}
 
-					k8Version := "1.19.8"
-					templateParam = createPage.GetTemplateParameter("KUBERNETES_VERSION")
-					Expect(templateParam.Feild.SendKeys(k8Version)).To(Succeed())
-				})
+				for section, parameters := range paramSection {
+					By(fmt.Sprintf("And set template section %s parameter values", section), func() {
+						templateSection := createPage.GetTemplateSection(webDriver, section)
+						Expect(templateSection.Name).Should(HaveText(section))
+
+						for i := 0; i < len(parameters); i++ {
+							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
+							// We are only setting parameter value once and it should be applied to all sections containing the same parameter
+							if parameters[i].Value != "" {
+								By("And set template parameter values", func() {
+									Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
+								})
+							}
+						}
+					})
+				}
 
 				By("And press the Preview PR button", func() {
 					Expect(createPage.PreviewPR.Submit()).To(Succeed())
@@ -270,9 +336,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 					gitops.ScrollTo(webDriver, gitops.GitOpsLabel)
 
-					Expect(gitops.GitOpsFeilds[0].Label).Should(BeFound())
-					Expect(gitops.GitOpsFeilds[1].Label).Should(BeFound())
-					Expect(gitops.GitOpsFeilds[2].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.CreatePR).Should(BeFound())
 				})
 			})

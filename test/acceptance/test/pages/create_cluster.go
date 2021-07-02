@@ -10,13 +10,17 @@ import (
 type CreateCluster struct {
 	CreateHeader *agouti.Selection
 	// TemplateName   *agouti.Selection
-	ClusterSection *agouti.Selection
-	PreviewPR      *agouti.Selection
+	TemplateSection *agouti.MultiSelection
+	PreviewPR       *agouti.Selection
 }
 
-type FormFeild struct {
+type FormField struct {
 	Label *agouti.Selection
-	Feild *agouti.Selection
+	Field *agouti.Selection
+}
+type TemplateSection struct {
+	Name   *agouti.Selection
+	Fields []FormField
 }
 
 type Preview struct {
@@ -26,11 +30,17 @@ type Preview struct {
 
 type GitOps struct {
 	GitOpsLabel  *agouti.Selection
-	GitOpsFeilds []FormFeild
+	GitOpsFields []FormField
 	CreatePR     *agouti.Selection
 }
 
 // scrolls the element into view
+func ScrollIntoView(webDriver *agouti.Page, xpath string) {
+	script := fmt.Sprintf(`var elmnt = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; elmnt.scrollIntoView();`, xpath)
+	var result interface{}
+	webDriver.RunScript(script, map[string]interface{}{"xpath": xpath}, &result)
+}
+
 func (g GitOps) ScrollTo(webDriver *agouti.Page, selection *agouti.Selection) {
 	xpath := ""
 
@@ -51,28 +61,36 @@ func (p Preview) ScrollTo(webDriver *agouti.Page, selection *agouti.Selection) {
 	ScrollIntoView(webDriver, xpath)
 }
 
-func ScrollIntoView(webDriver *agouti.Page, xpath string) {
-	script := fmt.Sprintf(`var elmnt = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; elmnt.scrollIntoView();`, xpath)
-	var result interface{}
-	webDriver.RunScript(script, map[string]interface{}{"xpath": xpath}, &result)
-}
-
 //CreateCluster initialises the webDriver object
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
-		ClusterSection: webDriver.FindByXPath(`//*/h5[text()="Cluster"]/parent::div/following-sibling::div`),
-		PreviewPR:      webDriver.FindByButton("Preview PR"),
+		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
+		PreviewPR:       webDriver.FindByButton("Preview PR"),
 	}
 
 	return &clusterPage
 }
 
-func (c CreateCluster) GetTemplateParameter(paramName string) FormFeild {
-	return FormFeild{
-		Label: c.ClusterSection.Find(fmt.Sprintf(`#root_%s-label`, paramName)),
-		Feild: c.ClusterSection.Find(fmt.Sprintf(`#root_%s`, paramName)),
+func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {
+
+	name := webdriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "form-group field field-object")]/child::div//div[.="%s"]`, sectionName))
+	fields := webdriver.AllByXPath(fmt.Sprintf(`//div[contains(@class, "form-group field field-object")]/child::div//div[.="%s"]/following-sibling::div[1]/div`, sectionName))
+
+	formFields := []FormField{}
+	fCnt, _ := fields.Count()
+
+	for i := 0; i < fCnt; i++ {
+		formFields = append(formFields, FormField{
+			Label: fields.At(i).Find(`label`),
+			Field: fields.At(i).Find(`input`),
+		})
+	}
+
+	return TemplateSection{
+		Name:   name,
+		Fields: formFields,
 	}
 }
 
@@ -86,18 +104,18 @@ func GetPreview(webDriver *agouti.Page) Preview {
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
 		GitOpsLabel: webDriver.FindByXPath(`//*/span[text()="GitOps"]`),
-		GitOpsFeilds: []FormFeild{
+		GitOpsFields: []FormField{
 			{
 				Label: webDriver.FindByLabel(`Create branch`),
-				Feild: webDriver.FindByID(`Create branch-input`),
+				Field: webDriver.FindByID(`Create branch-input`),
 			},
 			{
 				Label: webDriver.FindByLabel(`Title pull request`),
-				Feild: webDriver.FindByID(`Title pull request-input`),
+				Field: webDriver.FindByID(`Title pull request-input`),
 			},
 			{
 				Label: webDriver.FindByLabel(`Commit message`),
-				Feild: webDriver.FindByID(`Commit message-input`),
+				Field: webDriver.FindByID(`Commit message-input`),
 			},
 		},
 		CreatePR: webDriver.FindByButton(`Create Pull Request on GitHub`),
