@@ -220,17 +220,18 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Expect(createPage.PreviewPR.Submit()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
 					Eventually(preview.PreviewLabel).Should(BeFound())
+					preview.ScrollTo(webDriver, preview.PreviewLabel)
 
-					Expect(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
-					Expect(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+name: %[1]v`, clusterName))))
-					Expect(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+name: %[1]v-control-plane\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: "%[4]v"`, clusterName, region, sshKey, k8Version))))
-					Expect(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+name: %[1]v-fargate-0`, clusterName))))
+					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
+					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+name: %[1]v`, clusterName))))
+					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+name: %[1]v-control-plane\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: "%[4]v"`, clusterName, region, sshKey, k8Version))))
+					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+name: %[1]v-fargate-0`, clusterName))))
 				})
 			})
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			It("Verify pull request can be created for the selected capi template", func() {
+			FIt("Verify pull request can be created for the selected capi template", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
@@ -267,7 +268,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					gitops := pages.GetGitOps(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
-					gitops.ScrollIntoView(webDriver, gitops.GitOpsLabel)
+					gitops.ScrollTo(webDriver, gitops.GitOpsLabel)
 
 					Expect(gitops.GitOpsFeilds[0].Label).Should(BeFound())
 					Expect(gitops.GitOpsFeilds[1].Label).Should(BeFound())

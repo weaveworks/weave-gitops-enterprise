@@ -31,13 +31,27 @@ type GitOps struct {
 }
 
 // scrolls the element into view
-func (g GitOps) ScrollIntoView(webDriver *agouti.Page, selection *agouti.Selection) {
+func (g GitOps) ScrollTo(webDriver *agouti.Page, selection *agouti.Selection) {
 	xpath := ""
 
 	if selection == g.GitOpsLabel {
 		xpath = `//*/span[text()="GitOps"]`
 	}
 
+	ScrollIntoView(webDriver, xpath)
+}
+
+func (p Preview) ScrollTo(webDriver *agouti.Page, selection *agouti.Selection) {
+	xpath := ""
+
+	if selection == p.PreviewText {
+		xpath = `//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`
+	}
+
+	ScrollIntoView(webDriver, xpath)
+}
+
+func ScrollIntoView(webDriver *agouti.Page, xpath string) {
 	script := fmt.Sprintf(`var elmnt = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; elmnt.scrollIntoView();`, xpath)
 	var result interface{}
 	webDriver.RunScript(script, map[string]interface{}{"xpath": xpath}, &result)
