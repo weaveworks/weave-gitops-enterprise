@@ -82,7 +82,7 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 		db, params.AgentTemplateNatsURL, params.AgentTemplateAlertmanagerURL)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, api.Generate)).Methods("POST")
+	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")
 	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UpdateCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent)).Methods("PUT")
 	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UnregisterCluster(db)).Methods("DELETE")
 	r.HandleFunc("/gitops/api/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")

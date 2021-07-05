@@ -57,7 +57,7 @@ cmd/capi-server/$(UPTODATE): cmd/capi-server/Dockerfile cmd/capi-server/*
 		--build-arg=revision=$(GIT_REVISION) \
 		--tag $(WEAVE_GITOPS_CLUSTERS_SERVICE) \
 		--file cmd/capi-server/Dockerfile \
-		$(@D)/
+		.
 	$(SUDO) docker tag $(WEAVE_GITOPS_CLUSTERS_SERVICE) $(WEAVE_GITOPS_CLUSTERS_SERVICE):$(IMAGE_TAG)
 	touch $@
 

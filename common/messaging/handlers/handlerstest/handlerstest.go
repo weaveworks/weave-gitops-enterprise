@@ -133,3 +133,17 @@ func (c *FakeCloudEventsClient) AssertWorkspaceInfoWasSent(t *testing.T, expecte
 
 	assert.Subset(t, list, []payload.WorkspaceInfo{expected})
 }
+
+func (c *FakeCloudEventsClient) AssertCAPIClusterInfoWasSent(t *testing.T, expected payload.CAPIClusterInfo) {
+	c.Lock()
+	defer c.Unlock()
+
+	list := make([]payload.CAPIClusterInfo, 0)
+	var ev payload.CAPIClusterInfo
+	for _, e := range c.sent {
+		_ = e.DataAs(&ev)
+		list = append(list, ev)
+	}
+
+	assert.Subset(t, list, []payload.CAPIClusterInfo{expected})
+}

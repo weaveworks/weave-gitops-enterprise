@@ -57,7 +57,7 @@ type ClustersPage struct {
 
 // FindClusterInList finds the cluster with given name
 func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterInformation {
-	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr[data-cluster-name="%s"]`, clusterName))
+	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr.summary[data-cluster-name="%s"]`, clusterName))
 	return &ClusterInformation{
 		Name:           cluster.FindByXPath(`td[1]`),
 		Icon:           cluster.FindByXPath(`td[2]`).Find(`svg`),

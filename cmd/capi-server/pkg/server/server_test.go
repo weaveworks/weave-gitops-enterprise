@@ -11,7 +11,10 @@ import (
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
 	capiv1_protos "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
+	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/wks/common/database/utils"
 	"google.golang.org/protobuf/testing/protocmp"
+	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -116,7 +119,7 @@ func TestListTemplates(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil)
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil)
 
 			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
 
@@ -165,7 +168,7 @@ func TestListTemplateParams(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil)
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil)
 
 			listTemplateParamsRequest := new(capiv1_protos.ListTemplateParamsRequest)
 			listTemplateParamsRequest.TemplateName = "cluster-template-1"
@@ -206,7 +209,7 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil)
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil)
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
@@ -242,11 +245,13 @@ func TestCreatePullRequest(t *testing.T) {
 		req          *capiv1_protos.CreatePullRequestRequest
 		expected     string
 		err          error
+		dbRows       int
 	}{
 		{
-			name: "validation errors",
-			req:  &capiv1_protos.CreatePullRequestRequest{},
-			err:  errors.New("6 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			name:   "validation errors",
+			req:    &capiv1_protos.CreatePullRequestRequest{},
+			err:    errors.New("6 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			dbRows: 0,
 		},
 		{
 			name: "pull request failed",
@@ -258,6 +263,7 @@ func TestCreatePullRequest(t *testing.T) {
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "foo",
+					"NAMESPACE":    "default",
 				},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -266,7 +272,8 @@ func TestCreatePullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				CommitMessage: "Add cluster manifest",
 			},
-			err: errors.New("oops"),
+			dbRows: 0,
+			err:    errors.New(`unable to create pull request and cluster rows for "cluster-template-1": oops`),
 		},
 		{
 			name: "create pull request",
@@ -278,6 +285,7 @@ func TestCreatePullRequest(t *testing.T) {
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "foo",
+					"NAMESPACE":    "default",
 				},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -286,17 +294,21 @@ func TestCreatePullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				CommitMessage: "Add cluster manifest",
 			},
+			dbRows:   1,
 			expected: "https://github.com/org/repo/pull/1",
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider)
-			ctx := context.Background()
+			// setup
+			db := createDatabase(t)
+			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db)
 
-			createPullRequestResponse, err := s.CreatePullRequest(ctx, tt.req)
+			// request
+			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
 
+			// Check the response looks good
 			if err != nil {
 				if tt.err == nil {
 					t.Fatalf("failed to create a pull request:\n%s", err)
@@ -309,11 +321,21 @@ func TestCreatePullRequest(t *testing.T) {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 			}
+
+			// Check the db looks good
+			var clusters []models.Cluster
+			tx := db.Find(&clusters)
+			if tx.Error != nil {
+				t.Fatalf("error querying db:\n%v", tx.Error)
+			}
+			if diff := cmp.Diff(len(clusters), tt.dbRows); diff != "" {
+				t.Fatalf("Rows mismatch:\n%s\nwas: %d", diff, len(clusters))
+			}
 		})
 	}
 }
 
-func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider) capiv1_protos.ClustersServiceServer {
+func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB) capiv1_protos.ClustersServiceServer {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -330,7 +352,7 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 		Client:        cl,
 		ConfigMapName: configMapName,
 		Namespace:     namespace,
-	}, provider)
+	}, provider, db)
 
 	return s
 }
@@ -420,6 +442,18 @@ metadata:
 			}
 		})
 	}
+}
+
+func createDatabase(t *testing.T) *gorm.DB {
+	db, err := utils.OpenDebug("", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = utils.MigrateTables(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return db
 }
 
 func mustParseBytes(t *testing.T, data string) *capiv1.CAPITemplate {

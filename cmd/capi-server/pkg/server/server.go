@@ -16,16 +16,20 @@ import (
 	capiv1_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/utils"
+	"github.com/weaveworks/wks/common/database/models"
+	common_utils "github.com/weaveworks/wks/common/database/utils"
+	"gorm.io/gorm"
 )
 
 type server struct {
 	library  templates.Library
 	provider git.Provider
 	capiv1_proto.UnimplementedClustersServiceServer
+	db *gorm.DB
 }
 
-func NewClusterServer(library templates.Library, provider git.Provider) capiv1_proto.ClustersServiceServer {
-	return &server{library: library, provider: provider}
+func NewClusterServer(library templates.Library, provider git.Provider, db *gorm.DB) capiv1_proto.ClustersServiceServer {
+	return &server{library: library, provider: provider, db: db}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -137,10 +141,17 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 	result := bytes.Join(tmplWithValues, []byte("\n---\n"))
 
+	// FIXME: parse and read from Cluster in yaml template
 	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
 	if !ok {
 		return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' parameter in supplied values")
 	}
+	// FIXME: parse and read from Cluster in yaml template
+	clusterNamespace, ok := msg.ParameterValues["NAMESPACE"]
+	if !ok {
+		return nil, fmt.Errorf("unable to find 'NAMESPACE' parameter in supplied values")
+	}
+
 	path := fmt.Sprintf("management/%s.yaml", clusterName)
 	content := string(result[:])
 
@@ -153,31 +164,67 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		baseBranch = msg.BaseBranch
 	}
 
-	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
-			Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-			Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
-			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-		},
-		RepositoryURL: repositoryURL,
-		HeadBranch:    msg.HeadBranch,
-		BaseBranch:    baseBranch,
-		Title:         msg.Title,
-		Description:   msg.Description,
-		CommitMessage: msg.CommitMessage,
-		Files: []gitprovider.CommitFile{
-			gitprovider.CommitFile{
-				Path:    &path,
-				Content: &content,
+	var pullRequestURL string
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		t, err := common_utils.Generate()
+		if err != nil {
+			return fmt.Errorf("error generating token for new cluster: %v", err)
+		}
+
+		c := &models.Cluster{
+			Name:          clusterName,
+			CAPIName:      clusterName,
+			CAPINamespace: clusterNamespace,
+			Token:         t,
+		}
+		if err := tx.Create(c).Error; err != nil {
+			return err
+		}
+
+		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
+		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+			GitProvider: git.GitProvider{
+				Type:     os.Getenv("GIT_PROVIDER_TYPE"),
+				Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
+				Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
 			},
-		},
+			RepositoryURL: repositoryURL,
+			HeadBranch:    msg.HeadBranch,
+			BaseBranch:    baseBranch,
+			Title:         msg.Title,
+			Description:   msg.Description,
+			CommitMessage: msg.CommitMessage,
+			Files: []gitprovider.CommitFile{
+				{
+					Path:    &path,
+					Content: &content,
+				},
+			},
+		})
+		if err != nil {
+			log.WithError(err).Errorf("Failed to create pull request")
+			return err
+		}
+
+		// Create the PR, this shouldn't fail, but if it does it will rollback the Cluster but not the delete the PR
+		pullRequestURL = res.WebURL
+		pr := &models.PullRequest{
+			URL:       pullRequestURL,
+			ClusterID: c.ID,
+		}
+		if err := tx.Create(pr).Error; err != nil {
+			return err
+		}
+
+		return nil
 	})
+
 	if err != nil {
-		log.WithError(err).Errorf("Failed to create pull request")
-		return nil, err
+		return nil, fmt.Errorf("unable to create pull request and cluster rows for %q: %w", msg.TemplateName, err)
 	}
+
 	return &capiv1_proto.CreatePullRequestResponse{
-		WebUrl: res.WebURL,
+		WebUrl: pullRequestURL,
 	}, nil
 }
 

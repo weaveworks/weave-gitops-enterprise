@@ -44,7 +44,11 @@ const clustersQueryString = `
 			gc.message AS GitCommitMessage,
 			gc.sha AS GitCommitSha,
 			ws.name AS WorkspaceName,
-			ws.namespace AS WorkspaceNamespace
+			ws.namespace AS WorkspaceNamespace,
+			cc.name as CapiName,
+			cc.namespace as CapiNamespace,
+			cc.object as CapiCluster,
+			pr.url as PullRequestURL
 		FROM
 			(
 				SELECT
@@ -52,27 +56,33 @@ const clustersQueryString = `
 					c.name AS Name,
 					c.token AS Token,
 					c.ingress_url AS IngressURL,
+					c.capi_name AS capi_name,
+					c.capi_namespace AS capi_namespace,
 					ci.type AS Type,
 					ci.updated_at AS UpdatedAt,
 					CASE
-						WHEN %[1]s IS NULL OR 
-							%[1]s > 1800 THEN 'notConnected'
 						WHEN %[1]s BETWEEN 60 AND 1800 THEN 'lastSeen'
 						WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') > 0 THEN 'critical'
 						WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
-						ELSE 'ready'
+						WHEN  %[1]s <= 1800 THEN 'ready'
+						WHEN cc.id is not null THEN 'clusterFound'
+						WHEN (select count(*) from pull_requests pr where pr.cluster_id = c.id) > 0 and ci.updated_at is null THEN 'pullRequestCreated'
+						WHEN %[1]s IS NULL OR %[1]s > 1800 THEN 'notConnected'
 					END AS ClusterStatus
 				FROM
 					clusters c
 					LEFT JOIN cluster_info ci ON c.token = ci.cluster_token
+					LEFT JOIN capi_clusters cc ON c.capi_name = cc.name and c.capi_namespace = cc.namespace
 				%[2]s
 				%[3]s
 				%[4]s
 			) AS c
 			LEFT JOIN node_info ni ON c.token = ni.cluster_token
+			LEFT JOIN pull_requests pr ON pr.cluster_id = c.ID
 			LEFT JOIN flux_info fi ON c.token = fi.cluster_token
 			LEFT JOIN git_commits gc ON c.token = gc.cluster_token
 			LEFT JOIN workspaces ws ON c.token = ws.cluster_token
+			LEFT JOIN capi_clusters cc ON c.capi_name = cc.name and c.capi_namespace = cc.namespace
 `
 
 type ClusterListRow struct {
@@ -109,6 +119,11 @@ type ClusterListRow struct {
 	WorkspaceNamespace sql.NullString
 
 	ClusterStatus string
+
+	CapiName       sql.NullString
+	CapiNamespace  sql.NullString
+	CapiCluster    *datatypes.JSON
+	PullRequestURL sql.NullString
 }
 
 type Pagination struct {
@@ -167,14 +182,26 @@ func GetClusters(db *gorm.DB, req GetClustersRequest) (*GetClustersResponse, err
 		resultOrder = insertUnique(resultOrder, r.Name.String)
 		if cl, ok := clusters[r.Name.String]; !ok {
 			// Add new cluster with node to map
+			var capiCluster datatypes.JSON
+			if r.CapiCluster != nil {
+				capiCluster = *r.CapiCluster
+			}
+			var pr *views.PullRequestView
+			if r.PullRequestURL.Valid {
+				pr = &views.PullRequestView{URL: r.PullRequestURL.String}
+			}
 			c := views.ClusterView{
-				ID:         r.ID,
-				Name:       r.Name.String,
-				Token:      r.Token.String,
-				Type:       r.Type.String,
-				IngressURL: r.IngressURL.String,
-				UpdatedAt:  r.UpdatedAt.Time,
-				Status:     r.ClusterStatus,
+				ID:            r.ID,
+				Name:          r.Name.String,
+				Token:         r.Token.String,
+				Type:          r.Type.String,
+				IngressURL:    r.IngressURL.String,
+				UpdatedAt:     r.UpdatedAt.Time,
+				Status:        r.ClusterStatus,
+				CAPIName:      r.CapiName.String,
+				CAPINamespace: r.CapiNamespace.String,
+				CAPICluster:   capiCluster,
+				PullRequest:   pr,
 			}
 			unpackClusterRow(&c, r)
 			clusters[r.Name.String] = &c
@@ -246,7 +273,12 @@ func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 		&row.GitCommitSha,
 		&row.WorkspaceName,
 		&row.WorkspaceNamespace,
-		&row.ClusterStatus)
+		&row.ClusterStatus,
+		&row.CapiName,
+		&row.CapiNamespace,
+		&row.CapiCluster,
+		&row.PullRequestURL,
+	)
 	if err != nil {
 		log.Debug("error while scanning sql row: ", err)
 	}
@@ -411,8 +443,10 @@ func buildOrderByClause(req GetClustersRequest) string {
 					WHEN ClusterStatus = 'critical' then 1
 					WHEN ClusterStatus = 'alerting' then 2
 					WHEN ClusterStatus = 'lastSeen' then 3
-					WHEN ClusterStatus = 'ready' then 4
-					ELSE 5
+					WHEN ClusterStatus = 'pullRequestCreated' then 4
+					WHEN ClusterStatus = 'clusterFound' then 5
+					WHEN ClusterStatus = 'ready' then 6
+					ELSE 7
 				END
 				%s, Name ASC`, req.SortOrder)
 	}

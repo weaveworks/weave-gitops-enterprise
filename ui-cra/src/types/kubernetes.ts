@@ -4,7 +4,9 @@ export type ClusterStatus =
   | 'ready'
   | 'critical'
   | 'alerting'
-  | 'lastSeen';
+  | 'lastSeen'
+  | 'pullRequestCreated'
+  | 'clusterFound';
 
 export interface NodeGroup {
   desiredCapacity: number;
@@ -34,6 +36,14 @@ export interface Workspace {
   namespace: string;
 }
 
+export interface PullRequest {
+  url: string;
+}
+
+export interface CAPICluster {
+  status: any;
+}
+
 export interface Cluster {
   id?: number;
   name: string;
@@ -46,6 +56,11 @@ export interface Cluster {
   gitCommits?: GitCommitInfo[];
   nodes?: Node[];
   workspaces?: Workspace[];
+  pullRequest?: PullRequest;
+
+  capiName?: string;
+  capiNamespace?: string;
+  capiCluster?: CAPICluster;
 }
 
 export interface Node {

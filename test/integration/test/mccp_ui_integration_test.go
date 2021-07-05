@@ -72,9 +72,21 @@ func createAlert(db *gorm.DB, token, name, severity, message string, fireFor tim
 }
 
 func AssertClusterOrder(clustersPage *pages.ClustersPage, clusterNames []string) {
-	for i, v := range clusterNames {
-		Eventually(clustersPage.ClustersList.Find(fmt.Sprintf("tr:nth-child(%d) td:nth-child(1)", i+1))).Should(MatchText(v))
+	getClusterNames := func() []string {
+		names := []string{}
+		elements := clustersPage.ClustersList.All("tr.summary")
+		count, err := elements.Count()
+		Expect(err).NotTo(HaveOccurred())
+		for i := 0; i < count; i++ {
+			el := elements.At(i).Find("td:nth-child(1)")
+			name, err := el.Text()
+			Expect(err).NotTo(HaveOccurred())
+			names = append(names, name)
+		}
+		return names
 	}
+
+	Eventually(getClusterNames, acceptancetest.ASSERTION_10SECONDS_TIME_OUT).Should(Equal(clusterNames))
 }
 
 func AssertAlertsOrder(clustersPage *pages.ClustersPage, alertNames []string) {
@@ -297,7 +309,7 @@ var _ = Describe("Integration suite", func() {
 
 		Describe("How clicking on the headers should sort things", func() {
 			It("Should have some items in the table", func() {
-				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
+				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
 			})
 
 			It("Should sort the cluster by status initially", func() {
@@ -362,14 +374,14 @@ var _ = Describe("Integration suite", func() {
 
 		Describe("How clicking the pagination controls should filter clusters", func() {
 			It("Should have 10 clusters to begin with", func() {
-				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
 			})
 
 			It("Should get the next 5 clusters when I click on the forward pagination control", func() {
 				// wait for the next button to be on the page and click it
 				Eventually(page.ClustersListPaginationNext).Should(BeFound())
 				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
+				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
 			})
 
 			It("Should get the previous 10 clusters when I click on the previous pagination control", func() {
@@ -379,14 +391,14 @@ var _ = Describe("Integration suite", func() {
 				// wait for the back button to be on the page and click it
 				Eventually(page.ClustersListPaginationPrevious).Should(BeFound())
 				Expect(page.ClustersListPaginationPrevious.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
 			})
 
 			It("Should go to the last page when I click on the last page control", func() {
 				// wait for the last page button to be on the page and click it
 				Eventually(page.ClustersListPaginationLast).Should(BeFound())
 				Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr")).Should(HaveCount(5))
+				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
 			})
 
 			It("Should go to the first page when I click on the first page control", func() {
@@ -396,14 +408,14 @@ var _ = Describe("Integration suite", func() {
 				// wait for the first page button to be on the page and click it
 				Eventually(page.ClustersListPaginationFirst).Should(BeFound())
 				Expect(page.ClustersListPaginationFirst.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr")).Should(HaveCount(10))
+				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
 			})
 
 			It("Should update the list of clusters on the page if the 20 clusters per page option is clicked", func() {
 				Eventually(page.ClustersListPaginationPerPageDropdown).Should(BeFound())
 				Expect(page.ClustersListPaginationPerPageDropdown.Click()).Should(Succeed())
 				Expect(page.ClustersListPaginationPerPageDropdownSecond.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr")).Should(HaveCount(15))
+				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(15))
 			})
 		})
 	})
@@ -576,13 +588,13 @@ func RunBroker(ctx gcontext.Context, dbURI string) error {
 	return ListenAndServe(ctx, srv)
 }
 
-func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client) error {
+func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, db *gorm.DB) error {
 	library := &templates.CRDLibrary{
 		Client:    cl,
 		Namespace: "default",
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil)
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, db)
 }
 
 func RunUIServer(ctx gcontext.Context) {
@@ -689,7 +701,7 @@ func TestMccpUI(t *testing.T) {
 	}()
 	wg.Add(1)
 	go func() {
-		RunCAPIServer(t, ctx, cl)
+		RunCAPIServer(t, ctx, cl, db)
 		wg.Done()
 	}()
 

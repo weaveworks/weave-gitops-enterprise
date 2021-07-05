@@ -64,7 +64,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/datatypes v1.0.0
-	gorm.io/gorm v1.20.12
+	gorm.io/gorm v1.21.11
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2

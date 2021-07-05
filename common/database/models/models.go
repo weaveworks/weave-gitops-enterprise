@@ -83,9 +83,11 @@ type Alert struct {
 // Cluster table. Stores cluster configuration.
 type Cluster struct {
 	Model
-	Token      string `gorm:"uniqueIndex"`
-	Name       string `gorm:"uniqueIndex"`
-	IngressURL string
+	Token         string `gorm:"uniqueIndex"`
+	Name          string `gorm:"uniqueIndex"`
+	IngressURL    string
+	CAPIName      string `gorm:"column:capi_name"`
+	CAPINamespace string `gorm:"column:capi_namespace"`
 }
 
 // FluxInfo table
@@ -120,4 +122,25 @@ type Workspace struct {
 	ClusterToken string `gorm:"primaryKey"`
 	Name         string `gorm:"primaryKey"`
 	Namespace    string `gorm:"primaryKey"`
+}
+
+type PullRequest struct {
+	Model
+	URL       string
+	Type      string  // maybe create/delete/modify
+	ClusterID uint    `gorm:"primarykey"`
+	Cluster   Cluster `gorm:"foreignKey:ClusterID"`
+}
+
+type CAPICluster struct {
+	Model
+	ClusterToken string
+	Name         string
+	Namespace    string
+	CAPIVersion  string `gorm:"column:capi_version"`
+	Object       datatypes.JSON
+}
+
+func (CAPICluster) TableName() string {
+	return "capi_clusters"
 }

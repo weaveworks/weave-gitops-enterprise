@@ -63,6 +63,8 @@ func ReceiveEvent(ctx context.Context, event ce.Event) error {
 		return writeFluxInfo(event)
 	case "GitCommitInfo":
 		return writeGitCommitInfo(event)
+	case "CAPIClusterInfo":
+		return writeCAPIClusterInfo(event)
 	case "WorkspaceInfo":
 		return writeWorkspaceInfo(event)
 	default:
@@ -223,6 +225,42 @@ func writeGitCommitInfo(event ce.Event) error {
 	}
 
 	log.Debugf("Commit '%s' added.", dbCommitInfo.Sha)
+
+	return nil
+}
+
+func writeCAPIClusterInfo(event ce.Event) error {
+	var data payload.CAPIClusterInfo
+	if err := event.DataAs(&data); err != nil {
+		log.Warnf("Failed to parse event as CAPIClusterInfo object: %v", err)
+		return err
+	}
+
+	var cluster models.Cluster
+	clusterResult := utils.DB.First(&cluster, "token = ?", data.Token)
+	if errors.Is(clusterResult.Error, gorm.ErrRecordNotFound) {
+		log.Warnf("Received CAPIClusterInfo for unknown cluster")
+		return fmt.Errorf("received CAPIClusterInfo did not match any registered clusters, token: %s", data.Token)
+	}
+	log.Debugf("Received CAPIClusterInfo for cluster %s", cluster.Name)
+
+	dbCAPICluster := converter.ConvertCAPIClusterInfo(data)
+
+	if err := utils.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("cluster_token = ?", data.Token).Delete(&models.CAPICluster{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(&dbCAPICluster).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		log.Errorf("Failed to add capi clusters '%v' to the database: %v.", dbCAPICluster, err)
+		return err
+	}
+
+	log.Debugf("CAPIClusters '%v' added.", dbCAPICluster)
 
 	return nil
 }

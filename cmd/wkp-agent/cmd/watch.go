@@ -24,11 +24,12 @@ const (
 )
 
 type watchCmdParamSet struct {
-	ClusterInfoPollingInterval   time.Duration
-	FluxInfoPollingInterval      time.Duration
-	GitCommitInfoPollingInterval time.Duration
-	WorkspaceInfoPollingInterval time.Duration
-	HealthCheckPort              int
+	ClusterInfoPollingInterval     time.Duration
+	FluxInfoPollingInterval        time.Duration
+	GitCommitInfoPollingInterval   time.Duration
+	WorkspaceInfoPollingInterval   time.Duration
+	CAPIClusterInfoPollingInterval time.Duration
+	HealthCheckPort                int
 }
 
 var watchCmdParams watchCmdParamSet
@@ -46,6 +47,7 @@ func init() {
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.FluxInfoPollingInterval, "flux-info-polling-interval", 10*time.Second, "Polling interval for flux deployment info")
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.GitCommitInfoPollingInterval, "git-commit-info-polling-interval", 10*time.Second, "Polling interval for git commit info")
 	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.WorkspaceInfoPollingInterval, "workspace-info-polling-interval", 10*time.Second, "Polling interval for workspace info")
+	watchCmd.PersistentFlags().DurationVar(&watchCmdParams.CAPIClusterInfoPollingInterval, "capi-cluster-info-polling-interval", 10*time.Second, "Polling interval for capi-cluster info")
 	watchCmd.PersistentFlags().IntVar(&watchCmdParams.HealthCheckPort, "health-check-port", 8080, "Port to expose health check")
 }
 
@@ -106,6 +108,10 @@ func run(cmd *cobra.Command, args []string) {
 	workspaceInfoSender := handlers.NewWorkspaceInfoSender(WKPAgentEventSource, client)
 	workspaceInfo := clusterpoller.NewWorkspaceInfoPoller(token, dynamicClient, watchCmdParams.WorkspaceInfoPollingInterval, workspaceInfoSender)
 	go workspaceInfo.Run(ctx.Done())
+
+	capiClusterInfoSender := handlers.NewCAPIClusterInfoSender(WKPAgentEventSource, client)
+	capiInfo := clusterpoller.NewCAPIClusterInfoPoller(token, dynamicClient, watchCmdParams.CAPIClusterInfoPollingInterval, capiClusterInfoSender)
+	go capiInfo.Run(ctx.Done())
 
 	livenessCheck()
 }

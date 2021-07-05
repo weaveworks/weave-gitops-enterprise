@@ -163,6 +163,22 @@ func ConvertWorkspaceInfo(workspaceInfo payload.WorkspaceInfo) []models.Workspac
 	return result
 }
 
+func ConvertCAPIClusterInfo(capiClusterInfo payload.CAPIClusterInfo) []models.CAPICluster {
+	result := []models.CAPICluster{}
+
+	for _, cc := range capiClusterInfo.CAPIClusters {
+		result = append(result, models.CAPICluster{
+			ClusterToken: capiClusterInfo.Token,
+			Name:         cc.Name,
+			Namespace:    cc.Namespace,
+			CAPIVersion:  cc.CAPIVersion,
+			Object:       datatypes.JSON(cc.EncodedObject),
+		})
+	}
+
+	return result
+}
+
 // SerializeLabelSet flattens a labelset to a string
 func SerializeLabelSet(labels ammodels.LabelSet) string {
 	labelMap := map[string]string(labels)

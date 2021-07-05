@@ -1,24 +1,31 @@
 from golang:1.16.4 as builder
 
-WORKDIR /capi-server
+ENV CS_PATH=cmd/capi-server
+
+WORKDIR /workspace/$CS_PATH
+
+# copy in other module dependencies
+COPY common/ /workspace/common/
 
 # copy modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY $CS_PATH/go.mod go.mod
+COPY $CS_PATH/go.sum go.sum
 
 # cache modules
 RUN go mod download
 
 # copy source code
-COPY main.go main.go
-COPY api/ api/
-COPY app/ app/
-COPY pkg/ pkg/
+COPY $CS_PATH/main.go main.go
+COPY $CS_PATH/api/ api/
+COPY $CS_PATH/app/ app/
+COPY $CS_PATH/pkg/ pkg/
 
 # build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o capi-server main.go
+RUN CGO_ENABLED=1 go build -ldflags '-linkmode external -w -extldflags "-static"' -a -o capi-server main.go
 
 FROM docker.io/governmentpaas/git-ssh
+
+ENV CS_PATH=cmd/capi-server
 
 # # Add git provider hostnames to known hosts file so we can use
 # # StrickHostKeyChecking with git+ssh
@@ -27,12 +34,15 @@ FROM docker.io/governmentpaas/git-ssh
 
 RUN apk add --no-cache ca-certificates tini
 
-COPY --from=builder /capi-server/capi-server /usr/local/bin/
+COPY --from=builder /workspace/$CS_PATH/capi-server /usr/local/bin/
 
 RUN addgroup -S capi-server && adduser -S capi-server -G capi-server
 
-USER capi-server
-
-RUN mkdir -p /home/capi-server/.ssh
+#
+# FIXME: it would be nice not run as root but k8s mounts the sqlite host volume as root:root
+# and then the capi-server user can't write to it.
+#
+# USER capi-server
+# RUN mkdir -p /home/capi-server/.ssh
 
 ENTRYPOINT [ "/sbin/tini", "--", "capi-server" ]

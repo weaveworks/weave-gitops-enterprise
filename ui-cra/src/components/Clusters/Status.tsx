@@ -1,10 +1,11 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { ClusterStatus } from '../../types/kubernetes';
+import { ClusterStatus, PullRequest } from '../../types/kubernetes';
 import Box from '@material-ui/core/Box';
 import moment from 'moment';
 import { blinking } from '../../assets/effects/blinking';
 import theme from 'weaveworks-ui-components/lib/theme';
+import { NameLink } from '../Shared';
 
 const StrikeThrough = styled.line`
   ${blinking}
@@ -30,9 +31,12 @@ const ReadyStatusIcon: FC<{
   </svg>
 );
 
-const ReadyStatusWrapper = styled.div`
+const ReadyStatusWrapper = styled.div<{
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
+}>`
   display: flex;
   align-items: center;
+  ${({ onClick }) => onClick && 'cursor: pointer'}
 `;
 
 const SecondaryStatusWrapper = styled(ReadyStatusWrapper)`
@@ -46,23 +50,36 @@ export enum Status {
   notConnected = 'Not connected',
   ready = 'Ready',
   lastSeen = 'Last seen',
+  pullRequestCreated = 'PR Created',
+  clusterFound = 'Cluster found',
 }
 
 interface ReadyStatusProps {
   status: Status;
   updatedAt?: string;
   showConnectedStatus?: boolean;
+  pullRequest?: PullRequest;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const green = '#27AE60';
 
-export const statusSummary = (status: Status, updatedAt?: string): string =>
-  updatedAt ? `Last seen ${moment.utc(updatedAt).format()}` : '';
+export const statusSummary = (
+  status: Status,
+  updatedAt?: string,
+): React.ReactChild => {
+  if (status === 'Last seen' && updatedAt) {
+    return `Last seen ${moment.utc(updatedAt).format()}`;
+  }
+  return '';
+};
 
 export const ReadyStatus: FC<ReadyStatusProps> = ({
   status,
   updatedAt,
   showConnectedStatus,
+  pullRequest,
+  onClick,
 }) => {
   const color: HexColor =
     (
@@ -71,6 +88,7 @@ export const ReadyStatus: FC<ReadyStatusProps> = ({
         Alerting: '#F2994A',
         'Critical alerts': '#BC3B1D',
         Ready: green,
+        'Cluster found': green,
         'Last seen': '#BDBDBD',
       } as { [status in Status]: HexColor }
     )[status] || '#BDBDBD';
@@ -110,20 +128,35 @@ export const ReadyStatus: FC<ReadyStatusProps> = ({
       (children as unknown as JSX.Element)
     );
 
-  return (
-    <ReadyStatusWrapper>
-      <ConnectionStatusWrapper>
-        <ReadyStatusIcon
-          color={color}
-          filledIn={filledIn}
-          strikeThrough={strikeThrough}
-        />
+  let displayedStatus: React.ReactNode = status;
+  if (updatedAt && status === 'Last seen') {
+    displayedStatus = (
+      <>
         {status}{' '}
         {updatedAt && status === 'Last seen' && (
           <Box title={updatedAt} ml={1} color="text.secondary">
             {moment(updatedAt).fromNow()}
           </Box>
         )}
+      </>
+    );
+  } else if (pullRequest && status === 'PR Created') {
+    displayedStatus = (
+      <>
+        <NameLink href={pullRequest.url}>PR Created</NameLink>
+      </>
+    );
+  }
+
+  return (
+    <ReadyStatusWrapper onClick={onClick}>
+      <ConnectionStatusWrapper>
+        <ReadyStatusIcon
+          color={color}
+          filledIn={filledIn}
+          strikeThrough={strikeThrough}
+        />
+        {displayedStatus}
       </ConnectionStatusWrapper>
     </ReadyStatusWrapper>
   );
@@ -145,6 +178,12 @@ export const getClusterStatus = (status?: ClusterStatus) => {
 
     case 'alerting':
       return Status.alerting;
+
+    case 'pullRequestCreated':
+      return Status.pullRequestCreated;
+
+    case 'clusterFound':
+      return Status.clusterFound;
 
     default:
       return Status.notConnected;

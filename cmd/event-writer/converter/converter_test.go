@@ -581,3 +581,33 @@ func assertErrorsLoggedContains(t *testing.T, logsHook *logrustest.Hook, needle 
 	}
 	assert.Contains(t, actualErrorLogs, needle)
 }
+
+func TestConvertCAPIClusterInfo(t *testing.T) {
+	info := payload.CAPIClusterInfo{
+		Token: "derp",
+		CAPIClusters: []payload.CAPICluster{
+			{
+				Name:          "foo-ws",
+				Namespace:     "foo-ns",
+				CAPIVersion:   "foo-version",
+				EncodedObject: `"hi"`,
+			},
+			{
+				Name:        "bar-ws",
+				Namespace:   "bar-ns",
+				CAPIVersion: "bar-version",
+			},
+		},
+	}
+
+	clusters := ConvertCAPIClusterInfo(info)
+
+	assert.Equal(t, info.Token, clusters[0].ClusterToken)
+	assert.Equal(t, info.CAPIClusters[0].Name, clusters[0].Name)
+	assert.Equal(t, info.CAPIClusters[0].Namespace, clusters[0].Namespace)
+	assert.Equal(t, `"hi"`, string(clusters[0].Object))
+
+	assert.Equal(t, info.Token, clusters[1].ClusterToken)
+	assert.Equal(t, info.CAPIClusters[1].Name, clusters[1].Name)
+	assert.Equal(t, info.CAPIClusters[1].Namespace, clusters[1].Namespace)
+}

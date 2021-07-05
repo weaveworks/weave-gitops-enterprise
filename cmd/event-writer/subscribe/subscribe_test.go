@@ -24,6 +24,7 @@ import (
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/database/utils"
 	"github.com/weaveworks/wks/common/messaging/payload"
+	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -35,17 +36,51 @@ func RunServer() *server.Server {
 	return natsserver.RunServer(&opts)
 }
 
-func newCloudEvent(typ string, obj interface{}) (*ce.Event, error) {
+func SetupPipeline(t *testing.T) (ce.Client, *gorm.DB, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Create an in-memory database
+	db, err := utils.Open("", "sqlite", "", "", "")
+	require.NoError(t, err)
+	err = utils.MigrateTables(db)
+	require.NoError(t, err)
+
+	// Start a NATS Server
+	s := RunServer()
+
+	// Start subscriber
+	go func() {
+		err := subscribe.ToSubject(ctx, s.ClientURL(), "test.subject", "", subscribe.ReceiveEvent)
+		require.NoError(t, err)
+	}()
+
+	// Set up publisher
+	sender, err := cenats.NewSender(s.ClientURL(), "test.subject", cenats.NatsOptions(
+		nats.Name("sender"),
+	))
+	require.NoError(t, err)
+	publisher, err := ce.NewClient(sender)
+	require.NoError(t, err)
+
+	// Shut it all down on cancel()
+	go func() {
+		<-ctx.Done()
+		s.Shutdown()
+		sender.Close(ctx)
+	}()
+
+	return publisher, db, cancel
+}
+
+func newCloudEvent(t *testing.T, typ string, obj interface{}) ce.Event {
 	e := ce.NewEvent()
 	e.SetID(uuid.New().String())
 	e.SetType(typ)
 	e.SetTime(time.Now())
 	e.SetSource("tests")
-	if err := e.SetData("application/json", obj); err != nil {
-		log.Errorf("Unable to set object as data: %v.", err)
-		return nil, err
-	}
-	return &e, nil
+	err := e.SetData("application/json", obj)
+	assert.NoError(t, err)
+	return e
 }
 
 func newk8sEvent(reason, namespace, name string) payload.KubernetesEvent {
@@ -76,20 +111,16 @@ func TestReceiveEvent(t *testing.T) {
 	queue.TimeInterval = time.Duration(50) * time.Second
 
 	// Ensure that messages with unknown types are dropped
-	ceEvent, err := newCloudEvent("WrongType", testEvent)
-	assert.NoError(t, err)
-
-	err = subscribe.ReceiveEvent(context.Background(), *ceEvent)
+	ceEvent := newCloudEvent(t, "WrongType", testEvent)
+	err := subscribe.ReceiveEvent(context.Background(), ceEvent)
 	assert.NoError(t, err)
 
 	// Ensure the event queue length is 0
 	assert.Equal(t, len(queue.EventQueue), 0)
 
 	// Send again with the correct type
-	ceEvent, err = newCloudEvent("Event", testEvent)
-	assert.NoError(t, err)
-
-	err = subscribe.ReceiveEvent(context.Background(), *ceEvent)
+	ceEvent = newCloudEvent(t, "Event", testEvent)
+	err = subscribe.ReceiveEvent(context.Background(), ceEvent)
 	assert.NoError(t, err)
 
 	// Ensure the event queue length is 1
@@ -1616,4 +1647,47 @@ func TestReceiveWorkspaceInfo_NoMatchingCluster(t *testing.T) {
 	workspacesResult := db.Find(&workspaces)
 	assert.Equal(t, 0, int(workspacesResult.RowsAffected))
 	assert.NoError(t, workspacesResult.Error)
+}
+
+func TestReceiveCAPIClusterInfo(t *testing.T) {
+	publisher, db, cancel := SetupPipeline(t)
+	defer cancel()
+
+	// Create cluster
+	cluster := models.Cluster{
+		Token:      "derp",
+		Name:       "test-cluster",
+		IngressURL: "",
+	}
+	db.Create(&cluster)
+
+	// Publish event
+	// Give enough time for subscriber to subscribe to subject and process the event
+	time.Sleep(500 * time.Millisecond)
+	err := publisher.Send(context.Background(), newCloudEvent(t, "CAPIClusterInfo", payload.CAPIClusterInfo{
+		Token: "derp",
+		CAPIClusters: []payload.CAPICluster{
+			{
+				Name:          "foo-name",
+				Namespace:     "foo-ns",
+				EncodedObject: `"foo-data"`,
+			},
+			{
+				Name:      "bar-name",
+				Namespace: "bar-ns",
+			},
+		},
+	}))
+	require.NoError(t, err)
+	time.Sleep(500 * time.Millisecond)
+
+	// Query db
+	var capiClusters []models.CAPICluster
+	rows := db.Find(&capiClusters)
+	assert.Equal(t, 2, int(rows.RowsAffected))
+	assert.NoError(t, rows.Error)
+
+	assert.Equal(t, string(capiClusters[0].Name), "foo-name")
+	assert.Equal(t, string(capiClusters[0].Namespace), "foo-ns")
+	assert.Equal(t, string(capiClusters[0].Object), `"foo-data"`)
 }

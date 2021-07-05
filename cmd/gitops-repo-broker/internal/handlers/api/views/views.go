@@ -30,18 +30,29 @@ type NodeView struct {
 	KubeletVersion string `json:"kubeletVersion"`
 }
 
+type PullRequestView struct {
+	URL string `json:"url"`
+}
+
 type ClusterView struct {
-	ID         uint            `json:"id"`
-	Name       string          `json:"name"`
-	Type       string          `json:"type"`
-	Token      string          `json:"token"`
-	IngressURL string          `json:"ingressUrl"`
-	Nodes      []NodeView      `json:"nodes,omitempty"`
-	Status     string          `json:"status"`
-	UpdatedAt  time.Time       `json:"updatedAt"`
-	FluxInfo   []FluxInfoView  `json:"fluxInfo,omitempty"`
-	GitCommits []GitCommitView `json:"gitCommits,omitempty"`
-	Workspaces []WorkspaceView `json:"workspaces,omitempty"`
+	ID            uint             `json:"id"`
+	Name          string           `json:"name"`
+	Type          string           `json:"type"`
+	Token         string           `json:"token"`
+	IngressURL    string           `json:"ingressUrl"`
+	Nodes         []NodeView       `json:"nodes,omitempty"`
+	Status        string           `json:"status"`
+	UpdatedAt     time.Time        `json:"updatedAt"`
+	FluxInfo      []FluxInfoView   `json:"fluxInfo,omitempty"`
+	GitCommits    []GitCommitView  `json:"gitCommits,omitempty"`
+	Workspaces    []WorkspaceView  `json:"workspaces,omitempty"`
+	CAPIName      string           `json:"capiName,omitempty"`
+	CAPINamespace string           `json:"capiNamespace,omitempty"`
+	CAPICluster   datatypes.JSON   `json:"capiCluster,omitempty"`
+	PullRequest   *PullRequestView `json:"pullRequest,omitempty"`
+}
+
+type CAPIStatusView struct {
 }
 
 type FluxInfoView struct {

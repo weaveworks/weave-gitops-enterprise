@@ -1006,7 +1006,7 @@ func TestRegisterCluster_JSONError(t *testing.T) {
 	assert.Equal(t, "{\"message\":\"unmarshal error\"}\n", response.Body.String())
 
 	// MarshalIndent error
-	response = executePost(t, bytes.NewReader(data), db, json.Unmarshal, marshalIndentFnError, api.Generate)
+	response = executePost(t, bytes.NewReader(data), db, json.Unmarshal, marshalIndentFnError, utils.Generate)
 	assert.Equal(t, http.StatusInternalServerError, response.Code)
 	assert.Equal(t, "{\"message\":\"marshal error\"}\n", response.Body.String())
 }
@@ -1250,6 +1250,68 @@ func TestListClusters_StatusLastSeen(t *testing.T) {
 	}, res)
 }
 
+func TestListClusters_PullRequests(t *testing.T) {
+	db := createDatabase(t)
+
+	// Register a cluster
+	c := models.Cluster{Name: "My Cluster", Token: "derp", CAPIName: "fooname", CAPINamespace: "default"}
+	db.Create(&c)
+	db.Create(&models.PullRequest{Cluster: c, URL: "boop"})
+
+	response := executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+
+	var res views.ClustersResponse
+	err := json.Unmarshal(response.Body.Bytes(), &res)
+	assert.NoError(t, err)
+
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
+			{
+				ID:          1,
+				Token:       "derp",
+				Name:        "My Cluster",
+				Status:      "pullRequestCreated",
+				FluxInfo:    nil,
+				PullRequest: &views.PullRequestView{URL: "boop"},
+			},
+		},
+	}, res)
+}
+
+func TestListClusters_ClusterFound(t *testing.T) {
+	db := createDatabase(t)
+
+	// Register a cluster
+	c := models.Cluster{Name: "My Cluster", Token: "derp", CAPIName: "fooname", CAPINamespace: "default"}
+	db.Create(&c)
+	db.Create(&models.PullRequest{Cluster: c})
+	db.Create(&models.CAPICluster{Name: c.CAPIName, Namespace: c.CAPINamespace, Object: datatypes.JSON(`"derp"`)})
+
+	response := executeGet(t, db, json.MarshalIndent, "")
+	assert.Equal(t, http.StatusOK, response.Code)
+
+	var res views.ClustersResponse
+	err := json.Unmarshal(response.Body.Bytes(), &res)
+	assert.NoError(t, err)
+
+	assertEqualCmp(t, views.ClustersResponse{
+		Clusters: []views.ClusterView{
+			{
+				ID:            1,
+				Token:         "derp",
+				Name:          "My Cluster",
+				Status:        "clusterFound",
+				FluxInfo:      nil,
+				CAPICluster:   datatypes.JSON(`"derp"`),
+				CAPIName:      "fooname",
+				CAPINamespace: "default",
+				PullRequest:   &views.PullRequestView{URL: ""},
+			},
+		},
+	}, res)
+}
+
 func TestListClusters_StatusNotConnected(t *testing.T) {
 	db, err := utils.Open("", "sqlite", "", "", "")
 	assert.NoError(t, err)
@@ -1430,6 +1492,14 @@ func TestUnregisterCluster(t *testing.T) {
 			}
 		})
 	}
+}
+
+func createDatabase(t *testing.T) *gorm.DB {
+	db, err := utils.OpenDebug("", true)
+	assert.NoError(t, err)
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+	return db
 }
 
 func toJSON(obj interface{}) ([]byte, error) {
