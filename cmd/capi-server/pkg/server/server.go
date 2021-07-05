@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -12,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/credentials"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
 	capiv1_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
@@ -19,17 +19,21 @@ import (
 	"github.com/weaveworks/wks/common/database/models"
 	common_utils "github.com/weaveworks/wks/common/database/utils"
 	"gorm.io/gorm"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type server struct {
 	library  templates.Library
 	provider git.Provider
+	client   client.Client
 	capiv1_proto.UnimplementedClustersServiceServer
 	db *gorm.DB
 }
 
-func NewClusterServer(library templates.Library, provider git.Provider, db *gorm.DB) capiv1_proto.ClustersServiceServer {
-	return &server{library: library, provider: provider, db: db}
+func NewClusterServer(library templates.Library, provider git.Provider, client client.Client, db *gorm.DB) capiv1_proto.ClustersServiceServer {
+	return &server{library: library, provider: provider, client: client, db: db}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -74,8 +78,12 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
 	}
 
-	result := bytes.Join(templateBits, []byte("\n---\n"))
-	resultStr := string(result[:])
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, templateBits, msg.Credentials, msg.TemplateName)
+	if err != nil {
+		return nil, err
+	}
+
+	resultStr := string(tmplWithValuesAndCredentials[:])
 
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr}, err
 }
@@ -139,7 +147,11 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if err != nil {
 		return nil, fmt.Errorf("unable to render template %q: %w", msg.TemplateName, err)
 	}
-	result := bytes.Join(tmplWithValues, []byte("\n---\n"))
+
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, tmplWithValues, msg.Credentials, msg.TemplateName)
+	if err != nil {
+		return nil, err
+	}
 
 	// FIXME: parse and read from Cluster in yaml template
 	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
@@ -153,7 +165,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	path := fmt.Sprintf("management/%s.yaml", clusterName)
-	content := string(result[:])
+	content := string(tmplWithValuesAndCredentials[:])
 
 	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
 	if msg.RepositoryUrl != "" {
@@ -256,4 +268,31 @@ func validate(msg *capiv1_proto.CreatePullRequestRequest) error {
 	}
 
 	return err
+}
+
+// ListCredentials searches the management cluster and lists any objects that match specific given types
+func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCredentialsRequest) (*capiv1_proto.ListCredentialsResponse, error) {
+	creds := []*capiv1_proto.Credential{}
+
+	for _, identityParams := range credentials.IdentityParamsList {
+		identityList := &unstructured.UnstructuredList{}
+		identityList.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   identityParams.Group,
+			Kind:    identityParams.Kind,
+			Version: identityParams.Version,
+		})
+		_ = s.client.List(context.Background(), identityList)
+
+		for _, identity := range identityList.Items {
+			creds = append(creds, &capiv1_proto.Credential{
+				Group:     identityParams.Group,
+				Version:   identity.GetAPIVersion(),
+				Kind:      identity.GetKind(),
+				Name:      identity.GetName(),
+				Namespace: identity.GetNamespace(),
+			})
+		}
+	}
+
+	return &capiv1_proto.ListCredentialsResponse{Credentials: creds, Total: int32(len(creds))}, nil
 }

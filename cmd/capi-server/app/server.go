@@ -89,15 +89,14 @@ func StartServer() error {
 		Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 	}
 	provider := git.NewGitProviderService()
-
-	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider, db)
+	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider, kubeClient, db)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, db *gorm.DB, opts ...grpc_runtime.ServeMuxOption) error {
+func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, client client.Client, db *gorm.DB, opts ...grpc_runtime.ServeMuxOption) error {
 	mux := grpc_runtime.NewServeMux(opts...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, db))
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, client, db))
 	s := &http.Server{
 		Addr:    addr,
 		Handler: mux,

@@ -25,6 +25,7 @@ export type ListTemplateParamsResponse = {
 export type RenderTemplateRequest = {
   templateName?: string
   values?: ParameterValues
+  credentials?: Credential
 }
 
 export type RenderTemplateResponse = {
@@ -40,10 +41,27 @@ export type CreatePullRequestRequest = {
   templateName?: string
   parameterValues?: {[key: string]: string}
   commitMessage?: string
+  credentials?: Credential
 }
 
 export type CreatePullRequestResponse = {
   webUrl?: string
+}
+
+export type ListCredentialsRequest = {
+}
+
+export type ListCredentialsResponse = {
+  credentials?: Credential[]
+  total?: number
+}
+
+export type Credential = {
+  group?: string
+  version?: string
+  kind?: string
+  name?: string
+  namespace?: string
 }
 
 export type Template = {
@@ -84,5 +102,8 @@ export class ClustersService {
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
     return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/pulls`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListCredentials(req: ListCredentialsRequest, initReq?: fm.InitReq): Promise<ListCredentialsResponse> {
+    return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/credentials?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

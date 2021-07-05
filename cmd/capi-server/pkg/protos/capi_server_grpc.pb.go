@@ -26,6 +26,7 @@ type ClustersServiceClient interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
+	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -72,6 +73,15 @@ func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *Creat
 	return out, nil
 }
 
+func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error) {
+	out := new(ListCredentialsResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListCredentials", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -84,6 +94,7 @@ type ClustersServiceServer interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
+	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -102,6 +113,9 @@ func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *Rende
 }
 func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
+}
+func (UnimplementedClustersServiceServer) ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCredentials not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -188,6 +202,24 @@ func _ClustersService_CreatePullRequest_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_ListCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCredentialsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListCredentials(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/ListCredentials",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListCredentials(ctx, req.(*ListCredentialsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -210,6 +242,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePullRequest",
 			Handler:    _ClustersService_CreatePullRequest_Handler,
+		},
+		{
+			MethodName: "ListCredentials",
+			Handler:    _ClustersService_ListCredentials_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -72,7 +72,7 @@ require (
 	k8s.io/kubernetes v1.21.1
 	sigs.k8s.io/cluster-api v0.3.16
 	sigs.k8s.io/controller-runtime v0.9.0
-	sigs.k8s.io/kustomize/kyaml v0.10.17
+	sigs.k8s.io/kustomize/kyaml v0.11.0
 )
 
 replace (

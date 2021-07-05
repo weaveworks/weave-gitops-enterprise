@@ -16,6 +16,28 @@
     "application/json"
   ],
   "paths": {
+    "/v1/credentials": {
+      "get": {
+        "operationId": "ClustersService_ListCredentials",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListCredentialsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/pulls": {
       "post": {
         "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to \ncreate a new branch for which a new pull request\nwill be created.",
@@ -132,6 +154,36 @@
             "schema": {
               "$ref": "#/definitions/v1ParameterValues"
             }
+          },
+          {
+            "name": "credentials.group",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.version",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -208,6 +260,10 @@
         "commitMessage": {
           "type": "string",
           "title": "The commit message"
+        },
+        "credentials": {
+          "$ref": "#/definitions/v1Credential",
+          "title": "Credentials"
         }
       }
     },
@@ -217,6 +273,41 @@
         "webUrl": {
           "type": "string",
           "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1Credential": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListCredentialsResponse": {
+      "type": "object",
+      "properties": {
+        "credentials": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Credential"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

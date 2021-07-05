@@ -35,6 +35,11 @@ service ClustersService {
       body: "*"
     };
   }
+  rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse) {
+    option (google.api.http) = {
+      get : "/v1/credentials"
+    };
+  }
 }
 
 message ListTemplatesRequest {}
@@ -52,6 +57,7 @@ message ListTemplateParamsResponse {
 message RenderTemplateRequest {
   string template_name = 1;
   ParameterValues values = 2;
+  Credential credentials = 3;
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
@@ -72,10 +78,26 @@ message CreatePullRequestRequest {
   map<string, string> parameter_values = 7;
   // The commit message
   string commit_message = 8;
+  // Credentials
+  Credential credentials = 9;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
+}
+
+message ListCredentialsRequest {}
+message ListCredentialsResponse {
+  repeated Credential credentials = 1;
+  int32 total = 2;
+}
+
+message Credential {
+  string group = 1;
+  string version = 2;
+  string kind = 3;
+  string name = 4;
+  string namespace = 5;
 }
 
 message Template {

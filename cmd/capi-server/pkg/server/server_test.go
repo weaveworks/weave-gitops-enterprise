@@ -352,7 +352,7 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 		Client:        cl,
 		ConfigMapName: configMapName,
 		Namespace:     namespace,
-	}, provider, db)
+	}, provider, cl, db)
 
 	return s
 }
