@@ -1,6 +1,8 @@
 package acceptance
 
 import (
+	"fmt"
+	"sort"
 	"strconv"
 
 	. "github.com/onsi/ginkgo"
@@ -10,11 +12,17 @@ import (
 	"github.com/weaveworks/wks/test/acceptance/test/pages"
 )
 
+type TemplateField struct {
+	Name  string
+	Value string
+}
+
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 	var _ = Describe("Multi-Cluster Control Plane UI", func() {
 
 		templateFiles := []string{}
+
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
@@ -84,6 +92,18 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 					Eventually(templateCount).Should(Equal(noOfTemplates), "The template header count should be equal to templates created")
 					Eventually(tileCount).Should(Equal(noOfTemplates), "The number of template tiles rendered should be equal to number of templates created")
+
+					// Testing templates are ordered
+					expected_list := make([]string, noOfTemplates)
+					for i := 0; i < noOfTemplates; i++ {
+						expected_list[i] = fmt.Sprintf("cluster-template-%d", i)
+					}
+					sort.Strings(expected_list)
+
+					actual_list := templatesPage.GetTemplateTileList()
+					for i := 0; i < noOfTemplates; i++ {
+						Expect(actual_list[i]).Should(ContainSubstring(expected_list[i]))
+					}
 				})
 			})
 		})
@@ -109,52 +129,217 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 			})
+		})
 
-			Context("When only invalid Capi Template(s) are available in the cluster", func() {
-				XIt("Verify UI shows message related to an invalid template(s)", func() {
+		Context("When only invalid Capi Template(s) are available in the cluster", func() {
+			XIt("Verify UI shows message related to an invalid template(s)", func() {
 
-					By("Apply/Insall invalid CAPITemplate", func() {
-						templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
-					})
+				By("Apply/Insall invalid CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
+				})
 
-					pages.NavigateToPage(webDriver, "Templates")
+				pages.NavigateToPage(webDriver, "Templates")
 
-					By("And User should see message informing user of the invalid template in the cluster", func() {
-						// TODO
-					})
+				By("And User should see message informing user of the invalid template in the cluster", func() {
+					// TODO
+				})
 
+			})
+		})
+
+		Context("When both valid and invalid Capi Templates are available in the cluster", func() {
+			XIt("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
+
+				noOfTemplates := 3
+				By("Apply/Insall valid CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-eks-fargate.yaml")
+				})
+
+				By("Apply/Insall invalid CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
+				})
+
+				pages.NavigateToPage(webDriver, "Templates")
+				templatesPage := pages.GetTemplatesPage(webDriver)
+
+				By("And wait for Templates page to be fully rendered", func() {
+					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
+
+					count, _ := templatesPage.TemplateCount.Text()
+					templateCount, _ := strconv.Atoi(count)
+					tileCount, _ := templatesPage.TemplateTiles.Count()
+
+					Eventually(templateCount).Should(Equal(noOfTemplates), "The template header count should be equal to templates created")
+					Eventually(tileCount).Should(Equal(noOfTemplates), "The number of template tiles rendered should be equal to number of templates created")
+				})
+
+				By("And User should see message informing user of the invalid template in the cluster", func() {
+					// TODO
 				})
 			})
+		})
 
-			Context("When both valid and invalid Capi Templates are available in the cluster", func() {
-				XIt("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
+		Context("When Capi Template is available in the cluster", func() {
+			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
-					noOfTemplates := 3
-					By("Apply/Insall valid CAPITemplate", func() {
-						templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-eks-fargate.yaml")
+				By("Apply/Insall CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
+				})
+
+				pages.NavigateToPage(webDriver, "Templates")
+
+				By("And User should choose a template", func() {
+					templateTile := pages.GetTemplateTile(webDriver, "eks-fargate-template-0")
+					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+				})
+
+				createPage := pages.GetCreateClusterPage(webDriver)
+				By("And wait for Create cluster page to be fully rendered", func() {
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					// Eventually(createPage.TemplateName).Should(MatchText(".*eks-fargate-template-0.*"))
+				})
+
+				clusterName := "my-eks-cluster"
+				region := "east"
+				sshKey := "abcdef1234567890"
+				k8Version := "1.19.7"
+				paramSection := make(map[string][]TemplateField)
+				paramSection["Cluster"] = []TemplateField{
+					{
+						Name:  "CLUSTER_NAME",
+						Value: clusterName,
+					},
+				}
+				paramSection["AWSManagedCluster"] = []TemplateField{
+					{
+						Name:  "CLUSTER_NAME",
+						Value: "",
+					},
+				}
+				paramSection["AWSManagedControlPlane"] = []TemplateField{
+					{
+						Name:  "AWS_REGION",
+						Value: region,
+					},
+					{
+						Name:  "AWS_SSH_KEY_NAME",
+						Value: sshKey,
+					},
+					{
+						Name:  "CLUSTER_NAME",
+						Value: "",
+					},
+					{
+						Name:  "KUBERNETES_VERSION",
+						Value: k8Version,
+					},
+				}
+				paramSection["AWSFargateProfile"] = []TemplateField{
+					{
+						Name:  "CLUSTER_NAME",
+						Value: "",
+					},
+				}
+
+				for section, parameters := range paramSection {
+					By(fmt.Sprintf("And verify the template sections %s", section), func() {
+						templateSection := createPage.GetTemplateSection(webDriver, section)
+						Expect(templateSection.Name).Should(HaveText(section))
+						Expect(len(templateSection.Fields)).Should(Equal(len(parameters)), "Count of Cluster object parameters is not equal to expected count")
+
+						for i := 0; i < len(parameters); i++ {
+							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
+							if parameters[i].Value != "" {
+								// we are only setting parameter value once and it should be applied to all sections comtaining the same parameter
+								By("And set template parameter values", func() {
+									Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
+								})
+							}
+						}
 					})
+				}
 
-					By("Apply/Insall invalid CAPITemplate", func() {
-						templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
+				By("Then I should preview the PR", func() {
+					Expect(createPage.PreviewPR.Submit()).To(Succeed())
+					preview := pages.GetPreview(webDriver)
+					Eventually(preview.PreviewLabel).Should(BeFound())
+					preview.ScrollTo(webDriver, preview.PreviewLabel)
+
+					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
+					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+name: %[1]v`, clusterName))))
+					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+name: %[1]v-control-plane\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: %[4]v`, clusterName, region, sshKey, k8Version))))
+					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+name: %[1]v-fargate-0`, clusterName))))
+				})
+			})
+		})
+
+		Context("When Capi Template is available in the cluster", func() {
+			It("Verify pull request can be created for the selected capi template", func() {
+
+				By("Apply/Insall CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+				})
+
+				pages.NavigateToPage(webDriver, "Templates")
+
+				By("And User should choose a template", func() {
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
+					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+				})
+
+				createPage := pages.GetCreateClusterPage(webDriver)
+
+				clusterName := "quick-capd-cluster"
+				namespace := "quick-capi"
+				k8Version := "1.19.7"
+
+				paramSection := make(map[string][]TemplateField)
+				paramSection["MachineDeployment"] = []TemplateField{
+					{
+						Name:  "CLUSTER_NAME",
+						Value: clusterName,
+					},
+					{
+						Name:  "KUBERNETES_VERSION",
+						Value: k8Version,
+					},
+					{
+						Name:  "NAMESPACE",
+						Value: namespace,
+					},
+				}
+
+				for section, parameters := range paramSection {
+					By(fmt.Sprintf("And set template section %s parameter values", section), func() {
+						templateSection := createPage.GetTemplateSection(webDriver, section)
+						Expect(templateSection.Name).Should(HaveText(section))
+
+						for i := 0; i < len(parameters); i++ {
+							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
+							// We are only setting parameter value once and it should be applied to all sections containing the same parameter
+							if parameters[i].Value != "" {
+								By("And set template parameter values", func() {
+									Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
+								})
+							}
+						}
 					})
+				}
 
-					pages.NavigateToPage(webDriver, "Templates")
-					templatesPage := pages.GetTemplatesPage(webDriver)
+				By("And press the Preview PR button", func() {
+					Expect(createPage.PreviewPR.Submit()).To(Succeed())
+				})
 
-					By("And wait for Templates page to be fully rendered", func() {
-						Eventually(templatesPage.TemplateHeader).Should(BeVisible())
+				By("And set GitOps values for pull request", func() {
+					gitops := pages.GetGitOps(webDriver)
+					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
-						count, _ := templatesPage.TemplateCount.Text()
-						templateCount, _ := strconv.Atoi(count)
-						tileCount, _ := templatesPage.TemplateTiles.Count()
+					gitops.ScrollTo(webDriver, gitops.GitOpsLabel)
 
-						Eventually(templateCount).Should(Equal(noOfTemplates), "The template header count should be equal to templates created")
-						Eventually(tileCount).Should(Equal(noOfTemplates), "The number of template tiles rendered should be equal to number of templates created")
-					})
-
-					By("And User should see message informing user of the invalid template in the cluster", func() {
-						// TODO
-					})
+					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					Expect(gitops.CreatePR).Should(BeFound())
 				})
 			})
 		})

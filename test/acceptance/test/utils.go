@@ -126,6 +126,7 @@ func DescribeSpecsMccpUi(mccpTestRunner MCCPTestRunner) {
 func DescribeSpecsMccpCli(mccpTestRunner MCCPTestRunner) {
 	DescribeMccpCliHelp()
 	DescribeMccpCliList(mccpTestRunner)
+	DescribeMccpCliRender(mccpTestRunner)
 }
 
 // Interface that can be implemented either with:

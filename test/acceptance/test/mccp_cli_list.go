@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"sort"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -12,7 +13,7 @@ import (
 )
 
 func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
-	var _ = Describe("MCCP List Tests", func() {
+	var _ = Describe("MCCP Template List Tests", func() {
 
 		MCCP_BIN_PATH := GetMCCBinPath()
 		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
@@ -67,6 +68,17 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 					re := regexp.MustCompile(`cluster-template-[\d]+\s+This is test template [\d]+`)
 					matched_list := re.FindAllString(output, noOfTemplates)
 					Eventually(len(matched_list)).Should(Equal(noOfTemplates), "The number of listed templates should be equal to number of templates created")
+
+					// Testing templates are ordered
+					expected_list := make([]string, noOfTemplates)
+					for i := 0; i < noOfTemplates; i++ {
+						expected_list[i] = fmt.Sprintf("cluster-template-%d", i)
+					}
+					sort.Strings(expected_list)
+
+					for i := 0; i < noOfTemplates; i++ {
+						Expect(matched_list[i]).Should(ContainSubstring(expected_list[i]))
+					}
 				})
 			})
 		})
