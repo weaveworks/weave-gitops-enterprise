@@ -274,7 +274,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			FIt("Verify pull request can be created for the selected capi template", func() {
+			It("Verify pull request can be created for the selected capi template", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
