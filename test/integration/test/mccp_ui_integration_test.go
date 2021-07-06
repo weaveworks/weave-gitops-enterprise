@@ -658,7 +658,7 @@ func gomegaFail(message string, callerSkip ...int) {
 	fmt.Println(message)
 	webDriver := acceptancetest.GetWebDriver()
 	if webDriver != nil {
-		filepath := acceptancetest.TakeScreenShot(acceptancetest.String(16)) //Save the screenshot of failure
+		filepath := acceptancetest.TakeScreenShot(acceptancetest.RandString(16)) //Save the screenshot of failure
 		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
 	}
 	// Pass this down to the default handler for onward processing
