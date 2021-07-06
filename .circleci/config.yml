@@ -774,6 +774,9 @@ jobs:
 
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
+            # create unique cluster config repository name
+            export CLUSTER_REPOSITORY=mccp-capi-template-$(xxd -l 8 -c 8 -p < /dev/random)
+            export GIT_REPOSITORY_URL=https://github.com/$WKP_GITHUB_ORG/$CLUSTER_REPOSITORY
 
             # decode GCE kubeconfig and store at path set in MCCP_GCE_LEAF_KUBECONFIG
             echo $WKP_ACCEPTANCE_GCE_KUBECONFIG
@@ -809,6 +812,9 @@ jobs:
               --namespace mccp \
               --docker-username="${DOCKER_IO_USER}" \
               --docker-password="${DOCKER_IO_PASSWORD}" 
+            kubectl create secret generic git-provider-credentials \
+              --namespace=mccp \
+              --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
             CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
             helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
             helm repo update
@@ -816,7 +822,9 @@ jobs:
               --set "imagePullSecrets[0].name=docker-io-pull-secret" \
               --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
               --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-              --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}"
+              --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
+              --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
+              --set "config.capi.baseBranch=main"
 
             kubectl get pods -A
             # Wait for cluster to settle
@@ -968,9 +976,6 @@ jobs:
             sed -i "s|sshKeyFile:.*|sshKeyFile: /root/.ssh/weaveworks_cit_id_rsa|" config.yaml
             sed -i "s|podCIDRBlocks:.*|podCIDRBlocks: [$POD_CIDR_BLOCK]|" config.yaml
             sed -i "s|serviceCIDRBlocks:.*|serviceCIDRBlocks: [$SERVICE_CIDR_BLOCK]|" config.yaml
-            # create unique cluster config repository name
-            export CLUSTER_REPOSITORY=mccp-capi-template-$(xxd -l 8 -c 8 -p < /dev/random)
-            export GIT_REPOSITORY_URL=https://github.com/$WKP_GITHUB_ORG/$CLUSTER_REPOSITORY
       - run:
           name: Run Acceptance Tests
           no_output_timeout: 20m
