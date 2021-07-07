@@ -66,7 +66,7 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   return (
-    <PageTemplate documentTitle="WeGo · Clusters">
+    <PageTemplate documentTitle="WeGo · Clusters" error={error}>
       <SectionHeader
         className="count-header"
         path={[{ label: 'Clusters', url: 'clusters', count }]}

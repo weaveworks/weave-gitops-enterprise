@@ -5,6 +5,7 @@ import { IdSchema, UiSchema } from 'react-jsonschema-form';
 export type Param = {
   name: string;
   description?: string;
+  options?: string[];
 };
 
 export type Object = {

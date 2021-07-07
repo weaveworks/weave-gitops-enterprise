@@ -1,30 +1,23 @@
-import React, { FC } from 'react';
+import React, { FC, Ref, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { contentDimensionsCss } from './ContentWrapper';
-import { spacing } from 'weaveworks-ui-components/lib/theme/selectors';
+import { contentCss } from './ContentWrapper';
 
-const Wrapper = styled.div`
-  ${contentDimensionsCss}
+const Footer = styled.div`
+  ${contentCss}
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  margin: ${spacing('small')} auto;
+  align-items: center;
+  background-color: #ffcccc;
 `;
 
-const HelpLinkWrapper = styled.div`
-  color: ${({ theme }) => theme.colors.gray600};
-  white-space: nowrap;
-  line-height: 1.5em;
-  a {
-    color: ${({ theme }) => theme.colors.blue600};
-  }
-`;
+export const FooterWrapper: FC<{ error: string }> = error => {
+  const errorRef: Ref<HTMLDivElement> = useRef(null);
 
-export const Footer: FC = () => (
-  <Wrapper>
-    <HelpLinkWrapper>
-      Need help? Contact us at{' '}
-      <a href="mailto:support@weave.works">support@weave.works</a>
-    </HelpLinkWrapper>
-  </Wrapper>
-);
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
+
+  return <Footer ref={errorRef}>{error.error}</Footer>;
+};

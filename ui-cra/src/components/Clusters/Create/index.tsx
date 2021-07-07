@@ -78,7 +78,6 @@ const useStyles = makeStyles(theme =>
         justifyContent: 'flex-end',
       },
     },
-    main: {},
     steps: {
       display: 'flex',
       flexDirection: 'column',
@@ -87,6 +86,13 @@ const useStyles = makeStyles(theme =>
         height: 0,
       },
       paddingRight: xxs,
+    },
+    errorMessage: {
+      margin: `${weaveTheme.spacing.medium} 0`,
+      padding: weaveTheme.spacing.small,
+      border: '1px solid #E6E6E6',
+      borderRadius: weaveTheme.borderRadius.soft,
+      color: weaveTheme.colors.orange600,
     },
   }),
 );
@@ -99,10 +105,10 @@ const AddCluster: FC = () => {
     setActiveTemplate,
     renderTemplate,
     PRPreview,
-    PRurl,
-    setPRurl,
     creatingPR,
     addCluster,
+    error,
+    setError,
   } = useTemplates();
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
@@ -143,6 +149,7 @@ const AddCluster: FC = () => {
   );
 
   const handleAddCluster = useCallback(() => {
+    setError(null);
     addCluster({
       head_branch: branchName,
       title: pullRequestTitle,
@@ -155,6 +162,7 @@ const AddCluster: FC = () => {
     });
   }, [
     addCluster,
+    setError,
     formData,
     branchName,
     pullRequestTitle,
@@ -162,13 +170,30 @@ const AddCluster: FC = () => {
     activeTemplate?.name,
   ]);
 
+  const required = useMemo(() => {
+    return activeTemplate?.parameters?.map(param => param.name);
+  }, [activeTemplate]);
+
   const parameters = useMemo(() => {
     return (
       activeTemplate?.parameters?.map(param => {
-        const name = param.name;
-        return {
-          [name]: { type: 'string', title: `${name}` },
-        };
+        const { name, options } = param;
+        if (options?.length !== 0) {
+          return {
+            [name]: {
+              type: 'string',
+              title: `${name}`,
+              enum: options,
+            },
+          };
+        } else {
+          return {
+            [name]: {
+              type: 'string',
+              title: `${name}`,
+            },
+          };
+        }
       }) || []
     );
   }, [activeTemplate]);
@@ -181,8 +206,9 @@ const AddCluster: FC = () => {
     return {
       type: 'object',
       properties,
+      required,
     };
-  }, [properties]);
+  }, [properties, required]);
 
   // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
   const sections = useMemo(() => {
@@ -213,22 +239,23 @@ const AddCluster: FC = () => {
     }
     const steps = activeTemplate?.objects?.map(object => object.kind) || [];
     setSteps(steps);
+    setActiveStep(steps[0] || '');
     return history.listen(() => {
-      setPRurl(null);
       setActiveTemplate(null);
+      setError(null);
     });
   }, [
     activeTemplate,
     getTemplate,
     setActiveTemplate,
     templateName,
-    setPRurl,
     history,
+    setError,
   ]);
 
   return useMemo(() => {
     return (
-      <PageTemplate documentTitle="WeGo · Create new cluster">
+      <PageTemplate documentTitle="WeGo · Create new cluster" error={error}>
         <SectionHeader
           className="count-header"
           path={[
@@ -238,7 +265,7 @@ const AddCluster: FC = () => {
         />
         <ContentWrapper>
           <Grid className={classes.grid} container spacing={3}>
-            <Grid className={classes.main} item xs={12} md={9}>
+            <Grid item xs={12} md={9}>
               <div className={classes.title}>
                 Create new cluster with template
               </div>
@@ -246,7 +273,7 @@ const AddCluster: FC = () => {
               <Form
                 className={classes.form}
                 schema={schema as JSONSchema7}
-                onChange={() => console.log('changed')}
+                onChange={({ formData }) => setFormData(formData)}
                 formData={formData}
                 onSubmit={handlePreview}
                 onError={() => console.log('errors')}
@@ -299,23 +326,12 @@ const AddCluster: FC = () => {
                           className={classes.createCTA}
                           onClick={handleAddCluster}
                         >
-                          <Button>Create Pull Request on GitHub</Button>
+                          <Button>Create Pull Request</Button>
                         </div>
                         {creatingPR ? (
                           <>
                             <Divider className={classes.divider} />
                             <Loader />
-                          </>
-                        ) : null}
-                        {PRurl && !creatingPR ? (
-                          <>
-                            <Divider className={classes.divider} />
-                            <span>
-                              You can access your newly created PR&nbsp;
-                              <a href={PRurl} target="_blank" rel="noreferrer">
-                                here.
-                              </a>
-                            </span>
                           </>
                         ) : null}
                       </>
@@ -348,7 +364,6 @@ const AddCluster: FC = () => {
     uiSchema,
     openPreview,
     PRPreview,
-    PRurl,
     rows,
     handleChangeBranchName,
     handleChangeCommitMessage,
@@ -356,6 +371,7 @@ const AddCluster: FC = () => {
     creatingPR,
     steps,
     activeStep,
+    error,
   ]);
 };
 
