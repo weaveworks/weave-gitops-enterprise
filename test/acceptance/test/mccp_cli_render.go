@@ -259,10 +259,6 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					gitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
-				By("And repo created has private visibility", func() {
-					Expect(getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
-				})
-
 				// CAPD Parameter values
 				capdClusterName := "my-capd-cluster2"
 				capdNamespace := "mccp-dev"
@@ -378,10 +374,6 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
 					gitAddCommitPush(repoAbsolutePath, testFile)
-				})
-
-				By("And repo created has private visibility", func() {
-					Expect(getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
 				})
 
 				branchName := "test-branch"
