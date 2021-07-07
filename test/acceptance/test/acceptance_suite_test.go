@@ -68,7 +68,7 @@ var _ = BeforeSuite(func() {
 
 	gitProvider = "github" //TODO - Read from config.yaml
 	seleniumServiceUrl = "http://localhost:4444/wd/hub"
-	GITHUB_ORG = os.Getenv("WKP_GITHUB_ORG")
+	GITHUB_ORG = os.Getenv("GITHUB_ORG")
 	CLUSTER_REPOSITORY = os.Getenv("CLUSTER_REPOSITORY")
 })
 

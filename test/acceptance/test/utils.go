@@ -577,6 +577,14 @@ func gitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
 	fmt.Println(string(session.Wait().Err.Contents()))
 }
 
+func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return string(session.Wait().Out.Contents())
+}
+
 func pullBranch(repoAbsolutePath string, branch string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
@@ -589,7 +597,7 @@ func pullBranch(repoAbsolutePath string, branch string) {
 func listPullRequest(repoAbsolutePath string) []string {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
-                            hub pr list --limit 1 --base main --format='%%t|%%H|%%U'`, repoAbsolutePath))
+                            hub pr list --limit 1 --base main --format='%%t|%%H|%%U%%n'`, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())

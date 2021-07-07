@@ -775,8 +775,9 @@ jobs:
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
             # create unique cluster config repository name
-            export CLUSTER_REPOSITORY=mccp-capi-template-$(xxd -l 8 -c 8 -p < /dev/random)
-            export GIT_REPOSITORY_URL=https://github.com/$WKP_GITHUB_ORG/$CLUSTER_REPOSITORY
+            export GITHUB_ORG=$WKP_GITHUB_ORG
+            export CLUSTER_REPOSITORY=mccp-capi-template-$(openssl rand -hex 8)
+            export GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
 
             # decode GCE kubeconfig and store at path set in MCCP_GCE_LEAF_KUBECONFIG
             echo $WKP_ACCEPTANCE_GCE_KUBECONFIG
