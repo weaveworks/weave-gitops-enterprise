@@ -57,7 +57,7 @@ func TestListTemplates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(tt.ts, nil, "", tt.err)
+			c := NewFakeClient(tt.ts, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.ListTemplates(c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -115,7 +115,7 @@ func TestListTemplateParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(nil, tt.tps, "", tt.err)
+			c := NewFakeClient(nil, tt.tps, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.ListTemplateParameters("foo", c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -184,9 +184,9 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(nil, nil, tt.result, tt.err)
+			c := NewFakeClient(nil, nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
-			err := templates.RenderTemplate("foo", nil, c, w)
+			err := templates.RenderTemplate("foo", nil, templates.Credentials{}, c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -217,7 +217,7 @@ func TestCreatePullRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(nil, nil, tt.result, tt.err)
+			c := NewFakeClient(nil, nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
 			err := templates.CreatePullRequest(templates.CreatePullRequestForTemplateParams{}, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -228,19 +228,65 @@ func TestCreatePullRequest(t *testing.T) {
 	}
 }
 
-type FakeClient struct {
-	ts  []templates.Template
-	tps []templates.TemplateParameter
-	s   string
-	err error
+func TestListCredentials(t *testing.T) {
+	tests := []struct {
+		name             string
+		creds            []templates.Credentials
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:     "no credentials",
+			expected: "No credentials found.",
+		},
+		{
+			name: "credentials found",
+			creds: []templates.Credentials{
+				{
+					Name: "creds-a",
+				},
+				{
+					Name: "creds-b",
+				},
+			},
+			expected: "NAME\ncreds-a\ncreds-b\n",
+		},
+		{
+			name:             "error retrieving templates",
+			err:              fmt.Errorf("oops something went wrong"),
+			expectedErrorStr: "unable to retrieve credentials from \"In-memory fake\": oops something went wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewFakeClient(nil, nil, tt.creds, "", tt.err)
+			w := new(bytes.Buffer)
+			err := templates.ListCredentials(c, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
 }
 
-func NewFakeClient(ts []templates.Template, tps []templates.TemplateParameter, s string, err error) *FakeClient {
+type FakeClient struct {
+	ts    []templates.Template
+	tps   []templates.TemplateParameter
+	creds []templates.Credentials
+	s     string
+	err   error
+}
+
+func NewFakeClient(ts []templates.Template, tps []templates.TemplateParameter, creds []templates.Credentials, s string, err error) *FakeClient {
 	return &FakeClient{
-		ts:  ts,
-		tps: tps,
-		s:   s,
-		err: err,
+		ts:    ts,
+		tps:   tps,
+		creds: creds,
+		s:     s,
+		err:   err,
 	}
 }
 
@@ -264,7 +310,7 @@ func (c *FakeClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 	return c.tps, nil
 }
 
-func (c *FakeClient) RenderTemplateWithParameters(name string, values map[string]string) (string, error) {
+func (c *FakeClient) RenderTemplateWithParameters(name string, values map[string]string, creds templates.Credentials) (string, error) {
 	if c.err != nil {
 		return "", c.err
 	}
@@ -278,4 +324,12 @@ func (c *FakeClient) CreatePullRequestForTemplate(params templates.CreatePullReq
 	}
 
 	return c.s, nil
+}
+
+func (c *FakeClient) RetrieveCredentials() ([]templates.Credentials, error) {
+	if c.err != nil {
+		return nil, c.err
+	}
+
+	return c.creds, nil
 }

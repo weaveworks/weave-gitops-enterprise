@@ -181,7 +181,7 @@ spec:
 
 			r, err := adapters.NewHttpClient(BaseURI, client)
 			assert.NoError(t, err)
-			result, err := r.RenderTemplateWithParameters("cluster-template", nil)
+			result, err := r.RenderTemplateWithParameters("cluster-template", nil, templates.Credentials{})
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -234,6 +234,101 @@ func TestCreatePullRequestForTemplate(t *testing.T) {
 			assert.NoError(t, err)
 			result, err := c.CreatePullRequestForTemplate(templates.CreatePullRequestForTemplateParams{})
 			tt.assertFunc(t, result, err)
+		})
+	}
+}
+
+func TestRetrieveCredentials(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, credentials []templates.Credentials, err error)
+	}{
+		{
+			name:      "credentials returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/credentials.json")),
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+				assert.ElementsMatch(t, creds, []templates.Credentials{
+					{
+						Group:     "infrastructure.cluster.x-k8s.io",
+						Version:   "v1alpha3",
+						Kind:      "AWSClusterStaticIdentity",
+						Name:      "aws-creds",
+						Namespace: "default",
+					},
+					{
+						Group:     "infrastructure.cluster.x-k8s.io",
+						Version:   "v1alpha4",
+						Kind:      "AzureClusterIdentity",
+						Name:      "azure-creds",
+						Namespace: "default",
+					},
+				})
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+				assert.EqualError(t, err, "unable to GET credentials from \"https://weave.works/api/v1/credentials\": Get \"https://weave.works/api/v1/credentials\": oops")
+			},
+		},
+		{
+			name:      "unexpected status code",
+			responder: httpmock.NewStringResponder(400, ""),
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/credentials\" was 400")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/v1/credentials", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client)
+			assert.NoError(t, err)
+			creds, err := r.RetrieveCredentials()
+			tt.assertFunc(t, creds, err)
+		})
+	}
+}
+
+func TestRetrieveCredentialsByName(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, credentials templates.Credentials, err error)
+	}{
+		{
+			name:      "credentials returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/credentials.json")),
+			assertFunc: func(t *testing.T, creds templates.Credentials, err error) {
+				assert.Equal(t, creds, templates.Credentials{
+					Group:     "infrastructure.cluster.x-k8s.io",
+					Version:   "v1alpha3",
+					Kind:      "AWSClusterStaticIdentity",
+					Name:      "aws-creds",
+					Namespace: "default",
+				})
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/v1/credentials", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client)
+			assert.NoError(t, err)
+			creds, err := r.RetrieveCredentialsByName("aws-creds")
+			tt.assertFunc(t, creds, err)
 		})
 	}
 }

@@ -16,13 +16,18 @@ type TemplateParametersRetriever interface {
 }
 
 type TemplateRenderer interface {
-	RenderTemplateWithParameters(name string, parameters map[string]string) (string, error)
+	RenderTemplateWithParameters(name string, parameters map[string]string, creds Credentials) (string, error)
 }
 
 // TemplatePullRequester implementers must return the web URI of the pull
 // request.
 type TemplatePullRequester interface {
 	CreatePullRequestForTemplate(params CreatePullRequestForTemplateParams) (string, error)
+}
+
+type CredentialsRetriever interface {
+	Source() string
+	RetrieveCredentials() ([]Credentials, error)
 }
 
 type Template struct {
@@ -44,6 +49,15 @@ type CreatePullRequestForTemplateParams struct {
 	Title           string
 	Description     string
 	CommitMessage   string
+	Credentials     Credentials
+}
+
+type Credentials struct {
+	Group     string `json:"group"`
+	Version   string `json:"version"`
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 }
 
 func ListTemplates(r TemplatesRetriever, w io.Writer) error {
@@ -95,8 +109,8 @@ func ListTemplateParameters(name string, r TemplateParametersRetriever, w io.Wri
 	return nil
 }
 
-func RenderTemplate(name string, parameters map[string]string, r TemplateRenderer, w io.Writer) error {
-	s, err := r.RenderTemplateWithParameters(name, parameters)
+func RenderTemplate(name string, parameters map[string]string, creds Credentials, r TemplateRenderer, w io.Writer) error {
+	s, err := r.RenderTemplateWithParameters(name, parameters, creds)
 	if err != nil {
 		return fmt.Errorf("unable to render template: %w", err)
 	}
@@ -118,6 +132,28 @@ func CreatePullRequest(params CreatePullRequestForTemplateParams, r TemplatePull
 	}
 
 	fmt.Fprintf(w, "Created pull request: %s\n", res)
+
+	return nil
+}
+
+func ListCredentials(r CredentialsRetriever, w io.Writer) error {
+	creds, err := r.RetrieveCredentials()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve credentials from %q: %w", r.Source(), err)
+	}
+
+	if len(creds) > 0 {
+		fmt.Fprintf(w, "NAME\n")
+
+		for _, c := range creds {
+			fmt.Fprintf(w, "%s", c.Name)
+			fmt.Fprintln(w, "")
+		}
+
+		return nil
+	}
+
+	fmt.Fprintf(w, "No credentials found.")
 
 	return nil
 }

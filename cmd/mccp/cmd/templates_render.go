@@ -31,6 +31,8 @@ type templatesRenderFlags struct {
 	Title                  string
 	Description            string
 	CommitMessage          string
+	ListCredentials        bool
+	Credentials            string
 }
 
 var templatesRenderCmdFlags templatesRenderFlags
@@ -46,6 +48,8 @@ func init() {
 	templatesRenderCmd.PersistentFlags().StringVar(&templatesRenderCmdFlags.Title, "pr-title", "", "The title of the pull request")
 	templatesRenderCmd.PersistentFlags().StringVar(&templatesRenderCmdFlags.Description, "pr-description", "", "The description of the pull request")
 	templatesRenderCmd.PersistentFlags().StringVar(&templatesRenderCmdFlags.CommitMessage, "pr-commit-message", "", "The commit message to use when adding the CAPI template")
+	templatesRenderCmd.PersistentFlags().BoolVar(&templatesRenderCmdFlags.ListCredentials, "list-credentials", false, "The CAPI templates HTTP API endpoint")
+	templatesRenderCmd.PersistentFlags().StringVar(&templatesRenderCmdFlags.Credentials, "set-credentials", "", "Set credentials value on the command line")
 }
 
 func templatesRenderCmdRun(cmd *cobra.Command, args []string) error {
@@ -66,6 +70,18 @@ func templatesRenderCmdRun(cmd *cobra.Command, args []string) error {
 			vals[kv[0]] = kv[1]
 		}
 	}
+	if templatesRenderCmdFlags.ListCredentials {
+		w := formatter.NewTableWriter()
+		defer w.Flush()
+		return templates.ListCredentials(r, w)
+	}
+	creds := templates.Credentials{}
+	if templatesRenderCmdFlags.Credentials != "" {
+		creds, err = r.RetrieveCredentialsByName(templatesRenderCmdFlags.Credentials)
+		if err != nil {
+			return err
+		}
+	}
 	if templatesRenderCmdFlags.CreatePullRequest {
 		return templates.CreatePullRequest(templates.CreatePullRequestForTemplateParams{
 			TemplateName:    args[0],
@@ -76,7 +92,8 @@ func templatesRenderCmdRun(cmd *cobra.Command, args []string) error {
 			Title:           templatesRenderCmdFlags.Title,
 			Description:     templatesRenderCmdFlags.Description,
 			CommitMessage:   templatesRenderCmdFlags.CommitMessage,
+			Credentials:     creds,
 		}, r, os.Stdout)
 	}
-	return templates.RenderTemplate(args[0], vals, r, os.Stdout)
+	return templates.RenderTemplate(args[0], vals, creds, r, os.Stdout)
 }

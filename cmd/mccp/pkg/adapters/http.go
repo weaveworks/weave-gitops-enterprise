@@ -106,12 +106,13 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 
 // RenderTemplateWithParameters returns a YAML representation of the specified
 // template populated with the supplied parameters.
-func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[string]string) (string, error) {
+func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds templates.Credentials) (string, error) {
 	endpoint := "v1/templates/{name}/render"
 
 	// POST request payload
-	type TemplateParameterValues struct {
-		Values map[string]string `json:"values"`
+	type TemplateParameterValuesAndCredentials struct {
+		Values      map[string]string     `json:"values"`
+		Credentials templates.Credentials `json:"credentials"`
 	}
 
 	// POST response payload
@@ -126,7 +127,7 @@ func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[st
 		SetPathParams(map[string]string{
 			"name": name,
 		}).
-		SetBody(TemplateParameterValues{Values: parameters}).
+		SetBody(TemplateParameterValuesAndCredentials{Values: parameters, Credentials: creds}).
 		SetResult(&renderedTemplate).
 		SetError(&serviceErr).
 		Post(endpoint)
@@ -153,14 +154,15 @@ func (c *HttpClient) CreatePullRequestForTemplate(params templates.CreatePullReq
 
 	// POST request payload
 	type CreatePullRequestForTemplateRequest struct {
-		RepositoryURL   string            `json:"repositoryUrl"`
-		HeadBranch      string            `json:"headBranch"`
-		BaseBranch      string            `json:"baseBranch"`
-		Title           string            `json:"title"`
-		Description     string            `json:"description"`
-		TemplateName    string            `json:"templateName"`
-		ParameterValues map[string]string `json:"parameter_values"`
-		CommitMessage   string            `json:"commitMessage"`
+		RepositoryURL   string                `json:"repositoryUrl"`
+		HeadBranch      string                `json:"headBranch"`
+		BaseBranch      string                `json:"baseBranch"`
+		Title           string                `json:"title"`
+		Description     string                `json:"description"`
+		TemplateName    string                `json:"templateName"`
+		ParameterValues map[string]string     `json:"parameter_values"`
+		CommitMessage   string                `json:"commitMessage"`
+		Credentials     templates.Credentials `json:"credentials"`
 	}
 
 	// POST response payload
@@ -181,6 +183,7 @@ func (c *HttpClient) CreatePullRequestForTemplate(params templates.CreatePullReq
 			TemplateName:    params.TemplateName,
 			ParameterValues: params.ParameterValues,
 			CommitMessage:   params.CommitMessage,
+			Credentials:     params.Credentials,
 		}).
 		SetResult(&result).
 		SetError(&serviceErr).
@@ -199,4 +202,60 @@ func (c *HttpClient) CreatePullRequestForTemplate(params templates.CreatePullReq
 	}
 
 	return result.WebURL, nil
+}
+
+// RetrieveCredentials returns the list of all credentials
+func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
+	endpoint := "v1/credentials"
+
+	var credentialsList capiv1_protos.ListCredentialsResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetResult(&credentialsList).
+		Get(endpoint)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("unable to GET credentials from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var creds []templates.Credentials
+	for _, c := range credentialsList.Credentials {
+		creds = append(creds, templates.Credentials{
+			Group:     c.Group,
+			Version:   c.Version,
+			Kind:      c.Kind,
+			Name:      c.Name,
+			Namespace: c.Namespace,
+		})
+	}
+
+	return creds, nil
+}
+
+// RetrieveCredentialsByName returns credentials given a name
+func (c *HttpClient) RetrieveCredentialsByName(name string) (templates.Credentials, error) {
+	var creds templates.Credentials
+	credsList, err := c.RetrieveCredentials()
+	if err != nil {
+		return creds, fmt.Errorf("unable to retrieve credentials from %q: %w", c.Source(), err)
+	}
+
+	for _, c := range credsList {
+		if c.Name == name {
+			creds = templates.Credentials{
+				Group:     c.Group,
+				Version:   c.Version,
+				Kind:      c.Kind,
+				Name:      c.Name,
+				Namespace: c.Namespace,
+			}
+		}
+	}
+
+	return creds, nil
 }
