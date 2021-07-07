@@ -10,6 +10,11 @@ import (
 	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
 )
 
+type TemplateParameterValuesAndCredentials struct {
+	Values      map[string]string     `json:"values"`
+	Credentials templates.Credentials `json:"credentials"`
+}
+
 type ServiceError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -108,12 +113,6 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 // template populated with the supplied parameters.
 func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds templates.Credentials) (string, error) {
 	endpoint := "v1/templates/{name}/render"
-
-	// POST request payload
-	type TemplateParameterValuesAndCredentials struct {
-		Values      map[string]string     `json:"values"`
-		Credentials templates.Credentials `json:"credentials"`
-	}
 
 	// POST response payload
 	type RenderedTemplate struct {

@@ -11,33 +11,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var templatesListCmd = &cobra.Command{
-	Use:     "list",
-	Short:   "List CAPI templates",
-	Example: `mccp templates list`,
-	RunE:    templatesListCmdRun,
-	Args: func(cmd *cobra.Command, args []string) error {
-		_, err := url.ParseRequestURI(endpoint)
+func templatesListCmd(client *resty.Client) *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:     "list",
+		Short:   "List CAPI templates",
+		Example: `mccp templates list`,
+		RunE:    getTemplatesListCmdRun(client),
+		Args: func(*cobra.Command, []string) error {
+			_, err := url.ParseRequestURI(endpoint)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+		SilenceUsage:  true,
+		SilenceErrors: true,
+	}
+
+	return cmd
+}
+
+func getTemplatesListCmdRun(client *resty.Client) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		r, err := adapters.NewHttpClient(endpoint, client)
 		if err != nil {
 			return err
 		}
-		return nil
-	},
-	SilenceUsage:  true,
-	SilenceErrors: true,
-}
+		w := formatter.NewTableWriter()
+		defer w.Flush()
 
-func init() {
-	templatesCmd.AddCommand(templatesListCmd)
-}
-
-func templatesListCmdRun(cmd *cobra.Command, args []string) error {
-	r, err := adapters.NewHttpClient(endpoint, resty.New())
-	if err != nil {
-		return err
+		return templates.ListTemplates(r, w)
 	}
-	w := formatter.NewTableWriter()
-	defer w.Flush()
-
-	return templates.ListTemplates(r, w)
 }

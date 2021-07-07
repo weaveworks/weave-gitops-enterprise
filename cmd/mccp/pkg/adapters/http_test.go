@@ -21,7 +21,7 @@ func TestRetrieveTemplates(t *testing.T) {
 	}{
 		{
 			name:      "templates returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/templates.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/templates.json")),
 			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
 				assert.ElementsMatch(t, ts, []templates.Template{
 					{
@@ -78,7 +78,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 	}{
 		{
 			name:      "template parameters returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/template_parameters.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/template_parameters.json")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
 				assert.ElementsMatch(t, ts, []templates.TemplateParameter{
 					{
@@ -127,31 +127,57 @@ func TestRenderTemplateWithParameters(t *testing.T) {
 	}{
 		{
 			name:      "rendered template returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/rendered_template.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/rendered_template.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.Equal(t, result, `apiVersion: cluster.x-k8s.io/v1alpha3
+				assert.Equal(t, result, `apiVersion: cluster.x-k8s.io/v1alpha4
 kind: Cluster
 metadata:
-  name: foo
+  name: dev
 spec:
   clusterNetwork:
     pods:
       cidrBlocks:
       - 192.168.0.0/16
   controlPlaneRef:
-    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-    kind: KubeadmControlPlane
-    name: foo-control-plane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+    kind: AWSManagedControlPlane
+    name: dev-control-plane
   infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-    kind: AWSCluster
-    name: foo
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    kind: AWSManagedCluster
+    name: dev
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSManagedCluster
+metadata:
+  name: dev
+
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: AWSManagedControlPlane
+metadata:
+  name: dev-control-plane
+spec:
+  region: us-east-1
+  sshKeyName: ssh_key
+  version: "1.19"
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSFargateProfile
+metadata:
+  name: dev-fargate-0
+spec:
+  clusterName: mb-test-1
+  selectors:
+  - namespace: default
 `)
 			},
 		},
 		{
 			name:      "service error",
-			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("testdata/service_error.json")),
+			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("../../test/testdata/service_error.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render\": something bad happened")
 			},
@@ -195,14 +221,14 @@ func TestCreatePullRequestForTemplate(t *testing.T) {
 	}{
 		{
 			name:      "pull request created",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/pull_request_created.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/pull_request_created.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.Equal(t, result, "https://github.com/org/repo/pull/1")
 			},
 		},
 		{
 			name:      "service error",
-			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("testdata/service_error.json")),
+			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("../../test/testdata/service_error.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/pulls\": something bad happened")
 			},
@@ -246,7 +272,7 @@ func TestRetrieveCredentials(t *testing.T) {
 	}{
 		{
 			name:      "credentials returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/credentials.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/credentials.json")),
 			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
 				assert.ElementsMatch(t, creds, []templates.Credentials{
 					{
@@ -305,7 +331,7 @@ func TestRetrieveCredentialsByName(t *testing.T) {
 	}{
 		{
 			name:      "credentials returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/credentials.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/credentials.json")),
 			assertFunc: func(t *testing.T, creds templates.Credentials, err error) {
 				assert.Equal(t, creds, templates.Credentials{
 					Group:     "infrastructure.cluster.x-k8s.io",
