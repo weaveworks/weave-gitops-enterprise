@@ -22,6 +22,8 @@ type IdentityParams struct {
 }
 
 var IdentityParamsList = []IdentityParams{
+	// AWS
+	// Version: v1alpha3
 	{
 		Group:       "infrastructure.cluster.x-k8s.io",
 		Version:     "v1alpha3",
@@ -30,9 +32,52 @@ var IdentityParamsList = []IdentityParams{
 	},
 	{
 		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha3",
+		Kind:        "AWSClusterRoleIdentity",
+		ClusterKind: "AWSCluster",
+	},
+	// Version: v1alpha4
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha4",
+		Kind:        "AWSClusterStaticIdentity",
+		ClusterKind: "AWSCluster",
+	},
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha4",
+		Kind:        "AWSClusterRoleIdentity",
+		ClusterKind: "AWSCluster",
+	},
+	// Azure
+	// Version: v1alpha3
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha3",
+		Kind:        "AzureClusterIdentity",
+		ClusterKind: "AzureCluster",
+	},
+	// Version: v1alpha4
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
 		Version:     "v1alpha4",
 		Kind:        "AzureClusterIdentity",
 		ClusterKind: "AzureCluster",
+	},
+	// VSphere
+	// Version: v1alpha3
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha3",
+		Kind:        "VSphereClusterIdentity",
+		ClusterKind: "VSphereCluster",
+	},
+	// Version: v1alpha4
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha4",
+		Kind:        "VSphereClusterIdentity",
+		ClusterKind: "VSphereCluster",
 	},
 }
 
