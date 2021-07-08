@@ -4,12 +4,25 @@ import (
 	"fmt"
 
 	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	serializer "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
 )
 
-// Render takes a te
-func Render(spec capiv1.CAPITemplateSpec, vars map[string]string) ([][]byte, error) {
+type RenderOptFunc func(b []byte) ([]byte, error)
+
+// InNamespace is an Render option that updates the object metadata to put it
+// into the correct namespace.
+func InNamespace(ns string) RenderOptFunc {
+	return unstructuredFunc(func(uns *unstructured.Unstructured) {
+		uns.SetNamespace(ns)
+	})
+}
+
+// Render takes template Spec and vars and returns a slice of byte-slices with
+// the bodies of the rendered objects.
+func Render(spec capiv1.CAPITemplateSpec, vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
 	proc := processor.NewSimpleProcessor()
 	var processed [][]byte
 	for _, v := range spec.ResourceTemplates {
@@ -26,7 +39,32 @@ func Render(spec capiv1.CAPITemplateSpec, vars map[string]string) ([][]byte, err
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
 		}
+
+		for _, o := range opts {
+			updated, err := o(data)
+			if err != nil {
+				return nil, err
+			}
+			data = updated
+		}
 		processed = append(processed, data)
 	}
 	return processed, nil
+}
+
+func unstructuredFunc(f func(uo *unstructured.Unstructured)) RenderOptFunc {
+	dec := serializer.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+	return func(b []byte) ([]byte, error) {
+		uns := &unstructured.Unstructured{}
+		_, _, err := dec.Decode(b, nil, uns)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode the YAML: %w", err)
+		}
+		f(uns)
+		updated, err := yaml.Marshal(uns)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal the updated object: %w", err)
+		}
+		return updated, nil
+	}
 }

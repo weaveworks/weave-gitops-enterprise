@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func TestRender(t *testing.T) {
@@ -26,6 +27,89 @@ apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
   name: testing-md-0
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
+func TestInNamespace(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing`)
+
+	updated, err := InNamespace("new-namespace")(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: new-namespace
+`
+
+	if diff := cmp.Diff(want, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}
+
+func TestRender_in_namespace(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/template3.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"}, InNamespace("new-test-namespace"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: new-test-namespace
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSMachineTemplate
+metadata:
+  name: testing-md-0
+  namespace: new-test-namespace
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
+func TestRender_with_options(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/template3.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"},
+		unstructuredFunc(func(uns *unstructured.Unstructured) {
+			uns.SetName("just-a-test")
+		}),
+		unstructuredFunc(func(uns *unstructured.Unstructured) {
+			uns.SetNamespace("not-a-real-namespace")
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: just-a-test
+  namespace: not-a-real-namespace
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSMachineTemplate
+metadata:
+  name: just-a-test
+  namespace: not-a-real-namespace
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
