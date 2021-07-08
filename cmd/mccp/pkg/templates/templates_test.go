@@ -90,7 +90,7 @@ func TestListTemplateParameters(t *testing.T) {
 					Name: "template-param-b",
 				},
 			},
-			expected: "NAME\tDESCRIPTION\ntemplate-param-a\ntemplate-param-b\n",
+			expected: "NAME\tDESCRIPTION\tOPTIONS\ntemplate-param-a\ntemplate-param-b\n",
 		},
 		{
 			name: "templates include all fields",
@@ -98,13 +98,14 @@ func TestListTemplateParameters(t *testing.T) {
 				{
 					Name:        "template-param-a",
 					Description: "a desc",
+					Options:     []string{"op-1", "op-2"},
 				},
 				{
 					Name:        "template-param-b",
 					Description: "b desc",
 				},
 			},
-			expected: "NAME\tDESCRIPTION\ntemplate-param-a\ta desc\ntemplate-param-b\tb desc\n",
+			expected: "NAME\tDESCRIPTION\tOPTIONS\ntemplate-param-a\ta desc\top-1, op-2\ntemplate-param-b\tb desc\n",
 		},
 		{
 			name:             "error retrieving templates",

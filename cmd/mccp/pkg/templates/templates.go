@@ -3,6 +3,7 @@ package templates
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 type TemplatesRetriever interface {
@@ -38,6 +39,7 @@ type Template struct {
 type TemplateParameter struct {
 	Name        string
 	Description string
+	Options     []string
 }
 
 type CreatePullRequestForTemplateParams struct {
@@ -91,12 +93,16 @@ func ListTemplateParameters(name string, r TemplateParametersRetriever, w io.Wri
 	}
 
 	if len(ts) > 0 {
-		fmt.Fprintf(w, "NAME\tDESCRIPTION\n")
+		fmt.Fprintf(w, "NAME\tDESCRIPTION\tOPTIONS\n")
 
 		for _, t := range ts {
 			fmt.Fprintf(w, "%s", t.Name)
 			if t.Description != "" {
 				fmt.Fprintf(w, "\t%s", t.Description)
+			}
+			if t.Options != nil {
+				optionsStr := strings.Join(t.Options, ", ")
+				fmt.Fprintf(w, "\t%s", optionsStr)
 			}
 			fmt.Fprintln(w, "")
 		}
