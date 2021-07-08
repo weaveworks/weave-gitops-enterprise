@@ -20,7 +20,7 @@ func TestListTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no templates",
-			expected: "No templates found.",
+			expected: "No templates found.\n",
 		},
 		{
 			name: "templates includes just name",

@@ -1,29 +1,19 @@
 package cmd
 
 import (
-	"net/url"
-
 	"github.com/go-resty/resty/v2"
+	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/formatter"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
-
-	"github.com/spf13/cobra"
 )
 
 func templatesListCmd(client *resty.Client) *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:     "list",
-		Short:   "List CAPI templates",
-		Example: `mccp templates list`,
-		RunE:    getTemplatesListCmdRun(client),
-		Args: func(*cobra.Command, []string) error {
-			_, err := url.ParseRequestURI(endpoint)
-			if err != nil {
-				return err
-			}
-			return nil
-		},
+		Use:           "list",
+		Short:         "List CAPI templates",
+		Example:       `mccp templates list`,
+		RunE:          getTemplatesListCmdRun(client),
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}

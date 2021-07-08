@@ -8,6 +8,7 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
+	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
 )
 
@@ -355,6 +356,63 @@ func TestRetrieveCredentialsByName(t *testing.T) {
 			assert.NoError(t, err)
 			creds, err := r.RetrieveCredentialsByName("aws-creds")
 			tt.assertFunc(t, creds, err)
+		})
+	}
+}
+
+func TestRetrieveClusters(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, cs []clusters.Cluster, err error)
+	}{
+		{
+			name:      "clusters returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/clusters.json")),
+			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
+				assert.ElementsMatch(t, cs, []clusters.Cluster{
+					{
+						Name:   "cluster-a",
+						Status: "pullRequestCreated",
+					},
+					{
+						Name:   "cluster-b",
+						Status: "pullRequestCreated",
+					},
+					{
+						Name:   "cluster-c",
+						Status: "pullRequestCreated",
+					},
+				})
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
+				assert.EqualError(t, err, "unable to GET clusters from \"https://weave.works/api/gitops/api/clusters\": Get \"https://weave.works/api/gitops/api/clusters\": oops")
+			},
+		},
+		{
+			name:      "unexpected status code",
+			responder: httpmock.NewStringResponder(400, ""),
+			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/gitops/api/clusters\" was 400")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/gitops/api/clusters", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client)
+			assert.NoError(t, err)
+			cs, err := r.RetrieveClusters()
+			tt.assertFunc(t, cs, err)
 		})
 	}
 }

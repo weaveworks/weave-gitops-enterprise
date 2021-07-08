@@ -79,7 +79,7 @@ func ListTemplates(r TemplatesRetriever, w io.Writer) error {
 		return nil
 	}
 
-	fmt.Fprintf(w, "No templates found.")
+	fmt.Fprintf(w, "No templates found.\n")
 
 	return nil
 }

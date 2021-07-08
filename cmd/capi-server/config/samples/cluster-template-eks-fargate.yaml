@@ -1,0 +1,62 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-eks-fargate
+spec:
+  description: This is an AWS cluster template for EKS Fargate 
+  # https://github.com/kubernetes-sigs/cluster-api-provider-aws/blob/main/templates/cluster-template-eks-fargate.yaml
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+      options: []
+      required: true
+    - name: AWS_REGION
+      description: This is used for the AWS region.
+      options: []
+      required: true
+    - name: AWS_SSH_KEY_NAME
+      description: This is used for AWS ssh key.
+      options: []
+      required: true
+    - name: KUBERNETES_VERSION
+      description: This is used for the Kubernetes version.
+      options: []
+      required: true
+  resourcetemplates:
+  - apiVersion: cluster.x-k8s.io/v1alpha4
+    kind: Cluster
+    metadata:
+      name: "${CLUSTER_NAME}"
+    spec:
+      clusterNetwork:
+        pods:
+          cidrBlocks: ["192.168.0.0/16"]
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+        kind: AWSManagedCluster
+        name: "${CLUSTER_NAME}"
+      controlPlaneRef:
+        kind: AWSManagedControlPlane
+        apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+        name: "${CLUSTER_NAME}-control-plane"
+  - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    kind: AWSManagedCluster
+    metadata:
+      name: "${CLUSTER_NAME}"
+  - apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+    kind: AWSManagedControlPlane
+    metadata:
+      name: "${CLUSTER_NAME}-control-plane"
+    spec:
+      region: "${AWS_REGION}"
+      sshKeyName: "${AWS_SSH_KEY_NAME}"
+      version: "${KUBERNETES_VERSION}"
+  - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    kind: AWSFargateProfile
+    metadata:
+      name: "${CLUSTER_NAME}-fargate-0"
+    spec:
+      clusterName: mb-test-1
+      selectors:
+        - namespace: default
+

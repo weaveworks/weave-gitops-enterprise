@@ -1,12 +1,14 @@
 package adapters
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
 	capiv1_protos "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
 )
 
@@ -257,4 +259,46 @@ func (c *HttpClient) RetrieveCredentialsByName(name string) (templates.Credentia
 	}
 
 	return creds, nil
+}
+
+func (c *HttpClient) RetrieveClusters() ([]clusters.Cluster, error) {
+	endpoint := "gitops/api/clusters"
+
+	type ClusterView struct {
+		Name   string `json:"name"`
+		Status string `json:"status"`
+	}
+
+	type ClustersResponse struct {
+		Clusters []ClusterView `json:"clusters"`
+	}
+
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetDoNotParseResponse(true).
+		Get(endpoint)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to GET clusters from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var clusterList ClustersResponse
+	err = json.NewDecoder(res.RawBody()).Decode(&clusterList)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse response as a cluster list: %w", err)
+	}
+
+	var cs []clusters.Cluster
+	for _, c := range clusterList.Clusters {
+		cs = append(cs, clusters.Cluster{
+			Name:   c.Name,
+			Status: c.Status,
+		})
+	}
+
+	return cs, nil
 }
