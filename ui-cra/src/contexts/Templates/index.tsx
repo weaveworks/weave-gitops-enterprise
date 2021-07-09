@@ -12,8 +12,7 @@ interface TemplatesContext {
   getTemplate: (templateName: string) => Template | null;
   PRPreview: string | null;
   creatingPR: boolean;
-  PRurl: string | null;
-  setPRurl: Dispatch<React.SetStateAction<string | null>>;
+  setError: Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const Templates = createContext<TemplatesContext | null>(null);

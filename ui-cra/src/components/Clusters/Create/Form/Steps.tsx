@@ -48,6 +48,15 @@ const localMuiTheme = createMuiTheme({
         ...muiTheme.overrides?.MuiInputLabel?.formControl,
         fontSize: `${theme.fontSizes.tiny}`,
       },
+      shrink: {
+        transform: 'none',
+      },
+    },
+    MuiSelect: {
+      select: {
+        ...muiTheme.overrides?.MuiSelect?.select,
+        minWidth: '155px',
+      },
     },
   },
 });

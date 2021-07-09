@@ -8,6 +8,7 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
+	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
 )
 
@@ -21,7 +22,7 @@ func TestRetrieveTemplates(t *testing.T) {
 	}{
 		{
 			name:      "templates returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/templates.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/templates.json")),
 			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
 				assert.ElementsMatch(t, ts, []templates.Template{
 					{
@@ -78,7 +79,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 	}{
 		{
 			name:      "template parameters returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/template_parameters.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/template_parameters.json")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
 				assert.ElementsMatch(t, ts, []templates.TemplateParameter{
 					{
@@ -127,31 +128,57 @@ func TestRenderTemplateWithParameters(t *testing.T) {
 	}{
 		{
 			name:      "rendered template returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/rendered_template.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/rendered_template.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.Equal(t, result, `apiVersion: cluster.x-k8s.io/v1alpha3
+				assert.Equal(t, result, `apiVersion: cluster.x-k8s.io/v1alpha4
 kind: Cluster
 metadata:
-  name: foo
+  name: dev
 spec:
   clusterNetwork:
     pods:
       cidrBlocks:
       - 192.168.0.0/16
   controlPlaneRef:
-    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-    kind: KubeadmControlPlane
-    name: foo-control-plane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+    kind: AWSManagedControlPlane
+    name: dev-control-plane
   infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-    kind: AWSCluster
-    name: foo
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    kind: AWSManagedCluster
+    name: dev
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSManagedCluster
+metadata:
+  name: dev
+
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: AWSManagedControlPlane
+metadata:
+  name: dev-control-plane
+spec:
+  region: us-east-1
+  sshKeyName: ssh_key
+  version: "1.19"
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSFargateProfile
+metadata:
+  name: dev-fargate-0
+spec:
+  clusterName: mb-test-1
+  selectors:
+  - namespace: default
 `)
 			},
 		},
 		{
 			name:      "service error",
-			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("testdata/service_error.json")),
+			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("../../test/testdata/service_error.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render\": something bad happened")
 			},
@@ -181,7 +208,7 @@ spec:
 
 			r, err := adapters.NewHttpClient(BaseURI, client)
 			assert.NoError(t, err)
-			result, err := r.RenderTemplateWithParameters("cluster-template", nil)
+			result, err := r.RenderTemplateWithParameters("cluster-template", nil, templates.Credentials{})
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -195,14 +222,14 @@ func TestCreatePullRequestForTemplate(t *testing.T) {
 	}{
 		{
 			name:      "pull request created",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("testdata/pull_request_created.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/pull_request_created.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.Equal(t, result, "https://github.com/org/repo/pull/1")
 			},
 		},
 		{
 			name:      "service error",
-			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("testdata/service_error.json")),
+			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("../../test/testdata/service_error.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/pulls\": something bad happened")
 			},
@@ -234,6 +261,158 @@ func TestCreatePullRequestForTemplate(t *testing.T) {
 			assert.NoError(t, err)
 			result, err := c.CreatePullRequestForTemplate(templates.CreatePullRequestForTemplateParams{})
 			tt.assertFunc(t, result, err)
+		})
+	}
+}
+
+func TestRetrieveCredentials(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, credentials []templates.Credentials, err error)
+	}{
+		{
+			name:      "credentials returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/credentials.json")),
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+				assert.ElementsMatch(t, creds, []templates.Credentials{
+					{
+						Group:     "infrastructure.cluster.x-k8s.io",
+						Version:   "v1alpha3",
+						Kind:      "AWSClusterStaticIdentity",
+						Name:      "aws-creds",
+						Namespace: "default",
+					},
+					{
+						Group:     "infrastructure.cluster.x-k8s.io",
+						Version:   "v1alpha4",
+						Kind:      "AzureClusterIdentity",
+						Name:      "azure-creds",
+						Namespace: "default",
+					},
+				})
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+				assert.EqualError(t, err, "unable to GET credentials from \"https://weave.works/api/v1/credentials\": Get \"https://weave.works/api/v1/credentials\": oops")
+			},
+		},
+		{
+			name:      "unexpected status code",
+			responder: httpmock.NewStringResponder(400, ""),
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/credentials\" was 400")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/v1/credentials", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client)
+			assert.NoError(t, err)
+			creds, err := r.RetrieveCredentials()
+			tt.assertFunc(t, creds, err)
+		})
+	}
+}
+
+func TestRetrieveCredentialsByName(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, credentials templates.Credentials, err error)
+	}{
+		{
+			name:      "credentials returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/credentials.json")),
+			assertFunc: func(t *testing.T, creds templates.Credentials, err error) {
+				assert.Equal(t, creds, templates.Credentials{
+					Group:     "infrastructure.cluster.x-k8s.io",
+					Version:   "v1alpha3",
+					Kind:      "AWSClusterStaticIdentity",
+					Name:      "aws-creds",
+					Namespace: "default",
+				})
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/v1/credentials", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client)
+			assert.NoError(t, err)
+			creds, err := r.RetrieveCredentialsByName("aws-creds")
+			tt.assertFunc(t, creds, err)
+		})
+	}
+}
+
+func TestRetrieveClusters(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, cs []clusters.Cluster, err error)
+	}{
+		{
+			name:      "clusters returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/clusters.json")),
+			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
+				assert.ElementsMatch(t, cs, []clusters.Cluster{
+					{
+						Name:   "cluster-a",
+						Status: "pullRequestCreated",
+					},
+					{
+						Name:   "cluster-b",
+						Status: "pullRequestCreated",
+					},
+					{
+						Name:   "cluster-c",
+						Status: "pullRequestCreated",
+					},
+				})
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
+				assert.EqualError(t, err, "unable to GET clusters from \"https://weave.works/api/gitops/api/clusters\": Get \"https://weave.works/api/gitops/api/clusters\": oops")
+			},
+		},
+		{
+			name:      "unexpected status code",
+			responder: httpmock.NewStringResponder(400, ""),
+			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/gitops/api/clusters\" was 400")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/gitops/api/clusters", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client)
+			assert.NoError(t, err)
+			cs, err := r.RetrieveClusters()
+			tt.assertFunc(t, cs, err)
 		})
 	}
 }

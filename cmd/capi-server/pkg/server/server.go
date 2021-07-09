@@ -161,7 +161,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	// FIXME: parse and read from Cluster in yaml template
 	clusterNamespace, ok := msg.ParameterValues["NAMESPACE"]
 	if !ok {
-		return nil, fmt.Errorf("unable to find 'NAMESPACE' parameter in supplied values")
+		// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
+		clusterNamespace = "default"
 	}
 
 	path := fmt.Sprintf("management/%s.yaml", clusterName)

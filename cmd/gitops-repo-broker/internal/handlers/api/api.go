@@ -118,6 +118,7 @@ func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Respon
 			return
 		}
 		w.Header().Add("Content-Range", fmt.Sprintf("clusters */%d", response.Total))
+		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, string(data))
 	}

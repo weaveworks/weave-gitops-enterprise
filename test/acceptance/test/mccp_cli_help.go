@@ -158,7 +158,7 @@ func DescribeMccpCliHelp() {
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-description string[\s]+The description of the pull request`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-repo string[\s]+The repository to open a pull request against`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-title string[\s]+The title of the pull request`))
-				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--set stringArray[\s]+Set parameter values on the command line \(can specify multiple or separate values with commas: key1=val1,key2=val2\)`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--set strings[\s]+Set parameter values on the command line \(can specify multiple or separate values with commas: key1=val1,key2=val2\)`))
 			})
 
 			By("And  Global Flags category", func() {

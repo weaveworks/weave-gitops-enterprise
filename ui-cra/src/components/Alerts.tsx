@@ -118,7 +118,7 @@ export const AlertsDashboard: FC = () => {
   const alertsCount = alerts?.length;
 
   return (
-    <PageTemplate documentTitle="WeGo · Alerts">
+    <PageTemplate documentTitle="WeGo · Alerts" error={error}>
       <SectionHeader
         className="count-header"
         path={[

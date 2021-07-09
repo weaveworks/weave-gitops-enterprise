@@ -2,6 +2,7 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 import { Template } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Templates } from './index';
+import { useHistory } from 'react-router-dom';
 
 const TemplatesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -10,7 +11,8 @@ const TemplatesProvider: FC = ({ children }) => {
   const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [creatingPR, setCreatingPR] = useState<boolean>(false);
-  const [PRurl, setPRurl] = useState<string | null>(null);
+
+  const history = useHistory();
 
   const templatesUrl = '/v1/templates';
 
@@ -34,17 +36,20 @@ const TemplatesProvider: FC = ({ children }) => {
     [activeTemplate],
   );
 
-  const addCluster = useCallback(({ ...data }) => {
-    setCreatingPR(true);
-    request('POST', '/v1/pulls', {
-      body: JSON.stringify(data),
-    })
-      .then(data => setPRurl(data.webUrl))
-      .catch(err => setError(err.message))
-      .finally(() => setCreatingPR(false));
-  }, []);
+  const addCluster = useCallback(
+    ({ ...data }) => {
+      setCreatingPR(true);
+      request('POST', '/v1/pulls', {
+        body: JSON.stringify(data),
+      })
+        .then(() => history.push('/clusters'))
+        .catch(err => setError(err.message))
+        .finally(() => setCreatingPR(false));
+    },
+    [history],
+  );
 
-  useEffect(() => {
+  const getTemplates = useCallback(() => {
     setLoading(true);
     request('GET', templatesUrl, {
       cache: 'no-store',
@@ -57,6 +62,11 @@ const TemplatesProvider: FC = ({ children }) => {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    getTemplates();
+    return history.listen(getTemplates);
+  }, [history, getTemplates]);
+
   return (
     <Templates.Provider
       value={{
@@ -66,12 +76,11 @@ const TemplatesProvider: FC = ({ children }) => {
         setActiveTemplate,
         getTemplate,
         error,
+        setError,
         addCluster,
         renderTemplate,
         PRPreview,
         creatingPR,
-        PRurl,
-        setPRurl,
       }}
     >
       {children}
