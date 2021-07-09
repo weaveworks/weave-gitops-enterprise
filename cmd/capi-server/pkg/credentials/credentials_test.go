@@ -23,7 +23,7 @@ func TestMaybeInjectCredentials(t *testing.T) {
 
 	// Wrong kind
 	templateBit := `
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSCluster
 `
 	result, _ = MaybeInjectCredentials([]byte(templateBit), "FooKind", nil)
@@ -32,7 +32,7 @@ kind: AWSCluster
 	}
 
 	// Right kind !
-	expected := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+	expected := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSCluster
 spec:
   identityRef:
@@ -67,7 +67,7 @@ func TestCheckCredentialsExist(t *testing.T) {
 	u.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   "infrastructure.cluster.x-k8s.io",
 		Kind:    "AWSCluster",
-		Version: "v1alpha3",
+		Version: "v1alpha4",
 	})
 
 	c := createFakeClient()
@@ -91,7 +91,7 @@ func TestCheckCredentialsExist(t *testing.T) {
 	creds = &capiv1_protos.Credential{
 		Group:     "infrastructure.cluster.x-k8s.io",
 		Kind:      "AWSCluster",
-		Version:   "v1alpha3",
+		Version:   "v1alpha4",
 		Namespace: "test",
 		Name:      "test",
 	}
@@ -111,33 +111,36 @@ func TestInjectCredentials(t *testing.T) {
 	}
 
 	var templateBits [][]byte
-	// Wrong kind
 	templateBit := `
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSCluster
 `
-
 	templateBits = append(templateBits, []byte(templateBit))
 
+	// no credentials
 	result, _ = InjectCredentials(templateBits, nil)
 	resultStr := convertToStringArray(result)
 	if diff := cmp.Diff(resultStr[0], templateBit); diff != "" {
 		t.Fatalf("expected didn't match result! %v", diff)
 	}
 
-	// Right kind !
-	expected := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+	expected := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSCluster
 spec:
   identityRef:
-    kind: FooKind
+    kind: AWSClusterStaticIdentity
     name: FooName
 `
-
-	result, _ = InjectCredentials(templateBits, &capiv1_protos.Credential{
-		Kind: "FooKind",
-		Name: "FooName",
+	// with creds
+	result, err := InjectCredentials(templateBits, &capiv1_protos.Credential{
+		Group:   "infrastructure.cluster.x-k8s.io",
+		Version: "v1alpha4",
+		Kind:    "AWSClusterStaticIdentity",
+		Name:    "FooName",
 	})
+	if err != nil {
+		t.Fatalf("unexpected err %v", err)
+	}
 	resultStr = convertToStringArray(result)
 
 	if diff := cmp.Diff(resultStr[0], expected); diff != "" {

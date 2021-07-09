@@ -26,3 +26,16 @@ export type ListTemplatesResponse = {
   templates?: Template[];
   total?: number;
 };
+
+export type Credential = {
+  group?: string;
+  version?: string;
+  kind?: string;
+  name?: string;
+  namespace?: string;
+};
+
+export type ListCredentialsResponse = {
+  credentials?: Credential[];
+  total?: number;
+};

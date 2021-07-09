@@ -4,17 +4,17 @@ kind: ClusterRole
 metadata:
   name: capitemplate-viewer-role
 rules:
-- apiGroups:
-  - capi.weave.works
-  resources:
-  - capitemplates
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - capi.weave.works
-  resources:
-  - capitemplates/status
-  verbs:
-  - get
+  - apiGroups:
+      - capi.weave.works
+    resources:
+      - capitemplates
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - capi.weave.works
+    resources:
+      - capitemplates/status
+    verbs:
+      - get

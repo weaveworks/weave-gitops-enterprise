@@ -25,6 +25,7 @@ import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { PageTemplate } from './Layout/PageTemplate';
 import { SectionHeader } from './Layout/SectionHeader';
 import { ContentWrapper } from './Layout/ContentWrapper';
+import CredentialsProvider from '../contexts/Credentials/Provider';
 
 const drawerWidth = 240;
 
@@ -101,7 +102,14 @@ const ResponsiveDrawer = () => {
   );
 
   return (
-    <Compose components={[TemplatesProvider, ClustersProvider, AlertsProvider]}>
+    <Compose
+      components={[
+        TemplatesProvider,
+        ClustersProvider,
+        AlertsProvider,
+        CredentialsProvider,
+      ]}
+    >
       <div className={classes.root}>
         <CssBaseline />
         <Box className={classes.menuButtonBox}>

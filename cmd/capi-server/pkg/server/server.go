@@ -67,13 +67,14 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
 	log.WithFields(log.Fields{
-		"request_values": msg.Values,
+		"request_values":      msg.Values,
+		"request_credentials": msg.Credentials,
 	}).Info("Received message")
 	tm, err := s.library.Get(ctx, msg.TemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	templateBits, err := capi.Render(tm.Spec, msg.Values.Values)
+	templateBits, err := capi.Render(tm.Spec, msg.Values)
 	if err != nil {
 		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
 	}
@@ -161,6 +162,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	// FIXME: parse and read from Cluster in yaml template
 	clusterNamespace, ok := msg.ParameterValues["NAMESPACE"]
 	if !ok {
+		log.Warn("Couldn't find NAMESPACE param in request, using 'default'.")
 		// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
 		clusterNamespace = "default"
 	}
@@ -287,7 +289,7 @@ func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCred
 		for _, identity := range identityList.Items {
 			creds = append(creds, &capiv1_proto.Credential{
 				Group:     identityParams.Group,
-				Version:   identity.GetAPIVersion(),
+				Version:   identity.GroupVersionKind().Version,
 				Kind:      identity.GetKind(),
 				Name:      identity.GetName(),
 				Namespace: identity.GetNamespace(),

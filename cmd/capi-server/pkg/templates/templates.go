@@ -90,7 +90,7 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITempla
 	if err != nil {
 		return nil, fmt.Errorf("error getting capitemplate %s/%s: %s", lib.Namespace, name, err)
 	}
-	log.Infof("got capitemplate: %v\n", capiTemplate)
+	log.Infof("got capitemplate: %v\n", name)
 
 	return &capiTemplate, nil
 }
@@ -102,7 +102,7 @@ func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.CAPITemplat
 	if err != nil {
 		return nil, fmt.Errorf("error getting capitemplates: %s", err)
 	}
-	log.Infof("got capitemplates: %v\n", capiTemplateList.Items)
+	log.Infof("got capitemplates len: %v\n", len(capiTemplateList.Items))
 
 	result := map[string]*capiv1.CAPITemplate{}
 	for i, ct := range capiTemplateList.Items {

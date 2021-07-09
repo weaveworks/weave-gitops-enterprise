@@ -20,10 +20,10 @@ const TemplatesProvider: FC = ({ children }) => {
     templates.find(template => template.name === templateName) || null;
 
   const renderTemplate = useCallback(
-    ({ ...data }) => {
+    data => {
       setLoading(true);
       request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
-        body: JSON.stringify({ values: data }),
+        body: JSON.stringify(data),
       })
         .then(data => {
           setPRPreview(data.renderedTemplate);

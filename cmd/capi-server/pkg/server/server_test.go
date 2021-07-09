@@ -17,7 +17,9 @@ import (
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 )
@@ -191,12 +193,26 @@ func TestListTemplateParams(t *testing.T) {
 }
 
 func TestRenderTemplate(t *testing.T) {
+	u := &unstructured.Unstructured{}
+	u.Object = map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"name":      "cred-name",
+			"namespace": "cred-namespace",
+		},
+	}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "infrastructure.cluster.x-k8s.io",
+		Kind:    "AWSClusterStaticIdentity",
+		Version: "v1alpha4",
+	})
+
 	testCases := []struct {
 		name             string
 		clusterState     []runtime.Object
 		expected         string
 		err              error
 		expectedErrorStr string
+		credentials      *capiv1_protos.Credential
 	}{
 		{
 			name: "render template",
@@ -204,6 +220,34 @@ func TestRenderTemplate(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
+		},
+		{
+			name: "render template with credentials",
+			clusterState: []runtime.Object{
+				u,
+				makeTemplateConfigMap("template1",
+					makeTemplate(t, func(ct *capiv1.CAPITemplate) {
+						ct.ObjectMeta.Name = "cluster-template-1"
+						ct.Spec.Description = "this is test template 1"
+						ct.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+							{
+								RawExtension: rawExtension(`{
+							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+							"kind": "AWSCluster"
+						}`),
+							},
+						}
+					}),
+				),
+			},
+			credentials: &capiv1_protos.Credential{
+				Group:     "infrastructure.cluster.x-k8s.io",
+				Version:   "v1alpha4",
+				Kind:      "AWSClusterStaticIdentity",
+				Name:      "cred-name",
+				Namespace: "cred-namespace",
+			},
+			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
 		},
 	}
 
@@ -213,11 +257,10 @@ func TestRenderTemplate(t *testing.T) {
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
-				Values: &capiv1_protos.ParameterValues{
-					Values: map[string]string{
-						"CLUSTER_NAME": "test-cluster",
-					},
+				Values: map[string]string{
+					"CLUSTER_NAME": "test-cluster",
 				},
+				Credentials: tt.credentials,
 			}
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
@@ -236,7 +279,6 @@ func TestRenderTemplate(t *testing.T) {
 		})
 	}
 }
-
 func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
 		name         string
