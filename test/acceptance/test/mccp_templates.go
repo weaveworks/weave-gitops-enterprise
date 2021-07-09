@@ -80,6 +80,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-capitemplate.yaml")
 
 				pages.NavigateToPage(webDriver, "Templates")
+				pages.WaitForAnyTemplateToAppear(webDriver)
 				templatesPage := pages.GetTemplatesPage(webDriver)
 
 				By("And wait for Templates page to be fully rendered", func() {
@@ -115,6 +116,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				templateFiles = mccpTestRunner.CreateApplyCapitemplates(50, "capi-server-v1-capitemplate.yaml")
 
 				pages.NavigateToPage(webDriver, "Templates")
+				pages.WaitForAnyTemplateToAppear(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-9")
@@ -139,6 +141,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
+				pages.WaitForAnyTemplateToAppear(webDriver)
 
 				By("And User should see message informing user of the invalid template in the cluster", func() {
 					// TODO
@@ -160,6 +163,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
+				pages.WaitForAnyTemplateToAppear(webDriver)
 				templatesPage := pages.GetTemplatesPage(webDriver)
 
 				By("And wait for Templates page to be fully rendered", func() {
@@ -187,6 +191,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
+				pages.WaitForAnyTemplateToAppear(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "eks-fargate-template-0")
@@ -281,6 +286,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
+				pages.WaitForAnyTemplateToAppear(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")

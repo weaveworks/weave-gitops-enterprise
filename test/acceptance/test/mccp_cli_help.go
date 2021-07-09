@@ -23,12 +23,14 @@ func verifyUsageText(session *gexec.Session) {
 
 	By("And Available-Commands category", func() {
 		Eventually(session).Should(gbytes.Say("Available Commands:"))
+		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`clusters[\s]+Interact with Kubernetes clusters`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`help[\s]+Help about any command`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`templates[\s]+Interact with CAPI templates`))
 	})
 
 	By("And Flags category", func() {
 		Eventually(session).Should(gbytes.Say("Flags:"))
+		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string[\s]+The MCCP HTTP API endpoint`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-h, --help[\s]+help for mccp`))
 	})
 
@@ -54,7 +56,7 @@ func DescribeMccpCliHelp() {
 			})
 		})
 
-		It("Verify that mccp displays error message when provided with the wrong flag", func() {
+		It("Verify that mccp displays help text when provided with the wrong flag", func() {
 
 			By("When I run 'mccp foo'", func() {
 				command := exec.Command(MCCP_BIN_PATH, "foo")
@@ -62,10 +64,7 @@ func DescribeMccpCliHelp() {
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 
-			By("Then I should see mccp error message", func() {
-				Eventually(session.Err).Should(gbytes.Say("Error: unknown command \"foo\" for \"mccp\""))
-				Eventually(session.Err).Should(gbytes.Say("Run 'mccp --help' for usage."))
-			})
+			verifyUsageText(session)
 		})
 
 		It("Verify that mccp help flag prints the help text", func() {
@@ -120,7 +119,7 @@ func DescribeMccpCliHelp() {
 			})
 
 			By("And  Global Flags category", func() {
-				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string\s+The CAPI templates HTTP API endpoint`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string\s+The MCCP HTTP API endpoint`))
 			})
 
 		})
@@ -152,6 +151,7 @@ func DescribeMccpCliHelp() {
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-h, --help[\s]+help for render`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--create-pr[\s]+Indicates whether to create a pull request for the CAPI template`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--list-parameters[\s]+The CAPI templates HTTP API endpoint`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--list-credentials [\s]+Indicates whether to list existing cluster credentials`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-base string[\s]+The base branch to open the pull request against`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-branch string[\s]+The branch to create the pull request from`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-commit-message string[\s]+The commit message to use when adding the CAPI template`))
@@ -159,10 +159,11 @@ func DescribeMccpCliHelp() {
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-repo string[\s]+The repository to open a pull request against`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--pr-title string[\s]+The title of the pull request`))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--set strings[\s]+Set parameter values on the command line \(can specify multiple or separate values with commas: key1=val1,key2=val2\)`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--set-credentials string[\s]+Set credentials value on the command line`))
 			})
 
 			By("And  Global Flags category", func() {
-				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string\s+The CAPI templates HTTP API endpoint`))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string\s+The MCCP HTTP API endpoint`))
 			})
 
 		})

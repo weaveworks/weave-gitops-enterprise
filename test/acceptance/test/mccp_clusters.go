@@ -171,7 +171,7 @@ func connectACluster(webDriver *agouti.Page, mccpTestRunner MCCPTestRunner, leaf
 	// If leaf is not a WKP cluster skip the git activity check
 	if leaf.IsWKP {
 		By("And it should be showing the git activity", func() {
-			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("svg"), ASSERTION_1MINUTE_TIME_OUT).
+			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("svg"), ASSERTION_2MINUTE_TIME_OUT).
 				Should(BeFound())
 			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("circle")).
 				Should(BeFound())
