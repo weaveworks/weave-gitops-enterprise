@@ -52,8 +52,16 @@ var IdentityParamsList = []IdentityParams{
 	},
 }
 
+func emptyCredentials(creds *capiv1_proto.Credential) bool {
+	return creds.Name == "" &&
+		creds.Namespace == "" &&
+		creds.Kind == "" &&
+		creds.Version == "" &&
+		creds.Group == ""
+}
+
 func CheckAndInjectCredentials(c client.Client, tmplWithValues [][]byte, creds *capiv1_proto.Credential, tmpName string) ([]byte, error) {
-	if creds == nil {
+	if creds == nil || emptyCredentials(creds) {
 		log.Infof("No credentials %v", creds)
 		return bytes.Join(tmplWithValues, []byte("\n---\n")), nil
 	}
