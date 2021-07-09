@@ -22,7 +22,6 @@ const useStyles = makeStyles(() =>
   createStyles({
     root: {
       borderRadius: '8px',
-      minWidth: '272px',
     },
   }),
 );

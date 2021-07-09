@@ -108,7 +108,6 @@ const MCCP: FC = () => {
           onSelectPageParams={handleSetPageParams}
           filteredClusters={clusters}
           count={count}
-          error={error}
           disabled={disabled}
           isLoading={loading}
         />

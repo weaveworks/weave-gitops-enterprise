@@ -204,19 +204,19 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				sshKey := "abcdef1234567890"
 				k8Version := "1.19.7"
 				paramSection := make(map[string][]TemplateField)
-				paramSection["Cluster"] = []TemplateField{
+				paramSection["1. Cluster"] = []TemplateField{
 					{
 						Name:  "CLUSTER_NAME",
 						Value: clusterName,
 					},
 				}
-				paramSection["AWSManagedCluster"] = []TemplateField{
+				paramSection["2. AWSManagedCluster"] = []TemplateField{
 					{
 						Name:  "CLUSTER_NAME",
 						Value: "",
 					},
 				}
-				paramSection["AWSManagedControlPlane"] = []TemplateField{
+				paramSection["3. AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:  "AWS_REGION",
 						Value: region,
@@ -234,7 +234,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 						Value: k8Version,
 					},
 				}
-				paramSection["AWSFargateProfile"] = []TemplateField{
+				paramSection["4. AWSFargateProfile"] = []TemplateField{
 					{
 						Name:  "CLUSTER_NAME",
 						Value: "",
@@ -294,7 +294,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["MachineDeployment"] = []TemplateField{
+				paramSection["7. MachineDeployment"] = []TemplateField{
 					{
 						Name:  "CLUSTER_NAME",
 						Value: clusterName,

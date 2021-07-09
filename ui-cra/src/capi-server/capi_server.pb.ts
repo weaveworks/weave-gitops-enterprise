@@ -24,7 +24,7 @@ export type ListTemplateParamsResponse = {
 
 export type RenderTemplateRequest = {
   templateName?: string
-  values?: ParameterValues
+  values?: {[key: string]: string}
   credentials?: Credential
 }
 
@@ -86,10 +86,6 @@ export type TemplateObject = {
   parameters?: string[]
 }
 
-export type ParameterValues = {
-  values?: {[key: string]: string}
-}
-
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -98,7 +94,7 @@ export class ClustersService {
     return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/templates/${req["templateName"]}/params?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
-    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req["values"])})
+    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
     return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/pulls`, {...initReq, method: "POST", body: JSON.stringify(req)})

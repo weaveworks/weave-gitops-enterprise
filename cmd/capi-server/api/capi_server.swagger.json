@@ -40,7 +40,7 @@
     },
     "/v1/pulls": {
       "post": {
-        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to \ncreate a new branch for which a new pull request\nwill be created.",
+        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
         "operationId": "ClustersService_CreatePullRequest",
         "responses": {
           "200": {
@@ -152,38 +152,19 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1ParameterValues"
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "credentials": {
+                  "$ref": "#/definitions/v1Credential"
+                }
+              }
             }
-          },
-          {
-            "name": "credentials.group",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials.version",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials.kind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials.name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials.namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -358,17 +339,6 @@
         "options": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v1ParameterValues": {
-      "type": "object",
-      "properties": {
-        "values": {
-          "type": "object",
-          "additionalProperties": {
             "type": "string"
           }
         }

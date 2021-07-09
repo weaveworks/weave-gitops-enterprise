@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	capiv1_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -22,20 +23,6 @@ type IdentityParams struct {
 }
 
 var IdentityParamsList = []IdentityParams{
-	// AWS
-	// Version: v1alpha3
-	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AWSClusterStaticIdentity",
-		ClusterKind: "AWSCluster",
-	},
-	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AWSClusterRoleIdentity",
-		ClusterKind: "AWSCluster",
-	},
 	// Version: v1alpha4
 	{
 		Group:       "infrastructure.cluster.x-k8s.io",
@@ -50,14 +37,6 @@ var IdentityParamsList = []IdentityParams{
 		ClusterKind: "AWSCluster",
 	},
 	// Azure
-	// Version: v1alpha3
-	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AzureClusterIdentity",
-		ClusterKind: "AzureCluster",
-	},
-	// Version: v1alpha4
 	{
 		Group:       "infrastructure.cluster.x-k8s.io",
 		Version:     "v1alpha4",
@@ -65,14 +44,6 @@ var IdentityParamsList = []IdentityParams{
 		ClusterKind: "AzureCluster",
 	},
 	// VSphere
-	// Version: v1alpha3
-	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "VSphereClusterIdentity",
-		ClusterKind: "VSphereCluster",
-	},
-	// Version: v1alpha4
 	{
 		Group:       "infrastructure.cluster.x-k8s.io",
 		Version:     "v1alpha4",
@@ -83,6 +54,7 @@ var IdentityParamsList = []IdentityParams{
 
 func CheckAndInjectCredentials(c client.Client, tmplWithValues [][]byte, creds *capiv1_proto.Credential, tmpName string) ([]byte, error) {
 	if creds == nil {
+		log.Infof("No credentials %v", creds)
 		return bytes.Join(tmplWithValues, []byte("\n---\n")), nil
 	}
 	exist, err := CheckCredentialsExist(c, creds)
@@ -92,12 +64,14 @@ func CheckAndInjectCredentials(c client.Client, tmplWithValues [][]byte, creds *
 		return nil, fmt.Errorf("failed to check if credentials exist: %w", err)
 	}
 	if exist {
+		log.Infof("Found credentials %v", creds)
 		tmpl, err = InjectCredentials(tmplWithValues, creds)
 		if err != nil {
 			return nil, fmt.Errorf("unable to inject credentials %q: %w", tmpName, err)
 		}
 		result = bytes.Join(tmpl, []byte("\n---\n"))
 	} else if !exist {
+		log.Infof("Couldn't find credentials! %v", creds)
 		result = bytes.Join(tmplWithValues, []byte("\n---\n"))
 	}
 
@@ -135,15 +109,18 @@ func InjectCredentials(tmplWithValues [][]byte, creds *capiv1_proto.Credential) 
 
 	newBits := [][]byte{}
 	for _, bit := range tmplWithValues {
+		var err error
 		for _, identityParams := range IdentityParamsList {
 			// see if we can find the capi type in the list here.
-			clusterKind := identityParams.ClusterKind
-			newBit, err := MaybeInjectCredentials(bit, clusterKind, creds)
-			if err != nil {
-				return nil, fmt.Errorf("unable to inject credentials %v %v %v: %v", creds, bit, clusterKind, err)
+			if creds.Group == identityParams.Group && creds.Kind == identityParams.Kind && creds.Version == identityParams.Version {
+				clusterKind := identityParams.ClusterKind
+				bit, err = MaybeInjectCredentials(bit, clusterKind, creds)
+				if err != nil {
+					return nil, fmt.Errorf("unable to inject credentials %v %v %v: %v", creds, bit, clusterKind, err)
+				}
 			}
-			newBits = append(newBits, newBit)
 		}
+		newBits = append(newBits, bit)
 	}
 
 	return newBits, nil
@@ -166,7 +143,6 @@ func MaybeInjectCredentials(templateObject []byte, clusterKind string, creds *ca
 		return nil, fmt.Errorf("failed to stringify kind: %v", err)
 	}
 	if strings.TrimSpace(kind) != clusterKind {
-		fmt.Printf("kind did not match! %v %v\n", kind, clusterKind)
 		return templateObject, nil
 	}
 

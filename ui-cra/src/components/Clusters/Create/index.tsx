@@ -1,6 +1,7 @@
 import React, {
   ChangeEvent,
   FC,
+  FormEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -8,6 +9,7 @@ import React, {
 } from 'react';
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
+import useCredentials from '../../../contexts/Credentials';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -15,7 +17,7 @@ import { useParams } from 'react-router-dom';
 import Form from '@rjsf/material-ui';
 import { JSONSchema7 } from 'json-schema';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { Button } from 'weaveworks-ui-components';
+import { Button, Dropdown, DropdownItem } from 'weaveworks-ui-components';
 import { ISubmitEvent, ObjectFieldTemplateProps } from '@rjsf/core';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
@@ -27,12 +29,32 @@ import * as Grouped from './Form/GroupedSchema';
 import * as UiTemplate from './Form/UITemplate';
 import FormSteps from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
+import { Credential } from '../../../types/custom';
+import styled from 'styled-components';
 
 const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
 const xs = weaveTheme.spacing.xs;
 const small = weaveTheme.spacing.small;
+
+const CredentialsWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: left;
+  }
+  & .template-title {
+    margin-right: ${base};
+  }
+  & .credentials {
+    margin-right: ${xs};
+  }
+  & .dropdown-toggle {
+    border: 1px solid #e5e5e5;
+  }
+`;
 
 const useStyles = makeStyles(theme =>
   createStyles({
@@ -99,6 +121,7 @@ const useStyles = makeStyles(theme =>
 
 const AddCluster: FC = () => {
   const classes = useStyles();
+  const { credentials, loading, getCredential } = useCredentials();
   const {
     getTemplate,
     activeTemplate,
@@ -121,14 +144,38 @@ const AddCluster: FC = () => {
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
   const [activeStep, setActiveStep] = useState<string>('');
+  const [infraCredential, setInfraCredential] =
+    useState<Credential | null>(null);
+
+  const credentialsItems: DropdownItem[] = useMemo(
+    () => [
+      ...credentials.map((credential: Credential) => {
+        const { kind, namespace, name } = credential;
+        return {
+          label: `${kind}/${namespace || 'default'}/${name}`,
+          value: name || '',
+        };
+      }),
+      { label: 'None', value: '' },
+    ],
+    [credentials],
+  );
+
+  const handleSelectCredentials = useCallback(
+    (event: FormEvent<HTMLInputElement>, value: string) => {
+      const credential = getCredential(value);
+      setInfraCredential(credential);
+    },
+    [getCredential],
+  );
 
   const handlePreview = useCallback(
     (event: ISubmitEvent<any>) => {
       setFormData(event.formData);
       setOpenPreview(true);
-      renderTemplate(event.formData);
+      renderTemplate({ values: event.formData, credentials: infraCredential });
     },
-    [setOpenPreview, setFormData, renderTemplate],
+    [setOpenPreview, setFormData, renderTemplate, infraCredential],
   );
 
   const handleChangeBranchName = useCallback(
@@ -151,6 +198,7 @@ const AddCluster: FC = () => {
   const handleAddCluster = useCallback(() => {
     setError(null);
     addCluster({
+      credentials: infraCredential,
       head_branch: branchName,
       title: pullRequestTitle,
       description: 'This PR creates a new Kubernetes cluster',
@@ -168,6 +216,7 @@ const AddCluster: FC = () => {
     pullRequestTitle,
     commitMessage,
     activeTemplate?.name,
+    infraCredential,
   ]);
 
   const required = useMemo(() => {
@@ -214,9 +263,9 @@ const AddCluster: FC = () => {
   const sections = useMemo(() => {
     const groups =
       activeTemplate?.objects.reduce(
-        (accumulator, item) =>
+        (accumulator, item, index) =>
           Object.assign(accumulator, {
-            [item.kind]: item.parameters,
+            [`${index + 1}. ${item.kind}`]: item.parameters,
           }),
         {},
       ) || {};
@@ -237,7 +286,10 @@ const AddCluster: FC = () => {
     if (!activeTemplate) {
       setActiveTemplate(getTemplate(templateName));
     }
-    const steps = activeTemplate?.objects?.map(object => object.kind) || [];
+    const steps =
+      activeTemplate?.objects?.map(
+        (object, index) => `${index + 1}. ${object.kind}`,
+      ) || [];
     setSteps(steps);
     setActiveStep(steps[0] || '');
     return history.listen(() => {
@@ -269,7 +321,20 @@ const AddCluster: FC = () => {
               <div className={classes.title}>
                 Create new cluster with template
               </div>
-              Template: {activeTemplate?.name}
+              <CredentialsWrapper>
+                <div className="template-title">
+                  Template: {activeTemplate?.name}
+                </div>
+                <div className="credentials">
+                  Infrastructure provider credentials:
+                </div>
+                <Dropdown
+                  value={infraCredential?.name}
+                  disabled={loading}
+                  items={credentialsItems}
+                  onChange={handleSelectCredentials}
+                />
+              </CredentialsWrapper>
               <Form
                 className={classes.form}
                 schema={schema as JSONSchema7}
@@ -372,6 +437,10 @@ const AddCluster: FC = () => {
     steps,
     activeStep,
     error,
+    credentialsItems,
+    handleSelectCredentials,
+    loading,
+    infraCredential?.name,
   ]);
 };
 
