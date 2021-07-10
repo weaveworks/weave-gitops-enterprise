@@ -10,9 +10,10 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// RenderOptFunc is a functional option for Rendering templates.
 type RenderOptFunc func(b []byte) ([]byte, error)
 
-// InNamespace is an Render option that updates the object metadata to put it
+// InNamespace is a Render option that updates the object metadata to put it
 // into the correct namespace.
 func InNamespace(ns string) RenderOptFunc {
 	return unstructuredFunc(func(uns *unstructured.Unstructured) {
