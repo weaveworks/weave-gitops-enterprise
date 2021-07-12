@@ -3,7 +3,9 @@ package pages
 import (
 	"fmt"
 
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	. "github.com/sclevine/agouti/matchers"
 )
 
 //Header webDriver elements
@@ -95,6 +97,7 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
+	Eventually(webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`)).Should(BeVisible())
 	return Preview{
 		PreviewLabel: webDriver.FindByXPath(`//*/span[text()="Preview & Commit"]`),
 		PreviewText:  webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`),
@@ -102,6 +105,7 @@ func GetPreview(webDriver *agouti.Page) Preview {
 }
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
+	Eventually(webDriver.FindByXPath(`//*/span[text()="GitOps"]`)).Should(BeVisible())
 	return GitOps{
 		GitOpsLabel: webDriver.FindByXPath(`//*/span[text()="GitOps"]`),
 		GitOpsFields: []FormField{

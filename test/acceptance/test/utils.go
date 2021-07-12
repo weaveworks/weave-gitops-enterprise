@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -13,11 +14,13 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 	"text/template"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
 	"github.com/weaveworks/wks/common/database/models"
@@ -71,6 +74,9 @@ func SetSeleniumServiceUrl(url string) {
 	seleniumServiceUrl = url
 }
 
+var GITHUB_ORG string
+var CLUSTER_REPOSITORY string
+
 const ARTEFACTS_BASE_DIR string = "/tmp/workspace/test/"
 const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
 const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "wkp_junit.xml"
@@ -81,6 +87,7 @@ const ASSERTION_1SECOND_TIME_OUT time.Duration = 1 * time.Second
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
 const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
+const ASSERTION_6MINUTE_TIME_OUT time.Duration = 6 * time.Minute
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -96,8 +103,20 @@ func StringWithCharset(length int, charset string) string {
 	return string(b)
 }
 
-func String(length int) string {
+func RandString(length int) string {
 	return StringWithCharset(length, charset)
+}
+
+// WaitUntil runs checkDone until a timeout is reached
+func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() error) error {
+	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
+		err := checkDone()
+		if err == nil {
+			return nil
+		}
+		fmt.Fprintf(out, "error occurred %s, retrying in %s\n", err, poll.String())
+	}
+	return fmt.Errorf("timeout reached %s", timeout.String())
 }
 
 func TakeScreenShot(name string) string {
@@ -177,7 +196,7 @@ func (b DatabaseMCCPTestRunner) KubectlApply(env []string, tokenURL string) erro
 	token := u.Query()["token"][0]
 
 	b.DB.Create(&models.ClusterInfo{
-		UID:          types.UID(String(10)),
+		UID:          types.UID(RandString(10)),
 		ClusterToken: token,
 		UpdatedAt:    time.Now().UTC(),
 	})
@@ -274,7 +293,7 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 			template, err := capi.ParseFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
 			err = b.Client.Delete(context.Background(), template)
-			Expect(err).To(BeNil(), "Failed to create CAPITemplate template files")
+			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
 		}
 	})
 }
@@ -402,7 +421,7 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 		}
 	})
 
-	err := deleteFiles(templateFiles)
+	err := deleteFile(templateFiles)
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
@@ -456,7 +475,7 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 
 		fileName := fmt.Sprintf("%s%d", templateFile, i)
 
-		f, err := os.Create(filepath.Join(os.TempDir(), fileName))
+		f, err := os.Create(path.Join("/tmp", fileName))
 		if err != nil {
 			return templateFiles, err
 		}
@@ -473,15 +492,21 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 	return templateFiles, nil
 }
 
-// Utility function to deletes all the files passed in a list
-func deleteFiles(fileName []string) error {
-	for _, name := range fileName {
-		err := os.Remove(name)
+// Utility function to delete all the files passed in a list
+func deleteFile(name []string) error {
+	for _, name := range name {
+		log.Printf("Deleting: %s", name)
+		err := os.RemoveAll(name)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+//Utility function delete directory
+func deleteDirectory(name []string) error {
+	return deleteFile(name)
 }
 
 // Utility function to check if file exists
@@ -492,4 +517,100 @@ func FileExists(name string) bool {
 		}
 	}
 	return true
+}
+
+// ***************** Repository helper functions ************************
+
+func createTestFile(fileName string, fileContents string) string {
+	testFilePath := filepath.Join(os.TempDir(), fileName)
+
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+							cd /tmp &&
+                            echo "%s" > %s`, fileContents, testFilePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	return testFilePath
+}
+
+func deleteRepo(repoName string) {
+	log.Printf("Delete application repo: %s", path.Join(GITHUB_ORG, repoName))
+	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", path.Join(GITHUB_ORG, repoName))
+}
+
+func initAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
+	repoAbsolutePath := path.Join("/tmp/", repoName)
+	privateRepo := ""
+	if IsPrivateRepo {
+		privateRepo = "-p"
+	}
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            mkdir %s &&
+                            cd %s &&
+                            git init &&
+                            git checkout -b main &&
+                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, path.Join(GITHUB_ORG, repoName), privateRepo))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	Expect(WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, repoName)
+		command := exec.Command("sh", "-c", cmd)
+		return command.Run()
+	})).ShouldNot(HaveOccurred())
+
+	return repoAbsolutePath
+}
+
+func gitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cp -r -f %s %s &&
+                            cd %s &&
+                            git add . &&
+                            git commit -m 'add workload manifest' &&
+                            git push -u origin main`, fileToAdd, repoAbsolutePath, repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	fmt.Println(string(session.Wait().Err.Contents()))
+}
+
+func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return string(session.Wait().Out.Contents())
+}
+
+func pullBranch(repoAbsolutePath string, branch string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cd %s &&
+                            git pull origin %s`, repoAbsolutePath, branch))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
+func listPullRequest(repoAbsolutePath string) []string {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cd %s &&
+                            hub pr list --limit 1 --base main --format='%%t|%%H|%%U%%n'`, repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	return strings.Split(string(session.Wait().Out.Contents()), "|")
+}
+
+func getRepoVisibility(org string, repo string) string {
+	command := exec.Command("sh", "-c", fmt.Sprintf("hub api --flat repos/%s/%s|grep -i private|cut -f2", org, repo))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	visibilityStr := strings.TrimSpace(string(session.Wait().Out.Contents()))
+	log.Printf("Repo visibility private=%s", visibilityStr)
+	return visibilityStr
 }

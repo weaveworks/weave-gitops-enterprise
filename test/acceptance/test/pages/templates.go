@@ -3,7 +3,9 @@ package pages
 import (
 	"fmt"
 
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	. "github.com/sclevine/agouti/matchers"
 )
 
 //Header webDriver elements
@@ -11,6 +13,11 @@ type TemplatesPage struct {
 	TemplateHeader *agouti.Selection
 	TemplateCount  *agouti.Selection
 	TemplateTiles  *agouti.MultiSelection
+}
+
+// This function waits for any template tile to appear (become visible)
+func WaitForAnyTemplateToAppear(webDriver *agouti.Page) {
+	Eventually(webDriver.All(`[data-template-name]`)).Should(BeVisible())
 }
 
 //TemplatesPage webdriver initialises the webDriver object

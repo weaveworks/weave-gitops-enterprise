@@ -16,7 +16,7 @@ var theT *testing.T
 
 func GomegaFail(message string, callerSkip ...int) {
 	if webDriver != nil {
-		filepath := TakeScreenShot(String(16)) //Save the screenshot of failure
+		filepath := TakeScreenShot(RandString(16)) //Save the screenshot of failure
 		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
 	}
 
@@ -68,6 +68,8 @@ var _ = BeforeSuite(func() {
 
 	gitProvider = "github" //TODO - Read from config.yaml
 	seleniumServiceUrl = "http://localhost:4444/wd/hub"
+	GITHUB_ORG = os.Getenv("GITHUB_ORG")
+	CLUSTER_REPOSITORY = os.Getenv("CLUSTER_REPOSITORY")
 })
 
 var _ = AfterSuite(func() {

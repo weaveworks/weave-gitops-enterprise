@@ -111,9 +111,8 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("Apply/Insall invalid CAPITemplate", func() {
-					invalid_captemplate := "../../utils/data/server_v1_invalid_capitemplate.yaml"
-					err = runCommandPassThrough([]string{}, "kubectl", "apply", "-f", invalid_captemplate)
-					Expect(err).To(BeNil(), "Failed to apply/install CAPITemplate template files")
+					invalid_captemplate := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
+					templateFiles = append(templateFiles, invalid_captemplate...)
 				})
 
 				By("And I run 'mccp templates list --endpoint <capi-http-endpoint-url>'", func() {

@@ -774,6 +774,10 @@ jobs:
 
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
+            # create unique cluster config repository name
+            export GITHUB_ORG=$WKP_GITHUB_ORG
+            export CLUSTER_REPOSITORY=mccp-capi-template-$(openssl rand -hex 8)
+            export GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
 
             # decode GCE kubeconfig and store at path set in MCCP_GCE_LEAF_KUBECONFIG
             echo $WKP_ACCEPTANCE_GCE_KUBECONFIG
@@ -809,6 +813,9 @@ jobs:
               --namespace mccp \
               --docker-username="${DOCKER_IO_USER}" \
               --docker-password="${DOCKER_IO_PASSWORD}" 
+            kubectl create secret generic git-provider-credentials \
+              --namespace=mccp \
+              --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
             CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
             helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
             helm repo update
@@ -816,7 +823,9 @@ jobs:
               --set "imagePullSecrets[0].name=docker-io-pull-secret" \
               --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
               --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-              --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}"
+              --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
+              --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
+              --set "config.capi.baseBranch=main"
 
             kubectl get pods -A
             # Wait for cluster to settle

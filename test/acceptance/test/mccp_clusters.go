@@ -122,7 +122,7 @@ func connectACluster(webDriver *agouti.Page, mccpTestRunner MCCPTestRunner, leaf
 	tokenURLRegex := `https?:\/\/[-a-zA-Z0-9@:%._\+~#=]+\/gitops\/api\/agent\.yaml\?token=[0-9a-zA-Z]+`
 	var tokenURL []string
 
-	clusterName := String(32)
+	clusterName := RandString(32)
 	fmt.Printf("Generated a new cluster name! %s\n", clusterName)
 	clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 	commandEnv := getCommandEnv(leaf)
@@ -158,7 +158,7 @@ func connectACluster(webDriver *agouti.Page, mccpTestRunner MCCPTestRunner, leaf
 	})
 
 	By("Then I should see the cluster status changes to Connected", func() {
-		Eventually(clusterConnectionPage.ConnectionStatus, ASSERTION_5MINUTE_TIME_OUT).Should(MatchText(`Connected`))
+		Eventually(clusterConnectionPage.ConnectionStatus, ASSERTION_6MINUTE_TIME_OUT).Should(MatchText(`Connected`))
 		Expect(clusterConnectionPage.ButtonClose.Click()).To(Succeed())
 		Eventually(clusterConnectionPage.ClusterConnectionPopup).ShouldNot(BeFound())
 	})
@@ -171,7 +171,7 @@ func connectACluster(webDriver *agouti.Page, mccpTestRunner MCCPTestRunner, leaf
 	// If leaf is not a WKP cluster skip the git activity check
 	if leaf.IsWKP {
 		By("And it should be showing the git activity", func() {
-			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("svg"), ASSERTION_1MINUTE_TIME_OUT).
+			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("svg"), ASSERTION_2MINUTE_TIME_OUT).
 				Should(BeFound())
 			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("circle")).
 				Should(BeFound())
@@ -303,7 +303,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 		})
 
 		It("Verify connect a cluster input field validation", func() {
-			clusterNameMax := String(300)
+			clusterNameMax := RandString(300)
 			fmt.Printf("Generated a new cluster name! %s\n", clusterNameMax)
 			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterNameMax)
 
@@ -367,7 +367,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 		It("Verify Not connected cluster status", func() {
 
-			clusterName := String(32)
+			clusterName := RandString(32)
 			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
 			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 
@@ -486,7 +486,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 		})
 
 		It("Verify that the ingress URL can be added and removed", func() {
-			clusterName := String(32)
+			clusterName := RandString(32)
 			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
 			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 
@@ -549,7 +549,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 		})
 
 		It("Verify disconnect cluster", func() {
-			clusterName := String(32)
+			clusterName := RandString(32)
 			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
 			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 			confirmDisconnectClusterDialog := pages.GetConfirmDisconnectClusterDialog(webDriver)
@@ -594,7 +594,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 				Skip("set CONNECT_KIND_WKP_LEAF_TEST env var to run this test")
 			}
 
-			clusterName := String(32)
+			clusterName := RandString(32)
 			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
 			leaf := leaves["kind-wkp"]
 			clustersPage, clusterName, _ := connectACluster(webDriver, mccpTestRunner, leaf)
@@ -626,7 +626,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		It("Verify user can connect a GCE cluster", func() {
+		XIt("Verify user can connect a GCE cluster", func() {
 			if getEnv("CONNECT_GCE_LEAF_TEST", "") == "" {
 				Skip("set CONNECT_GCE_LEAF_TEST env var to run this test")
 			}
