@@ -13,7 +13,7 @@ fi
 # errors as they include large vfs.
 # https://github.com/weaveworks/wks/issues/1071
 #
-GOGC=20
+export GOGC=10
 "${GOPATH}/bin/golangci-lint" run --tests --deadline=600s \
     --disable=errcheck \
     --enable=misspell \
