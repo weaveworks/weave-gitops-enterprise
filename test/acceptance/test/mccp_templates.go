@@ -42,7 +42,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				Expect(err).NotTo(HaveOccurred())
 
 				// Make the page bigger so we can see all the things in the screenshots
-				err = webDriver.Size(1440, 900)
+				err = webDriver.Size(2000, 3000)
 				Expect(err).NotTo(HaveOccurred())
 			}
 
@@ -184,7 +184,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
+			XIt("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
@@ -279,7 +279,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			It("Verify pull request can be created for the selected capi template", func() {
+			XIt("Verify pull request can be created for the selected capi template", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")

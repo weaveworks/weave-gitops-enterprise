@@ -89,6 +89,8 @@ const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 const ASSERTION_6MINUTE_TIME_OUT time.Duration = 6 * time.Minute
 
+const UI_POLL_INTERVAL time.Duration = 15 * time.Second
+
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 

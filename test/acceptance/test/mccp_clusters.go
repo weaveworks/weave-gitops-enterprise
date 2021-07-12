@@ -66,6 +66,7 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 	By("And wait for the page to be fully loaded", func() {
 		Eventually(clustersPage.SupportEmailLink).Should(BeVisible())
 		Eventually(clustersPage.ClusterCount).Should(MatchText(`[0-9]+`))
+		time.Sleep(UI_POLL_INTERVAL)
 		count, _ = clustersPage.ClusterCount.Text()
 		tmpCount, _ := strconv.Atoi(count)
 		expectedCount = strconv.Itoa(tmpCount + 1)
@@ -128,7 +129,7 @@ func connectACluster(webDriver *agouti.Page, mccpTestRunner MCCPTestRunner, leaf
 	commandEnv := getCommandEnv(leaf)
 
 	By("And next page shows me kubectl command to apply on cluster to connect", func() {
-		//Refresh the wkp-agent state
+		// Refresh the wkp-agent state
 		err := mccpTestRunner.KubectlDeleteAllAgents(commandEnv)
 		if err != nil {
 			fmt.Println("Failed to delete the wkp-agent")
