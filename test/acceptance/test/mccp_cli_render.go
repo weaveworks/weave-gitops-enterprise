@@ -61,7 +61,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Templates are available in the cluster", func() {
-			It("Verify mccp can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
+			FIt("Verify mccp can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
 				clusterName := "development-cluster"
 				namespace := "mccp-dev"
 				k8version := "1.19.7"

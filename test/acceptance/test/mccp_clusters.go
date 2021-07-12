@@ -626,7 +626,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		It("Verify user can connect a GCE cluster", func() {
+		XIt("Verify user can connect a GCE cluster", func() {
 			if getEnv("CONNECT_GCE_LEAF_TEST", "") == "" {
 				Skip("set CONNECT_GCE_LEAF_TEST env var to run this test")
 			}
