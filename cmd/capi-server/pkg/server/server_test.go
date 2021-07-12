@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
 	capiv1_protos "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
@@ -53,7 +52,6 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
-					Body:        "eyJhcGlWZXJzaW9uIjoiZm9vdmVyc2lvbiIsImtpbmQiOiJmb29raW5kIiwibWV0YWRhdGEiOnsibGFiZWxzIjp7Im5hbWUiOiIke0NMVVNURVJfTkFNRX0ifX19",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							ApiVersion: "fooversion",
@@ -82,7 +80,6 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
-					Body:        "eyJhcGlWZXJzaW9uIjoiZm9vdmVyc2lvbiIsImtpbmQiOiJmb29raW5kIiwibWV0YWRhdGEiOnsibGFiZWxzIjp7Im5hbWUiOiIke0NMVVNURVJfTkFNRX0ifX19",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							ApiVersion: "fooversion",
@@ -100,7 +97,6 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
-					Body:        "eyJhcGlWZXJzaW9uIjoiZm9vdmVyc2lvbiIsImtpbmQiOiJmb29raW5kIiwibWV0YWRhdGEiOnsibGFiZWxzIjp7Im5hbWUiOiIke0NMVVNURVJfTkFNRX0ifX19",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							ApiVersion: "fooversion",
@@ -135,6 +131,62 @@ func TestListTemplates(t *testing.T) {
 				}
 			} else {
 				if diff := cmp.Diff(tt.expected, listTemplatesResponse.Templates, protocmp.Transform()); diff != "" {
+					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+func TestGetTemplate(t *testing.T) {
+	testCases := []struct {
+		name             string
+		clusterState     []runtime.Object
+		expected         *capiv1_protos.Template
+		err              error
+		expectedErrorStr string
+	}{
+		{
+			name: "No templates",
+			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace"),
+		},
+		{
+			name: "1 parameter",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			expected: &capiv1_protos.Template{
+				Name:        "cluster-template-1",
+				Description: "this is test template 1",
+				Objects: []*capiv1_protos.TemplateObject{
+					{
+						ApiVersion: "fooversion",
+						Kind:       "fookind",
+						Parameters: []string{"CLUSTER_NAME"},
+					},
+				},
+				Parameters: []*capiv1_protos.Parameter{
+					{
+						Name:        "CLUSTER_NAME",
+						Description: "This is used for the cluster naming.",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil)
+			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{TemplateName: "cluster-template-1"})
+			if err != nil && tt.err == nil {
+				t.Fatalf("failed to read the templates:\n%s", err)
+			} else if err != nil && tt.err != nil {
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, getTemplateRes.Template, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 			}
@@ -414,93 +466,6 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 	return s
 }
 
-func TestToTemplate(t *testing.T) {
-	testCases := []struct {
-		name     string
-		value    string
-		expected *capiv1_protos.Template
-		err      error
-	}{
-		{
-			name:     "empty",
-			value:    "",
-			expected: &capiv1_protos.Template{},
-		},
-		{
-			name: "Basics",
-			value: `
-apiVersion: capi.weave.works/v1alpha1
-kind: CAPITemplate
-metadata:
-  name: foo
-`,
-			expected: &capiv1_protos.Template{
-				Name: "foo",
-			},
-		},
-		{
-			name: "Params and Objects",
-			value: makeTemplate(t, func(ct *capiv1.CAPITemplate) {
-				ct.ObjectMeta.Name = "cluster-template-1"
-				ct.Spec.Description = "this is test template 1"
-				ct.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
-					{
-						RawExtension: rawExtension(`{
-							"apiVersion": "fooversion",
-							"kind": "fookind",
-							"metadata": {
-								"labels": {
-								"name": "${CLUSTER_NAME}",
-								"region": "${REGION}"
-								}
-							}
-						}`),
-					},
-				}
-			}),
-			expected: &capiv1_protos.Template{
-				Name:        "cluster-template-1",
-				Description: "this is test template 1",
-				Body:        "eyJhcGlWZXJzaW9uIjoiZm9vdmVyc2lvbiIsImtpbmQiOiJmb29raW5kIiwibWV0YWRhdGEiOnsibGFiZWxzIjp7Im5hbWUiOiIke0NMVVNURVJfTkFNRX0iLCJyZWdpb24iOiIke1JFR0lPTn0ifX19",
-				Objects: []*capiv1_protos.TemplateObject{
-					{
-						ApiVersion: "fooversion",
-						Kind:       "fookind",
-						Parameters: []string{"CLUSTER_NAME", "REGION"},
-					},
-				},
-				Parameters: []*capiv1_protos.Parameter{
-					{
-						Name:        "CLUSTER_NAME",
-						Description: "This is used for the cluster naming.",
-					},
-					{
-						Name: "REGION",
-					},
-				},
-			},
-		},
-	}
-
-	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := ToTemplateResponse(mustParseBytes(t, tt.value))
-			if err != nil {
-				if tt.err == nil {
-					t.Fatalf("failed to read the templates:\n%s", err)
-				}
-				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
-					t.Fatalf("got the wrong error:\n%s", diff)
-				}
-			} else {
-				if diff := cmp.Diff(tt.expected, result, protocmp.Transform()); diff != "" {
-					t.Fatalf("templates didn't match expected:\n%s", diff)
-				}
-			}
-		})
-	}
-}
-
 func createDatabase(t *testing.T) *gorm.DB {
 	db, err := utils.OpenDebug("", true)
 	if err != nil {
@@ -511,15 +476,6 @@ func createDatabase(t *testing.T) *gorm.DB {
 		t.Fatal(err)
 	}
 	return db
-}
-
-func mustParseBytes(t *testing.T, data string) *capiv1.CAPITemplate {
-	t.Helper()
-	parsed, err := capi.ParseBytes([]byte(data), "no-key-provided")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return parsed
 }
 
 func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {

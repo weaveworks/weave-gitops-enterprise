@@ -32,17 +32,21 @@ func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 }
 
 type TemplateTile struct {
-	Name           string
-	Description    *agouti.Selection
-	CreateTemplate *agouti.Selection
+	Name             string
+	Description      *agouti.Selection
+	CreateTemplate   *agouti.Selection
+	ErrorHeader      *agouti.Selection
+	ErrorDescription *agouti.Selection
 }
 
 func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateTile {
 	tileNode := webDriver.Find(fmt.Sprintf(`[data-template-name="%s"]`, templateName))
 	return &TemplateTile{
-		Name:           templateName,
-		Description:    tileNode.Find(`button > div.MuiCardContent-root > p`),
-		CreateTemplate: tileNode.Find(`#create-cluster`),
+		Name:             templateName,
+		Description:      tileNode.Find(`div.MuiCardContent-root > p`),
+		CreateTemplate:   tileNode.Find(`#create-cluster`),
+		ErrorHeader:      tileNode.Find(`.template-error-header`),
+		ErrorDescription: tileNode.Find(`.template-error-description`),
 	}
 }
 

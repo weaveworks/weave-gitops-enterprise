@@ -9,13 +9,11 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/mkmik/multierror"
 	log "github.com/sirupsen/logrus"
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/credentials"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
 	capiv1_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/utils"
 	"github.com/weaveworks/wks/common/database/models"
 	common_utils "github.com/weaveworks/wks/common/database/utils"
 	"gorm.io/gorm"
@@ -38,18 +36,29 @@ func NewClusterServer(library templates.Library, provider git.Provider, client c
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
 	tl, err := s.library.List(ctx)
+	if err != nil {
+		return nil, err
+	}
 	templates := []*capiv1_proto.Template{}
 
 	for _, t := range tl {
-		templateWithMeta, err := ToTemplateResponse(t)
-		if err != nil {
-			return nil, err
-		}
-		templates = append(templates, templateWithMeta)
+		templates = append(templates, ToTemplateResponse(t))
 	}
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
+}
+
+func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
+	tm, err := s.library.Get(ctx, msg.TemplateName)
+	if err != nil {
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+	}
+	t := ToTemplateResponse(tm)
+	if t.Error != "" {
+		return nil, fmt.Errorf("error reading template %v, %v", msg.TemplateName, t.Error)
+	}
+	return &capiv1_proto.GetTemplateResponse{Template: t}, err
 }
 
 func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListTemplateParamsRequest) (*capiv1_proto.ListTemplateParamsResponse, error) {
@@ -57,9 +66,9 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	t, err := ToTemplateResponse(tm)
-	if err != nil {
-		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.TemplateName, err)
+	t := ToTemplateResponse(tm)
+	if t.Error != "" {
+		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.TemplateName, t.Error)
 	}
 
 	return &capiv1_proto.ListTemplateParamsResponse{Parameters: t.Parameters, Objects: t.Objects}, err
@@ -87,51 +96,6 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	resultStr := string(tmplWithValuesAndCredentials[:])
 
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr}, err
-}
-
-func ToTemplateResponse(t *capiv1.CAPITemplate) (*capiv1_proto.Template, error) {
-	// FIXME: probably a clever way to do this conversion / align types
-
-	meta, err := capi.ParseTemplateMeta(t)
-	if err != nil {
-		return nil, err
-	}
-
-	params := []*capiv1_proto.Parameter{}
-	for _, p := range meta.Params {
-		params = append(params, &capiv1_proto.Parameter{
-			Name:        p.Name,
-			Description: p.Description,
-			Options:     p.Options,
-			Required:    p.Required,
-		})
-	}
-
-	objects := []*capiv1_proto.TemplateObject{}
-	for _, o := range meta.Objects {
-		objects = append(objects, &capiv1_proto.TemplateObject{
-			Kind:       o.Kind,
-			ApiVersion: o.APIVersion,
-			Parameters: o.Params,
-		})
-	}
-
-	var responseBody []byte
-	for _, rt := range t.Spec.ResourceTemplates {
-		encodedResourceTemplate, err := utils.B64ResourceTemplate(rt)
-		if err != nil {
-			return nil, err
-		}
-		responseBody = append(responseBody, encodedResourceTemplate...)
-	}
-
-	return &capiv1_proto.Template{
-		Name:        t.GetName(),
-		Description: t.Spec.Description,
-		Parameters:  params,
-		Body:        string(responseBody),
-		Objects:     objects,
-	}, nil
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {

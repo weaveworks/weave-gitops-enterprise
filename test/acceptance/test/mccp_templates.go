@@ -134,32 +134,34 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When only invalid Capi Template(s) are available in the cluster", func() {
-			XIt("Verify UI shows message related to an invalid template(s)", func() {
+			It("Verify UI shows message related to an invalid template(s)", func() {
 
-				By("Apply/Insall invalid CAPITemplate", func() {
+				By("Apply/Install invalid CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
-				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
-
 				By("And User should see message informing user of the invalid template in the cluster", func() {
-					// TODO
+					pages.NavigateToPage(webDriver, "Templates")
+					pages.WaitForAnyTemplateToAppear(webDriver)
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
+					Eventually(templateTile.ErrorHeader).Should(BeFound())
+					Expect(templateTile.ErrorDescription).Should(BeFound())
+					Expect(templateTile.CreateTemplate).ShouldNot(BeEnabled())
 				})
-
 			})
 		})
 
 		Context("When both valid and invalid Capi Templates are available in the cluster", func() {
-			XIt("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
+			It("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
 
-				noOfTemplates := 3
+				noOfValidTemplates := 3
 				By("Apply/Insall valid CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-eks-fargate.yaml")
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfValidTemplates, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
+				noOfInvalidTemplates := 1
 				By("Apply/Insall invalid CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
+					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")...)
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -173,12 +175,15 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					templateCount, _ := strconv.Atoi(count)
 					tileCount, _ := templatesPage.TemplateTiles.Count()
 
-					Eventually(templateCount).Should(Equal(noOfTemplates), "The template header count should be equal to templates created")
-					Eventually(tileCount).Should(Equal(noOfTemplates), "The number of template tiles rendered should be equal to number of templates created")
+					Eventually(templateCount).Should(Equal(noOfValidTemplates+noOfInvalidTemplates), "The template header count should be equal to templates created")
+					Eventually(tileCount).Should(Equal(noOfValidTemplates+noOfInvalidTemplates), "The number of template tiles rendered should be equal to number of templates created")
 				})
 
 				By("And User should see message informing user of the invalid template in the cluster", func() {
-					// TODO
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
+					Eventually(templateTile.ErrorHeader).Should(BeFound())
+					Expect(templateTile.ErrorDescription).Should(BeFound())
+					Expect(templateTile.CreateTemplate).ShouldNot(BeEnabled())
 				})
 			})
 		})

@@ -20,6 +20,7 @@ export type Template = {
   version?: string;
   parameters?: Param[];
   objects: Object[];
+  error?: string;
 };
 
 export type ListTemplatesResponse = {

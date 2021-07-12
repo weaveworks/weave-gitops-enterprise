@@ -16,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/yaml"
 )
 
 // Signature for json.MarshalIndent accepted as a method parameter for unit tests
@@ -103,13 +104,13 @@ func WriteError(w http.ResponseWriter, appError error, code int) {
 	fmt.Fprintln(w, string(payload))
 }
 
-func B64ResourceTemplate(rt capiv1.CAPIResourceTemplate) ([]byte, error) {
-	rtBytes, err := json.Marshal(rt)
+func B64ResourceTemplate(ct []capiv1.CAPIResourceTemplate) ([]byte, error) {
+	b, err := yaml.Marshal(ct)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal resource template: %s", err)
 	}
 
-	rtBytesB64 := Base64Encode(rtBytes)
+	rtBytesB64 := Base64Encode(b)
 	return rtBytesB64, nil
 }
 

@@ -93,6 +93,36 @@
         ]
       }
     },
+    "/v1/templates/{templateName}": {
+      "get": {
+        "operationId": "ClustersService_GetTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates/{templateName}/params": {
       "get": {
         "operationId": "ClustersService_ListTemplateParams",
@@ -277,6 +307,14 @@
         }
       }
     },
+    "v1GetTemplateResponse": {
+      "type": "object",
+      "properties": {
+        "template": {
+          "$ref": "#/definitions/v1Template"
+        }
+      }
+    },
     "v1ListCredentialsResponse": {
       "type": "object",
       "properties": {
@@ -378,6 +416,9 @@
           "items": {
             "$ref": "#/definitions/v1TemplateObject"
           }
+        },
+        "error": {
+          "type": "string"
         }
       }
     },

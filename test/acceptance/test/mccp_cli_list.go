@@ -84,7 +84,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When only invalid Capi Template(s) are available in the cluster", func() {
-			It("Verify mccp outputs an error message related to an invalid template(s)", func() {
+			XIt("Verify mccp outputs an error message related to an invalid template(s)", func() {
 
 				By("Apply/Insall invalid CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")

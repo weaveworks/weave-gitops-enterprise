@@ -7,13 +7,15 @@ import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { SafeAnchor } from './Shared';
 
 const actionStyle = css`
-  color: #00b3ec;
   display: flex;
   align-items: center;
   font-size: ${theme.fontSizes.normal};
   white-space: nowrap;
 
-  &:hover {
+  &:enabled {
+    color: #00b3ec;
+  }
+  &:hover:enabled {
     color: ${theme.colors.blue700};
   }
 `;
@@ -30,7 +32,7 @@ const ActionButton = styled.button`
   outline: 0;
   padding: ${theme.spacing.xs} ${theme.spacing.small};
 
-  &:hover {
+  &:hover:enabled {
     cursor: pointer;
   }
 `;
@@ -50,8 +52,13 @@ interface OnClickActionProps extends BaseAction {
 
 export const OnClickAction: FC<
   OnClickActionProps & React.HTMLProps<HTMLButtonElement>
-> = ({ id, onClick, icon, text, className }) => (
-  <ActionButton id={id} className={className} onClick={onClick}>
+> = ({ id, onClick, icon, text, className, disabled }) => (
+  <ActionButton
+    id={id}
+    className={className}
+    onClick={onClick}
+    disabled={disabled}
+  >
     <ActionIcon icon={icon ?? faExternalLinkAlt} />
     {text}
   </ActionButton>

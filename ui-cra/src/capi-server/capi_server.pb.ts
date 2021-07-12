@@ -13,6 +13,14 @@ export type ListTemplatesResponse = {
   total?: number
 }
 
+export type GetTemplateRequest = {
+  templateName?: string
+}
+
+export type GetTemplateResponse = {
+  template?: Template
+}
+
 export type ListTemplateParamsRequest = {
   templateName?: string
 }
@@ -71,6 +79,7 @@ export type Template = {
   parameters?: Parameter[]
   body?: string
   objects?: TemplateObject[]
+  error?: string
 }
 
 export type Parameter = {
@@ -89,6 +98,9 @@ export type TemplateObject = {
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetTemplate(req: GetTemplateRequest, initReq?: fm.InitReq): Promise<GetTemplateResponse> {
+    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/templates/${req["templateName"]}?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
   }
   static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
     return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/templates/${req["templateName"]}/params?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
