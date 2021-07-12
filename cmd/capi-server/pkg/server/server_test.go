@@ -222,6 +222,21 @@ func TestRenderTemplate(t *testing.T) {
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
 		},
 		{
+			// some client might send empty credentials objects
+			name: "render template with empty credentials",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			credentials: &capiv1_protos.Credential{
+				Group:     "",
+				Version:   "",
+				Kind:      "",
+				Name:      "",
+				Namespace: "",
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
+		},
+		{
 			name: "render template with credentials",
 			clusterState: []runtime.Object{
 				u,
