@@ -4,7 +4,7 @@ set -e
 
 GOPATH=$(go env GOPATH)
 if [ ! -x "${GOPATH}/bin/golangci-lint" ]; then
-    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin" v1.36.0
+    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin" v1.41.1
 fi
 
 #
@@ -13,6 +13,7 @@ fi
 # errors as they include large vfs.
 # https://github.com/weaveworks/wks/issues/1071
 #
+export GOGC=10
 "${GOPATH}/bin/golangci-lint" run --tests --deadline=600s \
     --disable=errcheck \
     --enable=misspell \
