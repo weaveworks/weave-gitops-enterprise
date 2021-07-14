@@ -36,7 +36,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 		Context("When no Capi Templates are available in the cluster", func() {
 			It("Verify mccp lists no templates", func() {
 
-				By("And I run 'mccp templates list --endpoint <capi-http-endpoint-url>'", func() {
+				By(fmt.Sprintf(`And I run 'mccp templates list --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
 					command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--endpoint", CAPI_ENDPOINT_URL)
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
@@ -54,7 +54,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 				noOfTemplates := 50
 				templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-capitemplate.yaml")
 
-				By("And I run 'mccp templates list --endpoint <capi-http-endpoint-url>'", func() {
+				By(fmt.Sprintf(`And I run 'mccp templates list --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
 					command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--endpoint", CAPI_ENDPOINT_URL)
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
@@ -84,45 +84,17 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When only invalid Capi Template(s) are available in the cluster", func() {
-			XIt("Verify mccp outputs an error message related to an invalid template(s)", func() {
+			It("Verify mccp outputs an error message related to an invalid template(s)", func() {
 
+				noOfTemplates := 1
 				By("Apply/Insall invalid CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
-				By("And I run 'mccp templates list --endpoint <capi-http-endpoint-url>'", func() {
+				By(fmt.Sprintf(`And I run 'mccp templates list --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
 					command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--endpoint", CAPI_ENDPOINT_URL)
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
-				})
-
-				By("Then I should see error message related to invalid template", func() {
-					Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(fmt.Sprintf(`Error: unable to retrieve templates from "%s":*`, CAPI_ENDPOINT_URL)))
-				})
-			})
-		})
-
-		Context("When both valid and invalid Capi Templates are available in the cluster", func() {
-			XIt("Verify mccp outputs an error message related to an invalid template and lists the valid template", func() {
-
-				noOfTemplates := 3
-				By("Apply/Insall valid CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-eks-fargate.yaml")
-				})
-
-				By("Apply/Insall invalid CAPITemplate", func() {
-					invalid_captemplate := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
-					templateFiles = append(templateFiles, invalid_captemplate...)
-				})
-
-				By("And I run 'mccp templates list --endpoint <capi-http-endpoint-url>'", func() {
-					command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
-
-				By("Then I should see error message related to invalid template", func() {
-					Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(fmt.Sprintf(`Error: unable to retrieve templates from "%s":*`, CAPI_ENDPOINT_URL)))
 				})
 
 				By("Then I should see template table header", func() {
@@ -131,9 +103,49 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 
 				By("And I should see template rows", func() {
 					output := string(session.Wait().Out.Contents())
-					re := regexp.MustCompile(`cluster-template-[\d]+\s+This is test template [\d]+`)
-					matched_list := re.FindAllString(output, 3)
+					re := regexp.MustCompile(`cluster-invalid-template-[\d]+`)
+					matched_list := re.FindAllString(output, 1)
 					Eventually(len(matched_list)).Should(Equal(noOfTemplates), "The number of listed templates should be equal to number of templates created")
+				})
+			})
+		})
+
+		Context("When both valid and invalid Capi Templates are available in the cluster", func() {
+			It("Verify mccp outputs an error message related to an invalid template and lists the valid template", func() {
+
+				noOfTemplates := 3
+				By("Apply/Insall valid CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-eks-fargate.yaml")
+				})
+
+				noOfInvalidTemplates := 2
+				By("Apply/Insall invalid CAPITemplate", func() {
+					invalid_captemplate := mccpTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")
+					templateFiles = append(templateFiles, invalid_captemplate...)
+				})
+
+				By(fmt.Sprintf(`And I run 'mccp templates list --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then I should see template table header", func() {
+					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+DESCRIPTION`))
+				})
+
+				By("And I should see template rows for invalid template", func() {
+					output := string(session.Wait().Out.Contents())
+					re := regexp.MustCompile(`cluster-invalid-template-[\d]+`)
+					matched_list := re.FindAllString(output, noOfInvalidTemplates)
+					Eventually(len(matched_list)).Should(Equal(noOfInvalidTemplates), "The number of listed invalid templates should be equal to number of templates created")
+				})
+
+				By("And I should see template rows for valid template", func() {
+					output := string(session.Wait().Out.Contents())
+					re := regexp.MustCompile(`eks-fargate-template-[\d]+\s+This is eks fargate template-[\d]+`)
+					matched_list := re.FindAllString(output, noOfTemplates)
+					Eventually(len(matched_list)).Should(Equal(noOfTemplates), "The number of listed valid templates should be equal to number of templates created")
 				})
 			})
 		})

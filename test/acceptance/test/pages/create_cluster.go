@@ -17,8 +17,9 @@ type CreateCluster struct {
 }
 
 type FormField struct {
-	Label *agouti.Selection
-	Field *agouti.Selection
+	Label   *agouti.Selection
+	Field   *agouti.Selection
+	ListBox *agouti.Selection
 }
 type TemplateSection struct {
 	Name   *agouti.Selection
@@ -36,31 +37,19 @@ type GitOps struct {
 	CreatePR     *agouti.Selection
 }
 
-// scrolls the element into view
-func ScrollIntoView(webDriver *agouti.Page, xpath string) {
-	script := fmt.Sprintf(`var elmnt = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; elmnt.scrollIntoView();`, xpath)
+// scrolls the window
+func ScrollWindow(webDriver *agouti.Page, xOffSet int, yOffSet int) {
+	// script := fmt.Sprintf(`var elmnt = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; elmnt.scrollIntoView();`, xpath)
+
+	script := fmt.Sprintf(`window.scrollTo(%d, %d)`, xOffSet, yOffSet)
 	var result interface{}
-	webDriver.RunScript(script, map[string]interface{}{"xpath": xpath}, &result)
+	webDriver.RunScript(script, map[string]interface{}{}, &result)
 }
 
-func (g GitOps) ScrollTo(webDriver *agouti.Page, selection *agouti.Selection) {
-	xpath := ""
-
-	if selection == g.GitOpsLabel {
-		xpath = `//*/span[text()="GitOps"]`
-	}
-
-	ScrollIntoView(webDriver, xpath)
-}
-
-func (p Preview) ScrollTo(webDriver *agouti.Page, selection *agouti.Selection) {
-	xpath := ""
-
-	if selection == p.PreviewText {
-		xpath = `//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`
-	}
-
-	ScrollIntoView(webDriver, xpath)
+// This function waits for previw and gitops to appear (become visible)
+func WaitForDynamicSecToAppear(webDriver *agouti.Page) {
+	Eventually(webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`)).Should(BeFound())
+	Eventually(webDriver.FindByXPath(`//*/span[text()="GitOps"]`)).Should(BeFound())
 }
 
 //CreateCluster initialises the webDriver object
@@ -85,8 +74,9 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 
 	for i := 0; i < fCnt; i++ {
 		formFields = append(formFields, FormField{
-			Label: fields.At(i).Find(`label`),
-			Field: fields.At(i).Find(`input`),
+			Label:   fields.At(i).Find(`label`),
+			Field:   fields.At(i).Find(`input`),
+			ListBox: fields.At(i).Find(`div[role="button"][aria-haspopup="listbox"]`),
 		})
 	}
 
@@ -96,8 +86,11 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 	}
 }
 
+func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection {
+	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
+}
+
 func GetPreview(webDriver *agouti.Page) Preview {
-	Eventually(webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`)).Should(BeFound())
 	return Preview{
 		PreviewLabel: webDriver.FindByXPath(`//*/span[text()="Preview & Commit"]`),
 		PreviewText:  webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`),
@@ -105,7 +98,6 @@ func GetPreview(webDriver *agouti.Page) Preview {
 }
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
-	Eventually(webDriver.FindByXPath(`//*/span[text()="GitOps"]`)).Should(BeFound())
 	return GitOps{
 		GitOpsLabel: webDriver.FindByXPath(`//*/span[text()="GitOps"]`),
 		GitOpsFields: []FormField{
