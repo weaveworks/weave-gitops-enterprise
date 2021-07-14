@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"time"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
@@ -62,6 +63,13 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	}
 
 	return &clusterPage
+}
+
+// This function waits for Create emplate page to load completely
+func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
+	// Credentials dropdown takes a while to populate
+	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]/following-sibling::div//div[contains(@class, "dropdown-toggle")][@disabled]`),
+		30*time.Second).ShouldNot(BeFound())
 }
 
 func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {

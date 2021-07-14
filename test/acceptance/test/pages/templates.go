@@ -16,7 +16,7 @@ type TemplatesPage struct {
 }
 
 // This function waits for any template tile to appear (become visible)
-func WaitForAnyTemplateToAppear(webDriver *agouti.Page) {
+func (t TemplatesPage) WaitForPageToLoad(webDriver *agouti.Page) {
 	Eventually(webDriver.All(`[data-template-name]`)).Should(BeVisible())
 }
 

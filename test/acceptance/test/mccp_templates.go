@@ -43,7 +43,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				Expect(err).NotTo(HaveOccurred())
 
 				// Make the page bigger so we can see all the things in the screenshots
-				err = webDriver.Size(2000, 3000)
+				err = webDriver.Size(1800, 1000)
 				Expect(err).NotTo(HaveOccurred())
 			}
 
@@ -81,10 +81,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-capitemplate.yaml")
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
 				templatesPage := pages.GetTemplatesPage(webDriver)
 
 				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage.WaitForPageToLoad(webDriver)
 					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
 					Eventually(templatesPage.TemplateCount).Should(MatchText(`[0-9]+`))
 
@@ -117,7 +117,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				templateFiles = mccpTestRunner.CreateApplyCapitemplates(50, "capi-server-v1-capitemplate.yaml")
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-9")
@@ -141,9 +144,13 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
+				pages.NavigateToPage(webDriver, "Templates")
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
+
 				By("And User should see message informing user of the invalid template in the cluster", func() {
-					pages.NavigateToPage(webDriver, "Templates")
-					pages.WaitForAnyTemplateToAppear(webDriver)
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
 					Eventually(templateTile.ErrorHeader).Should(BeFound())
 					Expect(templateTile.ErrorDescription).Should(BeFound())
@@ -166,10 +173,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
-				templatesPage := pages.GetTemplatesPage(webDriver)
-
 				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
 					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
 
 					count, _ := templatesPage.TemplateCount.Text()
@@ -197,7 +203,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "eks-fargate-template-0")
@@ -206,6 +215,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 					// Eventually(createPage.TemplateName).Should(MatchText(".*eks-fargate-template-0.*"))
 				})
@@ -301,7 +311,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
@@ -309,6 +322,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
+				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+				})
 
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
