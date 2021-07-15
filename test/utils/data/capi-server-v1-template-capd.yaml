@@ -12,6 +12,7 @@ spec:
       description: Namespace to create the cluster in
     - name: KUBERNETES_VERSION
       description: Kubernetes version to use for the cluster
+      options: ["1.19.7", "1.19.8"]
   resourcetemplates:
     - apiVersion: cluster.x-k8s.io/v1alpha3
       kind: Cluster

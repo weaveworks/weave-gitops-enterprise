@@ -13,8 +13,9 @@ import (
 )
 
 type TemplateField struct {
-	Name  string
-	Value string
+	Name   string
+	Value  string
+	Option string
 }
 
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
@@ -42,7 +43,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				Expect(err).NotTo(HaveOccurred())
 
 				// Make the page bigger so we can see all the things in the screenshots
-				err = webDriver.Size(2000, 3000)
+				err = webDriver.Size(1800, 2500)
 				Expect(err).NotTo(HaveOccurred())
 			}
 
@@ -80,10 +81,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-capitemplate.yaml")
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
 				templatesPage := pages.GetTemplatesPage(webDriver)
 
 				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage.WaitForPageToLoad(webDriver)
 					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
 					Eventually(templatesPage.TemplateCount).Should(MatchText(`[0-9]+`))
 
@@ -116,7 +117,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				templateFiles = mccpTestRunner.CreateApplyCapitemplates(50, "capi-server-v1-capitemplate.yaml")
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-9")
@@ -140,9 +144,13 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
+				pages.NavigateToPage(webDriver, "Templates")
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
+
 				By("And User should see message informing user of the invalid template in the cluster", func() {
-					pages.NavigateToPage(webDriver, "Templates")
-					pages.WaitForAnyTemplateToAppear(webDriver)
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
 					Eventually(templateTile.ErrorHeader).Should(BeFound())
 					Expect(templateTile.ErrorDescription).Should(BeFound())
@@ -165,10 +173,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
-				templatesPage := pages.GetTemplatesPage(webDriver)
-
 				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
 					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
 
 					count, _ := templatesPage.TemplateCount.Text()
@@ -189,14 +196,17 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			XIt("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
+			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "eks-fargate-template-0")
@@ -205,6 +215,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 					// Eventually(createPage.TemplateName).Should(MatchText(".*eks-fargate-template-0.*"))
 				})
@@ -216,38 +227,45 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1. Cluster"] = []TemplateField{
 					{
-						Name:  "CLUSTER_NAME",
-						Value: clusterName,
+						Name:   "CLUSTER_NAME",
+						Value:  clusterName,
+						Option: "",
 					},
 				}
 				paramSection["2. AWSManagedCluster"] = []TemplateField{
 					{
-						Name:  "CLUSTER_NAME",
-						Value: "",
+						Name:   "CLUSTER_NAME",
+						Value:  "",
+						Option: "",
 					},
 				}
 				paramSection["3. AWSManagedControlPlane"] = []TemplateField{
 					{
-						Name:  "AWS_REGION",
-						Value: region,
+						Name:   "AWS_REGION",
+						Value:  region,
+						Option: "",
 					},
 					{
-						Name:  "AWS_SSH_KEY_NAME",
-						Value: sshKey,
+						Name:   "AWS_SSH_KEY_NAME",
+						Value:  sshKey,
+						Option: "",
 					},
 					{
-						Name:  "CLUSTER_NAME",
-						Value: "",
+						Name:   "CLUSTER_NAME",
+						Value:  "",
+						Option: "",
 					},
 					{
-						Name:  "KUBERNETES_VERSION",
-						Value: k8Version,
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "",
 					},
 				}
 				paramSection["4. AWSFargateProfile"] = []TemplateField{
 					{
-						Name:  "CLUSTER_NAME",
-						Value: "",
+						Name:   "CLUSTER_NAME",
+						Value:  "",
+						Option: "",
 					},
 				}
 
@@ -272,8 +290,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				By("Then I should preview the PR", func() {
 					Expect(createPage.PreviewPR.Submit()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
+					pages.WaitForDynamicSecToAppear(webDriver)
+
 					Eventually(preview.PreviewLabel).Should(BeFound())
-					preview.ScrollTo(webDriver, preview.PreviewLabel)
+					pages.ScrollWindow(webDriver, 0, 500)
 
 					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
 					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+name: %[1]v`, clusterName))))
@@ -284,14 +304,17 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			XIt("Verify pull request can be created for the selected capi template", func() {
+			It("Verify pull request can be created for the selected capi template", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForAnyTemplateToAppear(webDriver)
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
@@ -299,6 +322,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
+				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+				})
 
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
@@ -307,16 +334,19 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				paramSection := make(map[string][]TemplateField)
 				paramSection["7. MachineDeployment"] = []TemplateField{
 					{
-						Name:  "CLUSTER_NAME",
-						Value: clusterName,
+						Name:   "CLUSTER_NAME",
+						Value:  clusterName,
+						Option: "",
 					},
 					{
-						Name:  "KUBERNETES_VERSION",
-						Value: k8Version,
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
 					},
 					{
-						Name:  "NAMESPACE",
-						Value: namespace,
+						Name:   "NAMESPACE",
+						Value:  namespace,
+						Option: "",
 					},
 				}
 
@@ -327,10 +357,15 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 						for i := 0; i < len(parameters); i++ {
 							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
-							// We are only setting parameter value once and it should be applied to all sections containing the same parameter
+							// We are only setting parameter values once and it should be applied to all sections containing the same parameter
 							if parameters[i].Value != "" {
 								By("And set template parameter values", func() {
-									Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
+									if parameters[i].Option != "" {
+										Expect(templateSection.Fields[i].ListBox.Click()).To(Succeed())
+										Expect(pages.GetParameterOption(webDriver, parameters[i].Option).Click()).To(Succeed())
+									} else {
+										Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
+									}
 								})
 							}
 						}
@@ -343,9 +378,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
+					pages.WaitForDynamicSecToAppear(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
-					gitops.ScrollTo(webDriver, gitops.GitOpsLabel)
+					pages.ScrollWindow(webDriver, 0, 4000)
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())

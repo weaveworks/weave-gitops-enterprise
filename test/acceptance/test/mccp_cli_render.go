@@ -35,7 +35,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Templates are available in the cluster", func() {
-			It("Verify mccp can render template parameters of a template from template library", func() {
+			It("Verify mccp can list template parameters of a template from template library", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
@@ -99,7 +99,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Templates are available in the cluster", func() {
-			XIt("Verify mccp can set template parameters by separate values with commas key1=val1,key2=val2", func() {
+			It("Verify mccp can set template parameters by separate values with commas key1=val1,key2=val2", func() {
 				clusterName := "development-cluster"
 				namespace := "mccp-dev"
 				k8version := "1.19.7"
@@ -129,10 +129,36 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 						clusterName, namespace, k8version))
 					Eventually((re.Find(output))).ShouldNot(BeNil())
 
-					// Verifying MachineDeployment object of tbe template for updated  parameter values
+					// Verifying MachineDeployment object of the template for updated  parameter values
 					re = regexp.MustCompile(fmt.Sprintf(`kind: MachineDeployment\s+metadata:\s+name: %[1]v-md-0\s+namespace: %[2]v\s+spec:\s+clusterName: %[1]v[\s\w\d/:.-]+infrastructureRef:[\s\w\d/:.-]+version: %[3]v`,
 						clusterName, namespace, k8version))
 					Eventually((re.Find(output))).ShouldNot(BeNil())
+				})
+			})
+		})
+
+		Context("When invalid Capi Template(s) are available in the cluster", func() {
+			It("Verify mccp reports an error when rendering template parameters of invalid template from template library", func() {
+
+				noOfTemplates := 1
+				By("Apply/Insall invalid CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
+				})
+
+				By(fmt.Sprintf(`And I run 'mccp templates render cluster-invalid-template-0 --list-parameters --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "render", "cluster-invalid-template-0", "--list-parameters", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then I should not see template parameter table header", func() {
+					Eventually(string(session.Wait().Out.Contents())).ShouldNot(MatchRegexp(`NAME\s+DESCRIPTION\s+OPTIONS`))
+				})
+
+				By("And I should see error message related to invalid template", func() {
+					output := session.Wait().Out.Contents()
+					re := regexp.MustCompile(`Error: unable to retrieve template parameters`)
+					Eventually((re.Find(output))).Should(BeNil())
 				})
 			})
 		})
