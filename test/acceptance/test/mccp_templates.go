@@ -43,7 +43,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				Expect(err).NotTo(HaveOccurred())
 
 				// Make the page bigger so we can see all the things in the screenshots
-				err = webDriver.Size(1800, 1000)
+				err = webDriver.Size(1800, 2500)
 				Expect(err).NotTo(HaveOccurred())
 			}
 
