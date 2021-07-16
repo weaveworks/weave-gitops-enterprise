@@ -454,6 +454,18 @@ func showItems(itemType string) error {
 	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
+// This function prints the last 100 log lines for the specified deployment type
+func printLogs(deploymentApp []string, nameSpace string) {
+	for _, app := range deploymentApp {
+		if nameSpace == "" {
+			nameSpace = "mccp"
+		}
+		log.Printf("--------- %s  logs  \n", app)
+		runCommandPassThrough([]string{}, "kubectl", "logs", fmt.Sprintf(`deployment/%s`, app), "--all-containers=true",
+			"--namespace", nameSpace, "--tail=100")
+	}
+}
+
 // This function generates multiple capitemplate files from a single capitemplate to be used as test data
 func generateTestCapiTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
 	// Read input capitemplate

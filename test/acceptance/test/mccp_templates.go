@@ -288,7 +288,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				}
 
 				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Submit()).To(Succeed())
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
 					pages.WaitForDynamicSecToAppear(webDriver)
 
@@ -373,7 +373,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				}
 
 				By("And press the Preview PR button", func() {
-					Expect(createPage.PreviewPR.Submit()).To(Succeed())
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
 				})
 
 				By("And set GitOps values for pull request", func() {
