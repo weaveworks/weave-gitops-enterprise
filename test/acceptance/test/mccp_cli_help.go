@@ -91,7 +91,7 @@ func DescribeMccpCliHelp() {
 
 		})
 
-		It("Verify that mccp command prints the sub help text for the list command", func() {
+		It("Verify that mccp command prints the sub help text for the templates list command", func() {
 
 			By("When I run the command 'mccp templates list help'", func() {
 				command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--help", "--endpoint", CAPI_ENDPOINT_URL)
@@ -99,7 +99,7 @@ func DescribeMccpCliHelp() {
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 
-			By("Then I should see help message printed with the product name", func() {
+			By("Then I should see help message printed with the command discreption", func() {
 				Eventually(session).Should(gbytes.Say("List CAPI templates"))
 			})
 
@@ -119,6 +119,7 @@ func DescribeMccpCliHelp() {
 			})
 
 			By("And  Global Flags category", func() {
+				Eventually(session).Should(gbytes.Say("Global Flags:"))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string\s+The MCCP HTTP API endpoint`))
 			})
 
@@ -132,7 +133,7 @@ func DescribeMccpCliHelp() {
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 
-			By("Then I should see help message printed with the product name", func() {
+			By("Then I should see help message printed with the command discreption", func() {
 				Eventually(session).Should(gbytes.Say("Render CAPI template"))
 			})
 
@@ -163,9 +164,43 @@ func DescribeMccpCliHelp() {
 			})
 
 			By("And  Global Flags category", func() {
+				Eventually(session).Should(gbytes.Say("Global Flags:"))
 				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string\s+The MCCP HTTP API endpoint`))
 			})
 
+		})
+
+		It("Verify that mccp command prints the sub help text for the clusters list command", func() {
+
+			By("When I run the command 'mccp templates list help'", func() {
+				command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--help", "--endpoint", CAPI_ENDPOINT_URL)
+				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).ShouldNot(HaveOccurred())
+			})
+
+			By("Then I should see help message printed with the command discreption", func() {
+				Eventually(session).Should(gbytes.Say("List Kubernetes clusters"))
+			})
+
+			By("And Usage category", func() {
+				Eventually(session).Should(gbytes.Say("Usage:"))
+				Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("mccp clusters list [flags]"))
+			})
+
+			By("And Examples category", func() {
+				Eventually(session).Should(gbytes.Say("Examples:"))
+				Eventually(session).Should(gbytes.Say("mccp clusters list"))
+			})
+
+			By("And Flags category", func() {
+				Eventually(session).Should(gbytes.Say("Flags:"))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-h, --help[\s]+help for list`))
+			})
+
+			By("And  Global Flags category", func() {
+				Eventually(session).Should(gbytes.Say("Global Flags:"))
+				Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-e, --endpoint string\s+The MCCP HTTP API endpoint`))
+			})
 		})
 	})
 }

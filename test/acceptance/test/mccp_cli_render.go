@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -194,6 +195,21 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
+		Context("When no clusters are available in the management cluster", func() {
+			It("Verify mccp lists no clusters", func() {
+
+				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then mccp lists no clusters", func() {
+					Eventually(session).Should(gbytes.Say("No clusters found"))
+				})
+			})
+		})
+
 		Context("When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can create pull request to management cluster", func() {
 
@@ -263,6 +279,20 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
+
+				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then I should see cluster status as 'pullRequestCreated'", func() {
+					output := session.Wait().Out.Contents()
+					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
+
+					re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName))
+					Eventually((re.Find(output))).ShouldNot(BeNil())
+				})
 			})
 		})
 
@@ -286,7 +316,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				// CAPD Parameter values
-				capdClusterName := "my-capd-cluster2"
+				capdClusterName := "my-capd-cluster02"
 				capdNamespace := "mccp-dev"
 				capdK8version := "1.19.7"
 
@@ -379,6 +409,22 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					pullBranch(repoAbsolutePath, eksPRBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, eksClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
+				})
+
+				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then I should see cluster status as 'pullRequestCreated'", func() {
+					output := session.Wait().Out.Contents()
+					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
+
+					re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, eksClusterName))
+					Eventually((re.Find(output))).ShouldNot(BeNil())
+					re = regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, capdClusterName))
+					Eventually((re.Find(output))).ShouldNot(BeNil())
 				})
 			})
 		})
