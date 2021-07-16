@@ -22,6 +22,13 @@ func GomegaFail(message string, callerSkip ...int) {
 
 	//Show pods
 	showItems("")
+
+	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
+		// Print cluster service log
+		deploymentAapp := []string{"my-mccp-cluster-service"}
+		printLogs(deploymentAapp, "")
+	}
+
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
 }
