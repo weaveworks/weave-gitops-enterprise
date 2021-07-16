@@ -2,8 +2,11 @@ package acceptance
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"sort"
 	"strconv"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -288,7 +291,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				}
 
 				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Submit()).To(Succeed())
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
 					pages.WaitForDynamicSecToAppear(webDriver)
 
@@ -304,7 +307,27 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			It("Verify pull request can be created for the selected capi template", func() {
+			FIt("Verify pull request can be created for capi template to the management cluster", func() {
+
+				defer deleteRepo(CLUSTER_REPOSITORY)
+				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+
+				By("And template repo does not already exist", func() {
+					deleteRepo(CLUSTER_REPOSITORY)
+					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				})
+
+				var repoAbsolutePath string
+				By("When I create a private repository for cluster configs", func() {
+					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					testFile := createTestFile("README.md", "# mccp-capi-template")
+
+					gitAddCommitPush(repoAbsolutePath, testFile)
+				})
+
+				By("And repo created has private visibility", func() {
+					Expect(getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
+				})
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
@@ -323,10 +346,11 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					// createPage.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
+				// Parameter values
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
 				k8Version := "1.19.7"
@@ -373,8 +397,13 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				}
 
 				By("And press the Preview PR button", func() {
-					Expect(createPage.PreviewPR.Submit()).To(Succeed())
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
 				})
+
+				//Pull request values
+				prBranch := "feature-capd"
+				prTitle := "My first pull request"
+				prCommit := "First capd capi template"
 
 				By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
@@ -384,9 +413,34 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					pages.ScrollWindow(webDriver, 0, 4000)
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
-					Expect(gitops.CreatePR).Should(BeFound())
+					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+
+					Expect(gitops.CreatePR.Click()).To(Succeed())
+				})
+
+				var prUrl string
+				clustersPage := pages.GetClustersPage(webDriver)
+				By("Then I should see cluster appears in the cluster dashboard with the expected status", func() {
+					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Eventually(clusterInfo.Status).Should(HaveText("PR Created"))
+					prUrl, _ = clusterInfo.Status.Find("a").Attribute("href")
+				})
+
+				By("And I should veriyfy the pull request in the cluster config repository", func() {
+					pullRequest := listPullRequest(repoAbsolutePath)
+					Expect(pullRequest[0]).Should(Equal(prTitle))
+					Expect(pullRequest[1]).Should(Equal(prBranch))
+					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
+				})
+
+				By("And the manifests are present in the cluster config repository", func() {
+					pullBranch(repoAbsolutePath, prBranch)
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})
 		})
