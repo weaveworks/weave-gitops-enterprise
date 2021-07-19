@@ -31,11 +31,22 @@ func TestParseTemplateMeta(t *testing.T) {
 				Params:     []string{"CLUSTER_NAME"},
 				Name:       "${CLUSTER_NAME}-md-0",
 			},
+			{
+				Kind:       "KubeadmControlPlane",
+				APIVersion: "controlplane.cluster.x-k8s.io/v1alpha4",
+				Name:       "${CLUSTER_NAME}-control-plane",
+				Params:     []string{"CLUSTER_NAME", "CONTROL_PLANE_MACHINE_COUNT"},
+			},
 		},
 		Params: []Param{
 			{
 				Name:        "CLUSTER_NAME",
-				Description: "This is used for the cluster naming."},
+				Description: "This is used for the cluster naming.",
+			},
+			{
+				Name:        "CONTROL_PLANE_MACHINE_COUNT",
+				Description: "How many machine replicas to setup.",
+			},
 		},
 	}
 	if diff := cmp.Diff(want, meta); diff != "" {

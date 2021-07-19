@@ -5,14 +5,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // CAPITemplateSpec defines the desired state of CAPITemplate
 type CAPITemplateSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	Description       string                 `json:"description,omitempty"`
 	Params            []TemplateParam        `json:"params,omitempty"` // Described above
 	ResourceTemplates []CAPIResourceTemplate `json:"resourcetemplates,omitempty"`
@@ -35,8 +31,6 @@ type CAPIResourceTemplate struct {
 
 // CAPITemplateStatus defines the observed state of CAPITemplate
 type CAPITemplateStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
 //+kubebuilder:object:root=true
