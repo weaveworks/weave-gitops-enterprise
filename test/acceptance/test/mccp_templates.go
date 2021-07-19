@@ -23,7 +23,7 @@ type TemplateField struct {
 
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
-	var _ = Describe("Multi-Cluster Control Plane UI", func() {
+	var _ = Describe("Multi-Cluster Control Plane UI - Templates", func() {
 
 		templateFiles := []string{}
 
@@ -307,7 +307,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			It("Verify pull request can be created for capi template to the management cluster", func() {
+			It("@Integration Verify pull request can be created for capi template to the management cluster", func() {
 
 				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -446,7 +446,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			It("Verify pull request can not be created by using exiting repository branch", func() {
+			It("@Integration Verify pull request can not be created by using exiting repository branch", func() {
 
 				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
