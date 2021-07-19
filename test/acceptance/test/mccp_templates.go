@@ -59,6 +59,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		AfterEach(func() {
 			mccpTestRunner.DeleteApplyCapiTemplates(templateFiles)
+			// Reset/empty the templateFiles list
+			templateFiles = []string{}
 		})
 
 		Context("When no Capi Templates are available in the cluster", func() {
