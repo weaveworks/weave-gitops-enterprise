@@ -213,24 +213,24 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		Context("When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can create pull request to management cluster", func() {
 
-				defer deleteRepo(CLUSTER_REPOSITORY)
+				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				By("And template repo does not already exist", func() {
-					deleteRepo(CLUSTER_REPOSITORY)
+					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
-					gitAddCommitPush(repoAbsolutePath, testFile)
+					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				By("And repo created has private visibility", func() {
-					Expect(getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
+					Expect(mccpTestRunner.getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
 				})
 
 				// Parameter values
@@ -268,14 +268,14 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should veriyfy the pull request in the cluster config repository", func() {
-					pullRequest := listPullRequest(repoAbsolutePath)
+					pullRequest := mccpTestRunner.listPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(prTitle))
 					Expect(pullRequest[1]).Should(Equal(prBranch))
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
 				})
 
 				By("And the manifests are present in the cluster config repository", func() {
-					pullBranch(repoAbsolutePath, prBranch)
+					mccpTestRunner.pullBranch(repoAbsolutePath, prBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
@@ -299,20 +299,20 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		Context("When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can create multiple pull request to management cluster", func() {
 
-				defer deleteRepo(CLUSTER_REPOSITORY)
+				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				By("And template repo does not already exist", func() {
-					deleteRepo(CLUSTER_REPOSITORY)
+					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
-					gitAddCommitPush(repoAbsolutePath, testFile)
+					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				// CAPD Parameter values
@@ -352,7 +352,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should veriyfy the capd pull request in the cluster config repository", func() {
-					pullRequest := listPullRequest(repoAbsolutePath)
+					pullRequest := mccpTestRunner.listPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(capdPRTitle))
 					Expect(pullRequest[1]).Should(Equal(capdPRBranch))
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(capdPRUrl))
@@ -393,20 +393,20 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should veriyfy the eks pull request in the cluster config repository", func() {
-					pullRequest := listPullRequest(repoAbsolutePath)
+					pullRequest := mccpTestRunner.listPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(eksPRTitle))
 					Expect(pullRequest[1]).Should(Equal(eksPRBranch))
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(eksPRUrl))
 				})
 
 				By("And the capd manifest is present in the cluster config repository", func() {
-					pullBranch(repoAbsolutePath, capdPRBranch)
+					mccpTestRunner.pullBranch(repoAbsolutePath, capdPRBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, capdClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 
 				By("And the eks manifest is present in the cluster config repository", func() {
-					pullBranch(repoAbsolutePath, eksPRBranch)
+					mccpTestRunner.pullBranch(repoAbsolutePath, eksPRBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, eksClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
@@ -432,25 +432,25 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		Context("When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can not create pull request to management cluster using existing branch", func() {
 
-				defer deleteRepo(CLUSTER_REPOSITORY)
+				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				By("And template repo does not already exist", func() {
-					deleteRepo(CLUSTER_REPOSITORY)
+					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
-					gitAddCommitPush(repoAbsolutePath, testFile)
+					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				branchName := "test-branch"
 				By("And create new git repository branch", func() {
-					createGitRepoBranch(repoAbsolutePath, branchName)
+					mccpTestRunner.createGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
 				// Parameter values
