@@ -35,7 +35,10 @@ config:
     type: github
     hostname: github.com
   capi:
-    namespace: default
+    templates:
+      namespace: default
+    clusters:
+      namespace: default
     repositoryURL: ''
     baseBranch: main
 

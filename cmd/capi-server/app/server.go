@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -88,15 +89,19 @@ func StartServer() error {
 		Client:    kubeClient,
 		Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 	}
+	ns := os.Getenv("CAPI_CLUSTERS_NAMESPACE")
+	if ns == "" {
+		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
+	}
 	provider := git.NewGitProviderService()
-	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider, kubeClient, db)
+	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider, kubeClient, db, ns, grpc_runtime.WithIncomingHeaderMatcher(CustomHeaderMatcher))
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, client client.Client, db *gorm.DB, opts ...grpc_runtime.ServeMuxOption) error {
+func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, client client.Client, db *gorm.DB, ns string, opts ...grpc_runtime.ServeMuxOption) error {
 	mux := grpc_runtime.NewServeMux(opts...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, client, db))
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, client, db, ns))
 	s := &http.Server{
 		Addr:    addr,
 		Handler: mux,
@@ -117,4 +122,13 @@ func RunInProcessGateway(ctx context.Context, addr string, library templates.Lib
 		return err
 	}
 	return nil
+}
+
+func CustomHeaderMatcher(key string) (string, bool) {
+	switch key {
+	case "Accept":
+		return key, true
+	default:
+		return grpc_runtime.DefaultHeaderMatcher(key)
+	}
 }

@@ -594,7 +594,7 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, db *gor
 		Namespace: "default",
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, db)
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, db, "default")
 }
 
 func RunUIServer(ctx gcontext.Context) {

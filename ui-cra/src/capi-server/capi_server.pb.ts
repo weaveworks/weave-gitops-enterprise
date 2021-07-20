@@ -5,6 +5,7 @@
 */
 
 import * as fm from "./fetch.pb"
+import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
 export type ListTemplatesRequest = {
 }
 
@@ -64,6 +65,14 @@ export type ListCredentialsResponse = {
   total?: number
 }
 
+export type GetKubeconfigRequest = {
+  clusterName?: string
+}
+
+export type GetKubeconfigResponse = {
+  kubeconfig?: string
+}
+
 export type Credential = {
   group?: string
   version?: string
@@ -113,5 +122,8 @@ export class ClustersService {
   }
   static ListCredentials(req: ListCredentialsRequest, initReq?: fm.InitReq): Promise<ListCredentialsResponse> {
     return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/credentials?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetKubeconfig(req: GetKubeconfigRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
+    return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(`/v1/clusters/${req["clusterName"]}/kubeconfig?${fm.renderURLSearchParams(req, ["clusterName"])}`, {...initReq, method: "GET"})
   }
 }

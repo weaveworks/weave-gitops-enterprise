@@ -5,6 +5,7 @@ package capi_server.v1;
 option go_package = "github.com/weaveworks/wks/cmd/capi-server/proto/capi_server";
 
 import "google/api/annotations.proto";
+import "google/api/httpbody.proto";
 
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
@@ -46,6 +47,14 @@ service ClustersService {
       get : "/v1/credentials"
     };
   }
+  // GetKubeconfig returns the Kubeconfig for the given 
+  // workload cluster.
+  rpc GetKubeconfig(GetKubeconfigRequest)
+    returns (google.api.HttpBody) {
+      option (google.api.http) = {
+        get: "/v1/clusters/{cluster_name}/kubeconfig"
+      };
+    }
 }
 
 message ListTemplatesRequest {}
@@ -99,6 +108,15 @@ message ListCredentialsRequest {}
 message ListCredentialsResponse {
   repeated Credential credentials = 1;
   int32 total = 2;
+}
+
+message GetKubeconfigRequest{
+  // The name of the workload cluster.
+  string cluster_name = 1;
+}
+message GetKubeconfigResponse{
+  // The Kubeconfig of the workload cluster.
+  string kubeconfig = 1;
 }
 
 message Credential {

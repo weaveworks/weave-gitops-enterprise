@@ -4,6 +4,7 @@ package capi_server
 
 import (
 	context "context"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -28,6 +29,9 @@ type ClustersServiceClient interface {
 	// will be created.
 	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
+	// GetKubeconfig returns the Kubeconfig for the given
+	// workload cluster.
+	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 }
 
 type clustersServiceClient struct {
@@ -92,6 +96,15 @@ func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCre
 	return out, nil
 }
 
+func (c *clustersServiceClient) GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
+	out := new(httpbody.HttpBody)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/GetKubeconfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -106,6 +119,9 @@ type ClustersServiceServer interface {
 	// will be created.
 	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
+	// GetKubeconfig returns the Kubeconfig for the given
+	// workload cluster.
+	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -130,6 +146,9 @@ func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *Cr
 }
 func (UnimplementedClustersServiceServer) ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCredentials not implemented")
+}
+func (UnimplementedClustersServiceServer) GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetKubeconfig not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -252,6 +271,24 @@ func _ClustersService_ListCredentials_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_GetKubeconfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKubeconfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetKubeconfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/GetKubeconfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetKubeconfig(ctx, req.(*GetKubeconfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -282,6 +319,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCredentials",
 			Handler:    _ClustersService_ListCredentials_Handler,
+		},
+		{
+			MethodName: "GetKubeconfig",
+			Handler:    _ClustersService_GetKubeconfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

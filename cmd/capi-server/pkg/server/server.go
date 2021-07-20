@@ -2,9 +2,12 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/mkmik/multierror"
@@ -16,7 +19,10 @@ import (
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
 	"github.com/weaveworks/wks/common/database/models"
 	common_utils "github.com/weaveworks/wks/common/database/utils"
+	"google.golang.org/genproto/googleapis/api/httpbody"
+	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -28,10 +34,11 @@ type server struct {
 	client   client.Client
 	capiv1_proto.UnimplementedClustersServiceServer
 	db *gorm.DB
+	ns string // The namespace where cluster objects reside
 }
 
-func NewClusterServer(library templates.Library, provider git.Provider, client client.Client, db *gorm.DB) capiv1_proto.ClustersServiceServer {
-	return &server{library: library, provider: provider, client: client, db: db}
+func NewClusterServer(library templates.Library, provider git.Provider, client client.Client, db *gorm.DB, ns string) capiv1_proto.ClustersServiceServer {
+	return &server{library: library, provider: provider, client: client, db: db, ns: ns}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -262,4 +269,48 @@ func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCred
 	}
 
 	return &capiv1_proto.ListCredentialsResponse{Credentials: creds, Total: int32(len(creds))}, nil
+}
+
+// GetKubeconfig returns the Kubeconfig for the given workload cluster
+func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
+	var sec corev1.Secret
+	key := client.ObjectKey{
+		Namespace: s.ns,
+		Name:      fmt.Sprintf("%s-kubeconfig", msg.ClusterName),
+	}
+	err := s.client.Get(ctx, key, &sec)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", key, err)
+	}
+
+	val, ok := sec.Data["value"]
+	if !ok {
+		return nil, fmt.Errorf("secret %q was found but is missing key %q", key, "value")
+	}
+
+	var acceptHeader string
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if accept, ok := md["accept"]; ok {
+			acceptHeader = strings.Join(accept, ",")
+		}
+	}
+
+	if strings.Contains(acceptHeader, "application/octet-stream") {
+		return &httpbody.HttpBody{
+			ContentType: "application/octet-stream",
+			Data:        val,
+		}, nil
+	}
+
+	res, err := json.Marshal(&capiv1_proto.GetKubeconfigResponse{
+		Kubeconfig: base64.StdEncoding.EncodeToString(val),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal response to JSON: %w", err)
+	}
+
+	return &httpbody.HttpBody{
+		ContentType: "application/json",
+		Data:        res,
+	}, nil
 }

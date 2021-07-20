@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -12,6 +14,7 @@ import (
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
 	"github.com/weaveworks/wks/common/database/models"
 	"github.com/weaveworks/wks/common/database/utils"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
@@ -117,7 +120,7 @@ func TestListTemplates(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil)
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
 
 			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
 
@@ -177,7 +180,7 @@ func TestGetTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil)
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
 			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{TemplateName: "cluster-template-1"})
 			if err != nil && tt.err == nil {
 				t.Fatalf("failed to read the templates:\n%s", err)
@@ -222,7 +225,7 @@ func TestListTemplateParams(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil)
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
 
 			listTemplateParamsRequest := new(capiv1_protos.ListTemplateParamsRequest)
 			listTemplateParamsRequest.TemplateName = "cluster-template-1"
@@ -320,7 +323,7 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil)
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
@@ -412,7 +415,7 @@ func TestCreatePullRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			db := createDatabase(t)
-			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db)
+			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db, "")
 
 			// request
 			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
@@ -444,7 +447,85 @@ func TestCreatePullRequest(t *testing.T) {
 	}
 }
 
-func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB) capiv1_protos.ClustersServiceServer {
+func TestGetKubeconfig(t *testing.T) {
+	testCases := []struct {
+		name                    string
+		clusterState            []runtime.Object
+		clusterObjectsNamespace string // Namespace that cluster objects are created in
+		req                     *capiv1_protos.GetKubeconfigRequest
+		ctx                     context.Context
+		expected                []byte
+		err                     error
+	}{
+		{
+			name: "get kubeconfig as JSON",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "value", "foo"),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+		},
+		{
+			name: "get kubeconfig as binary",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "value", "foo"),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.Pairs("accept", "application/octet-stream")),
+			expected: []byte("foo"),
+		},
+		{
+			name:                    "secret not found",
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			err: errors.New("unable to get secret \"default/dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
+		},
+		{
+			name: "secret found but is missing key",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "val", "foo"),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			err: errors.New("secret \"default/dev-kubeconfig\" was found but is missing key \"value\""),
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			db := createDatabase(t)
+			gp := NewFakeGitProvider("", nil)
+			s := createServer(tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace)
+
+			res, err := s.GetKubeconfig(tt.ctx, tt.req)
+
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to get the kubeconfig:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, res.Data, protocmp.Transform()); diff != "" {
+					t.Fatalf("kubeconfig didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -461,7 +542,7 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 		Client:        cl,
 		ConfigMapName: configMapName,
 		Namespace:     namespace,
-	}, provider, cl, db)
+	}, provider, cl, db, ns)
 
 	return s
 }
@@ -535,6 +616,21 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		t.Fatal(err)
 	}
 	return string(b)
+}
+
+func makeSecret(n string, ns string, s ...string) *corev1.Secret {
+	data := make(map[string][]byte)
+	for i := 0; i < len(s); i += 2 {
+		data[s[i]] = []byte(s[i+1])
+	}
+
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      n,
+			Namespace: ns,
+		},
+		Data: data,
+	}
 }
 
 func rawExtension(s string) runtime.RawExtension {

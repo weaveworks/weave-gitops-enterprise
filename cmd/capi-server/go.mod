@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/fluxcd/go-git-providers v0.2.0
+	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
