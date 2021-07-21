@@ -348,7 +348,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					// createPage.WaitForPageToLoad(webDriver)
+					createPage.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
@@ -488,7 +488,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					// createPage.WaitForPageToLoad(webDriver)
+					createPage.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
