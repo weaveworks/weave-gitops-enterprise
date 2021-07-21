@@ -11,9 +11,13 @@ export const PageWrapper = styled.div`
   margin: 0 auto;
 `;
 
+const small = spacing('small');
+const medium = spacing('medium');
+const large = spacing('large');
+
 export const contentCss = css`
-  padding: ${spacing('large')};
-  margin: ${spacing('small')};
+  margin: ${medium} ${small} ${small} ${small};
+  padding: ${large} ${medium} ${medium} ${medium};
   background-color: white;
   border-radius: ${spacing('xs')};
 `;
@@ -25,7 +29,7 @@ export const Content = styled.div`
 const HelpLinkWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-top: ${spacing('large')};
+  margin-top: ${large};
   color: ${({ theme }) => theme.colors.gray600};
   white-space: nowrap;
   line-height: 1.5em;
