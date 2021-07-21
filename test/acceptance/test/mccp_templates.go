@@ -2,8 +2,11 @@ package acceptance
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"sort"
 	"strconv"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +23,7 @@ type TemplateField struct {
 
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
-	var _ = Describe("Multi-Cluster Control Plane UI", func() {
+	var _ = Describe("Multi-Cluster Control Plane UI - Templates", func() {
 
 		templateFiles := []string{}
 
@@ -56,6 +59,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		AfterEach(func() {
 			mccpTestRunner.DeleteApplyCapiTemplates(templateFiles)
+			// Reset/empty the templateFiles list
+			templateFiles = []string{}
 		})
 
 		Context("When no Capi Templates are available in the cluster", func() {
@@ -304,7 +309,27 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("When Capi Template is available in the cluster", func() {
-			It("Verify pull request can be created for the selected capi template", func() {
+			It("@Integration Verify pull request can be created for capi template to the management cluster", func() {
+
+				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
+				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+
+				By("And template repo does not already exist", func() {
+					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
+					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				})
+
+				var repoAbsolutePath string
+				By("When I create a private repository for cluster configs", func() {
+					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					testFile := createTestFile("README.md", "# mccp-capi-template")
+
+					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
+				})
+
+				By("And repo created has private visibility", func() {
+					Expect(mccpTestRunner.getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
+				})
 
 				By("Apply/Insall CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
@@ -327,6 +352,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
+				// Parameter values
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
 				k8Version := "1.19.7"
@@ -376,6 +402,11 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Expect(createPage.PreviewPR.Click()).To(Succeed())
 				})
 
+				//Pull request values
+				prBranch := "feature-capd"
+				prTitle := "My first pull request"
+				prCommit := "First capd capi template"
+
 				By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
 					pages.WaitForDynamicSecToAppear(webDriver)
@@ -384,9 +415,156 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					pages.ScrollWindow(webDriver, 0, 4000)
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
-					Expect(gitops.CreatePR).Should(BeFound())
+					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+
+					Expect(gitops.CreatePR.Click()).To(Succeed())
+				})
+
+				var prUrl string
+				clustersPage := pages.GetClustersPage(webDriver)
+				By("Then I should see cluster appears in the cluster dashboard with the expected status", func() {
+					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Eventually(clusterInfo.Status).Should(HaveText("PR Created"))
+					prUrl, _ = clusterInfo.Status.Find("a").Attribute("href")
+				})
+
+				By("And I should veriyfy the pull request in the cluster config repository", func() {
+					pullRequest := mccpTestRunner.listPullRequest(repoAbsolutePath)
+					Expect(pullRequest[0]).Should(Equal(prTitle))
+					Expect(pullRequest[1]).Should(Equal(prBranch))
+					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
+				})
+
+				By("And the manifests are present in the cluster config repository", func() {
+					mccpTestRunner.pullBranch(repoAbsolutePath, prBranch)
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
+				})
+			})
+		})
+
+		Context("When Capi Template is available in the cluster", func() {
+			It("@Integration Verify pull request can not be created by using exiting repository branch", func() {
+
+				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
+				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+
+				By("And template repo does not already exist", func() {
+					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
+					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				})
+
+				var repoAbsolutePath string
+				By("When I create a private repository for cluster configs", func() {
+					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					testFile := createTestFile("README.md", "# mccp-capi-template")
+
+					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
+				})
+
+				branchName := "test-branch"
+				By("And create new git repository branch", func() {
+					mccpTestRunner.createGitRepoBranch(repoAbsolutePath, branchName)
+				})
+
+				By("Apply/Insall CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+				})
+
+				pages.NavigateToPage(webDriver, "Templates")
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
+
+				By("And User should choose a template", func() {
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
+					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+				})
+
+				createPage := pages.GetCreateClusterPage(webDriver)
+				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+				})
+
+				// Parameter values
+				clusterName := "quick-capd-cluster2"
+				namespace := "quick-capi"
+				k8Version := "1.19.7"
+
+				paramSection := make(map[string][]TemplateField)
+				paramSection["7. MachineDeployment"] = []TemplateField{
+					{
+						Name:   "CLUSTER_NAME",
+						Value:  clusterName,
+						Option: "",
+					},
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
+					},
+					{
+						Name:   "NAMESPACE",
+						Value:  namespace,
+						Option: "",
+					},
+				}
+
+				for section, parameters := range paramSection {
+					By(fmt.Sprintf("And set template section %s parameter values", section), func() {
+						templateSection := createPage.GetTemplateSection(webDriver, section)
+						Expect(templateSection.Name).Should(HaveText(section))
+
+						for i := 0; i < len(parameters); i++ {
+							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
+							// We are only setting parameter values once and it should be applied to all sections containing the same parameter
+							if parameters[i].Value != "" {
+								By("And set template parameter values", func() {
+									if parameters[i].Option != "" {
+										Expect(templateSection.Fields[i].ListBox.Click()).To(Succeed())
+										Expect(pages.GetParameterOption(webDriver, parameters[i].Option).Click()).To(Succeed())
+									} else {
+										Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
+									}
+								})
+							}
+						}
+					})
+				}
+
+				By("And press the Preview PR button", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+				})
+
+				//Pull request values
+				prTitle := "My first pull request"
+				prCommit := "First capd capi template"
+
+				gitops := pages.GetGitOps(webDriver)
+				By("And set GitOps values for pull request", func() {
+					pages.WaitForDynamicSecToAppear(webDriver)
+					Eventually(gitops.GitOpsLabel).Should(BeFound())
+
+					pages.ScrollWindow(webDriver, 0, 4000)
+
+					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[0].Field.SendKeys(branchName)).To(Succeed())
+					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
+					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+
+					Expect(gitops.CreatePR.Click()).To(Succeed())
+				})
+
+				By("Then I should not see pull request to be created", func() {
+					Eventually(gitops.ErrorBar).Should(MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
 				})
 			})
 		})

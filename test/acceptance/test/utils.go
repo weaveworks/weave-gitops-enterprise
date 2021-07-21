@@ -165,6 +165,15 @@ type MCCPTestRunner interface {
 	AddWorkspace(env []string, clusterName string) error
 	CreateApplyCapitemplates(templateCount int, templateFile string) []string
 	DeleteApplyCapiTemplates(templateFiles []string)
+
+	// Git repository helper functions
+	deleteRepo(repoName string)
+	initAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string
+	gitAddCommitPush(repoAbsolutePath string, fileToAdd string)
+	createGitRepoBranch(repoAbsolutePath string, branchName string) string
+	pullBranch(repoAbsolutePath string, branch string)
+	listPullRequest(repoAbsolutePath string) []string
+	getRepoVisibility(org string, repo string) string
 }
 
 // "DB" backend that creates/delete rows
@@ -300,6 +309,34 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 	})
 }
 
+func (b DatabaseMCCPTestRunner) deleteRepo(repoName string) {
+
+}
+
+func (b DatabaseMCCPTestRunner) initAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
+	return ""
+}
+
+func (b DatabaseMCCPTestRunner) gitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
+
+}
+
+func (b DatabaseMCCPTestRunner) createGitRepoBranch(repoAbsolutePath string, branchName string) string {
+	return ""
+}
+
+func (b DatabaseMCCPTestRunner) pullBranch(repoAbsolutePath string, branch string) {
+
+}
+
+func (b DatabaseMCCPTestRunner) listPullRequest(repoAbsolutePath string) []string {
+	return []string{}
+}
+
+func (b DatabaseMCCPTestRunner) getRepoVisibility(org string, repo string) string {
+	return ""
+}
+
 // "Real" backend that call kubectl and posts to alertmanagement
 
 type RealMCCPTestRunner struct{}
@@ -427,6 +464,87 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
+func (b RealMCCPTestRunner) deleteRepo(repoName string) {
+	log.Printf("Delete application repo: %s", path.Join(GITHUB_ORG, repoName))
+	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", path.Join(GITHUB_ORG, repoName))
+}
+
+func (b RealMCCPTestRunner) initAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
+	repoAbsolutePath := path.Join("/tmp/", repoName)
+	privateRepo := ""
+	if IsPrivateRepo {
+		privateRepo = "-p"
+	}
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            mkdir %s &&
+                            cd %s &&
+                            git init &&
+                            git checkout -b main &&
+                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, path.Join(GITHUB_ORG, repoName), privateRepo))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	Expect(WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, repoName)
+		command := exec.Command("sh", "-c", cmd)
+		return command.Run()
+	})).ShouldNot(HaveOccurred())
+
+	return repoAbsolutePath
+}
+
+func (b RealMCCPTestRunner) gitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cp -r -f %s %s &&
+                            cd %s &&
+                            git add . &&
+                            git commit -m 'add workload manifest' &&
+                            git push -u origin main`, fileToAdd, repoAbsolutePath, repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	fmt.Println(string(session.Wait().Err.Contents()))
+}
+
+func (b RealMCCPTestRunner) createGitRepoBranch(repoAbsolutePath string, branchName string) string {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return string(session.Wait().Out.Contents())
+}
+
+func (b RealMCCPTestRunner) pullBranch(repoAbsolutePath string, branch string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cd %s &&
+                            git pull origin %s`, repoAbsolutePath, branch))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
+func (b RealMCCPTestRunner) listPullRequest(repoAbsolutePath string) []string {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cd %s &&
+                            hub pr list --limit 1 --base main --format='%%t|%%H|%%U%%n'`, repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	return strings.Split(string(session.Wait().Out.Contents()), "|")
+}
+
+func (b RealMCCPTestRunner) getRepoVisibility(org string, repo string) string {
+	command := exec.Command("sh", "-c", fmt.Sprintf("hub api --flat repos/%s/%s|grep -i private|cut -f2", org, repo))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	visibilityStr := strings.TrimSpace(string(session.Wait().Out.Contents()))
+	log.Printf("Repo visibility private=%s", visibilityStr)
+	return visibilityStr
+}
+
 // Run a command, passing through stdout/stderr to the OS standard streams
 func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
@@ -533,8 +651,6 @@ func FileExists(name string) bool {
 	return true
 }
 
-// ***************** Repository helper functions ************************
-
 func createTestFile(fileName string, fileContents string) string {
 	testFilePath := filepath.Join(os.TempDir(), fileName)
 
@@ -546,85 +662,4 @@ func createTestFile(fileName string, fileContents string) string {
 	Eventually(session).Should(gexec.Exit())
 
 	return testFilePath
-}
-
-func deleteRepo(repoName string) {
-	log.Printf("Delete application repo: %s", path.Join(GITHUB_ORG, repoName))
-	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", path.Join(GITHUB_ORG, repoName))
-}
-
-func initAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
-	repoAbsolutePath := path.Join("/tmp/", repoName)
-	privateRepo := ""
-	if IsPrivateRepo {
-		privateRepo = "-p"
-	}
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            mkdir %s &&
-                            cd %s &&
-                            git init &&
-                            git checkout -b main &&
-                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, path.Join(GITHUB_ORG, repoName), privateRepo))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-
-	Expect(WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
-		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, repoName)
-		command := exec.Command("sh", "-c", cmd)
-		return command.Run()
-	})).ShouldNot(HaveOccurred())
-
-	return repoAbsolutePath
-}
-
-func gitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cp -r -f %s %s &&
-                            cd %s &&
-                            git add . &&
-                            git commit -m 'add workload manifest' &&
-                            git push -u origin main`, fileToAdd, repoAbsolutePath, repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-	fmt.Println(string(session.Wait().Err.Contents()))
-}
-
-func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-	return string(session.Wait().Out.Contents())
-}
-
-func pullBranch(repoAbsolutePath string, branch string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cd %s &&
-                            git pull origin %s`, repoAbsolutePath, branch))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-}
-
-func listPullRequest(repoAbsolutePath string) []string {
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cd %s &&
-                            hub pr list --limit 1 --base main --format='%%t|%%H|%%U%%n'`, repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-
-	return strings.Split(string(session.Wait().Out.Contents()), "|")
-}
-
-func getRepoVisibility(org string, repo string) string {
-	command := exec.Command("sh", "-c", fmt.Sprintf("hub api --flat repos/%s/%s|grep -i private|cut -f2", org, repo))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-	visibilityStr := strings.TrimSpace(string(session.Wait().Out.Contents()))
-	log.Printf("Repo visibility private=%s", visibilityStr)
-	return visibilityStr
 }

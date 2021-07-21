@@ -36,6 +36,7 @@ type GitOps struct {
 	GitOpsLabel  *agouti.Selection
 	GitOpsFields []FormField
 	CreatePR     *agouti.Selection
+	ErrorBar     *agouti.Selection
 }
 
 // scrolls the window
@@ -123,5 +124,6 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 			},
 		},
 		CreatePR: webDriver.FindByButton(`Create Pull Request`),
+		ErrorBar: webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
 	}
 }

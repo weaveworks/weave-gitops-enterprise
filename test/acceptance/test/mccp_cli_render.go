@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -32,6 +33,8 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 		AfterEach(func() {
 			mccpTestRunner.DeleteApplyCapiTemplates(templateFiles)
+			// Reset/empty the templateFiles list
+			templateFiles = []string{}
 		})
 
 		Context("When Capi Templates are available in the cluster", func() {
@@ -194,27 +197,42 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
+		Context("When no clusters are available in the management cluster", func() {
+			It("Verify mccp lists no clusters", func() {
+
+				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then mccp lists no clusters", func() {
+					Eventually(session).Should(gbytes.Say("No clusters found"))
+				})
+			})
+		})
+
 		Context("When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can create pull request to management cluster", func() {
 
-				defer deleteRepo(CLUSTER_REPOSITORY)
+				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				By("And template repo does not already exist", func() {
-					deleteRepo(CLUSTER_REPOSITORY)
+					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
-					gitAddCommitPush(repoAbsolutePath, testFile)
+					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				By("And repo created has private visibility", func() {
-					Expect(getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
+					Expect(mccpTestRunner.getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
 				})
 
 				// Parameter values
@@ -252,16 +270,30 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should veriyfy the pull request in the cluster config repository", func() {
-					pullRequest := listPullRequest(repoAbsolutePath)
+					pullRequest := mccpTestRunner.listPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(prTitle))
 					Expect(pullRequest[1]).Should(Equal(prBranch))
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
 				})
 
 				By("And the manifests are present in the cluster config repository", func() {
-					pullBranch(repoAbsolutePath, prBranch)
+					mccpTestRunner.pullBranch(repoAbsolutePath, prBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
+				})
+
+				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then I should see cluster status as 'pullRequestCreated'", func() {
+					output := session.Wait().Out.Contents()
+					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
+
+					re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName))
+					Eventually((re.Find(output))).ShouldNot(BeNil())
 				})
 			})
 		})
@@ -269,24 +301,24 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		Context("When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can create multiple pull request to management cluster", func() {
 
-				defer deleteRepo(CLUSTER_REPOSITORY)
+				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				By("And template repo does not already exist", func() {
-					deleteRepo(CLUSTER_REPOSITORY)
+					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
-					gitAddCommitPush(repoAbsolutePath, testFile)
+					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				// CAPD Parameter values
-				capdClusterName := "my-capd-cluster2"
+				capdClusterName := "my-capd-cluster02"
 				capdNamespace := "mccp-dev"
 				capdK8version := "1.19.7"
 
@@ -322,7 +354,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should veriyfy the capd pull request in the cluster config repository", func() {
-					pullRequest := listPullRequest(repoAbsolutePath)
+					pullRequest := mccpTestRunner.listPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(capdPRTitle))
 					Expect(pullRequest[1]).Should(Equal(capdPRBranch))
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(capdPRUrl))
@@ -363,22 +395,38 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should veriyfy the eks pull request in the cluster config repository", func() {
-					pullRequest := listPullRequest(repoAbsolutePath)
+					pullRequest := mccpTestRunner.listPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(eksPRTitle))
 					Expect(pullRequest[1]).Should(Equal(eksPRBranch))
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(eksPRUrl))
 				})
 
 				By("And the capd manifest is present in the cluster config repository", func() {
-					pullBranch(repoAbsolutePath, capdPRBranch)
+					mccpTestRunner.pullBranch(repoAbsolutePath, capdPRBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, capdClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 
 				By("And the eks manifest is present in the cluster config repository", func() {
-					pullBranch(repoAbsolutePath, eksPRBranch)
+					mccpTestRunner.pullBranch(repoAbsolutePath, eksPRBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, eksClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
+				})
+
+				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then I should see cluster status as 'pullRequestCreated'", func() {
+					output := session.Wait().Out.Contents()
+					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
+
+					re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, eksClusterName))
+					Eventually((re.Find(output))).ShouldNot(BeNil())
+					re = regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, capdClusterName))
+					Eventually((re.Find(output))).ShouldNot(BeNil())
 				})
 			})
 		})
@@ -386,25 +434,25 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		Context("When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can not create pull request to management cluster using existing branch", func() {
 
-				defer deleteRepo(CLUSTER_REPOSITORY)
+				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				By("And template repo does not already exist", func() {
-					deleteRepo(CLUSTER_REPOSITORY)
+					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
 					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
-					gitAddCommitPush(repoAbsolutePath, testFile)
+					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				branchName := "test-branch"
 				By("And create new git repository branch", func() {
-					createGitRepoBranch(repoAbsolutePath, branchName)
+					mccpTestRunner.createGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
 				// Parameter values
