@@ -7,6 +7,8 @@ spec:
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
+    - name: CONTROL_PLANE_MACHINE_COUNT
+      description: How many machine replicas to setup.
   resourcetemplates:
     - apiVersion: cluster.x-k8s.io/v1alpha3
       kind: Cluster
@@ -16,3 +18,9 @@ spec:
       kind: AWSMachineTemplate
       metadata:
         name: "${CLUSTER_NAME}-md-0"
+    - kind: KubeadmControlPlane
+      apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+      spec:
+        replicas: ${CONTROL_PLANE_MACHINE_COUNT}

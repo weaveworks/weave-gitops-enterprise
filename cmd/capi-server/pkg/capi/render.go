@@ -27,7 +27,12 @@ func Render(spec capiv1.CAPITemplateSpec, vars map[string]string, opts ...Render
 	proc := processor.NewSimpleProcessor()
 	var processed [][]byte
 	for _, v := range spec.ResourceTemplates {
-		b, err := proc.Process(v.RawExtension.Raw, func(n string) (string, error) {
+		b, err := yaml.JSONToYAML(v.RawExtension.Raw)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
+		}
+
+		data, err := proc.Process(b, func(n string) (string, error) {
 			if s, ok := vars[n]; ok {
 				return s, nil
 			}
@@ -35,10 +40,6 @@ func Render(spec capiv1.CAPITemplateSpec, vars map[string]string, opts ...Render
 		})
 		if err != nil {
 			return nil, fmt.Errorf("processing template: %w", err)
-		}
-		data, err := yaml.JSONToYAML(b)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
 		}
 
 		for _, o := range opts {
