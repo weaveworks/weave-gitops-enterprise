@@ -51,8 +51,8 @@ func ScrollWindow(webDriver *agouti.Page, xOffSet int, yOffSet int) {
 
 // This function waits for previw and gitops to appear (become visible)
 func WaitForDynamicSecToAppear(webDriver *agouti.Page) {
-	Eventually(webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`)).Should(BeFound())
-	Eventually(webDriver.FindByXPath(`//*/span[text()="GitOps"]`)).Should(BeFound())
+	Eventually(webDriver.FindByXPath(`//div[contains(., "Preview")]/following-sibling::textarea`)).Should(BeFound())
+	Eventually(webDriver.FindByXPath(`//div[contains(., "Preview")]/parent::div/following-sibling::div/div[text()="GitOps"]`)).Should(BeFound())
 }
 
 //CreateCluster initialises the webDriver object
@@ -110,14 +110,14 @@ func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection 
 
 func GetPreview(webDriver *agouti.Page) Preview {
 	return Preview{
-		PreviewLabel: webDriver.FindByXPath(`//*/span[text()="Preview"]`),
-		PreviewText:  webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`),
+		PreviewLabel: webDriver.FindByXPath(`//div[text()="Preview"]`),
+		PreviewText:  webDriver.FindByXPath(`//div[contains(., "Preview")]/following-sibling::textarea`),
 	}
 }
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
-		GitOpsLabel: webDriver.FindByXPath(`//*/span[text()="GitOps"]`),
+		GitOpsLabel: webDriver.FindByXPath(`//div[contains(., "Preview")]/parent::div/following-sibling::div/div[text()="GitOps"]`),
 		GitOpsFields: []FormField{
 			{
 				Label: webDriver.FindByLabel(`Create branch`),
