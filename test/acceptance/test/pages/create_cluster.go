@@ -60,7 +60,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
-		Credentials:     webDriver.FindByXPath(`//div[@class="credentials"]/following-sibling::div//div[contains(@class, "dropdown-toggle")]`),
+		Credentials:     webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		PreviewPR:       webDriver.FindByButton("Preview PR"),
 	}
@@ -71,7 +71,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 // This function waits for Create emplate page to load completely
 func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
 	// Credentials dropdown takes a while to populate
-	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]/following-sibling::div//div[contains(@class, "dropdown-toggle")][@disabled]`),
+	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")][@disabled]`),
 		30*time.Second).ShouldNot(BeFound())
 }
 
