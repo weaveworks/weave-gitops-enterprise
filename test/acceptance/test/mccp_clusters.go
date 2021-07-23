@@ -204,7 +204,7 @@ func ClearIngressURL(webDriver *agouti.Page, clusterName string) {
 
 func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
-	var _ = Describe("Multi-Cluster Control Plane UI - Clusters", func() {
+	var _ = Describe("Multi-Cluster Control Plane Clusters", func() {
 
 		BeforeEach(func() {
 

@@ -51,7 +51,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
-	var _ = Describe("Multi-Cluster Control Plane UI - Templates", func() {
+	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
 
 		templateFiles := []string{}
 

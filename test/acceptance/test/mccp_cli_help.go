@@ -56,7 +56,7 @@ func DescribeMccpCliHelp() {
 			})
 		})
 
-		Context("[CLI] When mccp binary is avaialble", func() {
+		Context("[CLI] When mccp binary is available", func() {
 			It("Verify that mccp displays help text when provided with the wrong flag", func() {
 
 				By("When I run 'mccp foo'", func() {
@@ -69,7 +69,7 @@ func DescribeMccpCliHelp() {
 			})
 		})
 
-		Context("[CLI] When mccp binary is avaialble", func() {
+		Context("[CLI] When mccp binary is available", func() {
 			It("Verify that mccp help flag prints the help text", func() {
 
 				By("When I run the command 'mccp --help' ", func() {
@@ -82,7 +82,7 @@ func DescribeMccpCliHelp() {
 			})
 		})
 
-		Context("[CLI] When mccp binary is avaialble", func() {
+		Context("[CLI] When mccp binary is available", func() {
 			It("Verify that mccp command prints the help text", func() {
 
 				By("When I run the command 'mccp'", func() {
@@ -96,7 +96,7 @@ func DescribeMccpCliHelp() {
 			})
 		})
 
-		Context("[CLI] When mccp binary is avaialble", func() {
+		Context("[CLI] When mccp binary is available", func() {
 			It("Verify that mccp command prints the sub help text for the templates list command", func() {
 
 				By("When I run the command 'mccp templates list help'", func() {
@@ -132,7 +132,7 @@ func DescribeMccpCliHelp() {
 			})
 		})
 
-		Context("[CLI] When mccp binary is avaialble", func() {
+		Context("[CLI] When mccp binary is available", func() {
 			It("Verify that mccp command prints the sub help text for the render command", func() {
 
 				By("When I run the command 'mccp templates render help'", func() {
@@ -179,7 +179,7 @@ func DescribeMccpCliHelp() {
 			})
 		})
 
-		Context("[CLI] When mccp binary is avaialble", func() {
+		Context("[CLI] When mccp binary is available", func() {
 			It("Verify that mccp command prints the sub help text for the clusters list command", func() {
 
 				By("When I run the command 'mccp templates list help'", func() {
