@@ -1,7 +1,7 @@
 // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
 
 import { ObjectFieldTemplateProps } from '@rjsf/core';
-import React, { ReactNode } from 'react';
+import React, { Dispatch, ReactNode } from 'react';
 
 export function ObjectFieldTemplate(props: ObjectFieldTemplateProps) {
   return (
@@ -39,13 +39,19 @@ function doGrouping({
       }
       return EXTRANEOUS;
     } else if (typeof g === 'object') {
-      const { templates, activeStep } = formContext;
+      const { templates, activeStep, setActiveStep, clickedStep } = formContext;
       const GroupComponent = templates
         ? templates[g['ui:template']]
         : DefaultTemplate;
       const _properties = Object.keys(g).reduce(
         (
-          acc: { name: string; active: boolean; children: ReactNode }[],
+          acc: {
+            name: string;
+            active: boolean;
+            clicked: boolean;
+            setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
+            children: ReactNode;
+          }[],
           key: string,
         ) => {
           const field = g[key];
@@ -56,6 +62,8 @@ function doGrouping({
             {
               name: key,
               active: key === activeStep,
+              clicked: key === clickedStep,
+              setActiveStep,
               children: doGrouping({
                 formContext,
                 properties,

@@ -64,10 +64,10 @@ export const NavItem = styled(NavLink).attrs({
 
 const useStyles = makeStyles({
   root: {
-    paddingTop: theme.spacing.medium,
+    paddingTop: theme.spacing.large,
     paddingLeft: theme.spacing.medium,
     alignItems: 'center',
-    marginTop: theme.spacing.small,
+    marginTop: theme.spacing.medium,
     height: '100vh',
     borderTopRightRadius: theme.spacing.xs,
   },

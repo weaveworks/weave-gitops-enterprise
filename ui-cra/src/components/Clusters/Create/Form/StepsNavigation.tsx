@@ -1,4 +1,4 @@
-import React, { Dispatch, FC } from 'react';
+import React, { Dispatch, FC, useCallback } from 'react';
 import Link from '@material-ui/core/Link';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
@@ -9,11 +9,12 @@ const useStyles = makeStyles(() =>
     navWrapper: {
       position: 'sticky',
       top: '112px',
+      overflow: 'auto',
     },
     linkWrapper: {
       display: 'flex',
       justifyContent: 'flex-end',
-      flexWrap: 'wrap',
+      whiteSpace: 'nowrap',
     },
     link: {
       fontSize: `${weaveTheme.fontSizes.small}`,
@@ -30,19 +31,25 @@ const useStyles = makeStyles(() =>
 
 const FormStepsNavigation: FC<{
   steps: string[];
-  activeStep: string;
-  setActiveStep: Dispatch<React.SetStateAction<string>>;
-}> = ({ steps, activeStep, setActiveStep }) => {
+  activeStep: string | undefined;
+  setClickedStep: Dispatch<React.SetStateAction<string>>;
+  PRPreview?: string | null;
+}> = ({ steps, activeStep, setClickedStep, PRPreview }) => {
   const classes = useStyles();
 
-  const handleClick = (event: any) => {
-    event.preventDefault();
-    setActiveStep(event.target.text);
-  };
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+      event.preventDefault();
+      setClickedStep(event.currentTarget.text);
+    },
+    [setClickedStep],
+  );
+
+  const sections = PRPreview ? [...steps, 'Preview', 'GitOps'] : steps;
 
   return (
     <div className={classes.navWrapper}>
-      {steps.map((step, index) => {
+      {sections.map((step, index) => {
         return (
           <div key={index} className={classes.linkWrapper}>
             <Link

@@ -12,7 +12,10 @@ import (
 func TestRender(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
-	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"})
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME":                "testing",
+		"CONTROL_PLANE_MACHINE_COUNT": "5",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,6 +30,13 @@ apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
   name: testing-md-0
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: testing-control-plane
+spec:
+  replicas: 5
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
@@ -38,8 +48,14 @@ func TestInNamespace(t *testing.T) {
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
-  name: testing`)
-
+  name: testing
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: testing-control-plane
+spec:
+  replicas: 5`)
 	updated, err := InNamespace("new-namespace")(raw)
 	if err != nil {
 		t.Fatal(err)
@@ -60,7 +76,11 @@ metadata:
 func TestRender_in_namespace(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
-	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"}, InNamespace("new-test-namespace"))
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME":                "testing",
+		"CONTROL_PLANE_MACHINE_COUNT": "5",
+	},
+		InNamespace("new-test-namespace"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,6 +97,14 @@ kind: AWSMachineTemplate
 metadata:
   name: testing-md-0
   namespace: new-test-namespace
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: testing-control-plane
+  namespace: new-test-namespace
+spec:
+  replicas: 5
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
@@ -86,7 +114,10 @@ metadata:
 func TestRender_with_options(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
-	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"},
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME":                "testing",
+		"CONTROL_PLANE_MACHINE_COUNT": "2",
+	},
 		unstructuredFunc(func(uns *unstructured.Unstructured) {
 			uns.SetName("just-a-test")
 		}),
@@ -110,6 +141,14 @@ kind: AWSMachineTemplate
 metadata:
   name: just-a-test
   namespace: not-a-real-namespace
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: just-a-test
+  namespace: not-a-real-namespace
+spec:
+  replicas: 2
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)

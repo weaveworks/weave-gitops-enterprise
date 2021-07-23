@@ -27,11 +27,14 @@ import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import * as Grouped from './Form/GroupedSchema';
 import * as UiTemplate from './Form/UITemplate';
-import FormSteps from './Form/Steps';
+import FormSteps, { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
 import { Credential } from '../../../types/custom';
 import styled from 'styled-components';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import CredentialsProvider from '../../../contexts/Credentials/Provider';
 
+const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
@@ -41,18 +44,25 @@ const small = weaveTheme.spacing.small;
 const CredentialsWrapper = styled.div`
   display: flex;
   align-items: center;
-  @media (max-width: 900px) {
-    flex-direction: column;
-    align-items: left;
-  }
   & .template-title {
-    margin-right: ${base};
+    margin-right: ${medium};
   }
   & .credentials {
-    margin-right: ${xs};
+    display: flex;
+    align-items: center;
+    span {
+      margin-right: ${xs};
+    }
   }
   & .dropdown-toggle {
     border: 1px solid #e5e5e5;
+  }
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: left;
+    & .template-title {
+      padding-bottom: ${base};
+    }
   }
 `;
 
@@ -70,14 +80,12 @@ const useStyles = makeStyles(theme =>
       paddingBottom: weaveTheme.spacing.medium,
       color: weaveTheme.colors.gray600,
     },
-    sectionTitle: {
-      fontSize: weaveTheme.fontSizes.large,
-      paddingTop: base,
-      paddingBottom: base,
-    },
     divider: {
       marginTop: medium,
       marginBottom: base,
+    },
+    largeDivider: {
+      margin: `${large} 0`,
     },
     textarea: {
       width: '100%',
@@ -95,15 +103,10 @@ const useStyles = makeStyles(theme =>
       justifyContent: 'center',
       paddingTop: base,
     },
-    grid: {
-      [theme.breakpoints.down('md')]: {
-        justifyContent: 'flex-end',
-      },
-    },
     steps: {
       display: 'flex',
       flexDirection: 'column',
-      [theme.breakpoints.down('sm')]: {
+      [theme.breakpoints.down('md')]: {
         visibility: 'hidden',
         height: 0,
       },
@@ -128,6 +131,7 @@ const AddCluster: FC = () => {
     setActiveTemplate,
     renderTemplate,
     PRPreview,
+    setPRPreview,
     creatingPR,
     addCluster,
     error,
@@ -143,9 +147,11 @@ const AddCluster: FC = () => {
   const rows = (PRPreview?.split('\n').length || 0) - 1;
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
-  const [activeStep, setActiveStep] = useState<string>('');
+  const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
+  const [clickedStep, setClickedStep] = useState<string>('');
   const [infraCredential, setInfraCredential] =
     useState<Credential | null>(null);
+  const isLargeScreen = useMediaQuery('(min-width:1632px)');
 
   const credentialsItems: DropdownItem[] = useMemo(
     () => [
@@ -173,6 +179,7 @@ const AddCluster: FC = () => {
     (event: ISubmitEvent<any>) => {
       setFormData(event.formData);
       setOpenPreview(true);
+      setClickedStep('Preview');
       renderTemplate({ values: event.formData, credentials: infraCredential });
     },
     [setOpenPreview, setFormData, renderTemplate, infraCredential],
@@ -291,9 +298,9 @@ const AddCluster: FC = () => {
         (object, index) => `${index + 1}. ${object.kind}`,
       ) || [];
     setSteps(steps);
-    setActiveStep(steps[0] || '');
     return history.listen(() => {
       setActiveTemplate(null);
+      setPRPreview(null);
       setError(null);
     });
   }, [
@@ -303,6 +310,7 @@ const AddCluster: FC = () => {
     templateName,
     history,
     setError,
+    setPRPreview,
   ]);
 
   return useMemo(() => {
@@ -316,25 +324,30 @@ const AddCluster: FC = () => {
           ]}
         />
         <ContentWrapper>
-          <Grid className={classes.grid} container spacing={3}>
-            <Grid item xs={12} md={9}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={10}>
               <div className={classes.title}>
                 Create new cluster with template
               </div>
               <CredentialsWrapper>
                 <div className="template-title">
-                  Template: {activeTemplate?.name}
+                  Template: <span>{activeTemplate?.name}</span>
                 </div>
                 <div className="credentials">
-                  Infrastructure provider credentials:
+                  <span>Infrastructure provider credentials:</span>
+                  <Dropdown
+                    value={infraCredential?.name}
+                    disabled={loading}
+                    items={credentialsItems}
+                    onChange={handleSelectCredentials}
+                  />
                 </div>
-                <Dropdown
-                  value={infraCredential?.name}
-                  disabled={loading}
-                  items={credentialsItems}
-                  onChange={handleSelectCredentials}
-                />
               </CredentialsWrapper>
+              <Divider
+                className={
+                  !isLargeScreen ? classes.divider : classes.largeDivider
+                }
+              />
               <Form
                 className={classes.form}
                 schema={schema as JSONSchema7}
@@ -345,7 +358,8 @@ const AddCluster: FC = () => {
                 uiSchema={uiSchema}
                 formContext={{
                   templates: FormSteps,
-                  activeStep,
+                  clickedStep,
+                  setActiveStep,
                 }}
                 {...UiTemplate}
               >
@@ -355,26 +369,31 @@ const AddCluster: FC = () => {
               </Form>
               {openPreview ? (
                 <>
-                  <div className={classes.sectionTitle}>
-                    <span>Preview & Commit</span>
-                  </div>
                   {PRPreview ? (
                     <>
-                      <textarea
-                        className={classes.textarea}
-                        rows={rows}
-                        value={PRPreview}
-                        readOnly
-                      />
-                      <span>
-                        You may edit these as part of the pull request with your
-                        git provider.
-                      </span>
-                      <>
-                        <Divider className={classes.divider} />
-                        <div className={classes.sectionTitle}>
-                          <span>GitOps</span>
-                        </div>
+                      <FormStep
+                        title="Preview"
+                        active={activeStep === 'Preview'}
+                        clicked={clickedStep === 'Preview'}
+                        setActiveStep={setActiveStep}
+                      >
+                        <textarea
+                          className={classes.textarea}
+                          rows={rows}
+                          value={PRPreview}
+                          readOnly
+                        />
+                        <span>
+                          You may edit these as part of the pull request with
+                          your git provider.
+                        </span>
+                      </FormStep>
+                      <FormStep
+                        title="GitOps"
+                        active={activeStep === 'GitOps'}
+                        clicked={clickedStep === 'GitOps'}
+                        setActiveStep={setActiveStep}
+                      >
                         <Input
                           label="Create branch"
                           onChange={handleChangeBranchName}
@@ -391,15 +410,12 @@ const AddCluster: FC = () => {
                           className={classes.createCTA}
                           onClick={handleAddCluster}
                         >
-                          <Button>Create Pull Request</Button>
+                          <Button onClick={() => setClickedStep('GitOps')}>
+                            Create Pull Request
+                          </Button>
                         </div>
-                        {creatingPR ? (
-                          <>
-                            <Divider className={classes.divider} />
-                            <Loader />
-                          </>
-                        ) : null}
-                      </>
+                      </FormStep>
+                      {creatingPR && <Loader />}
                     </>
                   ) : (
                     <Loader />
@@ -407,11 +423,12 @@ const AddCluster: FC = () => {
                 </>
               ) : null}
             </Grid>
-            <Grid className={classes.steps} item md={3}>
+            <Grid className={classes.steps} item md={2}>
               <FormStepsNavigation
                 steps={steps}
                 activeStep={activeStep}
-                setActiveStep={setActiveStep}
+                setClickedStep={setClickedStep}
+                PRPreview={PRPreview}
               />
             </Grid>
           </Grid>
@@ -441,7 +458,15 @@ const AddCluster: FC = () => {
     handleSelectCredentials,
     loading,
     infraCredential?.name,
+    clickedStep,
+    isLargeScreen,
   ]);
 };
 
-export default AddCluster;
+const AddClusterWithCredentials = () => (
+  <CredentialsProvider>
+    <AddCluster />
+  </CredentialsProvider>
+);
+
+export default AddClusterWithCredentials;

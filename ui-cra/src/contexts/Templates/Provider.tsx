@@ -80,6 +80,7 @@ const TemplatesProvider: FC = ({ children }) => {
         addCluster,
         renderTemplate,
         PRPreview,
+        setPRPreview,
         creatingPR,
       }}
     >

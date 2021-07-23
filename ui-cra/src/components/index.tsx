@@ -17,17 +17,16 @@ import {
   Theme,
   createStyles,
 } from '@material-ui/core/styles';
-import AddCluster from './Clusters/Create';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import Compose from './ProvidersCompose';
 import Box from '@material-ui/core/Box';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { PageTemplate } from './Layout/PageTemplate';
 import { SectionHeader } from './Layout/SectionHeader';
 import { ContentWrapper } from './Layout/ContentWrapper';
-import CredentialsProvider from '../contexts/Credentials/Provider';
+import { ReactComponent as Error } from '../assets/img/error.svg';
+import AddClusterWithCredentials from './Clusters/Create';
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -73,11 +72,6 @@ const useStyles = makeStyles((theme: Theme) =>
     content: {
       flexGrow: 1,
     },
-    error: {
-      fontSize: `${weaveTheme.fontSizes.large}`,
-      display: 'flex',
-      justifyContent: 'center',
-    },
   }),
 );
 
@@ -94,22 +88,13 @@ const ResponsiveDrawer = () => {
     <PageTemplate documentTitle="WeGO · NotFound">
       <SectionHeader />
       <ContentWrapper>
-        <Box className={classes.error}>
-          <p>We couldn't find the page that you are looking for.</p>
-        </Box>
+        <Error />
       </ContentWrapper>
     </PageTemplate>
   );
 
   return (
-    <Compose
-      components={[
-        TemplatesProvider,
-        ClustersProvider,
-        AlertsProvider,
-        CredentialsProvider,
-      ]}
-    >
+    <Compose components={[TemplatesProvider, ClustersProvider, AlertsProvider]}>
       <div className={classes.root}>
         <CssBaseline />
         <Box className={classes.menuButtonBox}>
@@ -160,7 +145,7 @@ const ResponsiveDrawer = () => {
           <Switch>
             <Route component={MCCP} exact path={['/', '/clusters']} />
             <Route
-              component={AddCluster}
+              component={AddClusterWithCredentials}
               exact
               path="/clusters/templates/:templateName/create"
             />

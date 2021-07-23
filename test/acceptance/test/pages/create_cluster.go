@@ -110,7 +110,7 @@ func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection 
 
 func GetPreview(webDriver *agouti.Page) Preview {
 	return Preview{
-		PreviewLabel: webDriver.FindByXPath(`//*/span[text()="Preview & Commit"]`),
+		PreviewLabel: webDriver.FindByXPath(`//*/span[text()="Preview"]`),
 		PreviewText:  webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`),
 	}
 }
