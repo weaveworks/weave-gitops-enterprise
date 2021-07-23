@@ -165,6 +165,8 @@ type MCCPTestRunner interface {
 	AddWorkspace(env []string, clusterName string) error
 	CreateApplyCapitemplates(templateCount int, templateFile string) []string
 	DeleteApplyCapiTemplates(templateFiles []string)
+	createIPCredentials(infrastructureProvider string)
+	deleteIPCredentials(infrastructureProvider string)
 
 	// Git repository helper functions
 	deleteRepo(repoName string)
@@ -307,6 +309,14 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
 		}
 	})
+}
+
+func (b DatabaseMCCPTestRunner) createIPCredentials(infrastructureProvider string) {
+
+}
+
+func (b DatabaseMCCPTestRunner) deleteIPCredentials(infrastructureProvider string) {
+
 }
 
 func (b DatabaseMCCPTestRunner) deleteRepo(repoName string) {
@@ -462,6 +472,49 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 
 	err := deleteFile(templateFiles)
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
+}
+
+func (b RealMCCPTestRunner) createIPCredentials(infrastructureProvider string) {
+	if infrastructureProvider == "AWS" {
+		By("Insall AWSClusterStaticIdentity CRD", func() {
+			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
+			Expect(err).To(BeNil(), "Failed to install AWSClusterStaticIdentity CRD")
+		})
+
+		By("Insall AWSClusterRoleIdentity CRD", func() {
+			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
+			Expect(err).To(BeNil(), "Failed to install AWSClusterRoleIdentity CRD")
+		})
+
+		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
+			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/aws_cluster_credentials.yaml")
+			Expect(err).To(BeNil(), "Failed to create AWS credentials")
+		})
+
+	} else if infrastructureProvider == "AZURE" {
+		By("Insall AzureClusterIdentity CRD", func() {
+			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
+			Expect(err).To(BeNil(), "Failed to install AzureClusterIdentity CRD")
+		})
+
+		By("Create Azure Secret and AzureClusterIdentity)", func() {
+			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/azure_cluster_credentials.yaml")
+			Expect(err).To(BeNil(), "Failed to create Azure credentials")
+		})
+	}
+
+}
+
+func (b RealMCCPTestRunner) deleteIPCredentials(infrastructureProvider string) {
+	if infrastructureProvider == "AWS" {
+		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/aws_cluster_credentials.yaml")
+		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
+		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
+
+	} else if infrastructureProvider == "AZURE" {
+		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/azure_cluster_credentials.yaml")
+		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
+	}
 }
 
 func (b RealMCCPTestRunner) deleteRepo(repoName string) {

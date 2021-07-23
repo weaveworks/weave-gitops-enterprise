@@ -13,6 +13,7 @@ import (
 type CreateCluster struct {
 	CreateHeader *agouti.Selection
 	// TemplateName   *agouti.Selection
+	Credentials     *agouti.Selection
 	TemplateSection *agouti.MultiSelection
 	PreviewPR       *agouti.Selection
 }
@@ -59,6 +60,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
+		Credentials:     webDriver.FindByXPath(`//div[@class="credentials"]/following-sibling::div//div[contains(@class, "dropdown-toggle")]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		PreviewPR:       webDriver.FindByButton("Preview PR"),
 	}
@@ -93,6 +95,13 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 		Name:   name,
 		Fields: formFields,
 	}
+}
+func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
+	return webDriver.All(`div.dropdown-item`)
+}
+
+func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
+	return webDriver.Find(fmt.Sprintf(`div.dropdown-item[title*="%s"]`, value))
 }
 
 func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection {

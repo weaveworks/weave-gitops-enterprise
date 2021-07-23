@@ -33,7 +33,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 			mccpTestRunner.DeleteApplyCapiTemplates(templateFiles)
 		})
 
-		Context("When no Capi Templates are available in the cluster", func() {
+		Context("[CLI] When no Capi Templates are available in the cluster", func() {
 			It("Verify mccp lists no templates", func() {
 
 				By(fmt.Sprintf(`And I run 'mccp templates list --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
@@ -48,7 +48,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can list templates from template library", func() {
 
 				noOfTemplates := 50
@@ -83,7 +83,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When only invalid Capi Template(s) are available in the cluster", func() {
+		Context("[CLI] When only invalid Capi Template(s) are available in the cluster", func() {
 			It("Verify mccp outputs an error message related to an invalid template(s)", func() {
 
 				noOfTemplates := 1
@@ -110,7 +110,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When both valid and invalid Capi Templates are available in the cluster", func() {
+		Context("[CLI] When both valid and invalid Capi Templates are available in the cluster", func() {
 			It("Verify mccp outputs an error message related to an invalid template and lists the valid template", func() {
 
 				noOfTemplates := 3
