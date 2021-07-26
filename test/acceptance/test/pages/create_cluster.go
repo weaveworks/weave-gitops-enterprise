@@ -13,6 +13,7 @@ import (
 type CreateCluster struct {
 	CreateHeader *agouti.Selection
 	// TemplateName   *agouti.Selection
+	Credentials     *agouti.Selection
 	TemplateSection *agouti.MultiSelection
 	PreviewPR       *agouti.Selection
 }
@@ -50,8 +51,8 @@ func ScrollWindow(webDriver *agouti.Page, xOffSet int, yOffSet int) {
 
 // This function waits for previw and gitops to appear (become visible)
 func WaitForDynamicSecToAppear(webDriver *agouti.Page) {
-	Eventually(webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`)).Should(BeFound())
-	Eventually(webDriver.FindByXPath(`//*/span[text()="GitOps"]`)).Should(BeFound())
+	Eventually(webDriver.FindByXPath(`//div[contains(., "Preview")]/following-sibling::textarea`)).Should(BeFound())
+	Eventually(webDriver.FindByXPath(`//div[contains(., "Preview")]/parent::div/following-sibling::div/div[text()="GitOps"]`)).Should(BeFound())
 }
 
 //CreateCluster initialises the webDriver object
@@ -59,6 +60,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
+		Credentials:     webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		PreviewPR:       webDriver.FindByButton("Preview PR"),
 	}
@@ -69,7 +71,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 // This function waits for Create emplate page to load completely
 func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
 	// Credentials dropdown takes a while to populate
-	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]/following-sibling::div//div[contains(@class, "dropdown-toggle")][@disabled]`),
+	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")][@disabled]`),
 		30*time.Second).ShouldNot(BeFound())
 }
 
@@ -94,6 +96,13 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 		Fields: formFields,
 	}
 }
+func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
+	return webDriver.All(`div.dropdown-item`)
+}
+
+func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
+	return webDriver.Find(fmt.Sprintf(`div.dropdown-item[title*="%s"]`, value))
+}
 
 func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection {
 	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
@@ -101,14 +110,14 @@ func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection 
 
 func GetPreview(webDriver *agouti.Page) Preview {
 	return Preview{
-		PreviewLabel: webDriver.FindByXPath(`//*/span[text()="Preview"]`),
-		PreviewText:  webDriver.FindByXPath(`//*/span[contains(., "Preview")]/parent::div/following-sibling::textarea`),
+		PreviewLabel: webDriver.FindByXPath(`//div[text()="Preview"]`),
+		PreviewText:  webDriver.FindByXPath(`//div[contains(., "Preview")]/following-sibling::textarea`),
 	}
 }
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
-		GitOpsLabel: webDriver.FindByXPath(`//*/span[text()="GitOps"]`),
+		GitOpsLabel: webDriver.FindByXPath(`//div[contains(., "Preview")]/parent::div/following-sibling::div/div[text()="GitOps"]`),
 		GitOpsFields: []FormField{
 			{
 				Label: webDriver.FindByLabel(`Create branch`),

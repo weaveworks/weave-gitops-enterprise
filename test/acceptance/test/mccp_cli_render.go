@@ -37,7 +37,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			templateFiles = []string{}
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can list template parameters of a template from template library", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
@@ -63,7 +63,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
 				clusterName := "development-cluster"
 				namespace := "mccp-dev"
@@ -101,7 +101,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can set template parameters by separate values with commas key1=val1,key2=val2", func() {
 				clusterName := "development-cluster"
 				namespace := "mccp-dev"
@@ -140,7 +140,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When invalid Capi Template(s) are available in the cluster", func() {
+		Context("[CLI] When invalid Capi Template(s) are available in the cluster", func() {
 			It("Verify mccp reports an error when rendering template parameters of invalid template from template library", func() {
 
 				noOfTemplates := 1
@@ -166,7 +166,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp reports an error when trying to create pull request with missing --create-pr arguments", func() {
 				// Parameter values
 				clusterName := "development-cluster"
@@ -197,7 +197,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When no clusters are available in the management cluster", func() {
+		Context("[CLI] When no clusters are available in the management cluster", func() {
 			It("Verify mccp lists no clusters", func() {
 
 				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
@@ -212,7 +212,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can create pull request to management cluster", func() {
 
 				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
@@ -298,7 +298,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can create multiple pull request to management cluster", func() {
 
 				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
@@ -431,7 +431,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can not create pull request to management cluster using existing branch", func() {
 
 				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
@@ -482,5 +482,145 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 			})
 		})
+
+		Context("[CLI] When no infrastructure provider credentials are available in the management cluster", func() {
+			It("Verify mccp lists no credentials", func() {
+				By("Apply/Insall CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+				})
+
+				By(fmt.Sprintf("And I run 'mccp templates render cluster-template-development-0 --list-credentials --endpoint %s", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "render", "cluster-template-development-0", "--list-credentials", "--endpoint", CAPI_ENDPOINT_URL)
+
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then mccp lists no credentials", func() {
+					Eventually(session).Should(gbytes.Say("No credentials found"))
+				})
+			})
+		})
+
+		Context("[CLI] When infrastructure provider credentials are available in the management cluster", func() {
+			It("Verify mccp can use the matching selected credential for cluster creation", func() {
+				defer mccpTestRunner.deleteIPCredentials("AWS")
+				defer mccpTestRunner.deleteIPCredentials("AZURE")
+
+				By("Apply/Insall CAPITemplates", func() {
+					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
+					azureTemplateFiles := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
+					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
+				})
+
+				By("And create AWS credentials)", func() {
+					mccpTestRunner.createIPCredentials("AWS")
+				})
+
+				By(fmt.Sprintf("And I run 'mccp templates render aws-cluster-template-0 --list-credentials --endpoint %s", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "render", "aws-cluster-template-0", "--list-credentials", "--endpoint", CAPI_ENDPOINT_URL)
+
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then mccp lists AWS credentials", func() {
+					output := session.Wait().Out.Contents()
+					Eventually(string(output)).Should(MatchRegexp(`aws-test-identity`))
+					Eventually(string(output)).Should(MatchRegexp(`test-role-identity`))
+				})
+
+				By("And create AZURE credentials)", func() {
+					mccpTestRunner.createIPCredentials("AZURE")
+				})
+
+				By(fmt.Sprintf("And I run 'mccp templates render azure-capi-quickstart-template-0 --list-credentials --endpoint %s", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "render", "azure-capi-quickstart-template-0", "--list-credentials", "--endpoint", CAPI_ENDPOINT_URL)
+
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then mccp lists AZURE credentials", func() {
+					output := session.Wait().Out.Contents()
+					Eventually(string(output)).Should(MatchRegexp(`azure-cluster-identity`))
+				})
+
+				// AWS Parameter values
+				awsClusterName := "my-aws-cluster"
+				awsRegion := "eu-west-3"
+				awsK8version := "1.19.8"
+				awsSshKeyName := "my-aws-ssh-key"
+				awsNamespace := "default"
+				awsControlMAchineType := "t4g.large"
+				awsNodeMAchineType := "t3.micro"
+
+				By(fmt.Sprintf("And I run 'mccp templates render aws-cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials aws-test-identity --endpoint %s", awsClusterName, awsNamespace, awsRegion, awsK8version, awsControlMAchineType, awsNodeMAchineType, CAPI_ENDPOINT_URL), func() {
+
+					command := exec.Command(MCCP_BIN_PATH, "templates", "render", "aws-cluster-template-0", "--set", fmt.Sprintf("CLUSTER_NAME=%s", awsClusterName),
+						"--set", fmt.Sprintf("AWS_REGION=%s", awsRegion), "--set", fmt.Sprintf("KUBERNETES_VERSION=%s", awsK8version),
+						"--set", fmt.Sprintf("AWS_SSH_KEY_NAME=%s", awsSshKeyName), "--set", fmt.Sprintf("NAMESPACE=%s", awsNamespace),
+						"--set", "CONTROL_PLANE_MACHINE_COUNT=2", "--set", fmt.Sprintf("AWS_CONTROL_PLANE_MACHINE_TYPE=%s", awsControlMAchineType),
+						"--set", "WORKER_MACHINE_COUNT=3", "--set", fmt.Sprintf("AWS_NODE_MACHINE_TYPE=%s", awsNodeMAchineType),
+						"--set-credentials", "aws-test-identity", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then I should see preview containing identity reference added in the template", func() {
+					output := session.Wait().Out.Contents()
+
+					// Verifying cluster object of the template for added credential reference
+					re := regexp.MustCompile(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterStaticIdentity\s+name: aws-test-identity`, awsClusterName))
+
+					Eventually((re.Find(output))).ShouldNot(BeNil(), "Failed to find identity reference in preview pull request AWSCluster object")
+				})
+			})
+		})
+
+		Context("[CLI] When infrastructure provider credentials are available in the management cluster", func() {
+			It("Verify mccp restrict user from using wrong credentials for infrastructure provider", func() {
+				defer mccpTestRunner.deleteIPCredentials("AZURE")
+
+				By("Apply/Insall CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
+				})
+
+				By("And create AZURE credentials)", func() {
+					mccpTestRunner.createIPCredentials("AZURE")
+				})
+
+				// AWS Parameter values
+				awsClusterName := "my-aws-cluster"
+				awsRegion := "eu-west-3"
+				awsK8version := "1.19.8"
+				awsSshKeyName := "my-aws-ssh-key"
+				awsNamespace := "default"
+				awsControlMAchineType := "t4g.large"
+				awsNodeMAchineType := "t3.micro"
+
+				By(fmt.Sprintf("And I run 'mccp templates render aws-cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials azure-cluster-identity --endpoint %s", awsClusterName, awsNamespace, awsRegion, awsK8version, awsControlMAchineType, awsNodeMAchineType, CAPI_ENDPOINT_URL), func() {
+
+					command := exec.Command(MCCP_BIN_PATH, "templates", "render", "aws-cluster-template-0", "--set", fmt.Sprintf("CLUSTER_NAME=%s", awsClusterName),
+						"--set", fmt.Sprintf("AWS_REGION=%s", awsRegion), "--set", fmt.Sprintf("KUBERNETES_VERSION=%s", awsK8version),
+						"--set", fmt.Sprintf("AWS_SSH_KEY_NAME=%s", awsSshKeyName), "--set", fmt.Sprintf("NAMESPACE=%s", awsNamespace),
+						"--set", "CONTROL_PLANE_MACHINE_COUNT=2", "--set", fmt.Sprintf("AWS_CONTROL_PLANE_MACHINE_TYPE=%s", awsControlMAchineType),
+						"--set", "WORKER_MACHINE_COUNT=3", "--set", fmt.Sprintf("AWS_NODE_MACHINE_TYPE=%s", awsNodeMAchineType),
+						"--set-credentials", "azure-cluster-identity", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				// FIXME - User should get some warning or error as well for chossing wrong credential/identity for the infrastructure provider
+
+				By("Then I should see preview without identity reference added to the template", func() {
+					output := session.Wait().Out.Contents()
+
+					re := regexp.MustCompile(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`)
+					Eventually((re.Find(output))).Should(BeNil(), "Identity reference should not be found in preview pull request AWSCluster object")
+				})
+			})
+		})
+
 	})
 }

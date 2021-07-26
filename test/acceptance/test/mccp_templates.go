@@ -21,9 +21,37 @@ type TemplateField struct {
 	Option string
 }
 
+func setParameterValues(createPage *pages.CreateCluster, paramSection map[string][]TemplateField) {
+	for section, parameters := range paramSection {
+		By(fmt.Sprintf("And set template section %s parameter values", section), func() {
+			templateSection := createPage.GetTemplateSection(webDriver, section)
+			Expect(templateSection.Name).Should(HaveText(section))
+
+			for i := 0; i < len(parameters); i++ {
+				paramSet := false
+				for j := 0; j < len(templateSection.Fields); j++ {
+					val, _ := templateSection.Fields[j].Label.Text()
+					if strings.Contains(val, parameters[i].Name) {
+						By("And set template parameter values", func() {
+							if parameters[i].Option != "" {
+								Expect(templateSection.Fields[j].ListBox.Click()).To(Succeed())
+								Expect(pages.GetParameterOption(webDriver, parameters[i].Option).Click()).To(Succeed())
+							} else {
+								Expect(templateSection.Fields[j].Field.SendKeys(parameters[i].Value)).To(Succeed())
+							}
+						})
+						paramSet = true
+					}
+				}
+				Expect(paramSet).Should(BeTrue(), fmt.Sprintf("Parameter '%s' isn't found in section '%s' ", parameters[i].Name, section))
+			}
+		})
+	}
+}
+
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
-	var _ = Describe("Multi-Cluster Control Plane UI - Templates", func() {
+	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
 
 		templateFiles := []string{}
 
@@ -63,7 +91,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			templateFiles = []string{}
 		})
 
-		Context("When no Capi Templates are available in the cluster", func() {
+		Context("[UI] When no Capi Templates are available in the cluster", func() {
 			It("Verify template page renders no capiTemplate", func() {
 				pages.NavigateToPage(webDriver, "Templates")
 				templatesPage := pages.GetTemplatesPage(webDriver)
@@ -79,7 +107,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[UI] When Capi Templates are available in the cluster", func() {
 			It("Verify template(s) are rendered from the template library.", func() {
 
 				noOfTemplates := 5
@@ -115,7 +143,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Templates are available in the cluster", func() {
+		Context("[UI] When Capi Templates are available in the cluster", func() {
 			It("Verify I should be able to select a template of my choice", func() {
 
 				// test selection with 50 capiTemplates
@@ -142,7 +170,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When only invalid Capi Template(s) are available in the cluster", func() {
+		Context("[UI] When only invalid Capi Template(s) are available in the cluster", func() {
 			It("Verify UI shows message related to an invalid template(s)", func() {
 
 				By("Apply/Install invalid CAPITemplate", func() {
@@ -164,7 +192,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When both valid and invalid Capi Templates are available in the cluster", func() {
+		Context("[UI] When both valid and invalid Capi Templates are available in the cluster", func() {
 			It("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
 
 				noOfValidTemplates := 3
@@ -200,7 +228,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Template is available in the cluster", func() {
+		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
 				By("Apply/Insall CAPITemplate", func() {
@@ -237,13 +265,6 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["2. AWSManagedCluster"] = []TemplateField{
-					{
-						Name:   "CLUSTER_NAME",
-						Value:  "",
-						Option: "",
-					},
-				}
 				paramSection["3. AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
@@ -256,41 +277,13 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 						Option: "",
 					},
 					{
-						Name:   "CLUSTER_NAME",
-						Value:  "",
-						Option: "",
-					},
-					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  k8Version,
 						Option: "",
 					},
 				}
-				paramSection["4. AWSFargateProfile"] = []TemplateField{
-					{
-						Name:   "CLUSTER_NAME",
-						Value:  "",
-						Option: "",
-					},
-				}
 
-				for section, parameters := range paramSection {
-					By(fmt.Sprintf("And verify the template sections %s", section), func() {
-						templateSection := createPage.GetTemplateSection(webDriver, section)
-						Expect(templateSection.Name).Should(HaveText(section))
-						Expect(len(templateSection.Fields)).Should(Equal(len(parameters)), "Count of Cluster object parameters is not equal to expected count")
-
-						for i := 0; i < len(parameters); i++ {
-							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
-							if parameters[i].Value != "" {
-								// we are only setting parameter value once and it should be applied to all sections comtaining the same parameter
-								By("And set template parameter values", func() {
-									Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
-								})
-							}
-						}
-					})
-				}
+				setParameterValues(createPage, paramSection)
 
 				By("Then I should preview the PR", func() {
 					Expect(createPage.PreviewPR.Click()).To(Succeed())
@@ -308,7 +301,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Template is available in the cluster", func() {
+		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("@Integration Verify pull request can be created for capi template to the management cluster", func() {
 
 				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
@@ -376,27 +369,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				for section, parameters := range paramSection {
-					By(fmt.Sprintf("And set template section %s parameter values", section), func() {
-						templateSection := createPage.GetTemplateSection(webDriver, section)
-						Expect(templateSection.Name).Should(HaveText(section))
-
-						for i := 0; i < len(parameters); i++ {
-							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
-							// We are only setting parameter values once and it should be applied to all sections containing the same parameter
-							if parameters[i].Value != "" {
-								By("And set template parameter values", func() {
-									if parameters[i].Option != "" {
-										Expect(templateSection.Fields[i].ListBox.Click()).To(Succeed())
-										Expect(pages.GetParameterOption(webDriver, parameters[i].Option).Click()).To(Succeed())
-									} else {
-										Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
-									}
-								})
-							}
-						}
-					})
-				}
+				setParameterValues(createPage, paramSection)
 
 				By("And press the Preview PR button", func() {
 					Expect(createPage.PreviewPR.Click()).To(Succeed())
@@ -447,7 +420,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("When Capi Template is available in the cluster", func() {
+		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("@Integration Verify pull request can not be created by using exiting repository branch", func() {
 
 				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
@@ -516,27 +489,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				for section, parameters := range paramSection {
-					By(fmt.Sprintf("And set template section %s parameter values", section), func() {
-						templateSection := createPage.GetTemplateSection(webDriver, section)
-						Expect(templateSection.Name).Should(HaveText(section))
-
-						for i := 0; i < len(parameters); i++ {
-							Expect(templateSection.Fields[i].Label).Should(MatchText(parameters[i].Name))
-							// We are only setting parameter values once and it should be applied to all sections containing the same parameter
-							if parameters[i].Value != "" {
-								By("And set template parameter values", func() {
-									if parameters[i].Option != "" {
-										Expect(templateSection.Fields[i].ListBox.Click()).To(Succeed())
-										Expect(pages.GetParameterOption(webDriver, parameters[i].Option).Click()).To(Succeed())
-									} else {
-										Expect(templateSection.Fields[i].Field.SendKeys(parameters[i].Value)).To(Succeed())
-									}
-								})
-							}
-						}
-					})
-				}
+				setParameterValues(createPage, paramSection)
 
 				By("And press the Preview PR button", func() {
 					Expect(createPage.PreviewPR.Click()).To(Succeed())
@@ -566,6 +519,277 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				By("Then I should not see pull request to be created", func() {
 					Eventually(gitops.ErrorBar).Should(MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
 				})
+			})
+		})
+
+		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
+			It("@Integration Verify no credentials exists in mccp", func() {
+				By("Apply/Insall CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+				})
+
+				pages.NavigateToPage(webDriver, "Templates")
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
+
+				By("And User should choose a template", func() {
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
+					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+				})
+
+				createPage := pages.GetCreateClusterPage(webDriver)
+				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+				})
+
+				By("Then no infrastructure provider identity can be selected", func() {
+
+					Expect(createPage.Credentials.Click()).To(Succeed())
+					Expect(pages.GetCredentials(webDriver).Count()).Should(Equal(1), "Credentials count in the cluster should be '0'' excluding 'None'")
+
+					Expect(pages.GetCredential(webDriver, "None").Click()).To(Succeed())
+
+				})
+			})
+		})
+
+		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
+			It("@Integration Verify matching selected credential can be used for cluster creation", func() {
+				defer mccpTestRunner.deleteIPCredentials("AWS")
+				defer mccpTestRunner.deleteIPCredentials("AZURE")
+
+				By("Apply/Insall CAPITemplates", func() {
+					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
+					azureTemplateFiles := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
+					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
+				})
+
+				By("And create infrastructure provider credentials)", func() {
+					mccpTestRunner.createIPCredentials("AWS")
+					mccpTestRunner.createIPCredentials("AZURE")
+				})
+
+				pages.NavigateToPage(webDriver, "Templates")
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
+
+				By("And User should choose a template", func() {
+					templateTile := pages.GetTemplateTile(webDriver, "aws-cluster-template-0")
+					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+				})
+
+				createPage := pages.GetCreateClusterPage(webDriver)
+				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+				})
+
+				By("Then AWS test-role-identity credential can be selected", func() {
+
+					Expect(createPage.Credentials.Click()).To(Succeed())
+					// FIXME - credentials may or may no be filtered
+					// Expect(pages.GetCredentials(webDriver).Count()).Should(Equal(4), "Credentials count in the cluster should be '3' excluding 'None")
+					Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
+				})
+
+				// AWS template parameter values
+				awsClusterName := "my-aws-cluster"
+				awsRegion := "eu-west-3"
+				awsK8version := "1.19.8"
+				awsSshKeyName := "my-aws-ssh-key"
+				awsNamespace := "default"
+				awsControlMAchineType := "t4g.large"
+				awsNodeMAchineType := "t3.micro"
+
+				paramSection := make(map[string][]TemplateField)
+				paramSection["2. AWSCluster"] = []TemplateField{
+					{
+						Name:   "AWS_REGION",
+						Value:  awsRegion,
+						Option: "",
+					},
+					{
+						Name:   "AWS_SSH_KEY_NAME",
+						Value:  awsSshKeyName,
+						Option: "",
+					},
+					{
+						Name:   "CLUSTER_NAME",
+						Value:  awsClusterName,
+						Option: "",
+					},
+					{
+						Name:   "NAMESPACE",
+						Value:  awsNamespace,
+						Option: "",
+					},
+				}
+
+				paramSection["3. KubeadmControlPlane"] = []TemplateField{
+					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "2",
+						Option: "",
+					},
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  awsK8version,
+						Option: "",
+					},
+				}
+
+				paramSection["4. AWSMachineTemplate"] = []TemplateField{
+					{
+						Name:   "AWS_CONTROL_PLANE_MACHINE_TYPE",
+						Value:  awsControlMAchineType,
+						Option: "",
+					},
+				}
+
+				paramSection["5. MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  "3",
+						Option: "",
+					},
+				}
+
+				paramSection["6. AWSMachineTemplate"] = []TemplateField{
+					{
+						Name:   "AWS_NODE_MACHINE_TYPE",
+						Value:  awsNodeMAchineType,
+						Option: "",
+					},
+				}
+
+				setParameterValues(createPage, paramSection)
+
+				By("Then I should see PR preview containing identity reference added in the template", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					preview := pages.GetPreview(webDriver)
+					pages.WaitForDynamicSecToAppear(webDriver)
+
+					Eventually(preview.PreviewLabel).Should(BeFound())
+					pages.ScrollWindow(webDriver, 0, 500)
+
+					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
+				})
+
+			})
+		})
+
+		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
+			It("@Integration Verify user can not use wrong credentials for infrastructure provider", func() {
+				defer mccpTestRunner.deleteIPCredentials("AWS")
+
+				By("Apply/Insall CAPITemplates", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
+				})
+
+				By("And create infrastructure provider credentials)", func() {
+					mccpTestRunner.createIPCredentials("AWS")
+				})
+
+				pages.NavigateToPage(webDriver, "Templates")
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
+
+				By("And User should choose a template", func() {
+					templateTile := pages.GetTemplateTile(webDriver, "azure-capi-quickstart-template-0")
+					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+				})
+
+				createPage := pages.GetCreateClusterPage(webDriver)
+				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+				})
+
+				By("Then AWS aws-test-identity credential can be selected", func() {
+
+					Expect(createPage.Credentials.Click()).To(Succeed())
+					// FIXME - credentials may or may no be filtered
+					Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
+				})
+
+				// Azure template parameter values
+				azureClusterName := "my-azure-cluster"
+				azureK8version := "1.19.7"
+				azureNamespace := "default"
+				azureControlMAchineType := "HBv2"
+				azureNodeMAchineType := "Dasv4"
+
+				paramSection := make(map[string][]TemplateField)
+				paramSection["2. AzureCluster"] = []TemplateField{
+					{
+						Name:   "CLUSTER_NAME",
+						Value:  azureClusterName,
+						Option: "",
+					},
+					{
+						Name:   "NAMESPACE",
+						Value:  azureNamespace,
+						Option: "",
+					},
+				}
+
+				paramSection["3. KubeadmControlPlane"] = []TemplateField{
+					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "2",
+						Option: "",
+					},
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  azureK8version,
+						Option: "",
+					},
+				}
+
+				paramSection["4. AzureMachineTemplate"] = []TemplateField{
+					{
+						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
+						Value:  azureControlMAchineType,
+						Option: "",
+					},
+				}
+
+				paramSection["5. MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  "3",
+						Option: "",
+					},
+				}
+
+				paramSection["6. AzureMachineTemplate"] = []TemplateField{
+					{
+						Name:   "AZURE_NODE_MACHINE_TYPE",
+						Value:  azureNodeMAchineType,
+						Option: "",
+					},
+				}
+
+				setParameterValues(createPage, paramSection)
+
+				By("Then I should see PR preview without identity reference added to the template", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					preview := pages.GetPreview(webDriver)
+					pages.WaitForDynamicSecToAppear(webDriver)
+
+					Eventually(preview.PreviewLabel).Should(BeFound())
+					pages.ScrollWindow(webDriver, 0, 500)
+
+					Eventually(preview.PreviewText).ShouldNot(MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
+				})
+
 			})
 		})
 	})
