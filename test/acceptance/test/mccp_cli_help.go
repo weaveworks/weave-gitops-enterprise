@@ -41,7 +41,7 @@ func verifyUsageText(session *gexec.Session) {
 }
 
 func DescribeMccpCliHelp() {
-	var _ = FDescribe("MCCP Help Tests", func() {
+	var _ = Describe("MCCP Help Tests", func() {
 
 		MCCP_BIN_PATH := GetMCCBinPath()
 		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
