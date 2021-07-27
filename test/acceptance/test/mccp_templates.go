@@ -304,24 +304,24 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("@Integration Verify pull request can be created for capi template to the management cluster", func() {
 
-				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
+				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				By("And template repo does not already exist", func() {
-					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
+					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = mccpTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
-					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
+					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				By("And repo created has private visibility", func() {
-					Expect(mccpTestRunner.getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
+					Expect(mccpTestRunner.GetRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
 				})
 
 				By("Apply/Insall CAPITemplate", func() {
@@ -406,14 +406,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should veriyfy the pull request in the cluster config repository", func() {
-					pullRequest := mccpTestRunner.listPullRequest(repoAbsolutePath)
+					pullRequest := mccpTestRunner.ListPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(prTitle))
 					Expect(pullRequest[1]).Should(Equal(prBranch))
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
 				})
 
 				By("And the manifests are present in the cluster config repository", func() {
-					mccpTestRunner.pullBranch(repoAbsolutePath, prBranch)
+					mccpTestRunner.PullBranch(repoAbsolutePath, prBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
@@ -423,25 +423,25 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("@Integration Verify pull request can not be created by using exiting repository branch", func() {
 
-				defer mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
+				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				By("And template repo does not already exist", func() {
-					mccpTestRunner.deleteRepo(CLUSTER_REPOSITORY)
+					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = mccpTestRunner.initAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = mccpTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# mccp-capi-template")
 
-					mccpTestRunner.gitAddCommitPush(repoAbsolutePath, testFile)
+					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				branchName := "test-branch"
 				By("And create new git repository branch", func() {
-					mccpTestRunner.createGitRepoBranch(repoAbsolutePath, branchName)
+					mccpTestRunner.CreateGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
 				By("Apply/Insall CAPITemplate", func() {
@@ -558,8 +558,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
 			It("@Integration Verify matching selected credential can be used for cluster creation", func() {
-				defer mccpTestRunner.deleteIPCredentials("AWS")
-				defer mccpTestRunner.deleteIPCredentials("AZURE")
+				defer mccpTestRunner.DeleteIPCredentials("AWS")
+				defer mccpTestRunner.DeleteIPCredentials("AZURE")
 
 				By("Apply/Insall CAPITemplates", func() {
 					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
@@ -568,8 +568,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And create infrastructure provider credentials)", func() {
-					mccpTestRunner.createIPCredentials("AWS")
-					mccpTestRunner.createIPCredentials("AZURE")
+					mccpTestRunner.CreateIPCredentials("AWS")
+					mccpTestRunner.CreateIPCredentials("AZURE")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -685,14 +685,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
 			It("@Integration Verify user can not use wrong credentials for infrastructure provider", func() {
-				defer mccpTestRunner.deleteIPCredentials("AWS")
+				defer mccpTestRunner.DeleteIPCredentials("AWS")
 
 				By("Apply/Insall CAPITemplates", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 				})
 
 				By("And create infrastructure provider credentials)", func() {
-					mccpTestRunner.createIPCredentials("AWS")
+					mccpTestRunner.CreateIPCredentials("AWS")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
