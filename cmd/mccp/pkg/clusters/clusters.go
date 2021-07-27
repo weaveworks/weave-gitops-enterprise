@@ -8,6 +8,7 @@ import (
 type ClustersRetriever interface {
 	Source() string
 	RetrieveClusters() ([]Cluster, error)
+	GetClusterKubeconfig(name string) (string, error)
 }
 
 type Cluster struct {
@@ -33,5 +34,15 @@ func ListClusters(r ClustersRetriever, w io.Writer) error {
 
 	fmt.Fprintf(w, "No clusters found.\n")
 
+	return nil
+}
+
+func GetClusterKubeconfig(name string, r ClustersRetriever, w io.Writer) error {
+	k, err := r.GetClusterKubeconfig(name)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve cluster %q from %q: %w", name, r.Source(), err)
+	}
+
+	fmt.Fprint(w, k)
 	return nil
 }

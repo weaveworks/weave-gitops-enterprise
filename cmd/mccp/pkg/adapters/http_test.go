@@ -416,3 +416,54 @@ func TestRetrieveClusters(t *testing.T) {
 		})
 	}
 }
+
+func TestGetClusterKubeconfig(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, s string, err error)
+	}{
+		{
+			name:      "kubeconfig returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/cluster_kubeconfig.json")),
+			assertFunc: func(t *testing.T, s string, err error) {
+				assert.YAMLEq(t, s, httpmock.File("../../test/testdata/cluster_kubeconfig.yaml").String())
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, s string, err error) {
+				assert.EqualError(t, err, "unable to GET cluster kubeconfig from \"https://weave.works/api/v1/clusters/dev/kubeconfig\": Get \"https://weave.works/api/v1/clusters/dev/kubeconfig\": oops")
+			},
+		},
+		{
+			name:      "unexpected status code",
+			responder: httpmock.NewStringResponder(400, ""),
+			assertFunc: func(t *testing.T, s string, err error) {
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/clusters/dev/kubeconfig\" was 400")
+			},
+		},
+		{
+			name:      "base64 decode failure",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("../../test/testdata/cluster_kubeconfig_decode_failure.json")),
+			assertFunc: func(t *testing.T, s string, err error) {
+				assert.EqualError(t, err, "unable to base64 decode the cluster kubeconfig: illegal base64 data at input byte 3")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/v1/clusters/dev/kubeconfig", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client)
+			assert.NoError(t, err)
+			k, err := r.GetClusterKubeconfig("dev")
+			tt.assertFunc(t, k, err)
+		})
+	}
+}

@@ -80,3 +80,11 @@ func (c *FakeClient) RetrieveClusters() ([]clusters.Cluster, error) {
 
 	return c.cs, nil
 }
+
+func (c *FakeClient) GetClusterKubeconfig(name string) (string, error) {
+	if c.err != nil {
+		return "", c.err
+	}
+
+	return c.s, nil
+}

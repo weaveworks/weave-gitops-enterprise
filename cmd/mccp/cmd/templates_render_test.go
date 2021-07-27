@@ -17,7 +17,7 @@ func TestSetSeparateValues(t *testing.T) {
 	httpmock.ActivateNonDefault(client.GetClient())
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
-		"POST",
+		http.MethodPost,
 		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
@@ -30,7 +30,7 @@ func TestSetSeparateValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(200, httpmock.File("../test/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../test/testdata/rendered_template.json"))
 		},
 	)
 
@@ -53,7 +53,7 @@ func TestSetMultipleValues(t *testing.T) {
 	httpmock.ActivateNonDefault(client.GetClient())
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
-		"POST",
+		http.MethodPost,
 		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
@@ -66,7 +66,7 @@ func TestSetMultipleValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(200, httpmock.File("../test/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../test/testdata/rendered_template.json"))
 		},
 	)
 
@@ -86,7 +86,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 	httpmock.ActivateNonDefault(client.GetClient())
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
-		"POST",
+		http.MethodPost,
 		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
@@ -99,7 +99,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(200, httpmock.File("../test/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../test/testdata/rendered_template.json"))
 		},
 	)
 

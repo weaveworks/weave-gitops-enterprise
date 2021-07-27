@@ -1,6 +1,7 @@
 package adapters
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -301,4 +302,32 @@ func (c *HttpClient) RetrieveClusters() ([]clusters.Cluster, error) {
 	}
 
 	return cs, nil
+}
+
+func (c *HttpClient) GetClusterKubeconfig(name string) (string, error) {
+	endpoint := "v1/clusters/{name}/kubeconfig"
+
+	var result capiv1_protos.GetKubeconfigResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetPathParams(map[string]string{
+			"name": name,
+		}).
+		SetResult(&result).
+		Get(endpoint)
+
+	if err != nil {
+		return "", fmt.Errorf("unable to GET cluster kubeconfig from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	b, err := base64.StdEncoding.DecodeString(result.Kubeconfig)
+	if err != nil {
+		return "", fmt.Errorf("unable to base64 decode the cluster kubeconfig: %w", err)
+	}
+
+	return string(b), nil
 }
