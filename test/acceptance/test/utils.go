@@ -320,7 +320,7 @@ func (b DatabaseMCCPTestRunner) CreateIPCredentials(infrastructureProvider strin
 
 }
 
-func (b DatabaseMCCPTestRunner) CeleteIPCredentials(infrastructureProvider string) {
+func (b DatabaseMCCPTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 
 }
 
