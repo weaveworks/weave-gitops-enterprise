@@ -1,0 +1,17 @@
+# permissions for end users to view capitemplates.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: capi-identity-list-role
+rules:
+  - apiGroups:
+      - infrastructure.cluster.x-k8s.io
+    resources:
+      - awsclusterroleidentities
+      - awsclusterstaticidentities
+      - azureclusteridentities
+      - vsphereclusteridentities
+    verbs:
+      - get
+      - list
+      - watch
