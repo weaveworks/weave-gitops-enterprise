@@ -16,6 +16,113 @@
     "application/json"
   ],
   "paths": {
+    "/v1/clusters": {
+      "delete": {
+        "operationId": "ClustersService_DeleteClustersPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DeleteClustersPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "repositoryUrl",
+            "description": "The repository to use.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "headBranch",
+            "description": "The new branch that will be created.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "baseBranch",
+            "description": "The target branch.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "description": "The title of the pull request.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "description": "The description of the pull request.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterNames",
+            "description": "The name of the clusters to be delete via a PR.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "commitMessage",
+            "description": "The commit message.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.group",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.version",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "credentials.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/clusters/{clusterName}/kubeconfig": {
       "get": {
         "summary": "GetKubeconfig returns the Kubeconfig for the given \nworkload cluster.",
@@ -361,6 +468,15 @@
         },
         "namespace": {
           "type": "string"
+        }
+      }
+    },
+    "v1DeleteClustersPullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
         }
       }
     },

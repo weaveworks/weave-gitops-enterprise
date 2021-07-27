@@ -370,7 +370,7 @@ func TestCreatePullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			provider: NewFakeGitProvider("", errors.New("oops")),
+			provider: NewFakeGitProvider("", nil, errors.New("oops")),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -392,7 +392,7 @@ func TestCreatePullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -504,7 +504,7 @@ func TestGetKubeconfig(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			db := createDatabase(t)
-			gp := NewFakeGitProvider("", nil)
+			gp := NewFakeGitProvider("", nil, nil)
 			s := createServer(tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace)
 
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
@@ -639,16 +639,18 @@ func rawExtension(s string) runtime.RawExtension {
 	}
 }
 
-func NewFakeGitProvider(url string, err error) git.Provider {
+func NewFakeGitProvider(url string, repo *git.GitRepo, err error) git.Provider {
 	return &FakeGitProvider{
-		url: url,
-		err: err,
+		url:  url,
+		repo: repo,
+		err:  err,
 	}
 }
 
 type FakeGitProvider struct {
-	url string
-	err error
+	url  string
+	repo *git.GitRepo
+	err  error
 }
 
 func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
@@ -656,4 +658,11 @@ func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Con
 		return nil, p.err
 	}
 	return &git.WriteFilesToBranchAndCreatePullRequestResponse{WebURL: p.url}, nil
+}
+
+func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) (*git.CloneRepoToTempDirResponse, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
 }

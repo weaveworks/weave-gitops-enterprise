@@ -57,6 +57,21 @@ export type CreatePullRequestResponse = {
   webUrl?: string
 }
 
+export type DeleteClustersPullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  clusterNames?: string[]
+  commitMessage?: string
+  credentials?: Credential
+}
+
+export type DeleteClustersPullRequestResponse = {
+  webUrl?: string
+}
+
 export type ListCredentialsRequest = {
 }
 
@@ -119,6 +134,9 @@ export class ClustersService {
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
     return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/pulls`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static DeleteClustersPullRequest(req: DeleteClustersPullRequestRequest, initReq?: fm.InitReq): Promise<DeleteClustersPullRequestResponse> {
+    return fm.fetchReq<DeleteClustersPullRequestRequest, DeleteClustersPullRequestResponse>(`/v1/clusters`, {...initReq, method: "DELETE"})
   }
   static ListCredentials(req: ListCredentialsRequest, initReq?: fm.InitReq): Promise<ListCredentialsResponse> {
     return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/credentials?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

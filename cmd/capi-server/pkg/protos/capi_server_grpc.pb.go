@@ -28,6 +28,7 @@ type ClustersServiceClient interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
+	DeleteClustersPullRequest(ctx context.Context, in *DeleteClustersPullRequestRequest, opts ...grpc.CallOption) (*DeleteClustersPullRequestResponse, error)
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
 	// GetKubeconfig returns the Kubeconfig for the given
 	// workload cluster.
@@ -87,6 +88,15 @@ func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *Creat
 	return out, nil
 }
 
+func (c *clustersServiceClient) DeleteClustersPullRequest(ctx context.Context, in *DeleteClustersPullRequestRequest, opts ...grpc.CallOption) (*DeleteClustersPullRequestResponse, error) {
+	out := new(DeleteClustersPullRequestResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/DeleteClustersPullRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error) {
 	out := new(ListCredentialsResponse)
 	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListCredentials", in, out, opts...)
@@ -118,6 +128,7 @@ type ClustersServiceServer interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
+	DeleteClustersPullRequest(context.Context, *DeleteClustersPullRequestRequest) (*DeleteClustersPullRequestResponse, error)
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
 	// GetKubeconfig returns the Kubeconfig for the given
 	// workload cluster.
@@ -143,6 +154,9 @@ func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *Rende
 }
 func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
+}
+func (UnimplementedClustersServiceServer) DeleteClustersPullRequest(context.Context, *DeleteClustersPullRequestRequest) (*DeleteClustersPullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteClustersPullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCredentials not implemented")
@@ -253,6 +267,24 @@ func _ClustersService_CreatePullRequest_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_DeleteClustersPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteClustersPullRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).DeleteClustersPullRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/DeleteClustersPullRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).DeleteClustersPullRequest(ctx, req.(*DeleteClustersPullRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ClustersService_ListCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListCredentialsRequest)
 	if err := dec(in); err != nil {
@@ -315,6 +347,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePullRequest",
 			Handler:    _ClustersService_CreatePullRequest_Handler,
+		},
+		{
+			MethodName: "DeleteClustersPullRequest",
+			Handler:    _ClustersService_DeleteClustersPullRequest_Handler,
 		},
 		{
 			MethodName: "ListCredentials",

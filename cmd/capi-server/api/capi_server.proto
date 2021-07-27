@@ -41,6 +41,12 @@ service ClustersService {
       body : "*"
     };
   }
+  rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
+      returns (DeleteClustersPullRequestResponse) {
+    option (google.api.http) = {
+      delete : "/v1/clusters"
+    };
+  }
   rpc ListCredentials(ListCredentialsRequest)
       returns (ListCredentialsResponse) {
     option (google.api.http) = {
@@ -100,6 +106,29 @@ message CreatePullRequestRequest {
   Credential credentials = 9;
 }
 message CreatePullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
+}
+
+message DeleteClustersPullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The name of the clusters to be delete via a PR.
+  repeated string cluster_names = 6;
+  // The commit message
+  string commit_message = 7;
+  // Credentials
+  Credential credentials = 8;
+}
+message DeleteClustersPullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
 }

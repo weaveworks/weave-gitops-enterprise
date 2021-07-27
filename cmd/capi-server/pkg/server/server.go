@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -313,4 +315,111 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 		ContentType: "application/json",
 		Data:        res,
 	}, nil
+}
+
+func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
+	if err := validateDeleteClustersPR(msg); err != nil {
+		log.WithError(err).Errorf("Failed to create pull request, message payload was invalid")
+		return nil, err
+	}
+
+	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
+	if msg.RepositoryUrl != "" {
+		repositoryURL = msg.RepositoryUrl
+	}
+	baseBranch := os.Getenv("CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH")
+	if msg.BaseBranch != "" {
+		baseBranch = msg.BaseBranch
+	}
+
+	// Get files to be deleted
+	filesList := []gitprovider.CommitFile{}
+	repo, err := s.provider.CloneRepoToTempDir(git.CloneRepoToTempDirRequest{
+		GitProvider: git.GitProvider{
+			Type:     os.Getenv("GIT_PROVIDER_TYPE"),
+			Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
+			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
+		},
+		RepositoryURL: repositoryURL,
+		BaseBranch:    baseBranch,
+		ParentDir:     ""})
+	if err != nil {
+		log.WithError(err).Errorf("Failed to get repo")
+		return nil, err
+	}
+
+	for _, clusterName := range msg.ClusterNames {
+		// Get management files
+		clusterManagementPath := filepath.Join(repo.Repo.WorktreeDir, "management", clusterName)
+		managementFiles, _ := ioutil.ReadDir(clusterManagementPath)
+
+		for _, f := range managementFiles {
+			managementFilePath := filepath.Join(clusterManagementPath, f.Name())
+			managementCommitFile := gitprovider.CommitFile{Path: &managementFilePath, Content: nil}
+			filesList = append(filesList, managementCommitFile)
+		}
+
+		// Get clusters files
+		clusterWorkloadPath := filepath.Join(repo.Repo.WorktreeDir, "clusters", clusterName)
+		clusterWorkloadFiles, _ := ioutil.ReadDir(clusterWorkloadPath)
+		for _, f := range clusterWorkloadFiles {
+			clusterWorkloadFilePath := filepath.Join(clusterManagementPath, f.Name())
+			clusterWorkloadPathCommitFile := gitprovider.CommitFile{Path: &clusterWorkloadFilePath, Content: nil}
+			filesList = append(filesList, clusterWorkloadPathCommitFile)
+		}
+	}
+
+	var pullRequestURL string
+
+	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: git.GitProvider{
+			Type:     os.Getenv("GIT_PROVIDER_TYPE"),
+			Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
+			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
+		},
+		RepositoryURL: repositoryURL,
+		HeadBranch:    msg.HeadBranch,
+		BaseBranch:    baseBranch,
+		Title:         msg.Title,
+		Description:   msg.Description,
+		CommitMessage: msg.CommitMessage,
+		Files:         filesList,
+	})
+	if err != nil {
+		log.WithError(err).Errorf("Failed to create pull request")
+		return nil, err
+	}
+
+	pullRequestURL = res.WebURL
+
+	return &capiv1_proto.DeleteClustersPullRequestResponse{
+		WebUrl: pullRequestURL,
+	}, nil
+}
+
+func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest) error {
+	var err error
+
+	if msg.ClusterNames == nil {
+		err = multierror.Append(err, fmt.Errorf("at least one cluster name must be specified"))
+	}
+
+	if msg.HeadBranch == "" {
+		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
+	}
+
+	if msg.Title == "" {
+		err = multierror.Append(err, fmt.Errorf("title must be specified"))
+	}
+
+	if msg.Description == "" {
+		err = multierror.Append(err, fmt.Errorf("description must be specified"))
+	}
+
+	if msg.CommitMessage == "" {
+		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
+	}
+
+	return err
 }
