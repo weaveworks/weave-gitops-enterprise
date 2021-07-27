@@ -198,7 +198,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[CLI] When no clusters are available in the management cluster", func() {
-			FIt("Verify mccp lists no clusters", func() {
+			It("Verify mccp lists no clusters", func() {
 
 				By("And MCCP state is reset", func() {
 					mccpTestRunner.ResetDatabase()
