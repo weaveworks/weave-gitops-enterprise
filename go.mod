@@ -68,6 +68,7 @@ require (
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2
+	k8s.io/cli-runtime v0.21.2
 	k8s.io/client-go v0.21.2
 	k8s.io/kubernetes v1.21.1
 	sigs.k8s.io/cluster-api v0.3.16

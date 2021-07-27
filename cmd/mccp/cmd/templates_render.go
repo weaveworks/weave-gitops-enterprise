@@ -7,8 +7,8 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/formatter"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
+	"k8s.io/cli-runtime/pkg/printers"
 )
 
 func templatesRenderCmd(client *resty.Client) *cobra.Command {
@@ -62,12 +62,12 @@ func getTemplatesRenderCmdRun(client *resty.Client) func(*cobra.Command, []strin
 		}
 
 		if templatesRenderCmdFlags.ListTemplateParameters {
-			w := formatter.NewTableWriter()
+			w := printers.GetNewTabWriter(os.Stdout)
 			defer w.Flush()
 			return templates.ListTemplateParameters(args[0], r, w)
 		}
 		if templatesRenderCmdFlags.ListCredentials {
-			w := formatter.NewTableWriter()
+			w := printers.GetNewTabWriter(os.Stdout)
 			defer w.Flush()
 			return templates.ListCredentials(r, w)
 		}

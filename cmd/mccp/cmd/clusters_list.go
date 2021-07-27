@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/formatter"
+	"k8s.io/cli-runtime/pkg/printers"
 
 	"github.com/spf13/cobra"
 )
@@ -28,7 +30,7 @@ func getClustersListCmdRun(client *resty.Client) func(*cobra.Command, []string) 
 		if err != nil {
 			return err
 		}
-		w := formatter.NewTableWriter()
+		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
 		return clusters.ListClusters(r, w)

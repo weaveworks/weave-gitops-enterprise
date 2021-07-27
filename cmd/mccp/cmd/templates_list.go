@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/formatter"
 	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
+	"k8s.io/cli-runtime/pkg/printers"
 )
 
 func templatesListCmd(client *resty.Client) *cobra.Command {
@@ -27,7 +29,7 @@ func getTemplatesListCmdRun(client *resty.Client) func(*cobra.Command, []string)
 		if err != nil {
 			return err
 		}
-		w := formatter.NewTableWriter()
+		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
 		return templates.ListTemplates(r, w)
