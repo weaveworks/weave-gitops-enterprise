@@ -156,6 +156,7 @@ func DescribeSpecsMccpCli(mccpTestRunner MCCPTestRunner) {
 
 type MCCPTestRunner interface {
 	ResetDatabase() error
+	VerifyMCCPPodsRunning()
 	FireAlert(name, severity, message string, fireFor time.Duration) error
 	KubectlApply(env []string, tokenURL string) error
 	KubectlDelete(env []string, tokenURL string) error
@@ -165,17 +166,17 @@ type MCCPTestRunner interface {
 	AddWorkspace(env []string, clusterName string) error
 	CreateApplyCapitemplates(templateCount int, templateFile string) []string
 	DeleteApplyCapiTemplates(templateFiles []string)
-	createIPCredentials(infrastructureProvider string)
-	deleteIPCredentials(infrastructureProvider string)
+	CreateIPCredentials(infrastructureProvider string)
+	DeleteIPCredentials(infrastructureProvider string)
 
 	// Git repository helper functions
-	deleteRepo(repoName string)
-	initAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string
-	gitAddCommitPush(repoAbsolutePath string, fileToAdd string)
-	createGitRepoBranch(repoAbsolutePath string, branchName string) string
-	pullBranch(repoAbsolutePath string, branch string)
-	listPullRequest(repoAbsolutePath string) []string
-	getRepoVisibility(org string, repo string) string
+	DeleteRepo(repoName string)
+	InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string
+	GitAddCommitPush(repoAbsolutePath string, fileToAdd string)
+	CreateGitRepoBranch(repoAbsolutePath string, branchName string) string
+	PullBranch(repoAbsolutePath string, branch string)
+	ListPullRequest(repoAbsolutePath string) []string
+	GetRepoVisibility(org string, repo string) string
 }
 
 // "DB" backend that creates/delete rows
@@ -199,6 +200,10 @@ func (b DatabaseMCCPTestRunner) TimeTravelToAlertsResolved() error {
 func (b DatabaseMCCPTestRunner) ResetDatabase() error {
 	b.DB.Where("1 = 1").Delete(&models.Cluster{})
 	return nil
+}
+
+func (b DatabaseMCCPTestRunner) VerifyMCCPPodsRunning() {
+
 }
 
 func (b DatabaseMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
@@ -311,39 +316,39 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 	})
 }
 
-func (b DatabaseMCCPTestRunner) createIPCredentials(infrastructureProvider string) {
+func (b DatabaseMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) deleteIPCredentials(infrastructureProvider string) {
+func (b DatabaseMCCPTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) deleteRepo(repoName string) {
+func (b DatabaseMCCPTestRunner) DeleteRepo(repoName string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) initAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
+func (b DatabaseMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
 	return ""
 }
 
-func (b DatabaseMCCPTestRunner) gitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
+func (b DatabaseMCCPTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) createGitRepoBranch(repoAbsolutePath string, branchName string) string {
+func (b DatabaseMCCPTestRunner) CreateGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	return ""
 }
 
-func (b DatabaseMCCPTestRunner) pullBranch(repoAbsolutePath string, branch string) {
+func (b DatabaseMCCPTestRunner) PullBranch(repoAbsolutePath string, branch string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) listPullRequest(repoAbsolutePath string) []string {
+func (b DatabaseMCCPTestRunner) ListPullRequest(repoAbsolutePath string) []string {
 	return []string{}
 }
 
-func (b DatabaseMCCPTestRunner) getRepoVisibility(org string, repo string) string {
+func (b DatabaseMCCPTestRunner) GetRepoVisibility(org string, repo string) string {
 	return ""
 }
 
@@ -361,6 +366,13 @@ func (b RealMCCPTestRunner) TimeTravelToAlertsResolved() error {
 
 func (b RealMCCPTestRunner) ResetDatabase() error {
 	return runCommandPassThrough([]string{}, "../../utils/scripts/mccp-setup-helpers.sh", "reset")
+}
+
+func (b RealMCCPTestRunner) VerifyMCCPPodsRunning() {
+	command := exec.Command("sh", "-c", "kubectl wait --for=condition=Ready pods --timeout=60s -n mccp --all")
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
 }
 
 func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
@@ -474,7 +486,7 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
-func (b RealMCCPTestRunner) createIPCredentials(infrastructureProvider string) {
+func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 	if infrastructureProvider == "AWS" {
 		By("Insall AWSClusterStaticIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
@@ -505,7 +517,7 @@ func (b RealMCCPTestRunner) createIPCredentials(infrastructureProvider string) {
 
 }
 
-func (b RealMCCPTestRunner) deleteIPCredentials(infrastructureProvider string) {
+func (b RealMCCPTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 	if infrastructureProvider == "AWS" {
 		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/aws_cluster_credentials.yaml")
 		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
@@ -517,12 +529,12 @@ func (b RealMCCPTestRunner) deleteIPCredentials(infrastructureProvider string) {
 	}
 }
 
-func (b RealMCCPTestRunner) deleteRepo(repoName string) {
+func (b RealMCCPTestRunner) DeleteRepo(repoName string) {
 	log.Printf("Delete application repo: %s", path.Join(GITHUB_ORG, repoName))
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", path.Join(GITHUB_ORG, repoName))
 }
 
-func (b RealMCCPTestRunner) initAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
+func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
 	repoAbsolutePath := path.Join("/tmp/", repoName)
 	privateRepo := ""
 	if IsPrivateRepo {
@@ -547,7 +559,7 @@ func (b RealMCCPTestRunner) initAndCreateEmptyRepo(repoName string, IsPrivateRep
 	return repoAbsolutePath
 }
 
-func (b RealMCCPTestRunner) gitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
+func (b RealMCCPTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cp -r -f %s %s &&
                             cd %s &&
@@ -560,7 +572,7 @@ func (b RealMCCPTestRunner) gitAddCommitPush(repoAbsolutePath string, fileToAdd 
 	fmt.Println(string(session.Wait().Err.Contents()))
 }
 
-func (b RealMCCPTestRunner) createGitRepoBranch(repoAbsolutePath string, branchName string) string {
+func (b RealMCCPTestRunner) CreateGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -568,7 +580,7 @@ func (b RealMCCPTestRunner) createGitRepoBranch(repoAbsolutePath string, branchN
 	return string(session.Wait().Out.Contents())
 }
 
-func (b RealMCCPTestRunner) pullBranch(repoAbsolutePath string, branch string) {
+func (b RealMCCPTestRunner) PullBranch(repoAbsolutePath string, branch string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
                             git pull origin %s`, repoAbsolutePath, branch))
@@ -577,7 +589,7 @@ func (b RealMCCPTestRunner) pullBranch(repoAbsolutePath string, branch string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
-func (b RealMCCPTestRunner) listPullRequest(repoAbsolutePath string) []string {
+func (b RealMCCPTestRunner) ListPullRequest(repoAbsolutePath string) []string {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
                             hub pr list --limit 1 --base main --format='%%t|%%H|%%U%%n'`, repoAbsolutePath))
@@ -588,7 +600,7 @@ func (b RealMCCPTestRunner) listPullRequest(repoAbsolutePath string) []string {
 	return strings.Split(string(session.Wait().Out.Contents()), "|")
 }
 
-func (b RealMCCPTestRunner) getRepoVisibility(org string, repo string) string {
+func (b RealMCCPTestRunner) GetRepoVisibility(org string, repo string) string {
 	command := exec.Command("sh", "-c", fmt.Sprintf("hub api --flat repos/%s/%s|grep -i private|cut -f2", org, repo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
