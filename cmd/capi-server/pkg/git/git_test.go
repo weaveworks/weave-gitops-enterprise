@@ -145,7 +145,34 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 	assert.Equal(t, pr.GetHTMLURL(), res.WebURL)
 	assert.Equal(t, pr.GetTitle(), "New cluster")
 	assert.Equal(t, pr.GetBody(), "Creates a cluster through a CAPI template")
-	assert.Equal(t, pr.GetChangedFiles(), 1)
+	assert.Equal(t, pr.GetAdditions(), 1)
+
+	res, err = s.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: git.GitProvider{
+			Token:    os.Getenv("GITHUB_TOKEN"),
+			Type:     "github",
+			Hostname: "github.com",
+		},
+		RepositoryURL: repo.GetCloneURL(),
+		HeadBranch:    "feature-02",
+		BaseBranch:    "feature-01",
+		Title:         "Delete cluster",
+		Description:   "Deletes a cluster via gitops",
+		CommitMessage: "Remove cluster manifest",
+		Files: []gitprovider.CommitFile{
+			gitprovider.CommitFile{
+				Path:    &path,
+				Content: nil,
+			},
+		},
+	})
+	assert.NoError(t, err)
+	pr, _, err = client.PullRequests.Get(ctx, os.Getenv("GITHUB_USER"), repo.GetName(), 2) // #PR is 1 because it is a new repo
+	require.NoError(t, err)
+	assert.Equal(t, pr.GetHTMLURL(), res.WebURL)
+	assert.Equal(t, pr.GetTitle(), "Delete cluster")
+	assert.Equal(t, pr.GetBody(), "Deletes a cluster via gitops")
+	assert.Equal(t, pr.GetDeletions(), 1)
 }
 
 func TestCreatePullRequestInGitLab(t *testing.T) {

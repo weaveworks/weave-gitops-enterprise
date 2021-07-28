@@ -45,6 +45,7 @@ service ClustersService {
       returns (DeleteClustersPullRequestResponse) {
     option (google.api.http) = {
       delete : "/v1/clusters"
+      body : "*"
     };
   }
   rpc ListCredentials(ListCredentialsRequest)

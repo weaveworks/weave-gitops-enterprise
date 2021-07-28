@@ -8,8 +8,9 @@ plugins:
     opt: paths=source_relative
   - name: grpc-gateway
     out: pkg/protos
-    opt: paths=source_relative
+    opt: paths=source_relative,allow_delete_body=true
   - name: openapiv2
     out: api
+    opt: allow_delete_body=true
   - name: grpc-gateway-ts
     out: ../../ui-cra/src/capi-server

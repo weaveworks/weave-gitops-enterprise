@@ -525,6 +525,88 @@ func TestGetKubeconfig(t *testing.T) {
 	}
 }
 
+func TestDeleteClustersPullRequest(t *testing.T) {
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		provider     git.Provider
+		req          *capiv1_protos.DeleteClustersPullRequestRequest
+		expected     string
+		err          error
+		dbRows       int
+	}{
+		{
+			name:   "validation errors",
+			req:    &capiv1_protos.DeleteClustersPullRequestRequest{},
+			err:    errors.New("5 errors occurred:\nat least one cluster name must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			dbRows: 0,
+		},
+		{
+			name: "create delete pull request",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+				ClusterNames:  []string{"foo", "bar"},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-02",
+				BaseBranch:    "feature-01",
+				Title:         "Delete Cluster",
+				Description:   "Deletes a cluster",
+				CommitMessage: "Remove cluster manifest",
+			},
+			dbRows:   0,
+			expected: "https://github.com/org/repo/pull/1",
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			// setup
+			db := createDatabase(t)
+			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db, "")
+
+			req := &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+			}
+
+			// create request
+			createPR, _ := s.CreatePullRequest(context.Background(), req)
+			fmt.Println("======================")
+			fmt.Println(createPR)
+			fmt.Println("======================")
+
+			// delete request
+			deletePullRequestResponse, err := s.DeleteClustersPullRequest(context.Background(), tt.req)
+
+			// Check the response looks good
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to create a pull request:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, deletePullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
+					t.Fatalf("pull request url didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
 func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{

@@ -5,9 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -108,7 +106,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
-	if err := validate(msg); err != nil {
+	if err := validateCreateClusterPR(msg); err != nil {
 		log.WithError(err).Errorf("Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
@@ -140,7 +138,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		clusterNamespace = "default"
 	}
 
-	path := fmt.Sprintf("management/%s.yaml", clusterName)
 	content := string(tmplWithValuesAndCredentials[:])
 
 	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
@@ -169,6 +166,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return err
 		}
 
+		path := getClusterPathInRepo(clusterName)
 		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 			GitProvider: git.GitProvider{
@@ -216,7 +214,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}, nil
 }
 
-func validate(msg *capiv1_proto.CreatePullRequestRequest) error {
+func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 	var err error
 
 	if msg.TemplateName == "" {
@@ -332,41 +330,13 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		baseBranch = msg.BaseBranch
 	}
 
-	// Get files to be deleted
-	filesList := []gitprovider.CommitFile{}
-	repo, err := s.provider.CloneRepoToTempDir(git.CloneRepoToTempDirRequest{
-		GitProvider: git.GitProvider{
-			Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-			Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
-			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-		},
-		RepositoryURL: repositoryURL,
-		BaseBranch:    baseBranch,
-		ParentDir:     ""})
-	if err != nil {
-		log.WithError(err).Errorf("Failed to get repo")
-		return nil, err
-	}
-
+	var filesList []gitprovider.CommitFile
 	for _, clusterName := range msg.ClusterNames {
-		// Get management files
-		clusterManagementPath := filepath.Join(repo.Repo.WorktreeDir, "management", clusterName)
-		managementFiles, _ := ioutil.ReadDir(clusterManagementPath)
-
-		for _, f := range managementFiles {
-			managementFilePath := filepath.Join(clusterManagementPath, f.Name())
-			managementCommitFile := gitprovider.CommitFile{Path: &managementFilePath, Content: nil}
-			filesList = append(filesList, managementCommitFile)
-		}
-
-		// Get clusters files
-		clusterWorkloadPath := filepath.Join(repo.Repo.WorktreeDir, "clusters", clusterName)
-		clusterWorkloadFiles, _ := ioutil.ReadDir(clusterWorkloadPath)
-		for _, f := range clusterWorkloadFiles {
-			clusterWorkloadFilePath := filepath.Join(clusterManagementPath, f.Name())
-			clusterWorkloadPathCommitFile := gitprovider.CommitFile{Path: &clusterWorkloadFilePath, Content: nil}
-			filesList = append(filesList, clusterWorkloadPathCommitFile)
-		}
+		path := getClusterPathInRepo(clusterName)
+		filesList = append(filesList, gitprovider.CommitFile{
+			Path:    &path,
+			Content: nil,
+		})
 	}
 
 	var pullRequestURL string
@@ -422,4 +392,8 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 	}
 
 	return err
+}
+
+func getClusterPathInRepo(clusterName string) string {
+	return fmt.Sprintf("management/%s.yaml", clusterName)
 }
