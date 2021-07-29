@@ -15,7 +15,7 @@ import (
 func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 	var _ = Describe("MCCP Template List Tests", func() {
 
-		MCCP_BIN_PATH := GetMCCBinPath()
+		MCCP_BIN_PATH := GetMccpBinPath()
 		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
 
 		templateFiles := []string{}

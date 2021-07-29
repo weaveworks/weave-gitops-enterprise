@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -22,6 +21,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
 	"github.com/weaveworks/wks/common/database/models"
 	"gorm.io/datatypes"
@@ -35,7 +35,10 @@ var gitProvider string
 var seleniumServiceUrl string
 var defaultUIURL = "http://localhost:8090"
 var defaultMccpBinPath = "/usr/local/bin/mccp"
+var defaultWegoBinPath = "/usr/local/bin/wego"
 var defaultCapiEndpointURL = "http://localhost:8090"
+
+const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
 func GetWebDriver() *agouti.Page {
 	return webDriver
@@ -45,11 +48,18 @@ func SetWebDriver(wb *agouti.Page) {
 	webDriver = wb
 }
 
-func GetMCCBinPath() string {
+func GetMccpBinPath() string {
 	if os.Getenv("MCCP_BIN_PATH") != "" {
 		return os.Getenv("MCCP_BIN_PATH")
 	}
 	return defaultMccpBinPath
+}
+
+func GetWegoBinPath() string {
+	if os.Getenv("WEGO_BIN_PATH") != "" {
+		return os.Getenv("WEGO_BIN_PATH")
+	}
+	return defaultWegoBinPath
 }
 
 func GetWkpUrl() string {
@@ -90,6 +100,7 @@ const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 const ASSERTION_6MINUTE_TIME_OUT time.Duration = 6 * time.Minute
 
 const UI_POLL_INTERVAL time.Duration = 15 * time.Second
+const CLI_POLL_INTERVAL time.Duration = 5 * time.Second
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -176,7 +187,33 @@ type MCCPTestRunner interface {
 	CreateGitRepoBranch(repoAbsolutePath string, branchName string) string
 	PullBranch(repoAbsolutePath string, branch string)
 	ListPullRequest(repoAbsolutePath string) []string
+	MergePullRequest(repoAbsolutePath string, prBranch string)
 	GetRepoVisibility(org string, repo string) string
+}
+
+func initializeWebdriver() {
+	var err error
+	if webDriver == nil {
+
+		webDriver, err = agouti.NewPage(seleniumServiceUrl, agouti.Debug, agouti.Desired(agouti.Capabilities{
+			"chromeOptions": map[string][]string{
+				"args": {
+					// "--headless", //Uncomment to run headless
+					"--disable-gpu",
+					"--no-sandbox",
+				}}}))
+		Expect(err).NotTo(HaveOccurred())
+
+		// Make the page bigger so we can see all the things in the screenshots
+		err = webDriver.Size(1800, 2500)
+		Expect(err).NotTo(HaveOccurred())
+	}
+
+	By("When I navigate to MCCP UI Page", func() {
+
+		Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
+
+	})
 }
 
 // "DB" backend that creates/delete rows
@@ -348,6 +385,10 @@ func (b DatabaseMCCPTestRunner) ListPullRequest(repoAbsolutePath string) []strin
 	return []string{}
 }
 
+func (b DatabaseMCCPTestRunner) MergePullRequest(repoAbsolutePath string, prBranch string) {
+
+}
+
 func (b DatabaseMCCPTestRunner) GetRepoVisibility(org string, repo string) string {
 	return ""
 }
@@ -447,7 +488,7 @@ func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor ti
 	body, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("response Body:", string(body))
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Alertmanager didn't like the alert: %v", resp.StatusCode)
+		return fmt.Errorf("alertmanager didn't like the alert: %v", resp.StatusCode)
 	}
 
 	return nil
@@ -610,6 +651,18 @@ func (b RealMCCPTestRunner) GetRepoVisibility(org string, repo string) string {
 	return visibilityStr
 }
 
+func (b RealMCCPTestRunner) MergePullRequest(repoAbsolutePath string, prBranch string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cd %s &&
+							git checkout main &&
+							git pull &&
+                            git merge --no-ff --no-edit origin/%s &&
+							git push origin main`, repoAbsolutePath, prBranch))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
 // Run a command, passing through stdout/stderr to the OS standard streams
 func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
@@ -618,6 +671,14 @@ func runCommandPassThrough(env []string, name string, arg ...string) error {
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
+	if len(env) > 0 {
+		cmd.Env = env
+	}
 	return cmd.Run()
 }
 
@@ -727,4 +788,80 @@ func createTestFile(fileName string, fileContents string) string {
 	Eventually(session).Should(gexec.Exit())
 
 	return testFilePath
+}
+
+func installInfrastructureProvider(name string) {
+	if name == "docker" {
+		command := exec.Command("clusterctl", "init", "--infrastructure", "docker")
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+
+		Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(`(Installing Provider="infrastructure-docker"|installing provider "infrastructure-docker")`))
+	} else {
+		Fail(fmt.Sprintf("%s infrastructure Provider is not supported for test run", name))
+	}
+}
+
+// wego system helper functions
+func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration) error {
+	pollInterval := 5
+	if timeout < 5*time.Second {
+		timeout = 5 * time.Second
+	}
+
+	timeoutInSeconds := int(timeout.Seconds())
+	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
+		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
+		err := runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
+		if err == nil {
+			log.Infof("%s are available in cluster", resourceType+"/"+resourceName)
+			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
+			noResourcesFoundMessage := fmt.Sprintf("No resources found in %s namespace", namespace)
+			if strings.Contains(string(session.Wait().Out.Contents()), noResourcesFoundMessage) {
+				log.Infof("Got message => {" + noResourcesFoundMessage + "} Continue looking for resource(s)")
+				continue
+			}
+			return nil
+		}
+		time.Sleep(time.Duration(pollInterval) * time.Second)
+	}
+	return fmt.Errorf("error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
+}
+
+func VerifyControllersInCluster(namespace string) {
+	Expect(waitForResource("deploy", "helm-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", "kustomize-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", "notification-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", "source-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", "image-automation-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", "image-reflector-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
+
+	By("And I wait for the wego controllers to be ready", func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+	})
+}
+
+func installAndVerifyWego(wegoNamespace string) {
+	By("And I run 'wego install' command with namespace "+wegoNamespace, func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install --namespace=%s", GetWegoBinPath(), wegoNamespace))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+		VerifyControllersInCluster(wegoNamespace)
+	})
+}
+
+func resetWegoRuntime(nameSpace string) {
+	log.Printf("Resetting wego runtime in namespace %s", nameSpace)
+	err := runCommandPassThrough([]string{}, "../../utils/scripts/reset-wego.sh", nameSpace)
+	Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to reset the wego runtime in namespace %s", nameSpace))
+
 }

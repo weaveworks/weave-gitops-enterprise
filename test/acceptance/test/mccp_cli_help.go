@@ -43,7 +43,7 @@ func verifyUsageText(session *gexec.Session) {
 func DescribeMccpCliHelp() {
 	var _ = Describe("MCCP Help Tests", func() {
 
-		MCCP_BIN_PATH := GetMCCBinPath()
+		MCCP_BIN_PATH := GetMccpBinPath()
 		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
 
 		var session *gexec.Session
