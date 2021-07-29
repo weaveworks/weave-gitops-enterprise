@@ -149,10 +149,13 @@ func ListCredentials(r CredentialsRetriever, w io.Writer) error {
 	}
 
 	if len(creds) > 0 {
-		fmt.Fprintf(w, "NAME\n")
+		fmt.Fprintf(w, "NAME\tINFRASTRUCTURE PROVIDER\n")
 
 		for _, c := range creds {
 			fmt.Fprintf(w, "%s", c.Name)
+			// Extract the infra provider name from ClusterKind
+			provider := c.Kind[:strings.Index(c.Kind, "Cluster")]
+			fmt.Fprintf(w, "\t%s", provider)
 			fmt.Fprintln(w, "")
 		}
 

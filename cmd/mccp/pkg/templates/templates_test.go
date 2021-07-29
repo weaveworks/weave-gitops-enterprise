@@ -246,12 +246,14 @@ func TestListCredentials(t *testing.T) {
 			creds: []templates.Credentials{
 				{
 					Name: "creds-a",
+					Kind: "AWSCluster",
 				},
 				{
 					Name: "creds-b",
+					Kind: "AzureCluster",
 				},
 			},
-			expected: "NAME\ncreds-a\ncreds-b\n",
+			expected: "NAME\tINFRASTRUCTURE PROVIDER\ncreds-a\tAWS\ncreds-b\tAzure\n",
 		},
 		{
 			name:             "error retrieving templates",
