@@ -126,10 +126,18 @@ type Workspace struct {
 
 type PullRequest struct {
 	Model
-	URL       string
-	Type      string  // maybe create/delete/modify
-	ClusterID uint    `gorm:"primarykey"`
-	Cluster   Cluster `gorm:"foreignKey:ClusterID"`
+	URL  string
+	Type string // maybe create/delete/modify
+}
+
+type PRCluster struct {
+	Model
+	PRID      uint `gorm:"column:prid"`
+	ClusterID uint `gorm:"column:cluster_id"`
+}
+
+func (PRCluster) TableName() string {
+	return "pr_clusters"
 }
 
 type CAPICluster struct {

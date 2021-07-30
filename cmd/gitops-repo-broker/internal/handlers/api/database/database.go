@@ -66,7 +66,7 @@ const clustersQueryString = `
 						WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
 						WHEN  %[1]s <= 1800 THEN 'ready'
 						WHEN cc.id is not null THEN 'clusterFound'
-						WHEN (select count(*) from pull_requests pr where pr.cluster_id = c.id) > 0 and ci.updated_at is null THEN 'pullRequestCreated'
+						WHEN (select count(*) from pull_requests pr inner join pr_clusters prc where prc.cluster_id = c.id) > 0 and ci.updated_at is null THEN 'pullRequestCreated'
 						WHEN %[1]s IS NULL OR %[1]s > 1800 THEN 'notConnected'
 					END AS ClusterStatus
 				FROM
@@ -78,7 +78,8 @@ const clustersQueryString = `
 				%[4]s
 			) AS c
 			LEFT JOIN node_info ni ON c.token = ni.cluster_token
-			LEFT JOIN pull_requests pr ON pr.cluster_id = c.ID
+			LEFT JOIN pr_clusters prc ON prc.cluster_id = c.ID
+			LEFT JOIN pull_requests pr ON pr.ID = prc.prid
 			LEFT JOIN flux_info fi ON c.token = fi.cluster_token
 			LEFT JOIN git_commits gc ON c.token = gc.cluster_token
 			LEFT JOIN workspaces ws ON c.token = ws.cluster_token

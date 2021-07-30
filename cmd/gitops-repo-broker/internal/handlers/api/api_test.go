@@ -1256,7 +1256,9 @@ func TestListClusters_PullRequests(t *testing.T) {
 	// Register a cluster
 	c := models.Cluster{Name: "My Cluster", Token: "derp", CAPIName: "fooname", CAPINamespace: "default"}
 	db.Create(&c)
-	db.Create(&models.PullRequest{Cluster: c, URL: "boop"})
+	pr := models.PullRequest{URL: "boop", Type: "create"}
+	db.Create(&pr)
+	db.Create(&models.PRCluster{PRID: pr.ID, ClusterID: c.ID})
 
 	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
@@ -1285,7 +1287,9 @@ func TestListClusters_ClusterFound(t *testing.T) {
 	// Register a cluster
 	c := models.Cluster{Name: "My Cluster", Token: "derp", CAPIName: "fooname", CAPINamespace: "default"}
 	db.Create(&c)
-	db.Create(&models.PullRequest{Cluster: c})
+	pr := models.PullRequest{}
+	db.Create(&pr)
+	db.Create(&models.PRCluster{PRID: pr.ID, ClusterID: c.ID})
 	db.Create(&models.CAPICluster{Name: c.CAPIName, Namespace: c.CAPINamespace, Object: datatypes.JSON(`"derp"`)})
 
 	response := executeGet(t, db, json.MarshalIndent, "")

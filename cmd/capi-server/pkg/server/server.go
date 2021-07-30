@@ -195,10 +195,18 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		// Create the PR, this shouldn't fail, but if it does it will rollback the Cluster but not the delete the PR
 		pullRequestURL = res.WebURL
 		pr := &models.PullRequest{
-			URL:       pullRequestURL,
-			ClusterID: c.ID,
+			URL:  pullRequestURL,
+			Type: "create",
 		}
 		if err := tx.Create(pr).Error; err != nil {
+			return err
+		}
+
+		prCluster := &models.PRCluster{
+			PRID:      c.ID,
+			ClusterID: c.ID,
+		}
+		if err := tx.Create(prCluster).Error; err != nil {
 			return err
 		}
 
@@ -363,6 +371,26 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	pullRequestURL = res.WebURL
 
+	pr := &models.PullRequest{
+		URL:  pullRequestURL,
+		Type: "delete",
+	}
+	if err := s.db.Create(pr).Error; err != nil {
+		return nil, err
+	}
+
+	for clusterName := range msg.ClusterNames {
+		var cluster models.Cluster
+		s.db.Where("name = ?", clusterName).Find(&cluster)
+
+		prCluster := &models.PRCluster{
+			PRID:      pr.ID,
+			ClusterID: cluster.ID,
+		}
+		if err := s.db.Create(prCluster).Error; err != nil {
+			return nil, err
+		}
+	}
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
 		WebUrl: pullRequestURL,
 	}, nil

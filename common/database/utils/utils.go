@@ -83,6 +83,7 @@ func MigrateTables(db *gorm.DB) error {
 		&models.GitCommit{},
 		&models.CAPICluster{},
 		&models.PullRequest{},
+		&models.PRCluster{},
 	)
 	if err != nil {
 		return errors.New("failed to create tables")
@@ -101,7 +102,8 @@ func HasAllTables(db *gorm.DB) bool {
 		db.Migrator().HasTable(&models.FluxInfo{}) &&
 		db.Migrator().HasTable(&models.Workspace{}) &&
 		db.Migrator().HasTable(&models.CAPICluster{}) &&
-		db.Migrator().HasTable(&models.PullRequest{}) {
+		db.Migrator().HasTable(&models.PullRequest{}) &&
+		db.Migrator().HasTable(&models.PRCluster{}) {
 		return true
 	}
 	return false
