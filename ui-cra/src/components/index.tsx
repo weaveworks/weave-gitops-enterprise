@@ -24,7 +24,8 @@ import Box from '@material-ui/core/Box';
 import { PageTemplate } from './Layout/PageTemplate';
 import { SectionHeader } from './Layout/SectionHeader';
 import { ContentWrapper } from './Layout/ContentWrapper';
-import { ReactComponent as Error } from '../assets/img/error.svg';
+import Lottie from 'react-lottie-player';
+import error404 from './../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
 
 const drawerWidth = 220;
@@ -89,7 +90,12 @@ const ResponsiveDrawer = () => {
     <PageTemplate documentTitle="WeGO · NotFound">
       <SectionHeader />
       <ContentWrapper>
-        <Error />
+        <Lottie
+          loop
+          animationData={error404}
+          play
+          style={{ width: '100%', height: 650 }}
+        />
       </ContentWrapper>
     </PageTemplate>
   );
