@@ -211,29 +211,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			By("Given Kubernetes cluster is setup", func() {
 				//TODO - Verify that cluster is up and running using kubectl
 			})
-
-			var err error
-			if webDriver == nil {
-
-				webDriver, err = agouti.NewPage(seleniumServiceUrl, agouti.Debug, agouti.Desired(agouti.Capabilities{
-					"chromeOptions": map[string][]string{
-						"args": {
-							// "--headless", //Uncomment to run headless
-							"--disable-gpu",
-							"--no-sandbox",
-						}}}))
-				Expect(err).NotTo(HaveOccurred())
-
-				// Make the page bigger so we can see all the things in the screenshots
-				err = webDriver.Size(1440, 900)
-				Expect(err).NotTo(HaveOccurred())
-			}
-
-			By("When I navigate to MCCP UI Page", func() {
-
-				Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
-
-			})
+			initializeWebdriver()
 		})
 
 		AfterEach(func() {

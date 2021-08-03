@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -630,24 +631,21 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
 			JustBeforeEach(func() {
-				By("Verify user can connect a cluster (itself)", func() {
-					initializeWebdriver()
-					leaf := LeafSpec{
-						Status:          "Ready",
-						IsWKP:           false,
-						AlertManagerURL: "",
-						KubeconfigPath:  "",
-					}
-
-					connectACluster(webDriver, mccpTestRunner, leaf)
-				})
+				log.Println("Connecting cluster to itself")
+				initializeWebdriver()
+				leaf := LeafSpec{
+					Status:          "Ready",
+					IsWKP:           false,
+					AlertManagerURL: "",
+					KubeconfigPath:  "",
+				}
+				connectACluster(webDriver, mccpTestRunner, leaf)
 			})
 
 			JustAfterEach(func() {
-				By("Verify user can connect a cluster (itself)", func() {
-					mccpTestRunner.KubectlDeleteAllAgents([]string{})
-					mccpTestRunner.ResetDatabase()
-				})
+				log.Println("Deleting all the wkp agents")
+				mccpTestRunner.KubectlDeleteAllAgents([]string{})
+				mccpTestRunner.ResetDatabase()
 			})
 
 			It("Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
@@ -696,7 +694,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				k8version := "1.19.7"
 
 				//Pull request values
-				prBranch := "end-to-end-capd"
+				prBranch := "cli-end-to-end-capd"
 				prTitle := "CAPD pull request"
 				prCommit := "CAPD capi template"
 				prDescription := "This PR creates a new CAPD Kubernetes cluster"
@@ -763,9 +761,9 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					Eventually(output, ASSERTION_DEFAULT_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
 				})
 
-				By("Then I should delete the capi cluster ", func() {
+				By("Then I should delete the capi cluster", func() {
 					output := func() string {
-						command := exec.Command("kind", "delete", "clusters", clusterName)
+						command := exec.Command("kubectl", "delete", "cluster", clusterName)
 						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 						Expect(err).ShouldNot(HaveOccurred())
 						return string(session.Wait().Err.Contents())

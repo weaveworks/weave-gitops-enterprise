@@ -180,7 +180,7 @@ commands:
             mkdir -p cmd/wego
             wget -o "$DST_PATH" https://github.com/weaveworks/weave-gitops/releases/download/v0.2.2/wego-linux-x86_64
             chmod +x "$DST_PATH"
-            
+
   install-integration-test-deps:
     description: Install go, kubectl and hub for the integration tests
     steps:
@@ -736,7 +736,6 @@ jobs:
     resource_class: xlarge
     steps:
       - setup-integration-test-env
-      - get-wego-binary
       - install-kind
       - run:
           name: Install helm
@@ -747,10 +746,28 @@ jobs:
             sudo chmod +x /usr/bin/helm
       - setup_remote_docker
       - run:
+          name: Setup base config.yaml
+          command: |
+            cd test/integration/test
+            export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM"
+            # create file with docker password
+            echo "$DOCKER_IO_PASSWORD" > /tmp/workspace/docker-io-password
+            sed -i "s/gitProviderOrg:.*/gitProviderOrg: $WKP_GITHUB_ORG/" config.yaml
+            sed -i "s/dockerIOUser:.*/dockerIOUser: $DOCKER_IO_USER/" config.yaml
+            sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/workspace/docker-io-password|" config.yaml
+            sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" config.yaml
+            sed -i "s/track:.*/track: wks-ssh/" config.yaml
+            sed -i "s/sshUser:.*/sshUser: weaveworks-cit/" config.yaml
+            sed -i "s|sshKeyFile:.*|sshKeyFile: /root/.ssh/weaveworks_cit_id_rsa|" config.yaml
+            sed -i "s|podCIDRBlocks:.*|podCIDRBlocks: [$POD_CIDR_BLOCK]|" config.yaml
+            sed -i "s|serviceCIDRBlocks:.*|serviceCIDRBlocks: [$SERVICE_CIDR_BLOCK]|" config.yaml
+      - run:
           name: Run Acceptance Tests
           no_output_timeout: 20m
           command: |
             export PATH=$GOROOT/bin:$PATH
+            # This needs to be set to false otherwise the local repo is deleted at the end of the creation test
+            export CLEANUP_REPO=false
             cd test/integration/test
 
             # install iam-auth
@@ -760,12 +777,12 @@ jobs:
             export AWS_ACCESS_KEY_ID=$WKP_EKS_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$WKP_EKS_AWS_SECRET_ACCESS_KEY
 
-            # lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
-            # export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
-            # export USE_IMAGE=0
-            # # provision $NUM_HOSTS GCE VMs
-            # ../bin/internal/run-integration-tests.sh up
-            # ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
+            lb_count=$([ "$USE_LB" == "true" ] && echo "1" || echo "0")
+            export NUM_HOSTS=$(($NUM_MASTERS + $NUM_WORKERS + $lb_count))
+            export USE_IMAGE=0
+            # provision $NUM_HOSTS GCE VMs
+            ../bin/internal/run-integration-tests.sh up
+            ../bin/internal/update-config-with-node-info.sh $NUM_MASTERS $USE_LB
 
             export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
             export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
@@ -781,26 +798,19 @@ jobs:
             # decode EKS kubeconfig and store at path set in MCCP_EKS_LEAF_KUBECONFIG
             echo $WKP_ACCEPTANCE_EKS_KUBECONFIG
             echo $WKP_ACCEPTANCE_EKS_KUBECONFIG | base64 -d > $MCCP_EKS_LEAF_KUBECONFIG
-            
-            set -x
-            # Install socat locally and start port-forwarding service (required for CircleCI)
-            apt-get install -y curl ca-certificates liblz4-tool rsync socat
-            ../../utils/scripts/start-portforward-service.sh portforward
-            
-            # Create MCCP Kind cluster
-            kind create cluster --name my-kind-mccp-cluster --config ../../utils/scripts/kind-cluster-with-extramounts.yaml
-            # Start port-forward session for mccp cluster (required for CircleCI)
-            APISERVER_PORT_MCCP=$(kubectl config view -o jsonpath='{.clusters[].cluster.server}' | cut -d: -f 3 -)
-            ../../utils/scripts/portforward.sh portforward $APISERVER_PORT_MCCP
-            WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name)
-            kubectl label "${WORKER_NODE}" wkp-database-volume-node=true
+
+            go test -v -run TestClusterCreation --timeout=99999s
+            # Delete flux, it tries to update all the docker images and fails
+            # as it doesn't have auth and then we blow through our docker hub api quota
+            kubectl delete deployment flux --namespace weavek8sops
 
             # Update the natsURL in components.js to the node's public IP for the agent in the
             # GCE cluster to be able to connect
-            apt-get install net-tools
-            WORKER_NODE_EXTERNAL_IP=$(ip route | awk '/default/ {print $3}')
-            echo "Worker node ip is ${WORKER_NODE_EXTERNAL_IP}"
-            NATS_NODEPORT=31490            
+            cd /tmp/cluster_dir
+            WORKER_NODE_EXTERNAL_IP=$(grep "publicAddress" setup/config.yaml | tail -n 1 | xargs | cut -f 2 -d ' ')
+            echo "found worker node ip in config.yaml ${WORKER_NODE_EXTERNAL_IP}"
+            NATS_NODEPORT=31490
+            cd -
 
             kubectl create namespace prom
             helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -831,22 +841,20 @@ jobs:
 
             kubectl get pods -A
             # Wait for cluster to settle
-            kubectl wait --for=condition=Ready --timeout=60s -n mccp --all pod
+            sleep 60
 
-            # Create a kind leaf cluster
+            set -x
+            # Install socat locally and start port-forwarding service (required for CircleCI)
+            apt-get install -y curl ca-certificates liblz4-tool rsync socat
+            ../../utils/scripts/start-portforward-service.sh start
+
+            # Create a kind cluster
             kind create cluster --name my-kind-cluster-01 --config kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
             # Start port-forward session (required for CircleCI)
             APISERVER_PORT_WKP=$(kubectl --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG config view -o jsonpath='{.clusters[].cluster.server}' | cut -d: -f 3 -)
-            ../../utils/scripts/start-portforward-service.sh wkp-portforward
-            ../../utils/scripts/portforward.sh wkp-portforward $APISERVER_PORT_WKP
+            ../../utils/scripts/portforward.sh $APISERVER_PORT_WKP
             # Install cluster components
             export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
-
-            # Restart the worker node as it is needed for the CNI plugin to initialize and get the node out of taint mode
-            WKP_WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | cut -f 2 -d '/')
-            WKP_WORKER_CONTAINER_ID=$(docker ps | grep $WKP_WORKER_NODE | cut -f 1 -d ' ')
-            docker restart $WKP_WORKER_CONTAINER_ID
-
             export SKIP_PROMPT=1
             export CLUSTER_NAME="$CIRCLE_JOB-$CIRCLE_BUILD_NUM-$RANDOM"
             wkp_kind_cluster_dir=$(mktemp -d)
@@ -877,8 +885,7 @@ jobs:
             # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
             unset KUBECONFIG
  
-            # cd $CIRCLE_WORKING_DIRECTORY/test/integration/test
-            cd $CIRCLE_WORKING_DIRECTORY/test/acceptance/test/
+            cd $CIRCLE_WORKING_DIRECTORY/test/integration/test
             
             kubectl get pods -A
             export SELENIUM_DEBUG=true
@@ -894,22 +901,18 @@ jobs:
               # Wait for the postgres deployment to rollout
               kubectl wait --for=condition=available --timeout=600s deployment/postgres
 
+              cd /tmp/cluster_dir
               # Get the IP of the postgres service
               POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
-              kubectl create secret generic mccp-db-credentials --namespace mccp --from-literal=username=postgres --from-literal=password=password
+              sed -i "s/databaseType:.*/databaseType: postgres/" setup/config.yaml
+              sed -i "s/databaseURI:.*/databaseURI: $POSTGRES_CLUSTER_IP/" setup/config.yaml
+              git pull
+              git add setup/config.yaml
+              git commit -m "Set database type to postgres"
+              git push origin master
 
-              helm upgrade install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
-              --set "imagePullSecrets[0].name=docker-io-pull-secret" \
-              --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
-              --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-              --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
-              --set "nginx-ingress-controller.service.type=NodePort" \
-              --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
-              --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
-              --set "config.capi.baseBranch=main" \
-              --set "dbConfig.databaseType=postgres" \
-              --set "dbConfig.databaseURI=${POSTGRES_CLUSTER_IP}" \
-              --set "postgresConfig.databaseName=postgres" 
+              kubectl create secret generic -n wkp-gitops-repo-broker mccp-db-credentials --from-literal=username=postgres --from-literal=password=password -oyaml --dry-run > mccp-db-credentials.yaml
+              kubectl apply -f mccp-db-credentials.yaml
 
               kubectl get pods -A
 
@@ -939,9 +942,9 @@ jobs:
               hub delete -y "${WKP_GITHUB_USER}/${CIRCLE_JOB}-${CIRCLE_BUILD_NUM}"
             fi
 
-            # cd ../../integration/test
+            cd ../../integration/test
 
-            # ../bin/internal/run-integration-tests.sh destroy
+            ../bin/internal/run-integration-tests.sh destroy
       - run:
           # Ensures that the GCP resources are deleted even if the previous step fails
           name: Destroy GCP resources

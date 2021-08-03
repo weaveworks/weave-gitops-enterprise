@@ -19,6 +19,11 @@ type ClusterInformation struct {
 	EditCluster    *agouti.Selection
 }
 
+type ClusterStatus struct {
+	Phase      *agouti.Selection
+	KubeConfig *agouti.Selection
+}
+
 type AlertInformation struct {
 	Severity    *agouti.Selection
 	Message     *agouti.Selection
@@ -71,6 +76,15 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		GitRepoURL:     cluster.FindByXPath(`td[8]`),
 		EditCluster:    cluster.FindByXPath(`td[9]`).Find("button"),
 	}
+}
+
+func GetClusterStatus(webDriver *agouti.Page) *ClusterStatus {
+	clusterStatus := ClusterStatus{
+		Phase:      webDriver.FindByXPath(`//tr/th[.="phase"]/following-sibling::td`),
+		KubeConfig: webDriver.FindByXPath(`//button[.="Download the kubeconfig here"]`),
+	}
+
+	return &clusterStatus
 }
 
 func FindAlertInFiringAlertsWidget(clustersPage *ClustersPage, alertName string) *AlertInformation {
