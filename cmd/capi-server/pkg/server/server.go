@@ -203,7 +203,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		}
 
 		prCluster := &models.PRCluster{
-			PRID:      c.ID,
+			PRID:      pr.ID,
 			ClusterID: c.ID,
 		}
 		if err := tx.Create(prCluster).Error; err != nil {

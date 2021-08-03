@@ -57,6 +57,10 @@ const CredentialsWrapper = styled.div`
   & .dropdown-toggle {
     border: 1px solid #e5e5e5;
   }
+  & .dropdown-popover {
+    width: auto;
+    flex-basis: content;
+  }
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: left;
@@ -134,7 +138,6 @@ const AddCluster: FC = () => {
     setPRPreview,
     creatingPR,
     addCluster,
-    error,
     setError,
   } = useTemplates();
   const clustersCount = useClusters().count;
@@ -203,7 +206,6 @@ const AddCluster: FC = () => {
   );
 
   const handleAddCluster = useCallback(() => {
-    setError(null);
     addCluster({
       credentials: infraCredential,
       head_branch: branchName,
@@ -217,7 +219,6 @@ const AddCluster: FC = () => {
     });
   }, [
     addCluster,
-    setError,
     formData,
     branchName,
     pullRequestTitle,
@@ -315,7 +316,7 @@ const AddCluster: FC = () => {
 
   return useMemo(() => {
     return (
-      <PageTemplate documentTitle="WeGo · Create new cluster" error={error}>
+      <PageTemplate documentTitle="WeGo · Create new cluster">
         <SectionHeader
           className="count-header"
           path={[
@@ -453,7 +454,6 @@ const AddCluster: FC = () => {
     creatingPR,
     steps,
     activeStep,
-    error,
     credentialsItems,
     handleSelectCredentials,
     loading,

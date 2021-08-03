@@ -8,6 +8,7 @@ import (
 )
 
 type ClusterInformation struct {
+	Checkbox       *agouti.Selection
 	Name           *agouti.Selection
 	Icon           *agouti.Selection
 	Status         *agouti.Selection
@@ -37,6 +38,7 @@ type ClustersPage struct {
 	ClustersListHeader                          *agouti.Selection
 	FiringAlertsPerPage                         *agouti.Selection
 	FiringAlerts                                *agouti.MultiSelection
+	HeaderCheckbox                              *agouti.Selection
 	HeaderName                                  *agouti.Selection
 	HeaderIcon                                  *agouti.Selection
 	HeaderStatus                                *agouti.Selection
@@ -59,14 +61,15 @@ type ClustersPage struct {
 func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterInformation {
 	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr.summary[data-cluster-name="%s"]`, clusterName))
 	return &ClusterInformation{
-		Name:           cluster.FindByXPath(`td[1]`),
-		Icon:           cluster.FindByXPath(`td[2]`).Find(`svg`),
-		Status:         cluster.FindByXPath(`td[3]`),
-		GitActivity:    cluster.FindByXPath(`td[4]`),
-		NodesVersions:  cluster.FindByXPath(`td[5]`),
-		TeamWorkspaces: cluster.FindByXPath(`td[6]`),
-		GitRepoURL:     cluster.FindByXPath(`td[7]`),
-		EditCluster:    cluster.FindByXPath(`td[8]`).Find("button"),
+		Checkbox:       cluster.FindByXPath(`td[1]`),
+		Name:           cluster.FindByXPath(`td[2]`),
+		Icon:           cluster.FindByXPath(`td[3]`).Find(`svg`),
+		Status:         cluster.FindByXPath(`td[4]`),
+		GitActivity:    cluster.FindByXPath(`td[5]`),
+		NodesVersions:  cluster.FindByXPath(`td[6]`),
+		TeamWorkspaces: cluster.FindByXPath(`td[7]`),
+		GitRepoURL:     cluster.FindByXPath(`td[8]`),
+		EditCluster:    cluster.FindByXPath(`td[9]`).Find("button"),
 	}
 }
 
@@ -109,12 +112,13 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		FiringAlerts:                          webDriver.All(`#firing-alerts tbody tr`),
 		ClustersListSection:                   webDriver.Find(`#clusters-list`),
 		ClustersListHeader:                    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead`),
-		HeaderName:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[1]/span`),
-		HeaderIcon:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
-		HeaderStatus:                          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
-		HeaderGitActivity:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
-		HeaderNodeVersion:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
-		HeaderWorkspaces:                      webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[6]/span`),
+		HeaderCheckbox:                        webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[1]/span`),
+		HeaderName:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
+		HeaderIcon:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
+		HeaderStatus:                          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
+		HeaderGitActivity:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
+		HeaderNodeVersion:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[6]/span`),
+		HeaderWorkspaces:                      webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[7]/span`),
 		NoClusterConfigured:                   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
 		ClustersList:                          webDriver.Find(`#clusters-list > div > table > tbody`),
 		Tooltip:                               webDriver.Find(`div[role="tooltip"]`),

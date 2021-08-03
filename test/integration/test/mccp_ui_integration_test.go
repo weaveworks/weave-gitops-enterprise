@@ -78,7 +78,7 @@ func AssertClusterOrder(clustersPage *pages.ClustersPage, clusterNames []string)
 		count, err := elements.Count()
 		Expect(err).NotTo(HaveOccurred())
 		for i := 0; i < count; i++ {
-			el := elements.At(i).Find("td:nth-child(1)")
+			el := elements.At(i).Find("td:nth-child(2)")
 			name, err := el.Text()
 			Expect(err).NotTo(HaveOccurred())
 			names = append(names, name)

@@ -1,10 +1,8 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
 import { chunk, get } from 'lodash';
-import { spacing } from 'weaveworks-ui-components/lib/theme/selectors';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { useLocalStorage } from 'react-use';
-import { ErrorIcon } from '../assets/img/error-icon';
 import useAlerts from '../contexts/Alerts';
 import { makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -16,12 +14,13 @@ import Box from '@material-ui/core/Box';
 import moment from 'moment';
 import { Theme } from 'weaveworks-ui-components';
 import { SectionHeader } from './Layout/SectionHeader';
-import { ClusterNameLink, NotAvailable } from './Shared';
+import { ClusterNameLink, NotAvailable, SkeletonRow } from './Shared';
 import { PageTemplate } from './Layout/PageTemplate';
 import { Pagination } from './Pagination';
 import { TableFooter } from '@material-ui/core';
 import useClusters from '../contexts/Clusters';
 import { ContentWrapper } from './Layout/ContentWrapper';
+import { range } from 'lodash';
 
 const alertColor = ({
   severity,
@@ -42,10 +41,6 @@ const alertColor = ({
 //
 // Shebang
 //
-
-const ErrorWrapper = styled.span`
-  margin-left: ${spacing('xs')};
-`;
 
 const useStyles = makeStyles(t => ({
   table: {
@@ -101,7 +96,7 @@ const DescriptionCell = styled(TableCell)`
 export const AlertsDashboard: FC = () => {
   const classes = useStyles();
   const clustersCount = useClusters().count;
-  const { alerts, error } = useAlerts();
+  const { alerts, loading } = useAlerts();
   const [page, setPage] = React.useState<number>(0);
   const [perPage, setPerPage] = useLocalStorage<number>(
     'mccp.alerts.perPage',
@@ -117,8 +112,13 @@ export const AlertsDashboard: FC = () => {
 
   const alertsCount = alerts?.length;
 
+  const showSkeleton = loading && !alerts;
+  const skeletonRows = range(0, 1).map((id, index) => (
+    <SkeletonRow index={index} key={id} />
+  ));
+
   return (
-    <PageTemplate documentTitle="WeGo · Alerts" error={error}>
+    <PageTemplate documentTitle="WeGo · Alerts">
       <SectionHeader
         className="count-header"
         path={[
@@ -131,11 +131,6 @@ export const AlertsDashboard: FC = () => {
           {!alerts || alerts.length === 0 ? (
             <Box color="text.secondary" padding="14px" my={3}>
               <i>No alerts firing</i>
-              {error && (
-                <ErrorWrapper>
-                  <ErrorIcon error={error} />
-                </ErrorWrapper>
-              )}
             </Box>
           ) : (
             <Table
@@ -144,33 +139,35 @@ export const AlertsDashboard: FC = () => {
               aria-label="a dense table"
             >
               <TableBody>
-                {pagedAlerts.map(alert => (
-                  <TableRow key={alert.id}>
-                    <SeverityCell severity={alert.severity}>
-                      {alert.severity ? (
-                        alert.severity
-                      ) : (
-                        <NotAvailable>No severity</NotAvailable>
-                      )}
-                    </SeverityCell>
-                    <DescriptionCell severity={alert.severity}>
-                      <div
-                        title={alert.annotations.description}
-                        className={classes.cellContent}
-                      >
-                        {alert.labels.alertname}{' '}
-                        {alert.annotations.description ||
-                          alert.annotations.message}
-                      </div>
-                    </DescriptionCell>
-                    <TableCell className={classes.clusterNameCell}>
-                      <ClusterNameLink cluster={alert.cluster} />
-                    </TableCell>
-                    <TableCell className={classes.createdCell}>
-                      {moment(alert.starts_at).fromNow()}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {showSkeleton && skeletonRows}
+                {!showSkeleton &&
+                  pagedAlerts.map(alert => (
+                    <TableRow key={alert.id}>
+                      <SeverityCell severity={alert.severity}>
+                        {alert.severity ? (
+                          alert.severity
+                        ) : (
+                          <NotAvailable>No severity</NotAvailable>
+                        )}
+                      </SeverityCell>
+                      <DescriptionCell severity={alert.severity}>
+                        <div
+                          title={alert.annotations.description}
+                          className={classes.cellContent}
+                        >
+                          {alert.labels.alertname}{' '}
+                          {alert.annotations.description ||
+                            alert.annotations.message}
+                        </div>
+                      </DescriptionCell>
+                      <TableCell className={classes.clusterNameCell}>
+                        <ClusterNameLink cluster={alert.cluster} />
+                      </TableCell>
+                      <TableCell className={classes.createdCell}>
+                        {moment(alert.starts_at).fromNow()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
               <TableFooter>
                 {alertsCount === 0 ? null : (

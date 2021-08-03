@@ -25,12 +25,12 @@ const getColor = (seed: number) => {
 };
 
 const TemplatesDashboard: FC = () => {
-  const { templates, loading, error } = useTemplates();
+  const { templates, loading } = useTemplates();
   const clustersCount = useClusters().count;
   const templatesCount = templates.length;
 
   return (
-    <PageTemplate documentTitle="WeGO · Templates" error={error}>
+    <PageTemplate documentTitle="WeGO · Templates">
       <SectionHeader
         path={[
           { label: 'Clusters', url: '/clusters', count: clustersCount },

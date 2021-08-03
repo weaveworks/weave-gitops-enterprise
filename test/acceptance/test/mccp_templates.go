@@ -402,7 +402,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				By("Then I should see cluster appears in the cluster dashboard with the expected status", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Eventually(clusterInfo.Status).Should(HaveText("PR Created"))
-					prUrl, _ = clusterInfo.Status.Find("a").Attribute("href")
+					anchor := clusterInfo.Status.Find("a")
+					Eventually(anchor).Should(BeFound())
+					prUrl, _ = anchor.Attribute("href")
 				})
 
 				By("And I should veriyfy the pull request in the cluster config repository", func() {

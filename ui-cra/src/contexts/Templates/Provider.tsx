@@ -3,6 +3,7 @@ import { Template } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Templates } from './index';
 import { useHistory } from 'react-router-dom';
+import useNotifications from './../Notifications';
 
 const TemplatesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -11,6 +12,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [creatingPR, setCreatingPR] = useState<boolean>(false);
+  const { setNotification } = useNotifications();
 
   const history = useHistory();
 
@@ -25,15 +27,13 @@ const TemplatesProvider: FC = ({ children }) => {
       request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
         body: JSON.stringify(data),
       })
-        .then(data => {
-          setPRPreview(data.renderedTemplate);
-        })
-        .catch(err => setError(err.message))
-        .finally(() => {
-          setLoading(false);
-        });
+        .then(data => setPRPreview(data.renderedTemplate))
+        .catch(err =>
+          setNotification({ message: err.message, variant: 'danger' }),
+        )
+        .finally(() => setLoading(false));
     },
-    [activeTemplate],
+    [activeTemplate, setNotification],
   );
 
   const addCluster = useCallback(
@@ -43,10 +43,12 @@ const TemplatesProvider: FC = ({ children }) => {
         body: JSON.stringify(data),
       })
         .then(() => history.push('/clusters'))
-        .catch(err => setError(err.message))
+        .catch(err =>
+          setNotification({ message: err.message, variant: 'danger' }),
+        )
         .finally(() => setCreatingPR(false));
     },
-    [history],
+    [history, setNotification],
   );
 
   const getTemplates = useCallback(() => {
@@ -54,13 +56,12 @@ const TemplatesProvider: FC = ({ children }) => {
     request('GET', templatesUrl, {
       cache: 'no-store',
     })
-      .then(res => {
-        setTemplates(res.templates);
-        setError(null);
-      })
-      .catch(err => setError(err.message))
+      .then(res => setTemplates(res.templates))
+      .catch(err =>
+        setNotification({ message: err.message, variant: 'danger' }),
+      )
       .finally(() => setLoading(false));
-  }, []);
+  }, [setNotification]);
 
   useEffect(() => {
     getTemplates();

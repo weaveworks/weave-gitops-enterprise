@@ -3,7 +3,11 @@ import useClusters from '../../contexts/Clusters';
 import { Cluster } from '../../types/kubernetes';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { faPlug, faPlus } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowUp,
+  faPlus,
+  faTrashAlt,
+} from '@fortawesome/free-solid-svg-icons';
 import { Snackbar } from '@material-ui/core';
 import { ClustersTable } from './Table';
 import { FinishMessage } from '../Shared';
@@ -14,6 +18,7 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import { OnClickAction } from '../Action';
 import theme from 'weaveworks-ui-components/lib/theme';
+import { DeleteClusterDialog } from './Create/Delete';
 
 interface Size {
   size?: 'small';
@@ -36,7 +41,6 @@ const Title = styled.div`
 const MCCP: FC = () => {
   const {
     clusters,
-    error,
     count,
     loading,
     disabled,
@@ -44,10 +48,12 @@ const MCCP: FC = () => {
     handleSetPageParams,
     order,
     orderBy,
+    selectedClusters,
   } = useClusters();
 
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [finishMessage, setFinishStatus] = useState<FinishMessage | null>(null);
+  const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
 
   const NEW_CLUSTER = {
     name: '',
@@ -66,7 +72,7 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   return (
-    <PageTemplate documentTitle="WeGo · Clusters" error={error}>
+    <PageTemplate documentTitle="WeGo · Clusters">
       <SectionHeader
         className="count-header"
         path={[{ label: 'Clusters', url: 'clusters', count }]}
@@ -82,12 +88,28 @@ const MCCP: FC = () => {
           />
           <OnClickAction
             id="connect-cluster"
-            icon={faPlug}
+            icon={faArrowUp}
             onClick={() => setClusterToEdit(NEW_CLUSTER)}
             text="CONNECT A CLUSTER"
           />
+          <OnClickAction
+            className="danger"
+            id="delete-cluster"
+            icon={faTrashAlt}
+            onClick={() => setOpenDeletePR(true)}
+            text="CREATE A PR TO DELETE CLUSTER"
+            disabled={selectedClusters.length === 0}
+          />
+          {openDeletePR && (
+            <DeleteClusterDialog
+              clusters={selectedClusters}
+              onFinish={status => {
+                setOpenDeletePR(false);
+                setFinishStatus(status);
+              }}
+            />
+          )}
         </ActionsWrapper>
-        ,
         {clusterToEdit && (
           <ConnectClusterDialog
             cluster={clusterToEdit}
@@ -97,7 +119,6 @@ const MCCP: FC = () => {
             }}
           />
         )}
-        {/* TBD: Do we need to pass down the loading state to Clusters or can we manage this in the Clusters Provider with a loader? */}
         <ClustersTable
           onEdit={cluster => {
             setClusterToEdit(cluster);

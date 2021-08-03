@@ -18,6 +18,7 @@ import {
   createStyles,
 } from '@material-ui/core/styles';
 import TemplatesProvider from '../contexts/Templates/Provider';
+import NotificationsProvider from '../contexts/Notifications/Provider';
 import Compose from './ProvidersCompose';
 import Box from '@material-ui/core/Box';
 import { PageTemplate } from './Layout/PageTemplate';
@@ -94,7 +95,14 @@ const ResponsiveDrawer = () => {
   );
 
   return (
-    <Compose components={[TemplatesProvider, ClustersProvider, AlertsProvider]}>
+    <Compose
+      components={[
+        NotificationsProvider,
+        TemplatesProvider,
+        ClustersProvider,
+        AlertsProvider,
+      ]}
+    >
       <div className={classes.root}>
         <CssBaseline />
         <Box className={classes.menuButtonBox}>

@@ -15,6 +15,7 @@ const actionStyle = css`
   &:enabled {
     color: #00b3ec;
   }
+
   &:hover:enabled {
     color: ${theme.colors.blue700};
   }
@@ -34,6 +35,18 @@ const ActionButton = styled.button`
 
   &:hover:enabled {
     cursor: pointer;
+  }
+
+  &:enabled {
+    color: ${props =>
+      props.className === 'danger' ? theme.colors.orange600 : '#00b3ec'};
+  }
+
+  &:hover:enabled {
+    color: ${props =>
+      props.className === 'danger'
+        ? theme.colors.orange700
+        : theme.colors.blue700};
   }
 `;
 

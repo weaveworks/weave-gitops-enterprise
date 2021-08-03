@@ -3,6 +3,7 @@ import { Alert } from '../../types/kubernetes';
 import { request } from '../../utils/request';
 import { useInterval } from '../../utils/use-interval';
 import { Alerts } from './index';
+import useNotifications from './../Notifications';
 
 const ALERTS_POLL_INTERVAL = 5000;
 
@@ -11,12 +12,11 @@ const AlertsProvider: FC = ({ children }) => {
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [error, setError] = React.useState<string | null>(null);
+  const { setNotification } = useNotifications();
 
   const alertsUrl = '/gitops/api/alerts';
 
   const fetchAlerts = useCallback(() => {
-    // abort any inflight requests
     abortController?.abort();
 
     const newAbortController = new AbortController();
@@ -28,25 +28,22 @@ const AlertsProvider: FC = ({ children }) => {
     })
       .then(res => {
         setAlerts(res.alerts);
-        setError(null);
       })
       .catch(err => {
         if (err.name !== 'AbortError') {
-          setError(err.message);
+          setNotification({ message: err.message, variant: 'danger' });
         }
       })
       .finally(() => {
         setLoading(false);
         setAbortController(null);
       });
-  }, [abortController]);
+  }, [abortController, setNotification]);
 
   useInterval(() => fetchAlerts(), ALERTS_POLL_INTERVAL, true, []);
 
   return (
-    <Alerts.Provider value={{ alerts, error }}>
-      {loading && !alerts ? 'loader' : children}
-    </Alerts.Provider>
+    <Alerts.Provider value={{ alerts, loading }}>{children}</Alerts.Provider>
   );
 };
 

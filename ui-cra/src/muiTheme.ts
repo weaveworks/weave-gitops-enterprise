@@ -76,10 +76,8 @@ export const muiTheme = createMuiTheme({
       head: {
         color: '#888888',
       },
-    },
-    MuiTableHead: {
       root: {
-        backgroundColor: '#f9f9fb',
+        borderBottom: 'none',
       },
     },
     MuiTablePagination: {

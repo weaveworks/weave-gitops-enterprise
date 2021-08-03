@@ -1,6 +1,7 @@
 import { fromPairs, sortBy } from 'lodash';
 import {
   Box,
+  Button,
   Paper,
   Table,
   TableBody,
@@ -8,20 +9,28 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Theme,
   Typography,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC } from 'react';
 import styled from 'styled-components';
 import { CAPICluster } from '../../types/kubernetes';
+import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import useClusters from './../../contexts/Clusters';
 
 // styles
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     conditionNameCell: {
       width: 100,
+    },
+    section: {
+      marginTop: `${weaveTheme.spacing.medium}`,
+    },
+    downloadBtn: {
+      color: '#00B3EC',
+      padding: '0px',
     },
   }),
 );
@@ -96,10 +105,15 @@ const statusRenderers: { [key: string]: StatusRenderer } = {
   conditions: conditionsRenderer,
 };
 
-export const CAPIClusterStatus: FC<{ status?: CAPICluster['status'] }> = ({
-  status,
-}) => {
+export const CAPIClusterStatus: FC<{
+  clusterName: string;
+  status?: CAPICluster['status'];
+}> = ({ clusterName, status }) => {
   const classes = useStyles();
+  const { getKubeconfig } = useClusters();
+
+  const handleClick = () => getKubeconfig(clusterName, 'kubeconfig');
+
   if (!status) {
     return null;
   }
@@ -112,7 +126,6 @@ export const CAPIClusterStatus: FC<{ status?: CAPICluster['status'] }> = ({
       <Typography variant="h6" gutterBottom component="div">
         CAPI Status
       </Typography>
-
       <TableContainer component={Paper}>
         <Table size="small">
           <TableBody>
@@ -137,6 +150,17 @@ export const CAPIClusterStatus: FC<{ status?: CAPICluster['status'] }> = ({
           </TableBody>
         </Table>
       </TableContainer>
+      <Typography
+        variant="h6"
+        gutterBottom
+        component="div"
+        className={classes.section}
+      >
+        Kubeconfig
+      </Typography>
+      <Button className={classes.downloadBtn} onClick={handleClick}>
+        Download the kubeconfig here
+      </Button>
     </Box>
   );
 };

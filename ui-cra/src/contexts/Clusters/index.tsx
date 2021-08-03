@@ -1,9 +1,8 @@
-import { createContext, useContext } from 'react';
+import { createContext, Dispatch, useContext } from 'react';
 import { Cluster } from '../../types/kubernetes';
 
 interface ClustersContext {
   clusters: Cluster[] | [];
-  error: string | null;
   count: number | null;
   disabled: boolean;
   loading: boolean;
@@ -11,6 +10,11 @@ interface ClustersContext {
   handleSetPageParams: (page: number, perPage: number) => void;
   order: string;
   orderBy: string;
+  selectedClusters: string[];
+  setSelectedClusters: Dispatch<React.SetStateAction<string[] | []>>;
+  deleteCreatedClusters: (clusters: string[]) => void;
+  deleteConnectedClusters: (clusters: number[]) => void;
+  getKubeconfig: (clusterName: string, fileName: string) => void;
 }
 
 export const Clusters = createContext<ClustersContext | null>(null);

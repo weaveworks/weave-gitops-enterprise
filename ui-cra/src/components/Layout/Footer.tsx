@@ -1,25 +1,36 @@
-import React, { FC, Ref, useEffect, useRef, useState } from 'react';
+import React, { FC, Ref, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { contentCss } from './ContentWrapper';
+import { NotificationData } from '../../contexts/Notifications';
 
-const Footer = styled.div`
+const Footer = styled.div<{
+  variant: NotificationData['variant'];
+}>`
   ${contentCss}
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #ffcccc;
+  background-color: ${props =>
+    props.variant === 'danger' ? '#ffcccc' : '#C3EBDF'};
 `;
 
-export const FooterWrapper: FC<{ error: string }> = error => {
-  const [errorInView, setErrorInView] = useState<boolean | null>(null);
-  const errorRef: Ref<HTMLDivElement> = useRef(null);
+export const FooterWrapper: FC<{ notification: NotificationData }> = ({
+  notification,
+}) => {
+  const notificationRef: Ref<HTMLDivElement> = useRef(null);
 
   useEffect(() => {
-    if (error && errorRef.current && errorInView === false) {
-      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return setErrorInView(true);
+    if (notification) {
+      notificationRef?.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
     }
-  }, [error, errorInView]);
+  }, [notification]);
 
-  return <Footer ref={errorRef}>{error.error}</Footer>;
+  return (
+    <Footer ref={notificationRef} variant={notification.variant}>
+      <div>{notification.message}</div>
+    </Footer>
+  );
 };

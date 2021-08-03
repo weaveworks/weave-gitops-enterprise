@@ -2,19 +2,20 @@ import React, { FC } from 'react';
 import { useDocumentTitle } from '../../utils/hooks';
 import { FooterWrapper } from './Footer';
 import { PageWrapper } from './ContentWrapper';
+import useNotifications from './../../contexts/Notifications';
 
 interface Props {
   documentTitle?: string | null;
-  error?: string | null;
 }
 
-export const PageTemplate: FC<Props> = ({ children, documentTitle, error }) => {
+export const PageTemplate: FC<Props> = ({ children, documentTitle }) => {
   useDocumentTitle(documentTitle);
+  const { notification } = useNotifications();
 
   return (
     <>
       <PageWrapper>{children}</PageWrapper>
-      {error ? <FooterWrapper error={error} /> : null}
+      {notification ? <FooterWrapper notification={notification} /> : null}
     </>
   );
 };

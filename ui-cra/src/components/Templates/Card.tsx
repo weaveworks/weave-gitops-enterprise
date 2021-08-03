@@ -38,7 +38,6 @@ const TemplateCard: FC<{ template: Template; color: string }> = ({
   };
 
   const disabled = Boolean(template.error);
-  console.log({ disabled });
 
   return (
     <Card className={classes.root} data-template-name={template.name}>

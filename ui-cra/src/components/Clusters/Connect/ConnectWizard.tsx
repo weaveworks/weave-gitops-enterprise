@@ -13,8 +13,14 @@ import { request } from '../../../utils/request';
 import { FlexSpacer } from '../../ListView';
 import { HandleFinish } from '../../Shared';
 
-const ButtonText = styled.span`
+export const ButtonText = styled.span`
   margin: 0 4px;
+`;
+
+export const ContentContainer = styled.div`
+  margin: ${theme.spacing.base} 0;
+  min-height: 250px;
+  overflow-y: auto;
 `;
 
 const TitleBarContainer = styled.div`
@@ -38,12 +44,6 @@ const Title = styled.div<{
 `;
 
 const CreateModelForm = styled.div``;
-
-const ContentContainer = styled.div`
-  margin: ${theme.spacing.base} 0;
-  min-height: 250px;
-  overflow-y: auto;
-`;
 
 interface TitleBarProps {
   activeIndex: number;
@@ -120,7 +120,6 @@ const PAGES = {
       <ClusterDisconnectionInstructions
         formState={formState}
         setFormState={setFormState}
-        onFinish={onFinish}
       />
     ),
   },

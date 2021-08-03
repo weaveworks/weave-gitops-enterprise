@@ -92,9 +92,10 @@ const TablePaginationActions = ({
 };
 
 export const Pagination: FC<{
+  className?: string;
   count: number | null;
   onSelectPageParams: (page: number, perPage: number) => void;
-}> = ({ onSelectPageParams, count }) => {
+}> = ({ className, onSelectPageParams, count }) => {
   const [page, setPage] = useState<number>(0);
   const [perPage, setPerPage] = useState<number>(10);
 
@@ -115,6 +116,7 @@ export const Pagination: FC<{
 
   return (
     <TablePagination
+      className={className}
       rowsPerPageOptions={[10, 20, 50, 100]}
       rowsPerPage={perPage}
       count={count ?? 0}

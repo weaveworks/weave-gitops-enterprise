@@ -1,8 +1,10 @@
 import React, { FC, useCallback, useState } from 'react';
 import { Cluster } from '../../types/kubernetes';
-import { requestWithHeaders } from '../../utils/request';
+import { request, requestWithHeaders } from '../../utils/request';
 import { useInterval } from '../../utils/use-interval';
 import { Clusters } from './index';
+import useNotifications from './../Notifications';
+import fileDownload from 'js-file-download';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -12,8 +14,8 @@ const ClustersProvider: FC = ({ children }) => {
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [clusters, setClusters] = useState<Cluster[]>([]);
-  const [order, setOrder] = React.useState<string>('asc');
-  const [orderBy, setOrderBy] = React.useState<string>('ClusterStatus');
+  const [order, setOrder] = useState<string>('asc');
+  const [orderBy, setOrderBy] = useState<string>('ClusterStatus');
   const [pageParams, setPageParams] = useState<{
     page: number;
     perPage: number;
@@ -22,7 +24,8 @@ const ClustersProvider: FC = ({ children }) => {
     perPage: 10,
   });
   const [count, setCount] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
+  const { setNotification } = useNotifications();
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -42,7 +45,6 @@ const ClustersProvider: FC = ({ children }) => {
   }&per_page=${pageParams.perPage}`;
 
   const fetchClusters = useCallback(() => {
-    // abort any inflight requests
     abortController?.abort();
 
     const newAbortController = new AbortController();
@@ -55,11 +57,10 @@ const ClustersProvider: FC = ({ children }) => {
       .then(res => {
         setCount(res.total);
         setClusters(res.data.clusters);
-        setError(null);
       })
       .catch(err => {
         if (err.name !== 'AbortError') {
-          setError(err.message);
+          setNotification({ message: err.message, variant: 'danger' });
         }
       })
       .finally(() => {
@@ -67,7 +68,73 @@ const ClustersProvider: FC = ({ children }) => {
         setDisabled(false);
         setAbortController(null);
       });
-  }, [abortController, clustersParameters]);
+  }, [abortController, clustersParameters, setNotification]);
+
+  const deleteCreatedClusters = useCallback(
+    ({ ...data }) => {
+      const random = Math.random().toString(36).substring(7);
+      setLoading(true);
+      request('DELETE', '/v1/clusters', {
+        body: JSON.stringify({
+          clusterNames: data.clusters,
+          headBranch: `${random}--Delete-Clusters-Branch`,
+          title: `${random}-Delete-Clusters`,
+          commitMessage: `${random}-Delete-Clusters-Commit`,
+          description: data.formData
+            ? data.formData
+            : 'This PR deletes clusters',
+        }),
+      })
+        .then(res =>
+          setNotification({
+            message: `PR created successfully at: ${res.webUrl}`,
+            variant: 'success',
+          }),
+        )
+        .catch(err =>
+          setNotification({ message: err.message, variant: 'danger' }),
+        )
+        .finally(() => {
+          setLoading(false);
+        });
+    },
+    [setNotification],
+  );
+
+  const deleteConnectedClusters = useCallback(
+    ({ ...data }) => {
+      setLoading(true);
+      request('DELETE', `/gitops/api/clusters/${[...data.clusters]}`)
+        .then(() =>
+          setNotification({
+            message: 'Cluster successfully removed from the MCCP',
+            variant: 'success',
+          }),
+        )
+        .catch(err =>
+          setNotification({ message: err.message, variant: 'danger' }),
+        )
+        .finally(() => setLoading(false));
+    },
+    [setNotification],
+  );
+
+  const getKubeconfig = useCallback(
+    (clusterName: string, filename: string) => {
+      setLoading(true);
+      request('GET', `v1/clusters/${clusterName}/kubeconfig`, {
+        headers: {
+          Accept: 'application/octet-stream',
+        },
+      })
+        .then(res => fileDownload(res.message, filename))
+        .catch(err =>
+          setNotification({ message: err.message, variant: 'danger' }),
+        )
+        .finally(() => setLoading(false));
+    },
+    [setNotification],
+  );
 
   useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [
     order,
@@ -81,17 +148,20 @@ const ClustersProvider: FC = ({ children }) => {
       value={{
         clusters,
         disabled,
-        error,
         count,
         loading,
         handleRequestSort,
         handleSetPageParams,
         order,
         orderBy,
+        selectedClusters,
+        setSelectedClusters,
+        deleteCreatedClusters,
+        deleteConnectedClusters,
+        getKubeconfig,
       }}
     >
-      {/* TODO: Create loader */}
-      {loading && !clusters ? 'loader' : children}
+      {children}
     </Clusters.Provider>
   );
 };
