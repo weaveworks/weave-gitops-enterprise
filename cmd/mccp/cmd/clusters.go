@@ -17,6 +17,7 @@ func clustersCmd(client *resty.Client) *cobra.Command {
 	cmd.AddCommand(
 		clustersListCmd(client),
 		clustersGetCmd(client),
+		clustersDeleteCmd(client),
 	)
 
 	return cmd

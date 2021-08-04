@@ -2,6 +2,7 @@ package clusters_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -55,6 +56,39 @@ func TestListClusters(t *testing.T) {
 	}
 }
 
+func TestDeleteClusters(t *testing.T) {
+	tests := []struct {
+		name             string
+		result           string
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:             "error returned",
+			err:              errors.New("something went wrong"),
+			expectedErrorStr: "unable to create pull request for cluster deletion: something went wrong",
+		},
+		{
+			name:     "pull request created",
+			result:   "https://github.com/org/repo/pull/1",
+			expected: "Created pull request for clusters deletion: https://github.com/org/repo/pull/1\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewFakeClient(nil, tt.result, tt.err)
+			w := new(bytes.Buffer)
+			err := clusters.DeleteClusters(clusters.DeleteClustersParams{}, c, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
 type FakeClient struct {
 	cs  []clusters.Cluster
 	s   string
@@ -82,6 +116,14 @@ func (c *FakeClient) RetrieveClusters() ([]clusters.Cluster, error) {
 }
 
 func (c *FakeClient) GetClusterKubeconfig(name string) (string, error) {
+	if c.err != nil {
+		return "", c.err
+	}
+
+	return c.s, nil
+}
+
+func (c *FakeClient) DeleteClusters(params clusters.DeleteClustersParams) (string, error) {
 	if c.err != nil {
 		return "", c.err
 	}

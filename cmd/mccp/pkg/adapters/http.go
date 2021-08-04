@@ -331,3 +331,42 @@ func (c *HttpClient) GetClusterKubeconfig(name string) (string, error) {
 
 	return string(b), nil
 }
+
+// DeleteClusters
+func (c *HttpClient) DeleteClusters(params clusters.DeleteClustersParams) (string, error) {
+	endpoint := "v1/clusters"
+
+	type DeleteClustersResponse struct {
+		WebURL string `json:"webUrl"`
+	}
+
+	var result DeleteClustersResponse
+	var serviceErr *ServiceError
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetBody(capiv1_protos.DeleteClustersPullRequestRequest{
+			HeadBranch:    params.HeadBranch,
+			BaseBranch:    params.BaseBranch,
+			Title:         params.Title,
+			Description:   params.Description,
+			ClusterNames:  params.ClustersNames,
+			CommitMessage: params.CommitMessage,
+		}).
+		SetResult(&result).
+		SetError(&serviceErr).
+		Delete(endpoint)
+
+	if serviceErr != nil {
+		return "", fmt.Errorf("unable to Delete cluster and create pull request to %q: %s", res.Request.URL, serviceErr.Message)
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("unable to Delete cluster and create pull request to %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("response status for Delete %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	return result.WebURL, nil
+}
