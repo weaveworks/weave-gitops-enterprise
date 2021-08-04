@@ -20,8 +20,17 @@ type ClusterInformation struct {
 }
 
 type ClusterStatus struct {
-	Phase      *agouti.Selection
-	KubeConfig *agouti.Selection
+	Phase            *agouti.Selection
+	KubeConfigButton *agouti.Selection
+}
+
+type DeletePullRequestPopup struct {
+	Title               *agouti.Selection
+	ClosePopup          *agouti.Selection
+	PRDescription       *agouti.Selection
+	DeleteClusterButton *agouti.Selection
+	ConfirmDelete       *agouti.Selection
+	CancelDelete        *agouti.Selection
 }
 
 type AlertInformation struct {
@@ -35,6 +44,7 @@ type AlertInformation struct {
 type ClustersPage struct {
 	ClusterCount                                *agouti.Selection
 	ConnectClusterButton                        *agouti.Selection
+	PRDeleteClusterButton                       *agouti.Selection
 	NoFiringAlertMessage                        *agouti.Selection
 	FiringAlertsSection                         *agouti.Selection
 	FiringAlertsHeader                          *agouti.Selection
@@ -60,6 +70,7 @@ type ClustersPage struct {
 	ClustersListPaginationFirst                 *agouti.Selection
 	ClustersListPaginationPerPageDropdown       *agouti.Selection
 	ClustersListPaginationPerPageDropdownSecond *agouti.Selection
+	MessageBar                                  *agouti.Selection
 }
 
 // FindClusterInList finds the cluster with given name
@@ -80,11 +91,24 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 
 func GetClusterStatus(webDriver *agouti.Page) *ClusterStatus {
 	clusterStatus := ClusterStatus{
-		Phase:      webDriver.FindByXPath(`//tr/th[.="phase"]/following-sibling::td`),
-		KubeConfig: webDriver.FindByXPath(`//button[.="Download the kubeconfig here"]`),
+		Phase:            webDriver.FindByXPath(`//tr/th[.="phase"]/following-sibling::td`),
+		KubeConfigButton: webDriver.FindByXPath(`//button[.="Download the kubeconfig here"]`),
 	}
 
 	return &clusterStatus
+}
+
+func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
+	deletePRPopup := DeletePullRequestPopup{
+		Title:               webDriver.Find(`#delete-popup h5`),
+		PRDescription:       webDriver.Find(`#delete-popup textarea`),
+		ClosePopup:          webDriver.Find(`#delete-popup > div > button[type=button]`),
+		DeleteClusterButton: webDriver.Find(`#delete-popup button#delete-cluster`),
+		ConfirmDelete:       webDriver.Find(`#confirm-disconnect-cluster-dialog button:first-child`),
+		CancelDelete:        webDriver.Find(`#confirm-disconnect-cluster-dialog button:last-child`),
+	}
+
+	return &deletePRPopup
 }
 
 func FindAlertInFiringAlertsWidget(clustersPage *ClustersPage, alertName string) *AlertInformation {
@@ -118,6 +142,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
 		ClusterCount:                          webDriver.Find(`.count-header .section-header-count`),
 		ConnectClusterButton:                  webDriver.Find(`#connect-cluster`),
+		PRDeleteClusterButton:                 webDriver.Find(`#delete-cluster`),
 		NoFiringAlertMessage:                  webDriver.Find(`#firing-alerts i`),
 		FiringAlertsSection:                   webDriver.Find(`#firing-alerts`),
 		FiringAlertsHeader:                    webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[1]/div`),
@@ -143,6 +168,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		ClustersListPaginationFirst:           webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[1]`),
 		ClustersListPaginationPerPageDropdown: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/div`),
 		ClustersListPaginationPerPageDropdownSecond: webDriver.FindByXPath(`//*[@id="menu-"]/div[3]/ul/li[2]`),
+		MessageBar: webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
 	}
 
 	return &clustersPage

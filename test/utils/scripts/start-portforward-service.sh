@@ -3,8 +3,8 @@
 # Starts a portforwarding service on a remote Docker.
 #
 # Usage:
-#   start-portforward-service.sh <container name>
-#   portforward.sh <container name> [port]
+#   start-portforward-service.sh
+#   portforward.sh [port]
 #
 # Adapted from
 # https://github.com/kubernetes-retired/kubeadm-dind-cluster/blob/master/build/portforward.sh
@@ -29,6 +29,6 @@ set -o pipefail
 set -o errtrace
 
 docker run -d -it \
-    --name $1 --net=host \
+    --name portforward --net=host \
     --entrypoint /bin/sh \
     alpine/socat -c "while true; do sleep 1000; done"

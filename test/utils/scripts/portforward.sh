@@ -3,8 +3,8 @@
 # Sets up portforwarding for the specified port.
 #
 # Usage:
-#   start-portforward-service.sh <container name>
-#   portforward.sh <container name> [port]
+#   start-portforward-service.sh
+#   portforward.sh [port]
 #
 # Adapted from
 # https://github.com/kubernetes-retired/kubeadm-dind-cluster/blob/master/build/portforward.sh
@@ -23,7 +23,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-port="${2}"
+port="${1}"
 if [[ "$port" == "" ]]; then
   echo "Must specify a port"
   exit 1
@@ -37,7 +37,7 @@ if [[ "${IP_MODE:-ipv4}" = "ipv6" ]]; then
 fi
 
 socat "TCP-LISTEN:${port},reuseaddr,fork" \
-      EXEC:"'docker exec -i ${1} socat STDIO TCP${mode}:${localhost}:${port}'" &
+      EXEC:"'docker exec -i portforward socat STDIO TCP${mode}:${localhost}:${port}'" &
 
 # Wait for a successful connection.
 for ((n = 0; n < 20; n++)); do

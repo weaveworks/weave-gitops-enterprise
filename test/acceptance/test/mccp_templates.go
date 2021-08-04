@@ -795,7 +795,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.ResetDatabase()
 			})
 
-			FIt("Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@Integration @VM Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -857,7 +857,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				// Parameter values
-				clusterName := "ui-end-to-end-capd-cluster-44"
+				clusterName := "ui-end-to-end-capd-cluster-1"
 				namespace := "default"
 				k8Version := "1.19.7"
 
@@ -926,9 +926,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Status.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
-					// Eventually(clusterStatus.Phase).Should(HaveText(`"Provisioned"`))
-
-					Expect(clusterStatus.KubeConfig.Click()).To(Succeed())
+					Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
 				})
 
 				By("And verify the kubeconfig is correct", func() {
@@ -937,15 +935,24 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(contents).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
 				})
 
-				By("Then I should delete the CAPD capi cluster", func() {
-					output := func() string {
-						command := exec.Command("kubectl", "delete", "cluster", clusterName)
-						session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-						Expect(err).ShouldNot(HaveOccurred())
-						return string(session.Wait().Err.Contents())
+				By("Then I should select the cluster to create the delete pull request", func() {
+					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
 
-					}
-					Eventually(output, ASSERTION_DEFAULT_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("Deleted clusters"))
+					Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(BeFound())
+					Expect(clustersPage.PRDeleteClusterButton.Click()).To(Succeed())
+
+					deletePR := pages.GetDeletePRPopup(webDriver)
+					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster any more")).To(Succeed())
+					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
+					Expect(deletePR.ConfirmDelete.Click()).To(Succeed())
+
+					Expect(deletePR.ClosePopup.Click()).To(Succeed())
+
+				})
+
+				By("Then I should see delete pull request success message", func() {
+					Eventually(clustersPage.MessageBar).Should(MatchText(`PR created successfully`))
 				})
 			})
 		})

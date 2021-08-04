@@ -648,7 +648,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.ResetDatabase()
 			})
 
-			It("Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@VM Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
