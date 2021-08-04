@@ -11,6 +11,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
+
+	// load the gcp plugin (only required to authenticate against GKE clusters).
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 )
@@ -23,7 +27,32 @@ type IdentityParams struct {
 }
 
 var IdentityParamsList = []IdentityParams{
-	// Version: v1alpha4
+	// v3
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha3",
+		Kind:        "AWSClusterStaticIdentity",
+		ClusterKind: "AWSCluster",
+	},
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha3",
+		Kind:        "AWSClusterRoleIdentity",
+		ClusterKind: "AWSCluster",
+	},
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha3",
+		Kind:        "AzureClusterIdentity",
+		ClusterKind: "AzureCluster",
+	},
+	{
+		Group:       "infrastructure.cluster.x-k8s.io",
+		Version:     "v1alpha3",
+		Kind:        "VSphereClusterIdentity",
+		ClusterKind: "VSphereCluster",
+	},
+	// v4
 	{
 		Group:       "infrastructure.cluster.x-k8s.io",
 		Version:     "v1alpha4",
@@ -36,14 +65,12 @@ var IdentityParamsList = []IdentityParams{
 		Kind:        "AWSClusterRoleIdentity",
 		ClusterKind: "AWSCluster",
 	},
-	// Azure
 	{
 		Group:       "infrastructure.cluster.x-k8s.io",
 		Version:     "v1alpha4",
 		Kind:        "AzureClusterIdentity",
 		ClusterKind: "AzureCluster",
 	},
-	// VSphere
 	{
 		Group:       "infrastructure.cluster.x-k8s.io",
 		Version:     "v1alpha4",
@@ -52,7 +79,7 @@ var IdentityParamsList = []IdentityParams{
 	},
 }
 
-func emptyCredentials(creds *capiv1_proto.Credential) bool {
+func isEmptyCredentials(creds *capiv1_proto.Credential) bool {
 	return creds.Name == "" &&
 		creds.Namespace == "" &&
 		creds.Kind == "" &&
@@ -60,8 +87,73 @@ func emptyCredentials(creds *capiv1_proto.Credential) bool {
 		creds.Group == ""
 }
 
+// FindCredentials returns all the custom resources in the cluster that we think are CAPI identities. What we "think" are
+// capi identities are hardcoded in this file in `IdentityParamsList`
+func FindCredentials(ctx context.Context, c client.Client, dc discovery.DiscoveryInterface) ([]unstructured.Unstructured, error) {
+	identities := []unstructured.Unstructured{}
+	for _, identityParams := range IdentityParamsList {
+		gvk := schema.GroupVersionKind{
+			Group:   identityParams.Group,
+			Version: identityParams.Version,
+			Kind:    identityParams.Kind,
+		}
+
+		// We can skip this checkCRDExists check and let k8s do it.
+		// BUT if any of the above Identities are missing, client-go will purge its
+		// CRD cache and try and find all the available CRDs again, for each missing identity.
+		// This is a lot of requests, they get throttled, this func blows out to 10s+.
+		//
+		exists, err := checkCRDExists(dc, gvk)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check if CRD exists, %v: %w", gvk, err)
+		}
+		if !exists {
+			continue
+		}
+
+		identityList := &unstructured.UnstructuredList{}
+		identityList.SetGroupVersionKind(gvk)
+		err = c.List(context.Background(), identityList)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list CRs of %v: %w", gvk, err)
+		}
+		identities = append(identities, identityList.Items...)
+	}
+
+	// k8s doesn't internally differentiate between different apiVersions so we de-dup them
+	// https://github.com/kubernetes/kubernetes/issues/58131#issuecomment-403829566
+	//
+	identityIndex := map[schema.GroupKind]unstructured.Unstructured{}
+	for _, ident := range identities {
+		identityIndex[ident.GroupVersionKind().GroupKind()] = ident
+	}
+	uniqueIdentities := []unstructured.Unstructured{}
+	for _, v := range identityIndex {
+		uniqueIdentities = append(uniqueIdentities, v)
+	}
+
+	return uniqueIdentities, nil
+}
+
+func checkCRDExists(dc discovery.DiscoveryInterface, gvk schema.GroupVersionKind) (bool, error) {
+	gv := gvk.GroupVersion().String()
+	apiResources, err := dc.ServerResourcesForGroupVersion(gv)
+	if errors.IsNotFound(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("failed to get resources for GV %v: %w", gv, err)
+	}
+	availableKindsIndex := map[string]bool{}
+	for _, api := range apiResources.APIResources {
+		availableKindsIndex[api.Kind] = true
+	}
+	_, ok := availableKindsIndex[gvk.Kind]
+	return ok, nil
+}
+
 func CheckAndInjectCredentials(c client.Client, tmplWithValues [][]byte, creds *capiv1_proto.Credential, tmpName string) ([]byte, error) {
-	if creds == nil || emptyCredentials(creds) {
+	if creds == nil || isEmptyCredentials(creds) {
 		log.Infof("No credentials %v", creds)
 		return bytes.Join(tmplWithValues, []byte("\n---\n")), nil
 	}

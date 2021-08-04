@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -81,7 +82,12 @@ func StartServer() error {
 		capiv1.AddToScheme,
 	}
 	schemeBuilder.AddToScheme(scheme)
-	kubeClient, err := client.New(config.GetConfigOrDie(), client.Options{Scheme: scheme})
+	kubeClientConfig := config.GetConfigOrDie()
+	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
+	if err != nil {
+		return err
+	}
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(kubeClientConfig)
 	if err != nil {
 		return err
 	}
@@ -94,14 +100,14 @@ func StartServer() error {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 	provider := git.NewGitProviderService()
-	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider, kubeClient, db, ns, grpc_runtime.WithIncomingHeaderMatcher(CustomHeaderMatcher))
+	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, grpc_runtime.WithIncomingHeaderMatcher(CustomHeaderMatcher))
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, client client.Client, db *gorm.DB, ns string, opts ...grpc_runtime.ServeMuxOption) error {
+func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, opts ...grpc_runtime.ServeMuxOption) error {
 	mux := grpc_runtime.NewServeMux(opts...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, client, db, ns))
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, client, discoveryClient, db, ns))
 	s := &http.Server{
 		Addr:    addr,
 		Handler: mux,

@@ -22,6 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
+	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 )
@@ -615,16 +617,18 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 	}
 	schemeBuilder.AddToScheme(scheme)
 
-	cl := fake.NewClientBuilder().
+	c := fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithRuntimeObjects(clusterState...).
 		Build()
 
+	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
+
 	s := NewClusterServer(&templates.ConfigMapLibrary{
-		Client:        cl,
+		Client:        c,
 		ConfigMapName: configMapName,
 		Namespace:     namespace,
-	}, provider, cl, db, ns)
+	}, provider, c, dc, db, ns)
 
 	return s
 }

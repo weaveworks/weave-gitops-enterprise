@@ -35,6 +35,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/discovery"
+	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -588,13 +590,13 @@ func RunBroker(ctx gcontext.Context, dbURI string) error {
 	return ListenAndServe(ctx, srv)
 }
 
-func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, db *gorm.DB) error {
+func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
 	library := &templates.CRDLibrary{
 		Client:    cl,
 		Namespace: "default",
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, db, "default")
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default")
 }
 
 func RunUIServer(ctx gcontext.Context) {
@@ -683,6 +685,8 @@ func TestMccpUI(t *testing.T) {
 		WithScheme(scheme).
 		Build()
 
+	discoveryClient := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
+
 	var wg sync.WaitGroup
 	ctx, cancel := gcontext.WithCancel(gcontext.Background())
 
@@ -701,7 +705,7 @@ func TestMccpUI(t *testing.T) {
 	}()
 	wg.Add(1)
 	go func() {
-		RunCAPIServer(t, ctx, cl, db)
+		RunCAPIServer(t, ctx, cl, discoveryClient, db)
 		wg.Done()
 	}()
 

@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/fluxcd/go-git-providers v0.2.0
-	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
@@ -29,6 +28,7 @@ require (
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v0.21.2
+	k8s.io/klog/v2 v2.10.0 // indirect
 	sigs.k8s.io/cluster-api v0.3.16
 	sigs.k8s.io/controller-runtime v0.9.0
 	sigs.k8s.io/kustomize/kyaml v0.11.0

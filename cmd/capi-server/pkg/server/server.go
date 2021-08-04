@@ -23,22 +23,22 @@ import (
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type server struct {
-	library  templates.Library
-	provider git.Provider
-	client   client.Client
+	library         templates.Library
+	provider        git.Provider
+	client          client.Client
+	discoveryClient discovery.DiscoveryInterface
 	capiv1_proto.UnimplementedClustersServiceServer
 	db *gorm.DB
 	ns string // The namespace where cluster objects reside
 }
 
-func NewClusterServer(library templates.Library, provider git.Provider, client client.Client, db *gorm.DB, ns string) capiv1_proto.ClustersServiceServer {
-	return &server{library: library, provider: provider, client: client, db: db, ns: ns}
+func NewClusterServer(library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string) capiv1_proto.ClustersServiceServer {
+	return &server{library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -255,25 +255,19 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 // ListCredentials searches the management cluster and lists any objects that match specific given types
 func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCredentialsRequest) (*capiv1_proto.ListCredentialsResponse, error) {
 	creds := []*capiv1_proto.Credential{}
+	foundCredentials, err := credentials.FindCredentials(ctx, s.client, s.discoveryClient)
+	if err != nil {
+		return nil, err
+	}
 
-	for _, identityParams := range credentials.IdentityParamsList {
-		identityList := &unstructured.UnstructuredList{}
-		identityList.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   identityParams.Group,
-			Kind:    identityParams.Kind,
-			Version: identityParams.Version,
+	for _, identity := range foundCredentials {
+		creds = append(creds, &capiv1_proto.Credential{
+			Group:     identity.GroupVersionKind().Group,
+			Version:   identity.GroupVersionKind().Version,
+			Kind:      identity.GetKind(),
+			Name:      identity.GetName(),
+			Namespace: identity.GetNamespace(),
 		})
-		_ = s.client.List(context.Background(), identityList)
-
-		for _, identity := range identityList.Items {
-			creds = append(creds, &capiv1_proto.Credential{
-				Group:     identityParams.Group,
-				Version:   identity.GroupVersionKind().Version,
-				Kind:      identity.GetKind(),
-				Name:      identity.GetName(),
-				Namespace: identity.GetNamespace(),
-			})
-		}
 	}
 
 	return &capiv1_proto.ListCredentialsResponse{Credentials: creds, Total: int32(len(creds))}, nil
