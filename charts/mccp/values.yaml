@@ -41,6 +41,8 @@ config:
       namespace: default
     repositoryURL: ''
     baseBranch: main
+  checkpoint:
+    enabled: true
 
 gitopsRepoBroker:
   gitRepo:

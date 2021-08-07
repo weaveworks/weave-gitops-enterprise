@@ -53,8 +53,8 @@ require (
 	github.com/weaveworks/wksctl v0.10.2
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
-	golang.org/x/oauth2 v0.0.0-20210427180440-81ed05c6b58c
-	golang.org/x/tools v0.1.2
+	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1
+	golang.org/x/tools v0.1.3
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect

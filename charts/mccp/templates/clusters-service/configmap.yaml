@@ -10,3 +10,7 @@ data:
   CAPI_TEMPLATES_NAMESPACE: {{ .Values.config.capi.templates.namespace }}
   CAPI_TEMPLATES_REPOSITORY_URL: {{ .Values.config.capi.repositoryURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
+  {{ if not .Values.config.checkpoint.enabled }}
+  CHECKPOINT_DISABLE: 1
+  {{ end }}
+ 

@@ -7,6 +7,7 @@ IMAGE_PREFIX := docker.io/weaveworks/wkp-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe --always --match "v*")
+WEAVE_GITOPS_VERSION=$(shell git describe --always --match "weave-gitops-clusters-v*" | sed 's/^[^0-9]*//')
 CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 BUILD_IN_CONTAINER=true
@@ -52,7 +53,7 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 WEAVE_GITOPS_CLUSTERS_SERVICE := docker.io/weaveworks/weave-gitops-clusters-service
 cmd/capi-server/$(UPTODATE): cmd/capi-server/Dockerfile cmd/capi-server/*
 	$(SUDO) docker build \
-		--build-arg=version=$(VERSION) \
+		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--tag $(WEAVE_GITOPS_CLUSTERS_SERVICE) \

@@ -11,7 +11,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/weaveworks/go-checkpoint"
 	"github.com/weaveworks/wks/common/database/utils"
+	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,6 +26,7 @@ import (
 	capi_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/server"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
+	"github.com/weaveworks/wks/cmd/capi-server/pkg/version"
 )
 
 func NewAPIServerCommand() *cobra.Command {
@@ -39,7 +42,7 @@ func NewAPIServerCommand() *cobra.Command {
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return StartServer()
+			return StartServer(context.Background())
 		},
 	}
 
@@ -58,7 +61,7 @@ func NewAPIServerCommand() *cobra.Command {
 	return cmd
 }
 
-func StartServer() error {
+func StartServer(ctx context.Context) error {
 	dbUri := viper.GetString("db-uri")
 	dbType := viper.GetString("db-type")
 	if dbType == "sqlite" {
@@ -100,7 +103,10 @@ func StartServer() error {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 	provider := git.NewGitProviderService()
-	return RunInProcessGateway(context.Background(), "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, grpc_runtime.WithIncomingHeaderMatcher(CustomHeaderMatcher))
+	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns,
+		grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
+		grpc_runtime.WithMetadata(TrackEvents),
+	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
@@ -130,11 +136,72 @@ func RunInProcessGateway(ctx context.Context, addr string, library templates.Lib
 	return nil
 }
 
-func CustomHeaderMatcher(key string) (string, bool) {
+// CustomIncomingHeaderMatcher allows the Accept header to be passed to the gRPC handlers.
+// The Accept header is used by the gRPC handlers to determine whether a response other
+// than `application/json` is requested.
+func CustomIncomingHeaderMatcher(key string) (string, bool) {
 	switch key {
 	case "Accept":
 		return key, true
 	default:
 		return grpc_runtime.DefaultHeaderMatcher(key)
+	}
+}
+
+// TrackEvents tracks data for specific operations.
+func TrackEvents(ctx context.Context, r *http.Request) metadata.MD {
+	var handler string
+	md := make(map[string]string)
+	if method, ok := grpc_runtime.RPCMethod(ctx); ok {
+		md["method"] = method
+		handler = method
+	}
+	if pattern, ok := grpc_runtime.HTTPPathPattern(ctx); ok {
+		md["pattern"] = pattern
+	}
+
+	track(handler)
+
+	return metadata.New(md)
+}
+
+func track(handler string) {
+	handlers := make(map[string]map[string]string)
+	handlers["ListTemplates"] = map[string]string{
+		"object":  "templates",
+		"command": "list",
+	}
+	handlers["CreatePullRequest"] = map[string]string{
+		"object":  "clusters",
+		"command": "create",
+	}
+	handlers["DeleteClustersPullRequest"] = map[string]string{
+		"object":  "clusters",
+		"command": "delete",
+	}
+
+	for h, m := range handlers {
+		if strings.HasSuffix(handler, h) {
+			go checkVersionWithFlags(m)
+		}
+	}
+}
+
+func checkVersionWithFlags(flags map[string]string) {
+	p := &checkpoint.CheckParams{
+		Product: "weave-gitops-enterprise",
+		Version: version.Version,
+		Flags:   flags,
+	}
+	checkResponse, err := checkpoint.Check(p)
+	if err != nil {
+		log.Debugf("Failed to check version: %v.", err)
+		return
+	}
+	if checkResponse.Outdated {
+		log.Infof("weave-gitops-enterprise version %s is available; please update at %s.",
+			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL)
+	} else {
+		log.Debug("weave-gitops-enterprise version is up to date.")
 	}
 }
