@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -17,7 +18,8 @@ import (
 func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 	var _ = Describe("MCCP Template Render Tests", func() {
 
-		MCCP_BIN_PATH := GetMCCBinPath()
+		MCCP_BIN_PATH := GetMccpBinPath()
+		WEGO_BIN_PATH := GetWegoBinPath()
 		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
 
 		templateFiles := []string{}
@@ -40,7 +42,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can list template parameters of a template from template library", func() {
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -69,7 +71,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				namespace := "mccp-dev"
 				k8version := "1.19.7"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -107,7 +109,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				namespace := "mccp-dev"
 				k8version := "1.19.7"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -144,7 +146,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp reports an error when rendering template parameters of invalid template from template library", func() {
 
 				noOfTemplates := 1
-				By("Apply/Insall invalid CAPITemplate", func() {
+				By("Apply/Install invalid CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
@@ -178,7 +180,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				prCommit := "First capd capi template"
 				prDescription := "This PR creates a new capd Kubernetes cluster"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -242,7 +244,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 				// Parameter values
 				clusterName := "my-capd-cluster"
-				namespace := "mccp-dev"
+				namespace := "default"
 				k8version := "1.19.7"
 
 				//Pull request values
@@ -251,7 +253,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				prCommit := "First capd capi template"
 				prDescription := "This PR creates a new capd Kubernetes cluster"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -323,7 +325,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				// CAPD Parameter values
-				capdClusterName := "my-capd-cluster02"
+				capdClusterName := "my-capd-cluster2"
 				capdNamespace := "mccp-dev"
 				capdK8version := "1.19.7"
 
@@ -333,7 +335,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				capdPRCommit := "First capd capi template"
 				capdPRDescription := "This PR creates a new capd Kubernetes cluster"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					capdTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
 					templateFiles = append(capdTemplateFile, eksTemplateFile...)
@@ -469,7 +471,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				prCommit := "First dev capi template"
 				prDescription := "This PR creates a new dev Kubernetes cluster"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-capitemplate.yaml")
 				})
 
@@ -490,7 +492,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 		Context("[CLI] When no infrastructure provider credentials are available in the management cluster", func() {
 			It("Verify mccp lists no credentials", func() {
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -512,7 +514,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				defer mccpTestRunner.DeleteIPCredentials("AWS")
 				defer mccpTestRunner.DeleteIPCredentials("AZURE")
 
-				By("Apply/Insall CAPITemplates", func() {
+				By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
@@ -587,7 +589,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp restrict user from using wrong credentials for infrastructure provider", func() {
 				defer mccpTestRunner.DeleteIPCredentials("AZURE")
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 				})
 
@@ -623,6 +625,151 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 					re := regexp.MustCompile(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`)
 					Eventually((re.Find(output))).Should(BeNil(), "Identity reference should not be found in preview pull request AWSCluster object")
+				})
+			})
+		})
+
+		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
+			JustBeforeEach(func() {
+				log.Println("Connecting cluster to itself")
+				initializeWebdriver()
+				leaf := LeafSpec{
+					Status:          "Ready",
+					IsWKP:           false,
+					AlertManagerURL: "",
+					KubeconfigPath:  "",
+				}
+				connectACluster(webDriver, mccpTestRunner, leaf)
+			})
+
+			JustAfterEach(func() {
+				log.Println("Deleting all the wkp agents")
+				mccpTestRunner.KubectlDeleteAllAgents([]string{})
+				mccpTestRunner.ResetDatabase()
+			})
+
+			It("@VM Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+
+				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+
+				By("And template repo does not already exist", func() {
+					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				})
+
+				var repoAbsolutePath string
+				By("When I create a private repository for cluster configs", func() {
+					repoAbsolutePath = mccpTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					testFile := createTestFile("README.md", "# mccp-capi-template")
+
+					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
+				})
+
+				By("And I reset wego runtime", func() {
+					resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+				})
+
+				By("And I install wego to my active cluster", func() {
+					Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", WEGO_BIN_PATH))
+					installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+				})
+
+				addCommand := "app add . --path=./management  --name=management  --auto-merge=true"
+				By(fmt.Sprintf("And I run wego app add command '%s in namespace %s from dir %s'", addCommand, WEGO_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
+					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+					Eventually(session).Should(gexec.Exit())
+				})
+
+				By("And I install Docker provider infrastructure", func() {
+					installInfrastructureProvider("docker")
+				})
+
+				// Parameter values
+				clusterName := "cli-end-to-end-capd-cluster"
+				namespace := "default"
+				k8version := "1.19.7"
+
+				//Pull request values
+				prBranch := "cli-end-to-end-capd"
+				prTitle := "CAPD pull request"
+				prCommit := "CAPD capi template"
+				prDescription := "This PR creates a new CAPD Kubernetes cluster"
+
+				By("Then I Apply/Install CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+				})
+
+				By(fmt.Sprintf("And I run 'mccp templates render cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --create-pr --pr-branch %s --pr-title %s --pr-commit-message %s --endpoint %s", clusterName, namespace, k8version, prBranch, prTitle, prCommit, CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "render", "cluster-template-development-0", "--set", fmt.Sprintf("CLUSTER_NAME=%s", clusterName),
+						"--set", fmt.Sprintf("NAMESPACE=%s", namespace), "--set", fmt.Sprintf("KUBERNETES_VERSION=%s", k8version),
+						"--create-pr", "--pr-branch", prBranch, "--pr-title", prTitle, "--pr-commit-message", prCommit, "--pr-description", prDescription,
+						"--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("Then I should see pull request created to management cluster", func() {
+					output := session.Wait().Out.Contents()
+
+					re := regexp.MustCompile(`Created pull request:\s*(?P<url>https:.*\/\d+)`)
+					match := re.FindSubmatch([]byte(output))
+					Eventually(match).ShouldNot(BeNil(), "Failed to Create pull request")
+				})
+
+				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("And I should see cluster status as 'pullRequestCreated'", func() {
+					output := session.Wait().Out.Contents()
+					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
+
+					re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName))
+					Eventually((re.Find(output))).ShouldNot(BeNil())
+				})
+
+				By("Then I should merge the pull request to start cluster provisioning", func() {
+					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				})
+
+				By(fmt.Sprintf("Then I run 'mccp clusters get cli-end-to-end-capd-cluster --kubeconfig --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					output := func() string {
+						command := exec.Command(MCCP_BIN_PATH, "clusters", "get", clusterName, "--kubeconfig", "--endpoint", CAPI_ENDPOINT_URL)
+						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).ShouldNot(HaveOccurred())
+
+						return string(session.Wait().Out.Contents())
+
+					}
+					Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
+				})
+
+				By("And I should see cluster status chenges to 'Provisioned'", func() {
+					output := func() string {
+						command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).ShouldNot(HaveOccurred())
+						return string(session.Wait().Out.Contents())
+
+					}
+					Eventually(output, ASSERTION_DEFAULT_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
+				})
+
+				By("Then I should delete the capi cluster", func() {
+					output := func() string {
+						command := exec.Command("kubectl", "delete", "cluster", clusterName)
+						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).ShouldNot(HaveOccurred())
+						return string(session.Wait().Err.Contents())
+
+					}
+					Eventually(output, ASSERTION_DEFAULT_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("Deleted clusters"))
 				})
 			})
 		})

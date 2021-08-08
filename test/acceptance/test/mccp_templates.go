@@ -2,7 +2,10 @@ package acceptance
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
+	"os/exec"
 	"path"
 	"sort"
 	"strconv"
@@ -10,7 +13,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/sclevine/agouti"
+	"github.com/onsi/gomega/gexec"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/wks/test/acceptance/test/pages"
 )
@@ -50,8 +53,9 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 }
 
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
-
 	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
+
+		WEGO_BIN_PATH := GetWegoBinPath()
 
 		templateFiles := []string{}
 
@@ -60,29 +64,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			By("Given Kubernetes cluster is setup", func() {
 				//TODO - Verify that cluster is up and running using kubectl
 			})
-
-			var err error
-			if webDriver == nil {
-
-				webDriver, err = agouti.NewPage(seleniumServiceUrl, agouti.Debug, agouti.Desired(agouti.Capabilities{
-					"chromeOptions": map[string][]string{
-						"args": {
-							// "--headless", //Uncomment to run headless
-							"--disable-gpu",
-							"--no-sandbox",
-						}}}))
-				Expect(err).NotTo(HaveOccurred())
-
-				// Make the page bigger so we can see all the things in the screenshots
-				err = webDriver.Size(1800, 2500)
-				Expect(err).NotTo(HaveOccurred())
-			}
-
-			By("When I navigate to MCCP UI Page", func() {
-
-				Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
-
-			})
+			initializeWebdriver()
 		})
 
 		AfterEach(func() {
@@ -196,12 +178,12 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
 
 				noOfValidTemplates := 3
-				By("Apply/Insall valid CAPITemplate", func() {
+				By("Apply/Install valid CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfValidTemplates, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
 				noOfInvalidTemplates := 1
-				By("Apply/Insall invalid CAPITemplate", func() {
+				By("Apply/Install invalid CAPITemplate", func() {
 					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")...)
 				})
 
@@ -231,7 +213,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
@@ -324,7 +306,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Expect(mccpTestRunner.GetRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
 				})
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -446,7 +428,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					mccpTestRunner.CreateGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -526,7 +508,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
 			It("@Integration Verify no credentials exists in mccp", func() {
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -563,7 +545,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				defer mccpTestRunner.DeleteIPCredentials("AWS")
 				defer mccpTestRunner.DeleteIPCredentials("AZURE")
 
-				By("Apply/Insall CAPITemplates", func() {
+				By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
@@ -689,7 +671,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("@Integration Verify user can not use wrong credentials for infrastructure provider", func() {
 				defer mccpTestRunner.DeleteIPCredentials("AWS")
 
-				By("Apply/Insall CAPITemplates", func() {
+				By("Apply/Install CAPITemplates", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 				})
 
@@ -792,6 +774,186 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(preview.PreviewText).ShouldNot(MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
 				})
 
+			})
+		})
+
+		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
+			JustBeforeEach(func() {
+				log.Println("Connecting cluster to itself")
+				leaf := LeafSpec{
+					Status:          "Ready",
+					IsWKP:           false,
+					AlertManagerURL: "",
+					KubeconfigPath:  "",
+				}
+				connectACluster(webDriver, mccpTestRunner, leaf)
+			})
+
+			JustAfterEach(func() {
+				log.Println("Deleting all the wkp agents")
+				mccpTestRunner.KubectlDeleteAllAgents([]string{})
+				mccpTestRunner.ResetDatabase()
+			})
+
+			It("@Integration @VM Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+
+				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+
+				By("And template repo does not already exist", func() {
+					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				})
+
+				var repoAbsolutePath string
+				By("When I create a private repository for cluster configs", func() {
+					repoAbsolutePath = mccpTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					testFile := createTestFile("README.md", "# mccp-capi-template")
+
+					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
+				})
+
+				By("And I reset wego runtime", func() {
+					resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+				})
+
+				By("And I install wego to my active cluster", func() {
+					Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", WEGO_BIN_PATH))
+					installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+				})
+
+				addCommand := "app add . --path=./management  --name=management  --auto-merge=true"
+				By(fmt.Sprintf("And I run wego app add command '%s in namespace %s from dir %s'", addCommand, WEGO_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
+					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+					Eventually(session).Should(gexec.Exit())
+				})
+
+				By("And I install Docker provider infrastructure", func() {
+					installInfrastructureProvider("docker")
+				})
+
+				By("Then I Apply/Install CAPITemplate", func() {
+					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+				})
+
+				pages.NavigateToPage(webDriver, "Templates")
+				By("And wait for Templates page to be fully rendered", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+				})
+
+				By("And User should choose a template", func() {
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
+					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+				})
+
+				createPage := pages.GetCreateClusterPage(webDriver)
+				By("And wait for Create cluster page to be fully rendered", func() {
+					createPage.WaitForPageToLoad(webDriver)
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+				})
+
+				// Parameter values
+				clusterName := "ui-end-to-end-capd-cluster-1"
+				namespace := "default"
+				k8Version := "1.19.7"
+
+				paramSection := make(map[string][]TemplateField)
+				paramSection["7. MachineDeployment"] = []TemplateField{
+					{
+						Name:   "CLUSTER_NAME",
+						Value:  clusterName,
+						Option: "",
+					},
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
+					},
+					{
+						Name:   "NAMESPACE",
+						Value:  namespace,
+						Option: "",
+					},
+				}
+
+				setParameterValues(createPage, paramSection)
+
+				By("And press the Preview PR button", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+				})
+
+				//Pull request values
+				prBranch := "ui-end-end-branch"
+				prTitle := "CAPD pull request"
+				prCommit := "CAPD capi template"
+
+				By("And set GitOps values for pull request", func() {
+					gitops := pages.GetGitOps(webDriver)
+					pages.WaitForDynamicSecToAppear(webDriver)
+					Eventually(gitops.GitOpsLabel).Should(BeFound())
+
+					pages.ScrollWindow(webDriver, 0, 4000)
+
+					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
+					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
+					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+
+					Expect(gitops.CreatePR.Click()).To(Succeed())
+				})
+
+				clustersPage := pages.GetClustersPage(webDriver)
+				By("Then I should see cluster appears in the cluster dashboard with 'PR Created' status", func() {
+					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Eventually(clusterInfo.Status).Should(HaveText("PR Created"))
+				})
+
+				By("Then I should merge the pull request to start cluster provisioning", func() {
+					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				})
+
+				By("Then I should see cluster status changes to 'Cluster found'", func() {
+					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_1MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText("Cluster found"))
+				})
+
+				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
+					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Expect(clusterInfo.Status.Click()).To(Succeed())
+					clusterStatus := pages.GetClusterStatus(webDriver)
+					Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
+				})
+
+				By("And verify the kubeconfig is correct", func() {
+					contents, err := ioutil.ReadFile(path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig"))
+					Expect(err).ShouldNot(HaveOccurred())
+					Eventually(contents).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
+				})
+
+				By("Then I should select the cluster to create the delete pull request", func() {
+					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
+
+					Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(BeFound())
+					Expect(clustersPage.PRDeleteClusterButton.Click()).To(Succeed())
+
+					deletePR := pages.GetDeletePRPopup(webDriver)
+					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster any more")).To(Succeed())
+					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
+					Expect(deletePR.ConfirmDelete.Click()).To(Succeed())
+
+					Expect(deletePR.ClosePopup.Click()).To(Succeed())
+
+				})
+
+				By("Then I should see delete pull request success message", func() {
+					Eventually(clustersPage.MessageBar).Should(MatchText(`PR created successfully`))
+				})
 			})
 		})
 	})

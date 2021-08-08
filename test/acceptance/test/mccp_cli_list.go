@@ -15,7 +15,7 @@ import (
 func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 	var _ = Describe("MCCP Template List Tests", func() {
 
-		MCCP_BIN_PATH := GetMCCBinPath()
+		MCCP_BIN_PATH := GetMccpBinPath()
 		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
 
 		templateFiles := []string{}
@@ -87,7 +87,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp outputs an error message related to an invalid template(s)", func() {
 
 				noOfTemplates := 1
-				By("Apply/Insall invalid CAPITemplate", func() {
+				By("Apply/Install invalid CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
@@ -114,12 +114,12 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp outputs an error message related to an invalid template and lists the valid template", func() {
 
 				noOfTemplates := 3
-				By("Apply/Insall valid CAPITemplate", func() {
+				By("Apply/Install valid CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
 				noOfInvalidTemplates := 2
-				By("Apply/Insall invalid CAPITemplate", func() {
+				By("Apply/Install invalid CAPITemplate", func() {
 					invalid_captemplate := mccpTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 					templateFiles = append(templateFiles, invalid_captemplate...)
 				})
