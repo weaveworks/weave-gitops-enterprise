@@ -178,12 +178,12 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
 
 				noOfValidTemplates := 3
-				By("Apply/Insall valid CAPITemplate", func() {
+				By("Apply/Install valid CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfValidTemplates, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
 				noOfInvalidTemplates := 1
-				By("Apply/Insall invalid CAPITemplate", func() {
+				By("Apply/Install invalid CAPITemplate", func() {
 					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")...)
 				})
 
@@ -213,7 +213,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
@@ -306,7 +306,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Expect(mccpTestRunner.GetRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
 				})
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -428,7 +428,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					mccpTestRunner.CreateGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -508,7 +508,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
 			It("@Integration Verify no credentials exists in mccp", func() {
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -545,7 +545,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				defer mccpTestRunner.DeleteIPCredentials("AWS")
 				defer mccpTestRunner.DeleteIPCredentials("AZURE")
 
-				By("Apply/Insall CAPITemplates", func() {
+				By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
@@ -671,7 +671,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("@Integration Verify user can not use wrong credentials for infrastructure provider", func() {
 				defer mccpTestRunner.DeleteIPCredentials("AWS")
 
-				By("Apply/Insall CAPITemplates", func() {
+				By("Apply/Install CAPITemplates", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 				})
 
@@ -835,7 +835,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					installInfrastructureProvider("docker")
 				})
 
-				By("Then I Apply/Insall CAPITemplate", func() {
+				By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 

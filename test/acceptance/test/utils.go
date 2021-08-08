@@ -330,7 +330,7 @@ func (b DatabaseMCCPTestRunner) AddWorkspace(env []string, clusterName string) e
 func (b DatabaseMCCPTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
 	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
-	By("Apply/Insall CAPITemplate templates", func() {
+	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
 			template, err := capi.ParseFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
@@ -503,7 +503,7 @@ func (b RealMCCPTestRunner) CreateApplyCapitemplates(templateCount int, template
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
 	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
 
-	By("Apply/Insall CAPITemplate templates", func() {
+	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
 			err = runCommandPassThrough([]string{}, "kubectl", "apply", "-f", fileName)
 			Expect(err).To(BeNil(), "Failed to apply/install CAPITemplate template files")
@@ -529,12 +529,12 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 
 func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 	if infrastructureProvider == "AWS" {
-		By("Insall AWSClusterStaticIdentity CRD", func() {
+		By("Install AWSClusterStaticIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AWSClusterStaticIdentity CRD")
 		})
 
-		By("Insall AWSClusterRoleIdentity CRD", func() {
+		By("Install AWSClusterRoleIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AWSClusterRoleIdentity CRD")
 		})
@@ -545,7 +545,7 @@ func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 		})
 
 	} else if infrastructureProvider == "AZURE" {
-		By("Insall AzureClusterIdentity CRD", func() {
+		By("Install AzureClusterIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AzureClusterIdentity CRD")
 		})

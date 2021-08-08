@@ -42,7 +42,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		Context("[CLI] When Capi Templates are available in the cluster", func() {
 			It("Verify mccp can list template parameters of a template from template library", func() {
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -71,7 +71,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				namespace := "mccp-dev"
 				k8version := "1.19.7"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -109,7 +109,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				namespace := "mccp-dev"
 				k8version := "1.19.7"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -146,7 +146,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp reports an error when rendering template parameters of invalid template from template library", func() {
 
 				noOfTemplates := 1
-				By("Apply/Insall invalid CAPITemplate", func() {
+				By("Apply/Install invalid CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
@@ -180,7 +180,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				prCommit := "First capd capi template"
 				prDescription := "This PR creates a new capd Kubernetes cluster"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -253,7 +253,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				prCommit := "First capd capi template"
 				prDescription := "This PR creates a new capd Kubernetes cluster"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -335,7 +335,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				capdPRCommit := "First capd capi template"
 				capdPRDescription := "This PR creates a new capd Kubernetes cluster"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					capdTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
 					templateFiles = append(capdTemplateFile, eksTemplateFile...)
@@ -471,7 +471,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				prCommit := "First dev capi template"
 				prDescription := "This PR creates a new dev Kubernetes cluster"
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-capitemplate.yaml")
 				})
 
@@ -492,7 +492,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 		Context("[CLI] When no infrastructure provider credentials are available in the management cluster", func() {
 			It("Verify mccp lists no credentials", func() {
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
@@ -514,7 +514,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				defer mccpTestRunner.DeleteIPCredentials("AWS")
 				defer mccpTestRunner.DeleteIPCredentials("AZURE")
 
-				By("Apply/Insall CAPITemplates", func() {
+				By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
@@ -589,7 +589,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp restrict user from using wrong credentials for infrastructure provider", func() {
 				defer mccpTestRunner.DeleteIPCredentials("AZURE")
 
-				By("Apply/Insall CAPITemplate", func() {
+				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 				})
 
@@ -699,7 +699,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				prCommit := "CAPD capi template"
 				prDescription := "This PR creates a new CAPD Kubernetes cluster"
 
-				By("Then I Apply/Insall CAPITemplate", func() {
+				By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
