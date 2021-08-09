@@ -72,6 +72,10 @@ workflows:
           requires:
             - build
             - mccp-ui-backend-integration-tests
+      - mccp-acceptance-tests-vm:
+          requires:
+            - build
+            - mccp-ui-backend-integration-tests
 
   run-integration-tests:
     when: << pipeline.parameters.run_integration_tests >>
@@ -176,10 +180,31 @@ commands:
       - run:
           name: Get the wego binary from github
           command: |
-            DST_PATH=cmd/wego/wego
             mkdir -p cmd/wego
-            wget -o "$DST_PATH" https://github.com/weaveworks/weave-gitops/releases/download/v0.2.2/wego-linux-x86_64
-            chmod +x "$DST_PATH"
+            cd cmd/wego
+            wget https://github.com/weaveworks/weave-gitops/releases/download/v0.2.2/wego-linux-x86_64
+            mv wego-linux-x86_64 wego
+            chmod +x wego
+            cd -
+  setup-selenium:
+    description: Setup selenium standalone server
+    steps:
+      - run:
+          name: Setup selenium stanalone server 
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+            sudo apt-get install -y google-chrome-stable
+
+            wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+            unzip chromedriver_linux64.zip
+            sudo mv -f chromedriver /usr/local/bin/chromedriver
+
+            mkdir -p cmd/selenium
+            cd cmd/selenium
+            wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+            mv selenium-server-standalone-3.14.0.jar selenium-server-standalone.jar
+            cd -
 
   install-integration-test-deps:
     description: Install go, kubectl and hub for the integration tests
@@ -196,6 +221,12 @@ commands:
             echo "$KUBECTL_CHECKSUM kubectl.tar.gz" | sha256sum -c
             tar xvzf kubectl.tar.gz --strip-components=3
             sudo mv kubectl /usr/local/bin
+
+            # install clusterctl
+            curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.0/clusterctl-linux-amd64 -o clusterctl
+            chmod +x ./clusterctl
+            sudo mv ./clusterctl /usr/local/bin/clusterctl
+            clusterctl version
 
             # install hub
             curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
@@ -715,7 +746,6 @@ jobs:
           USE_LB: false
           SKIP_COMPONENTS: true
           MCCP_BIN_PATH: /home/circleci/src/github.com/weaveworks/wks/cmd/mccp/mccp
-          WEGO_BIN_PATH: /home/circleci/src/github.com/weaveworks/wks/cmd/wego/wego
           # Only run MCCP Acceptance tests (not wkp)
           MCCP_ACCEPTANCE: true
           MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
@@ -733,7 +763,7 @@ jobs:
           RUN_MCCP_SUITE_WITH_POSTGRES: 'false'
       - image: selenium/standalone-chrome:latest
     working_directory: /home/circleci/src/github.com/weaveworks/wks
-    resource_class: xlarge
+    resource_class: large
     steps:
       - setup-integration-test-env
       - install-kind
@@ -957,6 +987,149 @@ jobs:
       - store_test_results:
           path: /tmp/workspace/test
 
+  mccp-acceptance-tests-vm:
+    machine:
+      image: ubuntu-1604:202007-01
+    environment:
+      <<: *integrationTestCommonEnv
+      MCCP_BIN_PATH: /home/circleci/src/github.com/weaveworks/wks/cmd/mccp/mccp
+      WEGO_BIN_PATH: /home/circleci/src/github.com/weaveworks/wks/cmd/wego/wego
+      SELENIUM_SERVER_JAR_PATH: /home/circleci/src/github.com/weaveworks/wks/cmd/selenium/selenium-server-standalone.jar
+      MCCP_ACCEPTANCE: true
+      RUN_MCCP_SUITE_WITH_POSTGRES: 'false'
+    working_directory: /home/circleci/src/github.com/weaveworks/wks
+    resource_class: large
+    steps:
+      - setup-integration-test-env
+      - install-kind
+      - get-wego-binary
+      - setup-selenium
+      - run:
+          name: Configure Git
+          command: |
+            git config --global user.email "test@wkp.org"
+            git config --global user.name "Test Wkp"
+      - run:
+          name: Install helm
+          command: |
+            # install helm
+            curl -L https://get.helm.sh/helm-v3.5.4-linux-amd64.tar.gz | tar xvz
+            sudo mv linux-amd64/helm /usr/bin/helm
+            sudo chmod +x /usr/bin/helm
+      - run:
+          name: Run Acceptance Tests on VM
+          no_output_timeout: 20m
+          command: |
+            export PATH=$GOROOT/bin:$PATH
+            cd $CIRCLE_WORKING_DIRECTORY/test/acceptance/test/
+
+            set -x
+
+            # Start selenium server in standalone mode
+            xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar $SELENIUM_SERVER_JAR_PATH &
+
+            export GITHUB_TOKEN=$WKP_GITHUB_TOKEN
+            export WORKSPACES_ORG_ADMIN_TOKEN=$WKP_GITHUB_TOKEN
+            # create unique cluster config repository name
+            export GITHUB_ORG=$WKP_GITHUB_ORG
+            export CLUSTER_REPOSITORY=mccp-capi-template-$(openssl rand -hex 8)
+            export GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
+ 
+            # Create MCCP Kind cluster
+            kind create cluster --name my-kind-mccp-cluster --config ../../utils/scripts/local-mccp-kind-config.yaml
+            WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name)
+            kubectl label "${WORKER_NODE}" wkp-database-volume-node=true
+
+            WORKER_NODE_EXTERNAL_IP=$(ifconfig ens4 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
+            echo "Worker node ip is ${WORKER_NODE_EXTERNAL_IP}"
+            NATS_NODEPORT=31490            
+
+            kubectl create namespace prom
+            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+            helm repo update
+            helm install my-prom prometheus-community/kube-prometheus-stack \
+              --namespace prom \
+              --version 14.4.0 \
+              --values ../../utils/data/mccp-prometheus-values.yaml
+
+            kubectl create namespace mccp
+            kubectl create secret docker-registry docker-io-pull-secret \
+              --namespace mccp \
+              --docker-username="${DOCKER_IO_USER}" \
+              --docker-password="${DOCKER_IO_PASSWORD}" 
+            kubectl create secret generic git-provider-credentials \
+              --namespace=mccp \
+              --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
+            CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
+            helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
+            helm repo update
+            helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
+              --set "imagePullSecrets[0].name=docker-io-pull-secret" \
+              --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
+              --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
+              --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
+              --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
+              --set "config.capi.baseBranch=main"
+
+            # Wait for cluster to settle
+            kubectl wait --for=condition=Ready --timeout=120s -n mccp --all pod
+
+            kubectl get pods -A
+            export SELENIUM_DEBUG=true
+            kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
+            export ACCEPTANCE_TESTS_DATABASE_TYPE=sqlite
+            go test -ginkgo.focus=@VM -ginkgo.v -v --timeout=99999s
+            
+            if [ ${RUN_MCCP_SUITE_WITH_POSTGRES} == "true" ]; then
+              # Deploy postgres
+              kubectl apply -f postgres-manifests.yaml
+
+              # Wait for the postgres deployment to rollout
+              kubectl wait --for=condition=available --timeout=600s deployment/postgres
+
+              # Get the IP of the postgres service
+              POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
+              kubectl create secret generic mccp-db-credentials --namespace mccp --from-literal=username=postgres --from-literal=password=password
+
+              helm upgrade install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
+              --set "imagePullSecrets[0].name=docker-io-pull-secret" \
+              --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
+              --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
+              --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
+              --set "nginx-ingress-controller.service.type=NodePort" \
+              --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
+              --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
+              --set "config.capi.baseBranch=main" \
+              --set "dbConfig.databaseType=postgres" \
+              --set "dbConfig.databaseURI=${POSTGRES_CLUSTER_IP}" \
+              --set "postgresConfig.databaseName=postgres" 
+
+              kubectl get pods -A
+
+              RETRIES=0
+              MAX_RETRIES=10
+              until [ ${DB_TYPE} == 'postgres' ]
+              do
+                DB_TYPE=$(kubectl get deployment -n wkp-gitops-repo-broker wkp-event-writer -ojsonpath='{.spec.template.spec.containers[0].env[?(@.name=="DB_TYPE")].value}')
+                echo "Database type should be postgres: ${DB_TYPE}"
+                sleep 5
+                RETRIES=$((RETRIES+1))
+                if [ $RETRIES -ge $MAX_RETRIES ]; then
+                  echo "database type did not update to postgres"
+                  exit 1
+                fi
+              done
+
+              # Run acceptance-tests again with postgres
+              # cd $CIRCLE_WORKING_DIRECTORY/test/acceptance/test
+              ACCEPTANCE_TESTS_DATABASE_TYPE=postgres
+              go test -ginkgo.focus=@VM -v --timeout=99999s
+            fi
+      - store_artifacts:
+          path: /tmp/workspace/test
+      - store_test_results:
+          path: /tmp/workspace/test
+          
   wkp-acceptance-tests:
     docker:
       - image: docker.io/weaveworks/wkp-wks-build:build-in-container-ade34cca

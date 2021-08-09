@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -778,7 +779,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
+			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
 			JustBeforeEach(func() {
+				deleteFile([]string{kubeconfigPath})
+
 				log.Println("Connecting cluster to itself")
 				leaf := LeafSpec{
 					Status:          "Ready",
@@ -790,6 +794,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 
 			JustAfterEach(func() {
+				deleteFile([]string{kubeconfigPath})
+
 				log.Println("Deleting all the wkp agents")
 				mccpTestRunner.KubectlDeleteAllAgents([]string{})
 				mccpTestRunner.ResetDatabase()
@@ -857,7 +863,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				// Parameter values
-				clusterName := "ui-end-to-end-capd-cluster-1"
+				clusterName := "ui-end-to-end-capd-cluster-3"
 				namespace := "default"
 				k8Version := "1.19.7"
 
@@ -922,15 +928,23 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_1MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText("Cluster found"))
 				})
 
+				kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Status.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
+
+					fileErr := func() error {
+						_, err := os.Stat(kubeconfigPath)
+						return err
+
+					}
+					Eventually(fileErr, ASSERTION_DEFAULT_TIME_OUT, 5*time.Second).ShouldNot(HaveOccurred())
 				})
 
 				By("And verify the kubeconfig is correct", func() {
-					contents, err := ioutil.ReadFile(path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig"))
+					contents, err := ioutil.ReadFile(kubeconfigPath)
 					Expect(err).ShouldNot(HaveOccurred())
 					Eventually(contents).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
 				})
@@ -943,7 +957,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Expect(clustersPage.PRDeleteClusterButton.Click()).To(Succeed())
 
 					deletePR := pages.GetDeletePRPopup(webDriver)
-					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster any more")).To(Succeed())
+					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster, it is not required any more")).To(Succeed())
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
 					Expect(deletePR.ConfirmDelete.Click()).To(Succeed())
 
@@ -951,9 +965,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				})
 
-				By("Then I should see delete pull request success message", func() {
-					Eventually(clustersPage.MessageBar).Should(MatchText(`PR created successfully`))
-				})
+				// TODO verify cluster status after merging delete PR
 			})
 		})
 	})
