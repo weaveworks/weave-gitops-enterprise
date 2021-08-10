@@ -761,16 +761,46 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					Eventually(output, ASSERTION_DEFAULT_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
 				})
 
-				By("Then I should delete the capi cluster", func() {
-					output := func() string {
-						command := exec.Command("kubectl", "delete", "cluster", clusterName)
-						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-						Expect(err).ShouldNot(HaveOccurred())
-						return string(session.Wait().Err.Contents())
+				prBranch = "cli-end-to-end-capd-delete"
+				prTitle = "CAPD delete pull request"
+				prCommit = "CAPD capi template deletion"
+				prDescription = "This PR deletes CAPD Kubernetes cluster"
 
-					}
-					Eventually(output, ASSERTION_DEFAULT_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("Deleted clusters"))
+				By(fmt.Sprintf("Then I run 'mccp clusters delete cli-end-to-end-capd-cluster --pr-branch %s --pr-title %s --pr-commit-message %s --endpoint %s", prBranch, prTitle, prCommit, CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "clusters", "delete", clusterName,
+						"--pr-branch", prBranch, "--pr-title", prTitle, "--pr-commit-message", prCommit, "--pr-description", prDescription,
+						"--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
 				})
+
+				var prUrl string
+				By("Then I should see delete pull request created to management cluster", func() {
+					output := session.Wait().Out.Contents()
+					re := regexp.MustCompile(`Created pull request for clusters deletion:\s*(?P<url>https:.*\/\d+)`)
+					match := re.FindSubmatch([]byte(output))
+					Eventually(match).ShouldNot(BeNil(), "Failed to Create pull request for deleting cluster")
+					prUrl = string(match[1])
+				})
+
+				By("And I should veriyfy the delete pull request in the cluster config repository", func() {
+					pullRequest := mccpTestRunner.ListPullRequest(repoAbsolutePath)
+					Expect(pullRequest[0]).Should(Equal(prTitle))
+					Expect(pullRequest[1]).Should(Equal(prBranch))
+					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
+				})
+
+				By("And the manifests are not present in the cluster config repository", func() {
+					mccpTestRunner.PullBranch(repoAbsolutePath, prBranch)
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
+				})
+
+				By("Then I should merge the pull request to delete cluster", func() {
+					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				})
+
+				// TODO verify cluster status after merging delete PR
 			})
 		})
 
