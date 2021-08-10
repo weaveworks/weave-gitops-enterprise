@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -778,7 +777,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
+		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
 			JustBeforeEach(func() {
 				deleteFile([]string{kubeconfigPath})
@@ -863,7 +862,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				// Parameter values
-				clusterName := "ui-end-to-end-capd-cluster-3"
+				clusterName := "ui-end-to-end-capd-cluster"
 				namespace := "default"
 				k8Version := "1.19.7"
 
@@ -928,19 +927,19 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_1MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText("Cluster found"))
 				})
 
-				kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Status.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
-					Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
+					Eventually(clusterStatus.Phase, ASSERTION_1MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText(`"Provisioned"`))
 
 					fileErr := func() error {
+						Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
 						_, err := os.Stat(kubeconfigPath)
 						return err
 
 					}
-					Eventually(fileErr, ASSERTION_DEFAULT_TIME_OUT, 5*time.Second).ShouldNot(HaveOccurred())
+					Eventually(fileErr, ASSERTION_1MINUTE_TIME_OUT, UI_POLL_INTERVAL).ShouldNot(HaveOccurred())
 				})
 
 				By("And verify the kubeconfig is correct", func() {
