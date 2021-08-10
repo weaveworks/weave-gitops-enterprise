@@ -738,6 +738,17 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
 				})
 
+				By("And I should see cluster status changes to 'Provisioned'", func() {
+					output := func() string {
+						command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).ShouldNot(HaveOccurred())
+						return string(session.Wait().Out.Contents())
+
+					}
+					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
+				})
+
 				By(fmt.Sprintf("Then I run 'mccp clusters get cli-end-to-end-capd-cluster --kubeconfig --endpoint %s'", CAPI_ENDPOINT_URL), func() {
 					output := func() string {
 						command := exec.Command(MCCP_BIN_PATH, "clusters", "get", clusterName, "--kubeconfig", "--endpoint", CAPI_ENDPOINT_URL)
@@ -747,18 +758,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 						return string(session.Wait().Out.Contents())
 
 					}
-					Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
-				})
-
-				By("And I should see cluster status chenges to 'Provisioned'", func() {
-					output := func() string {
-						command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
-						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-						Expect(err).ShouldNot(HaveOccurred())
-						return string(session.Wait().Out.Contents())
-
-					}
-					Eventually(output, ASSERTION_DEFAULT_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
+					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
 				})
 
 				prBranch = "cli-end-to-end-capd-delete"
