@@ -71,7 +71,6 @@ export const ClusterDisconnectionInstructions: FC<{
         onClickRemove={deleteConnectedClusters}
         title="Remove cluster from the MCCP"
       />
-      {/* </Dialog> */}
     </Container>
   );
 };

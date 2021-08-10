@@ -70,7 +70,10 @@ type PickedInputProps = Pick<
 >;
 
 interface InputProps extends PickedInputProps {
-  label: string;
+  label?: string;
+  className?: string;
+  multiline?: boolean;
+  rows?: number;
 }
 
 export const Input: FC<InputProps> = ({
@@ -82,11 +85,16 @@ export const Input: FC<InputProps> = ({
   label,
   type,
   placeholder,
+  className,
+  multiline,
+  rows,
 }) => (
-  <FormControl>
-    <InputLabel htmlFor={`${label}-input`} shrink>
-      {label}
-    </InputLabel>
+  <FormControl className={className}>
+    {label && (
+      <InputLabel htmlFor={`${label}-input`} shrink>
+        {label}
+      </InputLabel>
+    )}
     <InputBase
       autoFocus={autoFocus}
       defaultValue={defaultValue}
@@ -96,6 +104,8 @@ export const Input: FC<InputProps> = ({
       placeholder={placeholder}
       type={type}
       value={value}
+      multiline={multiline}
+      rows={rows}
       inputProps={{ maxLength: 256 }}
     />
   </FormControl>

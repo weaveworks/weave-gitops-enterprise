@@ -26,6 +26,7 @@ const ClustersProvider: FC = ({ children }) => {
   const [count, setCount] = useState<number | null>(null);
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
   const { setNotification } = useNotifications();
+  const [creatingPR, setCreatingPR] = useState<boolean>(false);
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -71,31 +72,32 @@ const ClustersProvider: FC = ({ children }) => {
   }, [abortController, clustersParameters, setNotification]);
 
   const deleteCreatedClusters = useCallback(
-    ({ ...data }) => {
+    (clusters, PRDescription) => {
       const random = Math.random().toString(36).substring(7);
-      setLoading(true);
+      setCreatingPR(true);
       request('DELETE', '/v1/clusters', {
         body: JSON.stringify({
-          clusterNames: data.clusters,
+          clusterNames: clusters,
           headBranch: `${random}--Delete-Clusters-Branch`,
           title: `${random}-Delete-Clusters`,
           commitMessage: `${random}-Delete-Clusters-Commit`,
-          description: data.formData
-            ? data.formData
+          description: PRDescription
+            ? PRDescription
             : 'This PR deletes clusters',
         }),
       })
-        .then(res =>
+        .then(res => {
           setNotification({
             message: `PR created successfully at: ${res.webUrl}`,
             variant: 'success',
-          }),
-        )
+          });
+        })
         .catch(err =>
           setNotification({ message: err.message, variant: 'danger' }),
         )
         .finally(() => {
-          setLoading(false);
+          setCreatingPR(false);
+          setSelectedClusters([]);
         });
     },
     [setNotification],
@@ -150,6 +152,7 @@ const ClustersProvider: FC = ({ children }) => {
         disabled,
         count,
         loading,
+        creatingPR,
         handleRequestSort,
         handleSetPageParams,
         order,

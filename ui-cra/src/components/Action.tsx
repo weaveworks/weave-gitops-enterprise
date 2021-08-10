@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, MouseEventHandler } from 'react';
 import styled, { css } from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -60,7 +60,7 @@ interface BaseAction {
 }
 
 interface OnClickActionProps extends BaseAction {
-  onClick: VoidFunction;
+  onClick: (event: MouseEventHandler<HTMLButtonElement>) => void;
 }
 
 export const OnClickAction: FC<
