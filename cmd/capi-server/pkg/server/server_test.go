@@ -604,6 +604,20 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				if diff := cmp.Diff(tt.expected, deletePullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
+
+				var cluster models.Cluster
+				db.Where("name = ?", "foo").Find(&cluster)
+	
+				if diff := cmp.Diff(cluster.Name, "foo"); diff != "" {
+					t.Fatalf("got the wrong name:\n%s", diff)
+				}
+	
+				var pr models.PRCluster
+				db.Where("prid = ?", 2).Find(&pr)
+	
+				if diff := cmp.Diff(pr.ClusterID, uint(1)); diff != "" {
+					t.Fatalf("got the wrong id:\n%s", diff)
+				}
 			}
 		})
 	}

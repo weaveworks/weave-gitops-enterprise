@@ -38,6 +38,7 @@ export interface Workspace {
 
 export interface PullRequest {
   url: string;
+  type: string;
 }
 
 export interface CAPICluster {

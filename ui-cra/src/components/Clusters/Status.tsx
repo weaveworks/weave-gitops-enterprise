@@ -140,12 +140,10 @@ export const ReadyStatus: FC<ReadyStatusProps> = ({
         )}
       </>
     );
-  } else if (pullRequest && status === 'PR Created') {
-    displayedStatus = (
-      <>
-        <NameLink href={pullRequest.url}>PR Created</NameLink>
-      </>
-    );
+  } else if (pullRequest?.type === 'create' && status === 'PR Created') {
+    displayedStatus = <NameLink href={pullRequest.url}>Creation PR</NameLink>;
+  } else if (pullRequest?.type === 'delete' && status === 'PR Created') {
+    displayedStatus = <NameLink href={pullRequest.url}>Deletion PR</NameLink>;
   }
 
   return (

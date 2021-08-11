@@ -88,7 +88,7 @@ const ClustersProvider: FC = ({ children }) => {
       })
         .then(res => {
           setNotification({
-            message: `PR created successfully at: ${res.webUrl}`,
+            message: `PR created successfully`,
             variant: 'success',
           });
         })

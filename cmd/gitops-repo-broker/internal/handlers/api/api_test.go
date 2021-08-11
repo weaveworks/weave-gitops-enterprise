@@ -1260,6 +1260,23 @@ func TestListClusters_PullRequests(t *testing.T) {
 	db.Create(&pr)
 	db.Create(&models.PRCluster{PRID: pr.ID, ClusterID: c.ID})
 
+	c2 := models.Cluster{Name: "My Cluster2", Token: "derp2", CAPIName: "fooname2", CAPINamespace: "default"}
+	db.Create(&c2)
+	pr2 := models.PullRequest{URL: "boop2", Type: "delete"}
+	db.Create(&pr2)
+	db.Create(&models.PRCluster{PRID: pr2.ID, ClusterID: c2.ID})
+
+	c3 := models.Cluster{Name: "My Cluster3", Token: "derp3", CAPIName: "fooname3", CAPINamespace: "default"}
+	capiCluster3 := models.CAPICluster{Name: "fooname3", ClusterToken: "derp3", Namespace: "default"}
+	db.Create(&c3)
+	pr3a := models.PullRequest{URL: "boop3", Type: "create"}
+	pr3b := models.PullRequest{URL: "boop4", Type: "delete"}
+	db.Create(&pr3a)
+	db.Create(&pr3b)
+	db.Create(&models.PRCluster{PRID: pr3a.ID, ClusterID: c3.ID})
+	db.Create(&models.PRCluster{PRID: pr3b.ID, ClusterID: c3.ID})
+	db.Create(&capiCluster3)
+
 	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
 
@@ -1275,7 +1292,25 @@ func TestListClusters_PullRequests(t *testing.T) {
 				Name:        "My Cluster",
 				Status:      "pullRequestCreated",
 				FluxInfo:    nil,
-				PullRequest: &views.PullRequestView{URL: "boop"},
+				PullRequest: &views.PullRequestView{URL: "boop", Type: "create"},
+			},
+			{
+				ID:          2,
+				Token:       "derp2",
+				Name:        "My Cluster2",
+				Status:      "pullRequestCreated",
+				FluxInfo:    nil,
+				PullRequest: &views.PullRequestView{URL: "boop2", Type: "delete"},
+			},
+			{
+				ID:            3,
+				Token:         "derp3",
+				Name:          "My Cluster3",
+				CAPIName:      "fooname3",
+				CAPINamespace: "default",
+				Status:        "pullRequestCreated",
+				FluxInfo:      nil,
+				PullRequest:   &views.PullRequestView{URL: "boop4", Type: "delete"},
 			},
 		},
 	}, res)

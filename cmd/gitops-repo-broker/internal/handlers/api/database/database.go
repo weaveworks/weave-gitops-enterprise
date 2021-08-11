@@ -48,7 +48,8 @@ const clustersQueryString = `
 			cc.name as CapiName,
 			cc.namespace as CapiNamespace,
 			cc.object as CapiCluster,
-			pr.url as PullRequestURL
+			pr.url as PullRequestURL,
+			pr.type as PullRequestType
 		FROM
 			(
 				SELECT
@@ -65,6 +66,7 @@ const clustersQueryString = `
 						WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') > 0 THEN 'critical'
 						WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
 						WHEN  %[1]s <= 1800 THEN 'ready'
+						WHEN (select count(*) from pull_requests pr inner join pr_clusters prc where prc.cluster_id = c.id and pr.type = 'delete') > 0 and ci.updated_at is null THEN 'pullRequestCreated'
 						WHEN cc.id is not null THEN 'clusterFound'
 						WHEN (select count(*) from pull_requests pr inner join pr_clusters prc where prc.cluster_id = c.id) > 0 and ci.updated_at is null THEN 'pullRequestCreated'
 						WHEN %[1]s IS NULL OR %[1]s > 1800 THEN 'notConnected'
@@ -121,10 +123,11 @@ type ClusterListRow struct {
 
 	ClusterStatus string
 
-	CapiName       sql.NullString
-	CapiNamespace  sql.NullString
-	CapiCluster    *datatypes.JSON
-	PullRequestURL sql.NullString
+	CapiName        sql.NullString
+	CapiNamespace   sql.NullString
+	CapiCluster     *datatypes.JSON
+	PullRequestURL  sql.NullString
+	PullRequestType sql.NullString
 }
 
 type Pagination struct {
@@ -187,10 +190,6 @@ func GetClusters(db *gorm.DB, req GetClustersRequest) (*GetClustersResponse, err
 			if r.CapiCluster != nil {
 				capiCluster = *r.CapiCluster
 			}
-			var pr *views.PullRequestView
-			if r.PullRequestURL.Valid {
-				pr = &views.PullRequestView{URL: r.PullRequestURL.String}
-			}
 			c := views.ClusterView{
 				ID:            r.ID,
 				Name:          r.Name.String,
@@ -202,7 +201,6 @@ func GetClusters(db *gorm.DB, req GetClustersRequest) (*GetClustersResponse, err
 				CAPIName:      r.CapiName.String,
 				CAPINamespace: r.CapiNamespace.String,
 				CAPICluster:   capiCluster,
-				PullRequest:   pr,
 			}
 			unpackClusterRow(&c, r)
 			clusters[r.Name.String] = &c
@@ -334,6 +332,12 @@ func unpackClusterRow(c *views.ClusterView, r ClusterListRow) {
 			IsControlPlane: r.IsControlPlane.Bool,
 			KubeletVersion: r.KubeletVersion.String,
 		})
+	}
+
+	if r.PullRequestURL.Valid {
+		if c.PullRequest == nil || r.PullRequestType.String == "delete" {
+			c.PullRequest = &views.PullRequestView{URL: r.PullRequestURL.String, Type: r.PullRequestType.String}
+		}
 	}
 
 	// Append flux info for the cluster

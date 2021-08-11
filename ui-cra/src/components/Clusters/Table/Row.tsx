@@ -169,7 +169,11 @@ const ClusterRow = ({
                 updatedAt={updatedAt}
                 status={status}
                 pullRequest={cluster.pullRequest}
-                onClick={cluster.capiCluster ? () => setOpen(!open) : undefined}
+                onClick={
+                  cluster.capiCluster && cluster.pullRequest?.type !== 'delete'
+                    ? () => setOpen(!open)
+                    : undefined
+                }
               />
             </div>
           </Tooltip>

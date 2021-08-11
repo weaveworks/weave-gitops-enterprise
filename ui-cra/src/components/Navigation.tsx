@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { NavLink } from 'react-router-dom';
-import WeaveGitOps from '../assets/img/weave-logo-no-text.svg';
+import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
@@ -35,7 +35,7 @@ const Title = styled.div`
   display: flex;
   color: ${theme.colors.white};
   font-size: ${20}px;
-  padding-left: ${theme.spacing.small};
+  padding-left: ${theme.spacing.medium};
   background: #00b3ec;
   height: ${80}px;
   position: sticky;
@@ -43,7 +43,7 @@ const Title = styled.div`
 `;
 
 const Logo = styled.div`
-  width: 70px;
+  width: 50px;
   height: 40px;
   background: url(${WeaveGitOps});
   background-repeat: no-repeat;

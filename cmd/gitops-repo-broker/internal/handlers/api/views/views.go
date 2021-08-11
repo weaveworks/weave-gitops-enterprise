@@ -31,7 +31,8 @@ type NodeView struct {
 }
 
 type PullRequestView struct {
-	URL string `json:"url"`
+	URL  string `json:"url"`
+	Type string `json:"type"`
 }
 
 type ClusterView struct {

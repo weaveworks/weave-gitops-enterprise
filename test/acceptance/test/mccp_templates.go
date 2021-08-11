@@ -383,7 +383,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				clustersPage := pages.GetClustersPage(webDriver)
 				By("Then I should see cluster appears in the cluster dashboard with the expected status", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status).Should(HaveText("PR Created"))
+					Eventually(clusterInfo.Status).Should(HaveText("Creation PR"))
 					anchor := clusterInfo.Status.Find("a")
 					Eventually(anchor).Should(BeFound())
 					prUrl, _ = anchor.Attribute("href")
@@ -914,9 +914,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				clustersPage := pages.GetClustersPage(webDriver)
-				By("Then I should see cluster appears in the cluster dashboard with 'PR Created' status", func() {
+				By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status).Should(HaveText("PR Created"))
+					Eventually(clusterInfo.Status).Should(HaveText("Creation PR"))
 				})
 
 				By("Then I should merge the pull request to start cluster provisioning", func() {
@@ -958,7 +958,6 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					deletePR := pages.GetDeletePRPopup(webDriver)
 					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster, it is not required any more")).To(Succeed())
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
-					Expect(deletePR.ConfirmDelete.Click()).To(Succeed())
 
 					Expect(deletePR.ClosePopup.Click()).To(Succeed())
 

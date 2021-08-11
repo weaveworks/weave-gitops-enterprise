@@ -373,7 +373,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, err
 	}
 
-	for clusterName := range msg.ClusterNames {
+	for _, clusterName := range msg.ClusterNames {
 		var cluster models.Cluster
 		s.db.Where("name = ?", clusterName).Find(&cluster)
 
