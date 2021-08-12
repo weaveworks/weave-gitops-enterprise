@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -119,6 +120,10 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 }
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
+	if err := validateParamsValues(msg.Values); err != nil {
+		log.WithError(err).Errorf("Failed to render template, message payload was invalid")
+		return nil, err
+	}
 	log.WithFields(log.Fields{
 		"request_values":      msg.Values,
 		"request_credentials": msg.Credentials,
@@ -143,6 +148,38 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	resultStr := string(tmplWithValuesAndCredentials[:])
 
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr}, err
+}
+
+func validateParamsValues(values map[string]string) error {
+	var err error
+	isAlphanumeric := regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
+
+	for _, v := range values {
+		firstLetter := string([]rune(v)[0])
+		lastLetter := string([]rune(v)[len(v)-1])
+
+		if len(v) > 63 {
+			err = multierror.Append(err, fmt.Errorf("parameter value must be 63 characters or less"))
+		}
+
+		if isAlphanumeric(firstLetter) {
+			err = multierror.Append(err, fmt.Errorf("parameter value must start with an alphanumeric character"))
+		}
+
+		if isAlphanumeric(lastLetter) {
+			err = multierror.Append(err, fmt.Errorf("parameter value must end with an alphanumeric character"))
+		}
+
+		for _, r := range v {
+			if isAlphanumeric(string(r)) {
+				if string(r) != "-" {
+					err = multierror.Append(err, fmt.Errorf("parameter value must contain only alphanumeric or -"))
+				}
+			}
+		}
+	}
+
+	return err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
