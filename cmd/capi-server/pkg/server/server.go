@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/mkmik/multierror"
@@ -152,29 +153,41 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 
 func validateParamsValues(values map[string]string) error {
 	var err error
+	isAlphabetic := regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
 	isAlphanumeric := regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
 
 	for _, v := range values {
-		firstLetter := string([]rune(v)[0])
-		lastLetter := string([]rune(v)[len(v)-1])
+		firstLetter := string(v[0])
+		lastLetter := string(v[len(v)-1])
 
-		if len(v) > 63 {
-			err = multierror.Append(err, fmt.Errorf("parameter value must be 63 characters or less"))
+		// Check length of value
+		if len(v) > 253 {
+			err = multierror.Append(err, fmt.Errorf("parameter value must be 253 characters or less"))
 		}
 
-		if isAlphanumeric(firstLetter) {
-			err = multierror.Append(err, fmt.Errorf("parameter value must start with an alphanumeric character"))
+		// Check if first character is alphabetic
+		if isAlphabetic(firstLetter) {
+			err = multierror.Append(err, fmt.Errorf("parameter value must start with an alphanumeric character %s", firstLetter))
 		}
 
+		// Check if last letter is alphanumeric
 		if isAlphanumeric(lastLetter) {
-			err = multierror.Append(err, fmt.Errorf("parameter value must end with an alphanumeric character"))
+			err = multierror.Append(err, fmt.Errorf("parameter value must end with an alphanumeric character %s", lastLetter))
 		}
 
+		// Check value contains only alphanumeric characters, - and .
 		for _, r := range v {
 			if isAlphanumeric(string(r)) {
-				if string(r) != "-" {
-					err = multierror.Append(err, fmt.Errorf("parameter value must contain only alphanumeric or -"))
+				if string(r) != "-" && string(r) != "." {
+					err = multierror.Append(err, fmt.Errorf("parameter value must contain only alphanumeric characters, '-' or '.'"))
 				}
+			}
+		}
+
+		// Check value contains only lower case characters
+		for _, r := range v {
+			if !unicode.IsUpper(r) && unicode.IsLetter(r) {
+				err = multierror.Append(err, fmt.Errorf("alphanumueric characters in parameter value must be lowercase"))
 			}
 		}
 	}
