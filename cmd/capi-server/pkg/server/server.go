@@ -92,6 +92,9 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	}
 	templateBits, err := capi.Render(tm.Spec, msg.Values)
 	if err != nil {
+		if missing, ok := isMissingVariableError(err); ok {
+			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", msg.TemplateName, missing)
+		}
 		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
 	}
 
@@ -419,4 +422,15 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 
 func getClusterPathInRepo(clusterName string) string {
 	return fmt.Sprintf("management/%s.yaml", clusterName)
+}
+
+func isMissingVariableError(err error) (string, bool) {
+	errStr := err.Error()
+	prefix := "processing template: value for variables"
+	suffix := "is not set. Please set the value using os environment variables or the clusterctl config file"
+	if strings.HasPrefix(errStr, prefix) && strings.HasSuffix(errStr, suffix) {
+		missing := strings.TrimSpace(errStr[len(prefix):strings.Index(errStr, suffix)])
+		return missing, true
+	}
+	return "", false
 }

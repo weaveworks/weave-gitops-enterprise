@@ -351,6 +351,30 @@ func TestRenderTemplate(t *testing.T) {
 		})
 	}
 }
+
+func TestRenderTemplate_MissingVariables(t *testing.T) {
+	clusterState := []runtime.Object{
+		makeTemplateConfigMap("template1", makeTemplate(t)),
+	}
+	s := createServer(clusterState, "capi-templates", "default", nil, nil, "")
+
+	renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
+		TemplateName: "cluster-template-1",
+		Credentials: &capiv1_protos.Credential{
+			Group:     "",
+			Version:   "",
+			Kind:      "",
+			Name:      "",
+			Namespace: "",
+		},
+	}
+
+	_, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
+	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1 due to missing variables: [CLUSTER_NAME]"); diff != "" {
+		t.Fatalf("got the wrong error:\n%s", diff)
+	}
+}
+
 func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
 		name         string
