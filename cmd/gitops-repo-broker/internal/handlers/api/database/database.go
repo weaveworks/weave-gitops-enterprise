@@ -74,7 +74,18 @@ const clustersQueryString = `
 				FROM
 					clusters c
 					LEFT JOIN cluster_info ci ON c.token = ci.cluster_token
-					LEFT JOIN capi_clusters cc ON c.capi_name = cc.name and c.capi_namespace = cc.namespace
+					LEFT JOIN 
+					(
+						SELECT
+							MIN(id) as id,
+							name,
+							namespace
+						FROM
+							capi_clusters
+						GROUP BY
+							name,
+							namespace
+					) AS cc ON c.capi_name = cc.name and c.capi_namespace = cc.namespace
 				%[2]s
 				%[3]s
 				%[4]s
@@ -148,6 +159,18 @@ type GetClustersResponse struct {
 }
 
 func GetClusters(db *gorm.DB, req GetClustersRequest) (*GetClustersResponse, error) {
+	if db == nil {
+		return nil, ErrNilDB
+	}
+
+	// Sort by cluster name by default
+	if req.SortColumn == "" {
+		req.SortColumn = "Name"
+	}
+	// Sort in ascending order by default
+	if req.SortOrder == "" {
+		req.SortOrder = "ASC"
+	}
 
 	whereClause := buildWhereClause(req)
 
@@ -177,6 +200,7 @@ func GetClusters(db *gorm.DB, req GetClustersRequest) (*GetClustersResponse, err
 	} else {
 		queryString = fmt.Sprintf(queryString, sqliteClusterInfoTimeDifference, whereClause, orderByClause, limitOffsetClause)
 		if err := db.Raw(queryString).Scan(&rows).Error; err != nil {
+			log.Debugf("Failed to execute query %q: %v", queryString, err)
 			return nil, ErrNilDB
 		}
 	}

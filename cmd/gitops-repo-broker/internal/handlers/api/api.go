@@ -64,8 +64,8 @@ func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Respon
 			return
 		}
 
-		// Read sort-by-column from the url string if provided, otherwise default to sorting by cluster name
-		sortColumn := "Name"
+		// Read sort-by-column from the url string if provided
+		sortColumn := ""
 		sortByParam, ok := r.URL.Query()["sortBy"]
 		if ok {
 			p := sortByParam[0]
@@ -75,8 +75,8 @@ func ListClusters(db *gorm.DB, marshalIndentFn MarshalIndent) func(w http.Respon
 			}
 		}
 
-		// Read sort order from the url string if provided, otherwise sort desc
-		sortOrder := "ASC"
+		// Read sort order from the url string if provided
+		sortOrder := ""
 		sortOrderParam, ok := r.URL.Query()["order"]
 		if ok {
 			log.Debugf("sorting by order: %s\n", sortOrderParam)
