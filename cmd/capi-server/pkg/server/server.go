@@ -157,37 +157,41 @@ func validateParamsValues(values map[string]string) error {
 	isAlphanumeric := regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
 
 	for _, v := range values {
-		firstLetter := string(v[0])
-		lastLetter := string(v[len(v)-1])
+		firstLetter := v[0]
+		lastLetter := v[len(v)-1]
 
 		// Check length of value
 		if len(v) > 253 {
-			err = multierror.Append(err, fmt.Errorf("parameter value must be 253 characters or less"))
+			err = multierror.Append(err, fmt.Errorf("parameter value %s must be 253 characters or less", v))
 		}
 
 		// Check if first character is alphabetic
-		if isAlphabetic(firstLetter) {
-			err = multierror.Append(err, fmt.Errorf("parameter value must start with an alphanumeric character %s", firstLetter))
+		if !isAlphabetic(string(firstLetter)) {
+			err = multierror.Append(err, fmt.Errorf("parameter value %s must start with an alphanumeric character", v))
 		}
 
 		// Check if last letter is alphanumeric
-		if isAlphanumeric(lastLetter) {
-			err = multierror.Append(err, fmt.Errorf("parameter value must end with an alphanumeric character %s", lastLetter))
+		if !isAlphanumeric(string(lastLetter)) {
+			err = multierror.Append(err, fmt.Errorf("parameter value %s must end with an alphanumeric character", v))
 		}
 
 		// Check value contains only alphanumeric characters, - and .
+		containsNotAlphanumeric := false
 		for _, r := range v {
-			if isAlphanumeric(string(r)) {
+			if !isAlphanumeric(string(r)) && !containsNotAlphanumeric {
 				if string(r) != "-" && string(r) != "." {
-					err = multierror.Append(err, fmt.Errorf("parameter value must contain only alphanumeric characters, '-' or '.'"))
+					err = multierror.Append(err, fmt.Errorf("parameter value %s must contain only alphanumeric characters, '-' or '.'", v))
+					containsNotAlphanumeric = true
 				}
 			}
 		}
 
 		// Check value contains only lower case characters
+		containsUpperCase := false
 		for _, r := range v {
-			if !unicode.IsUpper(r) && unicode.IsLetter(r) {
-				err = multierror.Append(err, fmt.Errorf("alphanumueric characters in parameter value must be lowercase"))
+			if unicode.IsUpper(r) && unicode.IsLetter(r) && !containsUpperCase {
+				err = multierror.Append(err, fmt.Errorf("alphanumueric characters in parameter value %s must be lowercase", v))
+				containsUpperCase = true
 			}
 		}
 	}

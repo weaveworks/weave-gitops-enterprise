@@ -479,6 +479,106 @@ func TestRenderTemplate_MissingVariables(t *testing.T) {
 	}
 }
 
+func TestRenderTemplate_ValidateVariables(t *testing.T) {
+	u := &unstructured.Unstructured{}
+	u.Object = map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"name":      "cred-name",
+			"namespace": "cred-namespace",
+		},
+	}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "infrastructure.cluster.x-k8s.io",
+		Kind:    "AWSClusterStaticIdentity",
+		Version: "v1alpha4",
+	})
+
+	testCases := []struct {
+		name             string
+		clusterState     []runtime.Object
+		expected         string
+		err              error
+		expectedErrorStr string
+		clusterName      string
+	}{
+		{
+			name: "valid value",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "test-cluster",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
+		},
+		{
+			name: "first character is not alphabetic",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "2test-cluster",
+			err:         errors.New("parameter value 2test-cluster must start with an alphanumeric character"),
+		},
+		{
+			name: "value contains non alphanumeric",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "t&est-cluster",
+			err:         errors.New("parameter value t&est-cluster must contain only alphanumeric characters, '-' or '.'"),
+		},
+		{
+			name: "value does not end alphanumeric",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "test-cluster-",
+			err:         errors.New("parameter value test-cluster- must end with an alphanumeric character"),
+		},
+		{
+			name: "value contains uppercase letter",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "Test-Cluster",
+			err:         errors.New("alphanumueric characters in parameter value Test-Cluster must be lowercase"),
+		},
+		{
+			name: "multiple errors returned",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "2test-cluster.",
+			err:         errors.New("2 errors occurred:\nparameter value 2test-cluster. must start with an alphanumeric character\nparameter value 2test-cluster. must end with an alphanumeric character"),
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+
+			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": tt.clusterName,
+				},
+			}
+
+			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the templates:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
 func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
 		name         string
