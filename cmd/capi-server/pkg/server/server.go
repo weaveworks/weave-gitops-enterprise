@@ -176,12 +176,12 @@ func validateParamsValues(values map[string]string) error {
 		}
 
 		// Check value contains only alphanumeric characters, - and .
-		containsNotAlphanumeric := false
+		containsNonAlphanumeric := false
 		for _, r := range v {
-			if !isAlphanumeric(string(r)) && !containsNotAlphanumeric {
+			if !isAlphanumeric(string(r)) && !containsNonAlphanumeric {
 				if string(r) != "-" && string(r) != "." {
 					err = multierror.Append(err, fmt.Errorf("parameter value %s must contain only alphanumeric characters, '-' or '.'", v))
-					containsNotAlphanumeric = true
+					containsNonAlphanumeric = true
 				}
 			}
 		}
