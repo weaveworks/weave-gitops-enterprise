@@ -510,20 +510,12 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
 		},
 		{
-			name: "first character is not alphabetic",
-			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
-			},
-			clusterName: "2test-cluster",
-			err:         errors.New("parameter value 2test-cluster must start with an alphanumeric character"),
-		},
-		{
 			name: "value contains non alphanumeric",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "t&est-cluster",
-			err:         errors.New("parameter value t&est-cluster must contain only alphanumeric characters, '-' or '.'"),
+			err:         errors.New(`invalid value: "t&est-cluster", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 		},
 		{
 			name: "value does not end alphanumeric",
@@ -531,7 +523,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "test-cluster-",
-			err:         errors.New("parameter value test-cluster- must end with an alphanumeric character"),
+			err:         errors.New(`invalid value: "test-cluster-", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 		},
 		{
 			name: "value contains uppercase letter",
@@ -539,7 +531,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "Test-Cluster",
-			err:         errors.New("alphanumueric characters in parameter value Test-Cluster must be lowercase"),
+			err:         errors.New(`invalid value: "Test-Cluster", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 		},
 		{
 			name: "multiple errors returned",
@@ -547,7 +539,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "2test-cluster.",
-			err:         errors.New("2 errors occurred:\nparameter value 2test-cluster. must start with an alphanumeric character\nparameter value 2test-cluster. must end with an alphanumeric character"),
+			err:         errors.New(`invalid value: "2test-cluster.", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 		},
 	}
 

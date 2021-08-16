@@ -6,10 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"regexp"
 	"sort"
 	"strings"
-	"unicode"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/mkmik/multierror"
@@ -26,6 +24,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
+	k8sValidation "k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -121,10 +120,14 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 }
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
-	if err := validateParamsValues(msg.Values); err != nil {
-		log.WithError(err).Errorf("Failed to render template, message payload was invalid")
-		return nil, err
+	for _, v := range msg.Values {
+		errs := k8sValidation.IsDNS1123Subdomain(v)
+		if len(errs) > 0 {
+			return nil, fmt.Errorf("invalid value: \"%v\", %s", v, strings.Join(errs, ". "))
+		}
+
 	}
+
 	log.WithFields(log.Fields{
 		"request_values":      msg.Values,
 		"request_credentials": msg.Credentials,
@@ -149,54 +152,6 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	resultStr := string(tmplWithValuesAndCredentials[:])
 
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr}, err
-}
-
-func validateParamsValues(values map[string]string) error {
-	var err error
-	isAlphabetic := regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
-	isAlphanumeric := regexp.MustCompile("^[a-zA-Z0-9]*$").MatchString
-
-	for _, v := range values {
-		firstLetter := v[0]
-		lastLetter := v[len(v)-1]
-
-		// Check length of value
-		if len(v) > 253 {
-			err = multierror.Append(err, fmt.Errorf("parameter value %s must be 253 characters or less", v))
-		}
-
-		// Check if first character is alphabetic
-		if !isAlphabetic(string(firstLetter)) {
-			err = multierror.Append(err, fmt.Errorf("parameter value %s must start with an alphanumeric character", v))
-		}
-
-		// Check if last letter is alphanumeric
-		if !isAlphanumeric(string(lastLetter)) {
-			err = multierror.Append(err, fmt.Errorf("parameter value %s must end with an alphanumeric character", v))
-		}
-
-		// Check value contains only alphanumeric characters, - and .
-		containsNonAlphanumeric := false
-		for _, r := range v {
-			if !isAlphanumeric(string(r)) && !containsNonAlphanumeric {
-				if string(r) != "-" && string(r) != "." {
-					err = multierror.Append(err, fmt.Errorf("parameter value %s must contain only alphanumeric characters, '-' or '.'", v))
-					containsNonAlphanumeric = true
-				}
-			}
-		}
-
-		// Check value contains only lower case characters
-		containsUpperCase := false
-		for _, r := range v {
-			if unicode.IsUpper(r) && unicode.IsLetter(r) && !containsUpperCase {
-				err = multierror.Append(err, fmt.Errorf("alphanumueric characters in parameter value %s must be lowercase", v))
-				containsUpperCase = true
-			}
-		}
-	}
-
-	return err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
