@@ -33,20 +33,21 @@ const ActionButton = styled.button`
   outline: 0;
   padding: ${theme.spacing.xs} ${theme.spacing.small};
 
-  &:hover:enabled {
-    cursor: pointer;
-  }
-
   &:enabled {
     color: ${props =>
       props.className === 'danger' ? theme.colors.orange600 : '#00b3ec'};
   }
 
   &:hover:enabled {
+    cursor: pointer;
     color: ${props =>
       props.className === 'danger'
         ? theme.colors.orange700
         : theme.colors.blue700};
+  }
+
+  &:hover:disabled {
+    pointer-events: none;
   }
 `;
 

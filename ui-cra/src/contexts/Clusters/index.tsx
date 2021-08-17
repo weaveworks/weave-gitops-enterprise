@@ -1,6 +1,13 @@
 import { createContext, Dispatch, useContext } from 'react';
 import { Cluster } from '../../types/kubernetes';
 
+export interface DeleteClusterPRRequest {
+  clusterNames: string[];
+  headBranch: string;
+  title: string;
+  commitMessage: string;
+  description: string;
+}
 interface ClustersContext {
   clusters: Cluster[] | [];
   count: number | null;
@@ -13,10 +20,7 @@ interface ClustersContext {
   orderBy: string;
   selectedClusters: string[];
   setSelectedClusters: Dispatch<React.SetStateAction<string[] | []>>;
-  deleteCreatedClusters: (
-    clusters: string[],
-    PRDescriptiopn: string | undefined,
-  ) => void;
+  deleteCreatedClusters: (data: DeleteClusterPRRequest) => void;
   deleteConnectedClusters: (clusters: number[]) => void;
   getKubeconfig: (clusterName: string, fileName: string) => void;
 }

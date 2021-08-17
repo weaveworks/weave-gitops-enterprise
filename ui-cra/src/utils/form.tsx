@@ -7,7 +7,7 @@ import {
   Typography,
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
-  InputBase,
+  InputBase as MuiInputBase,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
@@ -57,6 +57,12 @@ const InputLabel = withStyles(() => ({
     position: 'initial',
   },
 }))(MuiInputLabel);
+
+const InputBase = withStyles(() => ({
+  inputMultiline: {
+    padding: '10px',
+  },
+}))(MuiInputBase);
 
 type PickedInputProps = Pick<
   InputBaseProps,

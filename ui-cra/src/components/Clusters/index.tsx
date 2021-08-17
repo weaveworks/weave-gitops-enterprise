@@ -10,7 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { Snackbar } from '@material-ui/core';
 import { ClustersTable } from './Table';
-import { FinishMessage } from '../Shared';
+import { FinishMessage, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './Connect/ConnectDialog';
 import { useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
@@ -71,6 +71,12 @@ const MCCP: FC = () => {
     history.push(`/clusters/templates/${activeTemplate.name}/create`);
   }, [activeTemplate, history]);
 
+  const capiClusters = clusters.filter(cls => cls.capiCluster);
+
+  const selectedCapiClusters = selectedClusters.filter(cls =>
+    capiClusters.find(c => c.name === cls),
+  );
+
   return (
     <PageTemplate documentTitle="WeGo · Clusters">
       <SectionHeader
@@ -92,17 +98,26 @@ const MCCP: FC = () => {
             onClick={() => setClusterToEdit(NEW_CLUSTER)}
             text="CONNECT A CLUSTER"
           />
-          <OnClickAction
-            className="danger"
-            id="delete-cluster"
-            icon={faTrashAlt}
-            onClick={() => setOpenDeletePR(true)}
-            text="CREATE A PR TO DELETE CLUSTER"
-            disabled={selectedClusters.length === 0}
-          />
+          <Tooltip
+            title={
+              selectedCapiClusters.length === 0 && 'No CAPI clusters selected'
+            }
+            placement="top"
+          >
+            <div>
+              <OnClickAction
+                className="danger"
+                id="delete-cluster"
+                icon={faTrashAlt}
+                onClick={() => setOpenDeletePR(true)}
+                text="CREATE A PR TO DELETE CLUSTERS"
+                disabled={selectedCapiClusters.length === 0}
+              />
+            </div>
+          </Tooltip>
           {openDeletePR && (
             <DeleteClusterDialog
-              clusters={selectedClusters}
+              clusters={selectedCapiClusters}
               onClose={() => setOpenDeletePR(false)}
             />
           )}

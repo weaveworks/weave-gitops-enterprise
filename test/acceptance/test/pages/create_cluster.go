@@ -124,8 +124,8 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 				Field: webDriver.FindByID(`Create branch-input`),
 			},
 			{
-				Label: webDriver.FindByLabel(`Title pull request`),
-				Field: webDriver.FindByID(`Title pull request-input`),
+				Label: webDriver.FindByLabel(`Pull request title`),
+				Field: webDriver.FindByID(`Pull request title-input`),
 			},
 			{
 				Label: webDriver.FindByLabel(`Commit message`),

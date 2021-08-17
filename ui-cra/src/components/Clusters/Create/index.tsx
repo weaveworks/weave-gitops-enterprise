@@ -140,13 +140,24 @@ const AddCluster: FC = () => {
     addCluster,
     setError,
   } = useTemplates();
+  const random = Math.random().toString(36).substring(7);
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
-  const [branchName, setBranchName] = useState<string>('default');
-  const [pullRequestTitle, setPullRequestTitle] = useState<string>('default');
-  const [commitMessage, setCommitMessage] = useState<string>('default');
+  const [branchName, setBranchName] = useState<string>(
+    `create-clusters-branch-${random}`,
+  );
+  const [pullRequestTitle, setPullRequestTitle] = useState<string>(
+    'Creates capi cluster',
+  );
+  const [commitMessage, setCommitMessage] = useState<string>(
+    'Creates capi cluster',
+  );
+  const [pullRequestDescription, setPullRequestDescription] = useState<string>(
+    'This PR creates a new cluster',
+  );
+
   const rows = (PRPreview?.split('\n').length || 0) - 1;
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
@@ -205,12 +216,18 @@ const AddCluster: FC = () => {
     [],
   );
 
+  const handleChangePRDescription = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) =>
+      setPullRequestDescription(event.target.value),
+    [],
+  );
+
   const handleAddCluster = useCallback(() => {
     addCluster({
       credentials: infraCredential,
       head_branch: branchName,
       title: pullRequestTitle,
-      description: 'This PR creates a new Kubernetes cluster',
+      description: pullRequestDescription,
       template_name: activeTemplate?.name,
       commit_message: commitMessage,
       parameter_values: {
@@ -225,6 +242,7 @@ const AddCluster: FC = () => {
     commitMessage,
     activeTemplate?.name,
     infraCredential,
+    pullRequestDescription,
   ]);
 
   const required = useMemo(() => {
@@ -397,15 +415,25 @@ const AddCluster: FC = () => {
                       >
                         <Input
                           label="Create branch"
+                          placeholder={branchName}
                           onChange={handleChangeBranchName}
                         />
                         <Input
-                          label="Title pull request"
+                          label="Pull request title"
+                          placeholder={pullRequestTitle}
                           onChange={handleChangePullRequestTitle}
                         />
                         <Input
                           label="Commit message"
+                          placeholder={commitMessage}
                           onChange={handleChangeCommitMessage}
+                        />
+                        <Input
+                          label="Pull request description"
+                          placeholder={pullRequestDescription}
+                          onChange={handleChangePRDescription}
+                          multiline
+                          rows={4}
                         />
                         <div
                           className={classes.createCTA}
@@ -451,15 +479,20 @@ const AddCluster: FC = () => {
     handleChangeBranchName,
     handleChangeCommitMessage,
     handleChangePullRequestTitle,
+    handleChangePRDescription,
+    handleSelectCredentials,
     creatingPR,
     steps,
     activeStep,
     credentialsItems,
-    handleSelectCredentials,
     loading,
     infraCredential?.name,
     clickedStep,
     isLargeScreen,
+    branchName,
+    commitMessage,
+    pullRequestTitle,
+    pullRequestDescription,
   ]);
 };
 

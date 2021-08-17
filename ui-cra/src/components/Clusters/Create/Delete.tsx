@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FC, useState } from 'react';
+import React, { ChangeEvent, FC, useCallback, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -9,8 +9,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import useClusters from '../../../contexts/Clusters';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../../Action';
@@ -27,22 +25,58 @@ const useStyles = makeStyles(() =>
     dialog: {
       backgroundColor: theme.colors.gray50,
     },
-    input: {
-      marginBottom: weaveTheme.spacing.xs,
-    },
   }),
 );
 
 export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
   const classes = useStyles();
-  const [PRDescription, setPRDescription] = useState<string>();
+  const random = Math.random().toString(36).substring(7);
+  const [branchName, setBranchName] = useState<string>(
+    `delete-clusters-branch-${random}`,
+  );
+  const [pullRequestTitle, setPullRequestTitle] = useState<string>(
+    'Deletes capi cluster(s)',
+  );
+  const [commitMessage, setCommitMessage] = useState<string>(
+    'Deletes capi cluster(s)',
+  );
+  const [pullRequestDescription, setPullRequestDescription] = useState<string>(
+    `Delete clusters: ${clusters.map(c => c).join(', ')}`,
+  );
+
   const { deleteCreatedClusters, creatingPR } = useClusters();
 
-  const handleChangePRDescription = (event: ChangeEvent<HTMLInputElement>) =>
-    setPRDescription(event.target.value);
+  const handleChangeBranchName = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
+    [],
+  );
+
+  const handleChangePullRequestTitle = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) =>
+      setPullRequestTitle(event.target.value),
+    [],
+  );
+
+  const handleChangeCommitMessage = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) =>
+      setCommitMessage(event.target.value),
+    [],
+  );
+
+  const handleChangePRDescription = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) =>
+      setPullRequestDescription(event.target.value),
+    [],
+  );
 
   const handleClickRemove = () =>
-    deleteCreatedClusters(clusters, PRDescription);
+    deleteCreatedClusters({
+      clusterNames: clusters,
+      headBranch: branchName,
+      title: pullRequestTitle,
+      commitMessage,
+      description: pullRequestDescription,
+    });
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={() => onClose()}>
@@ -54,12 +88,25 @@ export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
         <DialogContent>
           {!creatingPR ? (
             <>
-              <DialogContentText>
-                Add a description for your PR:
-              </DialogContentText>
               <Input
+                label="Create branch"
+                placeholder={branchName}
+                onChange={handleChangeBranchName}
+              />
+              <Input
+                label="Pull request title"
+                placeholder={pullRequestTitle}
+                onChange={handleChangePullRequestTitle}
+              />
+              <Input
+                label="Commit message"
+                placeholder={commitMessage}
+                onChange={handleChangeCommitMessage}
+              />
+              <Input
+                label="Pull request description"
+                placeholder={pullRequestDescription}
                 onChange={handleChangePRDescription}
-                className={classes.input}
                 multiline
                 rows={4}
               />

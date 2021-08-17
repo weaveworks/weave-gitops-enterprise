@@ -2,7 +2,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { Cluster } from '../../types/kubernetes';
 import { request, requestWithHeaders } from '../../utils/request';
 import { useInterval } from '../../utils/use-interval';
-import { Clusters } from './index';
+import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
 
@@ -72,19 +72,10 @@ const ClustersProvider: FC = ({ children }) => {
   }, [abortController, clustersParameters, setNotification]);
 
   const deleteCreatedClusters = useCallback(
-    (clusters, PRDescription) => {
-      const random = Math.random().toString(36).substring(7);
+    (data: DeleteClusterPRRequest) => {
       setCreatingPR(true);
       request('DELETE', '/v1/clusters', {
-        body: JSON.stringify({
-          clusterNames: clusters,
-          headBranch: `${random}--Delete-Clusters-Branch`,
-          title: `${random}-Delete-Clusters`,
-          commitMessage: `${random}-Delete-Clusters-Commit`,
-          description: PRDescription
-            ? PRDescription
-            : 'This PR deletes clusters',
-        }),
+        body: JSON.stringify(data),
       })
         .then(res => {
           setNotification({
