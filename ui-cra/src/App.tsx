@@ -9,6 +9,7 @@ import { Theme } from 'weaveworks-ui-components';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import ResponsiveDrawer from './components';
+import Background from './assets/img/background.svg';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -33,7 +34,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: #e6e6e6;
+    background: url(${Background}) no-repeat;
     color: ${theme.textColor};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
