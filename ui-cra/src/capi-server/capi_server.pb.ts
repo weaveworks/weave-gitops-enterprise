@@ -7,6 +7,7 @@
 import * as fm from "./fetch.pb"
 import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
 export type ListTemplatesRequest = {
+  provider?: string
 }
 
 export type ListTemplatesResponse = {

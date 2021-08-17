@@ -152,6 +152,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "ClustersService"
         ]

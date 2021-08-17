@@ -20,8 +20,16 @@ func templatesListCmd(client *resty.Client) *cobra.Command {
 		SilenceErrors: true,
 	}
 
+	cmd.PersistentFlags().StringVar(&templatesListCmdFlags.Provider, "provider", "", "Filters templates by provider name")
+
 	return cmd
 }
+
+type templatesListFlags struct {
+	Provider string
+}
+
+var templatesListCmdFlags templatesListFlags
 
 func getTemplatesListCmdRun(client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
@@ -32,6 +40,6 @@ func getTemplatesListCmdRun(client *resty.Client) func(*cobra.Command, []string)
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
-		return templates.ListTemplates(r, w)
+		return templates.ListTemplates(templatesListCmdFlags.Provider, r, w)
 	}
 }

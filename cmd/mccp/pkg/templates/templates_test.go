@@ -59,7 +59,7 @@ func TestListTemplates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := NewFakeClient(tt.ts, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
-			err := templates.ListTemplates(c, w)
+			err := templates.ListTemplates("", c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)

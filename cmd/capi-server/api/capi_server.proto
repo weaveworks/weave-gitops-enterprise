@@ -64,7 +64,7 @@ service ClustersService {
     }
 }
 
-message ListTemplatesRequest {}
+message ListTemplatesRequest { string provider = 1; }
 message ListTemplatesResponse {
   repeated Template templates = 1;
   int32 total = 2;

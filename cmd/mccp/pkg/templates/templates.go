@@ -62,7 +62,7 @@ type Credentials struct {
 	Namespace string `json:"namespace"`
 }
 
-func ListTemplates(r TemplatesRetriever, w io.Writer) error {
+func ListTemplates(provider string, r TemplatesRetriever, w io.Writer) error {
 	ts, err := r.RetrieveTemplates()
 	if err != nil {
 		return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)

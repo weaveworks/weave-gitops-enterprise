@@ -143,6 +143,110 @@ func TestListTemplates(t *testing.T) {
 	}
 }
 
+func TestListTemplates_FilterByProvider(t *testing.T) {
+	testCases := []struct {
+		name             string
+		provider         string
+		clusterState     []runtime.Object
+		expected         []*capiv1_protos.Template
+		err              error
+		expectedErrorStr string
+	}{
+		{
+			name:     "Provider name with upper case letters",
+			provider: "AWS",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+					ct.ObjectMeta.Name = "cluster-template-2"
+					ct.Spec.Description = "this is test template 2"
+				}), "template1", makeTemplate(t)),
+			},
+			expected: []*capiv1_protos.Template{
+				{
+					Name:        "cluster-template-2",
+					Description: "this is test template 2",
+					Objects: []*capiv1_protos.TemplateObject{
+						{
+							ApiVersion: "fooversion",
+							Kind:       "AWSCluster",
+							Parameters: []string{"CLUSTER_NAME"},
+						},
+					},
+					Parameters: []*capiv1_protos.Parameter{
+						{
+							Name:        "CLUSTER_NAME",
+							Description: "This is used for the cluster naming.",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:     "Provider name with lower case letters",
+			provider: "aws",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+					ct.ObjectMeta.Name = "cluster-template-2"
+					ct.Spec.Description = "this is test template 2"
+				}), "template1", makeTemplate(t)),
+			},
+			expected: []*capiv1_protos.Template{
+				{
+					Name:        "cluster-template-2",
+					Description: "this is test template 2",
+					Objects: []*capiv1_protos.TemplateObject{
+						{
+							ApiVersion: "fooversion",
+							Kind:       "AWSCluster",
+							Parameters: []string{"CLUSTER_NAME"},
+						},
+					},
+					Parameters: []*capiv1_protos.Parameter{
+						{
+							Name:        "CLUSTER_NAME",
+							Description: "This is used for the cluster naming.",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:     "Provider name with no templates",
+			provider: "Azure",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+					ct.ObjectMeta.Name = "cluster-template-2"
+					ct.Spec.Description = "this is test template 2"
+				}), "template1", makeTemplate(t)),
+			},
+			expected: []*capiv1_protos.Template{},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+
+			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
+			listTemplatesRequest.Provider = tt.provider
+
+			listTemplatesResponse, err := s.ListTemplates(context.Background(), listTemplatesRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the templates:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("failed to read the templates:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, listTemplatesResponse.Templates, protocmp.Transform()); diff != "" {
+					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
 func TestGetTemplate(t *testing.T) {
 	testCases := []struct {
 		name             string
@@ -631,14 +735,14 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 
 				var cluster models.Cluster
 				db.Where("name = ?", "foo").Find(&cluster)
-	
+
 				if diff := cmp.Diff(cluster.Name, "foo"); diff != "" {
 					t.Fatalf("got the wrong name:\n%s", diff)
 				}
-	
+
 				var pr models.PRCluster
 				db.Where("prid = ?", 2).Find(&pr)
-	
+
 				if diff := cmp.Diff(pr.ClusterID, uint(1)); diff != "" {
 					t.Fatalf("got the wrong id:\n%s", diff)
 				}
@@ -740,6 +844,25 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		t.Fatal(err)
 	}
 	return string(b)
+}
+
+func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*capiv1.CAPITemplate)) string {
+	t.Helper()
+	basicRaw := `
+	{
+		"apiVersion": "fooversion",
+		"kind": "` + clusterKind + `",
+		"metadata": {
+		  "name": "${CLUSTER_NAME}"
+		}
+	  }`
+	return makeTemplate(t, append(opts, func(c *capiv1.CAPITemplate) {
+		c.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+			{
+				RawExtension: rawExtension(basicRaw),
+			},
+		}
+	})...)
 }
 
 func makeSecret(n string, ns string, s ...string) *corev1.Secret {

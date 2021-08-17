@@ -12,6 +12,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/mkmik/multierror"
 	log "github.com/sirupsen/logrus"
+	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/credentials"
 	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
@@ -48,12 +49,48 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	}
 	templates := []*capiv1_proto.Template{}
 
+	if msg.Provider != "" {
+		tl = filterTemplatesByProvider(tl, msg.Provider)
+	}
+
 	for _, t := range tl {
 		templates = append(templates, ToTemplateResponse(t))
 	}
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
+}
+
+func filterTemplatesByProvider(tl map[string]*capiv1.CAPITemplate, provider string) map[string]*capiv1.CAPITemplate {
+	templates := map[string]*capiv1.CAPITemplate{}
+
+	for name, t := range tl {
+		providerKind := formatProviderName(provider)
+		meta, err := capi.ParseTemplateMeta(t)
+		if err != nil {
+			continue
+		}
+
+		for _, obj := range meta.Objects {
+			if obj.Kind == providerKind {
+				templates[name] = t
+			}
+		}
+	}
+
+	return templates
+}
+
+func formatProviderName(provider string) string {
+	switch name := provider; strings.ToLower(name) {
+	case "aws":
+		return "AWSCluster"
+	case "azure":
+		return "AzureCluster"
+	case "vsphere":
+		return "VSphereCluster"
+	}
+	return ""
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
