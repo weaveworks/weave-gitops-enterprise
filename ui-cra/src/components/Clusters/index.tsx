@@ -99,10 +99,9 @@ const MCCP: FC = () => {
             text="CONNECT A CLUSTER"
           />
           <Tooltip
-            title={
-              selectedCapiClusters.length === 0 && 'No CAPI clusters selected'
-            }
+            title="No CAPI clusters selected"
             placement="top"
+            disabled={selectedCapiClusters.length !== 0}
           >
             <div>
               <OnClickAction
