@@ -40,7 +40,6 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - container-tests
       - unit-tests
       - unit-tests-with-coverage
       - mccp-ui-backend-integration-tests
