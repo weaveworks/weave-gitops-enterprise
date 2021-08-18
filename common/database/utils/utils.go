@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
 	log "github.com/sirupsen/logrus"
@@ -75,6 +76,7 @@ func MigrateTables(db *gorm.DB) error {
 	err := db.AutoMigrate(
 		&models.Event{},
 		&models.Cluster{},
+		&models.ClusterStatus{},
 		&models.ClusterInfo{},
 		&models.NodeInfo{},
 		&models.Alert{},
@@ -88,6 +90,42 @@ func MigrateTables(db *gorm.DB) error {
 	if err != nil {
 		return errors.New("failed to create tables")
 	}
+
+	clusterStatuses := []*models.ClusterStatus{
+		{
+			ID:     1,
+			Status: "critical",
+		},
+		{
+			ID:     2,
+			Status: "alerting",
+		},
+		{
+			ID:     3,
+			Status: "lastSeen",
+		},
+		{
+			ID:     4,
+			Status: "pullRequestCreated",
+		},
+		{
+			ID:     5,
+			Status: "clusterFound",
+		},
+		{
+			ID:     6,
+			Status: "ready",
+		},
+		{
+			ID:     7,
+			Status: "notConnected",
+		},
+	}
+	db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"status"}),
+	}).Create(clusterStatuses)
+
 	log.Info("created all database tables")
 	return nil
 }

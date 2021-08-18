@@ -741,7 +741,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				}
 
 				var pr models.PRCluster
-				db.Where("prid = ?", 2).Find(&pr)
+				db.Where("pr_id = ?", 2).Find(&pr)
 
 				if diff := cmp.Diff(pr.ClusterID, uint(1)); diff != "" {
 					t.Fatalf("got the wrong id:\n%s", diff)

@@ -48,6 +48,14 @@ func init() {
 	cmd.Flags().StringVar(&globalParams.DbPassword, "db-password", os.Getenv("DB_PASSWORD"), "database password")
 	cmd.Flags().StringVar(&globalParams.DbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 	cmd.Flags().StringVar(&globalParams.Port, "port", "8000", "Port to run http server on")
+
+	if os.Getenv("LOG_LEVEL") == "DEBUG" {
+		// Only log the debug severity or above.
+		log.SetLevel(log.DebugLevel)
+	} else if os.Getenv("LOG_LEVEL") == "WARN" {
+		// Only log the warning severity or above.
+		log.SetLevel(log.WarnLevel)
+	}
 }
 
 func main() {

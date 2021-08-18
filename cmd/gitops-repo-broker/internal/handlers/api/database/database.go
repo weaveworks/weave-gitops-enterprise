@@ -20,83 +20,91 @@ var (
 const sqliteClusterInfoTimeDifference = "strftime('%s', 'now') - strftime('%s', ci.updated_at)"
 const postgresClusterInfoTimeDifference = "EXTRACT(EPOCH FROM (NOW() - ci.updated_at))"
 const clustersQueryString = `
-		SELECT
-			c.ID,
-			c.Name,
-			c.Token,
-			c.IngressURL,
-			c.Type,
-			c.UpdatedAt,
-			c.ClusterStatus,
-			ni.name AS NodeName,
-			ni.is_control_plane AS IsControlPlane,
-			ni.kubelet_version AS KubeletVersion,
-			fi.name AS FluxName,
-			fi.namespace AS FluxNamespace,
-			fi.repo_url AS FluxRepoURL,
-			fi.repo_branch AS FluxRepoBranch,
-			fi.Syncs AS FluxLogInfo,
-			(select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') as CriticalAlertsCount,
-			(select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) AS AlertsCount,
-			gc.author_name AS GitCommitAuthorName,
-			gc.author_email AS GitCommitAuthorEmail,
-			gc.author_date AS GitCommitAuthorDate,
-			gc.message AS GitCommitMessage,
-			gc.sha AS GitCommitSha,
-			ws.name AS WorkspaceName,
-			ws.namespace AS WorkspaceNamespace,
-			cc.name as CapiName,
-			cc.namespace as CapiNamespace,
-			cc.object as CapiCluster,
-			pr.url as PullRequestURL,
-			pr.type as PullRequestType
-		FROM
-			(
-				SELECT
-					c.id AS ID,
-					c.name AS Name,
-					c.token AS Token,
-					c.ingress_url AS IngressURL,
-					c.capi_name AS capi_name,
-					c.capi_namespace AS capi_namespace,
-					ci.type AS Type,
-					ci.updated_at AS UpdatedAt,
-					CASE
-						WHEN %[1]s BETWEEN 60 AND 1800 THEN 'lastSeen'
-						WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') > 0 THEN 'critical'
-						WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
-						WHEN  %[1]s <= 1800 THEN 'ready'
-						WHEN (select count(*) from pull_requests pr inner join pr_clusters prc where prc.cluster_id = c.id and pr.type = 'delete') > 0 and ci.updated_at is null THEN 'pullRequestCreated'
-						WHEN cc.id is not null THEN 'clusterFound'
-						WHEN (select count(*) from pull_requests pr inner join pr_clusters prc where prc.cluster_id = c.id) > 0 and ci.updated_at is null THEN 'pullRequestCreated'
-						WHEN %[1]s IS NULL OR %[1]s > 1800 THEN 'notConnected'
-					END AS ClusterStatus
-				FROM
-					clusters c
-					LEFT JOIN cluster_info ci ON c.token = ci.cluster_token
-					LEFT JOIN 
-					(
-						SELECT
-							MIN(id) as id,
-							name,
-							namespace
-						FROM
-							capi_clusters
-						GROUP BY
-							name,
-							namespace
-					) AS cc ON c.capi_name = cc.name and c.capi_namespace = cc.namespace
-				%[2]s
-				%[3]s
-				%[4]s
-			) AS c
-			LEFT JOIN node_info ni ON c.token = ni.cluster_token
-			LEFT JOIN pr_clusters prc ON prc.cluster_id = c.ID
-			LEFT JOIN pull_requests pr ON pr.ID = prc.prid
-			LEFT JOIN flux_info fi ON c.token = fi.cluster_token
-			LEFT JOIN git_commits gc ON c.token = gc.cluster_token
-			LEFT JOIN workspaces ws ON c.token = ws.cluster_token
-			LEFT JOIN capi_clusters cc ON c.capi_name = cc.name and c.capi_namespace = cc.namespace
+WITH unique_capi_clusters AS (
+	SELECT
+		MIN(id) as id,
+		name,
+		namespace
+	FROM
+		capi_clusters
+	GROUP BY
+		name,
+		namespace
+), clusters_with_status AS (
+	SELECT
+		c.id AS ID,
+		c.name AS Name,
+		c.token AS Token,
+		c.ingress_url AS IngressURL,
+		c.capi_name AS capi_name,
+		c.capi_namespace AS capi_namespace,
+		ci.type AS Type,
+		ci.updated_at AS UpdatedAt,
+		CASE
+			WHEN %[1]s BETWEEN 60 AND 1800 THEN 'lastSeen'
+			WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') > 0 THEN 'critical'
+			WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
+			WHEN  %[1]s <= 1800 THEN 'ready'
+			WHEN (select count(*) from pull_requests pr inner join pr_clusters prc on pr.id = prc.pr_id where prc.cluster_id = c.id and pr.type = 'delete') > 0 and ci.updated_at is null THEN 'pullRequestCreated'
+			WHEN cc.id is not null THEN 'clusterFound'
+			WHEN (select count(*) from pull_requests pr inner join pr_clusters prc on pr.id = prc.pr_id where prc.cluster_id = c.id) > 0 and ci.updated_at is null THEN 'pullRequestCreated'
+			WHEN %[1]s IS NULL OR %[1]s > 1800 THEN 'notConnected'
+		END AS ClusterStatus
+	FROM
+		clusters c
+		LEFT JOIN cluster_info ci ON c.token = ci.cluster_token
+		LEFT JOIN unique_capi_clusters cc ON c.capi_name = cc.name and c.capi_namespace = cc.namespace
+), paginated_ordered_clusters AS (
+	SELECT
+		c.*
+	FROM
+		clusters_with_status AS c
+		LEFT JOIN cluster_statuses cs ON c.ClusterStatus = cs.Status
+	%[2]s
+	%[3]s
+	%[4]s
+)
+SELECT
+	c.ID,
+	c.Name,
+	c.Token,
+	c.IngressURL,
+	c.Type,
+	c.UpdatedAt,
+	c.ClusterStatus,
+	ni.name AS NodeName,
+	ni.is_control_plane AS IsControlPlane,
+	ni.kubelet_version AS KubeletVersion,
+	fi.name AS FluxName,
+	fi.namespace AS FluxNamespace,
+	fi.repo_url AS FluxRepoURL,
+	fi.repo_branch AS FluxRepoBranch,
+	fi.Syncs AS FluxLogInfo,
+	(select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') as CriticalAlertsCount,
+	(select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) AS AlertsCount,
+	gc.author_name AS GitCommitAuthorName,
+	gc.author_email AS GitCommitAuthorEmail,
+	gc.author_date AS GitCommitAuthorDate,
+	gc.message AS GitCommitMessage,
+	gc.sha AS GitCommitSha,
+	ws.name AS WorkspaceName,
+	ws.namespace AS WorkspaceNamespace,
+	cc.name as CapiName,
+	cc.namespace as CapiNamespace,
+	cc.object as CapiCluster,
+	pr.url as PullRequestURL,
+	pr.type as PullRequestType
+FROM
+	paginated_ordered_clusters AS c
+	LEFT JOIN node_info ni ON c.token = ni.cluster_token
+	LEFT JOIN pr_clusters prc ON prc.cluster_id = c.ID
+	LEFT JOIN pull_requests pr ON pr.ID = prc.pr_id
+	LEFT JOIN flux_info fi ON c.token = fi.cluster_token
+	LEFT JOIN git_commits gc ON c.token = gc.cluster_token
+	LEFT JOIN workspaces ws ON c.token = ws.cluster_token
+	LEFT JOIN capi_clusters cc ON c.capi_name = cc.name and c.capi_namespace = cc.namespace
+	LEFT JOIN cluster_statuses cs ON c.ClusterStatus = cs.Status
+%[3]s
 `
 
 type ClusterListRow struct {
@@ -278,8 +286,9 @@ func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 		&row.Token,
 		&row.IngressURL,
 		&row.Type,
-		&row.NodeName,
 		&row.UpdatedAt,
+		&row.ClusterStatus,
+		&row.NodeName,
 		&row.IsControlPlane,
 		&row.KubeletVersion,
 		&row.FluxName,
@@ -296,11 +305,12 @@ func clusterListRowScan(sqlResult *sql.Rows) ClusterListRow {
 		&row.GitCommitSha,
 		&row.WorkspaceName,
 		&row.WorkspaceNamespace,
-		&row.ClusterStatus,
+
 		&row.CapiName,
 		&row.CapiNamespace,
 		&row.CapiCluster,
 		&row.PullRequestURL,
+		&row.PullRequestType,
 	)
 	if err != nil {
 		log.Debug("error while scanning sql row: ", err)
@@ -463,21 +473,9 @@ func buildOrderByClause(req GetClustersRequest) string {
 		return ""
 	}
 
-	orderByClause := fmt.Sprintf(`
-			ORDER BY %s %s, Name ASC
-		`, req.SortColumn, req.SortOrder)
+	orderByClause := fmt.Sprintf(`ORDER BY c.%s %s, c.Name ASC`, req.SortColumn, req.SortOrder)
 	if req.SortColumn == "ClusterStatus" {
-		orderByClause = fmt.Sprintf(`
-				ORDER BY CASE
-					WHEN ClusterStatus = 'critical' then 1
-					WHEN ClusterStatus = 'alerting' then 2
-					WHEN ClusterStatus = 'lastSeen' then 3
-					WHEN ClusterStatus = 'pullRequestCreated' then 4
-					WHEN ClusterStatus = 'clusterFound' then 5
-					WHEN ClusterStatus = 'ready' then 6
-					ELSE 7
-				END
-				%s, Name ASC`, req.SortOrder)
+		orderByClause = fmt.Sprintf(`ORDER BY cs.ID %s, c.Name ASC`, req.SortOrder)
 	}
 
 	return orderByClause

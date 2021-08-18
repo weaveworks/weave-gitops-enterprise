@@ -90,6 +90,12 @@ type Cluster struct {
 	CAPINamespace string `gorm:"column:capi_namespace"`
 }
 
+// ClusterStatus table. Used to sort cluster status by importance.
+type ClusterStatus struct {
+	ID     uint   `gorm:"primarykey"`
+	Status string `gorm:"column:status"`
+}
+
 // FluxInfo table
 type FluxInfo struct {
 	ClusterToken string `gorm:"primaryKey"`
@@ -132,7 +138,7 @@ type PullRequest struct {
 
 type PRCluster struct {
 	Model
-	PRID      uint `gorm:"column:prid"`
+	PRID      uint `gorm:"column:pr_id"`
 	ClusterID uint `gorm:"column:cluster_id"`
 }
 
