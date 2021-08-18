@@ -4,14 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -19,7 +17,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/plan/runners/ssh"
 	"github.com/weaveworks/wks/pkg/cmdutil"
 	"github.com/weaveworks/wks/pkg/utilities/config"
 	"github.com/weaveworks/wks/pkg/utilities/git"
@@ -227,23 +224,9 @@ func (c *context) commitChanges() {
 	c.runAndCheckError("git", "commit", "-m", "checkpoint")
 }
 
-func (c *context) commitChangesAndPush(message string) {
-	c.runAndCheckError("git", "add", "-u")
-	c.runAndCheckError("git", "commit", "-m", message)
-	c.runAndCheckError("git", "push")
-}
-
 // runtimeConfigFilePath returns the path to the config.yaml file within the context's temporary directory
 func (c *context) runtimeConfigFilePath() string {
 	return filepath.Join(c.tmpDir, "setup", "config.yaml")
-}
-
-// updateConfigMachines updates the Kubernetes version for each wks machine in the config.yaml file
-func (c *context) updateConfigMachines(updateFn func([]config.MachineSpec) []config.MachineSpec) {
-	c.conf.WKSConfig.SSHConfig.Machines = updateFn(c.conf.WKSConfig.SSHConfig.Machines)
-	path := c.runtimeConfigFilePath()
-	err := config.WriteConfig(path, c.conf)
-	require.NoError(c.t, err)
 }
 
 // updateConfigFileWithVersion updates the Kubernetes version for each wks machine in the config.yaml file
@@ -254,68 +237,6 @@ func (c *context) updateConfigFileWithVersion(version string) {
 	c.conf.WKSConfig.KubernetesVersion = version
 	err := git.UpdateYAMLFile(info, []string{"wksConfig", "kubernetesVersion"}, version)
 	require.NoError(c.t, err)
-}
-
-// updateConfigFileWithKeyPath sets the path to the ssh key used to talk to the cluster
-func (c *context) updateConfigFileWithKeyPath(keyPath string) {
-	path := c.runtimeConfigFilePath()
-	info := getFileInfo(c.t, path)
-	log.Infof("Configuring SSH Key Path: %s", keyPath)
-	c.conf.WKSConfig.SSHConfig.SSHKeyFile = keyPath
-	err := git.UpdateYAMLFile(info, []string{"wksConfig", "sshConfig", "sshKeyFile"}, keyPath)
-	require.NoError(c.t, err)
-}
-
-// updateDockerPasswordFile updates the docker io password file for the user in the config.yaml
-func (c *context) updateDockerPasswordFile(passwordPath string) {
-	path := c.runtimeConfigFilePath()
-	info := getFileInfo(c.t, path)
-	log.Infof("Configuring docker password file: %s", passwordPath)
-	c.conf.DockerIOPasswordFile = passwordPath
-	err := git.UpdateYAMLFile(info, []string{"dockerIOPasswordFile"}, passwordPath)
-	require.NoError(c.t, err)
-}
-
-// chooseTestOS randomly selects either a CentOS or Ubuntu image for the cluster nodes used to run an upgrade test
-func (c *context) chooseTestOS() {
-	osImage := randomOSImageChoice(c)
-	path := c.runtimeConfigFilePath()
-	info := getFileInfo(c.t, path)
-	log.Infof("Configuring test to use: %s", osImage)
-	if err := git.UpdateYAMLFile(info, []string{"wksConfig", "footlooseConfig", "image"}, osImage); err != nil {
-		err = git.UpdateYAMLFile(info, []string{"wksConfig", "footlooseConfig"}, []interface{}{"image", osImage})
-		require.NoError(c.t, err)
-	}
-}
-
-func (c *context) overrideHomeDirectory() {
-	err := os.Setenv("HOME", c.tmpDir)
-	require.NoError(c.t, err)
-	for idx, val := range c.env {
-		if strings.HasPrefix(val, "HOME=") {
-			c.env[idx] = "HOME=" + c.tmpDir
-			break
-		}
-	}
-}
-
-func (c *context) setupClusterExpectedToFail(errorMessage string) {
-	c.setupClusterAndCheckResult(errorMessage)
-}
-
-// setupClusterAndCheckResult invokes "wk setup run" within the context's temporary director
-func (c *context) setupClusterAndCheckResult(errorMessage string) {
-	deleteRepo(c)
-	c.repoExists = true
-	_, err, errcode := runCommand(c, c.wkBin, "setup", "run")
-	fmt.Println(string(err))
-
-	if errorMessage == "" {
-		require.NoError(c.t, errcode)
-	} else {
-		require.Error(c.t, errcode)
-		require.Contains(c.t, string(err), errorMessage)
-	}
 }
 
 // setupCluster invokes "wk setup run" within the context's temporary directory
@@ -343,30 +264,6 @@ func (c *context) cleanupCluster(flags ...testFlag) {
 	assert.NoError(c.t, err)
 }
 
-// checkClusterAtCorrectVersion retrieves the version from each node in the cluster and ensures that they
-// all match the argument version
-func (c *context) checkClusterAtCorrectVersion(correctVersion string) {
-	retryInfo := &connectRetryInfo{0, 8}
-	for retry := 0; retry < 45; retry++ {
-		c.checkProgress(retryInfo)
-		okay := true
-		versions := getAllNodeVersions(c.t, c.env)
-		log.Infof("Retry: %d, Versions: %s", retry, strings.Join(versions, ", "))
-		for _, version := range versions {
-			if version != correctVersion {
-				okay = false
-				break
-			}
-		}
-		if okay {
-			return
-		}
-		time.Sleep(60 * time.Second)
-	}
-	assert.FailNowf(c.t, "Found incorrect version", "Expected: %s, got: %s", correctVersion,
-		strings.Join(getAllNodeVersions(c.t, c.env), ", "))
-}
-
 // checkClusterAtExpectedNumberOfNodes waits for the cluster to reach the requested number of nodes
 func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int) {
 	retryInfo := &connectRetryInfo{0, 6}
@@ -384,22 +281,6 @@ func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int)
 		len(getAllNodeVersions(c.t, c.env)))
 }
 
-// checkNodeAtExpectedNumberOfReadyPods waits for the cluster to reach the requested number of nodes
-func (c *context) checkNodeAtExpectedNumberOfReadyPods(expectedNumberOfPods int, node string) {
-	retryInfo := &connectRetryInfo{0, 6}
-	for retry := 0; retry < 10; retry++ {
-		c.checkProgress(retryInfo)
-		pods := getAllReadyPodsFromNode(c.t, c.env, node)
-		log.Infof("Pods => Retry: %d, Expected: %d, Count: %d", retry, expectedNumberOfPods, len(pods))
-		if len(pods) >= expectedNumberOfPods {
-			log.Infof("Reached expected node count")
-			return
-		}
-		time.Sleep(30 * time.Second)
-	}
-	assert.FailNow(c.t, "Never reached expected pod count")
-}
-
 // isClusterRunning checks if all expected components are running
 func (c *context) isClusterRunning() bool {
 	for _, component := range allComponents(c.conf.Track) {
@@ -409,11 +290,6 @@ func (c *context) isClusterRunning() bool {
 		}
 	}
 	return true
-}
-
-// checkConfigAtCorrectVersion determines if the config.yaml has been correctly updated
-func (c *context) checkConfigAtCorrectVersion(version string) {
-	require.Equal(c.t, c.conf.WKSConfig.KubernetesVersion, version)
 }
 
 // PodData stores a component id (namespace + name)
@@ -464,14 +340,6 @@ func (c *context) assertSealedSecretsCanBeCreated() {
 	log.Info("Sealed secrets controller installed ok.")
 }
 
-// createSetupCommand creates a new invocation of "wk setup install"
-func (c *context) createSetupCommand() *exec.Cmd {
-	cmd := exec.Command(c.wkBin, "setup", "install")
-	cmd.Dir = c.tmpDir
-	cmd.Env = c.env
-	return cmd
-}
-
 // copyFile copies the contents of a named file to destination file
 func (c *context) copyFile(filename, dstpath string) {
 	_, err := os.Stat(filename)
@@ -512,24 +380,6 @@ func (c *context) showItems(itemType string) error {
 	return c.runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 }
 
-func getTestSSHClient(c *context, portStr string) *ssh.Client {
-	portNum, err := strconv.Atoi(portStr)
-	assert.NoError(c.t, err)
-
-	sshClient, err := ssh.NewClient(ssh.ClientParams{
-		User:           "root",
-		Host:           "127.0.0.1",
-		Port:           uint16(portNum),
-		PrivateKeyPath: filepath.Join(c.tmpDir, "setup", "cluster-key"),
-	})
-	assert.NoError(c.t, err)
-	return sshClient
-}
-
-func randomOSImageChoice(c *context) string {
-	return []string{"quay.io/footloose/centos7", "quay.io/footloose/ubuntu18.04"}[c.randGen.Intn(2)]
-}
-
 func getAllNodeVersions(t *testing.T, env []string) []string {
 	cmdItems := []string{"kubectl", "get", "nodes", "--all-namespaces", "-o", "jsonpath={.items[*].status.nodeInfo.kubeletVersion}"}
 	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
@@ -566,52 +416,6 @@ func getAllReadyNodes(t *testing.T, env []string) []string {
 		}
 	}
 	return result
-}
-
-func getAllReadyPodsFromNode(t *testing.T, env []string, node string) []string {
-	nodeSelector := fmt.Sprintf("spec.nodeName=%s", node)
-	cmdItems := []string{"kubectl", "get", "pods", "--all-namespaces", "--field-selector", nodeSelector, "-o",
-		`jsonpath={range .items[*]}{"\n"}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}`}
-
-	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
-	cmd.Env = env
-	cmdResults, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Infof("Failed to retrieve ready pods: %s from node: %s", cmdResults, node)
-		return nil
-	}
-	nodeStrings := strings.Split(string(cmdResults), "\n")
-	result := []string{}
-	for _, nstr := range nodeStrings {
-		// kube-proxy-nxnf8:Initialized=True;Ready=False;ContainersReady=False;PodScheduled=True;
-		if strings.Contains(nstr, "ContainersReady=True") {
-			result = append(result, nstr)
-		}
-	}
-	return result
-}
-
-func getNodeNameByPrivateIp(t *testing.T, env []string, privateIP string) string {
-	cmdItems := []string{"kubectl", "get", "nodes", "-o",
-		`jsonpath={range .items[*]}{"\n"}{@.metadata.name}:{range @.status.addresses[?(@.type=="InternalIP")]}{@.address}{end}{end}`}
-
-	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
-	cmd.Env = env
-	cmdResults, err := cmd.CombinedOutput()
-	if err != nil {
-		assert.FailNowf(t, "Failed to get node name by private", "ip=%s, err=%s", privateIP, err)
-	}
-	nodeStrings := strings.Split(string(cmdResults), "\n")
-	name := ""
-	for _, nstr := range nodeStrings {
-		// ip-10-18-12-226.ec2.internal:10.18.12.226
-		if strings.Contains(nstr, privateIP) {
-			parts := strings.Split(nstr, ":")
-			name = parts[0]
-			break
-		}
-	}
-	return name
 }
 
 func getFileInfo(t *testing.T, path string) *git.ObjectInfo {
@@ -751,24 +555,6 @@ func (c *context) checkPushCount() {
 	log.Info("Testing number of pushes passed.")
 }
 
-// checkLogsContainString gets the logs of a pod in a namespace and checks if a message is contained in them
-//nolint:unused // Unsure why the linter thinks this is unused as this method is used in the cluster lifecycle test.
-func (c *context) checkLogsContainString(namespace, podName, message string) bool {
-	cmd := exec.Command("kubectl", "logs", "-n", namespace, fmt.Sprintf("-l=name=%s", podName))
-	logs, err := cmd.CombinedOutput()
-	assert.NoError(c.t, err)
-	log.Printf("logs of pod %s: \n%s\n", podName, string(logs))
-	return strings.Contains(string(logs), message)
-}
-
-// checkLogsContainString gets the logs of a pod in a namespace and checks if a message is contained in them
-func (c *context) checkDeploymentLogsContainString(namespace, deploymentName, message string) bool {
-	cmd := exec.Command("kubectl", "logs", "-n", namespace, fmt.Sprintf("deployment/%s", deploymentName))
-	logs, err := cmd.CombinedOutput()
-	assert.NoError(c.t, err)
-	return strings.Contains(string(logs), message)
-}
-
 // Run a command in c.tmpDir, collect stdout and stderr for checking.
 func runCommand(c *context, firstItem string, cmdItems ...string) ([]byte, []byte, error) {
 	cmd := exec.Command(firstItem, cmdItems...)
@@ -809,17 +595,6 @@ func (c *context) runCommandPassThrough(name string, arg ...string) error {
 	return cmd.Run()
 }
 
-// Run kubectl to print all events to stdout, and carry on running in background
-func (c *context) showAllEvents() {
-	go func() {
-		for {
-			err := c.runCommandPassThrough("kubectl", "get", "events", "--all-namespaces", "--watch-only")
-			fmt.Fprintf(os.Stderr, "kubectl get events exited: %v\n", err)
-			time.Sleep(time.Second) // don't restart too quickly
-		}
-	}()
-}
-
 func retryUntilCreated(c *context, apiResource string, namespace string, name string) {
 	args := []string{"get", apiResource, name}
 	if namespace != "" {
@@ -837,204 +612,6 @@ func retryUntilCreated(c *context, apiResource string, namespace string, name st
 		}
 	}
 	c.t.Fatalf("%s %s was not created", apiResource, name)
-}
-
-func (c *context) getWorkspaceYaml(repoName, orgName, teams, role, resourceQuotaSpec, limitRangeSpec string) string {
-	workspaceYamlTemplate := `
-apiVersion: wkp.weave.works/v1beta1
-kind: Workspace
-metadata:
-  name: demo
-  namespace: wkp-workspaces
-spec:
-  interval: 1m
-  suspend: false
-  gitProvider:
-    type: github
-    hostname: github.com
-    tokenRef:
-      name: github-token
-  gitRepository:
-    name: %s
-    owner: %s
-    teams: %s
-  clusterScope:
-    role: %s
-    namespaces:
-    - name: demo-app
-    - name: demo-db
-    - name: demo-resource-quota%s
-    - name: demo-limit-range%s
-    networkPolicy: workspace-isolation
-`
-
-	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams, role, resourceQuotaSpec, limitRangeSpec)
-}
-
-func (c *context) getGitlabWorkspaceYaml(hostName, repoName, orgName, teams, role string) string {
-	workspaceYamlTemplate := `
-apiVersion: wkp.weave.works/v1beta1
-kind: Workspace
-metadata:
-  name: gitlab-demo
-  namespace: wkp-workspaces
-spec:
-  interval: 1m
-  suspend: false
-  gitProvider:
-    type: gitlab
-    hostname: %s
-    tokenRef:
-      name: gitlab-token
-  gitRepository:
-    name: %s
-    owner: %s
-    teams: %s
-  clusterScope:
-    role: %s
-    namespaces:
-    - name: gitlab-demo-app
-    - name: gitlab-demo-db
-    - name: gitlab-demo-resource-quota
-      resourceQuota:
-        hard:
-          limits.cpu: "2"
-          limits.memory: 2Gi
-          requests.cpu: "1"
-          requests.memory: 1Gi
-    - name: gitlab-demo-limit-range
-      limitRange:
-        limits:
-          - max:
-              memory: 1Gi
-            min:
-              memory: 500Mi
-            type: Container
-    networkPolicy: workspace-isolation
-`
-
-	return fmt.Sprintf(workspaceYamlTemplate, hostName, repoName, orgName, teams, role)
-}
-
-func (c *context) getBranchAndPathWorkspaceYaml(repoName, orgName, teams, branch, path, role, resourceQuotaSpec, limitRangeSpec string) string {
-	workspaceYamlTemplate := `
-apiVersion: wkp.weave.works/v1beta1
-kind: Workspace
-metadata:
-  name: demo
-  namespace: wkp-workspaces
-spec:
-  interval: 1m
-  suspend: false
-  gitProvider:
-    type: github
-    hostname: github.com
-    tokenRef:
-      name: github-token
-  gitRepository:
-    name: %s
-    owner: %s
-    teams: %s
-    branch: %s
-    path: %s
-  clusterScope:
-    role: %s
-    namespaces:
-    - name: demo-app
-    - name: demo-db
-    - name: demo-resource-quota%s
-    - name: demo-limit-range%s
-    networkPolicy: workspace-isolation
-`
-
-	return fmt.Sprintf(workspaceYamlTemplate, repoName, orgName, teams, branch, path, role, resourceQuotaSpec, limitRangeSpec)
-}
-
-func (c *context) pushFileToGit(commitMessage, path string) {
-	commitMessage = fmt.Sprintf("-m%s", commitMessage)
-	err := c.runCommandPassThrough("git", "add", path)
-	assert.NoError(c.t, err)
-
-	err = c.runCommandPassThrough("git", "commit", commitMessage)
-	assert.NoError(c.t, err)
-
-	err = c.runCommandPassThrough("git", "push", "origin", "master")
-	assert.NoError(c.t, err)
-}
-
-func (c *context) runInDir(repoDir string, args ...string) error {
-	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Dir = repoDir
-	cmd.Env = c.env
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func nginxDeployment(name, ns string) string {
-	depoymentYaml := `
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: %s
-  namespace: %s
-spec:
-  selector:
-    matchLabels:
-      app: nginx
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-        - name: nginx
-          image: nginx:1.14.2
-          ports:
-            - containerPort: 80
-`
-
-	return fmt.Sprintf(depoymentYaml, name, ns)
-}
-
-func waitCondition(stream io.ReadCloser, timeout time.Duration, condition string, stdout io.Writer, debugStream bool) {
-
-	done := make(chan error)
-
-	go func() {
-		scanner := bufio.NewScanner(stream)
-		for scanner.Scan() {
-			line := scanner.Text()
-			if debugStream {
-				fmt.Fprintf(stdout, "condition: %s, line: %s\n", condition, line)
-			}
-			if strings.Contains(line, condition) {
-				done <- nil
-				return
-			}
-		}
-		if err := scanner.Err(); err != nil {
-			fmt.Fprintf(stdout, "condition was not met. err %s\n", err)
-		}
-		if err := stream.Close(); err != nil {
-			fmt.Fprintf(stdout, "condition was not met. err %s\n", err)
-		}
-		fmt.Fprintf(stdout, "condition was not met. condition: %s\n", condition)
-		fmt.Fprintln(stdout, "waiting for timeout")
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(timeout):
-		fmt.Fprintf(stdout, "condition was not met. timeout reached. condition: %s\n", condition)
-	}
 }
 
 type callback func() string
