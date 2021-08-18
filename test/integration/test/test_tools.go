@@ -820,6 +820,25 @@ func (c *context) showAllEvents() {
 	}()
 }
 
+func retryUntilCreated(c *context, apiResource string, namespace string, name string) {
+	args := []string{"get", apiResource, name}
+	if namespace != "" {
+		args = append(args, "-n", namespace)
+	}
+	for i := 0; i < 20; i++ {
+		time.Sleep(5 * time.Second)
+		cmd := exec.Command("kubectl", args...)
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		err := cmd.Run()
+		if err == nil {
+			c.t.Logf("%s %s created", apiResource, name)
+			return
+		}
+	}
+	c.t.Fatalf("%s %s was not created", apiResource, name)
+}
+
 func (c *context) getWorkspaceYaml(repoName, orgName, teams, role, resourceQuotaSpec, limitRangeSpec string) string {
 	workspaceYamlTemplate := `
 apiVersion: wkp.weave.works/v1beta1

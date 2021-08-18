@@ -89,13 +89,6 @@ func CreateLocalRepo(gitDir string, privKey []byte) (*GitRepo, error) {
 	}, nil
 }
 
-func qualifiedRepo(o, r string) string {
-	if o == "" {
-		return r
-	}
-	return o + "/" + r
-}
-
 func CloneToTempDir(parentDir, gitURL, branch string, privKey []byte) (*GitRepo, error) {
 	log.Infof("Creating a temp directory...")
 	gitDir, err := ioutil.TempDir(parentDir, "git-")
