@@ -3,77 +3,42 @@ module github.com/weaveworks/wks
 go 1.15
 
 require (
-	github.com/OneOfOne/xxhash v1.2.5 // indirect
-	github.com/alioygur/gores v1.2.1
-	github.com/blang/semver v3.5.1+incompatible
 	github.com/cloudevents/sdk-go/protocol/nats/v2 v2.3.1
 	github.com/cloudevents/sdk-go/v2 v2.3.1
-	github.com/docker/distribution v2.7.1+incompatible
-	github.com/fluxcd/go-git-providers v0.2.0
-	github.com/ghodss/yaml v1.0.0
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-resty/resty/v2 v2.5.0
 	github.com/google/go-cmp v0.5.6
-	github.com/google/go-containerregistry v0.1.3
-	github.com/google/go-github/v26 v26.1.3
-	github.com/google/go-github/v32 v32.1.0
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/mux v1.8.0
-	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/jcmturner/gofork v1.0.0 // indirect
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
-	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nats-io/nats-server/v2 v2.1.7
 	github.com/nats-io/nats.go v1.10.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
-	github.com/open-policy-agent/opa v0.12.2
-	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
-	github.com/pkg/errors v0.9.1
 	github.com/prometheus/alertmanager v0.21.0
-	github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563 // indirect
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
-	github.com/segmentio/ksuid v1.0.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
-	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/selenium v0.9.9
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e
 	github.com/weaveworks/footloose v0.0.0-20210208164054-2862489574a3
-	github.com/weaveworks/libgitops v0.0.2
 	github.com/weaveworks/wks/cmd/capi-server v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/wks/common v0.0.0
 	github.com/weaveworks/wksctl v0.10.2
-	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
-	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1
 	golang.org/x/tools v0.1.3
-	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
-	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
-	gopkg.in/jcmturner/goidentity.v3 v3.0.0 // indirect
-	gopkg.in/jcmturner/gokrb5.v6 v6.0.0-00010101000000-000000000000
-	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
-	gopkg.in/src-d/go-git.v4 v4.13.1
-	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/datatypes v1.0.0
 	gorm.io/gorm v1.21.11
-	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.21.2
 	k8s.io/apimachinery v0.21.2
 	k8s.io/cli-runtime v0.21.2
 	k8s.io/client-go v0.21.2
-	k8s.io/kubernetes v1.21.1
-	sigs.k8s.io/cluster-api v0.3.16
+	k8s.io/kubernetes v1.21.1 // indirect
 	sigs.k8s.io/controller-runtime v0.9.0
-	sigs.k8s.io/kustomize/kyaml v0.11.0
 )
 
 replace (

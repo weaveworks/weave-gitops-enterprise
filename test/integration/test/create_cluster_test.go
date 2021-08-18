@@ -36,8 +36,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/wks/pkg/utilities/config"
 )
 
 var (
@@ -115,12 +113,6 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 
 	if c.conf.Track == "eks" {
 		updateClusterNameAndRegionForTest(c, region)
-	}
-
-	if c.conf.Track == "wks-ssh" && c.conf.WKSConfig.ControlPlaneLbAddress != "" {
-		log.Infof("ControlPlaneLbAddress detected! %v. installing...", c.conf.WKSConfig.ControlPlaneLbAddress)
-		err := config.ConfigureHAProxy(c.conf, filepath.Join(c.tmpDir, "setup"), 22)
-		require.NoError(c.t, err)
 	}
 
 	c.setupPrePushHook()

@@ -26,6 +26,7 @@ integrationTestCommonEnv: &integrationTestCommonEnv
   SERVICE_CIDR_BLOCK: '10.96.0.0/12'
   WKP_DEBUG: true
 
+
 workflows:
   test-build-deploy:
     jobs:
@@ -59,6 +60,16 @@ workflows:
             - mccp-ui-backend-integration-tests
 
 commands:
+  get-wk-binary:
+    description: Get the wk binary from s3
+    steps:
+      - run:
+          name: Get the wk binary from s3
+          command: |
+            DST_PATH=cmd/wk/wk
+            mkdir -p cmd/wk
+            curl -o "$DST_PATH" https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-linux-amd64
+            chmod +x "$DST_PATH"
   get-mccp-binary:
     description: Get the mccp binary from workspace or s3
     steps:
@@ -190,6 +201,7 @@ commands:
       - reload-wkp-ssh-keys
       - attach_workspace:
           at: /tmp/workspace
+      - get-wk-binary
       - get-mccp-binary
 
   install-kind:
