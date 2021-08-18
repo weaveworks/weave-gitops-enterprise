@@ -129,9 +129,8 @@ cmd/mccp/mccp: cmd/mccp/*.go
 cmd/gitops-repo-broker/gitops-repo-broker: $(call godeps,./cmd/gitops-repo-broker)
 cmd/ui-server/ui-server: cmd/ui-server/*.go
 
-cmd/ui-server/html: ui/build ui-cra/build
+cmd/ui-server/html: ui-cra/build
 	mkdir -p $@
-	cp -r ui/build $@/wkp-ui
 	cp -r ui-cra/build $@/mccp
 
 cmd/mccp/mccp:
@@ -147,17 +146,11 @@ cmd/wkp-agent/wkp-agent:
 cmd/ui-server/ui-server:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/ui-server/*.go
 
-ui-cra/build: user-guide/public
+ui-cra/build:
 	cd ui-cra && yarn install --frozen-lockfile && yarn build
-	cp -r user-guide/public ui-cra/build/docs
-
-EMBEDMD_FILES = \
-	docs/entitlements.md \
-	$(NULL)
 
 lint:
 	bin/go-lint
-	bin/check-embedmd.sh $(EMBEDMD_FILES)
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
@@ -183,7 +176,7 @@ clean:
 	rm -rf $(UPTODATE_FILES)
 	rm -f $(BINARIES)
 	rm -f $(GENERATED)
-	rm -rf ui/build
+	rm -rf ui-cra/build
 	rm -rf cmd/ui-server/html
 
 push:
