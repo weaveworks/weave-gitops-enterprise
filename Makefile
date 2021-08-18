@@ -10,9 +10,6 @@ VERSION=$(shell git describe --always --match "v*")
 WEAVE_GITOPS_VERSION=$(shell git describe --always --match "weave-gitops-clusters-v*" | sed 's/^[^0-9]*//')
 CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
-BUILD_IN_CONTAINER=true
-BUILD_IMAGE=docker.io/weaveworks/wkp-wks-build
-BUILD_UPTODATE=wks-build/.uptodate
 GOOS := $(shell go env GOOS)
 ifeq ($(GOOS),linux)
 	cgo_ldflags=-linkmode external -w -extldflags "-static"
@@ -104,104 +101,31 @@ $(patsubst $(IMAGE_PREFIX)%,imagetag-%,$(1)): $(patsubst $(IMAGE_PREFIX)%,%,$(1)
 endef
 $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
-all: wksctl-version $(UPTODATE_FILES) binaries
+all: $(UPTODATE_FILES) binaries
 
 check: all lint unit-tests container-tests
 
 LOCAL_BINARIES = \
-	cmd/wk/wk \
-	cmd/mccp/mccp \
-	cmd/wks-entitle/wks-entitle \
-	cmd/update-manifest/update-manifest
+	cmd/mccp/mccp
 
 BINARIES = \
 	$(LOCAL_BINARIES) \
-	cmd/git-provider-service/git-provider-service \
 	cmd/gitops-repo-broker/gitops-repo-broker \
-	cmd/mock-authz-server/server \
-	cmd/mock-https-authz-server/server \
 	cmd/ui-server/ui-server \
-	cmd/wks-ci/checks/policy/policy \
 	cmd/wkp-agent/wkp-agent \
-	kerberos/cmd/k8s-krb5-server/server \
-	kerberos/cmd/wk-kerberos/wk-kerberos \
 	$(NULL)
 
 binaries: $(BINARIES)
 
 godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $1)
 
-DEPS=$(call godeps,./cmd/wk)
-
-GENERATED = pkg/opa/policy/policy_vfsdata.go pkg/setup/setup_vfsdata.go
-
 # .uptodate files are for Docker builds, which should happen outside of the container
-cmd/wks-ci/checks/policy/.uptodate: cmd/policy/policy
-cmd/wks-ci/.uptodate: cmd/wks-ci/wks-ci cmd/wks-ci/checks/policy/policy cmd/wks-ci/Dockerfile
-kerberos/cmd/k8s-krb5-server/.uptodate: kerberos/cmd/k8s-krb5-server/server kerberos/cmd/k8s-krb5-server/Dockerfile
-cmd/mock-authz-server/.uptodate: cmd/mock-authz-server/server cmd/mock-authz-server/Dockerfile
-cmd/mock-https-authz-server/.uptodate: cmd/mock-https-authz-server/server cmd/mock-https-authz-server/Dockerfile
-cmd/git-provider-service/.uptodate: cmd/git-provider-service/git-provider-service cmd/git-provider-service/Dockerfile
 cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/gitops-repo-broker/Dockerfile
 cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
 cmd/wkp-agent/.uptodate: cmd/wkp-agent/wkp-agent cmd/wkp-agent/Dockerfile
 
-wkp-cluster-components/.uptodate: wkp-cluster-components/build
-
-# Cluster Components
-CC_CODE_DEPS = $(shell find wkp-cluster-components/src wkp-cluster-components/templates -type f)
-CC_BUILD_DEPS = \
-	wkp-cluster-components/.babelrc \
-	wkp-cluster-components/package.json \
-	wkp-cluster-components/package-lock.json
-CC_DEPS = $(CC_CODE_DEPS) $(CC_BUILD_DEPS)
-wkp-cluster-components/build: $(CC_DEPS)
-
-# All dependencies for binaries must be listed outside of the BUILD_IN_CONTAINER if-statement.
-
-USER_GUIDE_SOURCES=$(shell find user-guide/ -name public -prune -o -type f -print) user-guide/content/deps/_index.md
-user-guide/public: $(USER_GUIDE_SOURCES)
-
-# # Third-party build dependencies
-# SCA_DEPS = \
-#	go.mod \
-#	ui/package.json \
-#	wkp-cluster-components/package.json \
-#	setup/wk-quickstart/setup/dependencies.toml \
-#	$(shell find wkp-cluster-components/templates -name 'helm-release.yaml' -prune -print)
-
-# # Generate the third-party deps page for the user-guide if any of the deps have changed
-# user-guide/content/deps/_index.md: $(SCA_DEPS)
-#	bin/sca-generate-deps.sh
-
-POLICIES=$(shell find pkg/opa/policy/rego -name '*.rego' -print)
-pkg/opa/policy/policy_vfsdata.go: $(POLICIES)
-
-SETUP=$(shell find setup -name bin -prune -o -type f -print)
-pkg/setup/setup_vfsdata.go: $(SETUP)
-
-cmd/wk/wk: $(DEPS) $(GENERATED)
-cmd/wk/wk: cmd/wk/*.go
-
-cmd/mccp/mccp: $(DEPS) $(GENERATED)
 cmd/mccp/mccp: cmd/mccp/*.go
 
-cmd/wks-ci/checks/policy/policy: cmd/wks-ci/checks/policy/*.go $(GENERATED)
-
-ENTITLE_DEPS=$(call godeps,./cmd/wks-entitle)
-cmd/wks-entitle/wks-entitle: $(ENTITLE_DEPS)
-
-CI_DEPS=$(call godeps,./cmd/wks-ci)
-cmd/wks-ci/wks-ci: $(CI_DEPS)
-
-UPDATE_MANIFEST_DEPS=$(call godeps,./cmd/update-manifest)
-cmd/update-manifest/update-manifest: $(UPDATE_MANIFEST_DEPS)
-
-kerberos/cmd/wk-kerberos/wk-kerberos: $(call godeps,./kerberos/cmd/wk-kerberos/)
-kerberos/cmd/k8s-krb5-server/server: kerberos/cmd/k8s-krb5-server/*.go
-cmd/mock-authz-server/server: cmd/mock-authz-server/*.go
-cmd/mock-https-authz-server/server: cmd/mock-https-authz-server/*.go
-cmd/git-provider-service/git-provider-service: $(call godeps,./cmd/git-provider-service)
 cmd/gitops-repo-broker/gitops-repo-broker: $(call godeps,./cmd/gitops-repo-broker)
 cmd/ui-server/ui-server: cmd/ui-server/*.go
 
@@ -210,71 +134,8 @@ cmd/ui-server/html: ui/build ui-cra/build
 	cp -r ui/build $@/wkp-ui
 	cp -r ui-cra/build $@/mccp
 
-ifeq ($(BUILD_IN_CONTAINER),true)
-
-$(BINARIES) $(GENERATED) wkp-cluster-components/build ui/build unit-tests generate-manifests lint: $(BUILD_UPTODATE)
-	$(SUDO) docker run -ti --rm \
-		-v $(shell pwd):/src/github.com/weaveworks/wks:delegated \
-		-v $(shell go env GOPATH)/pkg:/go/pkg:delegated \
-		--net=host \
-		-e SRC_PATH=/src/github.com/weaveworks/wks -e GOPATH=/go/ \
-		-e GOARCH -e GOOS -e CIRCLECI -e CIRCLE_BUILD_NUM -e CIRCLE_NODE_TOTAL \
-		-e CIRCLE_NODE_INDEX -e COVERDIR -e SLOW -e TESTDIRS \
-		$(BUILD_IMAGE) $@
-
-else # not BUILD_IN_CONTAINER
-
-user-guide/public:
-	cd user-guide && ./make-static.sh $(VERSION)
-
-pkg/opa/policy/policy_vfsdata.go:
-	go generate ./pkg/opa/policy
-
-pkg/setup/setup_vfsdata.go:
-	RELEASE_GOOS=$(LOCAL_BINARIES_GOOS) ./tools/build/setup/build-release.sh $(CURRENT_DIR)/setup $(CURRENT_DIR)/setup/wk-quickstart/setup/dependencies.toml
-	go generate ./pkg/setup
-	# Clean up. FIXME: do this better.
-	@rm -rf $(CURRENT_DIR)/setup/wk-quickstart/setup/VERSION
-	@rm -rf $(CURRENT_DIR)/setup/wk-quickstart/.git
-
-# ensure we use the same version for controller when go.mod references a wksctl release
-WKSCTL_GO_MOD_VERSION=$(shell grep wksctl go.mod | cut -d' ' -f2 | egrep -v '=>|.*[-][0-9]{14}[-][0-9]{12}')
-WKSCTL_DEPS_VERSION=$(shell awk 'BEGIN {FS="\""}; /\[controller]/ {found=1; next}; found==1 {print($$2); exit}' setup/wk-quickstart/setup/dependencies.toml)
-wksctl-version:
-	@test -n "$(WKSCTL_GO_MOD_VERSION)" && test "$(WKSCTL_GO_MOD_VERSION)" != "$(WKSCTL_DEPS_VERSION)" && ex '+/\[controller]' -c"+1|s/\".*\"/\"$(WKSCTL_GO_MOD_VERSION)\"/|x" setup/wk-quickstart/setup/dependencies.toml >/dev/null 2>&1 || true
-
-cmd/wk/wk:
-	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/wk/*.go
-
 cmd/mccp/mccp:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/mccp/*.go
-
-cmd/wks-ci/checks/policy/policy:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/checks/policy/*.go
-
-cmd/wks-entitle/wks-entitle:
-	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-entitle/*.go
-
-cmd/wks-ci/wks-ci:
-	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/wks-ci/*.go
-
-cmd/update-manifest/update-manifest:
-	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/update-manifest/*.go
-
-kerberos/cmd/wk-kerberos/wk-kerberos:
-	CGO_ENABLED=0 GOARCH=amd64 go build -o $@ ./kerberos/cmd/wk-kerberos
-
-kerberos/cmd/k8s-krb5-server/server:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ ./kerberos/cmd/k8s-krb5-server
-
-cmd/mock-authz-server/server:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-authz-server/*.go
-
-cmd/mock-https-authz-server/server:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/mock-https-authz-server/*.go
-
-cmd/git-provider-service/git-provider-service:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $@ ./cmd/git-provider-service
 
 cmd/gitops-repo-broker/gitops-repo-broker:
 	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
@@ -286,22 +147,9 @@ cmd/wkp-agent/wkp-agent:
 cmd/ui-server/ui-server:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/ui-server/*.go
 
-ui/build: user-guide/public
-	cd ui && yarn install --frozen-lockfile && yarn lint && yarn test && yarn build
-	cp -r user-guide/public ui/build/docs
-
 ui-cra/build: user-guide/public
 	cd ui-cra && yarn install --frozen-lockfile && yarn build
 	cp -r user-guide/public ui-cra/build/docs
-
-wkp-cluster-components/build:
-	cd wkp-cluster-components && \
-		npm ci && \
-		VERSION=$(VERSION) IMAGE_TAG=$(IMAGE_TAG) npm run build
-	touch $@
-
-generate-manifests:
-	cd wkp-cluster-components && npm run generate-manifests
 
 EMBEDMD_FILES = \
 	docs/entitlements.md \
@@ -322,8 +170,6 @@ unit-tests: $(GENERATED)
 	WKP_DEBUG=true go test -v ./cmd/... ./pkg/...
 	cd cmd/event-writer && go test ./converter/... ./database/... ./liveness/... ./subscribe/... ./run/... ./test/...
 	cd common && go test ./...
-
-endif # BUILD_IN_CONTAINER
 
 ui-build-for-tests:
 	cd ui-cra && yarn install && yarn build
@@ -346,12 +192,5 @@ push:
 			docker push $$IMAGE_NAME:$(IMAGE_TAG); \
 		fi \
 	done
-
-container-tests:
-	WKP_DEBUG=true go test -count=1 ./test/container/...
-
-cluster-component-tests: wkp-cluster-components/build
-	WKP_DEBUG=true EXPECTED_VERSION=$(VERSION) EXPECTED_IMAGE_TAG=$(IMAGE_TAG) go test -v ./wkp-cluster-components/...
-
 
 FORCE:
