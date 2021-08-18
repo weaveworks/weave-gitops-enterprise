@@ -184,7 +184,7 @@ commands:
           name: load ssh keys
           command: |
             # remove the circle config which locks down github keys
-            mv ~/.ssh/config{,.old}
+            # mv ~/.ssh/config{,.old}
             echo $WKP_GITHUB_PRIVATE_KEY | base64 -d > user-ssh-key
             chmod 600 user-ssh-key
             ssh-agent -s | grep -v echo >> $BASH_ENV
