@@ -254,7 +254,7 @@ jobs:
             export AWS_ACCESS_KEY_ID=$WKP_S3_AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$WKP_S3_AWS_SECRET_ACCESS_KEY
 
-            TAG=$(git describe --always --match "weave-gitops-clusters*")
+            TAG=$(git describe --always --match "v*")
             IMAGE_TAG=$(./tools/image-tag)
             
             CHART_VALUES_PATH=./charts/mccp/values.yaml

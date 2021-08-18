@@ -22,8 +22,7 @@ kubectl create secret docker-registry docker-io-pull-secret \
 kubectl create secret generic git-provider-credentials \
   --namespace=mccp \
   --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
-# FIXME: should be pattern matched against weave-gitops tags
-CHART_VERSION=$(git describe --always --match "weave-gitops*" --abbrev=8 HEAD| sed 's/^[^0-9]*//')
+CHART_VERSION=$(git describe --always --match "v*" --abbrev=8 HEAD| sed 's/^[^0-9]*//')
 helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
 helm repo update
 helm upgrade --install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
