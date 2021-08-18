@@ -1,4 +1,4 @@
-.PHONY: all install clean images lint unit-tests check wksctl-version generate-manifests ui-build-for-tests update-mccp-chart-values update-wkp-ui-chart-values
+.PHONY: all install clean images lint unit-tests check ui-build-for-tests update-mccp-chart-values update-wkp-ui-chart-values
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -103,7 +103,7 @@ $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
 all: $(UPTODATE_FILES) binaries
 
-check: all lint unit-tests container-tests
+check: all lint unit-tests
 
 LOCAL_BINARIES = \
 	cmd/mccp/mccp

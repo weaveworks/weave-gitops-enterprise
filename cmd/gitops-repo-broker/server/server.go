@@ -4,16 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/agent"
 	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/branches"
 	"github.com/weaveworks/wks/common/database/utils"
 	"github.com/weaveworks/wks/pkg/utilities/healthcheck"
 )
@@ -37,11 +34,7 @@ type ParamSet struct {
 }
 
 func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
-	privKey, err := ioutil.ReadFile(params.PrivKeyFile)
-	if err != nil {
-		log.Info("Error reading private key, starting in MCCP only mode")
-	}
-
+	var err error
 	uri := params.DbURI
 	if params.DbType == "sqlite" {
 		uri, err = utils.GetSqliteUri(params.DbURI, params.DbBusyTimeout)
@@ -57,8 +50,6 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 	}
 
 	r := mux.NewRouter()
-
-	r.HandleFunc("/gitops/repo/branches", branches.List(ctx, params.GitURL, params.PrivKeyFile)).Methods("GET")
 
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(
 		db, params.AgentTemplateNatsURL, params.AgentTemplateAlertmanagerURL)).Methods("GET")
