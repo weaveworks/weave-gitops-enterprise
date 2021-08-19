@@ -16,7 +16,7 @@ import { Input } from '../../../utils/form';
 import { Loader } from '../../Loader';
 
 interface Props {
-  clusters: string[];
+  selectedCapiClusters: string[];
   onClose: () => void;
 }
 
@@ -28,9 +28,13 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
+export const DeleteClusterDialog: FC<Props> = ({
+  selectedCapiClusters,
+  onClose,
+}) => {
   const classes = useStyles();
   const random = Math.random().toString(36).substring(7);
+  const { clusters } = useClusters();
   const [branchName, setBranchName] = useState<string>(
     `delete-clusters-branch-${random}`,
   );
@@ -41,7 +45,7 @@ export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
     'Deletes capi cluster(s)',
   );
   const [pullRequestDescription, setPullRequestDescription] = useState<string>(
-    `Delete clusters: ${clusters.map(c => c).join(', ')}`,
+    `Delete clusters: ${selectedCapiClusters.map(c => c).join(', ')}`,
   );
 
   const { deleteCreatedClusters, creatingPR } = useClusters();
@@ -71,7 +75,7 @@ export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
 
   const handleClickRemove = () =>
     deleteCreatedClusters({
-      clusterNames: clusters,
+      clusterNames: selectedCapiClusters,
       headBranch: branchName,
       title: pullRequestTitle,
       commitMessage,

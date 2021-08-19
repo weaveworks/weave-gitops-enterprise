@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { NotificationDialog } from '../../components/Layout/Notification';
 import { Notification, NotificationData } from './index';
 
 const NotificationProvider: FC = ({ children }) => {
@@ -7,7 +8,6 @@ const NotificationProvider: FC = ({ children }) => {
     useState<NotificationData | null>(null);
   const history = useHistory();
 
-  // clear notifications after a specific period of time if the history doesn't change?
   const clear = useCallback(() => {
     setNotification(null);
   }, []);
@@ -18,6 +18,7 @@ const NotificationProvider: FC = ({ children }) => {
 
   return (
     <Notification.Provider value={{ notification, setNotification }}>
+      {notification ? <NotificationDialog /> : null}
       {children}
     </Notification.Provider>
   );
