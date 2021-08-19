@@ -1,17 +1,36 @@
 import React, { FC, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import {
+  makeStyles,
+  createMuiTheme,
+  ThemeProvider,
+} from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
+import { muiTheme } from '../../muiTheme';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useNotifications from '../../contexts/Notifications';
+
+const localMuiTheme = createMuiTheme({
+  ...muiTheme,
+  overrides: {
+    ...muiTheme.overrides,
+    MuiPaper: {
+      ...muiTheme.overrides?.MuiPaper,
+      rounded: {
+        ...muiTheme.overrides?.MuiPaper?.rounded,
+        borderRadius: theme.spacing.small,
+      },
+    },
+  },
+});
 
 const useStyles = makeStyles(() =>
   createStyles({
     dialog: {
       backgroundColor: theme.colors.gray50,
-      borderRadius: theme.spacing.xs,
       boxShadow: theme.boxShadow.light,
+      opacity: 0.85,
     },
     content: {
       display: 'flex',
@@ -39,20 +58,28 @@ export const NotificationDialog: FC = () => {
   };
 
   return (
-    <Dialog open maxWidth="sm" fullWidth onClose={onClose}>
-      <div id="notification-popup" className={classes.dialog}>
-        <DialogTitle disableTypography>
-          <CloseIconButton onClick={onClose} />
-        </DialogTitle>
-        <DialogContent className={classes.content}>
-          <span style={{ color: getColor(notification?.variant) }}>
-            {notification?.variant}:
-          </span>
-          <div style={{ padding: theme.spacing.small }}>
-            {notification?.message}
-          </div>
-        </DialogContent>
-      </div>
-    </Dialog>
+    <ThemeProvider theme={localMuiTheme}>
+      <Dialog
+        open
+        maxWidth="sm"
+        fullWidth
+        onClose={onClose}
+        className={classes.dialog}
+      >
+        <div id="notification-popup">
+          <DialogTitle disableTypography>
+            <CloseIconButton onClick={onClose} />
+          </DialogTitle>
+          <DialogContent className={classes.content}>
+            <span style={{ color: getColor(notification?.variant) }}>
+              {notification?.variant}:
+            </span>
+            <div style={{ padding: theme.spacing.small }}>
+              {notification?.message}
+            </div>
+          </DialogContent>
+        </div>
+      </Dialog>
+    </ThemeProvider>
   );
 };
