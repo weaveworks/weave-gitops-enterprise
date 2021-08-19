@@ -59,7 +59,7 @@ export const NotificationDialog: FC = () => {
   return (
     <ThemeProvider theme={localMuiTheme}>
       <Dialog
-        open
+        open={open}
         maxWidth="sm"
         fullWidth
         onClose={onClose}

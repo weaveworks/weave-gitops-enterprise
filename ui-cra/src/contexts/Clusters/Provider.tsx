@@ -73,7 +73,12 @@ const ClustersProvider: FC = ({ children }) => {
         setDisabled(false);
         setAbortController(null);
       });
-  }, [abortController, clustersParameters, setNotification]);
+  }, [
+    abortController,
+    clustersParameters,
+    setNotification,
+    notification?.message,
+  ]);
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest) => {
