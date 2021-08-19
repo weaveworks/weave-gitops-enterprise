@@ -354,6 +354,22 @@ func UnregisterCluster(db *gorm.DB) func(w http.ResponseWriter, r *http.Request)
 		}
 
 		err = db.Transaction(func(tx *gorm.DB) error {
+			var ids []uint
+
+			if err := tx.Table("pr_clusters").Select("pr_id").Where("cluster_id", cluster.ID).Find(&ids).Error; err != nil {
+				return fmt.Errorf("failed to retrieve pull request ids when unregistering Cluster %q: %w", cluster.Token, err)
+			}
+
+			for _, id := range ids {
+				if err := tx.Where("id = ?", id).Delete(&models.PullRequest{}).Error; err != nil {
+					return fmt.Errorf("failed to delete pull requests when unregistering Cluster %q: %w", cluster.Token, err)
+				}
+			}
+
+			if err := tx.Where("cluster_id = ?", cluster.ID).Delete(&models.PRCluster{}).Error; err != nil {
+				return fmt.Errorf("failed to delete pull request to cluster associations when unregistering Cluster %q: %w", cluster.Token, err)
+			}
+
 			dependentObjectsToDelete := []interface{}{
 				&models.Event{},
 				&models.NodeInfo{},
