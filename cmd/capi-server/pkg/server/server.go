@@ -242,11 +242,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return err
 		}
 
-		prCluster := &models.PRCluster{
-			PRID:      pr.ID,
-			ClusterID: c.ID,
-		}
-		if err := tx.Create(prCluster).Error; err != nil {
+		c.PullRequests = append(c.PullRequests, pr)
+		if err := tx.Save(c).Error; err != nil {
 			return err
 		}
 
@@ -417,11 +414,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		var cluster models.Cluster
 		s.db.Where("name = ?", clusterName).Find(&cluster)
 
-		prCluster := &models.PRCluster{
-			PRID:      pr.ID,
-			ClusterID: cluster.ID,
-		}
-		if err := s.db.Create(prCluster).Error; err != nil {
+		cluster.PullRequests = append(cluster.PullRequests, pr)
+		if err := s.db.Save(cluster).Error; err != nil {
 			return nil, err
 		}
 	}
