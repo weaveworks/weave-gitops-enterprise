@@ -30,7 +30,6 @@ const useStyles = makeStyles(() =>
     dialog: {
       backgroundColor: theme.colors.gray50,
       boxShadow: theme.boxShadow.light,
-      opacity: 0.85,
     },
     content: {
       display: 'flex',
@@ -59,14 +58,8 @@ export const NotificationDialog: FC = () => {
 
   return (
     <ThemeProvider theme={localMuiTheme}>
-      <Dialog
-        open
-        maxWidth="sm"
-        fullWidth
-        onClose={onClose}
-        className={classes.dialog}
-      >
-        <div id="notification-popup">
+      <Dialog open maxWidth="sm" fullWidth onClose={onClose}>
+        <div id="notification-popup" className={classes.dialog}>
           <DialogTitle disableTypography>
             <CloseIconButton onClick={onClose} />
           </DialogTitle>

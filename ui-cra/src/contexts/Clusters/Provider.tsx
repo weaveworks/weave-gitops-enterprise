@@ -27,6 +27,7 @@ const ClustersProvider: FC = ({ children }) => {
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
   const { setNotification } = useNotifications();
   const [creatingPR, setCreatingPR] = useState<boolean>(false);
+  const { notification } = useNotifications();
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -60,7 +61,10 @@ const ClustersProvider: FC = ({ children }) => {
         setClusters(res.data.clusters);
       })
       .catch(err => {
-        if (err.name !== 'AbortError') {
+        if (
+          err.name !== 'AbortError' &&
+          err.message !== notification?.message
+        ) {
           setNotification({ message: err.message, variant: 'danger' });
         }
       })
