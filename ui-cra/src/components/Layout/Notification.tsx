@@ -1,15 +1,15 @@
-import React, { FC, useState } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@material-ui/core';
+import React, { FC, useState } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@material-ui/core";
 import {
   makeStyles,
   createMuiTheme,
   ThemeProvider,
-} from '@material-ui/core/styles';
-import { createStyles } from '@material-ui/styles';
-import { muiTheme } from '../../muiTheme';
-import theme from 'weaveworks-ui-components/lib/theme';
-import { CloseIconButton } from '../../assets/img/close-icon-button';
-import useNotifications from '../../contexts/Notifications';
+} from "@material-ui/core/styles";
+import { createStyles } from "@material-ui/styles";
+import { muiTheme } from "../../muiTheme";
+import theme from "weaveworks-ui-components/lib/theme";
+import { CloseIconButton } from "../../assets/img/close-icon-button";
+import useNotifications from "../../contexts/Notifications";
 
 const localMuiTheme = createMuiTheme({
   ...muiTheme,
@@ -32,12 +32,12 @@ const useStyles = makeStyles(() =>
       boxShadow: theme.boxShadow.light,
     },
     content: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
       padding: theme.spacing.medium,
     },
-  }),
+  })
 );
 
 export const NotificationDialog: FC = () => {
@@ -45,10 +45,10 @@ export const NotificationDialog: FC = () => {
   const { notification, setNotification } = useNotifications();
   const classes = useStyles();
   const getColor = (variant?: string) => {
-    if (variant === 'danger') {
-      return '#BC3B1D';
+    if (variant === "danger") {
+      return "#BC3B1D";
     } else {
-      return '#27AE60';
+      return "#27AE60";
     }
   };
   const onClose = () => {
@@ -58,7 +58,13 @@ export const NotificationDialog: FC = () => {
 
   return (
     <ThemeProvider theme={localMuiTheme}>
-      <Dialog open maxWidth="sm" fullWidth onClose={onClose}>
+      <Dialog
+        open
+        maxWidth="sm"
+        fullWidth
+        onClose={onClose}
+        BackdropProps={{ style: { backgroundColor: "transparent" } }}
+      >
         <div id="notification-popup" className={classes.dialog}>
           <DialogTitle disableTypography>
             <CloseIconButton onClick={onClose} />

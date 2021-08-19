@@ -1,27 +1,27 @@
-import React, { FC, useCallback, useState } from 'react';
-import useClusters from '../../contexts/Clusters';
-import { Cluster } from '../../types/kubernetes';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
+import React, { FC, useCallback, useState } from "react";
+import useClusters from "../../contexts/Clusters";
+import { Cluster } from "../../types/kubernetes";
+import { PageTemplate } from "../Layout/PageTemplate";
+import { SectionHeader } from "../Layout/SectionHeader";
 import {
   faArrowUp,
   faPlus,
   faTrashAlt,
-} from '@fortawesome/free-solid-svg-icons';
-import { Snackbar } from '@material-ui/core';
-import { ClustersTable } from './Table';
-import { FinishMessage, Tooltip } from '../Shared';
-import { ConnectClusterDialog } from './Connect/ConnectDialog';
-import { useHistory } from 'react-router-dom';
-import useTemplates from '../../contexts/Templates';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import styled from 'styled-components';
-import { OnClickAction } from '../Action';
-import theme from 'weaveworks-ui-components/lib/theme';
-import { DeleteClusterDialog } from './Create/Delete';
+} from "@fortawesome/free-solid-svg-icons";
+import { Snackbar } from "@material-ui/core";
+import { ClustersTable } from "./Table";
+import { FinishMessage, Tooltip } from "../Shared";
+import { ConnectClusterDialog } from "./Connect/ConnectDialog";
+import { useHistory } from "react-router-dom";
+import useTemplates from "../../contexts/Templates";
+import { ContentWrapper } from "../Layout/ContentWrapper";
+import styled from "styled-components";
+import { OnClickAction } from "../Action";
+import theme from "weaveworks-ui-components/lib/theme";
+import { DeleteClusterDialog } from "./Create/Delete";
 
 interface Size {
-  size?: 'small';
+  size?: "small";
 }
 
 const ActionsWrapper = styled.div<Size>`
@@ -42,7 +42,6 @@ const MCCP: FC = () => {
   const {
     clusters,
     count,
-    loading,
     disabled,
     handleRequestSort,
     handleSetPageParams,
@@ -56,8 +55,8 @@ const MCCP: FC = () => {
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
 
   const NEW_CLUSTER = {
-    name: '',
-    token: '',
+    name: "",
+    token: "",
   };
 
   const history = useHistory();
@@ -65,23 +64,23 @@ const MCCP: FC = () => {
 
   const handleAddCluster = useCallback(() => {
     if (activeTemplate === null) {
-      history.push('/clusters/templates');
+      history.push("/clusters/templates");
       return null;
     }
     history.push(`/clusters/templates/${activeTemplate.name}/create`);
   }, [activeTemplate, history]);
 
-  const capiClusters = clusters.filter(cls => cls.capiCluster);
+  const capiClusters = clusters.filter((cls) => cls.capiCluster);
 
-  const selectedCapiClusters = selectedClusters.filter(cls =>
-    capiClusters.find(c => c.name === cls),
+  const selectedCapiClusters = selectedClusters.filter((cls) =>
+    capiClusters.find((c) => c.name === cls)
   );
 
   return (
     <PageTemplate documentTitle="WeGo · Clusters">
       <SectionHeader
         className="count-header"
-        path={[{ label: 'Clusters', url: 'clusters', count }]}
+        path={[{ label: "Clusters", url: "clusters", count }]}
       />
       <ContentWrapper>
         <Title>Connected clusters dashboard</Title>
@@ -124,14 +123,14 @@ const MCCP: FC = () => {
         {clusterToEdit && (
           <ConnectClusterDialog
             cluster={clusterToEdit}
-            onFinish={status => {
+            onFinish={(status) => {
               setClusterToEdit(null);
               setFinishStatus(status);
             }}
           />
         )}
         <ClustersTable
-          onEdit={cluster => {
+          onEdit={(cluster) => {
             setClusterToEdit(cluster);
           }}
           order={order}
@@ -141,7 +140,6 @@ const MCCP: FC = () => {
           filteredClusters={clusters}
           count={count}
           disabled={disabled}
-          isLoading={loading}
         />
         <Snackbar
           autoHideDuration={5000}
