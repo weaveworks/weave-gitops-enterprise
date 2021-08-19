@@ -1,9 +1,0 @@
-# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.14.1
-# ignores vulnerabilities until expiry date; change duration by modifying expiry date
-ignore:
-  SNYK-GOLANG-GITHUBCOMDGRIJALVAJWTGO-596515:
-    - '*':
-        reason: Issue has no fix till now at jwt-go
-        expires: 2020-11-22T21:47:17.812Z
-patch: {}
