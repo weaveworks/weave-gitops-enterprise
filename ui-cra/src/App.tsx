@@ -33,15 +33,19 @@ const GlobalStyle = createGlobalStyle`
     src: url(${RobotoMono})
   }
 
+  html, body {
+    height: 100%;
+  }
+
   body {
     background: url(${Background}) no-repeat;
+    background-color: #F5F5F5;
     color: ${theme.textColor};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
 
     /* Layout - grow to at least viewport height */
     display: flex;
-    min-height: 100%;
     flex-direction: column;
     margin: 0;
   }
