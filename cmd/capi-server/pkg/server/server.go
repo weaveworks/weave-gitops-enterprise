@@ -402,22 +402,30 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	pullRequestURL = res.WebURL
 
-	pr := &models.PullRequest{
-		URL:  pullRequestURL,
-		Type: "delete",
-	}
-	if err := s.db.Create(pr).Error; err != nil {
-		return nil, err
-	}
-
-	for _, clusterName := range msg.ClusterNames {
-		var cluster models.Cluster
-		s.db.Where("name = ?", clusterName).Find(&cluster)
-
-		cluster.PullRequests = append(cluster.PullRequests, pr)
-		if err := s.db.Save(cluster).Error; err != nil {
-			return nil, err
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		pr := &models.PullRequest{
+			URL:  pullRequestURL,
+			Type: "delete",
 		}
+		if err := tx.Create(pr).Error; err != nil {
+			return err
+		}
+
+		for _, clusterName := range msg.ClusterNames {
+			var cluster models.Cluster
+			if err := tx.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
+				return err
+			}
+
+			cluster.PullRequests = append(cluster.PullRequests, pr)
+			if err := tx.Save(cluster).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
