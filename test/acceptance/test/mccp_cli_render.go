@@ -648,8 +648,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.ResetDatabase()
 			})
 
-			It("@VM Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
-
+			It("@VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				defer resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
@@ -688,83 +687,90 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					installInfrastructureProvider("docker")
 				})
 
-				// Parameter values
-				clusterName := "cli-end-to-end-capd-cluster"
-				namespace := "default"
-				k8version := "1.19.7"
-
-				//Pull request values
-				prBranch := "cli-end-to-end-capd"
-				prTitle := "CAPD pull request"
-				prCommit := "CAPD capi template"
-				prDescription := "This PR creates a new CAPD Kubernetes cluster"
-
 				By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
-				By(fmt.Sprintf("And I run 'mccp templates render cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --create-pr --pr-branch %s --pr-title %s --pr-commit-message %s --endpoint %s", clusterName, namespace, k8version, prBranch, prTitle, prCommit, CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(MCCP_BIN_PATH, "templates", "render", "cluster-template-development-0", "--set", fmt.Sprintf("CLUSTER_NAME=%s", clusterName),
-						"--set", fmt.Sprintf("NAMESPACE=%s", namespace), "--set", fmt.Sprintf("KUBERNETES_VERSION=%s", k8version),
-						"--create-pr", "--pr-branch", prBranch, "--pr-title", prTitle, "--pr-commit-message", prCommit, "--pr-description", prDescription,
-						"--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
+				createCluster := func(clusterName string, namespace string, k8version string) {
+					//Pull request values
+					prBranch := fmt.Sprintf("br-%s", clusterName)
+					prTitle := "CAPD pull request"
+					prCommit := "CAPD capi template"
+					prDescription := "This PR creates a new CAPD Kubernetes cluster"
 
-				By("Then I should see pull request created to management cluster", func() {
-					output := session.Wait().Out.Contents()
+					By(fmt.Sprintf("And I run 'mccp templates render cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --create-pr --pr-branch %s --pr-title %s --pr-commit-message %s --endpoint %s", clusterName, namespace, k8version, prBranch, prTitle, prCommit, CAPI_ENDPOINT_URL), func() {
+						command := exec.Command(MCCP_BIN_PATH, "templates", "render", "cluster-template-development-0", "--set", fmt.Sprintf("CLUSTER_NAME=%s", clusterName),
+							"--set", fmt.Sprintf("NAMESPACE=%s", namespace), "--set", fmt.Sprintf("KUBERNETES_VERSION=%s", k8version),
+							"--create-pr", "--pr-branch", prBranch, "--pr-title", prTitle, "--pr-commit-message", prCommit, "--pr-description", prDescription,
+							"--endpoint", CAPI_ENDPOINT_URL)
+						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).ShouldNot(HaveOccurred())
+					})
 
-					re := regexp.MustCompile(`Created pull request:\s*(?P<url>https:.*\/\d+)`)
-					match := re.FindSubmatch([]byte(output))
-					Eventually(match).ShouldNot(BeNil(), "Failed to Create pull request")
-				})
+					By("Then I should see pull request created to management cluster", func() {
+						output := session.Wait().Out.Contents()
 
-				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
+						re := regexp.MustCompile(`Created pull request:\s*(?P<url>https:.*\/\d+)`)
+						match := re.FindSubmatch([]byte(output))
+						Eventually(match).ShouldNot(BeNil(), "Failed to Create pull request")
+					})
 
-				By("And I should see cluster status as 'pullRequestCreated'", func() {
-					output := session.Wait().Out.Contents()
-					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
-
-					re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName))
-					Eventually((re.Find(output))).ShouldNot(BeNil())
-				})
-
-				By("Then I should merge the pull request to start cluster provisioning", func() {
-					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
-				})
-
-				By("And I should see cluster status changes to 'Provisioned'", func() {
-					output := func() string {
+					By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
 						command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
 						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 						Expect(err).ShouldNot(HaveOccurred())
-						return string(session.Wait().Out.Contents())
+					})
 
-					}
-					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
-				})
+					By("And I should see cluster status as 'pullRequestCreated'", func() {
+						output := session.Wait().Out.Contents()
+						Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
 
-				By(fmt.Sprintf("Then I run 'mccp clusters get cli-end-to-end-capd-cluster --kubeconfig --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					output := func() string {
-						command := exec.Command(MCCP_BIN_PATH, "clusters", "get", clusterName, "--kubeconfig", "--endpoint", CAPI_ENDPOINT_URL)
-						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-						Expect(err).ShouldNot(HaveOccurred())
+						re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName))
+						Eventually((re.Find(output))).ShouldNot(BeNil())
+					})
 
-						return string(session.Wait().Out.Contents())
+					By("Then I should merge the pull request to start cluster provisioning", func() {
+						mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+					})
 
-					}
-					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
-				})
+					By("And I should see cluster status changes to 'Provisioned'", func() {
+						output := func() string {
+							command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+							session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+							Expect(err).ShouldNot(HaveOccurred())
+							return string(session.Wait().Out.Contents())
 
-				prBranch = "cli-end-to-end-capd-delete"
-				prTitle = "CAPD delete pull request"
-				prCommit = "CAPD capi template deletion"
-				prDescription = "This PR deletes CAPD Kubernetes cluster"
+						}
+						Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
+					})
+
+					By(fmt.Sprintf("Then I run 'mccp clusters get cli-end-to-end-capd-cluster --kubeconfig --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+						output := func() string {
+							command := exec.Command(MCCP_BIN_PATH, "clusters", "get", clusterName, "--kubeconfig", "--endpoint", CAPI_ENDPOINT_URL)
+							session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+							Expect(err).ShouldNot(HaveOccurred())
+
+							return string(session.Wait().Out.Contents())
+
+						}
+						Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
+					})
+				}
+
+				// Parameter values
+				clusterName := "cli-end-to-end-capd-cluster-11"
+				namespace := "default"
+				k8version := "1.19.7"
+				// Creating two capd clusters
+				createCluster(clusterName, namespace, k8version)
+				clusterName2 := "cli-end-to-end-capd-cluster-21"
+				createCluster(clusterName2, namespace, k8version)
+
+				// Deleting first cluster
+				prBranch := fmt.Sprintf("%s-delete", clusterName)
+				prTitle := "CAPD delete pull request"
+				prCommit := "CAPD capi template deletion"
+				prDescription := "This PR deletes CAPD Kubernetes cluster"
 
 				By(fmt.Sprintf("Then I run 'mccp clusters delete cli-end-to-end-capd-cluster --pr-branch %s --pr-title %s --pr-commit-message %s --endpoint %s", prBranch, prTitle, prCommit, CAPI_ENDPOINT_URL), func() {
 					command := exec.Command(MCCP_BIN_PATH, "clusters", "delete", clusterName,
@@ -790,17 +796,37 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
 				})
 
-				By("And the manifests are not present in the cluster config repository", func() {
+				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					mccpTestRunner.PullBranch(repoAbsolutePath, prBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 
-				By("Then I should merge the pull request to delete cluster", func() {
-					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				By(fmt.Sprintf("Then I should see the '%s' cluster status changes to Deletion PR", clusterName), func() {
+					output := func() string {
+						command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).ShouldNot(HaveOccurred())
+						return string(session.Wait().Out.Contents())
+
+					}
+					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName)))
 				})
 
-				// TODO verify cluster status after merging delete PR
+				By(fmt.Sprintf("And I should see the '%s' cluster status remains unchanged as 'clusterFound'", clusterName2), func() {
+					output := func() string {
+						command := exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+						Expect(err).ShouldNot(HaveOccurred())
+						return string(session.Wait().Out.Contents())
+
+					}
+					Eventually(output).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName2)))
+				})
+
+				By("Then I should merge the delete pull request to delete cluster", func() {
+					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				})
 			})
 		})
 
