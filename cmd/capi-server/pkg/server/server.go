@@ -242,11 +242,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return err
 		}
 
-		prCluster := &models.PRCluster{
-			PRID:      pr.ID,
-			ClusterID: c.ID,
-		}
-		if err := tx.Create(prCluster).Error; err != nil {
+		c.PullRequests = append(c.PullRequests, pr)
+		if err := tx.Save(c).Error; err != nil {
 			return err
 		}
 
@@ -405,25 +402,30 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	pullRequestURL = res.WebURL
 
-	pr := &models.PullRequest{
-		URL:  pullRequestURL,
-		Type: "delete",
-	}
-	if err := s.db.Create(pr).Error; err != nil {
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		pr := &models.PullRequest{
+			URL:  pullRequestURL,
+			Type: "delete",
+		}
+		if err := tx.Create(pr).Error; err != nil {
+			return err
+		}
+
+		for _, clusterName := range msg.ClusterNames {
+			var cluster models.Cluster
+			if err := tx.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
+				return err
+			}
+
+			cluster.PullRequests = append(cluster.PullRequests, pr)
+			if err := tx.Save(cluster).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
 		return nil, err
-	}
-
-	for _, clusterName := range msg.ClusterNames {
-		var cluster models.Cluster
-		s.db.Where("name = ?", clusterName).Find(&cluster)
-
-		prCluster := &models.PRCluster{
-			PRID:      pr.ID,
-			ClusterID: cluster.ID,
-		}
-		if err := s.db.Create(prCluster).Error; err != nil {
-			return nil, err
-		}
 	}
 
 	return &capiv1_proto.DeleteClustersPullRequestResponse{

@@ -1258,13 +1258,15 @@ func TestListClusters_PullRequests(t *testing.T) {
 	db.Create(&c)
 	pr := models.PullRequest{URL: "boop", Type: "create"}
 	db.Create(&pr)
-	db.Create(&models.PRCluster{PRID: pr.ID, ClusterID: c.ID})
+	c.PullRequests = append(c.PullRequests, &pr)
+	db.Save(&c)
 
 	c2 := models.Cluster{Name: "My Cluster2", Token: "derp2", CAPIName: "fooname2", CAPINamespace: "default"}
 	db.Create(&c2)
 	pr2 := models.PullRequest{URL: "boop2", Type: "delete"}
 	db.Create(&pr2)
-	db.Create(&models.PRCluster{PRID: pr2.ID, ClusterID: c2.ID})
+	c2.PullRequests = append(c2.PullRequests, &pr2)
+	db.Save(&c2)
 
 	c3 := models.Cluster{Name: "My Cluster3", Token: "derp3", CAPIName: "fooname3", CAPINamespace: "default"}
 	capiCluster3 := models.CAPICluster{Name: "fooname3", ClusterToken: "derp3", Namespace: "default"}
@@ -1273,8 +1275,9 @@ func TestListClusters_PullRequests(t *testing.T) {
 	pr3b := models.PullRequest{URL: "boop4", Type: "delete"}
 	db.Create(&pr3a)
 	db.Create(&pr3b)
-	db.Create(&models.PRCluster{PRID: pr3a.ID, ClusterID: c3.ID})
-	db.Create(&models.PRCluster{PRID: pr3b.ID, ClusterID: c3.ID})
+	c3.PullRequests = append(c3.PullRequests, &pr3a)
+	c3.PullRequests = append(c3.PullRequests, &pr3b)
+	db.Save(&c3)
 	db.Create(&capiCluster3)
 
 	response := executeGet(t, db, json.MarshalIndent, "")
@@ -1324,7 +1327,8 @@ func TestListClusters_ClusterFound(t *testing.T) {
 	db.Create(&c)
 	pr := models.PullRequest{}
 	db.Create(&pr)
-	db.Create(&models.PRCluster{PRID: pr.ID, ClusterID: c.ID})
+	c.PullRequests = append(c.PullRequests, &pr)
+	db.Save(&c)
 	db.Create(&models.CAPICluster{Name: c.CAPIName, Namespace: c.CAPINamespace, Object: datatypes.JSON(`"derp"`)})
 
 	response := executeGet(t, db, json.MarshalIndent, "")
@@ -1402,9 +1406,12 @@ func TestUnregisterCluster(t *testing.T) {
 		dependentStateAfter  []interface{}    // dependent state in db after DELETE
 	}{
 		{
-			name:           "Unregister an existing cluster",
-			path:           "/1",
-			clustersBefore: []models.Cluster{{Name: "foo", Token: "t1"}, {Name: "bar", Token: "t2"}},
+			name: "Unregister an existing cluster",
+			path: "/1",
+			clustersBefore: []models.Cluster{
+				{Name: "foo", Token: "t1", PullRequests: []*models.PullRequest{{Model: models.Model{ID: 1}}}},
+				{Name: "bar", Token: "t2", PullRequests: []*models.PullRequest{{Model: models.Model{ID: 2}}}},
+			},
 			dependentStateBefore: []interface{}{
 				&models.Event{UID: "foo", ClusterToken: "t1"}, &models.Event{UID: "bar", ClusterToken: "t2"},
 				&models.ClusterInfo{UID: "foo", ClusterToken: "t1"}, &models.ClusterInfo{UID: "bar", ClusterToken: "t2"},
@@ -1413,8 +1420,12 @@ func TestUnregisterCluster(t *testing.T) {
 				&models.FluxInfo{Name: "foo", ClusterToken: "t1"}, &models.FluxInfo{Name: "bar", ClusterToken: "t2"},
 				&models.GitCommit{Sha: "foo", ClusterToken: "t1"}, &models.GitCommit{Sha: "bar", ClusterToken: "t2"},
 				&models.Workspace{Name: "foo", ClusterToken: "t1"}, &models.Workspace{Name: "bar", ClusterToken: "t2"},
+				&models.PullRequest{Model: models.Model{ID: 1}, Type: "create"}, &models.PullRequest{Model: models.Model{ID: 2}, Type: "create"},
 			},
 			responseCode: http.StatusNoContent,
+			clustersAfter: []models.Cluster{
+				{Name: "bar", Token: "t2", PullRequests: []*models.PullRequest{{Model: models.Model{ID: 2}}}},
+			},
 			dependentStateAfter: []interface{}{
 				models.Event{UID: "bar", ClusterToken: "t2"},
 				models.ClusterInfo{UID: "bar", ClusterToken: "t2"},
@@ -1423,6 +1434,7 @@ func TestUnregisterCluster(t *testing.T) {
 				models.FluxInfo{Name: "bar", ClusterToken: "t2"},
 				models.GitCommit{Sha: "bar", ClusterToken: "t2"},
 				models.Workspace{Name: "bar", ClusterToken: "t2"},
+				models.PullRequest{Model: models.Model{ID: 1}, Type: "create"}, models.PullRequest{Model: models.Model{ID: 2}, Type: "create"},
 			},
 		},
 		{
@@ -1466,6 +1478,7 @@ func TestUnregisterCluster(t *testing.T) {
 				var expectedFluxInfo []models.FluxInfo
 				var expectedGitCommits []models.GitCommit
 				var expectedWorkspaces []models.Workspace
+				var expectedPullRequests []models.PullRequest
 				for _, i := range tc.dependentStateAfter {
 					switch v := i.(type) {
 					case models.Event:
@@ -1482,6 +1495,8 @@ func TestUnregisterCluster(t *testing.T) {
 						expectedGitCommits = append(expectedGitCommits, i.(models.GitCommit))
 					case models.Workspace:
 						expectedWorkspaces = append(expectedWorkspaces, i.(models.Workspace))
+					case models.PullRequest:
+						expectedPullRequests = append(expectedPullRequests, i.(models.PullRequest))
 					default:
 						fmt.Printf("Unknown type %T!\n", v)
 					}
@@ -1528,6 +1543,12 @@ func TestUnregisterCluster(t *testing.T) {
 				assert.NoError(t, result.Error)
 				assert.Len(t, actualWorkspaces, len(expectedWorkspaces))
 				assert.Subset(t, actualWorkspaces, expectedWorkspaces)
+
+				var actualPullRequests []models.PullRequest
+				result = db.Find(&actualPullRequests)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualPullRequests, len(expectedPullRequests))
+				assert.Equal(t, actualPullRequests[0].ID, expectedPullRequests[0].ID)
 			}
 		})
 	}

@@ -86,8 +86,9 @@ type Cluster struct {
 	Token         string `gorm:"uniqueIndex"`
 	Name          string `gorm:"uniqueIndex"`
 	IngressURL    string
-	CAPIName      string `gorm:"column:capi_name"`
-	CAPINamespace string `gorm:"column:capi_namespace"`
+	CAPIName      string         `gorm:"column:capi_name"`
+	CAPINamespace string         `gorm:"column:capi_namespace"`
+	PullRequests  []*PullRequest `gorm:"many2many:cluster_pull_requests;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // ClusterStatus table. Used to sort cluster status by importance.
@@ -134,16 +135,6 @@ type PullRequest struct {
 	Model
 	URL  string
 	Type string // maybe create/delete/modify
-}
-
-type PRCluster struct {
-	Model
-	PRID      uint `gorm:"column:pr_id"`
-	ClusterID uint `gorm:"column:cluster_id"`
-}
-
-func (PRCluster) TableName() string {
-	return "pr_clusters"
 }
 
 type CAPICluster struct {
