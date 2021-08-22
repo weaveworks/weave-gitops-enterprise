@@ -20,7 +20,7 @@ integrationTestCommonEnv: &integrationTestCommonEnv
   KUBECTL_CHECKSUM: da2076ff28b2dae220558014fe5787e1a811900c0b01c1250ad713e3efea072f
   JK_URL: https://github.com/jkcfg/jk/releases/download/0.3.2/jk-linux-amd64
   JK_CHECKSUM: 84a22074f91d3a4502944a46bcf016fd9989b03e23e72d2bee5b46b31a0ee249
-  KUBEBUILDER_URL: https://go.kubebuilder.io/dl/2.3.1/linux/amd64
+  KUBEBUILDER_URL: https://github.com/kubernetes-sigs/kubebuilder/releases/download/v2.3.1/kubebuilder_2.3.1_linux_amd64.tar.gz
   KUBEBUILDER_CHECKSUM: ff496970f209706763f2aba2bdcefc2de8d00085b3b972b5790117b59ea4ed10
   POD_CIDR_BLOCK: '192.168.0.0/16'
   SERVICE_CIDR_BLOCK: '10.96.0.0/12'
