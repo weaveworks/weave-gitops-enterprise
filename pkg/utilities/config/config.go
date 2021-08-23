@@ -26,7 +26,7 @@ import (
 	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/plan/runners/sudo"
 	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/utilities/envcfg"
 	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/utilities/object"
-	"github.com/weaveworks/wks/pkg/utilities/versions"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/versions"
 	"github.com/weaveworks/wksctl/pkg/utilities"
 	yaml "gopkg.in/yaml.v3"
 	v1 "k8s.io/api/core/v1"

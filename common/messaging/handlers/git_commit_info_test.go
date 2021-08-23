@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/common/messaging/handlers"
-	"github.com/weaveworks/wks/common/messaging/handlers/handlerstest"
-	"github.com/weaveworks/wks/common/messaging/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/handlers"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/handlers/handlerstest"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 )
 
 func TestGitCommitInfoSender(t *testing.T) {

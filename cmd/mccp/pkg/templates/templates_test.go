@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
 )
 
 func TestListTemplates(t *testing.T) {

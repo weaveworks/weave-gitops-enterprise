@@ -8,10 +8,10 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/weaveworks/wks/common/messaging/handlers"
-	"github.com/weaveworks/wks/common/messaging/handlers/handlerstest"
-	"github.com/weaveworks/wks/common/messaging/payload"
-	clusterpoller "github.com/weaveworks/wks/pkg/cluster/poller"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/handlers"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/handlers/handlerstest"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
+	clusterpoller "github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/poller"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic/fake"
 )

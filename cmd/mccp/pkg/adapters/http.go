@@ -8,9 +8,9 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	capiv1_protos "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
+	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
 )
 
 type TemplateParameterValuesAndCredentials struct {

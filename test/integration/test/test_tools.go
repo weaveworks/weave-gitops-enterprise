@@ -17,9 +17,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/wks/pkg/cmdutil"
-	"github.com/weaveworks/wks/pkg/utilities/config"
-	"github.com/weaveworks/wks/pkg/utilities/git"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cmdutil"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/config"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/git"
 )
 
 type context struct {

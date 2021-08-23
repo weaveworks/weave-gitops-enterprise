@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

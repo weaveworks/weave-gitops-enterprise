@@ -7,9 +7,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/adapters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
 )
 
 const BaseURI = "https://weave.works/api"

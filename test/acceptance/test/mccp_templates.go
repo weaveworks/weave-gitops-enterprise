@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	. "github.com/sclevine/agouti/matchers"
-	"github.com/weaveworks/wks/test/acceptance/test/pages"
+	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
 type TemplateField struct {

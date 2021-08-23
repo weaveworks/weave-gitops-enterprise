@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/prometheus/alertmanager/api/v2/client"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/common/messaging/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 )
 
 const (

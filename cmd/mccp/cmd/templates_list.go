@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/adapters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 

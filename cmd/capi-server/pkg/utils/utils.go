@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
