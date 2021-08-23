@@ -40,6 +40,16 @@ const useStyles = makeStyles(() =>
       height: "75px",
       marginRight: theme.spacing.small,
     },
+    closeIconWrapper: {
+      paddingLeft: theme.spacing.small,
+      color: "#C1C1C1",
+      cursor: "pointer",
+    },
+    mainWrapper: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    },
   })
 );
 
@@ -63,19 +73,13 @@ export const NotificationDialog: FC = () => {
     <ThemeProvider theme={localMuiTheme}>
       <Dialog
         open={open}
-        maxWidth="md"
+        maxWidth="sm"
         onClose={onClose}
         BackdropProps={{ style: { backgroundColor: "transparent" } }}
-        style={{ opacity: 0.8 }}
+        style={{ opacity: 0.9 }}
       >
         <DialogContent className={classes.content}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+          <div className={classes.mainWrapper}>
             {notification?.variant === "danger" ? (
               <ErrorIcon className={classes.icon} />
             ) : (
@@ -89,13 +93,7 @@ export const NotificationDialog: FC = () => {
               {notification?.message}
             </div>
           </div>
-          <div
-            style={{
-              paddingLeft: theme.spacing.small,
-              color: theme.colors.gray600,
-              cursor: "pointer",
-            }}
-          >
+          <div className={classes.closeIconWrapper}>
             <Close onClick={onClose} />
           </div>
         </DialogContent>
