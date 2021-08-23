@@ -1,5 +1,5 @@
 import React, { FC, useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@material-ui/core";
+import { Dialog, DialogContent } from "@material-ui/core";
 import {
   makeStyles,
   createMuiTheme,
@@ -8,10 +8,10 @@ import {
 import { createStyles } from "@material-ui/styles";
 import { muiTheme } from "../../muiTheme";
 import theme from "weaveworks-ui-components/lib/theme";
-import { CloseIconButton } from "../../assets/img/close-icon-button";
 import { ReactComponent as ErrorIcon } from "../../assets/img/error-icon.svg";
 import { ReactComponent as SuccessIcon } from "../../assets/img/success-icon.svg";
 import useNotifications from "../../contexts/Notifications";
+import { Close } from "@material-ui/icons";
 
 const localMuiTheme = createMuiTheme({
   ...muiTheme,
@@ -29,16 +29,16 @@ const localMuiTheme = createMuiTheme({
 
 const useStyles = makeStyles(() =>
   createStyles({
-    title: {
-      display: "flex",
-      justifyContent: "right",
-    },
     content: {
       display: "flex",
-      backgroundColor: theme.colors.gray50,
       boxShadow: theme.boxShadow.light,
-      justifyContent: "center",
-      alignItems: "center",
+    },
+    icon: {
+      minWidth: "50px",
+      minHeight: "50px",
+      width: "75px",
+      height: "75px",
+      marginRight: theme.spacing.small,
     },
   })
 );
@@ -63,28 +63,41 @@ export const NotificationDialog: FC = () => {
     <ThemeProvider theme={localMuiTheme}>
       <Dialog
         open={open}
-        // maxWidth="sm"
+        maxWidth="md"
         onClose={onClose}
         BackdropProps={{ style: { backgroundColor: "transparent" } }}
         style={{ opacity: 0.8 }}
       >
-        {/* <div id="notification-popup" className={classes.dialog}> */}
-        <DialogTitle className={classes.title}>
-          <CloseIconButton onClick={onClose} />
-        </DialogTitle>
         <DialogContent className={classes.content}>
-          <div style={{ width: "50px", height: "50px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             {notification?.variant === "danger" ? (
-              <ErrorIcon />
+              <ErrorIcon className={classes.icon} />
             ) : (
-              <SuccessIcon />
+              <SuccessIcon className={classes.icon} />
             )}
+            <div>
+              <text style={{ color: getColor(notification?.variant) }}>
+                {notification?.variant === "danger" ? "Error" : "Success"}
+                :&nbsp;
+              </text>
+              {notification?.message}
+            </div>
           </div>
-          <span style={{ color: getColor(notification?.variant) }}>
-            {notification?.variant === "danger" ? "Error" : "Success"}
-            :&nbsp;
-          </span>
-          {notification?.message}
+          <div
+            style={{
+              paddingLeft: theme.spacing.small,
+              color: theme.colors.gray600,
+              cursor: "pointer",
+            }}
+          >
+            <Close onClick={onClose} />
+          </div>
         </DialogContent>
       </Dialog>
     </ThemeProvider>
