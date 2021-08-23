@@ -958,9 +958,6 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					deletePR := pages.GetDeletePRPopup(webDriver)
 					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster, it is not required any more")).To(Succeed())
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
-
-					Expect(deletePR.ClosePopup.Click()).To(Succeed())
-
 				})
 
 				// TODO verify cluster status after merging delete PR
