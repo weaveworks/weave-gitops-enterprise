@@ -1,15 +1,16 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import { NotificationDialog } from '../../components/Layout/Notification';
-import { Notification, NotificationData } from './index';
+import React, { FC, useCallback, useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
+import { NotificationDialog } from "../../components/Layout/Notification";
+import { Notification, NotificationData } from "./index";
 
 const NotificationProvider: FC = ({ children }) => {
-  const [notification, setNotification] =
-    useState<NotificationData | null>(null);
+  const [notifications, setNotifications] = useState<NotificationData[] | []>(
+    []
+  );
   const history = useHistory();
 
   const clear = useCallback(() => {
-    setNotification(null);
+    setNotifications([]);
   }, []);
 
   useEffect(() => {
@@ -17,8 +18,8 @@ const NotificationProvider: FC = ({ children }) => {
   }, [clear, history]);
 
   return (
-    <Notification.Provider value={{ notification, setNotification }}>
-      {notification ? <NotificationDialog /> : null}
+    <Notification.Provider value={{ notifications, setNotifications }}>
+      {notifications ? <NotificationDialog /> : null}
       {children}
     </Notification.Provider>
   );

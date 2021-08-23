@@ -1,13 +1,13 @@
-import { createContext, Dispatch, useContext } from 'react';
+import { createContext, Dispatch, useContext } from "react";
 
 export interface NotificationData {
   message: string;
-  variant: 'success' | 'danger';
+  variant: "success" | "danger";
 }
 
 type NotificationContext = {
-  notification: NotificationData | null;
-  setNotification: Dispatch<React.SetStateAction<NotificationData | null>>;
+  notifications: NotificationData[] | [];
+  setNotifications: Dispatch<React.SetStateAction<NotificationData[] | []>>;
 };
 
 export const Notification = createContext<NotificationContext | null>(null);

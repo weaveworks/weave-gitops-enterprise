@@ -87,7 +87,7 @@ export const ClustersTable: FC<Props> = ({
   const history = useHistory();
   const { selectedClusters, setSelectedClusters, creatingPR, loading } =
     useClusters();
-  const { notification } = useNotifications();
+  const { notifications } = useNotifications();
   const numSelected = selectedClusters.length;
   const isSelected = (name: string) => selectedClusters.indexOf(name) !== -1;
   const rowCount = filteredClusters?.length || 0;
@@ -129,7 +129,7 @@ export const ClustersTable: FC<Props> = ({
     return history.listen(() => {
       setSelectedClusters([]);
     });
-  }, [notification, history, setSelectedClusters]);
+  }, [notifications, history, setSelectedClusters]);
 
   return (
     <div

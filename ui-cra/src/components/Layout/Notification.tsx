@@ -10,7 +10,9 @@ import { muiTheme } from "../../muiTheme";
 import theme from "weaveworks-ui-components/lib/theme";
 import { ReactComponent as ErrorIcon } from "../../assets/img/error-icon.svg";
 import { ReactComponent as SuccessIcon } from "../../assets/img/success-icon.svg";
-import useNotifications from "../../contexts/Notifications";
+import useNotifications, {
+  NotificationData,
+} from "../../contexts/Notifications";
 import { Close } from "@material-ui/icons";
 
 const localMuiTheme = createMuiTheme({
@@ -55,7 +57,7 @@ const useStyles = makeStyles(() =>
 
 export const NotificationDialog: FC = () => {
   const [open, setOpen] = useState<boolean>(true);
-  const { notification, setNotification } = useNotifications();
+  const { notifications, setNotifications } = useNotifications();
   const classes = useStyles();
   const getColor = (variant?: string) => {
     if (variant === "danger") {
@@ -66,38 +68,40 @@ export const NotificationDialog: FC = () => {
   };
   const onClose = () => {
     setOpen(false);
-    setNotification(null);
+    setNotifications([]);
   };
 
   return (
     <ThemeProvider theme={localMuiTheme}>
-      <Dialog
-        open={open}
-        maxWidth="sm"
-        onClose={onClose}
-        BackdropProps={{ style: { backgroundColor: "transparent" } }}
-        style={{ opacity: 0.9 }}
-      >
-        <DialogContent className={classes.content}>
-          <div className={classes.mainWrapper}>
-            {notification?.variant === "danger" ? (
-              <ErrorIcon className={classes.icon} />
-            ) : (
-              <SuccessIcon className={classes.icon} />
-            )}
-            <div>
-              <text style={{ color: getColor(notification?.variant) }}>
-                {notification?.variant === "danger" ? "Error" : "Success"}
-                :&nbsp;
-              </text>
-              {notification?.message}
+      {notifications?.map((notification: NotificationData) => (
+        <Dialog
+          open={open}
+          maxWidth="sm"
+          onClose={onClose}
+          BackdropProps={{ style: { backgroundColor: "transparent" } }}
+          style={{ opacity: 0.9 }}
+        >
+          <DialogContent className={classes.content}>
+            <div className={classes.mainWrapper}>
+              {notification?.variant === "danger" ? (
+                <ErrorIcon className={classes.icon} />
+              ) : (
+                <SuccessIcon className={classes.icon} />
+              )}
+              <div>
+                <text style={{ color: getColor(notification?.variant) }}>
+                  {notification?.variant === "danger" ? "Error" : "Success"}
+                  :&nbsp;
+                </text>
+                {notification?.message}
+              </div>
             </div>
-          </div>
-          <div className={classes.closeIconWrapper}>
-            <Close onClick={onClose} />
-          </div>
-        </DialogContent>
-      </Dialog>
+            <div className={classes.closeIconWrapper}>
+              <Close onClick={onClose} />
+            </div>
+          </DialogContent>
+        </Dialog>
+      ))}
     </ThemeProvider>
   );
 };
