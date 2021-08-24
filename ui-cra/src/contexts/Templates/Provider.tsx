@@ -54,7 +54,7 @@ const TemplatesProvider: FC = ({ children }) => {
         )
         .finally(() => setCreatingPR(false));
     },
-    [history, setNotifications]
+    [history, notifications, setNotifications]
   );
 
   const getTemplates = useCallback(() => {

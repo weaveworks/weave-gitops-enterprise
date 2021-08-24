@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@material-ui/core";
 import {
   makeStyles,
@@ -14,6 +14,7 @@ import useNotifications, {
   NotificationData,
 } from "../../contexts/Notifications";
 import { Close } from "@material-ui/icons";
+import { useHistory } from "react-router-dom";
 
 const localMuiTheme = createMuiTheme({
   ...muiTheme,
@@ -59,6 +60,7 @@ export const NotificationDialog: FC = () => {
   const [open, setOpen] = useState<boolean>(true);
   const { notifications, setNotifications } = useNotifications();
   const classes = useStyles();
+  const history = useHistory();
   const getColor = (variant?: string) => {
     if (variant === "danger") {
       return "#BC3B1D";
@@ -71,16 +73,23 @@ export const NotificationDialog: FC = () => {
     setNotifications([]);
   };
 
+  useEffect(() => {
+    return history.listen(() => {
+      setOpen(true);
+    });
+  }, [history]);
+
   return (
     <ThemeProvider theme={localMuiTheme}>
-      {notifications?.map((notification: NotificationData) => (
-        <Dialog
-          open={open}
-          maxWidth="sm"
-          onClose={onClose}
-          BackdropProps={{ style: { backgroundColor: "transparent" } }}
-          style={{ opacity: 0.9 }}
-        >
+      <Dialog
+        open={open}
+        maxWidth="sm"
+        onClose={onClose}
+        BackdropProps={{ style: { backgroundColor: "transparent" } }}
+        style={{ opacity: 0.9 }}
+      >
+        {/* We should have separate dialogs not separate content areas ; onClose should refer to one notification only */}
+        {notifications?.map((notification: NotificationData) => (
           <DialogContent className={classes.content}>
             <div className={classes.mainWrapper}>
               {notification?.variant === "danger" ? (
@@ -100,8 +109,8 @@ export const NotificationDialog: FC = () => {
               <Close onClick={onClose} />
             </div>
           </DialogContent>
-        </Dialog>
-      ))}
+        ))}
+      </Dialog>
     </ThemeProvider>
   );
 };
