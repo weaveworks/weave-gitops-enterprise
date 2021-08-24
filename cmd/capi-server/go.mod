@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/fluxcd/go-git-providers v0.2.1-0.20210810172205-2624ccb868e1
+	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
