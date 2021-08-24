@@ -24,7 +24,14 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
-	if res.StatusCode != 200 {
-		t.Fatalf("expected status code to be 200 but got %d instead", res.StatusCode)
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
+	}
+	res, err = http.Get("http://localhost:8001/v1/pineapples")
+	if err != nil {
+		t.Fatalf("expected no errors but got: %v", err)
+	}
+	if res.StatusCode != http.StatusNotFound {
+		t.Fatalf("expected status code to be %d but got %d instead", http.StatusNotFound, res.StatusCode)
 	}
 }
