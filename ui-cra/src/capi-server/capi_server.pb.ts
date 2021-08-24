@@ -120,6 +120,13 @@ export type TemplateObject = {
   parameters?: string[]
 }
 
+export type GetEnterpriseVersionRequest = {
+}
+
+export type GetEnterpriseVersionResponse = {
+  version?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -144,5 +151,8 @@ export class ClustersService {
   }
   static GetKubeconfig(req: GetKubeconfigRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
     return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(`/v1/clusters/${req["clusterName"]}/kubeconfig?${fm.renderURLSearchParams(req, ["clusterName"])}`, {...initReq, method: "GET"})
+  }
+  static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
+    return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

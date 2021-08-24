@@ -18,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -430,6 +431,12 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
 		WebUrl: pullRequestURL,
+	}, nil
+}
+
+func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.GetEnterpriseVersionRequest) (*capiv1_proto.GetEnterpriseVersionResponse, error) {
+	return &capiv1_proto.GetEnterpriseVersionResponse{
+		Version: version.Version,
 	}, nil
 }
 
