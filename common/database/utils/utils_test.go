@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/gorm"
 )
 
