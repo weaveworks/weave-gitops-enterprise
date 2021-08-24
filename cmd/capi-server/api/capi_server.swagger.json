@@ -133,6 +133,29 @@
         ]
       }
     },
+    "/v1/enterprise/version": {
+      "get": {
+        "summary": "GetEnterpriseVersion returns the WeGO Enterprise version",
+        "operationId": "ClustersService_GetEnterpriseVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetEnterpriseVersionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates": {
       "get": {
         "operationId": "ClustersService_ListTemplates",
@@ -448,6 +471,15 @@
         "webUrl": {
           "type": "string",
           "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1GetEnterpriseVersionResponse": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "title": "The version of WeGO Enterprise"
         }
       }
     },
