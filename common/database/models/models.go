@@ -50,6 +50,7 @@ type NodeInfo struct {
 	UID            types.UID
 	ClusterToken   string
 	ClusterInfoUID types.UID
+	ClusterInfo    ClusterInfo `gorm:"foreignKey:ClusterInfoUID"`
 	Name           string
 	IsControlPlane bool
 	KubeletVersion string

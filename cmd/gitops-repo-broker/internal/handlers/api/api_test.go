@@ -890,11 +890,11 @@ func TestListClusters_Pagination(t *testing.T) {
 		ci := &models.ClusterInfo{UID: uuid.NewUUID(), ClusterToken: token, Type: "aws"}
 		db.Create(ci)
 		for k := 1; k <= 3; k++ {
-			ni := &models.NodeInfo{UID: uuid.NewUUID(), ClusterToken: token, IsControlPlane: true, ClusterInfoUID: ci.UID}
+			ni := &models.NodeInfo{UID: uuid.NewUUID(), ClusterToken: token, IsControlPlane: true, ClusterInfo: *ci}
 			db.Create(ni)
 		}
 		for k := 1; k <= 5; k++ {
-			ni := &models.NodeInfo{UID: uuid.NewUUID(), ClusterToken: token, IsControlPlane: false, ClusterInfoUID: ci.UID}
+			ni := &models.NodeInfo{UID: uuid.NewUUID(), ClusterToken: token, IsControlPlane: false, ClusterInfo: *ci}
 			db.Create(ni)
 		}
 		clusters = append(clusters, c)
@@ -1415,7 +1415,7 @@ func TestUnregisterCluster(t *testing.T) {
 			dependentStateBefore: []interface{}{
 				&models.Event{UID: "foo", ClusterToken: "t1"}, &models.Event{UID: "bar", ClusterToken: "t2"},
 				&models.ClusterInfo{UID: "foo", ClusterToken: "t1"}, &models.ClusterInfo{UID: "bar", ClusterToken: "t2"},
-				&models.NodeInfo{UID: "foo", ClusterToken: "t1"}, &models.NodeInfo{UID: "bar", ClusterToken: "t2"},
+				&models.NodeInfo{UID: "foo", ClusterToken: "t1", ClusterInfoUID: "foo"}, &models.NodeInfo{UID: "bar", ClusterToken: "t2", ClusterInfoUID: "bar"},
 				&models.Alert{ID: 1, ClusterToken: "t1"}, &models.Alert{ID: 2, ClusterToken: "t2"},
 				&models.FluxInfo{Name: "foo", ClusterToken: "t1"}, &models.FluxInfo{Name: "bar", ClusterToken: "t2"},
 				&models.GitCommit{Sha: "foo", ClusterToken: "t1"}, &models.GitCommit{Sha: "bar", ClusterToken: "t2"},
@@ -1616,7 +1616,7 @@ func reverseAny(s interface{}) {
 	}
 }
 
-// So we can query the able usually managed by gorm
+// So we can query the table usually managed by gorm
 type ClusterPullRequests struct {
 	ClusterID     int `gorm:"primaryKey"`
 	PullRequestID int `gorm:"primaryKey"`

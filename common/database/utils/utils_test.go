@@ -80,17 +80,27 @@ func TestCascadeDelete(t *testing.T) {
 	err = MigrateTables(db)
 	assert.NoError(t, err)
 
+	// Create cluster
 	clusterWithPullRequest := models.Cluster{Name: "foo", PullRequests: []*models.PullRequest{{URL: "http://example.com"}}}
 	result := db.Create(&clusterWithPullRequest)
 	assert.NoError(t, result.Error)
+
+	// Join row created okay
+	joinRow := &ClusterPullRequests{}
+	result = db.First(&joinRow)
+	assert.NoError(t, result.Error)
+	assert.Equal(t, 1, joinRow.ClusterID)
+	assert.Equal(t, 1, joinRow.PullRequestID)
+
+	// Delete cluster
 	result = db.Delete(&models.Cluster{}, 1)
 	assert.NoError(t, result.Error)
 
 	// Make sure join table is cleaned up!
-	joinRow := &ClusterPullRequests{}
+	joinRow = &ClusterPullRequests{}
 	result = db.First(&joinRow)
 	assert.Error(t, result.Error)
-	assert.True(t, errors.Is(result.Error, gorm.ErrRecordNotFound), "Error was not not found! %v", result.Error)
+	assert.True(t, errors.Is(result.Error, gorm.ErrRecordNotFound), "Error was something other than not found! %v", result.Error)
 }
 
 // So we can query the able usually managed by gorm
