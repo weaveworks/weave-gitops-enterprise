@@ -152,7 +152,7 @@ func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[st
 // CreatePullRequestForTemplate commits the YAML template to the specified
 // branch and creates a pull request of that branch.
 func (c *HttpClient) CreatePullRequestForTemplate(params templates.CreatePullRequestForTemplateParams) (string, error) {
-	endpoint := "v1/pulls"
+	endpoint := "v1/clusters"
 
 	// POST request payload
 	type CreatePullRequestForTemplateRequest struct {

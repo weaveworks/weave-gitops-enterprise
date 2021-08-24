@@ -46,6 +46,37 @@
         "tags": [
           "ClustersService"
         ]
+      },
+      "post": {
+        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
+        "operationId": "ClustersService_CreatePullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
       }
     },
     "/v1/clusters/{clusterName}/kubeconfig": {
@@ -97,39 +128,6 @@
             }
           }
         },
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/pulls": {
-      "post": {
-        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
-        "operationId": "ClustersService_CreatePullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestRequest"
-            }
-          }
-        ],
         "tags": [
           "ClustersService"
         ]

@@ -481,7 +481,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/capi_server.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/pulls"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/capi_server.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -692,7 +692,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/capi_server.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/pulls"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/capi_server.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -780,7 +780,7 @@ var (
 
 	pattern_ClustersService_RenderTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "templates", "template_name", "render"}, ""))
 
-	pattern_ClustersService_CreatePullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "pulls"}, ""))
+	pattern_ClustersService_CreatePullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "clusters"}, ""))
 
 	pattern_ClustersService_DeleteClustersPullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "clusters"}, ""))
 

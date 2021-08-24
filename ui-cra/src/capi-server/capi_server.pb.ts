@@ -134,7 +134,7 @@ export class ClustersService {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
-    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/pulls`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/clusters`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static DeleteClustersPullRequest(req: DeleteClustersPullRequestRequest, initReq?: fm.InitReq): Promise<DeleteClustersPullRequestResponse> {
     return fm.fetchReq<DeleteClustersPullRequestRequest, DeleteClustersPullRequestResponse>(`/v1/clusters`, {...initReq, method: "DELETE", body: JSON.stringify(req)})

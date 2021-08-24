@@ -37,7 +37,7 @@ service ClustersService {
   rpc CreatePullRequest(CreatePullRequestRequest)
       returns (CreatePullRequestResponse) {
     option (google.api.http) = {
-      post : "/v1/pulls"
+      post : "/v1/clusters"
       body : "*"
     };
   }
