@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api/views"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api/views"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )

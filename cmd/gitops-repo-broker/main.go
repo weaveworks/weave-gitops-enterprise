@@ -7,7 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
 )
 
 var cmd = &cobra.Command{

@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/capi"
 )
 
 func TestFlavours(t *testing.T) {

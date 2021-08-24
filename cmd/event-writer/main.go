@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/cmd/event-writer/database"
-	"github.com/weaveworks/wks/cmd/event-writer/run"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/event-writer/database"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/event-writer/run"
 )
 
 var cmd = &cobra.Command{

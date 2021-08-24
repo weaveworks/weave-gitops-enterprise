@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package capi_server.v1;
 
-option go_package = "github.com/weaveworks/wks/cmd/capi-server/proto/capi_server";
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/proto/capi_server";
 
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";

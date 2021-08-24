@@ -7,7 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/cmd/mccp/cmd"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/cmd"
 )
 
 func TestGetCluster(t *testing.T) {

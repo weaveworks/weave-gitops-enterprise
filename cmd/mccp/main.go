@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/weaveworks/wks/cmd/mccp/cmd"
-	"github.com/weaveworks/wks/pkg/cmdutil"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/cmd"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cmdutil"
 )
 
 func main() {

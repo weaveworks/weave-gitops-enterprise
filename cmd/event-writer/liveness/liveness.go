@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/weaveworks/wks/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 // StartLivenessProcess starts an http server to respond to the k8s liveness probes

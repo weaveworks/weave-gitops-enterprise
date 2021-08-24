@@ -9,10 +9,10 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/agent"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api"
-	"github.com/weaveworks/wks/common/database/utils"
-	"github.com/weaveworks/wks/pkg/utilities/healthcheck"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/agent"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/healthcheck"
 )
 
 type ParamSet struct {

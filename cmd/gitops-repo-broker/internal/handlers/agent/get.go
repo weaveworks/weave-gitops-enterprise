@@ -8,9 +8,9 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/common"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/common"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"gorm.io/gorm"
 )
 

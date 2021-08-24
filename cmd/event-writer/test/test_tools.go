@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/weaveworks/wks/common/messaging/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/cmd/event-writer/converter"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/event-writer/converter"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 )
 
 // Read file at path and return bytes

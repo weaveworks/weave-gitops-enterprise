@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
-	"github.com/weaveworks/wks/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
@@ -21,12 +21,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
-	capi_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/server"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/version"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version"
 )
 
 func NewAPIServerCommand() *cobra.Command {
@@ -114,6 +114,7 @@ func RunInProcessGateway(ctx context.Context, addr string, library templates.Lib
 	mux := grpc_runtime.NewServeMux(opts...)
 
 	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, client, discoveryClient, db, ns))
+
 	s := &http.Server{
 		Addr:    addr,
 		Handler: mux,

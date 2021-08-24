@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	capiv1_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"

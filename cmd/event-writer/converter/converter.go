@@ -9,8 +9,8 @@ import (
 
 	ammodels "github.com/prometheus/alertmanager/api/v2/models"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/common/messaging/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 	"gorm.io/datatypes"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"

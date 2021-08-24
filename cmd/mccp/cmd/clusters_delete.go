@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/adapters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/clusters"
 )
 
 func clustersDeleteCmd(client *resty.Client) *cobra.Command {

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/capi"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
