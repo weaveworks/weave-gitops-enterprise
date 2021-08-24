@@ -15,11 +15,11 @@ const NotificationProvider: FC = ({ children }) => {
 
   useEffect(() => {
     return history.listen(clear);
-  }, [clear, history]);
+  }, [clear, history, notifications.length]);
 
   return (
-    <Notification.Provider value={{ notifications, setNotifications }}>
-      {notifications ? <NotificationDialog /> : null}
+    <Notification.Provider value={{ notifications, setNotifications, clear }}>
+      {notifications.length !== 0 && <NotificationDialog />}
       {children}
     </Notification.Provider>
   );

@@ -8,6 +8,7 @@ export interface NotificationData {
 type NotificationContext = {
   notifications: NotificationData[] | [];
   setNotifications: Dispatch<React.SetStateAction<NotificationData[] | []>>;
+  clear: () => void;
 };
 
 export const Notification = createContext<NotificationContext | null>(null);

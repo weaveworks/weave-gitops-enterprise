@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC } from "react";
 import { Dialog, DialogContent } from "@material-ui/core";
 import {
   makeStyles,
@@ -57,10 +57,8 @@ const useStyles = makeStyles(() =>
 );
 
 export const NotificationDialog: FC = () => {
-  const [open, setOpen] = useState<boolean>(true);
-  const { notifications, setNotifications } = useNotifications();
+  const { notifications, clear } = useNotifications();
   const classes = useStyles();
-  const history = useHistory();
   const getColor = (variant?: string) => {
     if (variant === "danger") {
       return "#BC3B1D";
@@ -68,29 +66,19 @@ export const NotificationDialog: FC = () => {
       return "#27AE60";
     }
   };
-  const onClose = () => {
-    setOpen(false);
-    setNotifications([]);
-  };
-
-  useEffect(() => {
-    return history.listen(() => {
-      setOpen(true);
-    });
-  }, [history]);
 
   return (
     <ThemeProvider theme={localMuiTheme}>
       <Dialog
-        open={open}
+        open
         maxWidth="sm"
-        onClose={onClose}
+        onClose={clear}
         BackdropProps={{ style: { backgroundColor: "transparent" } }}
         style={{ opacity: 0.9 }}
       >
-        {/* We should have separate dialogs not separate content areas ; onClose should refer to one notification only */}
-        {notifications?.map((notification: NotificationData) => (
-          <DialogContent className={classes.content}>
+        {/* We should have separate dialogs not separate content areas  */}
+        {notifications?.map((notification: NotificationData, index: number) => (
+          <DialogContent className={classes.content} key={index}>
             <div className={classes.mainWrapper}>
               {notification?.variant === "danger" ? (
                 <ErrorIcon className={classes.icon} />
@@ -106,7 +94,7 @@ export const NotificationDialog: FC = () => {
               </div>
             </div>
             <div className={classes.closeIconWrapper}>
-              <Close onClick={onClose} />
+              <Close onClick={clear} />
             </div>
           </DialogContent>
         ))}
