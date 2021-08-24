@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"errors"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/weaveworks/wks/common/database/models"
+	"gorm.io/gorm"
 )
 
 var dbPath = "open-test.db"
@@ -69,4 +72,29 @@ func TestGetSqliteUri(t *testing.T) {
 			assert.Equal(t, tt.err, err)
 		})
 	}
+}
+
+func TestCascadeDelete(t *testing.T) {
+	db, err := OpenDebug("", true)
+	assert.NoError(t, err)
+	err = MigrateTables(db)
+	assert.NoError(t, err)
+
+	clusterWithPullRequest := models.Cluster{Name: "foo", PullRequests: []*models.PullRequest{{URL: "http://example.com"}}}
+	result := db.Create(&clusterWithPullRequest)
+	assert.NoError(t, result.Error)
+	result = db.Delete(&models.Cluster{}, 1)
+	assert.NoError(t, result.Error)
+
+	// Make sure join table is cleaned up!
+	joinRow := &ClusterPullRequests{}
+	result = db.First(&joinRow)
+	assert.Error(t, result.Error)
+	assert.True(t, errors.Is(result.Error, gorm.ErrRecordNotFound), "Error was not not found! %v", result.Error)
+}
+
+// So we can query the able usually managed by gorm
+type ClusterPullRequests struct {
+	ClusterID     int `gorm:"primaryKey"`
+	PullRequestID int `gorm:"primaryKey"`
 }
