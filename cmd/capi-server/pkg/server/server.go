@@ -313,8 +313,20 @@ func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCred
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
 	var sec corev1.Secret
+	var nsName string
+	ns := &corev1.NamespaceList{}
+
+	s.client.List(ctx, ns)
+
+	for _, item := range ns.Items {
+		if item.GetClusterName() == msg.ClusterName {
+			nsName = item.Namespace
+			break
+		}
+	}
+
 	key := client.ObjectKey{
-		Namespace: s.ns,
+		Namespace: nsName,
 		Name:      fmt.Sprintf("%s-kubeconfig", msg.ClusterName),
 	}
 	err := s.client.Get(ctx, key, &sec)
