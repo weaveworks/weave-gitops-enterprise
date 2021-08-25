@@ -120,12 +120,13 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 }
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
-	for _, v := range msg.Values {
-		errs := k8sValidation.IsDNS1123Subdomain(v)
-		if len(errs) > 0 {
-			return nil, fmt.Errorf("invalid value: \"%v\", %s", v, strings.Join(errs, ". "))
+	for k, v := range msg.Values {
+		if strings.Contains(strings.ToLower(k), "name") {
+			errs := k8sValidation.IsDNS1123Subdomain(v)
+			if len(errs) > 0 {
+				return nil, fmt.Errorf("invalid value: \"%v\", %s", v, strings.Join(errs, ". "))
+			}
 		}
-
 	}
 
 	log.WithFields(log.Fields{
