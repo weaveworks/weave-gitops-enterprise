@@ -46,12 +46,13 @@ const TemplatesProvider: FC = ({ children }) => {
         body: JSON.stringify(data),
       })
         .then(() => history.push("/clusters"))
-        .catch((err) =>
+        .catch((err) => {
+          console.log(err);
           setNotifications([
             ...notifications,
             { message: err.message, variant: "danger" },
-          ])
-        )
+          ]);
+        })
         .finally(() => setCreatingPR(false));
     },
     [history, notifications, setNotifications]

@@ -33,7 +33,6 @@ const useStyles = makeStyles(() =>
   createStyles({
     content: {
       display: "flex",
-      // flexDirection: "column",
       boxShadow: theme.boxShadow.light,
     },
     icon: {
@@ -71,37 +70,35 @@ export const NotificationDialog: FC<{
 
   return (
     <ThemeProvider theme={localMuiTheme}>
-      <Dialog
-        open
-        maxWidth="sm"
-        onClose={() => onClose(false)}
-        BackdropProps={{ style: { backgroundColor: "transparent" } }}
-        style={{ opacity: 0.9 }}
-      >
-        <DialogContent className={classes.content}>
-          {notifications?.map(
-            (notification: NotificationData, index: number) => (
-              <div className={classes.mainWrapper} key={index}>
-                {notification?.variant === "danger" ? (
-                  <ErrorIcon className={classes.icon} />
-                ) : (
-                  <SuccessIcon className={classes.icon} />
-                )}
-                <div>
-                  <strong style={{ color: getColor(notification?.variant) }}>
-                    {notification?.variant === "danger" ? "Error" : "Success"}
-                    :&nbsp;
-                  </strong>
-                  {notification?.message}
-                </div>
+      {notifications?.map((notification: NotificationData, index: number) => (
+        <Dialog
+          open
+          maxWidth="sm"
+          onClose={() => onClose(false)}
+          BackdropProps={{ style: { backgroundColor: "transparent" } }}
+          style={{ opacity: 0.9 }}
+        >
+          <DialogContent className={classes.content}>
+            <div className={classes.mainWrapper} key={index}>
+              {notification?.variant === "danger" ? (
+                <ErrorIcon className={classes.icon} />
+              ) : (
+                <SuccessIcon className={classes.icon} />
+              )}
+              <div>
+                <strong style={{ color: getColor(notification?.variant) }}>
+                  {notification?.variant === "danger" ? "Error" : "Success"}
+                  :&nbsp;
+                </strong>
+                {notification?.message}
               </div>
-            )
-          )}
-          <div className={classes.closeIconWrapper}>
-            <Close onClick={() => onClose(false)} />
-          </div>
-        </DialogContent>
-      </Dialog>
+            </div>
+            <div className={classes.closeIconWrapper}>
+              <Close onClick={() => onClose(false)} />
+            </div>
+          </DialogContent>
+        </Dialog>
+      ))}
     </ThemeProvider>
   );
 };
