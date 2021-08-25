@@ -223,7 +223,11 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: make -j4 BUILD_IN_CONTAINER=false
+      - run:
+          name: "Build all the services"
+          command: |
+            export GITHUB_TOKEN=$WGE_NPM_GITHUB_TOKEN
+            make -j4 BUILD_IN_CONTAINER=false
       - deploy:
           name: Push mccp to S3
           command: |
@@ -809,6 +813,7 @@ jobs:
             export PATH=$GOROOT/bin:$PATH
             export SELENIUM_DEBUG=true
 
+            export GITHUB_TOKEN=$WGE_NPM_GITHUB_TOKEN
             make ui-build-for-tests
             cd test/integration/test
             go test -ginkgo.v -v -run TestMccpUI -ginkgo.skip=@Integration --timeout=99999s
