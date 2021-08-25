@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { Dispatch, FC } from "react";
 import { Dialog, DialogContent } from "@material-ui/core";
 import {
   makeStyles,
@@ -14,7 +14,6 @@ import useNotifications, {
   NotificationData,
 } from "../../contexts/Notifications";
 import { Close } from "@material-ui/icons";
-import { useHistory } from "react-router-dom";
 
 const localMuiTheme = createMuiTheme({
   ...muiTheme,
@@ -56,8 +55,10 @@ const useStyles = makeStyles(() =>
   })
 );
 
-export const NotificationDialog: FC = () => {
-  const { notifications, clear } = useNotifications();
+export const NotificationDialog: FC<{
+  onClose: Dispatch<React.SetStateAction<boolean>>;
+}> = ({ onClose }) => {
+  const { notifications } = useNotifications();
   const classes = useStyles();
   const getColor = (variant?: string) => {
     if (variant === "danger") {
@@ -67,12 +68,15 @@ export const NotificationDialog: FC = () => {
     }
   };
 
+  // unless you navigate away from the page the dialog doesnt reopen for the same type of error
+  console.log(notifications);
+
   return (
     <ThemeProvider theme={localMuiTheme}>
       <Dialog
         open
         maxWidth="sm"
-        onClose={clear}
+        onClose={() => onClose(false)}
         BackdropProps={{ style: { backgroundColor: "transparent" } }}
         style={{ opacity: 0.9 }}
       >
@@ -94,7 +98,7 @@ export const NotificationDialog: FC = () => {
               </div>
             </div>
             <div className={classes.closeIconWrapper}>
-              <Close onClick={clear} />
+              <Close onClick={() => onClose(false)} />
             </div>
           </DialogContent>
         ))}

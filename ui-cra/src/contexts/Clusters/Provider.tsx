@@ -105,7 +105,7 @@ const ClustersProvider: FC = ({ children }) => {
           setSelectedClusters([]);
         });
     },
-    [setNotifications]
+    [notifications, setNotifications]
   );
 
   const deleteConnectedClusters = useCallback(
@@ -129,7 +129,7 @@ const ClustersProvider: FC = ({ children }) => {
         )
         .finally(() => setLoading(false));
     },
-    [setNotifications]
+    [notifications, setNotifications]
   );
 
   const getKubeconfig = useCallback(
@@ -149,7 +149,7 @@ const ClustersProvider: FC = ({ children }) => {
         )
         .finally(() => setLoading(false));
     },
-    [setNotifications]
+    [notifications, setNotifications]
   );
 
   useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [

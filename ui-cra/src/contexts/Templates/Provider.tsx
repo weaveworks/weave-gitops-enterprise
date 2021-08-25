@@ -36,7 +36,7 @@ const TemplatesProvider: FC = ({ children }) => {
         )
         .finally(() => setLoading(false));
     },
-    [activeTemplate, setNotifications]
+    [activeTemplate, notifications, setNotifications]
   );
 
   const addCluster = useCallback(
@@ -63,14 +63,22 @@ const TemplatesProvider: FC = ({ children }) => {
       cache: "no-store",
     })
       .then((res) => setTemplates(res.templates))
-      .catch((err) =>
-        setNotifications([
-          ...notifications,
-          { message: err.message, variant: "danger" },
-        ])
-      )
-      .finally(() => setLoading(false));
-  }, [setNotifications]);
+      .catch((err) => {
+        if (
+          notifications?.some(
+            (notification) => err.message === notification.message
+          ) === false
+        ) {
+          setNotifications([
+            ...notifications,
+            { message: err.message, variant: "danger" },
+          ]);
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [notifications, setNotifications]);
 
   useEffect(() => {
     getTemplates();
