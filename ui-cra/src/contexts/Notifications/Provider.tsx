@@ -21,7 +21,9 @@ const NotificationProvider: FC = ({ children }) => {
 
   return (
     <Notification.Provider value={{ notifications, setNotifications }}>
-      {open && <NotificationDialog onClose={setOpen} />}
+      {open && notifications.length !== 0 && (
+        <NotificationDialog onClose={setOpen} />
+      )}
       {children}
     </Notification.Provider>
   );

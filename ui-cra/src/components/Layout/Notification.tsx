@@ -33,6 +33,7 @@ const useStyles = makeStyles(() =>
   createStyles({
     content: {
       display: "flex",
+      // flexDirection: "column",
       boxShadow: theme.boxShadow.light,
     },
     icon: {
@@ -68,9 +69,6 @@ export const NotificationDialog: FC<{
     }
   };
 
-  // unless you navigate away from the page the dialog doesnt reopen for the same type of error
-  console.log(notifications);
-
   return (
     <ThemeProvider theme={localMuiTheme}>
       <Dialog
@@ -80,28 +78,29 @@ export const NotificationDialog: FC<{
         BackdropProps={{ style: { backgroundColor: "transparent" } }}
         style={{ opacity: 0.9 }}
       >
-        {/* We should have separate dialogs not separate content areas  */}
-        {notifications?.map((notification: NotificationData, index: number) => (
-          <DialogContent className={classes.content} key={index}>
-            <div className={classes.mainWrapper}>
-              {notification?.variant === "danger" ? (
-                <ErrorIcon className={classes.icon} />
-              ) : (
-                <SuccessIcon className={classes.icon} />
-              )}
-              <div>
-                <text style={{ color: getColor(notification?.variant) }}>
-                  {notification?.variant === "danger" ? "Error" : "Success"}
-                  :&nbsp;
-                </text>
-                {notification?.message}
+        <DialogContent className={classes.content}>
+          {notifications?.map(
+            (notification: NotificationData, index: number) => (
+              <div className={classes.mainWrapper} key={index}>
+                {notification?.variant === "danger" ? (
+                  <ErrorIcon className={classes.icon} />
+                ) : (
+                  <SuccessIcon className={classes.icon} />
+                )}
+                <div>
+                  <strong style={{ color: getColor(notification?.variant) }}>
+                    {notification?.variant === "danger" ? "Error" : "Success"}
+                    :&nbsp;
+                  </strong>
+                  {notification?.message}
+                </div>
               </div>
-            </div>
-            <div className={classes.closeIconWrapper}>
-              <Close onClick={() => onClose(false)} />
-            </div>
-          </DialogContent>
-        ))}
+            )
+          )}
+          <div className={classes.closeIconWrapper}>
+            <Close onClick={() => onClose(false)} />
+          </div>
+        </DialogContent>
       </Dialog>
     </ThemeProvider>
   );
