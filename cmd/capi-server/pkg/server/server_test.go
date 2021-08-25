@@ -618,7 +618,7 @@ func TestGetKubeconfig(t *testing.T) {
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName: "dev",
 			},
-			err: errors.New("unable to get secret \"default/dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
+			err: errors.New("unable to get secret \"dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
 		},
 		{
 			name: "secret found but is missing key",
