@@ -72,6 +72,7 @@ export const NotificationDialog: FC<{
     <ThemeProvider theme={localMuiTheme}>
       {notifications?.map((notification: NotificationData, index: number) => (
         <Dialog
+          key={index}
           open
           maxWidth="sm"
           onClose={() => onClose(false)}
@@ -79,7 +80,7 @@ export const NotificationDialog: FC<{
           style={{ opacity: 0.9 }}
         >
           <DialogContent className={classes.content}>
-            <div className={classes.mainWrapper} key={index}>
+            <div className={classes.mainWrapper}>
               {notification?.variant === "danger" ? (
                 <ErrorIcon className={classes.icon} />
               ) : (

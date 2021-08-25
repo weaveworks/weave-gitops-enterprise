@@ -16,8 +16,9 @@ const NotificationProvider: FC = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    setOpen(true);
     return history.listen(clearNotifications);
-  }, [history, clearNotifications]);
+  }, [history, notifications, clearNotifications]);
 
   return (
     <Notification.Provider value={{ notifications, setNotifications }}>
