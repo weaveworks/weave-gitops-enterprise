@@ -1280,6 +1280,19 @@ func TestListClusters_PullRequests(t *testing.T) {
 	db.Save(&c3)
 	db.Create(&capiCluster3)
 
+	// Different namespace and different status
+	c4 := models.Cluster{Name: "My Cluster4", Token: "derp4", CAPIName: "fooname4", CAPINamespace: "mccp"}
+	db.Create(&c4)
+	pr4 := models.PullRequest{URL: "boop5", Type: "create"}
+	db.Create(&pr4)
+	c4.PullRequests = append(c4.PullRequests, &pr4)
+	db.Save(&c4)
+	now := time.Now()
+	fmt.Println("now:", now)
+	then := now.AddDate(0, 0, 20)
+	ci := models.ClusterInfo{ClusterToken: "derp4", UpdatedAt: then}
+	db.Create(&ci)
+
 	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
 
@@ -1314,6 +1327,15 @@ func TestListClusters_PullRequests(t *testing.T) {
 				Status:        "pullRequestCreated",
 				FluxInfo:      nil,
 				PullRequest:   &views.PullRequestView{URL: "boop4", Type: "delete"},
+			},
+			{
+				ID:          4,
+				Token:       "derp4",
+				Name:        "My Cluster4",
+				Status:      "ready",
+				UpdatedAt:   then,
+				FluxInfo:    nil,
+				PullRequest: &views.PullRequestView{URL: "boop5", Type: "create"},
 			},
 		},
 	}, res)

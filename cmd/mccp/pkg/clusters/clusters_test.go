@@ -41,6 +41,22 @@ func TestListClusters(t *testing.T) {
 			err:              fmt.Errorf("oops something went wrong"),
 			expectedErrorStr: "unable to retrieve clusters from \"In-memory fake\": oops something went wrong",
 		},
+		{
+			name: "different status for creation and deletion PR",
+			cs: []clusters.Cluster{
+				{
+					Name:            "cluster-a",
+					Status:          "pullRequestCreated",
+					PullRequestType: "create",
+				},
+				{
+					Name:            "cluster-b",
+					Status:          "pullRequestCreated",
+					PullRequestType: "delete",
+				},
+			},
+			expected: "NAME\tSTATUS\ncluster-a\tCreation PR\ncluster-b\tDeletion PR\n",
+		},
 	}
 
 	for _, tt := range tests {
