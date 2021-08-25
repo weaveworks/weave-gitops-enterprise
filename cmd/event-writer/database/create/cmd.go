@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 // Cmd to create the MCCP database

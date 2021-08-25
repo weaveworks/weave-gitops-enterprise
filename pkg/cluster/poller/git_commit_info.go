@@ -9,9 +9,9 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
-	httppayload "github.com/weaveworks/wks/common/http/payload"
-	"github.com/weaveworks/wks/common/messaging/handlers"
-	"github.com/weaveworks/wks/common/messaging/payload"
+	httppayload "github.com/weaveworks/weave-gitops-enterprise/common/http/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/handlers"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"

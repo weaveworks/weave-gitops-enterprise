@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	. "github.com/sclevine/agouti/matchers"
-	"github.com/weaveworks/wks/test/acceptance/test/pages"
+	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
 type TemplateField struct {
@@ -800,7 +800,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.ResetDatabase()
 			})
 
-			It("@Integration @VM Verify leaf cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@Integration @VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -861,8 +861,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
-				// Parameter values
-				clusterName := "ui-end-to-end-capd-cluster"
+				// // Parameter values
+				clusterName := "ui-end-to-end-capd-cluster-7"
 				namespace := "default"
 				k8Version := "1.19.7"
 
@@ -960,7 +960,39 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
 				})
 
-				// TODO verify cluster status after merging delete PR
+				var deletePRbranch string
+				var deletePRUrl string
+				By("And I should veriyfy the delete pull request in the cluster config repository", func() {
+					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+
+					var pullRequest []string
+					pr := func() []string {
+						pullRequest = mccpTestRunner.ListPullRequest(repoAbsolutePath)
+						return pullRequest
+					}
+					Eventually(pr).Should(HaveLen(3))
+
+					deletePRbranch = pullRequest[1]
+					deletePRUrl = strings.TrimSuffix(pullRequest[2], "\n")
+					Eventually(clusterInfo.Status.Find(`a`)).Should(BeFound())
+					Expect(clusterInfo.Status.Find(`a`).Attribute("href")).Should(MatchRegexp(deletePRUrl))
+				})
+
+				By("And the delete pull request manifests are not present in the cluster config repository", func() {
+					mccpTestRunner.PullBranch(repoAbsolutePath, deletePRbranch)
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
+				})
+
+				By(fmt.Sprintf("Then I should see the '%s' cluster status changes to Deletion PR", clusterName), func() {
+					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Eventually(clusterInfo.Status).Should(HaveText("Deletion PR"))
+				})
+
+				By("Then I should merge the delete pull request to delete cluster", func() {
+					mccpTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
+				})
+
 			})
 		})
 	})

@@ -46,6 +46,37 @@
         "tags": [
           "ClustersService"
         ]
+      },
+      "post": {
+        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
+        "operationId": "ClustersService_CreatePullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
       }
     },
     "/v1/clusters/{clusterName}/kubeconfig": {
@@ -102,15 +133,15 @@
         ]
       }
     },
-    "/v1/pulls": {
-      "post": {
-        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
-        "operationId": "ClustersService_CreatePullRequest",
+    "/v1/enterprise/version": {
+      "get": {
+        "summary": "GetEnterpriseVersion returns the WeGO Enterprise version",
+        "operationId": "ClustersService_GetEnterpriseVersion",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestResponse"
+              "$ref": "#/definitions/v1GetEnterpriseVersionResponse"
             }
           },
           "default": {
@@ -120,16 +151,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestRequest"
-            }
-          }
-        ],
         "tags": [
           "ClustersService"
         ]
@@ -450,6 +471,15 @@
         "webUrl": {
           "type": "string",
           "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1GetEnterpriseVersionResponse": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "title": "The version of WeGO Enterprise"
         }
       }
     },

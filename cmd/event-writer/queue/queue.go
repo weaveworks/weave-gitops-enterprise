@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 )
 
 // LastWriteTimestamp keeps the timestamp of the last database insertion

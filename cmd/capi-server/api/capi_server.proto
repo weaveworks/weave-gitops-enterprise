@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package capi_server.v1;
 
-option go_package = "github.com/weaveworks/wks/cmd/capi-server/proto/capi_server";
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/proto/capi_server";
 
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
@@ -37,7 +37,7 @@ service ClustersService {
   rpc CreatePullRequest(CreatePullRequestRequest)
       returns (CreatePullRequestResponse) {
     option (google.api.http) = {
-      post : "/v1/pulls"
+      post : "/v1/clusters"
       body : "*"
     };
   }
@@ -62,6 +62,13 @@ service ClustersService {
         get: "/v1/clusters/{cluster_name}/kubeconfig"
       };
     }
+  // GetEnterpriseVersion returns the WeGO Enterprise version
+  rpc GetEnterpriseVersion(GetEnterpriseVersionRequest)
+    returns (GetEnterpriseVersionResponse){
+      option (google.api.http) = {
+        get: "/v1/enterprise/version"
+    };
+  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -178,4 +185,12 @@ message TemplateObject {
   string kind = 1;
   string api_version = 2;
   repeated string parameters = 3;
+}
+
+message GetEnterpriseVersionRequest {
+}
+
+message GetEnterpriseVersionResponse {
+  // The version of WeGO Enterprise
+  string version = 1;
 }

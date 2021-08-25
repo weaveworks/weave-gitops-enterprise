@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/clusters"
 )
 
 func TestListClusters(t *testing.T) {

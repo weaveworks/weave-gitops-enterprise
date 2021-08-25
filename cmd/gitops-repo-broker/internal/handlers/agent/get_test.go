@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"gorm.io/gorm"
 )
 

@@ -12,10 +12,10 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/common"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api/database"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api/views"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/common"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api/database"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api/views"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/gorm"
 )
 

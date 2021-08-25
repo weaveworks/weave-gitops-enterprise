@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
 )
 
 // ParamsFromSpec extracts the named parameters from a CAPITemplate, finding all

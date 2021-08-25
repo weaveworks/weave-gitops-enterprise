@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
-	"github.com/weaveworks/wks/test/acceptance/test/pages"
+	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
 func DescribeWKPUIAcceptance() {
