@@ -320,7 +320,7 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 
 	for _, item := range ns.Items {
 		if item.GetClusterName() == msg.ClusterName {
-			nsName = item.Namespace
+			nsName = item.GetName()
 			break
 		}
 	}
