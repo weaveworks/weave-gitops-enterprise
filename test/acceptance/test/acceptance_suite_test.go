@@ -15,13 +15,15 @@ import (
 var theT *testing.T
 
 func GomegaFail(message string, callerSkip ...int) {
+	randID := RandString(16)
 	if webDriver != nil {
-		filepath := TakeScreenShot(RandString(16)) //Save the screenshot of failure
+		filepath := TakeScreenShot(randID) //Save the screenshot of failure
 		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
 	}
 
 	//Show pods
 	showItems("")
+	dumpClusterInfo("mccp", randID)
 
 	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
 		// Print cluster service log

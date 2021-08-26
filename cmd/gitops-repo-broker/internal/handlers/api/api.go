@@ -356,7 +356,6 @@ func UnregisterCluster(db *gorm.DB) func(w http.ResponseWriter, r *http.Request)
 		err = db.Transaction(func(tx *gorm.DB) error {
 			dependentObjectsToDelete := []interface{}{
 				&models.Event{},
-				&models.NodeInfo{},
 				&models.ClusterInfo{},
 				&models.Alert{},
 				&models.FluxInfo{},
