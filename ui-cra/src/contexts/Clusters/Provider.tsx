@@ -1,10 +1,10 @@
-import React, { FC, useCallback, useState } from "react";
-import { Cluster } from "../../types/kubernetes";
-import { request, requestWithHeaders } from "../../utils/request";
-import { useInterval } from "../../utils/use-interval";
-import { Clusters, DeleteClusterPRRequest } from "./index";
-import useNotifications from "./../Notifications";
-import fileDownload from "js-file-download";
+import React, { FC, useCallback, useState } from 'react';
+import { Cluster } from '../../types/kubernetes';
+import { request, requestWithHeaders } from '../../utils/request';
+import { useInterval } from '../../utils/use-interval';
+import { Clusters, DeleteClusterPRRequest } from './index';
+import useNotifications from './../Notifications';
+import fileDownload from 'js-file-download';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -14,8 +14,8 @@ const ClustersProvider: FC = ({ children }) => {
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [clusters, setClusters] = useState<Cluster[]>([]);
-  const [order, setOrder] = useState<string>("asc");
-  const [orderBy, setOrderBy] = useState<string>("ClusterStatus");
+  const [order, setOrder] = useState<string>('asc');
+  const [orderBy, setOrderBy] = useState<string>('ClusterStatus');
   const [pageParams, setPageParams] = useState<{
     page: number;
     perPage: number;
@@ -29,8 +29,8 @@ const ClustersProvider: FC = ({ children }) => {
   const [creatingPR, setCreatingPR] = useState<boolean>(false);
 
   const handleRequestSort = (property: string) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
     setDisabled(true);
   };
@@ -40,7 +40,7 @@ const ClustersProvider: FC = ({ children }) => {
     setDisabled(true);
   };
 
-  const clustersBaseUrl = "/gitops/api/clusters";
+  const clustersBaseUrl = '/gitops/api/clusters';
   const clustersParameters = `?sortBy=${orderBy}&order=${order.toUpperCase()}&page=${
     pageParams.page + 1
   }&per_page=${pageParams.perPage}`;
@@ -51,24 +51,24 @@ const ClustersProvider: FC = ({ children }) => {
     const newAbortController = new AbortController();
     setAbortController(newAbortController);
     setLoading(true);
-    requestWithHeaders("GET", clustersBaseUrl + clustersParameters, {
-      cache: "no-store",
+    requestWithHeaders('GET', clustersBaseUrl + clustersParameters, {
+      cache: 'no-store',
       signal: newAbortController.signal,
     })
-      .then((res) => {
+      .then(res => {
         setCount(res.total);
         setClusters(res.data.clusters);
       })
-      .catch((err) => {
+      .catch(err => {
         if (
-          err.name !== "AbortError" &&
+          err.name !== 'AbortError' &&
           notifications?.some(
-            (notification) => err.message === notification.message
+            notification => err.message === notification.message,
           ) === false
         ) {
           setNotifications([
             ...notifications,
-            { message: err.message, variant: "danger" },
+            { message: err.message, variant: 'danger' },
           ]);
         }
       })
@@ -82,74 +82,74 @@ const ClustersProvider: FC = ({ children }) => {
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest) => {
       setCreatingPR(true);
-      request("DELETE", "/v1/clusters", {
+      request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),
       })
-        .then((res) => {
+        .then(res => {
           setNotifications([
             ...notifications,
             {
               message: `PR created successfully`,
-              variant: "success",
+              variant: 'success',
             },
           ]);
         })
-        .catch((err) =>
+        .catch(err =>
           setNotifications([
             ...notifications,
-            { message: err.message, variant: "danger" },
-          ])
+            { message: err.message, variant: 'danger' },
+          ]),
         )
         .finally(() => {
           setCreatingPR(false);
           setSelectedClusters([]);
         });
     },
-    [notifications, setNotifications]
+    [notifications, setNotifications],
   );
 
   const deleteConnectedClusters = useCallback(
     ({ ...data }) => {
       setLoading(true);
-      request("DELETE", `/gitops/api/clusters/${[...data.clusters]}`)
+      request('DELETE', `/gitops/api/clusters/${[...data.clusters]}`)
         .then(() =>
           setNotifications([
             ...notifications,
             {
-              message: "Cluster successfully removed from the MCCP",
-              variant: "success",
+              message: 'Cluster successfully removed from the MCCP',
+              variant: 'success',
             },
-          ])
+          ]),
         )
-        .catch((err) =>
+        .catch(err =>
           setNotifications([
             ...notifications,
-            { message: err.message, variant: "danger" },
-          ])
+            { message: err.message, variant: 'danger' },
+          ]),
         )
         .finally(() => setLoading(false));
     },
-    [notifications, setNotifications]
+    [notifications, setNotifications],
   );
 
   const getKubeconfig = useCallback(
     (clusterName: string, filename: string) => {
       setLoading(true);
-      request("GET", `v1/clusters/${clusterName}/kubeconfig`, {
+      request('GET', `v1/clusters/${clusterName}/kubeconfig`, {
         headers: {
-          Accept: "application/octet-stream",
+          Accept: 'application/octet-stream',
         },
       })
-        .then((res) => fileDownload(res.message, filename))
-        .catch((err) =>
+        .then(res => fileDownload(res.message, filename))
+        .catch(err =>
           setNotifications([
             ...notifications,
-            { message: err.message, variant: "danger" },
-          ])
+            { message: err.message, variant: 'danger' },
+          ]),
         )
         .finally(() => setLoading(false));
     },
-    [notifications, setNotifications]
+    [notifications, setNotifications],
   );
 
   useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [

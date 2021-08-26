@@ -1,11 +1,11 @@
-import React, { FC, useCallback, useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
-import { NotificationDialog } from "../../components/Layout/Notification";
-import { Notification, NotificationData } from "./index";
+import React, { FC, useCallback, useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+import { NotificationDialog } from '../../components/Layout/Notification';
+import { Notification, NotificationData } from './index';
 
 const NotificationProvider: FC = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationData[] | []>(
-    []
+    [],
   );
   const [open, setOpen] = useState<boolean>(true);
   const history = useHistory();

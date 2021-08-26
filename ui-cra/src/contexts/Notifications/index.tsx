@@ -1,8 +1,8 @@
-import { createContext, Dispatch, useContext } from "react";
+import { createContext, Dispatch, useContext } from 'react';
 
 export interface NotificationData {
   message: string;
-  variant: "success" | "danger";
+  variant: 'success' | 'danger';
 }
 
 type NotificationContext = {
