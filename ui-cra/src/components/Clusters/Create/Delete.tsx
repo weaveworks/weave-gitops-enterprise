@@ -96,7 +96,8 @@ export const DeleteClusterDialog: FC<Props> = ({
       notifications.length > 0 &&
       notifications[notifications.length - 1].variant !== 'danger'
     ) {
-      return setOpenDeletePR(false);
+      setOpenDeletePR(false);
+      setSelectedClusters([]);
     }
     setOpenDeletePR(true);
   }, [notifications, setOpenDeletePR]);
