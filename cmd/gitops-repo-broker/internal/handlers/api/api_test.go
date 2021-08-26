@@ -1434,7 +1434,7 @@ func TestUnregisterCluster(t *testing.T) {
 				models.GitCommit{Sha: "bar", ClusterToken: "t2"},
 				models.Workspace{Name: "bar", ClusterToken: "t2"},
 				models.PullRequest{Model: models.Model{ID: 1}}, models.PullRequest{Model: models.Model{ID: 2}},
-				ClusterPullRequests{ClusterID: 1, PullRequestID: 1},
+				ClusterPullRequests{ClusterID: 2, PullRequestID: 2},
 			},
 		},
 		{
@@ -1562,6 +1562,8 @@ func TestUnregisterCluster(t *testing.T) {
 				result = db.Find(&actualClusterPullRequests)
 				assert.NoError(t, result.Error)
 				assert.Len(t, actualClusterPullRequests, len(expectedClusterPullRequests))
+				assert.Equal(t, actualClusterPullRequests[0].ClusterID, expectedClusterPullRequests[0].ClusterID)
+				assert.Equal(t, actualClusterPullRequests[0].PullRequestID, expectedClusterPullRequests[0].PullRequestID)
 			}
 		})
 	}
