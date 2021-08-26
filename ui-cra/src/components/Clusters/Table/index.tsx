@@ -9,25 +9,25 @@ import {
   TableRow,
   TableSortLabel,
   Theme,
-} from "@material-ui/core";
-import { createStyles, makeStyles } from "@material-ui/styles";
-import { range } from "lodash";
-import React, { FC, useEffect } from "react";
-import { Cluster } from "../../../types/kubernetes";
-import { Pagination } from "../../Pagination";
-import { ColumnHeaderTooltip, SkeletonRow } from "../../Shared";
-import ClusterRow from "./Row";
-import { muiTheme } from "../../../muiTheme";
-import { ThemeProvider, createMuiTheme } from "@material-ui/core/styles";
-import { Shadows } from "@material-ui/core/styles/shadows";
-import useClusters from "../../../contexts/Clusters";
-import useNotifications from "../../../contexts/Notifications";
-import { useHistory } from "react-router-dom";
-import { Loader } from "../../Loader";
+} from '@material-ui/core';
+import { createStyles, makeStyles } from '@material-ui/styles';
+import { range } from 'lodash';
+import React, { FC, useEffect } from 'react';
+import { Cluster } from '../../../types/kubernetes';
+import { Pagination } from '../../Pagination';
+import { ColumnHeaderTooltip, SkeletonRow } from '../../Shared';
+import ClusterRow from './Row';
+import { muiTheme } from '../../../muiTheme';
+import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { Shadows } from '@material-ui/core/styles/shadows';
+import useClusters from '../../../contexts/Clusters';
+import useNotifications from '../../../contexts/Notifications';
+import { useHistory } from 'react-router-dom';
+import { Loader } from '../../Loader';
 
 const localMuiTheme = createMuiTheme({
   ...muiTheme,
-  shadows: Array(25).fill("none") as Shadows,
+  shadows: Array(25).fill('none') as Shadows,
 });
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -38,28 +38,28 @@ const useStyles = makeStyles((theme: Theme) =>
     paper: {
       marginBottom: 10,
       marginTop: 10,
-      overflowX: "auto",
-      width: "100%",
+      overflowX: 'auto',
+      width: '100%',
     },
     root: {
-      width: "100%",
+      width: '100%',
     },
     disabled: {
       opacity: 0.5,
     },
     table: {
-      whiteSpace: "nowrap",
+      whiteSpace: 'nowrap',
     },
     tableHead: {
-      borderBottom: "1px solid #d8d8d8",
+      borderBottom: '1px solid #d8d8d8',
     },
     noMaxWidth: {
-      maxWidth: "none",
+      maxWidth: 'none',
     },
     tablePagination: {
-      height: "80px",
+      height: '80px',
     },
-  })
+  }),
 );
 
 interface Props {
@@ -99,7 +99,7 @@ export const ClustersTable: FC<Props> = ({
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = filteredClusters?.map((cluster) => cluster.name);
+      const newSelected = filteredClusters?.map(cluster => cluster.name);
       setSelectedClusters(newSelected || []);
       return;
     }
@@ -119,7 +119,7 @@ export const ClustersTable: FC<Props> = ({
     } else if (selectedIndex > 0) {
       newSelected = newSelected.concat(
         selectedClusters.slice(0, selectedIndex),
-        selectedClusters.slice(selectedIndex + 1)
+        selectedClusters.slice(selectedIndex + 1),
       );
     }
     setSelectedClusters(newSelected);
@@ -133,7 +133,7 @@ export const ClustersTable: FC<Props> = ({
 
   return (
     <div
-      className={`${classes.root} ${disabled ? classes.disabled : ""}`}
+      className={`${classes.root} ${disabled ? classes.disabled : ''}`}
       id="clusters-list"
     >
       <ThemeProvider theme={localMuiTheme}>
@@ -152,20 +152,20 @@ export const ClustersTable: FC<Props> = ({
                       indeterminate={numSelected > 0 && numSelected < rowCount}
                       checked={rowCount > 0 && numSelected === rowCount}
                       onChange={handleSelectAllClick}
-                      inputProps={{ "aria-label": "select all clusters" }}
+                      inputProps={{ 'aria-label': 'select all clusters' }}
                       style={{
-                        color: "#00B3EC",
+                        color: '#00B3EC',
                       }}
                     />
                   </TableCell>
                   <TableCell className={classes.nameHeaderCell} align="left">
                     <TableSortLabel
                       disabled={disabled}
-                      active={orderBy === "Name"}
+                      active={orderBy === 'Name'}
                       direction={
-                        orderBy === "Name" ? (order as "asc" | "desc") : "asc"
+                        orderBy === 'Name' ? (order as 'asc' | 'desc') : 'asc'
                       }
-                      onClick={() => onSortChange("Name")}
+                      onClick={() => onSortChange('Name')}
                     >
                       <ColumnHeaderTooltip title="Name configured in management UI">
                         <span>Name</span>
@@ -176,13 +176,13 @@ export const ClustersTable: FC<Props> = ({
                   <TableCell align="left">
                     <TableSortLabel
                       disabled={disabled}
-                      active={orderBy === "ClusterStatus"}
+                      active={orderBy === 'ClusterStatus'}
                       direction={
-                        orderBy === "ClusterStatus"
-                          ? (order as "asc" | "desc")
-                          : "asc"
+                        orderBy === 'ClusterStatus'
+                          ? (order as 'asc' | 'desc')
+                          : 'asc'
                       }
-                      onClick={() => onSortChange("ClusterStatus")}
+                      onClick={() => onSortChange('ClusterStatus')}
                     >
                       <ColumnHeaderTooltip
                         title={
@@ -229,7 +229,7 @@ export const ClustersTable: FC<Props> = ({
                         index={index}
                         cluster={cluster}
                         aria-checked={isItemSelected}
-                        onCheckboxClick={(event) =>
+                        onCheckboxClick={event =>
                           handleClick(event, cluster.name)
                         }
                         onEdit={onEdit}

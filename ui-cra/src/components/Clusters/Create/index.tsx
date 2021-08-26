@@ -6,33 +6,33 @@ import React, {
   useEffect,
   useMemo,
   useState,
-} from "react";
-import useTemplates from "../../../contexts/Templates";
-import useClusters from "../../../contexts/Clusters";
-import useCredentials from "../../../contexts/Credentials";
-import { PageTemplate } from "../../Layout/PageTemplate";
-import { SectionHeader } from "../../Layout/SectionHeader";
-import { ContentWrapper } from "../../Layout/ContentWrapper";
-import { useParams } from "react-router-dom";
-import Form from "@rjsf/material-ui";
-import { JSONSchema7 } from "json-schema";
-import { makeStyles, createStyles } from "@material-ui/core/styles";
-import { Button, Dropdown, DropdownItem } from "weaveworks-ui-components";
-import { ISubmitEvent, ObjectFieldTemplateProps } from "@rjsf/core";
-import weaveTheme from "weaveworks-ui-components/lib/theme";
-import Grid from "@material-ui/core/Grid";
-import { Input } from "../../../utils/form";
-import { Loader } from "../../Loader";
-import Divider from "@material-ui/core/Divider";
-import { useHistory } from "react-router-dom";
-import * as Grouped from "./Form/GroupedSchema";
-import * as UiTemplate from "./Form/UITemplate";
-import FormSteps, { FormStep } from "./Form/Steps";
-import FormStepsNavigation from "./Form/StepsNavigation";
-import { Credential } from "../../../types/custom";
-import styled from "styled-components";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
-import CredentialsProvider from "../../../contexts/Credentials/Provider";
+} from 'react';
+import useTemplates from '../../../contexts/Templates';
+import useClusters from '../../../contexts/Clusters';
+import useCredentials from '../../../contexts/Credentials';
+import { PageTemplate } from '../../Layout/PageTemplate';
+import { SectionHeader } from '../../Layout/SectionHeader';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { useParams } from 'react-router-dom';
+import Form from '@rjsf/material-ui';
+import { JSONSchema7 } from 'json-schema';
+import { makeStyles, createStyles } from '@material-ui/core/styles';
+import { Button, Dropdown, DropdownItem } from 'weaveworks-ui-components';
+import { ISubmitEvent, ObjectFieldTemplateProps } from '@rjsf/core';
+import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import Grid from '@material-ui/core/Grid';
+import { Input } from '../../../utils/form';
+import { Loader } from '../../Loader';
+import Divider from '@material-ui/core/Divider';
+import { useHistory } from 'react-router-dom';
+import * as Grouped from './Form/GroupedSchema';
+import * as UiTemplate from './Form/UITemplate';
+import FormSteps, { FormStep } from './Form/Steps';
+import FormStepsNavigation from './Form/StepsNavigation';
+import { Credential } from '../../../types/custom';
+import styled from 'styled-components';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import CredentialsProvider from '../../../contexts/Credentials/Provider';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -70,7 +70,7 @@ const CredentialsWrapper = styled.div`
   }
 `;
 
-const useStyles = makeStyles((theme) =>
+const useStyles = makeStyles(theme =>
   createStyles({
     form: {
       paddingTop: base,
@@ -92,26 +92,26 @@ const useStyles = makeStyles((theme) =>
       margin: `${large} 0`,
     },
     textarea: {
-      width: "100%",
+      width: '100%',
       padding: xs,
-      border: "1px solid #E5E5E5",
+      border: '1px solid #E5E5E5',
     },
     previewCTA: {
-      display: "flex",
-      justifyContent: "flex-end",
+      display: 'flex',
+      justifyContent: 'flex-end',
       paddingTop: small,
       paddingBottom: base,
     },
     createCTA: {
-      display: "flex",
-      justifyContent: "center",
+      display: 'flex',
+      justifyContent: 'center',
       paddingTop: base,
     },
     steps: {
-      display: "flex",
-      flexDirection: "column",
-      [theme.breakpoints.down("md")]: {
-        visibility: "hidden",
+      display: 'flex',
+      flexDirection: 'column',
+      [theme.breakpoints.down('md')]: {
+        visibility: 'hidden',
         height: 0,
       },
       paddingRight: xxs,
@@ -119,11 +119,11 @@ const useStyles = makeStyles((theme) =>
     errorMessage: {
       margin: `${weaveTheme.spacing.medium} 0`,
       padding: weaveTheme.spacing.small,
-      border: "1px solid #E6E6E6",
+      border: '1px solid #E6E6E6',
       borderRadius: weaveTheme.borderRadius.soft,
       color: weaveTheme.colors.orange600,
     },
-  })
+  }),
 );
 
 const AddCluster: FC = () => {
@@ -146,39 +146,39 @@ const AddCluster: FC = () => {
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [branchName, setBranchName] = useState<string>(
-    `create-clusters-branch-${random}`
+    `create-clusters-branch-${random}`,
   );
   const [pullRequestTitle, setPullRequestTitle] = useState<string>(
-    "Creates capi cluster"
+    'Creates capi cluster',
   );
   const [commitMessage, setCommitMessage] = useState<string>(
-    "Creates capi cluster"
+    'Creates capi cluster',
   );
   const [pullRequestDescription, setPullRequestDescription] = useState<string>(
-    "This PR creates a new cluster"
+    'This PR creates a new cluster',
   );
 
-  const rows = (PRPreview?.split("\n").length || 0) - 1;
+  const rows = (PRPreview?.split('\n').length || 0) - 1;
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
   const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
-  const [clickedStep, setClickedStep] = useState<string>("");
+  const [clickedStep, setClickedStep] = useState<string>('');
   const [infraCredential, setInfraCredential] =
     useState<Credential | null>(null);
-  const isLargeScreen = useMediaQuery("(min-width:1632px)");
+  const isLargeScreen = useMediaQuery('(min-width:1632px)');
 
   const credentialsItems: DropdownItem[] = useMemo(
     () => [
       ...credentials.map((credential: Credential) => {
         const { kind, namespace, name } = credential;
         return {
-          label: `${kind}/${namespace || "default"}/${name}`,
-          value: name || "",
+          label: `${kind}/${namespace || 'default'}/${name}`,
+          value: name || '',
         };
       }),
-      { label: "None", value: "" },
+      { label: 'None', value: '' },
     ],
-    [credentials]
+    [credentials],
   );
 
   const handleSelectCredentials = useCallback(
@@ -186,40 +186,40 @@ const AddCluster: FC = () => {
       const credential = getCredential(value);
       setInfraCredential(credential);
     },
-    [getCredential]
+    [getCredential],
   );
 
   const handlePreview = useCallback(
     (event: ISubmitEvent<any>) => {
       setFormData(event.formData);
       setOpenPreview(true);
-      setClickedStep("Preview");
+      setClickedStep('Preview');
       renderTemplate({ values: event.formData, credentials: infraCredential });
     },
-    [setOpenPreview, setFormData, renderTemplate, infraCredential]
+    [setOpenPreview, setFormData, renderTemplate, infraCredential],
   );
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
-    []
+    [],
   );
 
   const handleChangePullRequestTitle = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       setPullRequestTitle(event.target.value),
-    []
+    [],
   );
 
   const handleChangeCommitMessage = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       setCommitMessage(event.target.value),
-    []
+    [],
   );
 
   const handleChangePRDescription = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       setPullRequestDescription(event.target.value),
-    []
+    [],
   );
 
   const handleAddCluster = useCallback(() => {
@@ -246,17 +246,17 @@ const AddCluster: FC = () => {
   ]);
 
   const required = useMemo(() => {
-    return activeTemplate?.parameters?.map((param) => param.name);
+    return activeTemplate?.parameters?.map(param => param.name);
   }, [activeTemplate]);
 
   const parameters = useMemo(() => {
     return (
-      activeTemplate?.parameters?.map((param) => {
+      activeTemplate?.parameters?.map(param => {
         const { name, options } = param;
         if (options?.length !== 0) {
           return {
             [name]: {
-              type: "string",
+              type: 'string',
               title: `${name}`,
               enum: options,
             },
@@ -264,7 +264,7 @@ const AddCluster: FC = () => {
         } else {
           return {
             [name]: {
-              type: "string",
+              type: 'string',
               title: `${name}`,
             },
           };
@@ -279,7 +279,7 @@ const AddCluster: FC = () => {
 
   const schema: JSONSchema7 = useMemo(() => {
     return {
-      type: "object",
+      type: 'object',
       properties,
       required,
     };
@@ -293,16 +293,16 @@ const AddCluster: FC = () => {
           Object.assign(accumulator, {
             [`${index + 1}. ${item.kind}`]: item.parameters,
           }),
-        {}
+        {},
       ) || {};
-    Object.assign(groups, { "ui:template": "box" });
+    Object.assign(groups, { 'ui:template': 'box' });
     return [groups];
   }, [activeTemplate]);
 
   const uiSchema = useMemo(() => {
     return {
-      "ui:groups": sections,
-      "ui:template": (props: ObjectFieldTemplateProps) => (
+      'ui:groups': sections,
+      'ui:template': (props: ObjectFieldTemplateProps) => (
         <Grouped.ObjectFieldTemplate {...props} />
       ),
     };
@@ -314,7 +314,7 @@ const AddCluster: FC = () => {
     }
     const steps =
       activeTemplate?.objects?.map(
-        (object, index) => `${index + 1}. ${object.kind}`
+        (object, index) => `${index + 1}. ${object.kind}`,
       ) || [];
     setSteps(steps);
     return history.listen(() => {
@@ -338,8 +338,8 @@ const AddCluster: FC = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: "Clusters", url: "/", count: clustersCount },
-            { label: "Create new cluster" },
+            { label: 'Clusters', url: '/', count: clustersCount },
+            { label: 'Create new cluster' },
           ]}
         />
         <ContentWrapper>
@@ -373,7 +373,7 @@ const AddCluster: FC = () => {
                 onChange={({ formData }) => setFormData(formData)}
                 formData={formData}
                 onSubmit={handlePreview}
-                onError={() => console.log("errors")}
+                onError={() => console.log('errors')}
                 uiSchema={uiSchema}
                 formContext={{
                   templates: FormSteps,
@@ -392,8 +392,8 @@ const AddCluster: FC = () => {
                     <>
                       <FormStep
                         title="Preview"
-                        active={activeStep === "Preview"}
-                        clicked={clickedStep === "Preview"}
+                        active={activeStep === 'Preview'}
+                        clicked={clickedStep === 'Preview'}
                         setActiveStep={setActiveStep}
                       >
                         <textarea
@@ -409,8 +409,8 @@ const AddCluster: FC = () => {
                       </FormStep>
                       <FormStep
                         title="GitOps"
-                        active={activeStep === "GitOps"}
-                        clicked={clickedStep === "GitOps"}
+                        active={activeStep === 'GitOps'}
+                        clicked={clickedStep === 'GitOps'}
                         setActiveStep={setActiveStep}
                       >
                         <Input
@@ -439,7 +439,7 @@ const AddCluster: FC = () => {
                           className={classes.createCTA}
                           onClick={handleAddCluster}
                         >
-                          <Button onClick={() => setClickedStep("GitOps")}>
+                          <Button onClick={() => setClickedStep('GitOps')}>
                             Create Pull Request
                           </Button>
                         </div>

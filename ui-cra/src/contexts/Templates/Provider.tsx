@@ -1,9 +1,9 @@
-import React, { FC, useCallback, useEffect, useState } from "react";
-import { Template } from "../../types/custom";
-import { request } from "../../utils/request";
-import { Templates } from "./index";
-import { useHistory } from "react-router-dom";
-import useNotifications from "./../Notifications";
+import React, { FC, useCallback, useEffect, useState } from 'react';
+import { Template } from '../../types/custom';
+import { request } from '../../utils/request';
+import { Templates } from './index';
+import { useHistory } from 'react-router-dom';
+import useNotifications from './../Notifications';
 
 const TemplatesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -16,49 +16,49 @@ const TemplatesProvider: FC = ({ children }) => {
 
   const history = useHistory();
 
-  const templatesUrl = "/v1/templates";
+  const templatesUrl = '/v1/templates';
 
   const getTemplate = (templateName: string) =>
-    templates.find((template) => template.name === templateName) || null;
+    templates.find(template => template.name === templateName) || null;
 
   const renderTemplate = useCallback(
-    (data) => {
+    data => {
       setLoading(true);
-      request("POST", `${templatesUrl}/${activeTemplate?.name}/render`, {
+      request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
         body: JSON.stringify(data),
       })
-        .then((data) => setPRPreview(data.renderedTemplate))
-        .catch((err) =>
-          setNotifications([{ message: err.message, variant: "danger" }])
+        .then(data => setPRPreview(data.renderedTemplate))
+        .catch(err =>
+          setNotifications([{ message: err.message, variant: 'danger' }]),
         )
         .finally(() => setLoading(false));
     },
-    [activeTemplate, setNotifications]
+    [activeTemplate, setNotifications],
   );
 
   const addCluster = useCallback(
     ({ ...data }) => {
       setCreatingPR(true);
-      request("POST", "/v1/clusters", {
+      request('POST', '/v1/clusters', {
         body: JSON.stringify(data),
       })
-        .then(() => history.push("/clusters"))
-        .catch((err) =>
-          setNotifications([{ message: err.message, variant: "danger" }])
+        .then(() => history.push('/clusters'))
+        .catch(err =>
+          setNotifications([{ message: err.message, variant: 'danger' }]),
         )
         .finally(() => setCreatingPR(false));
     },
-    [history, setNotifications]
+    [history, setNotifications],
   );
 
   const getTemplates = useCallback(() => {
     setLoading(true);
-    request("GET", templatesUrl, {
-      cache: "no-store",
+    request('GET', templatesUrl, {
+      cache: 'no-store',
     })
-      .then((res) => setTemplates(res.templates))
-      .catch((err) =>
-        setNotifications([{ message: err.message, variant: "danger" }])
+      .then(res => setTemplates(res.templates))
+      .catch(err =>
+        setNotifications([{ message: err.message, variant: 'danger' }]),
       )
       .finally(() => setLoading(false));
   }, [setNotifications]);
