@@ -116,7 +116,7 @@ const MCCP: FC = () => {
           {openDeletePR && (
             <DeleteClusterDialog
               selectedCapiClusters={selectedCapiClusters}
-              onClose={() => setOpenDeletePR(false)}
+              setOpenDeletePR={setOpenDeletePR}
             />
           )}
         </ActionsWrapper>

@@ -12,7 +12,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [creatingPR, setCreatingPR] = useState<boolean>(false);
-  const { notifications, setNotifications } = useNotifications();
+  const { setNotifications } = useNotifications();
 
   const history = useHistory();
 
@@ -29,14 +29,11 @@ const TemplatesProvider: FC = ({ children }) => {
       })
         .then((data) => setPRPreview(data.renderedTemplate))
         .catch((err) =>
-          setNotifications([
-            ...notifications,
-            { message: err.message, variant: "danger" },
-          ])
+          setNotifications([{ message: err.message, variant: "danger" }])
         )
         .finally(() => setLoading(false));
     },
-    [activeTemplate, notifications, setNotifications]
+    [activeTemplate, setNotifications]
   );
 
   const addCluster = useCallback(
@@ -47,14 +44,11 @@ const TemplatesProvider: FC = ({ children }) => {
       })
         .then(() => history.push("/clusters"))
         .catch((err) =>
-          setNotifications([
-            ...notifications,
-            { message: err.message, variant: "danger" },
-          ])
+          setNotifications([{ message: err.message, variant: "danger" }])
         )
         .finally(() => setCreatingPR(false));
     },
-    [history, notifications, setNotifications]
+    [history, setNotifications]
   );
 
   const getTemplates = useCallback(() => {
@@ -63,22 +57,11 @@ const TemplatesProvider: FC = ({ children }) => {
       cache: "no-store",
     })
       .then((res) => setTemplates(res.templates))
-      .catch((err) => {
-        if (
-          notifications?.some(
-            (notification) => err.message === notification.message
-          ) === false
-        ) {
-          setNotifications([
-            ...notifications,
-            { message: err.message, variant: "danger" },
-          ]);
-        }
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [notifications, setNotifications]);
+      .catch((err) =>
+        setNotifications([{ message: err.message, variant: "danger" }])
+      )
+      .finally(() => setLoading(false));
+  }, [setNotifications]);
 
   useEffect(() => {
     getTemplates();

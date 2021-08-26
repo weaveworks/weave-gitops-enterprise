@@ -7,24 +7,24 @@ const NotificationProvider: FC = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationData[] | []>(
     []
   );
-  const [open, setOpen] = useState<boolean>(true);
+  const [showNotification, setShowNotifications] = useState<boolean>(true);
   const history = useHistory();
 
   const clearNotifications = useCallback(() => {
     setNotifications([]);
-    setOpen(true);
+    setShowNotifications(true);
   }, []);
 
   useEffect(() => {
-    setOpen(true);
+    setShowNotifications(true);
     return history.listen(clearNotifications);
   }, [history, notifications, clearNotifications]);
 
   return (
-    <Notification.Provider value={{ notifications, setNotifications }}>
-      {open && notifications.length !== 0 && (
-        <NotificationDialog onClose={setOpen} />
-      )}
+    <Notification.Provider
+      value={{ notifications, setNotifications, setShowNotifications }}
+    >
+      {showNotification && notifications.length !== 0 && <NotificationDialog />}
       {children}
     </Notification.Provider>
   );

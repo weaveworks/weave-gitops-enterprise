@@ -87,25 +87,19 @@ const ClustersProvider: FC = ({ children }) => {
       })
         .then((res) => {
           setNotifications([
-            ...notifications,
             {
               message: `PR created successfully`,
               variant: "success",
             },
           ]);
+          setSelectedClusters([]);
         })
         .catch((err) =>
-          setNotifications([
-            ...notifications,
-            { message: err.message, variant: "danger" },
-          ])
+          setNotifications([{ message: err.message, variant: "danger" }])
         )
-        .finally(() => {
-          setCreatingPR(false);
-          setSelectedClusters([]);
-        });
+        .finally(() => setCreatingPR(false));
     },
-    [notifications, setNotifications]
+    [setNotifications]
   );
 
   const deleteConnectedClusters = useCallback(
@@ -114,7 +108,6 @@ const ClustersProvider: FC = ({ children }) => {
       request("DELETE", `/gitops/api/clusters/${[...data.clusters]}`)
         .then(() =>
           setNotifications([
-            ...notifications,
             {
               message: "Cluster successfully removed from the MCCP",
               variant: "success",
@@ -122,14 +115,11 @@ const ClustersProvider: FC = ({ children }) => {
           ])
         )
         .catch((err) =>
-          setNotifications([
-            ...notifications,
-            { message: err.message, variant: "danger" },
-          ])
+          setNotifications([{ message: err.message, variant: "danger" }])
         )
         .finally(() => setLoading(false));
     },
-    [notifications, setNotifications]
+    [setNotifications]
   );
 
   const getKubeconfig = useCallback(
@@ -142,14 +132,11 @@ const ClustersProvider: FC = ({ children }) => {
       })
         .then((res) => fileDownload(res.message, filename))
         .catch((err) =>
-          setNotifications([
-            ...notifications,
-            { message: err.message, variant: "danger" },
-          ])
+          setNotifications([{ message: err.message, variant: "danger" }])
         )
         .finally(() => setLoading(false));
     },
-    [notifications, setNotifications]
+    [setNotifications]
   );
 
   useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [

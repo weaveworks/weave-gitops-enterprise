@@ -1,4 +1,4 @@
-import React, { Dispatch, FC } from "react";
+import React, { FC } from "react";
 import { Dialog, DialogContent } from "@material-ui/core";
 import {
   makeStyles,
@@ -55,10 +55,8 @@ const useStyles = makeStyles(() =>
   })
 );
 
-export const NotificationDialog: FC<{
-  onClose: Dispatch<React.SetStateAction<boolean>>;
-}> = ({ onClose }) => {
-  const { notifications } = useNotifications();
+export const NotificationDialog: FC = () => {
+  const { notifications, setShowNotifications } = useNotifications();
   const classes = useStyles();
   const getColor = (variant?: string) => {
     if (variant === "danger") {
@@ -75,7 +73,7 @@ export const NotificationDialog: FC<{
           key={index}
           open
           maxWidth="sm"
-          onClose={() => onClose(false)}
+          onClose={() => setShowNotifications(false)}
           BackdropProps={{ style: { backgroundColor: "transparent" } }}
           style={{ opacity: 0.9 }}
         >
@@ -95,7 +93,7 @@ export const NotificationDialog: FC<{
               </div>
             </div>
             <div className={classes.closeIconWrapper}>
-              <Close onClick={() => onClose(false)} />
+              <Close onClick={() => setShowNotifications(false)} />
             </div>
           </DialogContent>
         </Dialog>
