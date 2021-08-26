@@ -314,7 +314,7 @@ func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCred
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
 	var sec corev1.Secret
 	secs := &corev1.SecretList{}
-	var nsName string
+	nsName := "foo"
 	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
 
 	s.client.List(ctx, secs)
