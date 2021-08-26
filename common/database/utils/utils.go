@@ -41,6 +41,11 @@ func OpenDebug(dbURI string, debug bool) (*gorm.DB, error) {
 			Logger: logger.Default.LogMode(logger.Info),
 		}
 	}
+	dbURI, err := addPragmas(dbURI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add pragmas: %s", err)
+	}
+
 	db, err := gorm.Open(sqlite.Open(dbURI), config)
 
 	if err != nil {
@@ -65,6 +70,23 @@ func GetSqliteUri(uri, dbBusyTimeout string) (string, error) {
 	if u.Query().Get("_busy_timeout") == "" {
 		values := u.Query()
 		values.Set("_busy_timeout", dbBusyTimeout)
+		u.RawQuery = values.Encode()
+	}
+	return u.String(), nil
+}
+
+func addPragmas(uri string) (string, error) {
+	// if in memory be explict
+	if uri == "" {
+		uri = "file::memory:"
+	}
+	u, err := url.Parse(uri)
+	if err != nil {
+		return "", err
+	}
+	if u.Query().Get("_foreign_keys") == "" {
+		values := u.Query()
+		values.Set("_foreign_keys", "ON")
 		u.RawQuery = values.Encode()
 	}
 	return u.String(), nil

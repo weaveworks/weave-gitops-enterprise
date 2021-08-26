@@ -1415,12 +1415,11 @@ func TestUnregisterCluster(t *testing.T) {
 			dependentStateBefore: []interface{}{
 				&models.Event{UID: "foo", ClusterToken: "t1"}, &models.Event{UID: "bar", ClusterToken: "t2"},
 				&models.ClusterInfo{UID: "foo", ClusterToken: "t1"}, &models.ClusterInfo{UID: "bar", ClusterToken: "t2"},
-				&models.NodeInfo{UID: "foo", ClusterToken: "t1"}, &models.NodeInfo{UID: "bar", ClusterToken: "t2"},
+				&models.NodeInfo{UID: "foo", ClusterToken: "t1", ClusterInfoUID: "foo"}, &models.NodeInfo{UID: "bar", ClusterToken: "t2", ClusterInfoUID: "bar"},
 				&models.Alert{ID: 1, ClusterToken: "t1"}, &models.Alert{ID: 2, ClusterToken: "t2"},
 				&models.FluxInfo{Name: "foo", ClusterToken: "t1"}, &models.FluxInfo{Name: "bar", ClusterToken: "t2"},
 				&models.GitCommit{Sha: "foo", ClusterToken: "t1"}, &models.GitCommit{Sha: "bar", ClusterToken: "t2"},
 				&models.Workspace{Name: "foo", ClusterToken: "t1"}, &models.Workspace{Name: "bar", ClusterToken: "t2"},
-				&models.PullRequest{Model: models.Model{ID: 1}, Type: "create"}, &models.PullRequest{Model: models.Model{ID: 2}, Type: "create"},
 			},
 			responseCode: http.StatusNoContent,
 			clustersAfter: []models.Cluster{
@@ -1434,7 +1433,8 @@ func TestUnregisterCluster(t *testing.T) {
 				models.FluxInfo{Name: "bar", ClusterToken: "t2"},
 				models.GitCommit{Sha: "bar", ClusterToken: "t2"},
 				models.Workspace{Name: "bar", ClusterToken: "t2"},
-				models.PullRequest{Model: models.Model{ID: 1}, Type: "create"}, models.PullRequest{Model: models.Model{ID: 2}, Type: "create"},
+				models.PullRequest{Model: models.Model{ID: 1}}, models.PullRequest{Model: models.Model{ID: 2}},
+				ClusterPullRequests{ClusterID: 2, PullRequestID: 2},
 			},
 		},
 		{
@@ -1452,14 +1452,19 @@ func TestUnregisterCluster(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			db, err := utils.Open("", "sqlite", "", "", "")
+			db, err := utils.OpenDebug("", false)
 			assert.NoError(t, err)
 			err = utils.MigrateTables(db)
 			assert.NoError(t, err)
-			// Setup state before DELETE
-			db.Create(tc.clustersBefore)
+
+			if tc.clustersBefore != nil {
+				// Setup state before DELETE
+				tx := db.Create(tc.clustersBefore)
+				require.NoError(t, tx.Error)
+			}
 			for _, o := range tc.dependentStateBefore {
-				db.Create(o)
+				tx := db.Create(o)
+				require.NoError(t, tx.Error)
 			}
 
 			// Unregister cluster
@@ -1479,6 +1484,7 @@ func TestUnregisterCluster(t *testing.T) {
 				var expectedGitCommits []models.GitCommit
 				var expectedWorkspaces []models.Workspace
 				var expectedPullRequests []models.PullRequest
+				var expectedClusterPullRequests []ClusterPullRequests
 				for _, i := range tc.dependentStateAfter {
 					switch v := i.(type) {
 					case models.Event:
@@ -1497,6 +1503,8 @@ func TestUnregisterCluster(t *testing.T) {
 						expectedWorkspaces = append(expectedWorkspaces, i.(models.Workspace))
 					case models.PullRequest:
 						expectedPullRequests = append(expectedPullRequests, i.(models.PullRequest))
+					case ClusterPullRequests:
+						expectedClusterPullRequests = append(expectedClusterPullRequests, i.(ClusterPullRequests))
 					default:
 						fmt.Printf("Unknown type %T!\n", v)
 					}
@@ -1549,6 +1557,13 @@ func TestUnregisterCluster(t *testing.T) {
 				assert.NoError(t, result.Error)
 				assert.Len(t, actualPullRequests, len(expectedPullRequests))
 				assert.Equal(t, actualPullRequests[0].ID, expectedPullRequests[0].ID)
+
+				var actualClusterPullRequests []ClusterPullRequests
+				result = db.Find(&actualClusterPullRequests)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualClusterPullRequests, len(expectedClusterPullRequests))
+				assert.Equal(t, actualClusterPullRequests[0].ClusterID, expectedClusterPullRequests[0].ClusterID)
+				assert.Equal(t, actualClusterPullRequests[0].PullRequestID, expectedClusterPullRequests[0].PullRequestID)
 			}
 		})
 	}
@@ -1601,4 +1616,10 @@ func reverseAny(s interface{}) {
 	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
 		swap(i, j)
 	}
+}
+
+// So we can query the table usually managed by gorm
+type ClusterPullRequests struct {
+	ClusterID     int `gorm:"primaryKey"`
+	PullRequestID int `gorm:"primaryKey"`
 }
