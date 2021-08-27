@@ -100,7 +100,7 @@ const WGApplications = () => (
 
 const WGApplicationDetail = () => (
   <ApplicationsPageWrapper>
-    <ApplicationDetail />
+    <ApplicationDetail name="foo" />
   </ApplicationsPageWrapper>
 );
 
@@ -112,6 +112,8 @@ const ResponsiveDrawer = () => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  console.log('wge');
 
   const handle404 = () => (
     <PageTemplate documentTitle="WeGO · NotFound">

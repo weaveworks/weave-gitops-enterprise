@@ -100,7 +100,7 @@ const WGApplications = () => (
 
 const WGApplicationDetail = () => (
   <ApplicationsPageWrapper>
-    <ApplicationDetail />
+    <ApplicationDetail name="foo" />
   </ApplicationsPageWrapper>
 );
 

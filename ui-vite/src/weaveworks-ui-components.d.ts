@@ -295,9 +295,9 @@ declare module 'weaveworks-ui-components' {
   }>;
 
   export const CircularProgress: React.ComponentType<{
-    center?: boolean = false;
-    inline?: boolean = false;
-    size?: 'small' | 'medium' = 'medium';
+    center?: boolean;
+    inline?: boolean;
+    size?: 'small' | 'medium';
   }>;
 
   export const Search: React.ComponentType<{
@@ -307,16 +307,16 @@ declare module 'weaveworks-ui-components' {
     query: string;
   }>;
 
-  export const DataTable: React.ComponentType<{
-    data: {
-      [name: string]: any;
-    };
-    columns: {
-      label: string;
-      value: string;
-    }[];
-    children: (t: T) => any[];
-  }>;
+  // export const DataTable: React.ComponentType<{
+  //   data: {
+  //     [name: string]: any;
+  //   };
+  //   columns: {
+  //     label: string;
+  //     value: string;
+  //   }[];
+  //   children: (t: T) => any[];
+  // }>;
 
   export const ResourceDial: React.ComponentType<{
     disabled?: boolean;
@@ -335,16 +335,15 @@ declare module 'weaveworks-ui-components' {
 }
 
 declare module 'weaveworks-ui-components/lib/theme/selectors' {
-  export const spacing = (spacing: keyof Spacing) => '' as ValueOf<Spacing>;
-  export const fontSize = (fontSize: keyof FontSizes) =>
-    '' as ValueOf<FontSizes>;
+  export const spacing: (spacing: keyof Spacing) => ValueOf<Spacing>;
+  export const fontSize: (fontSize: keyof FontSizes) => ValueOf<FontSizes>;
 
   // NOTE: `color` is intentionally left out here since the true color object doesn't actually fit with what styled-components expect since it contains nested objects (e.g. `graphThemes`).
   // export const color = (color: keyof Colors) => '' as ValueOf<Colors>;
-  export const borderRadius = (borderRadius: keyof BorderRadius) =>
-    '' as ValueOf<BorderRadius>;
-  export const boxShadow = (boxShadow: keyof BoxShadow) =>
-    '' as ValueOf<BoxShadow>;
+  export const borderRadius: (
+    borderRadius: keyof BorderRadius,
+  ) => ValueOf<BorderRadius>;
+  export const boxShadow: (boxShadow: keyof BoxShadow) => ValueOf<BoxShadow>;
 }
 
 declare module 'weaveworks-ui-components/lib/theme' {
