@@ -24,7 +24,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
-	k8sValidation "k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -120,15 +119,6 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 }
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
-	for k, v := range msg.Values {
-		if strings.Contains(strings.ToLower(k), "name") {
-			errs := k8sValidation.IsDNS1123Subdomain(v)
-			if len(errs) > 0 {
-				return nil, fmt.Errorf("invalid value: \"%v\", %s", v, strings.Join(errs, ". "))
-			}
-		}
-	}
-
 	log.WithFields(log.Fields{
 		"request_values":      msg.Values,
 		"request_credentials": msg.Credentials,
@@ -143,6 +133,11 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", msg.TemplateName, missing)
 		}
 		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
+	}
+
+	err = capi.ValidateRenderedTemplates(templateBits)
+	if err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, templateBits, msg.Credentials, msg.TemplateName)
@@ -168,6 +163,11 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	tmplWithValues, err := capi.Render(tmpl.Spec, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("unable to render template %q: %w", msg.TemplateName, err)
+	}
+
+	err = capi.ValidateRenderedTemplates(tmplWithValues)
+	if err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, tmplWithValues, msg.Credentials, msg.TemplateName)
