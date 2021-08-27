@@ -92,7 +92,7 @@ const ClustersProvider: FC = ({ children }) => {
               variant: 'success',
             },
           ]);
-          setSelectedClusters([]);
+          // setSelectedClusters([]);
         })
         .catch(err =>
           setNotifications([{ message: err.message, variant: 'danger' }]),

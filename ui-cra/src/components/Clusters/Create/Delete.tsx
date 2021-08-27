@@ -57,7 +57,7 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
     useClusters();
-  const { notifications } = useNotifications();
+  const { notifications, setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
@@ -98,9 +98,11 @@ export const DeleteClusterDialog: FC<Props> = ({
     ) {
       setOpenDeletePR(false);
       setSelectedClusters([]);
+      // setNotifications([]);
     }
-    setOpenDeletePR(true);
-  }, [notifications, setOpenDeletePR]);
+    // setOpenDeletePR(true);
+    // return setNotifications([]);
+  }, [notifications, setOpenDeletePR, setSelectedClusters]);
 
   return (
     <Dialog

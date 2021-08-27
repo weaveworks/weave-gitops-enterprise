@@ -56,7 +56,8 @@ const useStyles = makeStyles(() =>
 );
 
 export const NotificationDialog: FC = () => {
-  const { notifications, setShowNotifications } = useNotifications();
+  const { notifications, setNotifications, setShowNotifications } =
+    useNotifications();
   const classes = useStyles();
   const getColor = (variant?: string) => {
     if (variant === 'danger') {
@@ -73,7 +74,10 @@ export const NotificationDialog: FC = () => {
           key={index}
           open
           maxWidth="sm"
-          onClose={() => setShowNotifications(false)}
+          onClick={() => {
+            setShowNotifications(false);
+            setNotifications([]);
+          }}
           BackdropProps={{ style: { backgroundColor: 'transparent' } }}
           style={{ opacity: 0.9 }}
         >
@@ -93,7 +97,12 @@ export const NotificationDialog: FC = () => {
               </div>
             </div>
             <div className={classes.closeIconWrapper}>
-              <Close onClick={() => setShowNotifications(false)} />
+              <Close
+                onClick={() => {
+                  setShowNotifications(false);
+                  setNotifications([]);
+                }}
+              />
             </div>
           </DialogContent>
         </Dialog>
