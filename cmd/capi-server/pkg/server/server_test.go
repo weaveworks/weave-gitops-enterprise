@@ -410,7 +410,8 @@ func TestRenderTemplate(t *testing.T) {
 							{
 								RawExtension: rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-							"kind": "AWSCluster"
+							"kind": "AWSCluster",
+							"metadata": { "name": "boop" }
 						}`),
 							},
 						}
@@ -424,7 +425,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "cred-name",
 				Namespace: "cred-namespace",
 			},
-			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
+			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  name: boop\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
 		},
 	}
 
