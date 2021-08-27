@@ -30,6 +30,8 @@
 # build step for the ui server
 /cmd/ui-server/html
 
+node_modules
+
 # Ignore binary dependencies
 /setup/wk-quickstart/bin/
 

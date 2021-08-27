@@ -3,9 +3,9 @@ package server
 import (
 	"fmt"
 
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
-	capiv1_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/capi"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
 )
 
 func ToTemplateResponse(t *capiv1.CAPITemplate) *capiv1_proto.Template {

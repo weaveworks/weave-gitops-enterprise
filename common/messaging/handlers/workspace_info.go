@@ -8,7 +8,7 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/common/messaging/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 )
 
 type WorkspaceInfoSender struct {

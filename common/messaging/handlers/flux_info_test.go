@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/common/messaging/handlers"
-	"github.com/weaveworks/wks/common/messaging/handlers/handlerstest"
-	"github.com/weaveworks/wks/common/messaging/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/handlers"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/handlers/handlerstest"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 )
 
 func TestFluxInfoSender(t *testing.T) {
@@ -27,7 +27,7 @@ func TestFluxInfoSender(t *testing.T) {
 				Token: "derp",
 				Deployments: []payload.FluxDeploymentInfo{
 					{
-						Name: "flux",
+						Name:      "flux",
 						Namespace: "wkp-flux",
 						Args: []string{
 							"--memcached-service=",
@@ -50,7 +50,7 @@ func TestFluxInfoSender(t *testing.T) {
 				Token: "derp",
 				Deployments: []payload.FluxDeploymentInfo{
 					{
-						Name: "flux",
+						Name:      "flux",
 						Namespace: "wkp-flux",
 						Args: []string{
 							"--memcached-service=",

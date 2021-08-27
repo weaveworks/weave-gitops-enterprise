@@ -7,9 +7,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/adapters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/adapters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
 )
 
 const BaseURI = "https://weave.works/api"
@@ -231,21 +231,21 @@ func TestCreatePullRequestForTemplate(t *testing.T) {
 			name:      "service error",
 			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("../../test/testdata/service_error.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/pulls\": something bad happened")
+				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/clusters\": something bad happened")
 			},
 		},
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/pulls\": Post \"https://weave.works/api/v1/pulls\": oops")
+				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/clusters\": Post \"https://weave.works/api/v1/clusters\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(400, ""),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/pulls\" was 400")
+				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/clusters\" was 400")
 			},
 		},
 	}
@@ -255,7 +255,7 @@ func TestCreatePullRequestForTemplate(t *testing.T) {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("POST", BaseURI+"/v1/pulls", tt.responder)
+			httpmock.RegisterResponder("POST", BaseURI+"/v1/clusters", tt.responder)
 
 			c, err := adapters.NewHttpClient(BaseURI, client)
 			assert.NoError(t, err)

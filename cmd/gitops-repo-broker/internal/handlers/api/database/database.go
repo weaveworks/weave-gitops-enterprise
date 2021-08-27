@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api/views"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api/views"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -45,9 +45,9 @@ WITH unique_capi_clusters AS (
 			WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity = 'critical') > 0 THEN 'critical'
 			WHEN (select count(*) from alerts a where a.cluster_token = c.token and severity != 'none' and severity is not null) > 0 THEN 'alerting'
 			WHEN  %[1]s <= 1800 THEN 'ready'
-			WHEN (select count(*) from pull_requests pr inner join pr_clusters prc on pr.id = prc.pr_id where prc.cluster_id = c.id and pr.type = 'delete') > 0 and ci.updated_at is null THEN 'pullRequestCreated'
+			WHEN (select count(*) from pull_requests pr inner join cluster_pull_requests cpr on pr.id = cpr.pull_request_id where cpr.cluster_id = c.id and pr.type = 'delete') > 0 and ci.updated_at is null THEN 'pullRequestCreated'
 			WHEN cc.id is not null THEN 'clusterFound'
-			WHEN (select count(*) from pull_requests pr inner join pr_clusters prc on pr.id = prc.pr_id where prc.cluster_id = c.id) > 0 and ci.updated_at is null THEN 'pullRequestCreated'
+			WHEN (select count(*) from pull_requests pr inner join cluster_pull_requests cpr on pr.id = cpr.pull_request_id where cpr.cluster_id = c.id) > 0 and ci.updated_at is null THEN 'pullRequestCreated'
 			WHEN %[1]s IS NULL OR %[1]s > 1800 THEN 'notConnected'
 		END AS ClusterStatus
 	FROM
@@ -97,8 +97,8 @@ SELECT
 FROM
 	paginated_ordered_clusters AS c
 	LEFT JOIN node_info ni ON c.token = ni.cluster_token
-	LEFT JOIN pr_clusters prc ON prc.cluster_id = c.ID
-	LEFT JOIN pull_requests pr ON pr.ID = prc.pr_id
+	LEFT JOIN cluster_pull_requests cpr ON cpr.cluster_id = c.ID
+	LEFT JOIN pull_requests pr ON pr.ID = cpr.pull_request_id
 	LEFT JOIN flux_info fi ON c.token = fi.cluster_token
 	LEFT JOIN git_commits gc ON c.token = gc.cluster_token
 	LEFT JOIN workspaces ws ON c.token = ws.cluster_token

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/cmd/capi-server/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/app"
 )
 
 func init() {

@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api/database"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api/database"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 func TestGetClusters_NilDb(t *testing.T) {

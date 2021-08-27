@@ -3,7 +3,7 @@ package capi
 import (
 	"fmt"
 
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"

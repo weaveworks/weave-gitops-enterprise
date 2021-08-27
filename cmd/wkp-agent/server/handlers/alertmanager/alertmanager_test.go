@@ -8,7 +8,7 @@ import (
 
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/wks/common/messaging/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 )
 
 const alertResponse = `

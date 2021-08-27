@@ -10,8 +10,8 @@ import (
 	ammodels "github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/sirupsen/logrus"
 	logrustest "github.com/sirupsen/logrus/hooks/test"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/common/messaging/payload"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/messaging/payload"
 	"gorm.io/datatypes"
 
 	"github.com/stretchr/testify/assert"
