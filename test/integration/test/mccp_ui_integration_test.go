@@ -166,6 +166,7 @@ func createNodeInfo(db *gorm.DB, clusterName, name, version string, isControlPla
 
 	db.Create(&models.NodeInfo{
 		ClusterToken:   cluster.Token,
+		ClusterInfoUID: types.UID(clusterName),
 		Name:           name,
 		IsControlPlane: isControlPlane,
 		KubeletVersion: version,
@@ -244,6 +245,7 @@ var _ = Describe("Integration suite", func() {
 				name := "ewq"
 				createCluster(db, name, "", "Last seen")
 				db.Create(&models.NodeInfo{
+					ClusterInfoUID: types.UID(name),
 					ClusterToken:   name,
 					Name:           "cp-1",
 					IsControlPlane: true,
