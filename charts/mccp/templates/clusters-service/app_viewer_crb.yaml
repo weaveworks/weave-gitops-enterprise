@@ -10,4 +10,3 @@ subjects:
     - kind: ServiceAccount
       name: {{ include "mccp.serviceAccountName" . }}
       namespace: {{ .Release.Namespace | quote }}
-
