@@ -40,7 +40,7 @@ export class Poll<ResponsesById> extends PureComponent<
     timestamp: moment().valueOf(),
   };
 
-  timeoutId: NodeJS.Timeout | null = null;
+  timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   componentDidMount() {
     this.poll();
