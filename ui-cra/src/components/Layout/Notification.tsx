@@ -67,6 +67,11 @@ export const NotificationDialog: FC = () => {
     }
   };
 
+  const cleanUp = () => {
+    setShowNotifications(false);
+    setNotifications([]);
+  };
+
   return (
     <ThemeProvider theme={localMuiTheme}>
       {notifications?.map((notification: NotificationData, index: number) => (
@@ -74,10 +79,7 @@ export const NotificationDialog: FC = () => {
           key={index}
           open
           maxWidth="sm"
-          onClick={() => {
-            setShowNotifications(false);
-            setNotifications([]);
-          }}
+          onClick={cleanUp}
           BackdropProps={{ style: { backgroundColor: 'transparent' } }}
           style={{ opacity: 0.9 }}
         >
@@ -97,12 +99,7 @@ export const NotificationDialog: FC = () => {
               </div>
             </div>
             <div className={classes.closeIconWrapper}>
-              <Close
-                onClick={() => {
-                  setShowNotifications(false);
-                  setNotifications([]);
-                }}
-              />
+              <Close onClick={cleanUp} />
             </div>
           </DialogContent>
         </Dialog>

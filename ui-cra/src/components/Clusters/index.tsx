@@ -61,7 +61,6 @@ const MCCP: FC = () => {
 
   const history = useHistory();
   const { activeTemplate } = useTemplates();
-  // const { activeTemplate } = useTemplates();
 
   const handleAddCluster = useCallback(() => {
     if (activeTemplate === null) {
@@ -76,9 +75,6 @@ const MCCP: FC = () => {
   const selectedCapiClusters = selectedClusters.filter(cls =>
     capiClusters.find(c => c.name === cls),
   );
-
-  console.log(openDeletePR);
-  console.log(selectedCapiClusters);
 
   return (
     <PageTemplate documentTitle="WeGo · Clusters">
@@ -111,10 +107,7 @@ const MCCP: FC = () => {
                 className="danger"
                 id="delete-cluster"
                 icon={faTrashAlt}
-                onClick={() => {
-                  setOpenDeletePR(true);
-                  // setNotifications([]);
-                }}
+                onClick={() => setOpenDeletePR(true)}
                 text="CREATE A PR TO DELETE CLUSTERS"
                 disabled={selectedCapiClusters.length === 0}
               />

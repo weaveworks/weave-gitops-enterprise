@@ -85,15 +85,14 @@ const ClustersProvider: FC = ({ children }) => {
       request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),
       })
-        .then(res => {
+        .then(res =>
           setNotifications([
             {
               message: `PR created successfully`,
               variant: 'success',
             },
-          ]);
-          // setSelectedClusters([]);
-        })
+          ]),
+        )
         .catch(err =>
           setNotifications([{ message: err.message, variant: 'danger' }]),
         )

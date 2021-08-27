@@ -57,7 +57,7 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
     useClusters();
-  const { notifications, setNotifications } = useNotifications();
+  const { notifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
@@ -91,6 +91,11 @@ export const DeleteClusterDialog: FC<Props> = ({
       description: pullRequestDescription,
     });
 
+  const cleanUp = () => {
+    setOpenDeletePR(false);
+    setSelectedClusters([]);
+  };
+
   useEffect(() => {
     if (
       notifications.length > 0 &&
@@ -98,33 +103,15 @@ export const DeleteClusterDialog: FC<Props> = ({
     ) {
       setOpenDeletePR(false);
       setSelectedClusters([]);
-      // setNotifications([]);
     }
-    // setOpenDeletePR(true);
-    // return setNotifications([]);
   }, [notifications, setOpenDeletePR, setSelectedClusters]);
 
   return (
-    <Dialog
-      open
-      maxWidth="md"
-      fullWidth
-      onClose={() => {
-        setOpenDeletePR(false);
-        setSelectedClusters([]);
-      }}
-    >
+    <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
       <div id="delete-popup" className={classes.dialog}>
         <DialogTitle disableTypography>
           <Typography variant="h5">Create PR to remove clusters</Typography>
-          {setOpenDeletePR ? (
-            <CloseIconButton
-              onClick={() => {
-                setOpenDeletePR(false);
-                setSelectedClusters([]);
-              }}
-            />
-          ) : null}
+          <CloseIconButton onClick={cleanUp} />
         </DialogTitle>
         <DialogContent>
           {!creatingPR ? (
