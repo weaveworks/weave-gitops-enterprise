@@ -4,10 +4,8 @@ kind: ClusterRole
 metadata:
   name: app-viewer-role
 rules:
-  - apiGroups:
-      - wego.weave.works
-    resources:
-      - apps
+  - apiGroups: ["wego.weave.works", "helm.toolkit.fluxcd.io", "kustomize.toolkit.fluxcd.io", "notification.toolkit.fluxcd.io", "source.toolkit.fluxcd.io", "image.toolkit.fluxcd.io", "notification.toolkit.fluxcd.io"]
+    resources: ["apps", "helmreleases", "kustomizations", "alerts", "buckets", "gitrepositories", "helmcharts", "helmrepositories", "imagepolicies", "imagerepositories", "imageupdateautomations", "providers", "receivers"]
     verbs:
       - get
       - list
