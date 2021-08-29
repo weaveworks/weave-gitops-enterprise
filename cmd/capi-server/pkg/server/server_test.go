@@ -381,7 +381,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
 		},
 		{
 			// some client might send empty credentials objects
@@ -396,7 +396,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "",
 				Namespace: "",
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
 		},
 		{
 			name: "render template with credentials",
@@ -410,7 +410,8 @@ func TestRenderTemplate(t *testing.T) {
 							{
 								RawExtension: rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-							"kind": "AWSCluster"
+							"kind": "AWSCluster",
+							"metadata": { "name": "boop" }
 						}`),
 							},
 						}
@@ -424,7 +425,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "cred-name",
 				Namespace: "cred-namespace",
 			},
-			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
+			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  name: boop\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
 		},
 	}
 
@@ -480,6 +481,76 @@ func TestRenderTemplate_MissingVariables(t *testing.T) {
 	}
 }
 
+func TestRenderTemplate_ValidateVariables(t *testing.T) {
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		expected     string
+		err          error
+		clusterName  string
+	}{
+		{
+			name: "valid value",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "test-cluster",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
+		},
+		{
+			name: "value contains non alphanumeric",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "t&est-cluster",
+			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "t&est-cluster", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
+		},
+		{
+			name: "value does not end alphanumeric",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "test-cluster-",
+			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "test-cluster-", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
+		},
+		{
+			name: "value contains uppercase letter",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "Test-Cluster",
+			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "Test-Cluster", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+
+			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": tt.clusterName,
+				},
+			}
+
+			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the templates:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
 func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
 		name         string
@@ -494,6 +565,27 @@ func TestCreatePullRequest(t *testing.T) {
 			name:   "validation errors",
 			req:    &capiv1_protos.CreatePullRequestRequest{},
 			err:    errors.New("6 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			dbRows: 0,
+		},
+		{
+			name: "name validation errors",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo bar bad name",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+			},
+			err:    errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 			dbRows: 0,
 		},
 		{
@@ -802,9 +894,7 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
   "apiVersion": "fooversion",
   "kind": "fookind",
   "metadata": {
-    "labels": {
-      "name": "${CLUSTER_NAME}"
-    }
+	"name": "${CLUSTER_NAME}"
   }
 }`
 	ct := &capiv1.CAPITemplate{

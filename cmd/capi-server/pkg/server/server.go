@@ -136,6 +136,11 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
 	}
 
+	err = capi.ValidateRenderedTemplates(templateBits)
+	if err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
+	}
+
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, templateBits, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
@@ -159,6 +164,11 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	tmplWithValues, err := capi.Render(tmpl.Spec, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("unable to render template %q: %w", msg.TemplateName, err)
+	}
+
+	err = capi.ValidateRenderedTemplates(tmplWithValues)
+	if err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, tmplWithValues, msg.Credentials, msg.TemplateName)
