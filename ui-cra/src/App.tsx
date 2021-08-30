@@ -9,6 +9,7 @@ import { Theme } from 'weaveworks-ui-components';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
+import { toHtml } from '@fortawesome/fontawesome-svg-core';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -50,10 +51,19 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
+const withWGColors = {
+  ...theme,
+  colors: {
+    ...theme.colors,
+    primary: theme.colors.blue600,
+    success: theme.colors.green500,
+  },
+};
+
 const App: FC = () => {
   return (
     <BrowserRouter basename={process.env.PUBLIC_URL}>
-      <ThemeProvider theme={theme as Theme}>
+      <ThemeProvider theme={withWGColors as Theme}>
         <MuiThemeProvider theme={muiTheme}>
           <GlobalStyle />
           <ResponsiveDrawer />
