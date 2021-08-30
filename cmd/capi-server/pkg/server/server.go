@@ -327,6 +327,10 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 		}
 	}
 
+	if nsName == "" {
+		nsName = "default"
+	}
+
 	key := client.ObjectKey{
 		Namespace: nsName,
 		Name:      name,
