@@ -19,7 +19,7 @@ ingress:
   tls: []
 service:
   name: wkp-ui-server
-  port: 80
+  port: 8000
 server:
   htmlRootPath: html/wkp-ui
 config: # remember to consult `ui/src/entities/config.ts` before making any changes to this file. (see see https://github.com/weaveworks/wkp-ui/issues/200)

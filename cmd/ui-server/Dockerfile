@@ -13,4 +13,4 @@ LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.vendor="Weaveworks"
 
 ENTRYPOINT ["/ui-server"]
-EXPOSE 80
+EXPOSE 8000
