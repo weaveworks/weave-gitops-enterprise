@@ -85,6 +85,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 					{
 						Name:        "CLUSTER_NAME",
 						Description: "This is used for the cluster naming.",
+						Options:     []string{"option1", "option2"},
 					},
 				})
 			},
