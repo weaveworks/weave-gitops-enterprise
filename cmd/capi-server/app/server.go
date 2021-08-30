@@ -14,11 +14,13 @@ import (
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
+	"k8s.io/klog/v2/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -114,6 +116,7 @@ func StartServer(ctx context.Context) error {
 	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, kube,
 		grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
 		grpc_runtime.WithMetadata(TrackEvents),
+		middleware.WithGrpcErrorLogging(klogr.New()),
 	)
 }
 
