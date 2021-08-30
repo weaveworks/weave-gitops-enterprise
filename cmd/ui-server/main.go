@@ -32,7 +32,7 @@ func (fs *spaFileSystem) Open(name string) (http.File, error) {
 
 func main() {
 	var params paramSet
-	flag.IntVar(&params.port, "port", 80, "")
+	flag.IntVar(&params.port, "port", 8000, "")
 	flag.StringVar(&params.gitDeployKeyFile, "git-deploy-key-file", "private-key", "")
 	flag.StringVar(&params.gitURL, "git-url", "git@github.com:weaveworks/test-wkp.git", "")
 	flag.DurationVar(&params.gitPollInterval, "git-poll-interval", 15*time.Second, "")
