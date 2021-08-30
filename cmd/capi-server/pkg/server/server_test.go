@@ -8,15 +8,16 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
-	capiv1_protos "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/common/database/utils"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
+	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -380,7 +381,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
 		},
 		{
 			// some client might send empty credentials objects
@@ -395,7 +396,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "",
 				Namespace: "",
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
 		},
 		{
 			name: "render template with credentials",
@@ -409,7 +410,8 @@ func TestRenderTemplate(t *testing.T) {
 							{
 								RawExtension: rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-							"kind": "AWSCluster"
+							"kind": "AWSCluster",
+							"metadata": { "name": "boop" }
 						}`),
 							},
 						}
@@ -423,7 +425,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "cred-name",
 				Namespace: "cred-namespace",
 			},
-			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
+			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  name: boop\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
 		},
 	}
 
@@ -479,6 +481,76 @@ func TestRenderTemplate_MissingVariables(t *testing.T) {
 	}
 }
 
+func TestRenderTemplate_ValidateVariables(t *testing.T) {
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		expected     string
+		err          error
+		clusterName  string
+	}{
+		{
+			name: "valid value",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "test-cluster",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
+		},
+		{
+			name: "value contains non alphanumeric",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "t&est-cluster",
+			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "t&est-cluster", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
+		},
+		{
+			name: "value does not end alphanumeric",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "test-cluster-",
+			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "test-cluster-", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
+		},
+		{
+			name: "value contains uppercase letter",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			clusterName: "Test-Cluster",
+			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "Test-Cluster", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+
+			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": tt.clusterName,
+				},
+			}
+
+			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the templates:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
 func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
 		name         string
@@ -493,6 +565,27 @@ func TestCreatePullRequest(t *testing.T) {
 			name:   "validation errors",
 			req:    &capiv1_protos.CreatePullRequestRequest{},
 			err:    errors.New("6 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			dbRows: 0,
+		},
+		{
+			name: "name validation errors",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo bar bad name",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+			},
+			err:    errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 			dbRows: 0,
 		},
 		{
@@ -617,7 +710,7 @@ func TestGetKubeconfig(t *testing.T) {
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName: "dev",
 			},
-			err: errors.New("unable to get secret \"default/dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
+			err: errors.New("unable to get secret \"dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
 		},
 		{
 			name: "secret found but is missing key",
@@ -657,24 +750,38 @@ func TestGetKubeconfig(t *testing.T) {
 
 func TestDeleteClustersPullRequest(t *testing.T) {
 	testCases := []struct {
-		name         string
-		clusterState []runtime.Object
-		provider     git.Provider
-		req          *capiv1_protos.DeleteClustersPullRequestRequest
-		expected     string
-		err          error
-		dbRows       int
+		name     string
+		dbState  []interface{}
+		provider git.Provider
+		req      *capiv1_protos.DeleteClustersPullRequestRequest
+		expected string
+		err      error
 	}{
 		{
-			name:   "validation errors",
-			req:    &capiv1_protos.DeleteClustersPullRequestRequest{},
-			err:    errors.New("5 errors occurred:\nat least one cluster name must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
-			dbRows: 0,
+			name: "validation errors",
+			req:  &capiv1_protos.DeleteClustersPullRequestRequest{},
+			err:  errors.New("5 errors occurred:\nat least one cluster name must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+		},
+		{
+			name:     "cluster does not exist",
+			dbState:  []interface{}{},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+				ClusterNames:  []string{"foo"},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-02",
+				BaseBranch:    "feature-01",
+				Title:         "Delete Cluster",
+				Description:   "Deletes a cluster",
+				CommitMessage: "Remove cluster manifest",
+			},
+			err: gorm.ErrRecordNotFound,
 		},
 		{
 			name: "create delete pull request",
-			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+			dbState: []interface{}{
+				&models.Cluster{Name: "foo", Token: "foo-token"},
+				&models.Cluster{Name: "bar", Token: "bar-token"},
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
@@ -686,7 +793,6 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				Description:   "Deletes a cluster",
 				CommitMessage: "Remove cluster manifest",
 			},
-			dbRows:   0,
 			expected: "https://github.com/org/repo/pull/1",
 		},
 	}
@@ -695,27 +801,10 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			db := createDatabase(t)
-			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db, "")
-
-			req := &capiv1_protos.CreatePullRequestRequest{
-				TemplateName: "cluster-template-1",
-				ParameterValues: map[string]string{
-					"CLUSTER_NAME": "foo",
-					"NAMESPACE":    "default",
-				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+			s := createServer([]runtime.Object{}, "capi-templates", "default", tt.provider, db, "")
+			for _, o := range tt.dbState {
+				db.Create(o)
 			}
-
-			// create request
-			createPR, _ := s.CreatePullRequest(context.Background(), req)
-			fmt.Println("======================")
-			fmt.Println(createPR)
-			fmt.Println("======================")
 
 			// delete request
 			deletePullRequestResponse, err := s.DeleteClustersPullRequest(context.Background(), tt.req)
@@ -733,18 +822,15 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 
-				var cluster models.Cluster
-				db.Where("name = ?", "foo").Find(&cluster)
-
-				if diff := cmp.Diff(cluster.Name, "foo"); diff != "" {
-					t.Fatalf("got the wrong name:\n%s", diff)
-				}
-
-				var pr models.PRCluster
-				db.Where("pr_id = ?", 2).Find(&pr)
-
-				if diff := cmp.Diff(pr.ClusterID, uint(1)); diff != "" {
-					t.Fatalf("got the wrong id:\n%s", diff)
+				var clusters []models.Cluster
+				db.Preload(clause.Associations).Find(&clusters)
+				for _, cluster := range clusters {
+					if len(cluster.PullRequests) != 1 {
+						t.Fatalf("got the wrong number of pull requests:%d", len(cluster.PullRequests))
+					}
+					if cluster.PullRequests[0].Type != "delete" {
+						t.Fatalf("got the wrong type of pull request:%s", cluster.PullRequests[0].Type)
+					}
 				}
 			}
 		})
@@ -808,9 +894,7 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
   "apiVersion": "fooversion",
   "kind": "fookind",
   "metadata": {
-    "labels": {
-      "name": "${CLUSTER_NAME}"
-    }
+	"name": "${CLUSTER_NAME}"
   }
 }`
 	ct := &capiv1.CAPITemplate{
@@ -865,16 +949,26 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 	})...)
 }
 
+func makeNamespace(n string) *corev1.Namespace {
+	return &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: n,
+		},
+	}
+}
+
 func makeSecret(n string, ns string, s ...string) *corev1.Secret {
 	data := make(map[string][]byte)
 	for i := 0; i < len(s); i += 2 {
 		data[s[i]] = []byte(s[i+1])
 	}
 
+	nsObj := makeNamespace(ns)
+
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      n,
-			Namespace: ns,
+			Namespace: nsObj.GetName(),
 		},
 		Data: data,
 	}

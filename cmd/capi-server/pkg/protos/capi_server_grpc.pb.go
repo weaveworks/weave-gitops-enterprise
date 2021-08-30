@@ -33,6 +33,8 @@ type ClustersServiceClient interface {
 	// GetKubeconfig returns the Kubeconfig for the given
 	// workload cluster.
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
+	// GetEnterpriseVersion returns the WeGO Enterprise version
+	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -115,6 +117,15 @@ func (c *clustersServiceClient) GetKubeconfig(ctx context.Context, in *GetKubeco
 	return out, nil
 }
 
+func (c *clustersServiceClient) GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error) {
+	out := new(GetEnterpriseVersionResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/GetEnterpriseVersion", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -133,6 +144,8 @@ type ClustersServiceServer interface {
 	// GetKubeconfig returns the Kubeconfig for the given
 	// workload cluster.
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
+	// GetEnterpriseVersion returns the WeGO Enterprise version
+	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -163,6 +176,9 @@ func (UnimplementedClustersServiceServer) ListCredentials(context.Context, *List
 }
 func (UnimplementedClustersServiceServer) GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKubeconfig not implemented")
+}
+func (UnimplementedClustersServiceServer) GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetEnterpriseVersion not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -321,6 +337,24 @@ func _ClustersService_GetKubeconfig_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_GetEnterpriseVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEnterpriseVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetEnterpriseVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/GetEnterpriseVersion",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetEnterpriseVersion(ctx, req.(*GetEnterpriseVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -359,6 +393,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetKubeconfig",
 			Handler:    _ClustersService_GetKubeconfig_Handler,
+		},
+		{
+			MethodName: "GetEnterpriseVersion",
+			Handler:    _ClustersService_GetEnterpriseVersion_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

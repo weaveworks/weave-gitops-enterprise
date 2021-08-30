@@ -134,10 +134,10 @@ cmd/ui-server/html: ui-cra/build
 	cp -r ui-cra/build $@/mccp
 
 cmd/mccp/mccp:
-	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.Version=$(VERSION) -X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/mccp/*.go
+	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/pkg/version.Version=$(VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/mccp/*.go
 
 cmd/gitops-repo-broker/gitops-repo-broker:
-	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/wks/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
+	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
 
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
@@ -158,11 +158,13 @@ unit-tests-with-coverage: $(GENERATED)
 	WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/...
 	cd cmd/event-writer && go test -cover -coverprofile=.coverprofile ./converter/... ./database/... ./liveness/... ./subscribe/... ./run/... ./test/...
 	cd common && go test -cover -coverprofile=.coverprofile ./...
+	cd cmd/capi-server && go test -cover -coverprofile=.coverprofile ./...
 
 unit-tests: $(GENERATED)
 	WKP_DEBUG=true go test -v ./cmd/... ./pkg/...
 	cd cmd/event-writer && go test ./converter/... ./database/... ./liveness/... ./subscribe/... ./run/... ./test/...
 	cd common && go test ./...
+	cd cmd/capi-server && go test -v ./...
 
 ui-build-for-tests:
 	cd ui-cra && yarn install && yarn build

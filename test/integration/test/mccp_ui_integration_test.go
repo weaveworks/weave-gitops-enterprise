@@ -21,14 +21,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/app"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
-	broker "github.com/weaveworks/wks/cmd/gitops-repo-broker/server"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/common/database/utils"
-	acceptancetest "github.com/weaveworks/wks/test/acceptance/test"
-	"github.com/weaveworks/wks/test/acceptance/test/pages"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/templates"
+	broker "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
+	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/apps/v1"
@@ -166,6 +166,7 @@ func createNodeInfo(db *gorm.DB, clusterName, name, version string, isControlPla
 
 	db.Create(&models.NodeInfo{
 		ClusterToken:   cluster.Token,
+		ClusterInfoUID: types.UID(clusterName),
 		Name:           name,
 		IsControlPlane: isControlPlane,
 		KubeletVersion: version,
@@ -244,6 +245,7 @@ var _ = Describe("Integration suite", func() {
 				name := "ewq"
 				createCluster(db, name, "", "Last seen")
 				db.Create(&models.NodeInfo{
+					ClusterInfoUID: types.UID(name),
 					ClusterToken:   name,
 					Name:           "cp-1",
 					IsControlPlane: true,
@@ -596,7 +598,7 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		Namespace: "default",
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default")
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", nil)
 }
 
 func RunUIServer(ctx gcontext.Context) {

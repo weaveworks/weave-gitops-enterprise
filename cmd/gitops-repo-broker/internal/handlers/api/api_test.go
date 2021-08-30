@@ -21,10 +21,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api"
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/handlers/api/views"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api/views"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"gorm.io/gorm"
 )
 
@@ -1258,13 +1258,15 @@ func TestListClusters_PullRequests(t *testing.T) {
 	db.Create(&c)
 	pr := models.PullRequest{URL: "boop", Type: "create"}
 	db.Create(&pr)
-	db.Create(&models.PRCluster{PRID: pr.ID, ClusterID: c.ID})
+	c.PullRequests = append(c.PullRequests, &pr)
+	db.Save(&c)
 
 	c2 := models.Cluster{Name: "My Cluster2", Token: "derp2", CAPIName: "fooname2", CAPINamespace: "default"}
 	db.Create(&c2)
 	pr2 := models.PullRequest{URL: "boop2", Type: "delete"}
 	db.Create(&pr2)
-	db.Create(&models.PRCluster{PRID: pr2.ID, ClusterID: c2.ID})
+	c2.PullRequests = append(c2.PullRequests, &pr2)
+	db.Save(&c2)
 
 	c3 := models.Cluster{Name: "My Cluster3", Token: "derp3", CAPIName: "fooname3", CAPINamespace: "default"}
 	capiCluster3 := models.CAPICluster{Name: "fooname3", ClusterToken: "derp3", Namespace: "default"}
@@ -1273,9 +1275,23 @@ func TestListClusters_PullRequests(t *testing.T) {
 	pr3b := models.PullRequest{URL: "boop4", Type: "delete"}
 	db.Create(&pr3a)
 	db.Create(&pr3b)
-	db.Create(&models.PRCluster{PRID: pr3a.ID, ClusterID: c3.ID})
-	db.Create(&models.PRCluster{PRID: pr3b.ID, ClusterID: c3.ID})
+	c3.PullRequests = append(c3.PullRequests, &pr3a)
+	c3.PullRequests = append(c3.PullRequests, &pr3b)
+	db.Save(&c3)
 	db.Create(&capiCluster3)
+
+	// Different namespace and different status
+	c4 := models.Cluster{Name: "My Cluster4", Token: "derp4", CAPIName: "fooname4", CAPINamespace: "mccp"}
+	db.Create(&c4)
+	pr4 := models.PullRequest{URL: "boop5", Type: "create"}
+	db.Create(&pr4)
+	c4.PullRequests = append(c4.PullRequests, &pr4)
+	db.Save(&c4)
+	now := time.Now()
+	fmt.Println("now:", now)
+	then := now.AddDate(0, 0, 20)
+	ci := models.ClusterInfo{ClusterToken: "derp4", UpdatedAt: then}
+	db.Create(&ci)
 
 	response := executeGet(t, db, json.MarshalIndent, "")
 	assert.Equal(t, http.StatusOK, response.Code)
@@ -1312,6 +1328,15 @@ func TestListClusters_PullRequests(t *testing.T) {
 				FluxInfo:      nil,
 				PullRequest:   &views.PullRequestView{URL: "boop4", Type: "delete"},
 			},
+			{
+				ID:          4,
+				Token:       "derp4",
+				Name:        "My Cluster4",
+				Status:      "ready",
+				UpdatedAt:   then,
+				FluxInfo:    nil,
+				PullRequest: &views.PullRequestView{URL: "boop5", Type: "create"},
+			},
 		},
 	}, res)
 }
@@ -1324,7 +1349,8 @@ func TestListClusters_ClusterFound(t *testing.T) {
 	db.Create(&c)
 	pr := models.PullRequest{}
 	db.Create(&pr)
-	db.Create(&models.PRCluster{PRID: pr.ID, ClusterID: c.ID})
+	c.PullRequests = append(c.PullRequests, &pr)
+	db.Save(&c)
 	db.Create(&models.CAPICluster{Name: c.CAPIName, Namespace: c.CAPINamespace, Object: datatypes.JSON(`"derp"`)})
 
 	response := executeGet(t, db, json.MarshalIndent, "")
@@ -1402,19 +1428,25 @@ func TestUnregisterCluster(t *testing.T) {
 		dependentStateAfter  []interface{}    // dependent state in db after DELETE
 	}{
 		{
-			name:           "Unregister an existing cluster",
-			path:           "/1",
-			clustersBefore: []models.Cluster{{Name: "foo", Token: "t1"}, {Name: "bar", Token: "t2"}},
+			name: "Unregister an existing cluster",
+			path: "/1",
+			clustersBefore: []models.Cluster{
+				{Name: "foo", Token: "t1", PullRequests: []*models.PullRequest{{Model: models.Model{ID: 1}}}},
+				{Name: "bar", Token: "t2", PullRequests: []*models.PullRequest{{Model: models.Model{ID: 2}}}},
+			},
 			dependentStateBefore: []interface{}{
 				&models.Event{UID: "foo", ClusterToken: "t1"}, &models.Event{UID: "bar", ClusterToken: "t2"},
 				&models.ClusterInfo{UID: "foo", ClusterToken: "t1"}, &models.ClusterInfo{UID: "bar", ClusterToken: "t2"},
-				&models.NodeInfo{UID: "foo", ClusterToken: "t1"}, &models.NodeInfo{UID: "bar", ClusterToken: "t2"},
+				&models.NodeInfo{UID: "foo", ClusterToken: "t1", ClusterInfoUID: "foo"}, &models.NodeInfo{UID: "bar", ClusterToken: "t2", ClusterInfoUID: "bar"},
 				&models.Alert{ID: 1, ClusterToken: "t1"}, &models.Alert{ID: 2, ClusterToken: "t2"},
 				&models.FluxInfo{Name: "foo", ClusterToken: "t1"}, &models.FluxInfo{Name: "bar", ClusterToken: "t2"},
 				&models.GitCommit{Sha: "foo", ClusterToken: "t1"}, &models.GitCommit{Sha: "bar", ClusterToken: "t2"},
 				&models.Workspace{Name: "foo", ClusterToken: "t1"}, &models.Workspace{Name: "bar", ClusterToken: "t2"},
 			},
 			responseCode: http.StatusNoContent,
+			clustersAfter: []models.Cluster{
+				{Name: "bar", Token: "t2", PullRequests: []*models.PullRequest{{Model: models.Model{ID: 2}}}},
+			},
 			dependentStateAfter: []interface{}{
 				models.Event{UID: "bar", ClusterToken: "t2"},
 				models.ClusterInfo{UID: "bar", ClusterToken: "t2"},
@@ -1423,6 +1455,8 @@ func TestUnregisterCluster(t *testing.T) {
 				models.FluxInfo{Name: "bar", ClusterToken: "t2"},
 				models.GitCommit{Sha: "bar", ClusterToken: "t2"},
 				models.Workspace{Name: "bar", ClusterToken: "t2"},
+				models.PullRequest{Model: models.Model{ID: 1}}, models.PullRequest{Model: models.Model{ID: 2}},
+				ClusterPullRequests{ClusterID: 2, PullRequestID: 2},
 			},
 		},
 		{
@@ -1440,14 +1474,19 @@ func TestUnregisterCluster(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			db, err := utils.Open("", "sqlite", "", "", "")
+			db, err := utils.OpenDebug("", false)
 			assert.NoError(t, err)
 			err = utils.MigrateTables(db)
 			assert.NoError(t, err)
-			// Setup state before DELETE
-			db.Create(tc.clustersBefore)
+
+			if tc.clustersBefore != nil {
+				// Setup state before DELETE
+				tx := db.Create(tc.clustersBefore)
+				require.NoError(t, tx.Error)
+			}
 			for _, o := range tc.dependentStateBefore {
-				db.Create(o)
+				tx := db.Create(o)
+				require.NoError(t, tx.Error)
 			}
 
 			// Unregister cluster
@@ -1466,6 +1505,8 @@ func TestUnregisterCluster(t *testing.T) {
 				var expectedFluxInfo []models.FluxInfo
 				var expectedGitCommits []models.GitCommit
 				var expectedWorkspaces []models.Workspace
+				var expectedPullRequests []models.PullRequest
+				var expectedClusterPullRequests []ClusterPullRequests
 				for _, i := range tc.dependentStateAfter {
 					switch v := i.(type) {
 					case models.Event:
@@ -1482,6 +1523,10 @@ func TestUnregisterCluster(t *testing.T) {
 						expectedGitCommits = append(expectedGitCommits, i.(models.GitCommit))
 					case models.Workspace:
 						expectedWorkspaces = append(expectedWorkspaces, i.(models.Workspace))
+					case models.PullRequest:
+						expectedPullRequests = append(expectedPullRequests, i.(models.PullRequest))
+					case ClusterPullRequests:
+						expectedClusterPullRequests = append(expectedClusterPullRequests, i.(ClusterPullRequests))
 					default:
 						fmt.Printf("Unknown type %T!\n", v)
 					}
@@ -1528,6 +1573,19 @@ func TestUnregisterCluster(t *testing.T) {
 				assert.NoError(t, result.Error)
 				assert.Len(t, actualWorkspaces, len(expectedWorkspaces))
 				assert.Subset(t, actualWorkspaces, expectedWorkspaces)
+
+				var actualPullRequests []models.PullRequest
+				result = db.Find(&actualPullRequests)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualPullRequests, len(expectedPullRequests))
+				assert.Equal(t, actualPullRequests[0].ID, expectedPullRequests[0].ID)
+
+				var actualClusterPullRequests []ClusterPullRequests
+				result = db.Find(&actualClusterPullRequests)
+				assert.NoError(t, result.Error)
+				assert.Len(t, actualClusterPullRequests, len(expectedClusterPullRequests))
+				assert.Equal(t, actualClusterPullRequests[0].ClusterID, expectedClusterPullRequests[0].ClusterID)
+				assert.Equal(t, actualClusterPullRequests[0].PullRequestID, expectedClusterPullRequests[0].PullRequestID)
 			}
 		})
 	}
@@ -1580,4 +1638,10 @@ func reverseAny(s interface{}) {
 	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
 		swap(i, j)
 	}
+}
+
+// So we can query the table usually managed by gorm
+type ClusterPullRequests struct {
+	ClusterID     int `gorm:"primaryKey"`
+	PullRequestID int `gorm:"primaryKey"`
 }

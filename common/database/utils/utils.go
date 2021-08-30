@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -41,6 +41,11 @@ func OpenDebug(dbURI string, debug bool) (*gorm.DB, error) {
 			Logger: logger.Default.LogMode(logger.Info),
 		}
 	}
+	dbURI, err := addPragmas(dbURI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add pragmas: %s", err)
+	}
+
 	db, err := gorm.Open(sqlite.Open(dbURI), config)
 
 	if err != nil {
@@ -70,6 +75,23 @@ func GetSqliteUri(uri, dbBusyTimeout string) (string, error) {
 	return u.String(), nil
 }
 
+func addPragmas(uri string) (string, error) {
+	// if in memory be explict
+	if uri == "" {
+		uri = "file::memory:"
+	}
+	u, err := url.Parse(uri)
+	if err != nil {
+		return "", err
+	}
+	if u.Query().Get("_foreign_keys") == "" {
+		values := u.Query()
+		values.Set("_foreign_keys", "ON")
+		u.RawQuery = values.Encode()
+	}
+	return u.String(), nil
+}
+
 // MigrateTables creates the database tables given a gorm.DB
 func MigrateTables(db *gorm.DB) error {
 	// Migrate the schema
@@ -85,7 +107,6 @@ func MigrateTables(db *gorm.DB) error {
 		&models.GitCommit{},
 		&models.CAPICluster{},
 		&models.PullRequest{},
-		&models.PRCluster{},
 	)
 	if err != nil {
 		return errors.New("failed to create tables")
@@ -140,8 +161,7 @@ func HasAllTables(db *gorm.DB) bool {
 		db.Migrator().HasTable(&models.FluxInfo{}) &&
 		db.Migrator().HasTable(&models.Workspace{}) &&
 		db.Migrator().HasTable(&models.CAPICluster{}) &&
-		db.Migrator().HasTable(&models.PullRequest{}) &&
-		db.Migrator().HasTable(&models.PRCluster{}) {
+		db.Migrator().HasTable(&models.PullRequest{}) {
 		return true
 	}
 	return false

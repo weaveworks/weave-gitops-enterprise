@@ -8,9 +8,9 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	capiv1_protos "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/clusters"
-	"github.com/weaveworks/wks/cmd/mccp/pkg/templates"
+	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
 )
 
 type TemplateParameterValuesAndCredentials struct {
@@ -152,7 +152,7 @@ func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[st
 // CreatePullRequestForTemplate commits the YAML template to the specified
 // branch and creates a pull request of that branch.
 func (c *HttpClient) CreatePullRequestForTemplate(params templates.CreatePullRequestForTemplateParams) (string, error) {
-	endpoint := "v1/pulls"
+	endpoint := "v1/clusters"
 
 	// POST request payload
 	type CreatePullRequestForTemplateRequest struct {
@@ -266,8 +266,9 @@ func (c *HttpClient) RetrieveClusters() ([]clusters.Cluster, error) {
 	endpoint := "gitops/api/clusters"
 
 	type ClusterView struct {
-		Name   string `json:"name"`
-		Status string `json:"status"`
+		Name            string `json:"name"`
+		Status          string `json:"status"`
+		PullRequestType string `json:"pr-type"`
 	}
 
 	type ClustersResponse struct {
@@ -296,8 +297,9 @@ func (c *HttpClient) RetrieveClusters() ([]clusters.Cluster, error) {
 	var cs []clusters.Cluster
 	for _, c := range clusterList.Clusters {
 		cs = append(cs, clusters.Cluster{
-			Name:   c.Name,
-			Status: c.Status,
+			Name:            c.Name,
+			Status:          c.Status,
+			PullRequestType: c.PullRequestType,
 		})
 	}
 

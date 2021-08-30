@@ -17,7 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/cluster-api-provider-existinginfra/pkg/cluster/machine"
 	"github.com/weaveworks/libgitops/pkg/serializer"
-	"github.com/weaveworks/wks/pkg/cmdutil"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cmdutil"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"

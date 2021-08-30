@@ -22,8 +22,8 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
-	"github.com/weaveworks/wks/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/types"
@@ -89,6 +89,7 @@ var CLUSTER_REPOSITORY string
 
 const ARTEFACTS_BASE_DIR string = "/tmp/workspace/test/"
 const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
+const CLUSTER_INFO_DIR string = ARTEFACTS_BASE_DIR + "cluster-info/"
 const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "wkp_junit.xml"
 
 const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second
@@ -696,6 +697,10 @@ func showItems(itemType string) error {
 		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
 	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+}
+
+func dumpClusterInfo(namespaces, testName string) error {
+	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", namespaces, testName, CLUSTER_INFO_DIR)
 }
 
 // This function prints the last 100 log lines for the specified deployment type

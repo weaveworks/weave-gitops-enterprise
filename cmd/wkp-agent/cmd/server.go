@@ -10,9 +10,9 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/wks/cmd/wkp-agent/internal/common"
-	"github.com/weaveworks/wks/cmd/wkp-agent/server/handlers/alertmanager"
-	"github.com/weaveworks/wks/pkg/utilities/healthcheck"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/wkp-agent/internal/common"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/wkp-agent/server/handlers/alertmanager"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/healthcheck"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 

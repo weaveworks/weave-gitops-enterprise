@@ -8,9 +8,9 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/weaveworks/wks/cmd/gitops-repo-broker/internal/common"
-	"github.com/weaveworks/wks/common/database/models"
-	"github.com/weaveworks/wks/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/common"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"gorm.io/gorm"
 )
 
@@ -34,7 +34,7 @@ metadata:
   namespace: wkp-agent
 
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
@@ -48,7 +48,7 @@ rules:
     verbs: ["get"]
 
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:

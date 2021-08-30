@@ -39,7 +39,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const addCluster = useCallback(
     ({ ...data }) => {
       setCreatingPR(true);
-      request('POST', '/v1/pulls', {
+      request('POST', '/v1/clusters', {
         body: JSON.stringify(data),
       })
         .then(() => history.push('/clusters'))

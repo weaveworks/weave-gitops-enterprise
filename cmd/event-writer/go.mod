@@ -1,6 +1,6 @@
-module github.com/weaveworks/wks/cmd/event-writer
+module github.com/weaveworks/weave-gitops-enterprise/cmd/event-writer
 
-go 1.13
+go 1.16
 
 require (
 	github.com/cloudevents/sdk-go/protocol/nats/v2 v2.3.1
@@ -14,7 +14,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.6.1
-	github.com/weaveworks/wks/common v0.0.0
+	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
 	gorm.io/datatypes v1.0.0
 	gorm.io/gorm v1.20.12
@@ -25,4 +25,4 @@ require (
 
 replace k8s.io/client-go => k8s.io/client-go v0.20.2
 
-replace github.com/weaveworks/wks/common => ../../common
+replace github.com/weaveworks/weave-gitops-enterprise/common => ../../common

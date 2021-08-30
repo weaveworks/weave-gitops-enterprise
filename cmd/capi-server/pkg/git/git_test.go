@@ -17,7 +17,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
 )
 
 const (

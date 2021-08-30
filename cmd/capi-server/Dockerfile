@@ -22,7 +22,7 @@ COPY $CS_PATH/pkg/ pkg/
 
 ARG version
 # build
-RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/wks/cmd/capi-server/pkg/version.Version=$version' -linkmode external -w -extldflags \"-static\"" -a -o capi-server main.go
+RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version.Version=$version' -linkmode external -w -extldflags \"-static\"" -a -o capi-server main.go
 
 FROM docker.io/governmentpaas/git-ssh
 

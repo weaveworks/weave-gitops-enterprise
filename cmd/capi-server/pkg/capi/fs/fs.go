@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/capi"
 )
 
 // New creates and returns a new Filesystem based template library.

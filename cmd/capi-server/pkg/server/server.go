@@ -12,14 +12,15 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/mkmik/multierror"
 	log "github.com/sirupsen/logrus"
-	capiv1 "github.com/weaveworks/wks/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/capi"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/credentials"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/git"
-	capiv1_proto "github.com/weaveworks/wks/cmd/capi-server/pkg/protos"
-	"github.com/weaveworks/wks/cmd/capi-server/pkg/templates"
-	"github.com/weaveworks/wks/common/database/models"
-	common_utils "github.com/weaveworks/wks/common/database/utils"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/credentials"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
@@ -135,6 +136,11 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
 	}
 
+	err = capi.ValidateRenderedTemplates(templateBits)
+	if err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
+	}
+
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, templateBits, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
@@ -158,6 +164,11 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	tmplWithValues, err := capi.Render(tmpl.Spec, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("unable to render template %q: %w", msg.TemplateName, err)
+	}
+
+	err = capi.ValidateRenderedTemplates(tmplWithValues)
+	if err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, tmplWithValues, msg.Credentials, msg.TemplateName)
@@ -242,11 +253,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return err
 		}
 
-		prCluster := &models.PRCluster{
-			PRID:      pr.ID,
-			ClusterID: c.ID,
-		}
-		if err := tx.Create(prCluster).Error; err != nil {
+		c.PullRequests = append(c.PullRequests, pr)
+		if err := tx.Save(c).Error; err != nil {
 			return err
 		}
 
@@ -316,13 +324,30 @@ func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCred
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
 	var sec corev1.Secret
+	secs := &corev1.SecretList{}
+	var nsName string
+	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
+
+	s.client.List(ctx, secs)
+
+	for _, item := range secs.Items {
+		if item.Name == name {
+			nsName = item.GetNamespace()
+			break
+		}
+	}
+
+	if nsName == "" {
+		nsName = "default"
+	}
+
 	key := client.ObjectKey{
-		Namespace: s.ns,
-		Name:      fmt.Sprintf("%s-kubeconfig", msg.ClusterName),
+		Namespace: nsName,
+		Name:      name,
 	}
 	err := s.client.Get(ctx, key, &sec)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", key, err)
+		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
 	}
 
 	val, ok := sec.Data["value"]
@@ -405,29 +430,40 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	pullRequestURL = res.WebURL
 
-	pr := &models.PullRequest{
-		URL:  pullRequestURL,
-		Type: "delete",
-	}
-	if err := s.db.Create(pr).Error; err != nil {
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		pr := &models.PullRequest{
+			URL:  pullRequestURL,
+			Type: "delete",
+		}
+		if err := tx.Create(pr).Error; err != nil {
+			return err
+		}
+
+		for _, clusterName := range msg.ClusterNames {
+			var cluster models.Cluster
+			if err := tx.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
+				return err
+			}
+
+			cluster.PullRequests = append(cluster.PullRequests, pr)
+			if err := tx.Save(cluster).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
 		return nil, err
-	}
-
-	for _, clusterName := range msg.ClusterNames {
-		var cluster models.Cluster
-		s.db.Where("name = ?", clusterName).Find(&cluster)
-
-		prCluster := &models.PRCluster{
-			PRID:      pr.ID,
-			ClusterID: cluster.ID,
-		}
-		if err := s.db.Create(prCluster).Error; err != nil {
-			return nil, err
-		}
 	}
 
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
 		WebUrl: pullRequestURL,
+	}, nil
+}
+
+func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.GetEnterpriseVersionRequest) (*capiv1_proto.GetEnterpriseVersionResponse, error) {
+	return &capiv1_proto.GetEnterpriseVersionResponse{
+		Version: version.Version,
 	}, nil
 }
 
