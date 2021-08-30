@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import styled, { css } from 'styled-components';
 import { spacing } from 'weaveworks-ui-components/lib/theme/selectors';
+import useVersions from '../../contexts/Versions';
 
 export const pageDimensionsCss = css`
   width: 100%;
@@ -28,7 +29,7 @@ export const Content = styled.div`
 
 const HelpLinkWrapper = styled.div`
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-top: ${large};
   color: ${({ theme }) => theme.colors.gray600};
   white-space: nowrap;
@@ -39,12 +40,16 @@ const HelpLinkWrapper = styled.div`
 `;
 
 export const ContentWrapper: FC = ({ children }) => {
+  const versions = useVersions();
   return (
     <Content>
       {children}
       <HelpLinkWrapper>
-        Need help? Contact us at&nbsp;
-        <a href="mailto:support@weave.works">support@weave.works</a>
+        <div>Version {versions.versions?.capiServer}</div>
+        <div>
+          Need help? Contact us at{' '}
+          <a href="mailto:support@weave.works">support@weave.works</a>
+        </div>
       </HelpLinkWrapper>
     </Content>
   );

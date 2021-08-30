@@ -147,7 +147,7 @@ cmd/ui-server/ui-server:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/ui-server/*.go
 
 ui-cra/build:
-	cd ui-cra && yarn install --frozen-lockfile && yarn build
+	cd ui-cra && yarn install --frozen-lockfile && REACT_APP_VERSION=$(VERSION) yarn build
 
 lint:
 	bin/go-lint
