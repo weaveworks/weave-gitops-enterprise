@@ -53,12 +53,12 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("Then I should see template parameter table header", func() {
-					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+DESCRIPTION`))
+					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+DESCRIPTION\s+OPTIONS`))
 				})
 
 				By("And I should see parameter rows", func() {
 					output := session.Wait().Out.Contents()
-					re := regexp.MustCompile(`CLUSTER_NAME+\s+This is used for the cluster naming.\s+KUBERNETES_VERSION\s+Kubernetes version to use for the cluster\s+NAMESPACE\s+Namespace to create the cluster in`)
+					re := regexp.MustCompile(`CLUSTER_NAME+\s+This is used for the cluster naming.\s+KUBERNETES_VERSION\s+Kubernetes version to use for the cluster\s+"1.19.7", "1.19.8"\s+NAMESPACE\s+Namespace to create the cluster in`)
 					Eventually((re.Find(output))).ShouldNot(BeNil())
 
 				})
