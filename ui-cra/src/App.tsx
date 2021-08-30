@@ -9,7 +9,6 @@ import { Theme } from 'weaveworks-ui-components';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
-import { toHtml } from '@fortawesome/fontawesome-svg-core';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
