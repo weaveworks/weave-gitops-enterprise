@@ -13,8 +13,9 @@ type ClustersRetriever interface {
 }
 
 type Cluster struct {
-	Name   string
-	Status string
+	Name            string
+	Status          string
+	PullRequestType string
 }
 
 func ListClusters(r ClustersRetriever, w io.Writer) error {
@@ -26,6 +27,12 @@ func ListClusters(r ClustersRetriever, w io.Writer) error {
 	if len(cs) > 0 {
 		fmt.Fprintf(w, "NAME\tSTATUS\n")
 		for _, c := range cs {
+			if c.PullRequestType == "create" {
+				c.Status = "Creation PR"
+			} else if c.PullRequestType == "delete" {
+				c.Status = "Deletion PR"
+			}
+
 			fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
 			fmt.Fprintln(w, "")
 		}

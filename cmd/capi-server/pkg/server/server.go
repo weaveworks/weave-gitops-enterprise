@@ -324,13 +324,30 @@ func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCred
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
 	var sec corev1.Secret
+	secs := &corev1.SecretList{}
+	var nsName string
+	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
+
+	s.client.List(ctx, secs)
+
+	for _, item := range secs.Items {
+		if item.Name == name {
+			nsName = item.GetNamespace()
+			break
+		}
+	}
+
+	if nsName == "" {
+		nsName = "default"
+	}
+
 	key := client.ObjectKey{
-		Namespace: s.ns,
-		Name:      fmt.Sprintf("%s-kubeconfig", msg.ClusterName),
+		Namespace: nsName,
+		Name:      name,
 	}
 	err := s.client.Get(ctx, key, &sec)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", key, err)
+		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
 	}
 
 	val, ok := sec.Data["value"]

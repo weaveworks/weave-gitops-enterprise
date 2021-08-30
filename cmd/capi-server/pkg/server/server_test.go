@@ -710,7 +710,7 @@ func TestGetKubeconfig(t *testing.T) {
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName: "dev",
 			},
-			err: errors.New("unable to get secret \"default/dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
+			err: errors.New("unable to get secret \"dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
 		},
 		{
 			name: "secret found but is missing key",
@@ -949,16 +949,26 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 	})...)
 }
 
+func makeNamespace(n string) *corev1.Namespace {
+	return &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: n,
+		},
+	}
+}
+
 func makeSecret(n string, ns string, s ...string) *corev1.Secret {
 	data := make(map[string][]byte)
 	for i := 0; i < len(s); i += 2 {
 		data[s[i]] = []byte(s[i+1])
 	}
 
+	nsObj := makeNamespace(ns)
+
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      n,
-			Namespace: ns,
+			Namespace: nsObj.GetName(),
 		},
 		Data: data,
 	}
