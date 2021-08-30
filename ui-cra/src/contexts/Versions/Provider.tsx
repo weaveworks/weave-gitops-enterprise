@@ -14,7 +14,7 @@ const VersionsProvider: FC = ({ children }) => {
     });
   }, []);
 
-  useEffect(() => getVersions(), []);
+  useEffect(() => getVersions(), [getVersions]);
 
   return (
     <Versions.Provider
