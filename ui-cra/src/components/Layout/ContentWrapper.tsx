@@ -26,6 +26,11 @@ export const Content = styled.div`
   ${contentCss}
 `;
 
+export const WGContent = styled.div`
+  ${contentCss}
+  padding: 0 ${medium} ${medium} 0;
+`;
+
 const HelpLinkWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -47,5 +52,17 @@ export const ContentWrapper: FC = ({ children }) => {
         <a href="mailto:support@weave.works">support@weave.works</a>
       </HelpLinkWrapper>
     </Content>
+  );
+};
+
+export const WGContentWrapper: FC = ({ children }) => {
+  return (
+    <WGContent>
+      {children}
+      <HelpLinkWrapper>
+        Need help? Contact us at&nbsp;
+        <a href="mailto:support@weave.works">support@weave.works</a>
+      </HelpLinkWrapper>
+    </WGContent>
   );
 };
