@@ -3,6 +3,7 @@ import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import AlertsProvider from '../contexts/Alerts/Provider';
 import MCCP from './Clusters';
+import ApplicationsPageWrapper from './Applications';
 import TemplatesDashboard from './Templates';
 import { Navigation } from './Navigation';
 import { AlertsDashboard } from './Alerts';
@@ -17,6 +18,13 @@ import {
   Theme,
   createStyles,
 } from '@material-ui/core/styles';
+import {
+  AppContextProvider,
+  ApplicationDetail,
+  Applications,
+  applicationsClient,
+  // theme,
+} from '@weaveworks/weave-gitops';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import Compose from './ProvidersCompose';
@@ -25,8 +33,11 @@ import { PageTemplate } from './Layout/PageTemplate';
 import { SectionHeader } from './Layout/SectionHeader';
 import { ContentWrapper } from './Layout/ContentWrapper';
 import Lottie from 'react-lottie-player';
-import error404 from './../assets/img/error404.json';
+import error404 from '../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
+
+const APPS_ROUTE = '/applications';
+const APP_DETAIL_ROTUE = '/application_detail';
 
 const drawerWidth = 220;
 
@@ -77,6 +88,22 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
+const WGAppProvider: React.FC = props => (
+  <AppContextProvider applicationsClient={applicationsClient} {...props} />
+);
+
+const WGApplications = () => (
+  <ApplicationsPageWrapper>
+    <Applications />
+  </ApplicationsPageWrapper>
+);
+
+const WGApplicationDetail = () => (
+  <ApplicationsPageWrapper>
+    <ApplicationDetail name="foo" />
+  </ApplicationsPageWrapper>
+);
+
 const ResponsiveDrawer = () => {
   const classes = useStyles();
   const theme = useTheme();
@@ -107,6 +134,7 @@ const ResponsiveDrawer = () => {
         TemplatesProvider,
         ClustersProvider,
         AlertsProvider,
+        WGAppProvider,
       ]}
     >
       <div className={classes.root}>
@@ -169,6 +197,12 @@ const ResponsiveDrawer = () => {
               path="/clusters/templates"
             />
             <Route component={AlertsDashboard} exact path="/clusters/alerts" />
+            <Route exact path={APPS_ROUTE} component={WGApplications} />
+            <Route
+              exact
+              path={APP_DETAIL_ROTUE}
+              component={WGApplicationDetail}
+            />
             <Route render={handle404} />
           </Switch>
         </main>
