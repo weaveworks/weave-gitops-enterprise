@@ -69,7 +69,7 @@ const useStyles = makeStyles((theme: Theme) =>
       overflowY: 'hidden',
       width: drawerWidth,
       border: 'none',
-      background: '#E6E6E6',
+      background: '#F5F5F5',
     },
     content: {
       flexGrow: 1,

@@ -25,7 +25,7 @@ const ClustersProvider: FC = ({ children }) => {
   });
   const [count, setCount] = useState<number | null>(null);
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
-  const { setNotification } = useNotifications();
+  const { notifications, setNotifications } = useNotifications();
   const [creatingPR, setCreatingPR] = useState<boolean>(false);
 
   const handleRequestSort = (property: string) => {
@@ -60,8 +60,16 @@ const ClustersProvider: FC = ({ children }) => {
         setClusters(res.data.clusters);
       })
       .catch(err => {
-        if (err.name !== 'AbortError') {
-          setNotification({ message: err.message, variant: 'danger' });
+        if (
+          err.name !== 'AbortError' &&
+          notifications?.some(
+            notification => err.message === notification.message,
+          ) === false
+        ) {
+          setNotifications([
+            ...notifications,
+            { message: err.message, variant: 'danger' },
+          ]);
         }
       })
       .finally(() => {
@@ -69,7 +77,7 @@ const ClustersProvider: FC = ({ children }) => {
         setDisabled(false);
         setAbortController(null);
       });
-  }, [abortController, clustersParameters, setNotification]);
+  }, [abortController, clustersParameters, notifications, setNotifications]);
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest) => {
@@ -77,21 +85,20 @@ const ClustersProvider: FC = ({ children }) => {
       request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),
       })
-        .then(res => {
-          setNotification({
-            message: `PR created successfully`,
-            variant: 'success',
-          });
-        })
-        .catch(err =>
-          setNotification({ message: err.message, variant: 'danger' }),
+        .then(res =>
+          setNotifications([
+            {
+              message: `PR created successfully`,
+              variant: 'success',
+            },
+          ]),
         )
-        .finally(() => {
-          setCreatingPR(false);
-          setSelectedClusters([]);
-        });
+        .catch(err =>
+          setNotifications([{ message: err.message, variant: 'danger' }]),
+        )
+        .finally(() => setCreatingPR(false));
     },
-    [setNotification],
+    [setNotifications],
   );
 
   const deleteConnectedClusters = useCallback(
@@ -99,17 +106,19 @@ const ClustersProvider: FC = ({ children }) => {
       setLoading(true);
       request('DELETE', `/gitops/api/clusters/${[...data.clusters]}`)
         .then(() =>
-          setNotification({
-            message: 'Cluster successfully removed from the MCCP',
-            variant: 'success',
-          }),
+          setNotifications([
+            {
+              message: 'Cluster successfully removed from the MCCP',
+              variant: 'success',
+            },
+          ]),
         )
         .catch(err =>
-          setNotification({ message: err.message, variant: 'danger' }),
+          setNotifications([{ message: err.message, variant: 'danger' }]),
         )
         .finally(() => setLoading(false));
     },
-    [setNotification],
+    [setNotifications],
   );
 
   const getKubeconfig = useCallback(
@@ -122,11 +131,11 @@ const ClustersProvider: FC = ({ children }) => {
       })
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
-          setNotification({ message: err.message, variant: 'danger' }),
+          setNotifications([{ message: err.message, variant: 'danger' }]),
         )
         .finally(() => setLoading(false));
     },
-    [setNotification],
+    [setNotifications],
   );
 
   useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [

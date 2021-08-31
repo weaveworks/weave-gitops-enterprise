@@ -12,7 +12,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [creatingPR, setCreatingPR] = useState<boolean>(false);
-  const { setNotification } = useNotifications();
+  const { setNotifications } = useNotifications();
 
   const history = useHistory();
 
@@ -29,11 +29,11 @@ const TemplatesProvider: FC = ({ children }) => {
       })
         .then(data => setPRPreview(data.renderedTemplate))
         .catch(err =>
-          setNotification({ message: err.message, variant: 'danger' }),
+          setNotifications([{ message: err.message, variant: 'danger' }]),
         )
         .finally(() => setLoading(false));
     },
-    [activeTemplate, setNotification],
+    [activeTemplate, setNotifications],
   );
 
   const addCluster = useCallback(
@@ -44,11 +44,11 @@ const TemplatesProvider: FC = ({ children }) => {
       })
         .then(() => history.push('/clusters'))
         .catch(err =>
-          setNotification({ message: err.message, variant: 'danger' }),
+          setNotifications([{ message: err.message, variant: 'danger' }]),
         )
         .finally(() => setCreatingPR(false));
     },
-    [history, setNotification],
+    [history, setNotifications],
   );
 
   const getTemplates = useCallback(() => {
@@ -58,10 +58,10 @@ const TemplatesProvider: FC = ({ children }) => {
     })
       .then(res => setTemplates(res.templates))
       .catch(err =>
-        setNotification({ message: err.message, variant: 'danger' }),
+        setNotifications([{ message: err.message, variant: 'danger' }]),
       )
       .finally(() => setLoading(false));
-  }, [setNotification]);
+  }, [setNotifications]);
 
   useEffect(() => {
     getTemplates();

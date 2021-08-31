@@ -42,7 +42,6 @@ const MCCP: FC = () => {
   const {
     clusters,
     count,
-    loading,
     disabled,
     handleRequestSort,
     handleSetPageParams,
@@ -99,10 +98,9 @@ const MCCP: FC = () => {
             text="CONNECT A CLUSTER"
           />
           <Tooltip
-            title={
-              selectedCapiClusters.length === 0 && 'No CAPI clusters selected'
-            }
+            title="No CAPI clusters selected"
             placement="top"
+            disabled={selectedCapiClusters.length !== 0}
           >
             <div>
               <OnClickAction
@@ -117,8 +115,8 @@ const MCCP: FC = () => {
           </Tooltip>
           {openDeletePR && (
             <DeleteClusterDialog
-              clusters={selectedCapiClusters}
-              onClose={() => setOpenDeletePR(false)}
+              selectedCapiClusters={selectedCapiClusters}
+              setOpenDeletePR={setOpenDeletePR}
             />
           )}
         </ActionsWrapper>
@@ -142,7 +140,6 @@ const MCCP: FC = () => {
           filteredClusters={clusters}
           count={count}
           disabled={disabled}
-          isLoading={loading}
         />
         <Snackbar
           autoHideDuration={5000}

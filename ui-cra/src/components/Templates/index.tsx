@@ -45,7 +45,7 @@ const TemplatesDashboard: FC = () => {
         {!loading ? (
           <Grid container spacing={3} justify="center">
             {templates.map((template: any, index: number) => (
-              <Grid key={index} item xs={10} sm={6} md={3}>
+              <Grid key={index} item xs={12} sm={9} md={4}>
                 <TemplateCard template={template} color={getColor(index)} />
               </Grid>
             ))}
