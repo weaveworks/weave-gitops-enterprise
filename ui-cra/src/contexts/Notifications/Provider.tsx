@@ -1,23 +1,30 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { NotificationDialog } from '../../components/Layout/Notification';
 import { Notification, NotificationData } from './index';
 
 const NotificationProvider: FC = ({ children }) => {
-  const [notification, setNotification] =
-    useState<NotificationData | null>(null);
+  const [notifications, setNotifications] = useState<NotificationData[] | []>(
+    [],
+  );
+  const [showNotification, setShowNotifications] = useState<boolean>(true);
   const history = useHistory();
 
-  // clear notifications after a specific period of time if the history doesn't change?
-  const clear = useCallback(() => {
-    setNotification(null);
+  const clearNotifications = useCallback(() => {
+    setNotifications([]);
+    setShowNotifications(true);
   }, []);
 
   useEffect(() => {
-    return history.listen(clear);
-  }, [clear, history]);
+    setShowNotifications(true);
+    return history.listen(clearNotifications);
+  }, [history, notifications, clearNotifications]);
 
   return (
-    <Notification.Provider value={{ notification, setNotification }}>
+    <Notification.Provider
+      value={{ notifications, setNotifications, setShowNotifications }}
+    >
+      {showNotification && notifications.length !== 0 && <NotificationDialog />}
       {children}
     </Notification.Provider>
   );

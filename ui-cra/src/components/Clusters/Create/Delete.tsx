@@ -1,4 +1,11 @@
-import React, { ChangeEvent, FC, useCallback, useState } from 'react';
+import React, {
+  ChangeEvent,
+  FC,
+  useCallback,
+  useEffect,
+  useState,
+  Dispatch,
+} from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,14 +17,15 @@ import { createStyles } from '@material-ui/styles';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
 import useClusters from '../../../contexts/Clusters';
+import useNotifications from '../../../contexts/Notifications';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../../Action';
 import { Input } from '../../../utils/form';
 import { Loader } from '../../Loader';
 
 interface Props {
-  clusters: string[];
-  onClose: () => void;
+  selectedCapiClusters: string[];
+  setOpenDeletePR: Dispatch<React.SetStateAction<boolean>>;
 }
 
 const useStyles = makeStyles(() =>
@@ -28,7 +36,10 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
+export const DeleteClusterDialog: FC<Props> = ({
+  selectedCapiClusters,
+  setOpenDeletePR,
+}) => {
   const classes = useStyles();
   const random = Math.random().toString(36).substring(7);
   const [branchName, setBranchName] = useState<string>(
@@ -41,10 +52,12 @@ export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
     'Deletes capi cluster(s)',
   );
   const [pullRequestDescription, setPullRequestDescription] = useState<string>(
-    `Delete clusters: ${clusters.map(c => c).join(', ')}`,
+    `Delete clusters: ${selectedCapiClusters.map(c => c).join(', ')}`,
   );
 
-  const { deleteCreatedClusters, creatingPR } = useClusters();
+  const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
+    useClusters();
+  const { notifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
@@ -71,19 +84,33 @@ export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
 
   const handleClickRemove = () =>
     deleteCreatedClusters({
-      clusterNames: clusters,
+      clusterNames: selectedCapiClusters,
       headBranch: branchName,
       title: pullRequestTitle,
       commitMessage,
       description: pullRequestDescription,
     });
 
+  const cleanUp = useCallback(() => {
+    setOpenDeletePR(false);
+    setSelectedClusters([]);
+  }, [setOpenDeletePR, setSelectedClusters]);
+
+  useEffect(() => {
+    if (
+      notifications.length > 0 &&
+      notifications[notifications.length - 1].variant !== 'danger'
+    ) {
+      cleanUp();
+    }
+  }, [notifications, setOpenDeletePR, setSelectedClusters, cleanUp]);
+
   return (
-    <Dialog open maxWidth="md" fullWidth onClose={() => onClose()}>
+    <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
       <div id="delete-popup" className={classes.dialog}>
         <DialogTitle disableTypography>
           <Typography variant="h5">Create PR to remove clusters</Typography>
-          {onClose ? <CloseIconButton onClick={() => onClose()} /> : null}
+          <CloseIconButton onClick={cleanUp} />
         </DialogTitle>
         <DialogContent>
           {!creatingPR ? (
@@ -116,7 +143,7 @@ export const DeleteClusterDialog: FC<Props> = ({ clusters, onClose }) => {
                 onClick={handleClickRemove}
                 text="Remove clusters from the MCCP"
                 className="danger"
-                disabled={clusters.length === 0}
+                disabled={selectedCapiClusters.length === 0}
               />
             </>
           ) : (

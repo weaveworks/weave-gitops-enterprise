@@ -12,7 +12,7 @@ const AlertsProvider: FC = ({ children }) => {
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const { setNotification } = useNotifications();
+  const { notifications, setNotifications } = useNotifications();
 
   const alertsUrl = '/gitops/api/alerts';
 
@@ -30,15 +30,23 @@ const AlertsProvider: FC = ({ children }) => {
         setAlerts(res.alerts);
       })
       .catch(err => {
-        if (err.name !== 'AbortError') {
-          setNotification({ message: err.message, variant: 'danger' });
+        if (
+          err.name !== 'AbortError' &&
+          notifications?.some(
+            notification => err.message === notification.message,
+          ) === false
+        ) {
+          setNotifications([
+            ...notifications,
+            { message: err.message, variant: 'danger' },
+          ]);
         }
       })
       .finally(() => {
         setLoading(false);
         setAbortController(null);
       });
-  }, [abortController, setNotification]);
+  }, [abortController, notifications, setNotifications]);
 
   useInterval(() => fetchAlerts(), ALERTS_POLL_INTERVAL, true, []);
 
