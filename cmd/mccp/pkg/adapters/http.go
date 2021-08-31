@@ -106,6 +106,7 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 		tps = append(tps, templates.TemplateParameter{
 			Name:        p.Name,
 			Description: p.Description,
+			Options:     p.Options,
 		})
 	}
 
