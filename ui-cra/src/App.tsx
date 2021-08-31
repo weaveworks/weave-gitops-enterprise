@@ -50,10 +50,19 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
+const withWGColors = {
+  ...theme,
+  colors: {
+    ...theme.colors,
+    primary: theme.colors.blue600,
+    success: theme.colors.green500,
+  },
+};
+
 const App: FC = () => {
   return (
     <BrowserRouter basename={process.env.PUBLIC_URL}>
-      <ThemeProvider theme={theme as Theme}>
+      <ThemeProvider theme={withWGColors as Theme}>
         <MuiThemeProvider theme={muiTheme}>
           <GlobalStyle />
           <ResponsiveDrawer />
