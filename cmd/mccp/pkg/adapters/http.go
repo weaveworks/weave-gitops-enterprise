@@ -266,8 +266,9 @@ func (c *HttpClient) RetrieveClusters() ([]clusters.Cluster, error) {
 	endpoint := "gitops/api/clusters"
 
 	type ClusterView struct {
-		Name   string `json:"name"`
-		Status string `json:"status"`
+		Name            string `json:"name"`
+		Status          string `json:"status"`
+		PullRequestType string `json:"pr-type"`
 	}
 
 	type ClustersResponse struct {
@@ -296,8 +297,9 @@ func (c *HttpClient) RetrieveClusters() ([]clusters.Cluster, error) {
 	var cs []clusters.Cluster
 	for _, c := range clusterList.Clusters {
 		cs = append(cs, clusters.Cluster{
-			Name:   c.Name,
-			Status: c.Status,
+			Name:            c.Name,
+			Status:          c.Status,
+			PullRequestType: c.PullRequestType,
 		})
 	}
 

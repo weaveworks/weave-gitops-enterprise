@@ -136,6 +136,11 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
 	}
 
+	err = capi.ValidateRenderedTemplates(templateBits)
+	if err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
+	}
+
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, templateBits, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
@@ -159,6 +164,11 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	tmplWithValues, err := capi.Render(tmpl.Spec, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("unable to render template %q: %w", msg.TemplateName, err)
+	}
+
+	err = capi.ValidateRenderedTemplates(tmplWithValues)
+	if err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, tmplWithValues, msg.Credentials, msg.TemplateName)
@@ -314,13 +324,30 @@ func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCred
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
 	var sec corev1.Secret
+	secs := &corev1.SecretList{}
+	var nsName string
+	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
+
+	s.client.List(ctx, secs)
+
+	for _, item := range secs.Items {
+		if item.Name == name {
+			nsName = item.GetNamespace()
+			break
+		}
+	}
+
+	if nsName == "" {
+		nsName = "default"
+	}
+
 	key := client.ObjectKey{
-		Namespace: s.ns,
-		Name:      fmt.Sprintf("%s-kubeconfig", msg.ClusterName),
+		Namespace: nsName,
+		Name:      name,
 	}
 	err := s.client.Get(ctx, key, &sec)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", key, err)
+		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
 	}
 
 	val, ok := sec.Data["value"]
