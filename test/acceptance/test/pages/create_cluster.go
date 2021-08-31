@@ -136,5 +136,3 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 		ErrorBar: webDriver.FindByXPath(`//div[3]/div[3]/div/div`),
 	}
 }
-
-
