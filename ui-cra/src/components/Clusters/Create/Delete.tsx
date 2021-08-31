@@ -91,20 +91,19 @@ export const DeleteClusterDialog: FC<Props> = ({
       description: pullRequestDescription,
     });
 
-  const cleanUp = () => {
+  const cleanUp = useCallback(() => {
     setOpenDeletePR(false);
     setSelectedClusters([]);
-  };
+  }, [setOpenDeletePR, setSelectedClusters]);
 
   useEffect(() => {
     if (
       notifications.length > 0 &&
       notifications[notifications.length - 1].variant !== 'danger'
     ) {
-      setOpenDeletePR(false);
-      setSelectedClusters([]);
+      cleanUp();
     }
-  }, [notifications, setOpenDeletePR, setSelectedClusters]);
+  }, [notifications, setOpenDeletePR, setSelectedClusters, cleanUp]);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
