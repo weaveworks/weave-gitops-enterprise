@@ -8,7 +8,7 @@ import { CircularProgress } from 'weaveworks-ui-components';
 import { Poll } from '../../../utils/poll';
 import { asMilliseconds } from '../../../utils/time';
 import { Cluster } from '../../../types/kubernetes';
-import { Code, Status } from '../../Shared';
+import { Code, HandleFinish, Status } from '../../Shared';
 import ConfirmDeletion from './ConfirmDeletion';
 import useClusters from '../../../contexts/Clusters';
 
@@ -24,7 +24,8 @@ interface ResponsesById {
 export const ClusterDisconnectionInstructions: FC<{
   formState: FormState;
   setFormState: SetFormState;
-}> = ({ formState }) => {
+  onFinish: HandleFinish;
+}> = ({ formState, onFinish }) => {
   const { deleteConnectedClusters } = useClusters();
 
   if (!formState.cluster.id) {
@@ -70,6 +71,7 @@ export const ClusterDisconnectionInstructions: FC<{
         clusters={[formState.cluster.id]}
         onClickRemove={deleteConnectedClusters}
         title="Remove cluster from the MCCP"
+        onFinish={onFinish}
       />
     </Container>
   );

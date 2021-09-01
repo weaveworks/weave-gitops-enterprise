@@ -130,9 +130,7 @@ const MCCP: FC = () => {
           />
         )}
         <ClustersTable
-          onEdit={cluster => {
-            setClusterToEdit(cluster);
-          }}
+          onEdit={cluster => setClusterToEdit(cluster)}
           order={order}
           orderBy={orderBy}
           onSortChange={handleRequestSort}
