@@ -34,7 +34,7 @@ export const WGContent = styled.div`
 
 const HelpLinkWrapper = styled.div`
   margin: 0 ${small};
-  padding: ${small} ${small};
+  padding: ${medium} 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -49,8 +49,8 @@ const HelpLinkWrapper = styled.div`
 export const ContentWrapper: FC = ({ children }) => {
   const versions = useVersions();
   return (
-    <>
-      <Content>{children}</Content>
+    <Content>
+      {children}
       <HelpLinkWrapper>
         <div>
           Need help? Contact us at{' '}
@@ -58,7 +58,7 @@ export const ContentWrapper: FC = ({ children }) => {
         </div>
         <div>Version {versions.versions?.capiServer}</div>
       </HelpLinkWrapper>
-    </>
+    </Content>
   );
 };
 
@@ -67,8 +67,10 @@ export const WGContentWrapper: FC = ({ children }) => {
     <WGContent>
       {children}
       <HelpLinkWrapper>
-        Need help? Contact us at&nbsp;
-        <a href="mailto:support@weave.works">support@weave.works</a>
+        <div>
+          Need help? Contact us at&nbsp;
+          <a href="mailto:support@weave.works">support@weave.works</a>
+        </div>
       </HelpLinkWrapper>
     </WGContent>
   );
