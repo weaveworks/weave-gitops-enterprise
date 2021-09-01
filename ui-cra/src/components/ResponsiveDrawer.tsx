@@ -23,6 +23,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
+import VersionsProvider from '../contexts/Versions/Provider';
 import Compose from './ProvidersCompose';
 import Box from '@material-ui/core/Box';
 import { PageTemplate } from './Layout/PageTemplate';
@@ -121,6 +122,7 @@ const ResponsiveDrawer = () => {
         ClustersProvider,
         AlertsProvider,
         WGAppProvider,
+        VersionsProvider,
       ]}
     >
       <div className={classes.root}>
