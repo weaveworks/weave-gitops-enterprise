@@ -17,7 +17,7 @@ const medium = spacing('medium');
 const large = spacing('large');
 
 export const contentCss = css`
-  margin: ${medium} ${small} ${small} ${small};
+  margin: ${medium} ${small} 0 ${small};
   padding: ${large} ${medium} ${medium} ${medium};
   background-color: white;
   border-radius: ${spacing('xs')};
@@ -28,9 +28,11 @@ export const Content = styled.div`
 `;
 
 const HelpLinkWrapper = styled.div`
+  margin: 0 ${small};
+  padding: ${small} ${small};
   display: flex;
-  justify-content: space-between;
-  margin-top: ${large};
+  flex-direction: column;
+  align-items: flex-end;
   color: ${({ theme }) => theme.colors.gray600};
   white-space: nowrap;
   line-height: 1.5em;
@@ -42,15 +44,15 @@ const HelpLinkWrapper = styled.div`
 export const ContentWrapper: FC = ({ children }) => {
   const versions = useVersions();
   return (
-    <Content>
-      {children}
+    <>
+      <Content>{children}</Content>
       <HelpLinkWrapper>
-        <div>Version {versions.versions?.capiServer}</div>
         <div>
           Need help? Contact us at{' '}
           <a href="mailto:support@weave.works">support@weave.works</a>
         </div>
+        <div>Version {versions.versions?.capiServer}</div>
       </HelpLinkWrapper>
-    </Content>
+    </>
   );
 };
