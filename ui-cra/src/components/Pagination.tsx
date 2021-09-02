@@ -9,7 +9,7 @@ import LastPageIcon from '@material-ui/icons/LastPage';
 
 interface TablePaginationActionsProps {
   count: number;
-  onChangePage: (
+  onPageChange: (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
     page: number,
   ) => void;
@@ -21,32 +21,32 @@ const TablePaginationActions = ({
   count,
   page,
   rowsPerPage,
-  onChangePage,
+  onPageChange,
 }: TablePaginationActionsProps) => {
   const theme = useTheme();
 
   const handleFirstPageButtonClick = (
     event: React.MouseEvent<HTMLButtonElement>,
   ) => {
-    onChangePage(event, 0);
+    onPageChange(event, 0);
   };
 
   const handleBackButtonClick = (
     event: React.MouseEvent<HTMLButtonElement>,
   ) => {
-    onChangePage(event, page - 1);
+    onPageChange(event, page - 1);
   };
 
   const handleNextButtonClick = (
     event: React.MouseEvent<HTMLButtonElement>,
   ) => {
-    onChangePage(event, page + 1);
+    onPageChange(event, page + 1);
   };
 
   const handleLastPageButtonClick = (
     event: React.MouseEvent<HTMLButtonElement>,
   ) => {
-    onChangePage(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
+    onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
   };
 
   return (
