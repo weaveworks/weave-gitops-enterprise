@@ -99,7 +99,7 @@ export const Pagination: FC<{
   const [page, setPage] = useState<number>(0);
   const [perPage, setPerPage] = useState<number>(10);
 
-  const onChangePage = (
+  const onPageChange = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
     pageNumber: number,
   ) => {
@@ -121,7 +121,7 @@ export const Pagination: FC<{
       rowsPerPage={perPage}
       count={count ?? 0}
       page={page}
-      onChangePage={onChangePage}
+      onPageChange={onPageChange}
       onChangeRowsPerPage={onChangeRowsPerPage}
       ActionsComponent={TablePaginationActions}
     />
