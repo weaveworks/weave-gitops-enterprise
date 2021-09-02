@@ -24,6 +24,7 @@ require (
 	github.com/onsi/gomega v1.16.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/alertmanager v0.21.0
+	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
@@ -39,10 +40,12 @@ require (
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	github.com/weaveworks/wksctl v0.10.2
 	github.com/xanzy/go-gitlab v0.43.0 // indirect
+	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1 // indirect
 	golang.org/x/tools v0.1.3
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/datatypes v1.0.0
+	gorm.io/driver/sqlite v1.1.4 // indirect
 	gorm.io/gorm v1.21.11
 	k8s.io/api v0.22.1
 	k8s.io/apimachinery v0.22.1
