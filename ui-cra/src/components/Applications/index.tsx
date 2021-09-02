@@ -2,14 +2,11 @@ import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { WGContentWrapper } from '../Layout/ContentWrapper';
-import { Applications } from '@weaveworks/weave-gitops';
-
-// TODO: Uncomment once hook is available from WeGO
-// import { useApplications } from '@weaveworks/weave-gitops';
+import { Applications, useApplications } from '@weaveworks/weave-gitops';
 
 const WGApplicationsDashboard: FC = () => {
-  // const { applications } = useApplications();
-  // const applicationsCount = applications.length;
+  const { applications } = useApplications();
+  const applicationsCount = applications.length;
 
   return (
     <PageTemplate documentTitle="WeGO · Applications">
@@ -18,7 +15,7 @@ const WGApplicationsDashboard: FC = () => {
           {
             label: 'Applications',
             url: '/applications',
-            count: 1,
+            count: applicationsCount,
           },
         ]}
       />

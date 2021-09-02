@@ -23,7 +23,7 @@ import { Shadows } from '@material-ui/core/styles/shadows';
 import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
 import { useHistory } from 'react-router-dom';
-import { Loader } from '../../Loader';
+import { LoadingPage } from '@weaveworks/weave-gitops';
 
 const localMuiTheme = createMuiTheme({
   ...muiTheme,
@@ -139,7 +139,7 @@ export const ClustersTable: FC<Props> = ({
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
           {creatingPR || (loading && filteredClusters?.length === 0) ? (
-            <Loader />
+            <LoadingPage />
           ) : (
             <Table className={classes.table} size="small">
               {filteredClusters?.length === 0 ? (

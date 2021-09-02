@@ -21,7 +21,7 @@ import useNotifications from '../../../contexts/Notifications';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../../Action';
 import { Input } from '../../../utils/form';
-import { Loader } from '../../Loader';
+import { LoadingPage } from '@weaveworks/weave-gitops';
 
 interface Props {
   selectedCapiClusters: string[];
@@ -147,7 +147,7 @@ export const DeleteClusterDialog: FC<Props> = ({
               />
             </>
           ) : (
-            <Loader />
+            <LoadingPage />
           )}
         </DialogContent>
       </div>

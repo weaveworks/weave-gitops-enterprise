@@ -22,7 +22,7 @@ import { ISubmitEvent, ObjectFieldTemplateProps } from '@rjsf/core';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
 import { Input } from '../../../utils/form';
-import { Loader } from '../../Loader';
+import { LoadingPage } from '@weaveworks/weave-gitops';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import * as Grouped from './Form/GroupedSchema';
@@ -444,10 +444,10 @@ const AddCluster: FC = () => {
                           </Button>
                         </div>
                       </FormStep>
-                      {creatingPR && <Loader />}
+                      {creatingPR && <LoadingPage />}
                     </>
                   ) : (
-                    <Loader />
+                    <LoadingPage />
                   )}
                 </>
               ) : null}
