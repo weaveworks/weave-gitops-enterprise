@@ -18,7 +18,7 @@ const large = spacing('large');
 
 export const contentCss = css`
   margin: ${medium} ${small} 0 ${small};
-  padding: ${large} ${medium} ${medium} ${medium};
+  padding: ${large} ${medium} ${medium} ${large};
   background-color: white;
   border-radius: ${spacing('xs')};
 `;
