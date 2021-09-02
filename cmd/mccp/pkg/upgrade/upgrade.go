@@ -48,9 +48,9 @@ func Upgrade(params UpgradeParams) error {
 	return nil
 }
 
-func removeProfile() error {
-	return nil
-}
+// func removeProfile() error {
+// 	return nil
+// }
 
 func addProfile(params UpgradeParams) (string, error) {
 	var (
