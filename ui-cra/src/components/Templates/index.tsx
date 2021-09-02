@@ -7,7 +7,7 @@ import useClusters from '../../contexts/Clusters';
 import useTemplates from '../../contexts/Templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { LoadingPage } from '@weaveworks/weave-gitops';
+import { Loader } from '../Loader';
 
 const getColor = (seed: number) => {
   if (seed % 2 === 0) {
@@ -51,7 +51,7 @@ const TemplatesDashboard: FC = () => {
             ))}
           </Grid>
         ) : (
-          <LoadingPage />
+          <Loader />
         )}
       </ContentWrapper>
     </PageTemplate>
