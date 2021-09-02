@@ -22,7 +22,6 @@ import { ISubmitEvent, ObjectFieldTemplateProps } from '@rjsf/core';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
 import { Input } from '../../../utils/form';
-import { Loader } from '../../Loader';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import * as Grouped from './Form/GroupedSchema';
@@ -33,6 +32,7 @@ import { Credential } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
+import { Loader } from '../../Loader';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;

@@ -46,7 +46,6 @@ export const ConnectClusterDialog: FC<Props> = ({ cluster, onFinish }) => {
             />
           ) : null}
         </DialogTitle>
-
         <DialogContent>
           <ConnectClusterWizard
             connecting={!cluster.id}
