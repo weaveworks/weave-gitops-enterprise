@@ -74,6 +74,7 @@ func upgradeCmdRun(client *resty.Client) func(*cobra.Command, []string) error {
 			ProfileRepoURL: upgradeCmdFlags.ProfileRepoURL,
 			ProfilePath:    upgradeCmdFlags.ProfilePath,
 			GitRepository:  upgradeCmdFlags.GitRepository,
+			Args:           args,
 		})
 	}
 }

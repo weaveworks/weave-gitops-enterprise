@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 	"github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
 	"github.com/weaveworks/pctl/pkg/runner"
+	"k8s.io/client-go/util/homedir"
 )
 
 type UpgradeParams struct {
@@ -30,6 +32,7 @@ type UpgradeParams struct {
 	ProfileRepoURL string
 	ProfilePath    string
 	GitRepository  string
+	Args           []string
 }
 
 func Upgrade(params UpgradeParams) error {
@@ -60,6 +63,25 @@ func addProfile(params UpgradeParams) (string, error) {
 	)
 
 	url := params.ProfileRepoURL
+	if url != "" && len(params.Args) > 0 {
+		return "", errors.New("it looks like you provided a url with a catalog entry; please choose either format: url/branch/path or <CATALOG>/<PROFILE>[/<VERSION>]")
+	}
+
+	if url == "" {
+		profilePath, catalogClient, err = parseArgs(params.Args)
+		if err != nil {
+			return "", err
+		}
+		parts := strings.Split(profilePath, "/")
+		if len(parts) < 2 {
+			return "", errors.New("both catalog name and profile name must be provided")
+		}
+		if len(parts) == 3 {
+			version = parts[2]
+		}
+		catalogName, profileName = parts[0], parts[1]
+	}
+
 	branch := params.ProfileBranch
 	subName := params.Name
 	namespace := params.Namespace
@@ -67,13 +89,6 @@ func addProfile(params UpgradeParams) (string, error) {
 	dir := params.Out
 	path := params.ProfilePath
 	message := params.CommitMessage
-
-	parts := strings.Split(profilePath, "/")
-
-	if len(parts) == 3 {
-		version = parts[2]
-	}
-	catalogName, profileName = parts[0], parts[1]
 
 	r := &runner.CLIRunner{}
 	g := git.NewCLIGit(git.CLIGitConfig{
@@ -140,6 +155,28 @@ func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, err
 		return config.GitRepository.Namespace, config.GitRepository.Name, nil
 	}
 	return "", "", fmt.Errorf("flux git repository not provided, please provide the --git-repository flag or use the pctl bootstrap functionality")
+}
+
+func parseArgs(args []string) (string, *client.Client, error) {
+	if len(args) < 1 {
+		return "", nil, fmt.Errorf("argument must be provided")
+	}
+	client, err := buildCatalogClient()
+	if err != nil {
+		return "", nil, err
+	}
+	return args[0], client, nil
+}
+
+func buildCatalogClient() (*client.Client, error) {
+	home := homedir.HomeDir()
+	options := client.ServiceOptions{
+		KubeconfigPath: filepath.Join(home, ".kube", "config"),
+		Namespace:      "profiles-catalog-namespace",
+		ServiceName:    "profiles-catalog-name",
+		ServicePort:    "8000",
+	}
+	return client.NewFromOptions(options)
 }
 
 func createPullRequest(params UpgradeParams, installationDirectory string) error {
