@@ -33,8 +33,7 @@ export const WGContent = styled.div`
 `;
 
 const HelpLinkWrapper = styled.div`
-  margin: 0 ${small};
-  padding: ${medium} 0;
+  padding-top: ${medium};
   display: flex;
   flex-direction: column;
   align-items: flex-end;
