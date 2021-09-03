@@ -1,0 +1,10 @@
+apiVersion: weave.works/v1alpha1
+kind: ProfileDefinition
+metadata:
+  name: mccp
+spec:
+  description: Profile for WGE
+  artifacts:
+    - name: mccp
+      chart:
+        path: mccp
