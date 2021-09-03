@@ -2,55 +2,84 @@ package cmd
 
 import (
 	"crypto/ed25519"
-	"encoding/hex"
-	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/libgitops/pkg/serializer"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubectl/pkg/scheme"
 )
 
-// generateCmd represents the generate command
 var generateCmd = &cobra.Command{
 	Use:   "generate",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Generate an entitlement for WeGO EE",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if durationYears <= 0 && durationMonths <= 0 && durationDays <= 0 {
+			log.Fatal("The duration of the entitlements has not been set. Please use the flags '-y', '-m' or '-d' to specify a duration.")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("generate called")
 
-		pub, priv, err := ed25519.GenerateKey(nil)
-		fmt.Println(hex.EncodeToString(pub))
-		fmt.Println(hex.EncodeToString(priv))
-		fmt.Println(err)
+		privatePem, err := ioutil.ReadFile(privateKeyFilename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		privateKey, err := jwt.ParseEdPrivateKeyFromPEM(privatePem)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pk := privateKey.(ed25519.PrivateKey)
 
+		now := time.Now().UTC()
+		expiresAt := now.AddDate(durationYears, durationMonths, durationDays)
 		claims := jwt.StandardClaims{
 			Issuer:    "sales@weave.works",
-			NotBefore: time.Now().UTC().Unix(),
-			ExpiresAt: time.Now().UTC().AddDate(1, 0, 0).Unix(),
+			IssuedAt:  now.Unix(),
+			NotBefore: now.Unix(),
+			ExpiresAt: expiresAt.Unix(),
+			Subject:   customerEmail,
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
-		tokenString, err := token.SignedString(priv)
+		tokenString, err := token.SignedString(pk)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		fmt.Println(tokenString, err)
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "wego-ee-entitlement",
+			},
+			Type:       "Opaque",
+			StringData: map[string]string{"entitlement": tokenString},
+		}
+		s := serializer.NewSerializer(scheme.Scheme, nil)
+		fw := serializer.NewYAMLFrameWriter(os.Stdout)
+		s.Encoder().Encode(fw, secret)
 	},
 }
+
+var (
+	privateKeyFilename string
+	customerEmail      string
+	durationYears      int
+	durationMonths     int
+	durationDays       int
+)
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// generateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	generateCmd.PersistentFlags().StringVarP(&privateKeyFilename, "private-key-filename", "p", "", "")
+	generateCmd.MarkPersistentFlagRequired("private-key-filename")
+	generateCmd.PersistentFlags().StringVarP(&customerEmail, "customer-email", "c", "", "")
+	generateCmd.MarkPersistentFlagRequired("customer-email")
+	generateCmd.PersistentFlags().IntVarP(&durationYears, "years", "y", 0, "")
+	generateCmd.PersistentFlags().IntVarP(&durationMonths, "months", "m", 0, "")
+	generateCmd.PersistentFlags().IntVarP(&durationDays, "days", "d", 0, "")
 }
