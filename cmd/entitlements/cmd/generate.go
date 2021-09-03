@@ -42,13 +42,13 @@ var (
 func init() {
 	rootCmd.AddCommand(generateCmd)
 
-	generateCmd.LocalFlags().StringVarP(&privateKeyFilename, "private-key-filename", "p", "", "The private key to use for signing the entitlement")
+	generateCmd.Flags().StringVarP(&privateKeyFilename, "private-key-filename", "p", "", "The private key to use for signing the entitlement")
 	generateCmd.MarkFlagRequired("private-key-filename")
-	generateCmd.LocalFlags().StringVarP(&customerEmail, "customer-email", "c", "", "The email of the customer that the entitlement is generated for")
+	generateCmd.Flags().StringVarP(&customerEmail, "customer-email", "c", "", "The email of the customer that the entitlement is generated for")
 	generateCmd.MarkFlagRequired("customer-email")
-	generateCmd.LocalFlags().IntVarP(&durationYears, "duration-years", "y", 0, "Number of years to use for the duration of the entitlement")
-	generateCmd.LocalFlags().IntVarP(&durationMonths, "duration-months", "m", 0, "Number of months to use for the duration of the entitlement")
-	generateCmd.LocalFlags().IntVarP(&durationDays, "duration-days", "d", 0, "Number of days to use for the duration of the entitlement")
-	generateCmd.LocalFlags().StringVarP(&secretName, "name", "n", "wego-ee-entitlement", "The name of the secret")
-	generateCmd.LocalFlags().StringVar(&secretNamespace, "namespace", "default", "The namespace of the secret")
+	generateCmd.Flags().IntVarP(&durationYears, "duration-years", "y", 0, "Number of years to use for the duration of the entitlement")
+	generateCmd.Flags().IntVarP(&durationMonths, "duration-months", "m", 0, "Number of months to use for the duration of the entitlement")
+	generateCmd.Flags().IntVarP(&durationDays, "duration-days", "d", 0, "Number of days to use for the duration of the entitlement")
+	generateCmd.Flags().StringVarP(&secretName, "name", "n", "wego-ee-entitlement", "The name of the secret")
+	generateCmd.Flags().StringVar(&secretNamespace, "namespace", "default", "The namespace of the secret")
 }
