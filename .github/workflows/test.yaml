@@ -582,7 +582,7 @@ jobs:
         kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Setup wkp leaf cluster
       run: |
-        kind create cluster --name my-wkp-leaf-cluster --config test/utils/data/local-mccp-kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
+        kind create cluster --name my-wkp-leaf-cluster --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
         export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
 
         export SKIP_PROMPT=1
@@ -624,7 +624,7 @@ jobs:
     - name: Delete WKP repository
       if: ${{ always() }}
       run: |
-        hub delete -y ${{ secrets.WGE_GITHUB_ORG }}/${{ env.WKP_CLUSTER_NAME }}
+        hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
     - name: Store acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
