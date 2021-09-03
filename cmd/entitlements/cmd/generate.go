@@ -1,17 +1,13 @@
 package cmd
 
 import (
-	"crypto/ed25519"
-	"io/ioutil"
 	"log"
 	"os"
-	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/entitlement"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/libgitops/pkg/serializer"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubectl/pkg/scheme"
 )
 
@@ -24,40 +20,9 @@ var generateCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-
-		privatePem, err := ioutil.ReadFile(privateKeyFilename)
-		if err != nil {
-			log.Fatal(err)
-		}
-		privateKey, err := jwt.ParseEdPrivateKeyFromPEM(privatePem)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pk := privateKey.(ed25519.PrivateKey)
-
-		now := time.Now().UTC()
-		expiresAt := now.AddDate(durationYears, durationMonths, durationDays)
-		claims := jwt.StandardClaims{
-			Issuer:    "sales@weave.works",
-			IssuedAt:  now.Unix(),
-			NotBefore: now.Unix(),
-			ExpiresAt: expiresAt.Unix(),
-			Subject:   customerEmail,
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
-		tokenString, err := token.SignedString(pk)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		secret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "wego-ee-entitlement",
-			},
-			Type:       "Opaque",
-			StringData: map[string]string{"entitlement": tokenString},
-		}
+		token, err := entitlement.CreateEntitlement(privateKeyFilename, durationYears, durationMonths, durationDays, customerEmail)
+		cobra.CheckErr(err)
+		secret := entitlement.WrapEntitlementInSecret(token, secretName, secretNamespace)
 		s := serializer.NewSerializer(scheme.Scheme, nil)
 		fw := serializer.NewYAMLFrameWriter(os.Stdout)
 		s.Encoder().Encode(fw, secret)
@@ -70,16 +35,20 @@ var (
 	durationYears      int
 	durationMonths     int
 	durationDays       int
+	secretName         string
+	secretNamespace    string
 )
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
 
-	generateCmd.PersistentFlags().StringVarP(&privateKeyFilename, "private-key-filename", "p", "", "")
-	generateCmd.MarkPersistentFlagRequired("private-key-filename")
-	generateCmd.PersistentFlags().StringVarP(&customerEmail, "customer-email", "c", "", "")
-	generateCmd.MarkPersistentFlagRequired("customer-email")
-	generateCmd.PersistentFlags().IntVarP(&durationYears, "years", "y", 0, "")
-	generateCmd.PersistentFlags().IntVarP(&durationMonths, "months", "m", 0, "")
-	generateCmd.PersistentFlags().IntVarP(&durationDays, "days", "d", 0, "")
+	generateCmd.LocalFlags().StringVarP(&privateKeyFilename, "private-key-filename", "p", "", "The private key to use for signing the entitlement")
+	generateCmd.MarkFlagRequired("private-key-filename")
+	generateCmd.LocalFlags().StringVarP(&customerEmail, "customer-email", "c", "", "The email of the customer that the entitlement is generated for")
+	generateCmd.MarkFlagRequired("customer-email")
+	generateCmd.LocalFlags().IntVarP(&durationYears, "duration-years", "y", 0, "Number of years to use for the duration of the entitlement")
+	generateCmd.LocalFlags().IntVarP(&durationMonths, "duration-months", "m", 0, "Number of months to use for the duration of the entitlement")
+	generateCmd.LocalFlags().IntVarP(&durationDays, "duration-days", "d", 0, "Number of days to use for the duration of the entitlement")
+	generateCmd.LocalFlags().StringVarP(&secretName, "name", "n", "wego-ee-entitlement", "The name of the secret")
+	generateCmd.LocalFlags().StringVar(&secretNamespace, "namespace", "default", "The namespace of the secret")
 }
