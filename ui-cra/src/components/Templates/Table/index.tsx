@@ -58,22 +58,8 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-interface Props {
-  templates: Template[] | null;
-  count: number | null;
-  disabled?: boolean;
-  onSortChange: (order: string) => void;
-  order: string;
-  orderBy: string;
-}
-
-export const TemplateTable: FC<Props> = ({
+export const TemplatesTable: FC<{ templates: Template[] | null }> = ({
   templates,
-  count,
-  disabled,
-  onSortChange,
-  order,
-  orderBy,
 }) => {
   const classes = useStyles();
   const { loading } = useTemplates();
@@ -85,10 +71,7 @@ export const TemplateTable: FC<Props> = ({
   ));
 
   return (
-    <div
-      className={`${classes.root} ${disabled ? classes.disabled : ''}`}
-      id="templates-list"
-    >
+    <div className={classes.root} id="templates-list">
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
           {loading ? (
@@ -101,24 +84,18 @@ export const TemplateTable: FC<Props> = ({
               <TableHead className={classes.tableHead}>
                 <TableRow>
                   <TableCell className={classes.nameHeaderCell} align="left">
-                    <TableSortLabel
+                    {/* <TableSortLabel
                       disabled={disabled}
                       active={orderBy === 'Name'}
                       direction={
                         orderBy === 'Name' ? (order as 'asc' | 'desc') : 'asc'
                       }
                       onClick={() => onSortChange('Name')}
-                    >
-                      <ColumnHeaderTooltip title="Template name">
-                        <span>Name</span>
-                      </ColumnHeaderTooltip>
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell />
-                  <TableCell align="left">
-                    <ColumnHeaderTooltip title="Template Version">
-                      <span>Version</span>
+                    > */}
+                    <ColumnHeaderTooltip title="Template name">
+                      <span>Name</span>
                     </ColumnHeaderTooltip>
+                    {/* </TableSortLabel> */}
                   </TableCell>
                   <TableCell align="left">
                     <ColumnHeaderTooltip title="Template Description">

@@ -58,9 +58,6 @@ const TemplateRow = ({ index, template }: RowProps) => {
       <TableCell className={classes.nameCell} align="left">
         {template.name}
       </TableCell>
-      <TableCell className={classes.commitsOverviewCell} align="left">
-        {version}
-      </TableCell>
       <TableCell align="left">{description}</TableCell>
     </TableRow>
   );
