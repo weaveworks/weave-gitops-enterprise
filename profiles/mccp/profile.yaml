@@ -1,0 +1,27 @@
+apiVersion: weave.works/v1alpha1
+kind: ProfileDefinition
+metadata:
+  name: weaveworks-nginx
+spec:
+  description: Profile for WGE
+  artifacts:
+    - name: nginx-chart
+      chart:
+        url: https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
+        name: mccp
+        # version: "0.0.6-59-g8119c57"
+        defaultValues: |
+          imagePullSecrets:
+            - name: docker-io-pull-secret
+          wkp-ui:
+            image:
+              pullSecrets:
+                - docker-io-pull-secret
+          dbConfig:
+            databaseType: sqlite
+          sqliteConfig:
+            persistentVolumeClaim: true
+          nats:
+            client:
+              service:
+                nodePort: 31490
