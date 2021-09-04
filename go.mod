@@ -6,14 +6,20 @@ require (
 	github.com/cloudevents/sdk-go/protocol/nats/v2 v2.3.1
 	github.com/cloudevents/sdk-go/v2 v2.3.1
 	github.com/docker/distribution v2.7.1+incompatible
+	github.com/fluxcd/go-git-providers v0.2.1-0.20210810172205-2624ccb868e1
 	github.com/go-logfmt/logfmt v0.5.0
+	github.com/go-logr/logr v0.4.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-resty/resty/v2 v2.5.0
 	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/google/go-cmp v0.5.6
+	github.com/google/go-github/v32 v32.1.0
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/mux v1.8.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
+	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/jarcoal/httpmock v1.0.8
+	github.com/mkmik/multierror v0.3.0
 	github.com/nats-io/nats-server/v2 v2.1.7
 	github.com/nats-io/nats.go v1.10.0
 	github.com/onsi/ginkgo v1.16.4
@@ -22,15 +28,22 @@ require (
 	github.com/prometheus/alertmanager v0.21.0
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.1.3
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/cobra v1.2.1
+	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/selenium v0.9.9
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
+	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
 	github.com/weaveworks/libgitops v0.0.2
-	github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server v0.0.0-00010101000000-000000000000
+	github.com/weaveworks/weave-gitops v0.2.4
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	github.com/weaveworks/wksctl v0.10.2
+	github.com/xanzy/go-gitlab v0.43.0
+	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1
+	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
+	google.golang.org/grpc v1.38.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/datatypes v1.0.0
@@ -39,19 +52,21 @@ require (
 	k8s.io/apimachinery v0.21.2
 	k8s.io/cli-runtime v0.21.2
 	k8s.io/client-go v0.21.2
+	k8s.io/klog/v2 v2.8.0
 	k8s.io/kubectl v0.20.2
 	k8s.io/kubernetes v1.21.1 // indirect
 	sigs.k8s.io/cluster-api v0.3.16
 	sigs.k8s.io/controller-runtime v0.9.1
 	sigs.k8s.io/kustomize/kyaml v0.11.0
+	sigs.k8s.io/yaml v1.2.0
 )
 
 replace (
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.7.0
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
 	github.com/docker/distribution => github.com/2opremio/distribution v0.0.0-20190419185413-6c9727e5e5de
-	github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server => ./cmd/capi-server
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
+	github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server => ./cmd/capi-server
 	gopkg.in/jcmturner/gokrb5.v6 => github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2
 	k8s.io/api => k8s.io/api v0.21.1
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.1

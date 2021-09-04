@@ -1,28 +1,25 @@
-from golang:1.16.6 as builder
+from golang:1.17.0 as builder
 
 ENV CS_PATH=cmd/capi-server
 
-WORKDIR /workspace/$CS_PATH
+WORKDIR /workspace
 
 # copy in other module dependencies
-COPY common/ /workspace/common/
+COPY common/ common/
 
 # copy modules manifests
-COPY $CS_PATH/go.mod go.mod
-COPY $CS_PATH/go.sum go.sum
+COPY go.mod go.mod
+COPY go.sum go.sum
 
 # cache modules
 RUN go mod download
 
 # copy source code
-COPY $CS_PATH/main.go main.go
-COPY $CS_PATH/api/ api/
-COPY $CS_PATH/app/ app/
-COPY $CS_PATH/pkg/ pkg/
+COPY $CS_PATH $CS_PATH
 
 ARG version
 # build
-RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version.Version=$version' -linkmode external -w -extldflags \"-static\"" -a -o capi-server main.go
+RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version.Version=$version' -linkmode external -w -extldflags \"-static\"" -a -o $CS_PATH/capi-server $CS_PATH/main.go
 
 FROM docker.io/governmentpaas/git-ssh
 
