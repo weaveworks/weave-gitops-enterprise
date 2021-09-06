@@ -225,7 +225,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			By("And MCCP state is reset", func() {
 				mccpTestRunner.ResetDatabase()
 				mccpTestRunner.VerifyMCCPPodsRunning()
-				mccpTestRunner.VerifyMCCPPodsRunning()
+				mccpTestRunner.checkClusterService()
 			})
 
 			clustersPage := pages.GetClustersPage(webDriver)
@@ -391,7 +391,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			}
 			mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
-			mccpTestRunner.VerifyMCCPPodsRunning()
+			mccpTestRunner.checkClusterService()
 			clustersPage := pages.GetClustersPage(webDriver)
 			Expect(webDriver.Navigate(GetWkpUrl() + "/clusters/alerts")).To(Succeed())
 			Eventually(clustersPage.NoFiringAlertMessage).Should(BeFound())
@@ -499,6 +499,8 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 				Skip("This test case runs only with sqlite")
 			}
 			mccpTestRunner.ResetDatabase()
+			mccpTestRunner.VerifyMCCPPodsRunning()
+			mccpTestRunner.checkClusterService()
 			clustersPage := pages.GetClustersPage(webDriver)
 
 			Expect(webDriver.Navigate(GetWkpUrl() + "/clusters/alerts")).To(Succeed())
