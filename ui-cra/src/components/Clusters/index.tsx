@@ -14,7 +14,7 @@ import { FinishMessage, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './Connect/ConnectDialog';
 import { useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import { OnClickAction } from '../Action';
 import theme from 'weaveworks-ui-components/lib/theme';
@@ -29,13 +29,6 @@ const ActionsWrapper = styled.div<Size>`
   & > * {
     margin-right: ${theme.spacing.medium};
   }
-`;
-
-const Title = styled.div`
-  font-size: ${theme.fontSizes.large};
-  font-weight: 600;
-  padding-bottom: ${theme.spacing.medium};
-  color: ${theme.colors.gray600};
 `;
 
 const MCCP: FC = () => {

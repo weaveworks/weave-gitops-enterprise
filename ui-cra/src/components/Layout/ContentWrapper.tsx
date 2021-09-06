@@ -1,7 +1,18 @@
 import { FC } from 'react';
 import styled, { css } from 'styled-components';
-import { spacing } from 'weaveworks-ui-components/lib/theme/selectors';
+import {
+  spacing,
+  fontSize,
+} from 'weaveworks-ui-components/lib/theme/selectors';
+import theme from 'weaveworks-ui-components/lib/theme';
 import useVersions from '../../contexts/Versions';
+
+export const Title = styled.div`
+  font-size: ${fontSize('large')};
+  font-weight: 600;
+  padding-bottom: ${spacing('medium')};
+  color: ${theme.colors.gray600};
+`;
 
 export const pageDimensionsCss = css`
   width: 100%;

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import {
   Paper,
   Table,
@@ -17,7 +17,6 @@ import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import useTemplates from '../../../contexts/Templates';
-import useNotifications from '../../../contexts/Notifications';
 import { Loader } from '../../Loader';
 import { Template } from '../../../types/custom';
 
@@ -40,76 +39,85 @@ const useStyles = makeStyles((theme: Theme) =>
     root: {
       width: '100%',
     },
-    disabled: {
-      opacity: 0.5,
-    },
     table: {
       whiteSpace: 'nowrap',
     },
     tableHead: {
       borderBottom: '1px solid #d8d8d8',
     },
-    noMaxWidth: {
-      maxWidth: 'none',
-    },
-    tablePagination: {
-      height: '80px',
+    description: {
+      maxWidth: '250px',
+      overflow: 'hidden',
     },
   }),
 );
 
-export const TemplatesTable: FC<{ templates: Template[] | null }> = ({
+export const TemplatesTable: FC<{ templates: Template[] }> = ({
   templates,
 }) => {
   const classes = useStyles();
   const { loading } = useTemplates();
-  const { notifications } = useNotifications();
+  const [sortedTemplates, setSortedTemplates] = useState<Template[]>(templates);
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   const showSkeleton = !templates;
   const skeletonRows = range(0, 1).map((id, index) => (
     <SkeletonRow index={index} key={id} />
   ));
 
+  const handleClick = () => setOrder(order === 'desc' ? 'asc' : 'desc');
+
+  useEffect(() => {
+    const sorted = sortedTemplates.sort();
+    const revSorted = sortedTemplates.reverse();
+    if (order === 'asc') {
+      setSortedTemplates(revSorted);
+    } else {
+      setSortedTemplates(sorted);
+    }
+  }, [order, sortedTemplates]);
+
   return (
-    <div className={classes.root} id="templates-list">
+    <div id="templates-list">
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
           {loading ? (
             <Loader />
           ) : (
-            <Table className={classes.table} size="small">
-              {templates?.length === 0 ? (
+            <Table
+              key={sortedTemplates.length}
+              className={classes.table}
+              size="small"
+            >
+              {sortedTemplates?.length === 0 ? (
                 <caption>No templates available</caption>
               ) : null}
               <TableHead className={classes.tableHead}>
                 <TableRow>
-                  <TableCell className={classes.nameHeaderCell} align="left">
-                    {/* <TableSortLabel
-                      disabled={disabled}
-                      active={orderBy === 'Name'}
-                      direction={
-                        orderBy === 'Name' ? (order as 'asc' | 'desc') : 'asc'
-                      }
-                      onClick={() => onSortChange('Name')}
-                    > */}
-                    <ColumnHeaderTooltip title="Template name">
-                      <span>Name</span>
-                    </ColumnHeaderTooltip>
-                    {/* </TableSortLabel> */}
+                  <TableCell align="left" className={classes.nameHeaderCell}>
+                    <TableSortLabel
+                      active={true}
+                      direction={order}
+                      onClick={handleClick}
+                    >
+                      <ColumnHeaderTooltip title="Template name">
+                        <span>Name</span>
+                      </ColumnHeaderTooltip>
+                    </TableSortLabel>
                   </TableCell>
-                  <TableCell align="left">
+                  <TableCell align="left" className={classes.description}>
                     <ColumnHeaderTooltip title="Template Description">
+                      {/* use red if there is an error here */}
                       <span>Description</span>
                     </ColumnHeaderTooltip>
                   </TableCell>
-                  <TableCell />
                   <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>
                 {showSkeleton && skeletonRows}
                 {!showSkeleton &&
-                  templates?.map((template: Template, index: number) => {
+                  sortedTemplates.map((template: Template, index: number) => {
                     return (
                       <TemplateRow
                         key={template.name}

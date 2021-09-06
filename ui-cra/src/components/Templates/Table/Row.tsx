@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TableCell, TableRow, Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Template } from '../../../types/custom';
+import { OnClickAction } from '../../Action';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import useTemplates from '../../../contexts/Templates';
+import { useHistory } from 'react-router-dom';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -48,6 +52,13 @@ interface RowProps {
 const TemplateRow = ({ index, template }: RowProps) => {
   const classes = useStyles();
   const { name, version, description, error } = template;
+  const { activeTemplate, setActiveTemplate } = useTemplates();
+  const history = useHistory();
+
+  const handleAddCluster = useCallback(() => {
+    setActiveTemplate(template);
+    history.push(`/clusters/templates/${template.name}/create`);
+  }, [setActiveTemplate, history, template]);
 
   return (
     <TableRow
@@ -59,6 +70,15 @@ const TemplateRow = ({ index, template }: RowProps) => {
         {template.name}
       </TableCell>
       <TableCell align="left">{description}</TableCell>
+      <TableCell>
+        <OnClickAction
+          id="create-cluster"
+          icon={faPlus}
+          onClick={handleAddCluster}
+          text="CREATE CLUSTER WITH THIS TEMPLATE"
+          disabled={Boolean(template.error)}
+        />
+      </TableCell>
     </TableRow>
   );
 };
