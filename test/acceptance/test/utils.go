@@ -607,7 +607,7 @@ func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRep
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 
-	Expect(WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+	Expect(WaitUntil(os.Stdout, CLI_POLL_INTERVAL, ASSERTION_1MINUTE_TIME_OUT, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, repoName)
 		command := exec.Command("sh", "-c", cmd)
 		return command.Run()

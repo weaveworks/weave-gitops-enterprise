@@ -798,6 +798,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				log.Println("Deleting all the wkp agents")
 				mccpTestRunner.KubectlDeleteAllAgents([]string{})
 				mccpTestRunner.ResetDatabase()
+				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
 			It("@Integration @VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
