@@ -31,6 +31,10 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			By("Given I have a mccp binary installed on my local machine", func() {
 				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", MCCP_BIN_PATH))
 			})
+
+			By("And the Cluster service is healthy", func() {
+				mccpTestRunner.checkClusterService()
+			})
 		})
 
 		AfterEach(func() {
@@ -205,6 +209,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				By("And MCCP state is reset", func() {
 					mccpTestRunner.ResetDatabase()
 					mccpTestRunner.VerifyMCCPPodsRunning()
+					mccpTestRunner.checkClusterService()
 				})
 
 				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {

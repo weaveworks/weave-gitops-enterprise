@@ -180,6 +180,7 @@ type MCCPTestRunner interface {
 	DeleteApplyCapiTemplates(templateFiles []string)
 	CreateIPCredentials(infrastructureProvider string)
 	DeleteIPCredentials(infrastructureProvider string)
+	checkClusterService()
 
 	// Git repository helper functions
 	DeleteRepo(repoName string)
@@ -354,6 +355,10 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 	})
 }
 
+func (b DatabaseMCCPTestRunner) checkClusterService() {
+
+}
+
 func (b DatabaseMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 
 }
@@ -526,6 +531,16 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 
 	err := deleteFile(templateFiles)
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
+}
+
+func (b RealMCCPTestRunner) checkClusterService() {
+	output := func() string {
+		command := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", GetCapiEndpointUrl()+"/v1/templates")
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		return string(session.Wait().Out.Contents())
+	}
+	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("200"), "Cluster Service is not healthy")
 }
 
 func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {

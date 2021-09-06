@@ -62,7 +62,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
-				//TODO - Verify that cluster is up and running using kubectl
+				mccpTestRunner.checkClusterService()
 			})
 			initializeWebdriver()
 		})

@@ -365,7 +365,7 @@ jobs:
       with:
         name: management-${{ github.run_id }}-${{ github.run_number}}
         version: "v0.11.0"
-        image: kindest/node:v1.20.7
+        image: kindest/node:v1.22.0
         config: "./test/utils/scripts/local-mccp-kind-config.yaml"
     - name: Kind-check
       run: |
@@ -529,7 +529,7 @@ jobs:
       with:
         name: management-${{ github.run_id }}-${{ github.run_number}}
         version: "v0.11.0"
-        image: kindest/node:v1.20.7
+        image: kindest/node:v1.22.0
         config: "./test/utils/scripts/local-mccp-kind-config.yaml"
     - name: Kind-check
       run: |
@@ -585,7 +585,7 @@ jobs:
         kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Setup wkp leaf cluster
       run: |
-        kind create cluster --name my-wkp-leaf-cluster --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
+        kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.22.0 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
         export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
 
         export SKIP_PROMPT=1
