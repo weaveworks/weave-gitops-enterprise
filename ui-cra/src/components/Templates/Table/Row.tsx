@@ -1,46 +1,19 @@
 import React, { useCallback } from 'react';
-import { TableCell, TableRow, Theme } from '@material-ui/core';
+import { TableCell, TableRow } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Template } from '../../../types/custom';
 import { OnClickAction } from '../../Action';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import useTemplates from '../../../contexts/Templates';
 import { useHistory } from 'react-router-dom';
 import { Tooltip } from '../../Shared';
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
-    actionButton: {
-      fontSize: theme.typography.fontSize,
-      margin: `${theme.spacing(0.5)}px ${theme.spacing(1)}px`,
-    },
     icon: {
       color: '#ccc',
     },
-    nameHeaderCell: {
-      paddingLeft: theme.spacing(4),
-    },
-    nameCell: {
-      paddingLeft: theme.spacing(0.5),
-    },
-    commitsOverviewCell: {
-      width: 270,
-      padding: 0,
-    },
-    iconTableCell: {
-      width: 30,
-    },
-    noMaxWidth: {
-      maxWidth: 'none',
-    },
     normalRow: {
       borderBottom: '1px solid #d8d8d8',
-    },
-    collapsibleRow: {
-      '& > *': {
-        paddingTop: 0,
-        paddingBottom: 0,
-      },
     },
   }),
 );
@@ -53,13 +26,12 @@ interface RowProps {
 const TemplateRow = ({ index, template }: RowProps) => {
   const classes = useStyles();
   const { name, description, error } = template;
-  const { setActiveTemplate } = useTemplates();
   const history = useHistory();
 
-  const handleAddCluster = useCallback(() => {
-    setActiveTemplate(template);
-    history.push(`/clusters/templates/${template.name}/create`);
-  }, [setActiveTemplate, history, template]);
+  const handleAddCluster = useCallback(
+    () => history.push(`/clusters/templates/${template.name}/create`),
+    [history, template],
+  );
 
   return (
     <TableRow
@@ -67,10 +39,8 @@ const TemplateRow = ({ index, template }: RowProps) => {
       data-template-name={name}
       key={name}
     >
-      <TableCell className={classes.nameCell} align="left">
-        {template.name}
-      </TableCell>
-      <TableCell align="left">{description}</TableCell>
+      <TableCell>{name}</TableCell>
+      <TableCell>{description}</TableCell>
       <TableCell>
         {error ? (
           <Tooltip title={error} placement="top">
@@ -80,7 +50,7 @@ const TemplateRow = ({ index, template }: RowProps) => {
                 icon={faPlus}
                 onClick={handleAddCluster}
                 text="CREATE CLUSTER WITH THIS TEMPLATE"
-                disabled={Boolean(template.error)}
+                disabled={Boolean(error)}
               />
             </div>
           </Tooltip>
@@ -90,7 +60,7 @@ const TemplateRow = ({ index, template }: RowProps) => {
             icon={faPlus}
             onClick={handleAddCluster}
             text="CREATE CLUSTER WITH THIS TEMPLATE"
-            disabled={Boolean(template.error)}
+            disabled={Boolean(error)}
           />
         )}
       </TableCell>

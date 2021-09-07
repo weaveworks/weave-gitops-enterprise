@@ -10,8 +10,7 @@ import {
   Theme,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { range } from 'lodash';
-import { ColumnHeaderTooltip, SkeletonRow } from '../../Shared';
+import { ColumnHeaderTooltip } from '../../Shared';
 import TemplateRow from './Row';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
@@ -56,11 +55,6 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
   const [sortedTemplates, setSortedTemplates] = useState<Template[]>(templates);
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
-  const showSkeleton = sortedTemplates.length === 0;
-  const skeletonRows = range(0, 1).map((id, index) => (
-    <SkeletonRow index={index} key={id} />
-  ));
-
   const handleClick = () => setOrder(order === 'desc' ? 'asc' : 'desc');
 
   useEffect(() => {
@@ -81,7 +75,7 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
             <Loader />
           ) : (
             <Table className={classes.table} size="small">
-              {sortedTemplates?.length === 0 ? (
+              {sortedTemplates.length === 0 ? (
                 <caption>No templates available</caption>
               ) : null}
               <TableHead className={classes.tableHead}>
@@ -106,17 +100,15 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {showSkeleton && skeletonRows}
-                {!showSkeleton &&
-                  sortedTemplates.map((template: Template, index: number) => {
-                    return (
-                      <TemplateRow
-                        key={template.name}
-                        index={index}
-                        template={template}
-                      />
-                    );
-                  })}
+                {sortedTemplates.map((template: Template, index: number) => {
+                  return (
+                    <TemplateRow
+                      key={template.name}
+                      index={index}
+                      template={template}
+                    />
+                  );
+                })}
               </TableBody>
             </Table>
           )}
