@@ -180,6 +180,7 @@ type MCCPTestRunner interface {
 	DeleteApplyCapiTemplates(templateFiles []string)
 	CreateIPCredentials(infrastructureProvider string)
 	DeleteIPCredentials(infrastructureProvider string)
+	checkClusterService()
 
 	// Git repository helper functions
 	DeleteRepo(repoName string)
@@ -352,6 +353,10 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
 		}
 	})
+}
+
+func (b DatabaseMCCPTestRunner) checkClusterService() {
+
 }
 
 func (b DatabaseMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
@@ -528,6 +533,16 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
+func (b RealMCCPTestRunner) checkClusterService() {
+	output := func() string {
+		command := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", GetCapiEndpointUrl()+"/v1/templates")
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		return string(session.Wait().Out.Contents())
+	}
+	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("200"), "Cluster Service is not healthy")
+}
+
 func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 	if infrastructureProvider == "AWS" {
 		By("Install AWSClusterStaticIdentity CRD", func() {
@@ -592,7 +607,7 @@ func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRep
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 
-	Expect(WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+	Expect(WaitUntil(os.Stdout, CLI_POLL_INTERVAL, ASSERTION_1MINUTE_TIME_OUT, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, repoName)
 		command := exec.Command("sh", "-c", cmd)
 		return command.Run()
