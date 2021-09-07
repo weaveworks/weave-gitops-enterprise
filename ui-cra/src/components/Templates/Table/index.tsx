@@ -45,10 +45,6 @@ const useStyles = makeStyles((theme: Theme) =>
     tableHead: {
       borderBottom: '1px solid #d8d8d8',
     },
-    description: {
-      maxWidth: '250px',
-      overflow: 'hidden',
-    },
   }),
 );
 
@@ -60,7 +56,7 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
   const [sortedTemplates, setSortedTemplates] = useState<Template[]>(templates);
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
-  const showSkeleton = !templates;
+  const showSkeleton = sortedTemplates.length === 0;
   const skeletonRows = range(0, 1).map((id, index) => (
     <SkeletonRow index={index} key={id} />
   ));
@@ -71,9 +67,9 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
     const sorted = sortedTemplates.sort();
     const revSorted = sortedTemplates.reverse();
     if (order === 'asc') {
-      setSortedTemplates(revSorted);
-    } else {
       setSortedTemplates(sorted);
+    } else {
+      setSortedTemplates(revSorted);
     }
   }, [order, sortedTemplates]);
 
@@ -84,17 +80,13 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
           {loading ? (
             <Loader />
           ) : (
-            <Table
-              key={sortedTemplates.length}
-              className={classes.table}
-              size="small"
-            >
+            <Table className={classes.table} size="small">
               {sortedTemplates?.length === 0 ? (
                 <caption>No templates available</caption>
               ) : null}
               <TableHead className={classes.tableHead}>
                 <TableRow>
-                  <TableCell align="left" className={classes.nameHeaderCell}>
+                  <TableCell align="left">
                     <TableSortLabel
                       active={true}
                       direction={order}
@@ -105,9 +97,8 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
                       </ColumnHeaderTooltip>
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell align="left" className={classes.description}>
+                  <TableCell align="left">
                     <ColumnHeaderTooltip title="Template Description">
-                      {/* use red if there is an error here */}
                       <span>Description</span>
                     </ColumnHeaderTooltip>
                   </TableCell>

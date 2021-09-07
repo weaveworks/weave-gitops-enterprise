@@ -6,6 +6,7 @@ import { OnClickAction } from '../../Action';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import useTemplates from '../../../contexts/Templates';
 import { useHistory } from 'react-router-dom';
+import { Tooltip } from '../../Shared';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -51,8 +52,8 @@ interface RowProps {
 
 const TemplateRow = ({ index, template }: RowProps) => {
   const classes = useStyles();
-  const { name, version, description, error } = template;
-  const { activeTemplate, setActiveTemplate } = useTemplates();
+  const { name, description, error } = template;
+  const { setActiveTemplate } = useTemplates();
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
@@ -71,13 +72,27 @@ const TemplateRow = ({ index, template }: RowProps) => {
       </TableCell>
       <TableCell align="left">{description}</TableCell>
       <TableCell>
-        <OnClickAction
-          id="create-cluster"
-          icon={faPlus}
-          onClick={handleAddCluster}
-          text="CREATE CLUSTER WITH THIS TEMPLATE"
-          disabled={Boolean(template.error)}
-        />
+        {error ? (
+          <Tooltip title={error} placement="top">
+            <div>
+              <OnClickAction
+                id="create-cluster"
+                icon={faPlus}
+                onClick={handleAddCluster}
+                text="CREATE CLUSTER WITH THIS TEMPLATE"
+                disabled={Boolean(template.error)}
+              />
+            </div>
+          </Tooltip>
+        ) : (
+          <OnClickAction
+            id="create-cluster"
+            icon={faPlus}
+            onClick={handleAddCluster}
+            text="CREATE CLUSTER WITH THIS TEMPLATE"
+            disabled={Boolean(template.error)}
+          />
+        )}
       </TableCell>
     </TableRow>
   );

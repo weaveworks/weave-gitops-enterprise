@@ -36,6 +36,7 @@ const ActionsWrapper = styled.div`
 
   svg {
     width: 32px;
+    fill: #bdbdbd;
   }
 `;
 
