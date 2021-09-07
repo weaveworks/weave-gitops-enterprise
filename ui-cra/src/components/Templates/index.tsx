@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState } from 'react';
+import React, { FC, useState } from 'react';
 import randomColor from 'randomcolor';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
@@ -46,54 +46,49 @@ const TemplatesDashboard: FC = () => {
   const templatesCount = templates.length;
   const [view, setView] = useState<string>('grid');
 
-  return useMemo(() => {
-    return (
-      <PageTemplate documentTitle="WeGO · Templates">
-        <SectionHeader
-          path={[
-            { label: 'Clusters', url: '/clusters', count: clustersCount },
-            {
-              label: 'Templates',
-              url: '/clusters/templates',
-              count: templatesCount,
-            },
-          ]}
-        />
-        {!loading ? (
-          <div style={{ display: 'flex' }}>
-            {view === 'grid' && (
-              <ContentWrapper>
-                <Grid container spacing={3} justify="center">
-                  {templates.map((template: any, index: number) => (
-                    <Grid key={index} item xs={11} sm={8} md={3}>
-                      <TemplateCard
-                        template={template}
-                        color={getColor(index)}
-                      />
-                    </Grid>
-                  ))}
-                </Grid>
-              </ContentWrapper>
-            )}
-            {view === 'table' && (
-              <ContentWrapper>
-                <Title>Cluster Templates</Title>
-                <TemplatesTable templates={templates} />
-              </ContentWrapper>
-            )}
-            <ActionsWrapper>
-              <GridView onClick={() => setView('grid')} />
-              <ListView onClick={() => setView('table')} />
-            </ActionsWrapper>
-          </div>
-        ) : (
-          <ContentWrapper>
-            <Loader />
-          </ContentWrapper>
-        )}
-      </PageTemplate>
-    );
-  }, [templates, loading, clustersCount, templatesCount, view]);
+  return (
+    <PageTemplate documentTitle="WeGO · Templates">
+      <SectionHeader
+        path={[
+          { label: 'Clusters', url: '/clusters', count: clustersCount },
+          {
+            label: 'Templates',
+            url: '/clusters/templates',
+            count: templatesCount,
+          },
+        ]}
+      />
+      {!loading ? (
+        <div style={{ display: 'flex' }}>
+          {view === 'grid' && (
+            <ContentWrapper>
+              <Grid container spacing={3} justify="center">
+                {templates.map((template: any, index: number) => (
+                  <Grid key={index} item xs={11} sm={8} md={3}>
+                    <TemplateCard template={template} color={getColor(index)} />
+                  </Grid>
+                ))}
+              </Grid>
+            </ContentWrapper>
+          )}
+          {view === 'table' && (
+            <ContentWrapper>
+              <Title>Cluster Templates</Title>
+              <TemplatesTable templates={templates} />
+            </ContentWrapper>
+          )}
+          <ActionsWrapper>
+            <GridView onClick={() => setView('grid')} />
+            <ListView onClick={() => setView('table')} />
+          </ActionsWrapper>
+        </div>
+      ) : (
+        <ContentWrapper>
+          <Loader />
+        </ContentWrapper>
+      )}
+    </PageTemplate>
+  );
 };
 
 export default TemplatesDashboard;
