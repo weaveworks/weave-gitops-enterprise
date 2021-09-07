@@ -589,6 +589,14 @@ func (b RealMCCPTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 func (b RealMCCPTestRunner) DeleteRepo(repoName string) {
 	log.Printf("Delete application repo: %s", path.Join(GITHUB_ORG, repoName))
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", path.Join(GITHUB_ORG, repoName))
+
+	output := func() string {
+		command := exec.Command("sh", "-c", fmt.Sprintf(`git ls-remote https://github.com/%s/%s`, GITHUB_ORG, GITHUB_ORG))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		return string(session.Wait().Err.Contents())
+	}
+	Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("Repository not found"))
 }
 
 func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
