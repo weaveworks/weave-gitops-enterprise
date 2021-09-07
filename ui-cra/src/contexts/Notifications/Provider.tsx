@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { NotificationDialog } from '../../components/Layout/Notification';
+import Notifications from '../../components/Layout/Notifications';
 import { Notification, NotificationData } from './index';
 
 const NotificationProvider: FC = ({ children }) => {
@@ -24,7 +24,7 @@ const NotificationProvider: FC = ({ children }) => {
     <Notification.Provider
       value={{ notifications, setNotifications, setShowNotifications }}
     >
-      {showNotification && notifications.length !== 0 && <NotificationDialog />}
+      {showNotification && notifications.length !== 0 && <Notifications />}
       {children}
     </Notification.Provider>
   );
