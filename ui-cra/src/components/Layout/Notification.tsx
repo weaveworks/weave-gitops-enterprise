@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import { Dialog, DialogContent } from '@material-ui/core';
 import {
   makeStyles,
-  createMuiTheme,
+  createTheme,
   ThemeProvider,
 } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
@@ -15,7 +15,7 @@ import useNotifications, {
 } from '../../contexts/Notifications';
 import { Close } from '@material-ui/icons';
 
-const localMuiTheme = createMuiTheme({
+const localMuiTheme = createTheme({
   ...muiTheme,
   overrides: {
     ...muiTheme.overrides,

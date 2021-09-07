@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useState } from 'react';
 import {
   Paper,
   Table,
@@ -55,9 +55,7 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
   const [sortedTemplates, setSortedTemplates] = useState<Template[]>(templates);
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
-  const handleClick = () => setOrder(order === 'desc' ? 'asc' : 'desc');
-
-  useEffect(() => {
+  const sort = () => {
     const sorted = sortedTemplates.sort();
     const revSorted = sortedTemplates.reverse();
     if (order === 'asc') {
@@ -65,7 +63,12 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
     } else {
       setSortedTemplates(revSorted);
     }
-  }, [order, sortedTemplates]);
+  };
+
+  const handleClick = () => {
+    setOrder(order === 'desc' ? 'asc' : 'desc');
+    sort();
+  };
 
   return (
     <div id="templates-list">
