@@ -21,6 +21,7 @@ import { Template } from '../../../types/custom';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
+  // removes the dropshadows from the table
   shadows: Array(25).fill('none') as Shadows,
 });
 

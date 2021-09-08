@@ -35,11 +35,11 @@ export const contentCss = css`
 `;
 
 export const Content = styled.div`
-  ${contentCss}
+  ${contentCss};
 `;
 
 export const WGContent = styled.div`
-  ${contentCss}
+  ${contentCss};
   padding: 0 ${medium} ${medium} 0;
 `;
 
