@@ -82,6 +82,24 @@ cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 open "https://github.com/weaveworks/weave-gitops/tree/v${WG_VERSION}/manifests/crds"
 ```
 
+## How to update the demo cluster
+
+The demo cluster currently lives at http://34.67.250.163:30080/ but will hopefully move behind a DNS address with auth _soon_.
+
+1. Figure out the version of chart you want to deploy. If we've done a release recently you can change it to `0.0.8` or a major version like that. To deploy a unreleased version from `main` or a `branch` we need to figure out the git ref version:
+
+   1. Get your local copy of `weave-gitops-enterprise` up to date by running `git fetch`
+   2. Figure out the git version ref of `origin/main` (for example) with: `git describe --always --match "v*" --abbrev=7 origin/main | sed 's/^[^0-9]*//'`. You could also provide `origin/fixes-the-funny-bug` as the branch name here.
+   3. It will output a ref that looks like this: `0.0.7-10-g9838aff`
+
+2. Update the deployed version on the test cluster
+
+   1. As of writing the `HelmRelease` lives in [management/weave-gitops-enterprise/artifacts/mccp-chart/helm-chart/HelmRelease.yaml](https://github.com/wkp-example-org/capd-demo-simon/blob/main/management/weave-gitops-enterprise/artifacts/mccp-chart/helm-chart/HelmRelease.yaml), but may have moved, so look around for the helm-release file if this has gone missing.
+   2. Find the `spec.chart.spec.version` field and change it to the desired value.
+   3. Commit to `main` or PR and merge to `main`.
+
+3. Voila
+
 ## How to inspect/modify the `sqlite` database of a running cluster
 
 Copy the database to your local machine and inspect using sqlite
