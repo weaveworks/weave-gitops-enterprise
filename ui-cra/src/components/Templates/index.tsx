@@ -39,7 +39,7 @@ const ActionsWrapper = styled.div`
   }
 
   svg.inactive {
-    fill: grey;
+    fill: ${theme.colors.gray600};
   }
 `;
 
