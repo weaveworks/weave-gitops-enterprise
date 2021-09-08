@@ -18,14 +18,14 @@ import { Pagination } from '../../Pagination';
 import { ColumnHeaderTooltip, SkeletonRow } from '../../Shared';
 import ClusterRow from './Row';
 import { muiTheme } from '../../../muiTheme';
-import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
 import { useHistory } from 'react-router-dom';
 import { Loader } from '../../Loader';
 
-const localMuiTheme = createMuiTheme({
+const localMuiTheme = createTheme({
   ...muiTheme,
   shadows: Array(25).fill('none') as Shadows,
 });

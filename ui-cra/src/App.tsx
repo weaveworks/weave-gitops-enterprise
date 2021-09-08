@@ -41,10 +41,10 @@ const GlobalStyle = createGlobalStyle`
     background: url(${Background}) no-repeat;
     background-color: #F5F5F5;
     background-position: right bottom;
+    background-attachment:fixed;
     color: ${theme.textColor};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
-
     /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;

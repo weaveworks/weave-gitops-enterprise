@@ -19,7 +19,7 @@ import { PageTemplate } from './Layout/PageTemplate';
 import { Pagination } from './Pagination';
 import { TableFooter } from '@material-ui/core';
 import useClusters from '../contexts/Clusters';
-import { ContentWrapper } from './Layout/ContentWrapper';
+import { ContentWrapper, Title } from './Layout/ContentWrapper';
 import { range } from 'lodash';
 
 const alertColor = ({
@@ -127,6 +127,7 @@ export const AlertsDashboard: FC = () => {
         ]}
       />
       <ContentWrapper>
+        <Title>Alerts dashboard</Title>
         <Paper id="firing-alerts">
           {!alerts || alerts.length === 0 ? (
             <Box color="text.secondary" padding="14px" my={3}>
