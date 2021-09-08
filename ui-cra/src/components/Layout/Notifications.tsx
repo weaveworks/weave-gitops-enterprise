@@ -26,7 +26,7 @@ const Notifications: FC = () => {
   // };
 
   useEffect(() => {
-    toast(notifications[0].message);
+    notifications.forEach(notification => toast(notification.message));
   }, [notifications]);
 
   return (
