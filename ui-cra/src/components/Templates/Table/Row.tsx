@@ -44,15 +44,13 @@ const TemplateRow = ({ index, template }: RowProps) => {
       <TableCell>
         {error ? (
           <Tooltip title={error} placement="top">
-            <div>
-              <OnClickAction
-                id="create-cluster"
-                icon={faPlus}
-                onClick={handleAddCluster}
-                text="CREATE CLUSTER WITH THIS TEMPLATE"
-                disabled={Boolean(error)}
-              />
-            </div>
+            <OnClickAction
+              id="create-cluster"
+              icon={faPlus}
+              onClick={handleAddCluster}
+              text="CREATE CLUSTER WITH THIS TEMPLATE"
+              disabled={Boolean(error)}
+            />
           </Tooltip>
         ) : (
           <OnClickAction

@@ -36,7 +36,10 @@ const ActionsWrapper = styled.div`
 
   svg {
     width: 32px;
-    fill: #bdbdbd;
+  }
+
+  svg.inactive {
+    fill: grey;
   }
 `;
 
@@ -72,14 +75,22 @@ const TemplatesDashboard: FC = () => {
             </ContentWrapper>
           )}
           {view === 'table' && (
-            <ContentWrapper>
-              <Title>Cluster Templates</Title>
-              <TemplatesTable templates={templates} />
-            </ContentWrapper>
+            <div style={{ width: '100%' }}>
+              <ContentWrapper>
+                <Title>Cluster Templates</Title>
+                <TemplatesTable templates={templates} />
+              </ContentWrapper>
+            </div>
           )}
           <ActionsWrapper>
-            <GridView onClick={() => setView('grid')} />
-            <ListView onClick={() => setView('table')} />
+            <GridView
+              className={view === 'grid' ? 'active' : 'inactive'}
+              onClick={() => setView('grid')}
+            />
+            <ListView
+              className={view === 'table' ? 'active' : 'inactive'}
+              onClick={() => setView('table')}
+            />
           </ActionsWrapper>
         </div>
       ) : (
