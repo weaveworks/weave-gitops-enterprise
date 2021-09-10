@@ -30,7 +30,7 @@ jobs:
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
     - name: Run linters
       run: |
-        make lint BUILD_IN_CONTAINER=false
+        make lint
       # uses: golangci/golangci-lint-action@v2
       # with:
       #   version: v1.29
@@ -72,7 +72,7 @@ jobs:
     - name: Run unit tests
       run: | 
         go version
-        make unit-tests-with-coverage BUILD_IN_CONTAINER=false
+        make unit-tests-with-coverage
     # - name: Send coverage
     #   run: |
     #     # submit the coverage 1 by 1, seems important that they have a -flagname
@@ -121,7 +121,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
     - name: Build all the services
-      run: make -j4 BUILD_IN_CONTAINER=false
+      env:
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: make -j4 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
     - name: Store mccp binaries
       uses: actions/upload-artifact@v2
       with:
