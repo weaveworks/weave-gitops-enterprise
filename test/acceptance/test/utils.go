@@ -90,7 +90,7 @@ var CLUSTER_REPOSITORY string
 const ARTEFACTS_BASE_DIR string = "/tmp/workspace/test/"
 const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
 const CLUSTER_INFO_DIR string = ARTEFACTS_BASE_DIR + "cluster-info/"
-const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "wkp_junit.xml"
+const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "acceptance-test-results.xml"
 
 const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second
 const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second

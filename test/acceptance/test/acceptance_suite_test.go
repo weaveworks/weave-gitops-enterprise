@@ -66,7 +66,7 @@ func TestAcceptance(t *testing.T) {
 
 	//JUnit style test report
 	junitReporter := reporters.NewJUnitReporter(JUNIT_TEST_REPORT_FILE)
-	RunSpecsWithDefaultAndCustomReporters(t, "WKP Acceptance Suite", []Reporter{junitReporter})
+	RunSpecsWithDefaultAndCustomReporters(t, "WGE Acceptance Suite", []Reporter{junitReporter})
 
 }
 
