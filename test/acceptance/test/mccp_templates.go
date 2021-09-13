@@ -779,6 +779,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
+			capdClusterName := "ui-end-to-end-capd-cluster"
+
 			JustBeforeEach(func() {
 				deleteFile([]string{kubeconfigPath})
 
@@ -795,6 +797,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			JustAfterEach(func() {
 				deleteFile([]string{kubeconfigPath})
 
+				deleteClusters([]string{capdClusterName})
+				resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+
 				log.Println("Deleting all the wkp agents")
 				mccpTestRunner.KubectlDeleteAllAgents([]string{})
 				mccpTestRunner.ResetDatabase()
@@ -805,7 +810,6 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				defer resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
@@ -863,7 +867,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				// // Parameter values
-				clusterName := "ui-end-to-end-capd-cluster-7"
+				clusterName := capdClusterName
 				namespace := "default"
 				k8Version := "1.19.7"
 
@@ -990,10 +994,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(clusterInfo.Status).Should(HaveText("Deletion PR"))
 				})
 
-				By("Then I should merge the delete pull request to delete cluster", func() {
-					mccpTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
-				})
-
+				// By("Then I should merge the delete pull request to delete cluster", func() {
+				// 	mccpTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
+				// })
 			})
 		})
 	})

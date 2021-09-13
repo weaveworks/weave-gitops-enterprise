@@ -95,6 +95,7 @@ const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "acceptance-test-resu
 const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second
 const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
 const ASSERTION_1SECOND_TIME_OUT time.Duration = 1 * time.Second
+const ASSERTION_30SECONDS_TIME_OUT time.Duration = 30 * time.Second
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
 const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
@@ -538,7 +539,7 @@ func (b RealMCCPTestRunner) checkClusterService() {
 		command := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", GetCapiEndpointUrl()+"/v1/templates")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		return string(session.Wait().Out.Contents())
+		return string(session.Wait(ASSERTION_30SECONDS_TIME_OUT).Out.Contents())
 	}
 	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("200"), "Cluster Service is not healthy")
 }
@@ -822,6 +823,20 @@ func createTestFile(fileName string, fileContents string) string {
 	Eventually(session).Should(gexec.Exit())
 
 	return testFilePath
+}
+
+func deleteClusters(clusters []string) {
+	for _, cluster := range clusters {
+		err := runCommandPassThrough([]string{}, "kubectl", "get", "cluster", cluster)
+		if err == nil {
+			log.Printf("Deleting cluster: %s", cluster)
+			err := runCommandPassThrough([]string{}, "kubectl", "delete", "cluster", cluster)
+			Expect(err).ShouldNot(HaveOccurred())
+			err = runCommandPassThrough([]string{}, "kubectl", "get", "cluster", cluster)
+			// Error is not nil as cluster doesn't exists anymore
+			Expect(err).Should(HaveOccurred())
+		}
+	}
 }
 
 func installInfrastructureProvider(name string) {
