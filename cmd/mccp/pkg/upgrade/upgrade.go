@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/pctl/pkg/bootstrap"
 	"github.com/weaveworks/pctl/pkg/catalog"
 	"github.com/weaveworks/pctl/pkg/client"
@@ -36,6 +38,16 @@ type UpgradeParams struct {
 }
 
 func Upgrade(params UpgradeParams) error {
+	err := preFlightCheck()
+	if err != nil {
+		return err
+	}
+
+	err = removeWEGO()
+	if err != nil {
+		return err
+	}
+
 	installationDirectory, err := addProfile(params)
 	if err != nil {
 		return err
@@ -48,9 +60,43 @@ func Upgrade(params UpgradeParams) error {
 	return nil
 }
 
-// func removeProfile() error {
-// 	return nil
-// }
+func preFlightCheck() error {
+	log.Info("Checking if entitlement exists...")
+	cmdItems := []string{"kubectl", "get", "secret", "weave-gitops-enterprise-credentials", "--all-namespaces"}
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to get entitlement: %v", err)
+	}
+	log.Info("Checking wego version...")
+	cmdItems = []string{"wego", "version"}
+	cmd = exec.Command(cmdItems[0], cmdItems[1:]...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to get wego version: %v", err)
+	}
+	log.Infof("wego version %v", output)
+
+	return nil
+}
+
+func removeWEGO() error {
+	cmdItems := []string{"kubectl", "delete", "--all", "services", "--namespace", "wego-system"}
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to delete wego services: %v", err)
+	}
+
+	cmdItems = []string{"kubectl", "delete", "--all", "deployments", "--namespace", "wego-system"}
+	cmd = exec.Command(cmdItems[0], cmdItems[1:]...)
+	_, err = cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to wego deployments: %v", err)
+	}
+
+	return nil
+}
 
 func addProfile(params UpgradeParams) (string, error) {
 	var (
