@@ -548,11 +548,15 @@ func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 		By("Install AWSClusterStaticIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AWSClusterStaticIdentity CRD")
+			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=60s", "crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io")
+			Expect(err).To(BeNil(), "Failed to verify AWSClusterStaticIdentity CRD")
 		})
 
 		By("Install AWSClusterRoleIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AWSClusterRoleIdentity CRD")
+			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=60s", "crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io")
+			Expect(err).To(BeNil(), "Failed to verify AWSClusterRoleIdentity CRD")
 		})
 
 		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
@@ -564,6 +568,8 @@ func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 		By("Install AzureClusterIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AzureClusterIdentity CRD")
+			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=60s", "crd/azureclusteridentities.infrastructure.cluster.x-k8s.io")
+			Expect(err).To(BeNil(), "Failed to verify AzureClusterIdentity CRD")
 		})
 
 		By("Create Azure Secret and AzureClusterIdentity)", func() {
