@@ -155,6 +155,11 @@ func addProfile(params UpgradeParams) (string, error) {
 
 	url := params.ProfileRepoURL
 
+	catalogClient, err = buildCatalogClient()
+	if err != nil {
+		return "", err
+	}
+
 	branch := params.ProfileBranch
 	subName := params.Name
 	namespace := params.Namespace
