@@ -68,14 +68,6 @@ func preFlightCheck() error {
 	if err != nil {
 		return fmt.Errorf("failed to get entitlement: %v", err)
 	}
-	log.Info("Checking wego version...")
-	cmdItems = []string{"wego", "version"}
-	cmd = exec.Command(cmdItems[0], cmdItems[1:]...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to get wego version: %v", err)
-	}
-	log.Infof("wego version %v", output)
 
 	return nil
 }
