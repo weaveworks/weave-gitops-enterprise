@@ -93,8 +93,9 @@ const CLUSTER_INFO_DIR string = ARTEFACTS_BASE_DIR + "cluster-info/"
 const JUNIT_TEST_REPORT_FILE string = ARTEFACTS_BASE_DIR + "acceptance-test-results.xml"
 
 const ASSERTION_DEFAULT_TIME_OUT time.Duration = 15 * time.Second
-const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
 const ASSERTION_1SECOND_TIME_OUT time.Duration = 1 * time.Second
+const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
+const ASSERTION_30SECONDS_TIME_OUT time.Duration = 30 * time.Second
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
 const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
@@ -538,7 +539,7 @@ func (b RealMCCPTestRunner) checkClusterService() {
 		command := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", GetCapiEndpointUrl()+"/v1/templates")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		return string(session.Wait().Out.Contents())
+		return string(session.Wait(ASSERTION_30SECONDS_TIME_OUT).Out.Contents())
 	}
 	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("200"), "Cluster Service is not healthy")
 }
@@ -548,11 +549,15 @@ func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 		By("Install AWSClusterStaticIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AWSClusterStaticIdentity CRD")
+			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io")
+			Expect(err).To(BeNil(), "Failed to verify AWSClusterStaticIdentity CRD")
 		})
 
 		By("Install AWSClusterRoleIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AWSClusterRoleIdentity CRD")
+			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io")
+			Expect(err).To(BeNil(), "Failed to verify AWSClusterRoleIdentity CRD")
 		})
 
 		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
@@ -564,6 +569,8 @@ func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 		By("Install AzureClusterIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AzureClusterIdentity CRD")
+			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/azureclusteridentities.infrastructure.cluster.x-k8s.io")
+			Expect(err).To(BeNil(), "Failed to verify AzureClusterIdentity CRD")
 		})
 
 		By("Create Azure Secret and AzureClusterIdentity)", func() {
@@ -816,6 +823,19 @@ func createTestFile(fileName string, fileContents string) string {
 	Eventually(session).Should(gexec.Exit())
 
 	return testFilePath
+}
+
+func deleteClusters(clusters []string) {
+	for _, cluster := range clusters {
+		err := runCommandPassThrough([]string{}, "kubectl", "get", "cluster", cluster)
+		if err == nil {
+			log.Printf("Deleting cluster: %s", cluster)
+			err := runCommandPassThrough([]string{}, "kubectl", "delete", "cluster", cluster)
+			Expect(err).ShouldNot(HaveOccurred())
+			err = runCommandPassThrough([]string{}, "kubectl", "get", "cluster", cluster)
+			Expect(err).Should(HaveOccurred(), fmt.Sprintf("Failed to delete cluster %s", cluster))
+		}
+	}
 }
 
 func installInfrastructureProvider(name string) {
