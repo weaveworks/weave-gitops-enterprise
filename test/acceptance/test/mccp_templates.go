@@ -779,6 +779,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
+			capdClusterName := "ui-end-to-end-capd-cluster"
+
 			JustBeforeEach(func() {
 				deleteFile([]string{kubeconfigPath})
 
@@ -794,6 +796,8 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 			JustAfterEach(func() {
 				deleteFile([]string{kubeconfigPath})
+				deleteClusters([]string{capdClusterName})
+				resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 
 				log.Println("Deleting all the wkp agents")
 				mccpTestRunner.KubectlDeleteAllAgents([]string{})
@@ -801,11 +805,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
-			It("@Integration @VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@Smoke @Integration @VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				defer resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
@@ -863,7 +866,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				// // Parameter values
-				clusterName := "ui-end-to-end-capd-cluster-7"
+				clusterName := capdClusterName
 				namespace := "default"
 				k8Version := "1.19.7"
 
@@ -925,14 +928,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_1MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText("Cluster found"))
+					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText("Cluster found"))
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Status.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
-					Eventually(clusterStatus.Phase, ASSERTION_1MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText(`"Provisioned"`))
+					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText(`"Provisioned"`))
 
 					fileErr := func() error {
 						Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
@@ -990,9 +993,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Eventually(clusterInfo.Status).Should(HaveText("Deletion PR"))
 				})
 
-				By("Then I should merge the delete pull request to delete cluster", func() {
-					mccpTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
-				})
+				// By("Then I should merge the delete pull request to delete cluster", func() {
+				// 	mccpTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
+				// })
 
 			})
 		})

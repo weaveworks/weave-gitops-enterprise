@@ -382,7 +382,7 @@ jobs:
     - name: Run smoke tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.focus=@VM -ginkgo.v -v --timeout=99999s
+        go test -ginkgo.focus=@Smoke -ginkgo.v -v --timeout=99999s
     - name: Store smoke test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
@@ -519,7 +519,7 @@ jobs:
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.skip=@VM -ginkgo.v -v --timeout=99999s
+        go test -ginkgo.skip=@Smoke -ginkgo.v -v --timeout=99999s
     - name: Delete WKP repository
       if: ${{ always() }}
       run: |
