@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -81,6 +82,68 @@ func TestLoadEntitlementIntoContextHandler(t *testing.T) {
 				handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "http://test", nil))
 			})
 
+		})
+	}
+}
+
+func TestCheckEntitlementHandler(t *testing.T) {
+	tests := []struct {
+		name     string
+		ctxValue interface{}
+		status   int
+		header   bool
+	}{
+		{
+			name:   "no entitlement",
+			status: http.StatusInternalServerError,
+			header: false,
+		},
+		{
+			name: "expired entitlement",
+			ctxValue: &entitlement.Entitlement{
+				LicencedUntil: time.Now().Add(-1 * time.Minute),
+			},
+			status: http.StatusOK,
+			header: true,
+		},
+		{
+			name: "valid entitlement",
+			ctxValue: &entitlement.Entitlement{
+				LicencedUntil: time.Now().Add(time.Minute),
+			},
+			status: http.StatusOK,
+			header: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			previous := func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+					r = r.WithContext(context.WithValue(context.Background(), entitlementKey, tt.ctxValue))
+					next.ServeHTTP(rw, r)
+				})
+			}
+
+			next := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+				rw.WriteHeader(http.StatusOK)
+			})
+
+			rec := httptest.NewRecorder()
+			handler := previous(CheckEntitlementHandler(next))
+			handler.ServeHTTP(rec, httptest.NewRequest("GET", "http://test", nil))
+
+			if rec.Code != tt.status {
+				t.Errorf("expected response status code to equal %d but was not: %d", tt.status, rec.Code)
+			}
+
+			h := rec.Header().Get(entitlementExpiredMessageHeader)
+			if tt.header && h == "" {
+				t.Errorf("expected response header to be present but was not: %+v", rec.Header())
+			} else if !tt.header && h != "" {
+				t.Errorf("expected response header to not be present but was: %+v", rec.Header())
+			}
 		})
 	}
 }

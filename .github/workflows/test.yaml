@@ -17,6 +17,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -50,6 +55,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -100,6 +110,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -179,6 +194,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -226,6 +246,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -302,6 +327,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -422,6 +452,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:

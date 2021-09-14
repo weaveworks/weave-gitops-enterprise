@@ -15,7 +15,8 @@ import (
 type key int
 
 const (
-	entitlementKey key = 0
+	entitlementKey                  key = 0
+	entitlementExpiredMessageHeader     = "Entitlement-Expired-Message"
 )
 
 var public = `-----BEGIN PUBLIC KEY-----
@@ -58,10 +59,10 @@ func CheckEntitlementHandler(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
-		if e, ok := ent.(entitlement.Entitlement); ok {
+		if e, ok := ent.(*entitlement.Entitlement); ok {
 			if time.Now().After(e.LicencedUntil) {
 				log.Warnf("Entitlement expired on %s.", e.LicencedUntil.Format("Mon 02 January, 2006"))
-				w.Header().Add("Entitlement-Expired-Message", "Your entitlement has expired, please contact WeaveWorks")
+				w.Header().Add(entitlementExpiredMessageHeader, "Your entitlement has expired, please contact WeaveWorks")
 			}
 		}
 	})

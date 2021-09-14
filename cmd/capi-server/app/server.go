@@ -118,7 +118,12 @@ func StartServer(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
-	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, kube,
+
+	name := viper.GetString("entitlement-secret-name")
+	namespace := viper.GetString("entitlement-secret-namespace")
+	key := client.ObjectKey{Name: name, Namespace: namespace}
+
+	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, kube, key,
 		grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
 		grpc_runtime.WithMetadata(TrackEvents),
 		middleware.WithGrpcErrorLogging(klogr.New()),
@@ -126,7 +131,7 @@ func StartServer(ctx context.Context) error {
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, kube kube.Kube, opts ...grpc_runtime.ServeMuxOption) error {
+func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, kube kube.Kube, entitlementSecretKey client.ObjectKey, opts ...grpc_runtime.ServeMuxOption) error {
 	mux := grpc_runtime.NewServeMux(opts...)
 
 	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, c, discoveryClient, db, ns))
@@ -138,13 +143,9 @@ func RunInProcessGateway(ctx context.Context, addr string, library templates.Lib
 	})
 	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)
 
-	name := viper.GetString("entitlement-secret-name")
-	namespace := viper.GetString("entitlement-secret-namespace")
-	key := client.ObjectKey{Name: name, Namespace: namespace}
-
 	s := &http.Server{
 		Addr:    addr,
-		Handler: entitlement.LoadEntitlementIntoContextHandler(ctx, c, key, entitlement.CheckEntitlementHandler(mux)),
+		Handler: entitlement.LoadEntitlementIntoContextHandler(ctx, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(mux)),
 	}
 
 	go func() {
