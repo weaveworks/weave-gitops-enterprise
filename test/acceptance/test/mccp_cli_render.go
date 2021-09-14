@@ -659,7 +659,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
-			It("@VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
