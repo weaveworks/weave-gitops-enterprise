@@ -26,7 +26,7 @@ var (
 	invalidTimestamp   = time.Unix(1631275090, 0)
 )
 
-func TestLoadEntitlementIntoContextHandler(t *testing.T) {
+func TestEntitlementHandler(t *testing.T) {
 	tests := []struct {
 		name     string
 		state    []runtime.Object
@@ -64,7 +64,7 @@ func TestLoadEntitlementIntoContextHandler(t *testing.T) {
 
 			next := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 				ctx := r.Context()
-				ent := ctx.Value(entitlementKey)
+				ent := ctx.Value(contextKeyEntitlement)
 				exists := ent != nil
 				if exists != tt.exists {
 					if exists {
@@ -76,9 +76,9 @@ func TestLoadEntitlementIntoContextHandler(t *testing.T) {
 			})
 
 			at(tt.verified, func() {
-				c := createClient(tt.state)
+				c := createFakeClient(tt.state)
 				key := client.ObjectKey{Name: "name", Namespace: "namespace"}
-				handler := LoadEntitlementIntoContextHandler(ctx, c, key, next)
+				handler := EntitlementHandler(ctx, c, key, next)
 				handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "http://test", nil))
 			})
 
@@ -121,7 +121,7 @@ func TestCheckEntitlementHandler(t *testing.T) {
 
 			previous := func(next http.Handler) http.Handler {
 				return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-					r = r.WithContext(context.WithValue(context.Background(), entitlementKey, tt.ctxValue))
+					r = r.WithContext(context.WithValue(context.Background(), contextKeyEntitlement, tt.ctxValue))
 					next.ServeHTTP(rw, r)
 				})
 			}
@@ -148,7 +148,7 @@ func TestCheckEntitlementHandler(t *testing.T) {
 	}
 }
 
-func createClient(clusterState []runtime.Object) client.Client {
+func createFakeClient(clusterState []runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,

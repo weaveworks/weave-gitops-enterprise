@@ -145,7 +145,7 @@ func RunInProcessGateway(ctx context.Context, addr string, library templates.Lib
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: entitlement.LoadEntitlementIntoContextHandler(ctx, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(mux)),
+		Handler: entitlement.EntitlementHandler(ctx, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(mux)),
 	}
 
 	go func() {

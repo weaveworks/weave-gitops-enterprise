@@ -403,14 +403,16 @@ jobs:
     - name: Kind-check
       run: |
         kubectl get pods -A    
-    - name: Install mccp componenets on management cluster
+    - name: Install mccp components on management cluster
       run: |
         CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-
+        # Create wego-system namespace and add entitlement
+        kubectl create ns wego-system
+        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
         ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
-        kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Run smoke tests
       run: |
         cd test/acceptance/test/
@@ -533,14 +535,16 @@ jobs:
     - name: Kind-check
       run: |
         kubectl get pods -A        
-    - name: Install mccp componenets on management cluster
+    - name: Install mccp components on management cluster
       run: |
         CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-
+        # Create wego-system namespace and add entitlement
+        kubectl create ns wego-system
+        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
         ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
-        kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Setup wkp leaf cluster
       run: |
         kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG

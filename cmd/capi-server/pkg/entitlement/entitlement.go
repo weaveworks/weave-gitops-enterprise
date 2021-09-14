@@ -2,6 +2,7 @@ package entitlement
 
 import (
 	"context"
+	_ "embed"
 	"net/http"
 	"strings"
 	"time"
@@ -12,20 +13,27 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type key int
+type contextKey string
+
+func (c contextKey) String() string {
+	return "entitlement context key " + string(c)
+}
 
 const (
-	entitlementKey                  key = 0
-	entitlementExpiredMessageHeader     = "Entitlement-Expired-Message"
+	entitlementExpiredMessageHeader = "Entitlement-Expired-Message"
+	expiredMessage                  = "Your entitlement for Weave GitOps Enterprise has expired, please contact sales@weave.works."
+	errorMessage                    = "No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works."
 )
 
-var public = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEA140z8yf4+R9MQwwS6yTrWIl/1IBOjLVvh9x87Wd84TU=
------END PUBLIC KEY-----`
+var (
+	//go:embed public.pem
+	public                string
+	contextKeyEntitlement = contextKey("entitlement")
+)
 
 // LoadEntitlementIntoContextHandler retrieves the entitlement from Kubernetes
 // and adds it to the request context.
-func LoadEntitlementIntoContextHandler(ctx context.Context, c client.Client, key client.ObjectKey, next http.Handler) http.Handler {
+func EntitlementHandler(ctx context.Context, c client.Client, key client.ObjectKey, next http.Handler) http.Handler {
 	var sec v1.Secret
 	if err := c.Get(ctx, key, &sec); err != nil {
 		log.Warnf("Entitlement cannot be retrieved: %v", err)
@@ -39,10 +47,7 @@ func LoadEntitlementIntoContextHandler(ctx context.Context, c client.Client, key
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, entitlementKey, ent)
-		r = r.WithContext(ctx)
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), contextKeyEntitlement, ent)))
 	})
 }
 
@@ -51,19 +56,24 @@ func LoadEntitlementIntoContextHandler(ctx context.Context, c client.Client, key
 // an expired message.
 func CheckEntitlementHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		ent := ctx.Value(entitlementKey)
+		ent, ok := entitlementFromContext(r.Context())
 		if ent == nil {
 			log.Warnf("Entitlement was not found.")
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(errorMessage))
 			return
 		}
 		next.ServeHTTP(w, r)
-		if e, ok := ent.(*entitlement.Entitlement); ok {
-			if time.Now().After(e.LicencedUntil) {
-				log.Warnf("Entitlement expired on %s.", e.LicencedUntil.Format("Mon 02 January, 2006"))
-				w.Header().Add(entitlementExpiredMessageHeader, "Your entitlement has expired, please contact WeaveWorks")
+		if ok {
+			if time.Now().After(ent.LicencedUntil) {
+				log.Warnf("Entitlement expired on %s.", ent.LicencedUntil.Format("Mon 02 January, 2006"))
+				w.Header().Add(entitlementExpiredMessageHeader, expiredMessage)
 			}
 		}
 	})
+}
+
+func entitlementFromContext(ctx context.Context) (*entitlement.Entitlement, bool) {
+	ent, ok := ctx.Value(contextKeyEntitlement).(*entitlement.Entitlement)
+	return ent, ok
 }

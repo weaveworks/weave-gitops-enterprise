@@ -15,16 +15,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-var (
-	// This entitlement has been generated with the correct private key
-	validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNjMxMzYxMjg2LCJpYXQiOjE2MzEyNzQ4ODYsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxMjc0ODg2LCJzdWIiOiJ0ZXN0QHdlYXZlLndvcmtzIn0.EKGp89DFcRKZ_kGmC8FuLVPB0wiab2KddkQKAmVNC9UH459v63tCP13eFybx9dAmMuaC77SA8rp7ukN1qZM7DA`
-)
+var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
 
 func TestWeaveGitOpsHandlers(t *testing.T) {
 	ctx := context.Background()
 	defer ctx.Done()
 
-	c := createClient([]runtime.Object{createSecret(validEntitlement)})
+	c := createFakeClient(createSecret(validEntitlement))
 	go func(ctx context.Context) {
 
 		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001", nil, nil, c, nil, nil, "default", &kubefakes.FakeKube{}, client.ObjectKey{Name: "name", Namespace: "namespace"})
@@ -49,7 +46,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	}
 }
 
-func createClient(clusterState []runtime.Object) client.Client {
+func createFakeClient(clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,

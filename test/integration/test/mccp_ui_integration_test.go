@@ -700,7 +700,7 @@ func TestMccpUI(t *testing.T) {
 
 	cl := fake.NewClientBuilder().
 		WithScheme(scheme).
-		WithRuntimeObjects([]runtime.Object{sec}...).
+		WithRuntimeObjects(sec).
 		Build()
 
 	discoveryClient := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
