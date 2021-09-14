@@ -834,12 +834,9 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					Eventually(output).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName2)))
 				})
 
-				By("Then I should merge the delete pull request to delete cluster", func() {
-					// mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
-
-					// Deleting CAPD kind cluster explicitly due to upstream delete failure
-					deleteClusters([]string{clusterName, clusterName2})
-				})
+				// By("Then I should merge the delete pull request to delete cluster", func() {
+				// 	mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				// })
 
 			})
 		})

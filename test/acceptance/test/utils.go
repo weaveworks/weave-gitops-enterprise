@@ -833,8 +833,7 @@ func deleteClusters(clusters []string) {
 			err := runCommandPassThrough([]string{}, "kubectl", "delete", "cluster", cluster)
 			Expect(err).ShouldNot(HaveOccurred())
 			err = runCommandPassThrough([]string{}, "kubectl", "get", "cluster", cluster)
-			// Error is not nil as cluster doesn't exists anymore
-			Expect(err).Should(HaveOccurred())
+			Expect(err).Should(HaveOccurred(), fmt.Sprintf("Failed to delete cluster %s", cluster))
 		}
 	}
 }
