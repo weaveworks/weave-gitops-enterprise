@@ -1,7 +1,7 @@
 package upgrade
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -37,7 +37,7 @@ type UpgradeParams struct {
 	Args           []string
 }
 
-func Upgrade(params UpgradeParams) error {
+func Upgrade() error {
 	err := preFlightCheck()
 	if err != nil {
 		return err
@@ -46,6 +46,34 @@ func Upgrade(params UpgradeParams) error {
 	err = removeWEGO()
 	if err != nil {
 		return err
+	}
+
+	repoURL, err := getRepoURL()
+	if err != nil {
+		return err
+	}
+
+	gitRepository, err := getGitRepo()
+	if err != nil {
+		return err
+	}
+
+	params := UpgradeParams{
+		RepositoryURL:  repoURL,
+		Remote:         "origin",
+		HeadBranch:     "tier-upgrade-enterprise",
+		BaseBranch:     "main",
+		Title:          "Upgrade to WGE",
+		Description:    "Upgrade to WGE",
+		CommitMessage:  "Upgrade to WGE",
+		Name:           "Update description",
+		Namespace:      "wego-system",
+		ProfileBranch:  "main",
+		ConfigMap:      "",
+		Out:            ".",
+		ProfileRepoURL: "https://github.com/weaveworks/weave-gitops-enterprise-profiles",
+		ProfilePath:    ".",
+		GitRepository:  gitRepository,
 	}
 
 	installationDirectory, err := addProfile(params)
@@ -58,6 +86,32 @@ func Upgrade(params UpgradeParams) error {
 
 	}
 	return nil
+}
+
+func getRepoURL() (string, error) {
+	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+	cmd.Dir = "."
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return stdout.String(), nil
+}
+
+func getGitRepo() (string, error) {
+	cmd := exec.Command("basename", "`git rev-parse --show-toplevel`")
+	cmd.Dir = "."
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return stdout.String(), nil
 }
 
 func preFlightCheck() error {
@@ -94,31 +148,12 @@ func addProfile(params UpgradeParams) (string, error) {
 	var (
 		err           error
 		catalogClient *client.Client
-		profilePath   string
 		catalogName   string
 		profileName   string
 		version       = "latest"
 	)
 
 	url := params.ProfileRepoURL
-	if url != "" && len(params.Args) > 0 {
-		return "", errors.New("it looks like you provided a url with a catalog entry; please choose either format: url/branch/path or <CATALOG>/<PROFILE>[/<VERSION>]")
-	}
-
-	if url == "" {
-		profilePath, catalogClient, err = parseArgs(params.Args)
-		if err != nil {
-			return "", err
-		}
-		parts := strings.Split(profilePath, "/")
-		if len(parts) < 2 {
-			return "", errors.New("both catalog name and profile name must be provided")
-		}
-		if len(parts) == 3 {
-			version = parts[2]
-		}
-		catalogName, profileName = parts[0], parts[1]
-	}
 
 	branch := params.ProfileBranch
 	subName := params.Name
@@ -193,17 +228,6 @@ func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, err
 		return config.GitRepository.Namespace, config.GitRepository.Name, nil
 	}
 	return "", "", fmt.Errorf("flux git repository not provided, please provide the --git-repository flag or use the pctl bootstrap functionality")
-}
-
-func parseArgs(args []string) (string, *client.Client, error) {
-	if len(args) < 1 {
-		return "", nil, fmt.Errorf("argument must be provided")
-	}
-	client, err := buildCatalogClient()
-	if err != nil {
-		return "", nil, err
-	}
-	return args[0], client, nil
 }
 
 func buildCatalogClient() (*client.Client, error) {
