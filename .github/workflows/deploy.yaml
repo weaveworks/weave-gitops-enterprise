@@ -293,6 +293,9 @@ jobs:
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
 
+        # Create wego-system namespace and add entitlement
+        kubectl create ns wego-system
+        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
         ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
         kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Setup wkp leaf cluster
