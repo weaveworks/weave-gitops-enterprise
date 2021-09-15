@@ -1,11 +1,11 @@
 import { Theme } from '@material-ui/core';
-import { createMuiTheme } from '@material-ui/core/styles';
+import { createTheme } from '@material-ui/core/styles';
 
 const boxShadow = '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)';
 
-const defaultTheme = createMuiTheme();
+const defaultTheme = createTheme();
 
-export const muiTheme = createMuiTheme({
+export const muiTheme = createTheme({
   overrides: {
     MuiButton: {
       contained: {

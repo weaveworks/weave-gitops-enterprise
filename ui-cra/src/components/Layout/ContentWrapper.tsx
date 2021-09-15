@@ -1,7 +1,18 @@
 import { FC } from 'react';
 import styled, { css } from 'styled-components';
-import { spacing } from 'weaveworks-ui-components/lib/theme/selectors';
+import {
+  spacing,
+  fontSize,
+} from 'weaveworks-ui-components/lib/theme/selectors';
+import theme from 'weaveworks-ui-components/lib/theme';
 import useVersions from '../../contexts/Versions';
+
+export const Title = styled.div`
+  font-size: ${fontSize('large')};
+  font-weight: 600;
+  padding-bottom: ${spacing('medium')};
+  color: ${theme.colors.gray600};
+`;
 
 export const pageDimensionsCss = css`
   width: 100%;
@@ -18,18 +29,22 @@ const large = spacing('large');
 
 export const contentCss = css`
   margin: ${medium} ${small} 0 ${small};
-  padding: ${large} ${medium} ${medium} ${medium};
+  padding: ${large} ${medium} ${medium} ${large};
   background-color: white;
   border-radius: ${spacing('xs')};
 `;
 
 export const Content = styled.div`
-  ${contentCss}
+  ${contentCss};
+`;
+
+export const WGContent = styled.div`
+  ${contentCss};
+  padding: 0 ${medium} ${medium} 0;
 `;
 
 const HelpLinkWrapper = styled.div`
-  margin: 0 ${small};
-  padding: ${small} ${small};
+  padding-top: ${medium};
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -42,17 +57,33 @@ const HelpLinkWrapper = styled.div`
 `;
 
 export const ContentWrapper: FC = ({ children }) => {
-  const versions = useVersions();
+  const { versions } = useVersions();
   return (
-    <>
-      <Content>{children}</Content>
+    <Content>
+      {children}
       <HelpLinkWrapper>
         <div>
           Need help? Contact us at{' '}
           <a href="mailto:support@weave.works">support@weave.works</a>
         </div>
-        <div>Version {versions.versions?.capiServer}</div>
+        <div>Version {versions?.capiServer}</div>
       </HelpLinkWrapper>
-    </>
+    </Content>
+  );
+};
+
+export const WGContentWrapper: FC = ({ children }) => {
+  const { versions } = useVersions();
+  return (
+    <WGContent>
+      {children}
+      <HelpLinkWrapper>
+        <div>
+          Need help? Contact us at&nbsp;
+          <a href="mailto:support@weave.works">support@weave.works</a>
+        </div>
+        <div>Version {versions?.capiServer}</div>
+      </HelpLinkWrapper>
+    </WGContent>
   );
 };

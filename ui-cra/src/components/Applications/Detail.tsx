@@ -2,14 +2,17 @@ import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { WGContentWrapper } from '../Layout/ContentWrapper';
-import { Applications, useApplications } from '@weaveworks/weave-gitops';
+import { ApplicationDetail, useApplications } from '@weaveworks/weave-gitops';
 
-const WGApplicationsDashboard: FC = () => {
+const WGApplicationDetail: FC = () => {
   const { applications } = useApplications();
   const applicationsCount = applications.length;
 
+  const queryParams = new URLSearchParams(window.location.search);
+  const name = queryParams.get('name');
+
   return (
-    <PageTemplate documentTitle="WeGO · Applications">
+    <PageTemplate documentTitle="WeGO · Application Detail">
       <SectionHeader
         path={[
           {
@@ -17,13 +20,14 @@ const WGApplicationsDashboard: FC = () => {
             url: '/applications',
             count: applicationsCount,
           },
+          { label: `${name}` },
         ]}
       />
       <WGContentWrapper>
-        <Applications />
+        <ApplicationDetail name={name || ''} />
       </WGContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationsDashboard;
+export default WGApplicationDetail;

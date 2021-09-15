@@ -31,6 +31,10 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			By("Given I have a mccp binary installed on my local machine", func() {
 				Expect(FileExists(MCCP_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", MCCP_BIN_PATH))
 			})
+
+			By("And the Cluster service is healthy", func() {
+				mccpTestRunner.checkClusterService()
+			})
 		})
 
 		AfterEach(func() {
@@ -205,6 +209,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				By("And MCCP state is reset", func() {
 					mccpTestRunner.ResetDatabase()
 					mccpTestRunner.VerifyMCCPPodsRunning()
+					mccpTestRunner.checkClusterService()
 				})
 
 				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
@@ -630,6 +635,8 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
+			capdClusterNames := []string{"cli-end-to-end-capd-cluster-1", "cli-end-to-end-capd-cluster-2"}
+
 			JustBeforeEach(func() {
 				log.Println("Connecting cluster to itself")
 				initializeWebdriver()
@@ -643,15 +650,18 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 
 			JustAfterEach(func() {
+				deleteClusters(capdClusterNames)
+				resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+
 				log.Println("Deleting all the wkp agents")
 				mccpTestRunner.KubectlDeleteAllAgents([]string{})
 				mccpTestRunner.ResetDatabase()
+				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
 			It("@VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				defer resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
@@ -758,12 +768,12 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				}
 
 				// Parameter values
-				clusterName := "cli-end-to-end-capd-cluster-11"
+				clusterName := capdClusterNames[0]
 				namespace := "default"
 				k8version := "1.19.7"
 				// Creating two capd clusters
 				createCluster(clusterName, namespace, k8version)
-				clusterName2 := "cli-end-to-end-capd-cluster-21"
+				clusterName2 := capdClusterNames[1]
 				createCluster(clusterName2, namespace, k8version)
 
 				// Deleting first cluster
@@ -824,9 +834,9 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 					Eventually(output).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName2)))
 				})
 
-				By("Then I should merge the delete pull request to delete cluster", func() {
-					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
-				})
+				// By("Then I should merge the delete pull request to delete cluster", func() {
+				// 	mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				// })
 			})
 		})
 

@@ -11,7 +11,7 @@ import React, {
 import Divider from '@material-ui/core/Divider';
 import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
-import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../../../../muiTheme';
 
 const Section = styled.div`
@@ -36,7 +36,7 @@ const SectionDivider = styled.div`
   margin-top: ${theme.spacing.medium};
 `;
 
-const localMuiTheme = createMuiTheme({
+const localMuiTheme = createTheme({
   ...muiTheme,
   overrides: {
     ...muiTheme.overrides,

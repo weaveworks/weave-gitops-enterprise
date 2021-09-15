@@ -12,7 +12,7 @@ import useClusters from '../../../contexts/Clusters';
 import useCredentials from '../../../contexts/Credentials';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useParams } from 'react-router-dom';
 import Form from '@rjsf/material-ui';
 import { JSONSchema7 } from 'json-schema';
@@ -22,7 +22,6 @@ import { ISubmitEvent, ObjectFieldTemplateProps } from '@rjsf/core';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
 import { Input } from '../../../utils/form';
-import { Loader } from '../../Loader';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import * as Grouped from './Form/GroupedSchema';
@@ -33,6 +32,7 @@ import { Credential } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
+import { Loader } from '../../Loader';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -77,12 +77,6 @@ const useStyles = makeStyles(theme =>
     },
     create: {
       paddingTop: small,
-    },
-    title: {
-      fontSize: weaveTheme.fontSizes.large,
-      fontWeight: 600,
-      paddingBottom: weaveTheme.spacing.medium,
-      color: weaveTheme.colors.gray600,
     },
     divider: {
       marginTop: medium,
@@ -345,9 +339,7 @@ const AddCluster: FC = () => {
         <ContentWrapper>
           <Grid container spacing={3}>
             <Grid item xs={12} md={10}>
-              <div className={classes.title}>
-                Create new cluster with template
-              </div>
+              <Title>Create new cluster with template</Title>
               <CredentialsWrapper>
                 <div className="template-title">
                   Template: <span>{activeTemplate?.name}</span>

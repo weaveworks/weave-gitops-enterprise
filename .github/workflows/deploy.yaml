@@ -1,0 +1,384 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+name: deploy
+jobs:
+  build:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      YARN_CACHE_NAME: cache-yarn
+      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+    steps:
+    - id: cache-paths
+      run: |
+        echo "::set-output name=dir::$(yarn cache dir)"
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.cache-paths.outputs.go-build }}
+          ${{ steps.cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+    - name: Yarn Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.cache-paths.outputs.dir }}
+        key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+    - name: Build all the services
+      env:
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: |
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          LOCAL_BINARIES_GOOS=darwin make cmd/mccp/mccp
+        elif [ "$RUNNER_OS" == "Linux" ]; then
+          make -j4 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
+        fi
+        mv cmd/mccp/mccp cmd/mccp/mccp-${{ matrix.os }}
+    - name: Store mccp binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: mccp-binaries
+        path: cmd/mccp/mccp-${{ matrix.os }}
+        retention-days: 1
+    - name: Install Helm v3
+      if: ${{ runner.os == 'Linux' }}
+      uses: azure/setup-helm@v1
+      with:
+        version: v3.5.4
+    - name: Configure AWS Credentials
+      if: ${{ runner.os == 'Linux' }}
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+    - name: Publish helm chart to s3
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+          TAG=$(git describe --always --match "v*")
+          IMAGE_TAG=$(./tools/image-tag)
+          
+          CHART_VALUES_PATH=./charts/mccp/values.yaml
+          # Update the MCCP chart values.yaml file with the current image tag
+          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+          # Publish the MCCP Helm v3 chart
+          ./bin/publish-chart-to-s3.sh $TAG $IMAGE_TAG ./charts/mccp 3
+    - name: Login to Docker Hub
+      if: ${{ runner.os == 'Linux' }}
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      if: ${{ runner.os == 'Linux' }}
+      run: make push
+
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      WGE_COVERALLS_TOKEN: ${{ secrets.WGE_COVERALLS_TOKEN }}
+      ARTEFACTS_BASE_DIR: /tmp/workspace/test
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Install dependencies
+      run: |
+        go mod download
+        go get github.com/wadey/gocovmerge
+        go get -u github.com/jstemmer/go-junit-report
+        npm install -g junit-report-merger
+    - name: Install goveralls
+      env:
+        GO111MODULE: off
+      run: go get github.com/mattn/goveralls
+    
+    - name: Run unit tests
+      run: | 
+        go version
+        mkdir -p ${{ env.ARTEFACTS_BASE_DIR }}
+        
+        WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
+        cd ${{ github.workspace }}/cmd/event-writer && go test -cover -coverprofile=.coverprofile ./converter/... ./database/... ./liveness/... ./run/... ./test/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/event-writer-results.xml
+        cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
+        cd ${{ github.workspace }}/cmd/capi-server && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/capi-server-results.xml
+
+        cd ${{ github.workspace }}
+        # Merge all coverage results
+        gocovmerge .coverprofile cmd/event-writer/.coverprofile common/.coverprofile  cmd/capi-server/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles    
+        # Merge all junit test results
+        jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
+    # - name: Send coverage
+    #   run: |
+    #     # submit the coverage 1 by 1, seems important that they have a -flagname
+    #     goveralls -parallel -coverprofile=.coverprofile -service="GitHub Action" -flagname wks -repotoken $WGE_COVERALLS_TOKEN
+    #     (cd cmd/event-writer; goveralls -coverprofile=.coverprofile -flagname event-writer -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
+    #     (cd common; goveralls -coverprofile=.coverprofile -flagname common -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
+    #     (cd cmd/capi-serve; goveralls -coverprofile=.coverprofile -flagname capi-server -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
+
+    #     # We've finished submitting the coverage
+    #     curl -k "https://coveralls.io/webhook?repo_token=$WGE_COVERALLS_TOKEN" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
+    - name: Store unit test coverage results
+      uses: actions/upload-artifact@v2
+      with:
+          name: unit-tests-artifacts
+          path: |
+            ${{ env.ARTEFACTS_BASE_DIR }}
+          retention-days: 1
+
+  acceptance-tests:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            wego_suffix: linux-x86_64
+            os_bin_suffix: linux-amd64
+          # - os: macOS-latest
+          #   os_bin_suffix: darwin-amd64
+          #   wego_suffix: darwin-x86_64
+    needs: [build, coverage]
+    timeout-minutes: 90
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
+      DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+      MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp-${{ matrix.os }}
+      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-${{ matrix.wego_suffix }}
+      WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_bin_suffix }}
+      SELENIUM_DEBUG: true
+      ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
+      MCCP_ACCEPTANCE: true
+      CONNECT_KIND_WKP_LEAF_TEST: true
+      MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-leaf-kubeconfig'
+      ARTEFACTS_BASE_DIR: /tmp/workspace/test/
+    steps:
+    - id: go-cache-paths
+      run: |
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.go-cache-paths.outputs.go-build }}
+          ${{ steps.go-cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+    - name: Install docker
+      if: ${{ runner.os == 'macOS' }}
+      uses: docker-practice/actions-setup-docker@master
+    - name: Install kubectl
+      uses: Azure/setup-kubectl@v1
+      with:
+          version: 'v1.20.7'
+    - name: Install kind
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+         elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install kind
+        fi
+    - name: Install clusterctl
+      run: |
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-${{ matrix.os_bin_suffix }} -o clusterctl
+        chmod +x ./clusterctl
+        sudo mv ./clusterctl /usr/local/bin/clusterctl
+        clusterctl version 
+    - name: Set up ssh agent
+      uses: webfactory/ssh-agent@v0.5.2
+      with:
+        ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+    - name: Configure git settings
+      run: |
+        git config --global user.email "test-user@weave.works"
+        git config --global user.name "test-user"
+        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    - name: Download mccp binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: mccp-binaries
+        path: cmd/mccp
+    - name: Download wego binary from GitHub
+      run: |
+        mkdir -p cmd/wego/
+        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.2.4/wego-${{ matrix.wego_suffix }}
+        mv wego-${{ matrix.wego_suffix }} $WEGO_BIN_PATH
+    - name: Download wk binary from s3
+      run: |
+        mkdir -p cmd/wk/
+        curl -o $WKP_BIN_PATH https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-${{ matrix.os_bin_suffix }}        
+    - name: Change bin permissions
+      run: |
+        sudo chmod +x ${{ env.MCCP_BIN_PATH }}
+        sudo chmod +x ${{ env.WEGO_BIN_PATH }}
+        sudo chmod +x ${{ env.WKP_BIN_PATH }}  
+    - name: Setup selenium server
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          sudo apt-get install -y google-chrome-stable
+
+          wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv -f chromedriver /usr/local/bin/chromedriver
+
+          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+
+          # Start selenium server in standalone mode
+          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          selenium-server & 
+        fi
+    - name: Setup kind management cluster
+      run: |
+        kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.20.7 --config test/utils/data/local-mccp-kind-config.yaml
+        kubectl get pods -A     
+    - name: Install mccp componenets on management cluster
+      run: |
+        CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
+        echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
+
+        ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
+    - name: Setup wkp leaf cluster
+      run: |
+        kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
+        export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
+
+        export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}
+        # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
+        echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
+        ./test/utils/scripts/ci-cluster-install.sh wkp $CLUSTER_NAME ${{ github.workspace }}
+
+        # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
+        unset KUBECONFIG        
+    - name: Run acceptance tests
+      run: |
+        cd test/acceptance/test/
+        go test -ginkgo.v -v --timeout=99999s
+    - name: Delete WKP repository
+      if: ${{ always() }}
+      run: |
+        hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
+    - name: Store acceptance test results
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: acceptance-test-artifacts
+        path: ${{ env.ARTEFACTS_BASE_DIR }}
+        retention-days: 1
+
+  publish-binaries:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    needs: [acceptance-tests]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Download mccp binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: mccp-binaries
+        path: cmd/mccp
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+    - name: Publish mccp to s3
+      run: |
+        TAG=$(./tools/image-tag)
+        # Upload uniquely tagged binaries
+        aws s3 cp cmd/mccp/mccp-${{ matrix.os }} s3://weaveworks-wkp/mccp-${TAG}-${{ matrix.os }}
+
+        # Upload a "main" binary for easy access to latest main build
+        aws s3 cp cmd/mccp/mccp-${{ matrix.os }} s3://weaveworks-wkp/
+
+  # publish-test-results:
+  #   runs-on: ubuntu-latest
+  #   needs: [acceptance-tests]
+  #   env:
+  #     ARTEFACTS_BASE_DIR: /tmp/workspace/test/
+  #   steps:
+  #   - name: Install Go
+  #     uses: actions/setup-go@v2
+  #     with:
+  #       go-version: 1.16.x
+  #   - name: Checkout code
+  #     uses: actions/checkout@v2
+  #   - name: Install testspace client
+  #     uses: testspace-com/setup-testspace@v1
+  #     with:
+  #       domain: weaveworks.testspace.com
+  #   - name: Download artifacts
+  #     uses: actions/download-artifact@v2
+  #     with:
+  #       path:
+  #         results
+  #   - name: Display structure of downloaded files
+  #     run: ls -laR
+  #     working-directory: results
+  #   - name: Publish test results to Testspace
+  #     run: |
+  #       go get github.com/t-yuki/gocover-cobertura
+
+  #       gocover-cobertura < results/unit-tests-artifacts/merged-profiles > coverage.xml
+  #       testspace "[unit-tests]results/unit-tests-artifacts/combined-test-results.xml" "[acceptance-tests]results/acceptance-test-artifacts/acceptance-test-results.xml" "coverage.xml"
