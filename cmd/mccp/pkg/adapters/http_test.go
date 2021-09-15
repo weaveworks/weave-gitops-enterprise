@@ -1,7 +1,11 @@
 package adapters_test
 
 import (
+	"bytes"
 	"errors"
+	"io"
+	"net/http"
+	"os"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -63,7 +67,7 @@ func TestRetrieveTemplates(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", BaseURI+"/v1/templates", tt.responder)
 
-			r, err := adapters.NewHttpClient(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			ts, err := r.RetrieveTemplates()
 			tt.assertFunc(t, ts, err)
@@ -113,7 +117,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", BaseURI+"/v1/templates/cluster-template/params", tt.responder)
 
-			r, err := adapters.NewHttpClient(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			ts, err := r.RetrieveTemplateParameters("cluster-template")
 			tt.assertFunc(t, ts, err)
@@ -207,7 +211,7 @@ spec:
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", BaseURI+"/v1/templates/cluster-template/render", tt.responder)
 
-			r, err := adapters.NewHttpClient(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			result, err := r.RenderTemplateWithParameters("cluster-template", nil, templates.Credentials{})
 			tt.assertFunc(t, result, err)
@@ -258,7 +262,7 @@ func TestCreatePullRequestForTemplate(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", BaseURI+"/v1/clusters", tt.responder)
 
-			c, err := adapters.NewHttpClient(BaseURI, client)
+			c, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			result, err := c.CreatePullRequestForTemplate(templates.CreatePullRequestForTemplateParams{})
 			tt.assertFunc(t, result, err)
@@ -317,7 +321,7 @@ func TestRetrieveCredentials(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", BaseURI+"/v1/credentials", tt.responder)
 
-			r, err := adapters.NewHttpClient(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			creds, err := r.RetrieveCredentials()
 			tt.assertFunc(t, creds, err)
@@ -353,7 +357,7 @@ func TestRetrieveCredentialsByName(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", BaseURI+"/v1/credentials", tt.responder)
 
-			r, err := adapters.NewHttpClient(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			creds, err := r.RetrieveCredentialsByName("aws-creds")
 			tt.assertFunc(t, creds, err)
@@ -410,7 +414,7 @@ func TestRetrieveClusters(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", BaseURI+"/gitops/api/clusters", tt.responder)
 
-			r, err := adapters.NewHttpClient(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			cs, err := r.RetrieveClusters()
 			tt.assertFunc(t, cs, err)
@@ -461,7 +465,7 @@ func TestGetClusterKubeconfig(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", BaseURI+"/v1/clusters/dev/kubeconfig", tt.responder)
 
-			r, err := adapters.NewHttpClient(BaseURI, client)
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			k, err := r.GetClusterKubeconfig("dev")
 			tt.assertFunc(t, k, err)
@@ -512,10 +516,29 @@ func TestDeleteClusters(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("DELETE", BaseURI+"/v1/clusters", tt.responder)
 
-			c, err := adapters.NewHttpClient(BaseURI, client)
+			c, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
 			result, err := c.DeleteClusters(clusters.DeleteClustersParams{})
 			tt.assertFunc(t, result, err)
 		})
+	}
+}
+
+func TestEntitlementExpiredHeader(t *testing.T) {
+	response := httpmock.NewStringResponse(http.StatusOK, "")
+	response.Header.Add("Entitlement-Expired-Message", "This is a test message")
+	client := resty.New()
+	httpmock.ActivateNonDefault(client.GetClient())
+	defer httpmock.DeactivateAndReset()
+	httpmock.RegisterResponder("GET", BaseURI+"/v1/templates", httpmock.ResponderFromResponse(response))
+
+	var buf bytes.Buffer
+	c, err := adapters.NewHttpClient(BaseURI, client, &buf)
+	assert.NoError(t, err)
+	c.RetrieveTemplates()
+	b, err := io.ReadAll(&buf)
+	assert.NoError(t, err)
+	if string(b) != "This is a test message\n" {
+		t.Errorf("Expected but got %s", string(b))
 	}
 }

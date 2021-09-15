@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -11,6 +12,10 @@ import (
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
+)
+
+const (
+	expiredHeaderName = "Entitlement-Expired-Message"
 )
 
 type TemplateParameterValuesAndCredentials struct {
@@ -31,13 +36,19 @@ type HttpClient struct {
 
 // NewHttpClient creates a new HTTP client of the cluster service. The endpoint
 // is expected to be an absolute HTTP URI.
-func NewHttpClient(endpoint string, client *resty.Client) (*HttpClient, error) {
+func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HttpClient, error) {
 	u, err := url.ParseRequestURI(endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	client = client.SetHostURL(u.String())
+	client = client.SetHostURL(u.String()).
+		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
+			if m := r.Header().Get(expiredHeaderName); m != "" {
+				fmt.Fprintln(out, m)
+			}
+			return nil
+		})
 	return &HttpClient{
 		baseURI: u,
 		client:  client,
