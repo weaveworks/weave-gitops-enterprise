@@ -66,7 +66,7 @@ func Upgrade() error {
 		Title:          "Upgrade to WGE",
 		Description:    "Upgrade to WGE",
 		CommitMessage:  "Upgrade to WGE",
-		Name:           "Update description",
+		Name:           "wge-profile",
 		Namespace:      "wego-system",
 		ProfileBranch:  "main",
 		ConfigMap:      "",
