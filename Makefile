@@ -53,6 +53,7 @@ cmd/capi-server/$(UPTODATE): cmd/capi-server/Dockerfile cmd/capi-server/*
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--tag $(WEAVE_GITOPS_CLUSTERS_SERVICE) \
 		--file cmd/capi-server/Dockerfile \
 		.

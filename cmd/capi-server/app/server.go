@@ -13,8 +13,19 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
+	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	wego_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
+	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
@@ -23,16 +34,6 @@ import (
 	"k8s.io/klog/v2/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
-	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version"
-	wego_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 )
 
 func NewAPIServerCommand() *cobra.Command {
@@ -42,6 +43,8 @@ func NewAPIServerCommand() *cobra.Command {
 	var dbPassword string
 	var dbType string
 	var dbBusyTimeout string
+	var entitlementSecretName string
+	var entitlementSecretNamespace string
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -58,6 +61,8 @@ func NewAPIServerCommand() *cobra.Command {
 	cmd.Flags().StringVar(&dbUser, "db-user", os.Getenv("DB_USER"), "database user")
 	cmd.Flags().StringVar(&dbPassword, "db-password", os.Getenv("DB_PASSWORD"), "database password")
 	cmd.Flags().StringVar(&dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
+	cmd.Flags().StringVar(&entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
+	cmd.Flags().StringVar(&entitlementSecretNamespace, "entitlement-secret-namespace", ent.DefaultSecretNamespace, "The namespace of the entitlement secret")
 
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -113,7 +118,12 @@ func StartServer(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
-	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, kube,
+
+	name := viper.GetString("entitlement-secret-name")
+	namespace := viper.GetString("entitlement-secret-namespace")
+	key := client.ObjectKey{Name: name, Namespace: namespace}
+
+	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, kube, key,
 		grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
 		grpc_runtime.WithMetadata(TrackEvents),
 		middleware.WithGrpcErrorLogging(klogr.New()),
@@ -121,10 +131,10 @@ func StartServer(ctx context.Context) error {
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, kube kube.Kube, opts ...grpc_runtime.ServeMuxOption) error {
+func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, kube kube.Kube, entitlementSecretKey client.ObjectKey, opts ...grpc_runtime.ServeMuxOption) error {
 	mux := grpc_runtime.NewServeMux(opts...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, client, discoveryClient, db, ns))
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, c, discoveryClient, db, ns))
 
 	//Add weave-gitops core handlers
 	wegoServer := wego_server.NewApplicationsServer(&wego_server.ApplicationsConfig{
@@ -135,7 +145,7 @@ func RunInProcessGateway(ctx context.Context, addr string, library templates.Lib
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: mux,
+		Handler: entitlement.EntitlementHandler(ctx, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(mux)),
 	}
 
 	go func() {

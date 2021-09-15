@@ -417,7 +417,7 @@ func (b RealMCCPTestRunner) ResetDatabase() error {
 }
 
 func (b RealMCCPTestRunner) VerifyMCCPPodsRunning() {
-	command := exec.Command("sh", "-c", "kubectl wait --for=condition=Ready pods --timeout=60s -n mccp --all")
+	command := exec.Command("sh", "-c", "kubectl wait --for=condition=Ready pods --timeout=60s -n wego-system --all")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
@@ -737,7 +737,7 @@ func dumpClusterInfo(namespaces, testName string) error {
 func printLogs(deploymentApp []string, nameSpace string) {
 	for _, app := range deploymentApp {
 		if nameSpace == "" {
-			nameSpace = "mccp"
+			nameSpace = "wego-system"
 		}
 		log.Printf("--------- %s  logs  \n", app)
 		runCommandPassThrough([]string{}, "kubectl", "logs", fmt.Sprintf(`deployment/%s`, app), "--all-containers=true",

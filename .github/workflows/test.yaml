@@ -17,6 +17,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -30,7 +35,7 @@ jobs:
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
     - name: Run linters
       run: |
-        make lint BUILD_IN_CONTAINER=false
+        make lint
       # uses: golangci/golangci-lint-action@v2
       # with:
       #   version: v1.29
@@ -50,6 +55,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -72,7 +82,7 @@ jobs:
     - name: Run unit tests
       run: | 
         go version
-        make unit-tests-with-coverage BUILD_IN_CONTAINER=false
+        make unit-tests-with-coverage
     # - name: Send coverage
     #   run: |
     #     # submit the coverage 1 by 1, seems important that they have a -flagname
@@ -100,6 +110,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -121,7 +136,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
     - name: Build all the services
-      run: make -j4 BUILD_IN_CONTAINER=false
+      env:
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: make -j4 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
     - name: Store mccp binaries
       uses: actions/upload-artifact@v2
       with:
@@ -177,6 +194,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -224,6 +246,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -300,6 +327,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -371,14 +403,16 @@ jobs:
     - name: Kind-check
       run: |
         kubectl get pods -A    
-    - name: Install mccp componenets on management cluster
+    - name: Install mccp components on management cluster
       run: |
         CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-
+        # Create wego-system namespace and add entitlement
+        kubectl create ns wego-system
+        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
         ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
-        kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Run smoke tests
       run: |
         cd test/acceptance/test/
@@ -420,6 +454,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -496,14 +535,16 @@ jobs:
     - name: Kind-check
       run: |
         kubectl get pods -A        
-    - name: Install mccp componenets on management cluster
+    - name: Install mccp components on management cluster
       run: |
         CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-
+        # Create wego-system namespace and add entitlement
+        kubectl create ns wego-system
+        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
         ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
-        kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Setup wkp leaf cluster
       run: |
         kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG

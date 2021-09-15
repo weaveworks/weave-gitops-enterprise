@@ -1,4 +1,4 @@
-from golang:1.16.6 as builder
+from golang:1.17.1 as builder
 
 ENV CS_PATH=cmd/capi-server
 
@@ -10,6 +10,10 @@ COPY common/ /workspace/common/
 # copy modules manifests
 COPY $CS_PATH/go.mod go.mod
 COPY $CS_PATH/go.sum go.sum
+
+ENV GITHUB_BUILD_USERNAME=wge-build-bot
+ARG GITHUB_BUILD_TOKEN
+RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
 
 # cache modules
 RUN go mod download

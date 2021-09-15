@@ -44,18 +44,18 @@ function setup_mccp {
     --version 14.4.0 \
     --values test/utils/data/mccp-prometheus-values.yaml
 
-  kubectl create namespace mccp
+  kubectl create namespace wego-system
   kubectl create secret docker-registry docker-io-pull-secret \
-    --namespace mccp \
+    --namespace wego-system \
     --docker-username="${DOCKER_IO_USER}" \
     --docker-password="${DOCKER_IO_PASSWORD}" 
   kubectl create secret generic git-provider-credentials \
-    --namespace=mccp \
+    --namespace=wego-system \
     --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
   CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
   helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
   helm repo update
-  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
+  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system \
     --set "imagePullSecrets[0].name=docker-io-pull-secret" \
     --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
     --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
@@ -64,7 +64,7 @@ function setup_mccp {
     --set "config.capi.baseBranch=main"
 
   # Wait for cluster to settle
-  kubectl wait --for=condition=Ready --timeout=300s -n mccp --all pod
+  kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod
   kubectl get pods -A
 }
 

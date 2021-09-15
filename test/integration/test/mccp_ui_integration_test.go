@@ -32,6 +32,8 @@ import (
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -52,6 +54,8 @@ const seleniumURL = "http://localhost:4444/wd/hub"
 
 var db *gorm.DB
 var dbURI string
+
+const entitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
 
 func resetDb(db *gorm.DB) {
 	// https://gorm.io/docs/delete.html#Block-Global-Delete
@@ -598,7 +602,7 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		Namespace: "default",
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", nil)
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", nil, client.ObjectKey{Name: "entitlement", Namespace: "default"})
 }
 
 func RunUIServer(ctx gcontext.Context) {
@@ -680,11 +684,23 @@ func TestMccpUI(t *testing.T) {
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
 		capiv1.AddToScheme,
+		corev1.AddToScheme,
 	}
 	schemeBuilder.AddToScheme(scheme)
 
+	// Add entitlement secret
+	sec := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "entitlement",
+			Namespace: "default",
+		},
+		Type: "Opaque",
+		Data: map[string][]byte{"entitlement": []byte(entitlement)},
+	}
+
 	cl := fake.NewClientBuilder().
 		WithScheme(scheme).
+		WithRuntimeObjects(sec).
 		Build()
 
 	discoveryClient := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())

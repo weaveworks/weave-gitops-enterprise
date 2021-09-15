@@ -23,12 +23,12 @@ func GomegaFail(message string, callerSkip ...int) {
 
 	//Show pods
 	showItems("")
-	dumpClusterInfo("mccp", randID)
+	dumpClusterInfo("wego-system", randID)
 
 	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
 		// Print cluster service log
-		deploymentAapp := []string{"my-mccp-cluster-service"}
-		printLogs(deploymentAapp, "")
+		deploymentApp := []string{"my-mccp-cluster-service"}
+		printLogs(deploymentApp, "wego-system")
 	}
 
 	//Pass this down to the default handler for onward processing
