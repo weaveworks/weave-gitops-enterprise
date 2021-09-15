@@ -26,7 +26,7 @@ func clustersListCmd(client *resty.Client) *cobra.Command {
 
 func getClustersListCmdRun(client *resty.Client) func(*cobra.Command, []string) error {
 	return func(*cobra.Command, []string) error {
-		r, err := adapters.NewHttpClient(endpoint, client)
+		r, err := adapters.NewHttpClient(endpoint, client, os.Stdout)
 		if err != nil {
 			return err
 		}

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -35,7 +36,7 @@ type HttpClient struct {
 
 // NewHttpClient creates a new HTTP client of the cluster service. The endpoint
 // is expected to be an absolute HTTP URI.
-func NewHttpClient(endpoint string, client *resty.Client) (*HttpClient, error) {
+func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HttpClient, error) {
 	u, err := url.ParseRequestURI(endpoint)
 	if err != nil {
 		return nil, err
@@ -44,7 +45,7 @@ func NewHttpClient(endpoint string, client *resty.Client) (*HttpClient, error) {
 	client = client.SetHostURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 			if m := r.Header().Get(expiredHeaderName); m != "" {
-				fmt.Println(m)
+				fmt.Fprintln(out, m)
 			}
 			return nil
 		})

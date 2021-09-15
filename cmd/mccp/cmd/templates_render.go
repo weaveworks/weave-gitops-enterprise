@@ -56,7 +56,7 @@ var templatesRenderCmdFlags templatesRenderFlags
 func getTemplatesRenderCmdRun(client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 
-		r, err := adapters.NewHttpClient(endpoint, client)
+		r, err := adapters.NewHttpClient(endpoint, client, os.Stdout)
 		if err != nil {
 			return err
 		}
