@@ -13,6 +13,10 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
 )
 
+const (
+	expiredHeaderName = "Entitlement-Expired-Message"
+)
+
 type TemplateParameterValuesAndCredentials struct {
 	Values      map[string]string     `json:"values"`
 	Credentials templates.Credentials `json:"credentials"`
@@ -37,7 +41,13 @@ func NewHttpClient(endpoint string, client *resty.Client) (*HttpClient, error) {
 		return nil, err
 	}
 
-	client = client.SetHostURL(u.String())
+	client = client.SetHostURL(u.String()).
+		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
+			if m := r.Header().Get(expiredHeaderName); m != "" {
+				fmt.Println(m)
+			}
+			return nil
+		})
 	return &HttpClient{
 		baseURI: u,
 		client:  client,
