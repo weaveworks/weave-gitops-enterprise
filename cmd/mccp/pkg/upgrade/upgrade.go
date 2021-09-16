@@ -3,6 +3,7 @@ package upgrade
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -37,7 +38,7 @@ type UpgradeParams struct {
 	Args           []string
 }
 
-func Upgrade() error {
+func Upgrade(w io.Writer) error {
 	err := preFlightCheck()
 	if err != nil {
 		return err
@@ -85,6 +86,9 @@ func Upgrade() error {
 		return err
 
 	}
+
+	fmt.Fprintf(w, "Upgrade pull request created\n")
+
 	return nil
 }
 
@@ -115,6 +119,7 @@ func getGitRepo() (string, error) {
 }
 
 func preFlightCheck() error {
+	// TODO: use kuberenetes client
 	log.Info("Checking if entitlement exists...")
 	cmdItems := []string{"kubectl", "get", "secret", "weave-gitops-enterprise-credentials", "--all-namespaces"}
 	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
