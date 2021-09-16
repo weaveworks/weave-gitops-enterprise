@@ -306,7 +306,6 @@ func TestReceiveFluxInfo_NoMatchingCluster(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// FluxInfo should not be stored as there is no cluster matching the token
 	// Query db
@@ -390,7 +389,6 @@ func TestReceiveFluxInfo(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// FluxInfo should be stored as there is no cluster matching the token
 	// Query db
@@ -475,7 +473,6 @@ func TestReceiveClusterInfo(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	var clusters []models.ClusterInfo
@@ -548,7 +545,6 @@ func TestReceiveClusterInfo_PayloadNotClusterInfo(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	var clusters []models.ClusterInfo
@@ -636,7 +632,6 @@ func TestReceiveClusterInfo_SamePayloadReceivedAgain(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	var clusters []models.ClusterInfo
@@ -784,7 +779,6 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	clustersResult = db.Find(&clusters)
@@ -867,7 +861,6 @@ func TestReceiveClusterInfo_NoMatchingCluster(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	var clusterInfos []models.ClusterInfo
@@ -958,7 +951,6 @@ func TestReceiveAlert(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(1 * time.Second)
-	cancel()
 
 	// Query db
 	var alerts []models.Alert
@@ -1045,7 +1037,6 @@ func TestReceiveAlert_NoMatchingCluster(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(1 * time.Second)
-	cancel()
 
 	// Query db
 	var alerts []models.Alert
@@ -1137,7 +1128,6 @@ func TestReceiveAlert_SameAlertReceivedAgain(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	var alerts []models.Alert
@@ -1248,7 +1238,6 @@ func TestReceiveGitCommitInfo(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	var commits []models.GitCommit
@@ -1327,7 +1316,6 @@ func TestReceiveGitCommitInfo_NoMatchingCluster(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	var commits []models.GitCommit
@@ -1457,7 +1445,6 @@ func TestReceiveGitCommitInfo_DeleteOldCommits(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Expected results
 	expected := []models.GitCommit{
@@ -1567,7 +1554,6 @@ func TestReceiveWorkspaceInfo(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	defer cancel()
 
 	// Query db
 	var workspaces []models.Workspace
@@ -1640,7 +1626,6 @@ func TestReceiveWorkspaceInfo_NoMatchingCluster(t *testing.T) {
 	err = publisher.Send(ctx, event)
 	require.NoError(t, err)
 	time.Sleep(500 * time.Millisecond)
-	cancel()
 
 	// Query db
 	var workspaces []models.Workspace
