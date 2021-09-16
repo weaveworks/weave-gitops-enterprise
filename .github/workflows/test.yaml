@@ -1,7 +1,4 @@
 on:
-  push:
-    branches:
-      - main
   pull_request:
   workflow_dispatch:
 
@@ -20,6 +17,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -33,7 +35,7 @@ jobs:
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
     - name: Run linters
       run: |
-        make lint BUILD_IN_CONTAINER=false
+        make lint
       # uses: golangci/golangci-lint-action@v2
       # with:
       #   version: v1.29
@@ -53,6 +55,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -75,13 +82,14 @@ jobs:
     - name: Run unit tests
       run: | 
         go version
-        make unit-tests-with-coverage BUILD_IN_CONTAINER=false
+        make unit-tests-with-coverage
     # - name: Send coverage
     #   run: |
     #     # submit the coverage 1 by 1, seems important that they have a -flagname
     #     goveralls -parallel -coverprofile=.coverprofile -service="GitHub Action" -flagname wks -repotoken $WGE_COVERALLS_TOKEN
     #     (cd cmd/event-writer; goveralls -coverprofile=.coverprofile -flagname event-writer -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
     #     (cd common; goveralls -coverprofile=.coverprofile -flagname common -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
+    #     (cd cmd/capi-serve; goveralls -coverprofile=.coverprofile -flagname capi-server -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
 
     #     # We've finished submitting the coverage
     #     curl -k "https://coveralls.io/webhook?repo_token=$WGE_COVERALLS_TOKEN" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
@@ -102,6 +110,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -123,7 +136,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
     - name: Build all the services
-      run: make -j4 BUILD_IN_CONTAINER=false
+      env:
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: make -j4 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
     - name: Store mccp binaries
       uses: actions/upload-artifact@v2
       with:
@@ -134,13 +149,14 @@ jobs:
       uses: azure/setup-helm@v1
       with:
         version: v3.5.4
-    - name: Publish helm chart to s3
+    - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
-    - run: |
+    - name: Publish helm chart to s3
+      run: |
         TAG=$(git describe --always --match "v*")
         IMAGE_TAG=$(./tools/image-tag)
         
@@ -178,6 +194,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -225,6 +246,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Go Build Cache
@@ -284,6 +310,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
+      DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp
       WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-linux-x86_64
       SELENIUM_DEBUG: true
@@ -299,6 +327,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -366,63 +399,24 @@ jobs:
         name: management-${{ github.run_id }}-${{ github.run_number}}
         version: "v0.11.0"
         image: kindest/node:v1.20.7
-        config: "./test/utils/scripts/local-mccp-kind-config.yaml"
+        config: "./test/utils/data/local-mccp-kind-config.yaml"
     - name: Kind-check
       run: |
         kubectl get pods -A    
-    - name: Install mccp componenets on management cluster
+    - name: Install mccp components on management cluster
       run: |
-        set -x
-        # create unique cluster config repository name
         CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
-        GIT_REPOSITORY_URL="https://github.com/${{ secrets.WGE_GITHUB_ORG }}/$CLUSTER_REPOSITORY"
-
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-        
-        WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name)
-        kubectl label "${WORKER_NODE}" wkp-database-volume-node=true
-
-        WORKER_NODE_EXTERNAL_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
-        echo "Worker node ip is ${WORKER_NODE_EXTERNAL_IP}"
-        NATS_NODEPORT=31490            
-
-        kubectl create namespace prom
-        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-        helm repo update
-        helm install my-prom prometheus-community/kube-prometheus-stack \
-          --namespace prom \
-          --version 14.4.0 \
-          --values test/utils/data/mccp-prometheus-values.yaml
-
-        kubectl create namespace mccp
-        kubectl create secret docker-registry docker-io-pull-secret \
-          --namespace mccp \
-          --docker-username=${{ secrets.WGE_DOCKER_IO_USER }} \
-          --docker-password=${{ secrets.WGE_DOCKER_IO_PASSWORD }} 
-        kubectl create secret generic git-provider-credentials \
-          --namespace=mccp \
-          --from-literal="GIT_PROVIDER_TOKEN=${{ secrets.WGE_GITHUB_TOKEN }}"
-        CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
-        helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
-        helm repo update
-        helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
-          --set "imagePullSecrets[0].name=docker-io-pull-secret" \
-          --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
-          --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-          --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
-          --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
-          --set "config.capi.baseBranch=main"
-
-        # Wait for cluster to settle
-        kubectl wait --for=condition=Ready --timeout=120s -n mccp --all pod
-        kubectl get pods -A
-
-        kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
+        # Create wego-system namespace and add entitlement
+        kubectl create ns wego-system
+        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
+        ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Run smoke tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.focus=@VM -ginkgo.v -v --timeout=99999s
+        go test -ginkgo.focus=@Smoke -ginkgo.v -v --timeout=99999s
     - name: Store smoke test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
@@ -440,6 +434,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
+      DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp
       WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-linux-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-linux-amd64
@@ -458,6 +454,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -530,100 +531,36 @@ jobs:
         name: management-${{ github.run_id }}-${{ github.run_number}}
         version: "v0.11.0"
         image: kindest/node:v1.20.7
-        config: "./test/utils/scripts/local-mccp-kind-config.yaml"
+        config: "./test/utils/data/local-mccp-kind-config.yaml"
     - name: Kind-check
       run: |
         kubectl get pods -A        
-    - name: Install mccp componenets on management cluster
+    - name: Install mccp components on management cluster
       run: |
-        set -x 
-        # create unique cluster config repository name
         CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
-        GIT_REPOSITORY_URL="https://github.com/${{ secrets.WGE_GITHUB_ORG }}/$CLUSTER_REPOSITORY"
-
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-        
-        WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name)
-        kubectl label "${WORKER_NODE}" wkp-database-volume-node=true
-
-        WORKER_NODE_EXTERNAL_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
-        echo "Worker node ip is ${WORKER_NODE_EXTERNAL_IP}"
-        NATS_NODEPORT=31490            
-
-        kubectl create namespace prom
-        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-        helm repo update
-        helm install my-prom prometheus-community/kube-prometheus-stack \
-          --namespace prom \
-          --version 14.4.0 \
-          --values test/utils/data/mccp-prometheus-values.yaml
-
-        kubectl create namespace mccp
-        kubectl create secret docker-registry docker-io-pull-secret \
-          --namespace mccp \
-          --docker-username=${{ secrets.WGE_DOCKER_IO_USER }} \
-          --docker-password=${{ secrets.WGE_DOCKER_IO_PASSWORD }} 
-        kubectl create secret generic git-provider-credentials \
-          --namespace=mccp \
-          --from-literal="GIT_PROVIDER_TOKEN=${{ secrets.WGE_GITHUB_TOKEN }}"
-        CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
-        helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
-        helm repo update
-        helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace mccp \
-          --set "imagePullSecrets[0].name=docker-io-pull-secret" \
-          --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
-          --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-          --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
-          --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
-          --set "config.capi.baseBranch=main"
-
-        # Wait for cluster to settle
-        kubectl wait --for=condition=Ready --timeout=120s -n mccp --all pod
-        kubectl get pods -A
-
-        kubectl port-forward -n mccp svc/my-mccp-nginx-ingress-controller 8090:80 &
+        # Create wego-system namespace and add entitlement
+        kubectl create ns wego-system
+        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
+        ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Setup wkp leaf cluster
       run: |
         kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
         export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
 
-        export SKIP_PROMPT=1
         export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}
         # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
         echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
-        
-        wkp_kind_cluster_dir=$(mktemp -d)
-        cd $wkp_kind_cluster_dir
-        $WKP_BIN_PATH setup install --entitlements=${{ github.workspace }}/test/ci-wks-unlimited.entitlements
-        echo "${{ secrets.WGE_DOCKER_IO_PASSWORD }}" > /tmp/docker-io-password
-        sed -i "s/track:.*/track: wks-components/" $wkp_kind_cluster_dir/setup/config.yaml
-        sed -i "s/clusterName:.*/clusterName: $CLUSTER_NAME/" $wkp_kind_cluster_dir/setup/config.yaml
-        sed -i "s/gitProvider:.*/gitProvider: github/" $wkp_kind_cluster_dir/setup/config.yaml
-        sed -i "s/gitProviderOrg:.*/gitProviderOrg: ${{ secrets.WGE_GITHUB_ORG }}/" $wkp_kind_cluster_dir/setup/config.yaml
-        sed -i "s/dockerIOUser:.*/dockerIOUser: ${{ secrets.WGE_DOCKER_IO_USER }}/" $wkp_kind_cluster_dir/setup/config.yaml 
-        sed -i "s|dockerIOPasswordFile:.*|dockerIOPasswordFile: /tmp/docker-io-password|" $wkp_kind_cluster_dir/setup/config.yaml 
-        # don't skip the components we need those
-        export SKIP_COMPONENTS=false
-        $WKP_BIN_PATH setup run --entitlements=${{ github.workspace }}/test/ci-wks-unlimited.entitlements
-        # Wait until pods are running
-        kubectl wait nodes --all --for=condition=ready --timeout=120s || true
-        kubectl wait pods -n kube-system -l tier=control-plane --for=condition=ready --timeout=120s || true
-        kubectl wait deployment.apps/coredns -n kube-system --for=condition=available --timeout=120s || true
-        kubectl get pods -A
-        kubectl get nodes
-        $WKP_BIN_PATH workspaces add-provider \
-            --type github \
-            --token "${{ secrets.WGE_GITHUB_TOKEN }}" \
-            --secret-name github-token \
-            --git-commit-push \
-            --entitlements=${{ github.workspace }}/test/ci-wks-unlimited.entitlements
+        ./test/utils/scripts/ci-cluster-install.sh wkp $CLUSTER_NAME ${{ github.workspace }}
+
         # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
         unset KUBECONFIG        
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.skip=@VM -ginkgo.v -v --timeout=99999s
+        go test -ginkgo.skip=@Smoke -ginkgo.v -v --timeout=99999s
     - name: Delete WKP repository
       if: ${{ always() }}
       run: |

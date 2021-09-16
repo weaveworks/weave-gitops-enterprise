@@ -704,7 +704,7 @@ jobs:
             export GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
  
             # Create MCCP Kind cluster
-            kind create cluster --name my-kind-mccp-cluster --config ../../utils/scripts/local-mccp-kind-config.yaml
+            kind create cluster --name my-kind-mccp-cluster --config ../../utils/data/local-mccp-kind-config.yaml
             WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name)
             kubectl label "${WORKER_NODE}" wkp-database-volume-node=true
 
