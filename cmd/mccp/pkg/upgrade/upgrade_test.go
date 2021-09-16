@@ -21,7 +21,7 @@ func TestUpgrade(t *testing.T) {
 		{
 			name:             "error returned",
 			err:              errors.New("something went wrong"),
-			expectedErrorStr: "failed to get entitlement: exit status 1",
+			expectedErrorStr: "failed to get wego-system namespace: exit status 1",
 		},
 	}
 

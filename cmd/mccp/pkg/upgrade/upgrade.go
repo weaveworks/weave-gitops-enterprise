@@ -39,7 +39,7 @@ type UpgradeParams struct {
 }
 
 func Upgrade(w io.Writer) error {
-	err := preFlightCheck()
+	err := PreFlightCheck()
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func getGitRepo() (string, error) {
 	return stdout.String(), nil
 }
 
-func preFlightCheck() error {
+func PreFlightCheck() error {
 	// TODO: use kuberenetes client
 	log.Info("Checking if wego-system namespace exists...")
 	cmdItems := []string{"kubectl", "get", "ns", "wego-system"}
