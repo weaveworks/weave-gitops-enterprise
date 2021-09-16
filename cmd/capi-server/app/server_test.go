@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/app"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,7 +23,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	c := createFakeClient(createSecret(validEntitlement))
 	go func(ctx context.Context) {
 
-		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001", nil, nil, c, nil, nil, "default", &kubefakes.FakeKube{}, client.ObjectKey{Name: "name", Namespace: "namespace"})
+		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001", nil, nil, c, nil, nil, "default", client.ObjectKey{Name: "name", Namespace: "namespace"})
 		t.Logf("%v", err)
 
 	}(ctx)

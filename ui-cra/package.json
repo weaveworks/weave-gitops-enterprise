@@ -29,7 +29,7 @@
     "@types/react-jsonschema-form": "^1.7.5",
     "@types/react-router-dom": "^5.1.7",
     "@types/styled-components": "^5.1.9",
-    "@weaveworks/weave-gitops": "0.2.4-patch1",
+    "@weaveworks/weave-gitops": "0.2.5-patch1",
     "d3-scale": "3.2.1",
     "git-url-parse": "11.1.2",
     "http-proxy-middleware": "^2.0.0",

@@ -268,12 +268,12 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 	case "github":
 		if gpi.Hostname != "github.com" {
 			client, err = github.NewClient(
-				github.WithOAuth2Token(gpi.Token),
-				github.WithDomain(gpi.Hostname),
+				gitprovider.WithOAuth2Token(gpi.Token),
+				gitprovider.WithDomain(gpi.Hostname),
 			)
 		} else {
 			client, err = github.NewClient(
-				github.WithOAuth2Token(gpi.Token),
+				gitprovider.WithOAuth2Token(gpi.Token),
 			)
 		}
 		if err != nil {
@@ -281,9 +281,9 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		}
 	case "gitlab":
 		if gpi.Hostname != "gitlab.com" {
-			client, err = gitlab.NewClient(gpi.Token, "", gitlab.WithDomain(gpi.Hostname), gitlab.WithConditionalRequests(true))
+			client, err = gitlab.NewClient(gpi.Token, "", gitprovider.WithDomain(gpi.Hostname), gitprovider.WithConditionalRequests(true))
 		} else {
-			client, err = gitlab.NewClient(gpi.Token, "", gitlab.WithConditionalRequests(true))
+			client, err = gitlab.NewClient(gpi.Token, "", gitprovider.WithConditionalRequests(true))
 		}
 		if err != nil {
 			return nil, err

@@ -602,7 +602,7 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		Namespace: "default",
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", nil, client.ObjectKey{Name: "entitlement", Namespace: "default"})
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", client.ObjectKey{Name: "entitlement", Namespace: "default"})
 }
 
 func RunUIServer(ctx gcontext.Context) {
