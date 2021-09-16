@@ -113,11 +113,16 @@ func StartServer(ctx context.Context) error {
 	}
 	provider := git.NewGitProviderService()
 
+	appsConfig, err := wego_server.DefaultConfig()
+	if err != nil {
+		return fmt.Errorf("could not create wego default config: %w", err)
+	}
+
 	name := viper.GetString("entitlement-secret-name")
 	namespace := viper.GetString("entitlement-secret-namespace")
 	key := client.ObjectKey{Name: name, Namespace: namespace}
 
-	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, key,
+	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, appsConfig, key,
 		grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
 		grpc_runtime.WithMetadata(TrackEvents),
 		middleware.WithGrpcErrorLogging(klogr.New()),
@@ -125,17 +130,13 @@ func StartServer(ctx context.Context) error {
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, entitlementSecretKey client.ObjectKey, opts ...grpc_runtime.ServeMuxOption) error {
+func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, appsConfig *wego_server.ApplicationsConfig, entitlementSecretKey client.ObjectKey, opts ...grpc_runtime.ServeMuxOption) error {
 	mux := grpc_runtime.NewServeMux(opts...)
 
 	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, c, discoveryClient, db, ns))
 
-	// Add weave-gitops core handlers
-	cfg, err := wego_server.DefaultConfig()
-	if err != nil {
-		return fmt.Errorf("failed to get default weave-gitops config: %v", err)
-	}
-	wegoServer := wego_server.NewApplicationsServer(cfg)
+	//Add weave-gitops core handlers
+	wegoServer := wego_server.NewApplicationsServer(appsConfig)
 	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)
 
 	s := &http.Server{
