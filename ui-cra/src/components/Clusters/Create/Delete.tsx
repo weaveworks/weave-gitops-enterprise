@@ -57,7 +57,7 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
     useClusters();
-  const { notifications } = useNotifications();
+  const { notifications, setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
@@ -97,13 +97,20 @@ export const DeleteClusterDialog: FC<Props> = ({
   }, [setOpenDeletePR, setSelectedClusters]);
 
   useEffect(() => {
+    console.log(notifications);
     if (
       notifications.length > 0 &&
       notifications[notifications.length - 1].variant !== 'danger'
     ) {
       cleanUp();
     }
-  }, [notifications, setOpenDeletePR, setSelectedClusters, cleanUp]);
+  }, [
+    notifications,
+    setNotifications,
+    setOpenDeletePR,
+    setSelectedClusters,
+    cleanUp,
+  ]);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>

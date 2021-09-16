@@ -13,27 +13,12 @@ const ToastContainerWrapper = styled.div`
   .Toastify__toast-container {
     width: auto;
   }
-  .Toastify__toast {
-  }
-  .Toastify__toast-body {
-  }
-  .Toastify__progress-bar {
-  }
 `;
 
 const useStyles = makeStyles(() =>
   createStyles({
-    content: {
-      display: 'flex',
-      boxShadow: theme.boxShadow.light,
-    },
     icon: {
       marginRight: theme.spacing.small,
-    },
-    closeIconWrapper: {
-      paddingLeft: theme.spacing.small,
-      color: '#C1C1C1',
-      cursor: 'pointer',
     },
     mainWrapper: {
       display: 'flex',
@@ -70,7 +55,6 @@ const Notifications: FC = () => {
             <strong
               style={{
                 color: getColor(notification?.variant),
-                flexWrap: 'wrap',
               }}
             >
               {notification?.variant === 'danger' ? 'Error' : 'Success'}
