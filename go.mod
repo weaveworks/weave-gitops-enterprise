@@ -239,3 +239,7 @@ replace (
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.21.1
 	k8s.io/sample-controller => k8s.io/sample-controller v0.21.1
 )
+
+replace github.com/go-logr/logr v1.1.0 => github.com/go-logr/logr v0.4.0
+
+replace github.com/go-logr/zapr v1.1.0 => github.com/go-logr/zapr v0.4.0

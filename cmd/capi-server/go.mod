@@ -29,7 +29,7 @@ require (
 	k8s.io/api v0.22.1
 	k8s.io/apimachinery v0.22.1
 	k8s.io/client-go v0.22.1
-	k8s.io/klog v1.0.0
+	k8s.io/klog/v2 v2.9.0
 	sigs.k8s.io/cluster-api v0.3.16
 	sigs.k8s.io/controller-runtime v0.9.1
 	sigs.k8s.io/kustomize/kyaml v0.11.0
@@ -157,7 +157,6 @@ require (
 	gorm.io/driver/sqlite v1.1.4 // indirect
 	k8s.io/apiextensions-apiserver v0.21.2 // indirect
 	k8s.io/component-base v0.22.1 // indirect
-	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
 	k8s.io/utils v0.0.0-20210707171843-4b05e18ac7d9 // indirect
 	sigs.k8s.io/kustomize/kstatus v0.0.2 // indirect
