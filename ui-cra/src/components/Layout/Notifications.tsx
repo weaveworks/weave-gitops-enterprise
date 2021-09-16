@@ -4,11 +4,22 @@ import { createStyles } from '@material-ui/styles';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error-icon.svg';
 import { ReactComponent as SuccessIcon } from '../../assets/img/success-icon.svg';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
+import useNotifications from '../../contexts/Notifications';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import styled from 'styled-components';
+
+const ToastContainerWrapper = styled.div`
+  .Toastify__toast-container {
+    width: auto;
+  }
+  .Toastify__toast {
+  }
+  .Toastify__toast-body {
+  }
+  .Toastify__progress-bar {
+  }
+`;
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -17,10 +28,6 @@ const useStyles = makeStyles(() =>
       boxShadow: theme.boxShadow.light,
     },
     icon: {
-      // minWidth: '50px',
-      // minHeight: '50px',
-      width: '75px',
-      height: '75px',
       marginRight: theme.spacing.small,
     },
     closeIconWrapper: {
@@ -37,8 +44,7 @@ const useStyles = makeStyles(() =>
 );
 
 const Notifications: FC = () => {
-  const { notifications, setNotifications, setShowNotifications } =
-    useNotifications();
+  const { notifications } = useNotifications();
   const classes = useStyles();
 
   const getColor = (variant?: string) => {
@@ -49,22 +55,17 @@ const Notifications: FC = () => {
     }
   };
 
-  // clean up notifications when the user navigates away
-  // const cleanUp = () => {
-  //   setShowNotifications(false);
-  //   setNotifications([]);
-  // };
-
   useEffect(() => {
-    // remove notification if it's already in the array
     notifications.forEach(notification =>
       toast(
         <div className={classes.mainWrapper}>
-          {notification?.variant === 'danger' ? (
-            <ErrorIcon className={classes.icon} />
-          ) : (
-            <SuccessIcon className={classes.icon} />
-          )}
+          <div>
+            {notification?.variant === 'danger' ? (
+              <ErrorIcon className={classes.icon} />
+            ) : (
+              <SuccessIcon className={classes.icon} />
+            )}
+          </div>
           <div>
             <strong
               style={{
@@ -78,17 +79,18 @@ const Notifications: FC = () => {
             {notification?.message}
           </div>
         </div>,
+        {
+          toastId: notification?.message,
+        },
       ),
     );
-    // return cleanup();
   }, [notifications, classes]);
 
   return (
-    <div>
+    <ToastContainerWrapper>
       <ToastContainer
-        style={{ width: '700px' }}
         position="bottom-center"
-        autoClose={20000}
+        autoClose={10000}
         hideProgressBar
         newestOnTop={true}
         closeOnClick
@@ -97,7 +99,7 @@ const Notifications: FC = () => {
         draggable
         pauseOnHover
       />
-    </div>
+    </ToastContainerWrapper>
   );
 };
 
