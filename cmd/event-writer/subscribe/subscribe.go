@@ -21,7 +21,7 @@ import (
 
 // ToSubject subscribes to a subject given a nats connection
 func ToSubject(ctx context.Context, server string, subject string, queueGroup string, fn interface{}) error {
-	log.Debug("creating new cloudevents NATS consumer")
+	log.Debug("Creating new CloudEvents NATS consumer")
 
 	opts := []cenats.ProtocolOption{}
 	if queueGroup != "" {
@@ -41,12 +41,13 @@ func ToSubject(ctx context.Context, server string, subject string, queueGroup st
 		log.Fatalf("failed to create NATS client: %v.", err)
 	}
 
-	for {
-		log.Debug("Starting NATS receiver.")
-		if err := c.StartReceiver(ctx, fn); err != nil {
-			log.Warnf("failed to start NATS receiver: %v.", err.Error())
-		}
+	log.Info("Starting NATS receiver.")
+	if err := c.StartReceiver(ctx, fn); err != nil {
+		log.Warnf("failed to start NATS receiver: %v.", err.Error())
+		return err
 	}
+	log.Info("Stopped NATS receiver.")
+	return nil
 }
 
 // ReceiveEvent can be passed as a callback function in ToSubject to store the received events to the DB
