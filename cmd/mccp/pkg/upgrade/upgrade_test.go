@@ -23,6 +23,12 @@ func TestUpgrade(t *testing.T) {
 			err:              errors.New("failed to get entitlement: exit status 1"),
 			expectedErrorStr: "failed to get entitlement: exit status 1",
 		},
+		{
+			name:             "error returned",
+			entitlement:      "foo",
+			err:              errors.New("failed to get entitlement: exit status 1"),
+			expectedErrorStr: "failed to get entitlement: exit status 1",
+		},
 	}
 
 	for _, tt := range tests {
@@ -36,3 +42,29 @@ func TestUpgrade(t *testing.T) {
 		})
 	}
 }
+
+// func createFakeClient(clusterState []runtime.Object) client.Client {
+// 	scheme := runtime.NewScheme()
+// 	schemeBuilder := runtime.SchemeBuilder{
+// 		corev1.AddToScheme,
+// 	}
+// 	schemeBuilder.AddToScheme(scheme)
+
+// 	c := fake.NewClientBuilder().
+// 		WithScheme(scheme).
+// 		WithRuntimeObjects(clusterState...).
+// 		Build()
+
+// 	return c
+// }
+
+// func createSecret(name string) *corev1.Secret {
+// 	return &corev1.Secret{
+// 		ObjectMeta: metav1.ObjectMeta{
+// 			Name:      name,
+// 			Namespace: "default",
+// 		},
+// 		Type: "Opaque",
+// 		Data: map[string][]byte{"entitlement": []byte("foo")},
+// 	}
+// }
