@@ -44,11 +44,6 @@ func Upgrade(w io.Writer) error {
 		return err
 	}
 
-	err = removeWEGO()
-	if err != nil {
-		return err
-	}
-
 	repoURL, err := getRepoURL()
 	if err != nil {
 		return err
@@ -120,30 +115,20 @@ func getGitRepo() (string, error) {
 
 func preFlightCheck() error {
 	// TODO: use kuberenetes client
+	log.Info("Checking if wego-system namespace exists...")
+	cmdItems := []string{"kubectl", "get", "ns", "wego-system"}
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to get wego-system namespace: %v", err)
+	}
+
 	log.Info("Checking if entitlement exists...")
-	cmdItems := []string{"kubectl", "get", "secret", "weave-gitops-enterprise-credentials", "--all-namespaces"}
-	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to get entitlement: %v", err)
-	}
-
-	return nil
-}
-
-func removeWEGO() error {
-	cmdItems := []string{"kubectl", "delete", "--all", "services", "--namespace", "wego-system"}
-	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to delete wego services: %v", err)
-	}
-
-	cmdItems = []string{"kubectl", "delete", "--all", "deployments", "--namespace", "wego-system"}
+	cmdItems = []string{"kubectl", "get", "secret", "weave-gitops-enterprise-credentials", "--all-namespaces"}
 	cmd = exec.Command(cmdItems[0], cmdItems[1:]...)
 	_, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to wego deployments: %v", err)
+		return fmt.Errorf("failed to get entitlement: %v", err)
 	}
 
 	return nil
