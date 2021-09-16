@@ -19,7 +19,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-type UpgradeParams struct {
+type UpgradeValues struct {
 	RepositoryURL  string
 	Remote         string
 	HeadBranch     string
@@ -54,7 +54,7 @@ func Upgrade(w io.Writer) error {
 		return err
 	}
 
-	params := UpgradeParams{
+	upgradeValues := UpgradeValues{
 		RepositoryURL:  repoURL,
 		Remote:         "origin",
 		HeadBranch:     "tier-upgrade-enterprise",
@@ -72,12 +72,12 @@ func Upgrade(w io.Writer) error {
 		GitRepository:  gitRepository,
 	}
 
-	installationDirectory, err := addProfile(params)
+	installationDirectory, err := addProfile(upgradeValues)
 	if err != nil {
 		return err
 	}
 
-	if err := createPullRequest(params, installationDirectory); err != nil {
+	if err := createPullRequest(upgradeValues, installationDirectory); err != nil {
 		return err
 
 	}
@@ -134,7 +134,7 @@ func PreFlightCheck() error {
 	return nil
 }
 
-func addProfile(params UpgradeParams) (string, error) {
+func addProfile(values UpgradeValues) (string, error) {
 	var (
 		err           error
 		catalogClient *client.Client
@@ -143,27 +143,27 @@ func addProfile(params UpgradeParams) (string, error) {
 		version       = "latest"
 	)
 
-	url := params.ProfileRepoURL
+	url := values.ProfileRepoURL
 
 	catalogClient, err = buildCatalogClient()
 	if err != nil {
 		return "", err
 	}
 
-	branch := params.ProfileBranch
-	subName := params.Name
-	namespace := params.Namespace
-	configMap := params.ConfigMap
-	dir := params.Out
-	path := params.ProfilePath
-	message := params.CommitMessage
+	branch := values.ProfileBranch
+	subName := values.Name
+	namespace := values.Namespace
+	configMap := values.ConfigMap
+	dir := values.Out
+	path := values.ProfilePath
+	message := values.CommitMessage
 
 	r := &runner.CLIRunner{}
 	g := git.NewCLIGit(git.CLIGitConfig{
 		Message: message,
 	}, r)
 
-	gitRepoNamespace, gitRepoName, err := getGitRepositoryNamespaceAndName(params.GitRepository)
+	gitRepoNamespace, gitRepoName, err := getGitRepositoryNamespaceAndName(values.GitRepository)
 	if err != nil {
 		return "", err
 	}
@@ -236,13 +236,13 @@ func buildCatalogClient() (*client.Client, error) {
 	return client.NewFromOptions(options)
 }
 
-func createPullRequest(params UpgradeParams, installationDirectory string) error {
-	branch := params.HeadBranch
-	repo := params.RepositoryURL
-	base := params.BaseBranch
-	remote := params.Remote
-	directory := params.Out
-	message := params.CommitMessage
+func createPullRequest(values UpgradeValues, installationDirectory string) error {
+	branch := values.HeadBranch
+	repo := values.RepositoryURL
+	base := values.BaseBranch
+	remote := values.Remote
+	directory := values.Out
+	message := values.CommitMessage
 
 	r := &runner.CLIRunner{}
 	g := git.NewCLIGit(git.CLIGitConfig{
