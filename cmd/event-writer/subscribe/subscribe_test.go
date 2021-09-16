@@ -804,7 +804,7 @@ func TestReceiveClusterInfo_ClusterUpdated(t *testing.T) {
 	assert.Equal(t, info2.Cluster.Nodes[0].IsControlPlane, nodes[0].IsControlPlane)
 }
 
-func TestReceiveClusterInfo__NoMatchingCluster(t *testing.T) {
+func TestReceiveClusterInfo_NoMatchingCluster(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
