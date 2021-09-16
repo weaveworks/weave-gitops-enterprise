@@ -2,7 +2,6 @@ package upgrade
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -17,11 +16,7 @@ import (
 	"github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
 	"github.com/weaveworks/pctl/pkg/runner"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/util/homedir"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 type UpgradeParams struct {
@@ -44,23 +39,12 @@ type UpgradeParams struct {
 }
 
 func Upgrade(w io.Writer) error {
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		v1.AddToScheme,
-	}
-	schemeBuilder.AddToScheme(scheme)
-	kubeClientConfig := config.GetConfigOrDie()
-	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
+	err := preFlightCheck()
 	if err != nil {
 		return err
 	}
 
-	err = PreFlightCheck(kubeClient)
-	if err != nil {
-		return err
-	}
-
-	err = removeWEGO(kubeClient)
+	err = removeWEGO()
 	if err != nil {
 		return err
 	}
@@ -134,28 +118,20 @@ func getGitRepo() (string, error) {
 	return stdout.String(), nil
 }
 
-func PreFlightCheck(c client.Client) error {
-	secs := &v1.SecretList{}
-	name := "weave-gitops-enterprise-credentials"
-	foundEntitlement := false
-
-	c.List(context.Background(), secs)
-
-	for _, item := range secs.Items {
-		if item.Name == name {
-			foundEntitlement = true
-			break
-		}
-	}
-
-	if !foundEntitlement {
-		return fmt.Errorf("failed to get entitlement: %v", name)
+func preFlightCheck() error {
+	// TODO: use kuberenetes client
+	log.Info("Checking if entitlement exists...")
+	cmdItems := []string{"kubectl", "get", "secret", "weave-gitops-enterprise-credentials", "--all-namespaces"}
+	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to get entitlement: %v", err)
 	}
 
 	return nil
 }
 
-func removeWEGO(c client.Client) error {
+func removeWEGO() error {
 	cmdItems := []string{"kubectl", "delete", "--all", "services", "--namespace", "wego-system"}
 	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
 	_, err := cmd.CombinedOutput()
@@ -176,7 +152,7 @@ func removeWEGO(c client.Client) error {
 func addProfile(params UpgradeParams) (string, error) {
 	var (
 		err           error
-		catalogClient catalog.CatalogClient
+		catalogClient *client.Client
 		catalogName   string
 		profileName   string
 		version       = "latest"
@@ -264,7 +240,7 @@ func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, err
 	return "", "", fmt.Errorf("flux git repository not provided, please provide the --git-repository flag or use the pctl bootstrap functionality")
 }
 
-func buildCatalogClient() (catalog.CatalogClient, error) {
+func buildCatalogClient() (*client.Client, error) {
 	home := homedir.HomeDir()
 	options := client.ServiceOptions{
 		KubeconfigPath: filepath.Join(home, ".kube", "config"),
