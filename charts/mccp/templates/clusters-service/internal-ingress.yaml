@@ -9,7 +9,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
-    {{- if semverCompare "<1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+    {{- if semverCompare "<1.19-0" .Capabilities.KubeVersion.GitVersion }}
     kubernetes.io/ingress.class: mccp-nginx
     {{- end }}
     nginx.ingress.kubernetes.io/rewrite-target: /v1/$1
@@ -18,7 +18,7 @@ metadata:
   name: clusters-service
   namespace: {{ .Release.Namespace | quote }}
 spec:
-  {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
+  {{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
   ingressClassName: mccp-nginx
   {{- end }}
   rules:
