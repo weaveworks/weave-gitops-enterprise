@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import Notifications from '../../components/Layout/Notifications';
 import { Notification, NotificationData } from './index';
@@ -9,11 +9,9 @@ const NotificationProvider: FC = ({ children }) => {
   );
   const history = useHistory();
 
-  const clearNotifications = useCallback(() => setNotifications([]), []);
-
   useEffect(() => {
-    return history.listen(clearNotifications);
-  }, [history, notifications, clearNotifications]);
+    return history.listen(() => setNotifications([]));
+  }, [history, notifications]);
 
   return (
     <Notification.Provider value={{ notifications, setNotifications }}>

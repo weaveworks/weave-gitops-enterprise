@@ -97,7 +97,6 @@ export const DeleteClusterDialog: FC<Props> = ({
   }, [setOpenDeletePR, setSelectedClusters]);
 
   useEffect(() => {
-    console.log(notifications);
     if (
       notifications.length > 0 &&
       notifications[notifications.length - 1].variant !== 'danger'
