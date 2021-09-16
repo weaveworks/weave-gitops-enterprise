@@ -1,4 +1,4 @@
-FROM golang:1.14 as builder
+FROM golang:1.17 as builder
 ENV EWPATH=cmd/event-writer
 
 WORKDIR /workspace/$EWPATH
@@ -25,7 +25,7 @@ COPY $EWPATH/liveness/ liveness/
 # build
 RUN CGO_ENABLED=1 go build -ldflags '-linkmode external -w -extldflags "-static"' -o event-writer main.go
 
-FROM alpine:3.12
+FROM alpine:3.14
 ENV EWPATH=cmd/event-writer
 
 COPY --from=builder /workspace/$EWPATH/event-writer /event-writer
