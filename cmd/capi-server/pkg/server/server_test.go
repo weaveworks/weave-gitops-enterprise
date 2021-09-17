@@ -59,8 +59,8 @@ func TestListTemplates(t *testing.T) {
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
 					Objects: []*capiv1_protos.TemplateObject{
-						{   
-							Name: string("${CLUSTER_NAME}"),
+						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "fookind",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -88,8 +88,8 @@ func TestListTemplates(t *testing.T) {
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
 					Objects: []*capiv1_protos.TemplateObject{
-						{   
-							Name: string("${CLUSTER_NAME}"),
+						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "fookind",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -106,8 +106,8 @@ func TestListTemplates(t *testing.T) {
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
 					Objects: []*capiv1_protos.TemplateObject{
-						{   
-							Name: string("${CLUSTER_NAME}"),
+						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "fookind",
 							Parameters: []string{"CLUSTER_NAME"},
