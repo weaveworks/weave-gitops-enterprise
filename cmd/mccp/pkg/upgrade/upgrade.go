@@ -2,6 +2,7 @@ package upgrade
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -16,7 +17,10 @@ import (
 	"github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
 	"github.com/weaveworks/pctl/pkg/runner"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/homedir"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 type UpgradeValues struct {
@@ -39,7 +43,13 @@ type UpgradeValues struct {
 }
 
 func Upgrade(w io.Writer) error {
-	err := PreFlightCheck()
+	config := config.GetConfigOrDie()
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return err
+	}
+
+	err = PreFlightCheck(clientset)
 	if err != nil {
 		return err
 	}
@@ -113,20 +123,10 @@ func getGitRepo() (string, error) {
 	return stdout.String(), nil
 }
 
-func PreFlightCheck() error {
-	// TODO: use kuberenetes client
-	log.Info("Checking if wego-system namespace exists...")
-	cmdItems := []string{"kubectl", "get", "ns", "wego-system"}
-	cmd := exec.Command(cmdItems[0], cmdItems[1:]...)
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to get wego-system namespace: %v", err)
-	}
-
+func PreFlightCheck(clientset kubernetes.Interface) error {
 	log.Info("Checking if entitlement exists...")
-	cmdItems = []string{"kubectl", "get", "secret", "weave-gitops-enterprise-credentials", "--all-namespaces"}
-	cmd = exec.Command(cmdItems[0], cmdItems[1:]...)
-	_, err = cmd.CombinedOutput()
+
+	_, err := clientset.CoreV1().Secrets("wego-system").Get(context.Background(), "weave-gitops-enterprise-credentials", metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to get entitlement: %v", err)
 	}
