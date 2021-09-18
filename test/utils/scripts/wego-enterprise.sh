@@ -56,9 +56,7 @@ function setup {
     elif [ "$RUNNER_OS" == "macOS" ]; then
       WORKER_NODE_EXTERNAL_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
     fi
-  fi
-
-  echo "Worker node public ip is ${WORKER_NODE_EXTERNAL_IP}"          
+  fi        
 
   kubectl create namespace prom
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
