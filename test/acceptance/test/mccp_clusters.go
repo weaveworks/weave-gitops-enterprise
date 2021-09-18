@@ -221,6 +221,9 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 		})
 
 		It("Verify MCCP page structure first time with no cluster configured", func() {
+			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+				Skip("This test case runs only with sqlite")
+			}
 
 			By("And MCCP state is reset", func() {
 				mccpTestRunner.ResetDatabase()
@@ -390,6 +393,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
+
 			mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
 			mccpTestRunner.checkClusterService()

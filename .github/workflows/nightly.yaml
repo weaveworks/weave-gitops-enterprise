@@ -1,5 +1,4 @@
 on:
-  push:
   schedule:
     - cron: '10 0 * * *'
   workflow_dispatch:
@@ -125,6 +124,7 @@ jobs:
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
       MCCP_EKS_LEAF_KUBECONFIG: '/tmp/mccp-eks-leaf-kubeconfig'
       MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-leaf-kubeconfig'
+      ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
       MANAGEMENT_CLUSTER_KIND: EKS
       SELENIUM_DEBUG: true
       MCCP_ACCEPTANCE: true
@@ -325,6 +325,7 @@ jobs:
   #     WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
   #     MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
   #     MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-leaf-kubeconfig'
+  #     ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
   #     MANAGEMENT_CLUSTER_KIND: GKE
   #     SELENIUM_DEBUG: true
   #     MCCP_ACCEPTANCE: true

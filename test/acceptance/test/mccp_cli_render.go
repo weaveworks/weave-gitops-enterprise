@@ -205,6 +205,9 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 		Context("[CLI] When no clusters are available in the management cluster", func() {
 			It("Verify mccp lists no clusters", func() {
+				if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+					Skip("This test case runs only with sqlite")
+				}
 
 				By("And MCCP state is reset", func() {
 					mccpTestRunner.ResetDatabase()
