@@ -805,7 +805,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
-			It("@smoke @integration Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})

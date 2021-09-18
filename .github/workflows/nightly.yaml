@@ -278,9 +278,9 @@ jobs:
       run: |
         cd test/acceptance/test/
         if [ "$RUNNER_OS" == "macOS" ]; then
-          go test -ginkgo.skip=@gce -ginkgo.skip=@wkp -ginkgo.v -v --timeout=99999s
+          go test -ginkgo.skip=@gce -ginkgo.skip=@wkp -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
         else
-          go test -ginkgo.skip=@gce -ginkgo.v -v --timeout=99999s
+          go test -ginkgo.skip=@gce -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
         fi
     - name: Reset EKS management cluster
       if: ${{ always() }}
