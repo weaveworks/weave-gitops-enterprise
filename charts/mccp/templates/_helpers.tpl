@@ -70,16 +70,16 @@ Return the appropriate apiVersion for ingress.
 {{- if .Values.ingress -}}
 {{- if .Values.ingress.apiVersion -}}
 {{- .Values.ingress.apiVersion -}}
-{{- else if semverCompare "<1.14-0" (include "common.capabilities.kubeVersion" .) -}}
+{{- else if semverCompare "<1.14-0" (include ".Capabilities.KubeVersion.GitVersion" .) -}}
 {{- print "extensions/v1beta1" -}}
-{{- else if semverCompare "<1.19-0" (include "common.capabilities.kubeVersion" .) -}}
+{{- else if semverCompare "<1.19-0" (include ".Capabilities.KubeVersion.GitVersion" .) -}}
 {{- print "networking.k8s.io/v1beta1" -}}
 {{- else -}}
 {{- print "networking.k8s.io/v1" -}}
 {{- end }}
-{{- else if semverCompare "<1.14-0" (include "common.capabilities.kubeVersion" .) -}}
+{{- else if semverCompare "<1.14-0" (include ".Capabilities.KubeVersion.GitVersion" .) -}}
 {{- print "extensions/v1beta1" -}}
-{{- else if semverCompare "<1.19-0" (include "common.capabilities.kubeVersion" .) -}}
+{{- else if semverCompare "<1.19-0" (include ".Capabilities.KubeVersion.GitVersion" .) -}}
 {{- print "networking.k8s.io/v1beta1" -}}
 {{- else -}}
 {{- print "networking.k8s.io/v1" -}}
@@ -119,7 +119,7 @@ Usage:
 {{ include "common.ingress.supportsPathType" . }}
 */}}
 {{- define "common.ingress.supportsPathType" -}}
-{{- if (semverCompare "<1.18-0" (include "common.capabilities.kubeVersion" .)) -}}
+{{- if (semverCompare "<1.18-0" (include ".Capabilities.KubeVersion.GitVersion" .)) -}}
 {{- print "false" -}}
 {{- else -}}
 {{- print "true" -}}
@@ -132,7 +132,7 @@ Usage:
 {{ include "common.ingress.supportsIngressClassname" . }}
 */}}
 {{- define "common.ingress.supportsIngressClassname" -}}
-{{- if semverCompare "<1.18-0" (include "common.capabilities.kubeVersion" .) -}}
+{{- if semverCompare "<1.18-0" (include ".Capabilities.KubeVersion.GitVersion" .) -}}
 {{- print "false" -}}
 {{- else -}}
 {{- print "true" -}}
