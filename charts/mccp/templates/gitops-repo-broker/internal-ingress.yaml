@@ -20,4 +20,3 @@ spec:
         paths:
           - path: /gitops/?(.*)
             backend: {{- include "common.ingress.backend" (dict "serviceName" "gitops-repo-broker" "servicePort" 8000 "context" $)  | nindent 14 }}
-
