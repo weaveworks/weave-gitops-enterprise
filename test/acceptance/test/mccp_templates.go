@@ -240,14 +240,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				sshKey := "abcdef1234567890"
 				k8Version := "1.19.7"
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1. Cluster"] = []TemplateField{
+				paramSection["Cluster/${CLUSTER_NAME}"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
 					},
 				}
-				paramSection["3. AWSManagedControlPlane"] = []TemplateField{
+				paramSection["AWSManagedControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  region,
