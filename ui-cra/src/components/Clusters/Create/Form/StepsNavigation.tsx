@@ -22,6 +22,7 @@ const useStyles = makeStyles(() =>
       marginBottom: `${weaveTheme.spacing.small}`,
       color: `${weaveTheme.colors.black}`,
       cursor: 'pointer',
+      fontFamily: `${weaveTheme.fontFamilies.monospace}`,
     },
     activeLink: {
       borderRight: `4px solid ${weaveTheme.colors.blue400}`,
@@ -53,7 +54,9 @@ const FormStepsNavigation: FC<{
         return (
           <div key={index} className={classes.linkWrapper}>
             <Link
-              style={{ textDecoration: 'none' }}
+              style={{
+                textDecoration: 'none',
+              }}
               className={classNames(
                 classes.link,
                 step === activeStep ? classes.activeLink : '',

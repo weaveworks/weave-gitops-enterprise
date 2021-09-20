@@ -283,9 +283,9 @@ const AddCluster: FC = () => {
   const sections = useMemo(() => {
     const groups =
       activeTemplate?.objects?.reduce(
-        (accumulator, item, index) =>
+        (accumulator, item) =>
           Object.assign(accumulator, {
-            [`${index + 1}. ${item.name}, ${item.kind}`]: item.parameters,
+            [`${item.kind}/${item.name}`]: item.parameters,
           }),
         {},
       ) || {};
@@ -307,9 +307,8 @@ const AddCluster: FC = () => {
       setActiveTemplate(getTemplate(templateName));
     }
     const steps =
-      activeTemplate?.objects?.map(
-        (object, index) => `${index + 1}. ${object.name}, ${object.kind} `,
-      ) || [];
+      activeTemplate?.objects?.map(object => `${object.kind}/${object.name}`) ||
+      [];
     setSteps(steps);
     return history.listen(() => {
       setActiveTemplate(null);
