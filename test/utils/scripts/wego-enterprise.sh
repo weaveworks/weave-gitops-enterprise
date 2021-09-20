@@ -51,10 +51,10 @@ function setup {
     echo "GKE"
   else
   # MANAGEMENT_CLUSTER_KIND is a KIND cluster
-    if [ "$RUNNER_OS" == "Linux" ]; then
+    if [ "$(uname -s)" == "Linux" ]; then
       WORKER_NODE_EXTERNAL_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
-    elif [ "$RUNNER_OS" == "macOS" ]; then
-      WORKER_NODE_EXTERNAL_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
+    elif [ "$(uname -s)" == "Darwin" ]; then
+      WORKER_NODE_EXTERNAL_IP=$(ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
     fi
   fi        
 
@@ -76,7 +76,12 @@ function setup {
     --namespace=wego-system \
     --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
   CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
-  helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
+
+  if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
+    helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/$(date +%F)/charts-v3/
+  else
+    helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
+  fi
   helm repo update
 
   if [ "${MANAGEMENT_CLUSTER_KIND}" == "EKS" ] || [ "${MANAGEMENT_CLUSTER_KIND}" == "GKE" ]; then
