@@ -282,7 +282,7 @@ const AddCluster: FC = () => {
   // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
   const sections = useMemo(() => {
     const groups =
-      activeTemplate?.objects.reduce(
+      activeTemplate?.objects?.reduce(
         (accumulator, item, index) =>
           Object.assign(accumulator, {
             [`${index + 1}. ${item.kind}`]: item.parameters,
@@ -308,7 +308,7 @@ const AddCluster: FC = () => {
     }
     const steps =
       activeTemplate?.objects?.map(
-        (object, index) => `${index + 1}. ${object.kind}`,
+        (object, index) => `${index + 1}. ${object.name}`,
       ) || [];
     setSteps(steps);
     return history.listen(() => {
