@@ -171,6 +171,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 					Description: "this is test template 2",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "AWSCluster",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -200,6 +201,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 					Description: "this is test template 2",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "AWSCluster",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -273,6 +275,7 @@ func TestGetTemplate(t *testing.T) {
 				Description: "this is test template 1",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
+						Name:       string("${CLUSTER_NAME}"),
 						ApiVersion: "fooversion",
 						Kind:       "fookind",
 						Parameters: []string{"CLUSTER_NAME"},
