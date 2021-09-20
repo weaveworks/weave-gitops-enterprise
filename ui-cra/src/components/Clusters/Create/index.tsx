@@ -285,7 +285,7 @@ const AddCluster: FC = () => {
       activeTemplate?.objects?.reduce(
         (accumulator, item, index) =>
           Object.assign(accumulator, {
-            [`${index + 1}. ${item.kind}`]: item.parameters,
+            [`${index + 1}. ${item.name}, ${item.kind}`]: item.parameters,
           }),
         {},
       ) || {};
@@ -308,7 +308,7 @@ const AddCluster: FC = () => {
     }
     const steps =
       activeTemplate?.objects?.map(
-        (object, index) => `${index + 1}. ${object.name}`,
+        (object, index) => `${index + 1}. ${object.name}, ${object.kind} `,
       ) || [];
     setSteps(steps);
     return history.listen(() => {
