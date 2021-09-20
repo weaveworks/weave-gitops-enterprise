@@ -10,10 +10,12 @@ metadata:
   name: gitops-repo-broker
   namespace: {{ .Release.Namespace | quote }}
 spec:
+  {{- if and .Values.nginx-ingress-controller.ingressClass (include "common.ingress.supportsIngressClassname" .) }}
+  ingressClassName: {{ .Values.ingress.ingressClassName | quote }}
+  {{- end }}
   rules:
     - http:
         paths:
-          - backend:
-              serviceName: gitops-repo-broker
-              servicePort: 8000
-            path: /gitops/?(.*)
+          - path: /gitops/?(.*)
+            backend: {{- include "common.ingress.backend" (dict "serviceName" "gitops-repo-broker" "servicePort" 8000 "context" $)  | nindent 14 }}
+
