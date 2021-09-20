@@ -17,6 +17,8 @@ import (
 	"github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
 	"github.com/weaveworks/pctl/pkg/runner"
+	git_utils "github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/git"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/homedir"
@@ -49,7 +51,7 @@ func Upgrade(w io.Writer) error {
 		return err
 	}
 
-	err = PreFlightCheck(clientset)
+	entitlement, err := PreFlightCheck(clientset)
 	if err != nil {
 		return err
 	}
@@ -81,6 +83,14 @@ func Upgrade(w io.Writer) error {
 		ProfilePath:    ".",
 		GitRepository:  gitRepository,
 	}
+
+	key := entitlement.Data["entitlement"]
+	localRepo, err := git_utils.CloneToTempDir("/tmp", upgradeValues.ProfileRepoURL, upgradeValues.ProfileBranch, key)
+	if err != nil {
+		return err
+	}
+
+	upgradeValues.ProfileRepoURL = localRepo.WorktreeDir()
 
 	installationDirectory, err := addProfile(upgradeValues)
 	if err != nil {
@@ -123,15 +133,16 @@ func getGitRepo() (string, error) {
 	return stdout.String(), nil
 }
 
-func PreFlightCheck(clientset kubernetes.Interface) error {
+func PreFlightCheck(clientset kubernetes.Interface) (*v1.Secret, error) {
 	log.Info("Checking if entitlement exists...")
+	var entitlement *v1.Secret
 
-	_, err := clientset.CoreV1().Secrets("wego-system").Get(context.Background(), "weave-gitops-enterprise-credentials", metav1.GetOptions{})
+	entitlement, err := clientset.CoreV1().Secrets("wego-system").Get(context.Background(), "weave-gitops-enterprise-credentials", metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to get entitlement: %v", err)
+		return entitlement, fmt.Errorf("failed to get entitlement: %v", err)
 	}
 
-	return nil
+	return entitlement, nil
 }
 
 func addProfile(values UpgradeValues) (string, error) {
