@@ -292,7 +292,7 @@ jobs:
         make ui-build-for-tests
         
         cd test/integration/test
-        go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip=@Integration --timeout=99999s     
+        go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip=@integration -ginkgo.skip=@gce -ginkgo.skip=@eks --timeout=99999s     
     - name: Store integration test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
@@ -408,15 +408,13 @@ jobs:
         CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-        # Create wego-system namespace and add entitlement
-        kubectl create ns wego-system
-        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
-        ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
+        
+        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
         kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Run smoke tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.focus=@Smoke -ginkgo.v -v --timeout=99999s
+        go test -ginkgo.focus=@smoke -ginkgo.v -v --timeout=99999s
     - name: Store smoke test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
@@ -540,27 +538,25 @@ jobs:
         CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-        # Create wego-system namespace and add entitlement
-        kubectl create ns wego-system
-        kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
-        ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
+        
+        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
         kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Setup wkp leaf cluster
       run: |
         kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
         export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
-
         export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}
+        
         # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
         echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
-        ./test/utils/scripts/ci-cluster-install.sh wkp $CLUSTER_NAME ${{ github.workspace }}
+        ./test/utils/scripts/wkp.sh setup $CLUSTER_NAME ${{ github.workspace }}
 
         # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
         unset KUBECONFIG        
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.skip=@Smoke -ginkgo.v -v --timeout=99999s
+        go test -ginkgo.skip=@smoke -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
     - name: Delete WKP repository
       if: ${{ always() }}
       run: |

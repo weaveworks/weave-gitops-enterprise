@@ -221,6 +221,9 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 		})
 
 		It("Verify MCCP page structure first time with no cluster configured", func() {
+			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+				Skip("This test case runs only with sqlite")
+			}
 
 			By("And MCCP state is reset", func() {
 				mccpTestRunner.ResetDatabase()
@@ -390,6 +393,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
+
 			mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
 			mccpTestRunner.checkClusterService()
@@ -616,24 +620,15 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		XIt("Verify user can connect a GCE cluster", func() {
-			if getEnv("CONNECT_GCE_LEAF_TEST", "") == "" {
-				Skip("set CONNECT_GCE_LEAF_TEST env var to run this test")
-			}
+		It("@gce Verify user can connect a GCE cluster", func() {
 			connectACluster(webDriver, mccpTestRunner, leaves["gce"])
 		})
 
-		It("Verify user can connect an EKS cluster", func() {
-			if getEnv("CONNECT_EKS_LEAF_TEST", "") == "" {
-				Skip("set CONNECT_EKS_LEAF_TEST env var to run this test")
-			}
+		It("@eks Verify user can connect an EKS cluster", func() {
 			connectACluster(webDriver, mccpTestRunner, leaves["eks"])
 		})
 
-		It("Verify user can connect a kind cluster with cluster components installed", func() {
-			if getEnv("CONNECT_KIND_WKP_LEAF_TEST", "") == "" {
-				Skip("set CONNECT_KIND_WKP_LEAF_TEST env var to run this test")
-			}
+		It("@wkp Verify user can connect a kind cluster with cluster components installed", func() {
 			connectACluster(webDriver, mccpTestRunner, leaves["kind-wkp"])
 		})
 	})
