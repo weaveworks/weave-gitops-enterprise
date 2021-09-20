@@ -333,7 +333,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["7. MachineDeployment"] = []TemplateField{
+				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -455,7 +455,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["7. MachineDeployment"] = []TemplateField{
+				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -871,7 +871,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["7. MachineDeployment"] = []TemplateField{
+				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
