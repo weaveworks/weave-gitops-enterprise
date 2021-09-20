@@ -1,0 +1,526 @@
+on:
+  schedule:
+    - cron: '10 0 * * *'
+  workflow_dispatch:
+
+name: nightly
+jobs:
+  build:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      YARN_CACHE_NAME: cache-yarn
+      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+    steps:
+    - id: cache-paths
+      run: |
+        echo "::set-output name=dir::$(yarn cache dir)"
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.cache-paths.outputs.go-build }}
+          ${{ steps.cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+    - name: Yarn Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.cache-paths.outputs.dir }}
+        key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+    - name: Build all the services
+      env:
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: |
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          LOCAL_BINARIES_GOOS=darwin make cmd/mccp/mccp
+        elif [ "$RUNNER_OS" == "Linux" ]; then
+          make -j4 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
+        fi
+        mv cmd/mccp/mccp cmd/mccp/mccp-${{ matrix.os }}-nightly
+    - name: Store mccp binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: mccp-binaries
+        path: cmd/mccp/mccp-${{ matrix.os }}-nightly
+        retention-days: 1
+    - name: Install Helm v3
+      if: ${{ runner.os == 'Linux' }}
+      uses: azure/setup-helm@v1
+      with:
+        version: v3.5.4
+    - name: Configure AWS Credentials
+      if: ${{ runner.os == 'Linux' }}
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+    - name: Publish helm chart to s3
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+          TAG=$(git describe --always --match "v*")
+          
+          CHART_VALUES_PATH=./charts/mccp/values.yaml
+          # Update the MCCP chart values.yaml file with the current image tag
+          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+          # Publish the MCCP Helm v3 chart
+          ./bin/publish-chart-to-s3.sh $TAG $GITHUB_EVENT_NAME ./charts/mccp 3
+    - name: Login to Docker Hub
+      if: ${{ runner.os == 'Linux' }}
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      if: ${{ runner.os == 'Linux' }}
+      run: make push
+
+  test-eks:
+    needs: [build]
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os_name: linux
+          - os: macOS-latest
+            os_name: darwin
+    timeout-minutes: 90
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
+      DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+      MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp-${{ matrix.os }}-nightly
+      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-${{ matrix.os_name }}-x86_64
+      WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
+      WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
+      MCCP_EKS_LEAF_KUBECONFIG: '/tmp/mccp-eks-leaf-kubeconfig'
+      MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-leaf-kubeconfig'
+      ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
+      MANAGEMENT_CLUSTER_KIND: EKS
+      SELENIUM_DEBUG: true
+      MCCP_ACCEPTANCE: true
+      ARTEFACTS_BASE_DIR: /tmp/workspace/test/
+    steps:
+    - id: go-cache-paths
+      run: |
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.go-cache-paths.outputs.go-build }}
+          ${{ steps.go-cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+    - name: setup aws credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    - name: Install eksctl
+      run: |
+        curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+        sudo mv /tmp/eksctl /usr/local/bin
+        eksctl get clusters
+    - name: Install aws-iam-authenticator
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
+          chmod +x ./aws-iam-authenticator
+          sudo mv ./aws-iam-authenticator /usr/local/bin 
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install aws-iam-authenticator
+        fi   
+    - name: Install kubectl
+      uses: Azure/setup-kubectl@v1
+      with:
+          version: 'v1.21.2'
+    - name: Install kind
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.0/kind-linux-amd64
+        chmod +x ./kind
+        sudo mv ./kind /usr/local/bin/kind
+    - name: Install clusterctl
+      run: |
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-${{ matrix.os_name }}-amd64 -o clusterctl
+        chmod +x ./clusterctl
+        sudo mv ./clusterctl /usr/local/bin/clusterctl
+        clusterctl version 
+    - name: Set up ssh agent
+      uses: webfactory/ssh-agent@v0.5.2
+      with:
+        ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+    - name: Configure git settings
+      run: |
+        git config --global user.email "test-user@weave.works"
+        git config --global user.name "test-user"
+        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    - name: Download mccp binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: mccp-binaries
+        path: cmd/mccp
+    - name: Download wego binary from GitHub
+      run: |
+        mkdir -p cmd/wego/
+        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.2.4/wego-${{ matrix.os_name }}-x86_64
+        mv wego-${{ matrix.os_name }}-x86_64 $WEGO_BIN_PATH
+    - name: Download wk binary from s3
+      run: |
+        mkdir -p cmd/wk/
+        curl -o $WKP_BIN_PATH https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-${{ matrix.os_name }}-amd64        
+    - name: Change bin permissions
+      run: |
+        sudo chmod +x ${{ env.MCCP_BIN_PATH }}
+        sudo chmod +x ${{ env.WEGO_BIN_PATH }}
+        sudo chmod +x ${{ env.WKP_BIN_PATH }}  
+    - name: Setup selenium server
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          sudo apt-get install -y google-chrome-stable
+
+          wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv -f chromedriver /usr/local/bin/chromedriver
+
+          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+
+          # Start selenium server in standalone mode
+          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          selenium-server & 
+        fi  
+    - name: Setup EKS management cluster
+      run: |
+        export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ matrix.os_name }}
+        export CLUSTER_VERSION=1.21
+
+        export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
+        if [ -z $CLUSTER_EXISTS ]
+        then
+          eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION
+        fi
+        eksctl utils write-kubeconfig --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
+        kubectl config rename-context $(kubectl config current-context) test-eks-${{ matrix.os_name }}
+        ls -la $HOME/.kube
+        kubectl get nodes -A
+        kubectl get all --all-namespaces -o wide 
+        
+    - name: Install mccp componenets on EKS management cluster
+      run: |
+        CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
+        echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
+
+        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
+    - name: Setup wkp leaf cluster
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
+        export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
+
+        export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}-${{ matrix.os }}
+        # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
+        echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
+        ./test/utils/scripts/wkp.sh setup $CLUSTER_NAME ${{ github.workspace }}
+
+        # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
+        unset KUBECONFIG 
+    - name: Setup eks leaf cluster 
+      run: |
+        # decode EKS kubeconfig and store at path set in MCCP_EKS_LEAF_KUBECONFIG
+        echo $WGE_ACCEPTANCE_EKS_KUBECONFIG | base64 -d > $MCCP_EKS_LEAF_KUBECONFIG
+    - name: Run acceptance tests
+      run: |
+        cd test/acceptance/test/
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          go test -ginkgo.skip=@gce -ginkgo.skip=@wkp -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
+        else
+          go test -ginkgo.skip=@gce -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
+        fi
+    - name: Reset EKS management cluster
+      if: ${{ always() }}
+      continue-on-error: true
+      run: |
+        ./test/utils/scripts/wego-enterprise.sh reset
+    - name: Delete WKP repository
+      if: ${{ runner.os == 'Linux' }} && ${{ always() }}
+      continue-on-error: true
+      run: |
+        hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
+    - name: Store acceptance test results
+      if: ${{ always() }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v2
+      with:
+        name: acceptance-test-artifacts-${{ matrix.os }}
+        path: ${{ env.ARTEFACTS_BASE_DIR }}
+        retention-days: 1
+
+  # test-gke:
+  #   needs: [build]
+  #   runs-on: ${{matrix.os}}
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - os: ubuntu-latest
+  #           os_name: linux
+  #         - os: macOS-latest
+  #           os_name: darwin
+  #   timeout-minutes: 90
+  #   env:
+  #     GO_CACHE_NAME: cache-go-modules
+  #     GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+  #     GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+  #     GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+  #     DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
+  #     DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+  #     MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp-${{ matrix.os }}-nightly
+  #     WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-${{ matrix.os_name }}-x86_64
+  #     WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
+  #     WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
+  #     MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
+  #     MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-leaf-kubeconfig'
+  #     ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
+  #     MANAGEMENT_CLUSTER_KIND: GKE
+  #     SELENIUM_DEBUG: true
+  #     MCCP_ACCEPTANCE: true
+  #     ARTEFACTS_BASE_DIR: /tmp/workspace/test/
+  #   steps:
+  #   - id: go-cache-paths
+  #     run: |
+  #       echo "::set-output name=go-build::$(go env GOCACHE)"
+  #       echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+  #   - name: Install Go
+  #     uses: actions/setup-go@v2
+  #     with:
+  #       go-version: 1.16.x
+  #   - name: Checkout code
+  #     uses: actions/checkout@v2
+  #     with:
+  #       fetch-depth: 0 
+  #   - name: Go Build Cache
+  #     uses: actions/cache@v2
+  #     with:
+  #       path: |
+  #         ${{ steps.go-cache-paths.outputs.go-build }}
+  #         ${{ steps.go-cache-paths.outputs.go-mod }}
+  #       key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+  #   - name: Set up Cloud SDK
+  #     uses: google-github-actions/setup-gcloud@master
+  #     with:
+  #       project_id: ${{ secrets.GCP_PROJECT_ID }}
+  #       service_account_key: ${{ secrets.GCP_SA_KEY }}
+  #       export_default_credentials: true
+  #   - name: Use gcloud CLI
+  #     run: |
+  #       gcloud info
+  #       gcloud container clusters list   
+  #   - name: Install kubectl
+  #     uses: Azure/setup-kubectl@v1
+  #     with:
+  #         version: 'v1.21.2'
+  #   - name: Install kind
+  #     if: ${{ runner.os == 'Linux' }}
+  #     run: |
+  #       curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.0/kind-linux-amd64
+  #       chmod +x ./kind
+  #       sudo mv ./kind /usr/local/bin/kind
+  #   - name: Install clusterctl
+  #     run: |
+  #       curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-${{ matrix.os_name }}-amd64 -o clusterctl
+  #       chmod +x ./clusterctl
+  #       sudo mv ./clusterctl /usr/local/bin/clusterctl
+  #       clusterctl version 
+  #   - name: Set up ssh agent
+  #     uses: webfactory/ssh-agent@v0.5.2
+  #     with:
+  #       ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+  #   - name: Configure git settings
+  #     run: |
+  #       git config --global user.email "test-user@weave.works"
+  #       git config --global user.name "test-user"
+  #       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+  #   - name: Download mccp binaries
+  #     uses: actions/download-artifact@v2
+  #     with:
+  #       name: mccp-binaries
+  #       path: cmd/mccp
+  #   - name: Download wego binary from GitHub
+  #     run: |
+  #       mkdir -p cmd/wego/
+  #       wget https://github.com/weaveworks/weave-gitops/releases/download/v0.2.4/wego-${{ matrix.os_name }}-x86_64
+  #       mv wego-${{ matrix.os_name }}-x86_64 $WEGO_BIN_PATH
+  #   - name: Download wk binary from s3
+  #     run: |
+  #       mkdir -p cmd/wk/
+  #       curl -o $WKP_BIN_PATH https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-${{ matrix.os_name }}-amd64        
+  #   - name: Change bin permissions
+  #     run: |
+  #       sudo chmod +x ${{ env.MCCP_BIN_PATH }}
+  #       sudo chmod +x ${{ env.WEGO_BIN_PATH }}
+  #       sudo chmod +x ${{ env.WKP_BIN_PATH }}  
+  #   - name: Setup selenium server
+  #     run: |
+  #       if [ "$RUNNER_OS" == "Linux" ]; then
+  #         sudo apt-get update
+  #         sudo apt-get install -y xvfb
+  #         sudo apt-get install -y google-chrome-stable
+
+  #         wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+  #         unzip chromedriver_linux64.zip
+  #         sudo mv -f chromedriver /usr/local/bin/chromedriver
+
+  #         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+
+  #         # Start selenium server in standalone mode
+  #         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+
+  #       elif [ "$RUNNER_OS" == "macOS" ]; then
+  #         selenium-server & 
+  #       fi  
+  #   - name: Setup GKE management cluster
+  #     run: |
+  #       export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ matrix.os_name }}
+  #       export CLUSTER_VERSION=1.21
+  #       export CLUSTER_REGION=us-central1-a
+  #       export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
+  #       if [ -z $CLUSTER_EXISTS ]
+  #       then
+  #         gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
+  #       fi
+  #       gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
+  #       kubectl config rename-context $(kubectl config current-context) test-gke-${{ matrix.os_name }}
+  #       ls -la $HOME/.kube
+  #       kubectl get nodes -A
+  #       kubectl get all --all-namespaces -o wide        
+  #   - name: Install mccp componenets on GKE management cluster
+  #     run: |
+  #       CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+  #       # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
+  #       echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
+
+  #       ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
+  #   - name: Setup wkp leaf cluster
+  #     if: ${{ runner.os == 'Linux' }}
+  #     run: |
+  #       kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
+  #       export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
+
+  #       export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}-${{ matrix.os }}
+  #       # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
+  #       echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
+  #       ./test/utils/scripts/wkp.sh setup $CLUSTER_NAME ${{ github.workspace }}
+
+  #       # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
+  #       unset KUBECONFIG 
+  #   - name: Setup gce leaf cluster 
+  #     run: |
+  #       # decode GCE kubeconfig and store at path set in MCCP_GKE_LEAF_KUBECONFIG
+  #       echo $WGE_ACCEPTANCE_GCE_KUBECONFIG | base64 -d > $MCCP_GCE_LEAF_KUBECONFIG
+  #   - name: Run acceptance tests
+  #     run: |
+  #       cd test/acceptance/test/
+  #       if [ "$RUNNER_OS" == "macOS" ]; then
+  #         go test -ginkgo.skip=@gce -ginkgo.skip=@wkp -ginkgo.v -v --timeout=99999s
+  #       else
+  #         go test -ginkgo.skip=@gce -ginkgo.v -v --timeout=99999s
+  #       fi
+  #   - name: Reset GKE management cluster
+  #     if: ${{ always() }}
+  #     continue-on-error: true
+  #     run: |
+  #       ./test/utils/scripts/wego-enterprise.sh reset
+  #   - name: Delete WKP repository
+  #     if: ${{ runner.os == 'Linux' }} && ${{ always() }}
+  #     continue-on-error: true
+  #     run: |
+  #       hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
+  #   - name: Store acceptance test results
+  #     if: ${{ always() }}
+  #     continue-on-error: true
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: acceptance-test-artifacts-${{ matrix.os }}
+  #       path: ${{ env.ARTEFACTS_BASE_DIR }}
+  #       retention-days: 1  
+  
+  publish-binaries:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os_name: linux
+          - os: macOS-latest
+            os_name: darwin
+    needs: [test-eks]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Download mccp binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: mccp-binaries
+        path: cmd/mccp
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+    - name: Publish mccp to s3
+      run: |
+        TAG=$(git describe --always --match "v*")
+        aws s3 cp cmd/mccp/mccp-${{ matrix.os }}-nightly s3://weaveworks-wkp/nightly/mccp-${TAG}-${{ matrix.os_name }}-amd64
+
