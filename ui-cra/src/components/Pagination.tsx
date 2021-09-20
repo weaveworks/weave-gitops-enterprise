@@ -107,7 +107,7 @@ export const Pagination: FC<{
     onSelectPageParams(pageNumber, perPage);
   };
 
-  const onChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const resultsPerPage = parseInt(event.target.value, 10);
     setPerPage(resultsPerPage);
     setPage(0);
@@ -122,7 +122,7 @@ export const Pagination: FC<{
       count={count ?? 0}
       page={page}
       onPageChange={onPageChange}
-      onChangeRowsPerPage={onChangeRowsPerPage}
+      onRowsPerPageChange={onRowsPerPageChange}
       ActionsComponent={TablePaginationActions}
     />
   );
