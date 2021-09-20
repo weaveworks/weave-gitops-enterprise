@@ -125,3 +125,17 @@ Usage:
 {{- print "true" -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Returns true if the kubernetes.io/ingress.class annotation is supported
+Usage:
+{{ include "common.ingress.supportsIngressClassAnnotation" . }}
+*/}}
+{{- define "common.ingress.supportsIngressClassAnnotation" -}}
+{{- if semverCompare "<1.18-0" (include ".Capabilities.KubeVersion.GitVersion" .) -}}
+{{- print "true" -}}
+{{- else -}}
+{{- print "false" -}}
+{{- end -}}
+{{- end -}}
+
