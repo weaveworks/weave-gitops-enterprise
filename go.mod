@@ -60,7 +60,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
-	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/aws/eks-distro-build-tooling/release v0.0.0-20201211225747-07f05a470de8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitnami-labs/sealed-secrets v0.12.5 // indirect
@@ -75,15 +75,15 @@ require (
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787 // indirect
-	github.com/fluxcd/helm-controller/api v0.11.1 // indirect
-	github.com/fluxcd/kustomize-controller/api v0.13.2 // indirect
+	github.com/fluxcd/helm-controller/api v0.11.2 // indirect
+	github.com/fluxcd/kustomize-controller/api v0.14.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
-	github.com/fluxcd/pkg/apis/meta v0.10.0 // indirect
-	github.com/fluxcd/pkg/runtime v0.12.0 // indirect
-	github.com/fluxcd/source-controller/api v0.15.3 // indirect
+	github.com/fluxcd/pkg/apis/meta v0.10.1 // indirect
+	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
+	github.com/fluxcd/source-controller/api v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/go-errors/errors v1.0.1 // indirect
+	github.com/go-errors/errors v1.4.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
@@ -173,6 +173,7 @@ require (
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab // indirect
+	github.com/weaveworks/profiles v0.2.0 // indirect
 	github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d // indirect
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 // indirect
 	github.com/xanzy/go-gitlab v0.43.0 // indirect
@@ -209,7 +210,9 @@ require (
 	k8s.io/klog/v2 v2.10.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
 	k8s.io/kube-proxy v0.0.0 // indirect
-	k8s.io/utils v0.0.0-20210707171843-4b05e18ac7d9 // indirect
+	k8s.io/utils v0.0.0-20210722164352-7f3ee0f31471 // indirect
+	knative.dev/pkg v0.0.0-20210412173742-b51994e3b312 // indirect
+	sigs.k8s.io/kustomize/api v0.9.0 // indirect
 	sigs.k8s.io/kustomize/kstatus v0.0.2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
