@@ -29,6 +29,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
+	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
+	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/apps/v1"
@@ -602,7 +604,12 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		Namespace: "default",
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", nil, client.ObjectKey{Name: "entitlement", Namespace: "default"})
+	fakeAppsConfig := &wego_server.ApplicationsConfig{
+		AppFactory: &apputilsfakes.FakeAppFactory{},
+		KubeClient: cl,
+	}
+
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", fakeAppsConfig, client.ObjectKey{Name: "entitlement", Namespace: "default"})
 }
 
 func RunUIServer(ctx gcontext.Context) {

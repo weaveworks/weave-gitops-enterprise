@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { SafeAnchor } from './Shared';
-import ToggleButton from '@material-ui/lab/ToggleButton';
 
 const actionStyle = css`
   display: flex;
@@ -26,7 +25,7 @@ const ActionAnchor = styled(SafeAnchor)`
   ${actionStyle}
 `;
 
-const ActionButton = styled(ToggleButton)`
+const ActionButton = styled.button`
   ${actionStyle}
 
   background: transparent;
@@ -40,6 +39,7 @@ const ActionButton = styled(ToggleButton)`
   }
   &:hover:enabled {
     cursor: pointer;
+    background-color: ${theme.colors.gray50};
     color: ${props =>
       props.className === 'danger'
         ? theme.colors.orange700

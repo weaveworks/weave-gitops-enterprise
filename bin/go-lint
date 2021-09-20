@@ -22,4 +22,5 @@ export GOGC=10
     --enable=gofmt \
     --skip-dirs=pkg/guide \
     --skip-dirs=pkg/addons/assets \
+    --timeout=15m \
     ./...

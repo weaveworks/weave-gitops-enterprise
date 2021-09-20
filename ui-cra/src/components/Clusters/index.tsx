@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useState } from 'react';
 import useClusters from '../../contexts/Clusters';
+import useNotifications from '../../contexts/Notifications';
 import { Cluster } from '../../types/kubernetes';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
@@ -42,7 +43,7 @@ const MCCP: FC = () => {
     orderBy,
     selectedClusters,
   } = useClusters();
-
+  const { setNotifications } = useNotifications();
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [finishMessage, setFinishStatus] = useState<FinishMessage | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
@@ -100,7 +101,10 @@ const MCCP: FC = () => {
                 className="danger"
                 id="delete-cluster"
                 icon={faTrashAlt}
-                onClick={() => setOpenDeletePR(true)}
+                onClick={() => {
+                  setNotifications([]);
+                  setOpenDeletePR(true);
+                }}
                 text="CREATE A PR TO DELETE CLUSTERS"
                 disabled={selectedCapiClusters.length === 0}
               />

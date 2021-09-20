@@ -63,13 +63,13 @@ func CheckEntitlementHandler(next http.Handler) http.Handler {
 			w.Write([]byte(errorMessage))
 			return
 		}
-		next.ServeHTTP(w, r)
 		if ok {
 			if time.Now().After(ent.LicencedUntil) {
 				log.Warnf("Entitlement expired on %s.", ent.LicencedUntil.Format("Mon 02 January, 2006"))
 				w.Header().Add(entitlementExpiredMessageHeader, expiredMessage)
 			}
 		}
+		next.ServeHTTP(w, r)
 	})
 }
 

@@ -136,7 +136,7 @@ jobs:
         mkdir -p ${{ env.ARTEFACTS_BASE_DIR }}
         
         WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
-        cd ${{ github.workspace }}/cmd/event-writer && go test -cover -coverprofile=.coverprofile ./converter/... ./database/... ./liveness/... ./run/... ./test/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/event-writer-results.xml
+        cd ${{ github.workspace }}/cmd/event-writer && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/event-writer-results.xml
         cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
         cd ${{ github.workspace }}/cmd/capi-server && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/capi-server-results.xml
 
@@ -169,11 +169,9 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            wego_suffix: linux-x86_64
-            os_bin_suffix: linux-amd64
+            os_name: linux
           # - os: macOS-latest
-          #   os_bin_suffix: darwin-amd64
-          #   wego_suffix: darwin-x86_64
+          #   os_name: darwin
     needs: [build, coverage]
     timeout-minutes: 90
     env:
@@ -184,12 +182,11 @@ jobs:
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp-${{ matrix.os }}
-      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-${{ matrix.wego_suffix }}
-      WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_bin_suffix }}
+      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-${{ matrix.os_name }}-x86_64
+      WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
       MCCP_ACCEPTANCE: true
-      CONNECT_KIND_WKP_LEAF_TEST: true
       MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-leaf-kubeconfig'
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
     steps:
@@ -232,7 +229,7 @@ jobs:
         fi
     - name: Install clusterctl
       run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-${{ matrix.os_bin_suffix }} -o clusterctl
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-${{ matrix.os_name }}-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
@@ -253,12 +250,12 @@ jobs:
     - name: Download wego binary from GitHub
       run: |
         mkdir -p cmd/wego/
-        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.2.4/wego-${{ matrix.wego_suffix }}
-        mv wego-${{ matrix.wego_suffix }} $WEGO_BIN_PATH
+        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.2.4/wego-${{ matrix.os_name }}-x86_64
+        mv wego-${{ matrix.os_name }}-x86_64 $WEGO_BIN_PATH
     - name: Download wk binary from s3
       run: |
         mkdir -p cmd/wk/
-        curl -o $WKP_BIN_PATH https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-${{ matrix.os_bin_suffix }}        
+        curl -o $WKP_BIN_PATH https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-${{ matrix.os_name }}-amd64  
     - name: Change bin permissions
       run: |
         sudo chmod +x ${{ env.MCCP_BIN_PATH }}
@@ -293,7 +290,7 @@ jobs:
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
 
-        ./test/utils/scripts/ci-cluster-install.sh mccp $CLUSTER_REPOSITORY
+        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
         kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
     - name: Setup wkp leaf cluster
       run: |
@@ -303,14 +300,14 @@ jobs:
         export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}
         # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
         echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
-        ./test/utils/scripts/ci-cluster-install.sh wkp $CLUSTER_NAME ${{ github.workspace }}
+        ./test/utils/scripts/wkp.sh setup $CLUSTER_NAME ${{ github.workspace }}
 
         # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
         unset KUBECONFIG        
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.v -v --timeout=99999s
+        go test -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
     - name: Delete WKP repository
       if: ${{ always() }}
       run: |
