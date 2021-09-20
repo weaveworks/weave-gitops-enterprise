@@ -284,7 +284,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			It("@Integration Verify pull request can be created for capi template to the management cluster", func() {
+			It("@integration Verify pull request can be created for capi template to the management cluster", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -405,7 +405,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			It("@Integration Verify pull request can not be created by using exiting repository branch", func() {
+			FIt("@integration Verify pull request can not be created by using exiting repository branch", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -507,7 +507,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
-			It("@Integration Verify no credentials exists in mccp", func() {
+			It("@integration Verify no credentials exists in mccp", func() {
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
@@ -541,7 +541,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("@Integration Verify matching selected credential can be used for cluster creation", func() {
+			It("@integration Verify matching selected credential can be used for cluster creation", func() {
 				defer mccpTestRunner.DeleteIPCredentials("AWS")
 				defer mccpTestRunner.DeleteIPCredentials("AZURE")
 
@@ -668,7 +668,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("@Integration Verify user can not use wrong credentials for infrastructure provider", func() {
+			It("@integration Verify user can not use wrong credentials for infrastructure provider", func() {
 				defer mccpTestRunner.DeleteIPCredentials("AWS")
 
 				By("Apply/Install CAPITemplates", func() {
@@ -805,7 +805,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
-			It("@Smoke @Integration @VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})

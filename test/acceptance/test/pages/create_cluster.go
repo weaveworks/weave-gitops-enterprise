@@ -133,6 +133,6 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 			},
 		},
 		CreatePR: webDriver.FindByButton(`Create Pull Request`),
-		ErrorBar: webDriver.FindByXPath(`//div[1]/div/div/div[2]`),
+		ErrorBar: webDriver.Find(`.Toastify [role="alert"]`),
 	}
 }
