@@ -62,8 +62,7 @@ const EntitlementWrapper = styled.div`
   background-color: #f3e9c9;
   padding: ${small} ${medium};
   display: flex;
-  justifyContent: 'center',
-  alignItems: 'center',
+  justifycontent: 'center';
 `;
 
 const WarningIconWrapper = styled(WarningIcon)`
@@ -74,10 +73,12 @@ export const ContentWrapper: FC = ({ children }) => {
   const { versions, entitlement } = useVersions();
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <EntitlementWrapper>
-        <WarningIconWrapper />
-        {entitlement}
-      </EntitlementWrapper>
+      {entitlement && (
+        <EntitlementWrapper>
+          <WarningIconWrapper />
+          {entitlement}
+        </EntitlementWrapper>
+      )}
       <Content>
         {children}
         <HelpLinkWrapper>
