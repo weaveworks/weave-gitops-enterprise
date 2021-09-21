@@ -6,6 +6,7 @@ import {
 } from 'weaveworks-ui-components/lib/theme/selectors';
 import theme from 'weaveworks-ui-components/lib/theme';
 import useVersions from '../../contexts/Versions';
+import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 
 export const Title = styled.div`
   font-size: ${fontSize('large')};
@@ -56,19 +57,38 @@ const HelpLinkWrapper = styled.div`
   }
 `;
 
+const EntitlementWrapper = styled.div`
+  ${contentCss};
+  background-color: #f3e9c9;
+  padding: ${small} ${medium};
+  display: flex;
+  justifyContent: 'center',
+  alignItems: 'center',
+`;
+
+const WarningIconWrapper = styled(WarningIcon)`
+  margin-right: ${small};
+`;
+
 export const ContentWrapper: FC = ({ children }) => {
-  const { versions } = useVersions();
+  const { versions, entitlement } = useVersions();
   return (
-    <Content>
-      {children}
-      <HelpLinkWrapper>
-        <div>
-          Need help? Contact us at{' '}
-          <a href="mailto:support@weave.works">support@weave.works</a>
-        </div>
-        <div>Version {versions?.capiServer}</div>
-      </HelpLinkWrapper>
-    </Content>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <EntitlementWrapper>
+        <WarningIconWrapper />
+        {entitlement}
+      </EntitlementWrapper>
+      <Content>
+        {children}
+        <HelpLinkWrapper>
+          <div>
+            Need help? Contact us at{' '}
+            <a href="mailto:support@weave.works">support@weave.works</a>
+          </div>
+          <div>Version {versions?.capiServer}</div>
+        </HelpLinkWrapper>
+      </Content>
+    </div>
   );
 };
 
