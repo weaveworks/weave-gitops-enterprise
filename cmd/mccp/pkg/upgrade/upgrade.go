@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -62,10 +61,7 @@ func Upgrade(w io.Writer) error {
 		return err
 	}
 
-	gitRepository, err := getGitRepo()
-	if err != nil {
-		return err
-	}
+	gitRepository := strings.TrimSuffix(filepath.Base(repoURL), ".git")
 
 	upgradeValues := UpgradeValues{
 		RepositoryURL:  repoURL,
@@ -119,15 +115,6 @@ func getRepoURL() (string, error) {
 		log.Fatal(err)
 	}
 	return stdout.String(), nil
-}
-
-func getGitRepo() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return path.Base(dir), nil
 }
 
 func PreFlightCheck(clientset kubernetes.Interface) (*v1.Secret, error) {
