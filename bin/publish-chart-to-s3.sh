@@ -42,18 +42,18 @@ if [ "${CHART_VERSION}" == "2" ]; then
     aws s3 cp *.tgz s3://weaveworks-wkp/charts/
 elif [ "${CHART_VERSION}" == "3" ]; then
     if [ "${PUBLISH_EVENT}" == "release" ]; then
-        URI="releases/charts-v3/"
+        URI="releases/charts-v3"
     elif [ "${PUBLISH_EVENT}" == "schedule" ]; then
-        URI="nightly/charts-v3/"
+        URI="nightly/charts-v3"
     else
-        URI="charts-v3/"
+        URI="charts-v3"
     fi
     # Download the existing index.yaml from s3 and update it
-    aws s3 cp s3://weaveworks-wkp/charts-v3/index.yaml . || echo "No index.yaml found..."
-    $HELM repo index . --merge index.yaml --url https://s3.us-east-1.amazonaws.com/weaveworks-wkp/${URI}
+    aws s3 cp s3://weaveworks-wkp/${URI}/index.yaml . || echo "No index.yaml found..."
+    $HELM repo index . --merge index.yaml --url https://s3.us-east-1.amazonaws.com/weaveworks-wkp/${URI}/
     # Upload index and chart to s3
-    aws s3 cp index.yaml s3://weaveworks-wkp/${URI}
-    aws s3 cp *.tgz s3://weaveworks-wkp/${URI}
+    aws s3 cp index.yaml s3://weaveworks-wkp/${URI}/
+    aws s3 cp *.tgz s3://weaveworks-wkp/${URI}/
 else
     echo "Helm version can be '2' or '3'"
 fi

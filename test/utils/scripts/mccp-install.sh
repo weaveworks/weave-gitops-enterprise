@@ -24,8 +24,9 @@ kubectl create secret docker-registry docker-io-pull-secret \
 kubectl create secret generic git-provider-credentials \
   --namespace=wego-system \
   --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
-CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
-helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
+# CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
+CHART_VERSION=0.0.7-27-g707be80
+helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/releases/charts-v3/
 helm repo update
 helm upgrade --install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system \
   --set "imagePullSecrets[0].name=docker-io-pull-secret" \
