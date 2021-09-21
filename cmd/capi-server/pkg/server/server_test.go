@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
@@ -858,11 +859,13 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
-	s := NewClusterServer(&templates.ConfigMapLibrary{
-		Client:        c,
-		ConfigMapName: configMapName,
-		Namespace:     namespace,
-	}, provider, c, dc, db, ns)
+	s := NewClusterServer(logr.Discard(),
+		&templates.ConfigMapLibrary{
+			Log:           logr.Discard(),
+			Client:        c,
+			ConfigMapName: configMapName,
+			Namespace:     namespace,
+		}, provider, c, dc, db, ns)
 
 	return s
 }
