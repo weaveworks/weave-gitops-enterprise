@@ -30,34 +30,34 @@ integrationTestCommonEnv: &integrationTestCommonEnv
 workflows:
   test-build-deploy:
     jobs:
-      - build:
-          filters:
-            tags:
-              only: /.*/
-      - build-darwin:
-          requires:
-            - build
-            - unit-tests
-          filters:
-            tags:
-              only: /.*/
+      # - build:
+      #     filters:
+      #       tags:
+      #         only: /.*/
+      # - build-darwin:
+      #     requires:
+      #       - build
+      #       - unit-tests
+      #     filters:
+      #       tags:
+      #         only: /.*/
       - unit-tests
-      - unit-tests-with-coverage
-      - mccp-ui-backend-integration-tests
-      - fast-integration-tests:
-          requires:
-            - build
-      - fast-integration-tests-go-116:
-          requires:
-            - build
-      - mccp-acceptance-tests:
-          requires:
-            - build
-            - mccp-ui-backend-integration-tests
-      - mccp-acceptance-tests-vm:
-          requires:
-            - build
-            - mccp-ui-backend-integration-tests
+      # - unit-tests-with-coverage
+      # - mccp-ui-backend-integration-tests
+      # - fast-integration-tests:
+      #     requires:
+      #       - build
+      # - fast-integration-tests-go-116:
+      #     requires:
+      #       - build
+      # - mccp-acceptance-tests:
+      #     requires:
+      #       - build
+      #       - mccp-ui-backend-integration-tests
+      # - mccp-acceptance-tests-vm:
+      #     requires:
+      #       - build
+      #       - mccp-ui-backend-integration-tests
 
 commands:
   get-wk-binary:

@@ -205,6 +205,9 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 		Context("[CLI] When no clusters are available in the management cluster", func() {
 			It("Verify mccp lists no clusters", func() {
+				if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+					Skip("This test case runs only with sqlite")
+				}
 
 				By("And MCCP state is reset", func() {
 					mccpTestRunner.ResetDatabase()
@@ -659,7 +662,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
-			It("@VM Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
