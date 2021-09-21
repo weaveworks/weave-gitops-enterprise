@@ -502,24 +502,17 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-<<<<<<< HEAD
-        os: [ubuntu-latest, macOS-latest]
-=======
         include:
           - os: ubuntu-latest
             os_name: linux
           - os: macOS-latest
             os_name: darwin
->>>>>>> release_workflow
     needs: [test-eks]
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-<<<<<<< HEAD
-=======
       with:
         fetch-depth: 0
->>>>>>> release_workflow
     - name: Download mccp binaries
       uses: actions/download-artifact@v2
       with:
@@ -536,10 +529,6 @@ jobs:
       run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
     - name: Publish mccp to s3
       run: |
-<<<<<<< HEAD
-        aws s3 cp cmd/mccp/mccp-${{ matrix.os }}-nightly s3://weaveworks-wkp/nightly/${{ steps.date.outputs.date }}/mccp-${{ matrix.os }}
-=======
         TAG=$(git describe --always --match "v*")
         aws s3 cp cmd/mccp/mccp-${{ matrix.os }}-nightly s3://weaveworks-wkp/nightly/mccp-${TAG}-${{ matrix.os_name }}-amd64
->>>>>>> release_workflow
 
