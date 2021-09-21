@@ -10,7 +10,7 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	log "github.com/sirupsen/logrus"
+	"github.com/go-logr/logr"
 	go_git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
@@ -31,10 +31,13 @@ type Provider interface {
 }
 
 type GitProviderService struct {
+	log logr.Logger
 }
 
-func NewGitProviderService() *GitProviderService {
-	return &GitProviderService{}
+func NewGitProviderService(log logr.Logger) *GitProviderService {
+	return &GitProviderService{
+		log: log,
+	}
 }
 
 type GitProvider struct {
@@ -106,14 +109,14 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 }
 
 func (s *GitProviderService) CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error) {
-	log.Infof("Creating a temp directory...")
+	s.log.Info("Creating a temp directory...")
 	gitDir, err := ioutil.TempDir(req.ParentDir, "git-")
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("Temp directory %q created.", gitDir)
+	s.log.Info("Temp directory created.", "dir", gitDir)
 
-	log.Infof("Cloning the Git repository %q to %q...", req.RepositoryURL, gitDir)
+	s.log.Info("Cloning the Git repository...", "repository", req.RepositoryURL, "dir", gitDir)
 
 	repo, err := go_git.PlainClone(gitDir, false, &go_git.CloneOptions{
 		URL: req.RepositoryURL,
@@ -130,7 +133,7 @@ func (s *GitProviderService) CloneRepoToTempDir(req CloneRepoToTempDirRequest) (
 		return nil, err
 	}
 
-	log.Infof("Cloned repo: %s", req.RepositoryURL)
+	s.log.Info("Cloned repository", "repository", req.RepositoryURL)
 
 	gitRepo := &GitRepo{
 		WorktreeDir: gitDir,
@@ -174,7 +177,7 @@ func (s *GitProviderService) getRepository(ctx context.Context, gp GitProvider, 
 			var err error
 			repo, err = c.OrgRepositories().Get(ctx, *ref)
 			if err != nil {
-				log.Warn("Retrying getting the repository")
+				s.log.Info("Retrying getting the repository")
 				return err
 			}
 			return nil
@@ -205,7 +208,7 @@ func (s *GitProviderService) writeFilesToBranch(ctx context.Context, req writeFi
 			var err error
 			commits, err = req.Repository.Commits().ListPage(ctx, req.BaseBranch, 1, 1)
 			if err != nil {
-				log.Warn("Retrying getting the repository")
+				s.log.Info("Retrying getting the repository")
 				return err
 			}
 			return nil
@@ -226,10 +229,7 @@ func (s *GitProviderService) writeFilesToBranch(ctx context.Context, req writeFi
 	if err != nil {
 		return fmt.Errorf("unable to commit changes to %q: %w", req.HeadBranch, err)
 	}
-	log.WithFields(log.Fields{
-		"sha":    commit.Get().Sha,
-		"branch": req.HeadBranch,
-	}).Info("Files committed")
+	s.log.WithValues("sha", commit.Get().Sha, "branch", req.HeadBranch).Info("Files committed")
 
 	return nil
 }
@@ -251,9 +251,7 @@ func (s *GitProviderService) createPullRequest(ctx context.Context, req createPu
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new pull request for branch %q: %w", req.HeadBranch, err)
 	}
-	log.WithFields(log.Fields{
-		"pull_request_web_url": pr.Get().WebURL,
-	}).Info("Created pull request")
+	s.log.WithValues("pullRequestURL", pr.Get().WebURL).Info("Created pull request")
 
 	return &createPullRequestResponse{
 		WebURL: pr.Get().WebURL,

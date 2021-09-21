@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/go-logr/logr"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -152,9 +152,9 @@ func checkCRDExists(dc discovery.DiscoveryInterface, gvk schema.GroupVersionKind
 	return ok, nil
 }
 
-func CheckAndInjectCredentials(c client.Client, tmplWithValues [][]byte, creds *capiv1_proto.Credential, tmpName string) ([]byte, error) {
+func CheckAndInjectCredentials(log logr.Logger, c client.Client, tmplWithValues [][]byte, creds *capiv1_proto.Credential, tmpName string) ([]byte, error) {
 	if creds == nil || isEmptyCredentials(creds) {
-		log.Infof("No credentials %v", creds)
+		log.Info("No credentials were passed or credentials are empty", "credentials", creds)
 		return bytes.Join(tmplWithValues, []byte("\n---\n")), nil
 	}
 	exist, err := CheckCredentialsExist(c, creds)
@@ -164,14 +164,14 @@ func CheckAndInjectCredentials(c client.Client, tmplWithValues [][]byte, creds *
 		return nil, fmt.Errorf("failed to check if credentials exist: %w", err)
 	}
 	if exist {
-		log.Infof("Found credentials %v", creds)
+		log.Info("Found credentials", "credentials", creds)
 		tmpl, err = InjectCredentials(tmplWithValues, creds)
 		if err != nil {
 			return nil, fmt.Errorf("unable to inject credentials %q: %w", tmpName, err)
 		}
 		result = bytes.Join(tmpl, []byte("\n---\n"))
 	} else if !exist {
-		log.Infof("Couldn't find credentials! %v", creds)
+		log.Info("Couldn't find credentials!", "credentials", creds)
 		result = bytes.Join(tmplWithValues, []byte("\n---\n"))
 	}
 

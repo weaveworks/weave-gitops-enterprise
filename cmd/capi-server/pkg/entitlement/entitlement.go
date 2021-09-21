@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,16 +33,16 @@ var (
 
 // LoadEntitlementIntoContextHandler retrieves the entitlement from Kubernetes
 // and adds it to the request context.
-func EntitlementHandler(ctx context.Context, c client.Client, key client.ObjectKey, next http.Handler) http.Handler {
+func EntitlementHandler(ctx context.Context, log logr.Logger, c client.Client, key client.ObjectKey, next http.Handler) http.Handler {
 	var sec v1.Secret
 	if err := c.Get(ctx, key, &sec); err != nil {
-		log.Warnf("Entitlement cannot be retrieved: %v", err)
+		log.Error(err, "Entitlement cannot be retrieved")
 		return next
 	}
 
 	ent, err := entitlement.VerifyEntitlement(strings.NewReader(public), string(sec.Data["entitlement"]))
 	if err != nil {
-		log.Warnf("Entitlement was not verified successfully: %v", err)
+		log.Error(err, "Entitlement was not verified successfully")
 		return next
 	}
 
@@ -54,18 +54,18 @@ func EntitlementHandler(ctx context.Context, c client.Client, key client.ObjectK
 // CheckEntitlementHandler looks for an entitlement in the request context and
 // returns a 500 if the entitlement is not found or appends an HTTP header with
 // an expired message.
-func CheckEntitlementHandler(next http.Handler) http.Handler {
+func CheckEntitlementHandler(log logr.Logger, next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ent, ok := entitlementFromContext(r.Context())
 		if ent == nil {
-			log.Warnf("Entitlement was not found.")
+			log.Info("Entitlement was not found.")
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(errorMessage))
 			return
 		}
 		if ok {
 			if time.Now().After(ent.LicencedUntil) {
-				log.Warnf("Entitlement expired on %s.", ent.LicencedUntil.Format("Mon 02 January, 2006"))
+				log.Info("Entitlement expired.", "licencedUntil", ent.LicencedUntil.Format("Mon 02 January, 2006"))
 				w.Header().Add(entitlementExpiredMessageHeader, expiredMessage)
 			}
 		}
