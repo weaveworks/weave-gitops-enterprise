@@ -78,7 +78,7 @@ function setup {
   CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
 
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
-    helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/$(date +%F)/charts-v3/
+    helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
   else
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
   fi

@@ -42,9 +42,9 @@ if [ "${CHART_VERSION}" == "2" ]; then
     aws s3 cp *.tgz s3://weaveworks-wkp/charts/
 elif [ "${CHART_VERSION}" == "3" ]; then
     if [ "${PUBLISH_EVENT}" == "release" ]; then
-        URI="release/$(echo $TAG | grep -ioE '^v[0-9\.]+')/charts-v3/"
+        URI="releases/charts-v3/"
     elif [ "${PUBLISH_EVENT}" == "schedule" ]; then
-        URI="nightly/$(date +%F)/charts-v3/"
+        URI="nightly/charts-v3/"
     else
         URI="charts-v3/"
     fi
