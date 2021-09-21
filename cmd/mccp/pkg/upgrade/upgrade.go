@@ -18,6 +18,7 @@ import (
 	"github.com/weaveworks/pctl/pkg/install"
 	"github.com/weaveworks/pctl/pkg/runner"
 	git_utils "github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/git"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -60,11 +61,17 @@ func Upgrade(w io.Writer) error {
 	if err != nil {
 		return err
 	}
+	log.Infof("Found repo url as: %v", repoURL)
 
-	gitRepository := strings.TrimSuffix(filepath.Base(repoURL), ".git")
+	githubRepoPath, err := getGithubRepoPath(repoURL)
+	if err != nil {
+		return err
+	}
+
+	gitRepositoryResource := "wego-system/" + strings.TrimSuffix(filepath.Base(repoURL), ".git")
 
 	upgradeValues := UpgradeValues{
-		RepositoryURL:  repoURL,
+		RepositoryURL:  githubRepoPath,
 		Remote:         "origin",
 		HeadBranch:     "tier-upgrade-enterprise",
 		BaseBranch:     "main",
@@ -76,12 +83,14 @@ func Upgrade(w io.Writer) error {
 		ProfileBranch:  "main",
 		ConfigMap:      "",
 		Out:            ".",
-		ProfileRepoURL: "https://github.com/weaveworks/weave-gitops-enterprise-profiles",
+		ProfileRepoURL: "git@github.com:weaveworks/weave-gitops-enterprise-profiles.git",
 		ProfilePath:    ".",
-		GitRepository:  gitRepository,
+		GitRepository:  gitRepositoryResource,
 	}
 
-	key := entitlement.Data["entitlement"]
+	log.Infof("Using values %+v", upgradeValues)
+
+	key := entitlement.Data["deployment-key"]
 	localRepo, err := git_utils.CloneToTempDir("/tmp", upgradeValues.ProfileRepoURL, upgradeValues.ProfileBranch, key)
 	if err != nil {
 		return err
@@ -104,6 +113,15 @@ func Upgrade(w io.Writer) error {
 	return nil
 }
 
+func getGithubRepoPath(url string) (string, error) {
+	repoEndpoint, err := transport.NewEndpoint(url)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Trim(strings.TrimSuffix(strings.TrimSpace(repoEndpoint.Path), ".git"), "/"), nil
+}
+
 func getRepoURL() (string, error) {
 	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
 	cmd.Dir = "."
@@ -114,7 +132,7 @@ func getRepoURL() (string, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return stdout.String(), nil
+	return strings.TrimSpace(stdout.String()), nil
 }
 
 func PreFlightCheck(clientset kubernetes.Interface) (*v1.Secret, error) {

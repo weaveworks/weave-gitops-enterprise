@@ -1,4 +1,4 @@
-package upgrade_test
+package upgrade
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/upgrade"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,13 +37,24 @@ func TestPreflightCheck(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			clientset := fake.NewSimpleClientset(tt.clusterState...)
 			w := new(bytes.Buffer)
-			_, err := upgrade.PreFlightCheck(clientset)
+			_, err := PreFlightCheck(clientset)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
 			}
 		})
 	}
+}
+
+func TestGetGithubRepoPath(t *testing.T) {
+	repoPath, err := getGithubRepoPath("git@github.com:ww/repo.git")
+	assert.NoError(t, err)
+	assert.Equal(t, "ww/repo", repoPath)
+
+	repoPath, err = getGithubRepoPath("https://github.com/ww/repo.git")
+	assert.NoError(t, err)
+	assert.Equal(t, "ww/repo", repoPath)
+
 }
 
 func createSecret() *corev1.Secret {
