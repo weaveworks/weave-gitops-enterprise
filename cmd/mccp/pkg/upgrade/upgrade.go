@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -121,16 +122,12 @@ func getRepoURL() (string, error) {
 }
 
 func getGitRepo() (string, error) {
-	cmd := exec.Command("basename", "`git rev-parse --show-toplevel`")
-	cmd.Dir = "."
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
+	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	return stdout.String(), nil
+
+	return path.Base(dir), nil
 }
 
 func PreFlightCheck(clientset kubernetes.Interface) (*v1.Secret, error) {
