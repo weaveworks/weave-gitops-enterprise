@@ -3,9 +3,7 @@ apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   annotations:
-    {{- if eq "true" (include "common.ingress.supportsIngressClassAnnotation" .) }}
     kubernetes.io/ingress.class: mccp-nginx
-    {{- end }}
     nginx.ingress.kubernetes.io/rewrite-target: /v1/$1
   labels:
     app: clusters-service

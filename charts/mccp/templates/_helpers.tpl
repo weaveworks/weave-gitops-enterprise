@@ -73,7 +73,7 @@ Return the appropriate apiVersion for ingress.
 {{- print "networking.k8s.io/v1beta1" -}}
 {{- else -}}
 {{- print "networking.k8s.io/v1" -}}
-{{- end }}
+{{- end -}}
 {{- end -}}
 
 {{/*
