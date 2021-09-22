@@ -115,12 +115,16 @@ Params:
 {{- $apiVersion := (include "common.capabilities.ingress.apiVersion" .context) -}}
 {{- if or (eq $apiVersion "extensions/v1beta1") (eq $apiVersion "networking.k8s.io/v1beta1") -}}
 serviceName: {{ .serviceName }}
-servicePort: {{ .servicePort | int }}
+servicePort: {{ .servicePort }}
 {{- else -}}
 service:
   name: {{ .serviceName }}
   port:
+    {{- if typeIs "string" .servicePort }}
+    name: {{ .servicePort }}
+    {{- else if or (typeIs "int" .servicePort) (typeIs "float64" .servicePort) }}
     number: {{ .servicePort | int }}
+    {{- end }}
 {{- end -}}
 {{- end -}}
 
