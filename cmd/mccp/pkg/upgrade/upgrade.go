@@ -90,7 +90,7 @@ func Upgrade(w io.Writer) error {
 
 	log.Infof("Using values %+v", upgradeValues)
 
-	key := entitlement.Data["deployment-key"]
+	key := entitlement.Data["deploy-key"]
 	localRepo, err := git_utils.CloneToTempDir("/tmp", upgradeValues.ProfileRepoURL, upgradeValues.ProfileBranch, key)
 	if err != nil {
 		return err
