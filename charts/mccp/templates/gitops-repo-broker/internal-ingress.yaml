@@ -3,7 +3,7 @@ apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   annotations:
-    {{- if eq (include "common.ingress.supportsIngressClassAnnotation" .) "true" }}
+    {{- if eq "true" (include "common.ingress.supportsIngressClassAnnotation" .) }}
     kubernetes.io/ingress.class: mccp-nginx
     {{- end }}
     nginx.ingress.kubernetes.io/rewrite-target: /gitops/$1
@@ -12,7 +12,7 @@ metadata:
   name: gitops-repo-broker
   namespace: {{ .Release.Namespace | quote }}
 spec:
-  {{- if eq (include "common.ingress.supportsIngressClassname" .) "true" }}
+  {{- if eq "true" (include "common.ingress.supportsIngressClassname" .) }}
   ingressClassName: mccp-nginx
   {{- end }}
   rules:

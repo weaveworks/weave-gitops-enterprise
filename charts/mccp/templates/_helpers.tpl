@@ -67,23 +67,13 @@ Create the name of the service account to use
 Return the appropriate apiVersion for ingress.
 */}}
 {{- define "common.capabilities.ingress.apiVersion" -}}
-{{- if .Values.ingress -}}
-{{- if .Values.ingress.apiVersion -}}
-{{- .Values.ingress.apiVersion -}}
-{{- else if semverCompare "<1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- if semverCompare "<1.14-0" .Capabilities.KubeVersion.GitVersion -}}
 {{- print "extensions/v1beta1" -}}
 {{- else if semverCompare "<1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 {{- print "networking.k8s.io/v1beta1" -}}
 {{- else -}}
 {{- print "networking.k8s.io/v1" -}}
 {{- end }}
-{{- else if semverCompare "<1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-{{- print "extensions/v1beta1" -}}
-{{- else if semverCompare "<1.19-0" .Capabilities.KubeVersion.GitVersion -}}
-{{- print "networking.k8s.io/v1beta1" -}}
-{{- else -}}
-{{- print "networking.k8s.io/v1" -}}
-{{- end -}}
 {{- end -}}
 
 {{/*
@@ -119,7 +109,7 @@ Usage:
 {{ include "common.ingress.supportsIngressClassname" . }}
 */}}
 {{- define "common.ingress.supportsIngressClassname" -}}
-{{- if semverCompare "<1.18-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- if semverCompare "<1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 {{- print "false" -}}
 {{- else -}}
 {{- print "true" -}}
@@ -132,7 +122,7 @@ Usage:
 {{ include "common.ingress.supportsIngressClassAnnotation" . }}
 */}}
 {{- define "common.ingress.supportsIngressClassAnnotation" -}}
-{{- if semverCompare "<1.18-0" .Capabilities.KubeVersion.GitVersion -}}
+{{- if semverCompare "<1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 {{- print "true" -}}
 {{- else -}}
 {{- print "false" -}}
