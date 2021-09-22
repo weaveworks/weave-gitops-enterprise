@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { WGContentWrapper } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
 import { Applications } from '@weaveworks/weave-gitops';
 
@@ -18,9 +18,9 @@ const WGApplicationsDashboard: FC = () => {
           },
         ]}
       />
-      <WGContentWrapper>
+      <ContentWrapper type="WG">
         <Applications />
-      </WGContentWrapper>
+      </ContentWrapper>
     </PageTemplate>
   );
 };

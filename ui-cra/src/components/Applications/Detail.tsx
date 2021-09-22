@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { WGContentWrapper } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { ApplicationDetail } from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
 
@@ -23,9 +23,9 @@ const WGApplicationDetail: FC = () => {
           { label: `${name}` },
         ]}
       />
-      <WGContentWrapper>
+      <ContentWrapper type="WG">
         <ApplicationDetail name={name || ''} />
-      </WGContentWrapper>
+      </ContentWrapper>
     </PageTemplate>
   );
 };

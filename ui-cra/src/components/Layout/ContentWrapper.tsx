@@ -69,7 +69,7 @@ const WarningIconWrapper = styled(WarningIcon)`
   margin-right: ${small};
 `;
 
-export const ContentWrapper: FC = ({ children }) => {
+export const ContentWrapper: FC<{ type?: string }> = ({ children, type }) => {
   const { versions, entitlement } = useVersions();
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -79,32 +79,29 @@ export const ContentWrapper: FC = ({ children }) => {
           {entitlement}
         </EntitlementWrapper>
       )}
-      <Content>
-        {children}
-        <HelpLinkWrapper>
-          <div>
-            Need help? Contact us at{' '}
-            <a href="mailto:support@weave.works">support@weave.works</a>
-          </div>
-          <div>Version {versions?.capiServer}</div>
-        </HelpLinkWrapper>
-      </Content>
+      {type === 'WG' ? (
+        <WGContent>
+          {children}
+          <HelpLinkWrapper>
+            <div>
+              Need help? Contact us at&nbsp;
+              <a href="mailto:support@weave.works">support@weave.works</a>
+            </div>
+            <div>Version {versions?.capiServer}</div>
+          </HelpLinkWrapper>
+        </WGContent>
+      ) : (
+        <Content>
+          {children}
+          <HelpLinkWrapper>
+            <div>
+              Need help? Contact us at{' '}
+              <a href="mailto:support@weave.works">support@weave.works</a>
+            </div>
+            <div>Version {versions?.capiServer}</div>
+          </HelpLinkWrapper>
+        </Content>
+      )}
     </div>
-  );
-};
-
-export const WGContentWrapper: FC = ({ children }) => {
-  const { versions } = useVersions();
-  return (
-    <WGContent>
-      {children}
-      <HelpLinkWrapper>
-        <div>
-          Need help? Contact us at&nbsp;
-          <a href="mailto:support@weave.works">support@weave.works</a>
-        </div>
-        <div>Version {versions?.capiServer}</div>
-      </HelpLinkWrapper>
-    </WGContent>
   );
 };
