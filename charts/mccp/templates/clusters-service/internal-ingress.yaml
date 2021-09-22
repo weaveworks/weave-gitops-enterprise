@@ -18,5 +18,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /v1/?(.*)
-            backend: {{- include "common.ingress.backend" (dict "serviceName" "clusters-service" "servicePort" 8000 "context" $)  | nindent 14 }}
+          - backend:
+              serviceName: clusters-service
+              servicePort: 8000
+            path: /v1/?(.*)
