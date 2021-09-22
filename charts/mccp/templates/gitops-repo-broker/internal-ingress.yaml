@@ -1,5 +1,9 @@
 ---
-apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
+{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
 kind: Ingress
 metadata:
   annotations:
@@ -10,9 +14,6 @@ metadata:
   name: gitops-repo-broker
   namespace: {{ .Release.Namespace | quote }}
 spec:
-  {{- if eq "true" (include "common.ingress.supportsIngressClassname" .) }}
-  ingressClassName: mccp-nginx
-  {{- end }}
   rules:
     - http:
         paths:
