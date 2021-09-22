@@ -8,7 +8,11 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        include:
+          - os: ubuntu-latest
+            os_name: linux
+          - os: macOS-latest
+            os_name: darwin
     env:
       GO_CACHE_NAME: cache-go-modules
       YARN_CACHE_NAME: cache-yarn
@@ -131,8 +135,8 @@ jobs:
         echo "TAG=$TAG" >> $GITHUB_ENV
     - name: Publish mccp to s3
       run: |
-        aws s3 cp mccp-${{ env.TAG }}-${{ matrix.os_name }}-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-linux-amd64
-        aws s3 cp mccp-${{ env.TAG }}-${{ matrix.os_name }}-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-darwin-amd64
+        aws s3 cp mccp-${{ env.TAG }}-linux-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-linux-amd64
+        aws s3 cp mccp-${{ env.TAG }}-darwin-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-darwin-amd64
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
