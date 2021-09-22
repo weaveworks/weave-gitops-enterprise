@@ -64,21 +64,6 @@ Create the name of the service account to use
 {{- define "foo" -}}{{- "zing" }}{{- end }}
 
 {{/*
-Return the target Kubernetes version
-*/}}
-{{- define "common.capabilities.kubeVersion" -}}
-{{- if .Values.global }}
-    {{- if .Values.global.kubeVersion }}
-    {{- .Values.global.kubeVersion -}}
-    {{- else }}
-    {{- default .Capabilities.KubeVersion.Version .Values.kubeVersion -}}
-    {{- end -}}
-{{- else }}
-{{- default .Capabilities.KubeVersion.Version .Values.kubeVersion -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Return the appropriate apiVersion for ingress.
 */}}
 {{- define "common.capabilities.ingress.apiVersion" -}}
@@ -134,7 +119,7 @@ Usage:
 {{ include "common.ingress.supportsIngressClassname" . }}
 */}}
 {{- define "common.ingress.supportsIngressClassname" -}}
-{{- if semverCompare "<1.18-0" (include "common.capabilities.kubeVersion" .) -}}
+{{- if semverCompare "<1.18-0" .Capabilities.KubeVersion.GitVersion -}}
 {{- print "false" -}}
 {{- else -}}
 {{- print "true" -}}
@@ -147,7 +132,7 @@ Usage:
 {{ include "common.ingress.supportsIngressClassAnnotation" . }}
 */}}
 {{- define "common.ingress.supportsIngressClassAnnotation" -}}
-{{- if semverCompare "<1.18-0" (include "common.capabilities.kubeVersion" .) -}}
+{{- if semverCompare "<1.18-0" .Capabilities.KubeVersion.GitVersion -}}
 {{- print "true" -}}
 {{- else -}}
 {{- print "false" -}}
