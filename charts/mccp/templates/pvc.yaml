@@ -5,7 +5,6 @@ metadata:
   name: "wge-volume"
   namespace: {{ .Release.Namespace }}
 spec:
-  storageClassName: default
   resources:
     requests:
       storage: {{ .Values.dbConfig.sqliteConfig.persistentVolumeClaim.size | quote }}
