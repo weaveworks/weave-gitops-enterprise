@@ -23,11 +23,6 @@ jobs:
         echo "::set-output name=dir::$(yarn cache dir)"
         echo "::set-output name=go-build::$(go env GOCACHE)"
         echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-    - name: Set environment variable
-      run: |
-        git fetch --tags --force
-        TAG=$(git describe --always --match "v*")
-        echo "TAG=$TAG" >> $GITHUB_ENV
     - name: Install Go
       uses: actions/setup-go@v2
       with:
@@ -41,6 +36,11 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
+    - name: Set environment variable
+      run: |
+        git fetch --tags --force
+        TAG=$(git describe --always --match "v*")
+        echo "TAG=$TAG" >> $GITHUB_ENV
     - name: Go Build Cache
       uses: actions/cache@v2
       with:
@@ -57,11 +57,6 @@ jobs:
         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
-    - name: Set environment variable
-      run: |
-        git fetch --tags --force
-        TAG=$(git describe --always --match "v*")
-        echo "TAG=$TAG" >> $GITHUB_ENV
     - name: Build all the services
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
