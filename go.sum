@@ -360,13 +360,11 @@ github.com/fluxcd/go-git-providers v0.0.2/go.mod h1:2Fp9GDxIcllNR7pm5clXhInPyue4
 github.com/fluxcd/go-git-providers v0.2.0/go.mod h1:nRgNpHZmZhrsyNSma1JcAhjUG9xrqMGJcIUr9K7M7vk=
 github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787 h1:/Zj0v51h0Rrblhpy4opWGeB7Yhwe1lK44QBzLJciDsY=
 github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787/go.mod h1:kByvCO8EATmdOqHne60f0NsJUjsbOwcfADTj7RHGjcs=
-github.com/fluxcd/helm-controller/api v0.11.1 h1:7oanAnhcRdqrnALDGpZcg5iuDqwCv+jNTmGvSrgDyCo=
 github.com/fluxcd/helm-controller/api v0.11.1/go.mod h1:nt5YdVS+jWXDSbP3gAX3HII6oX+8ahrHD6og2ZVsnN4=
 github.com/fluxcd/helm-controller/api v0.11.2 h1:IpzGEexjEa9DttikHF40kHFORhsxAeD2Z6SN6BZBA6o=
 github.com/fluxcd/helm-controller/api v0.11.2/go.mod h1:gLPpLa8NMQJ+b4pwP/sExAPkGdFWO1CKIh1Uu82O2gM=
 github.com/fluxcd/kustomize-controller v0.0.1-beta.2 h1:3EM2OFR9z8FiILDgzqHHqzSx3mO4KT8xG1gKTevD42E=
 github.com/fluxcd/kustomize-controller v0.0.1-beta.2/go.mod h1:mLeipvpQkyof6b5IHNtqeA8CmbjfVIf92UyKkpeBY98=
-github.com/fluxcd/kustomize-controller/api v0.13.2 h1:Dd+gryMtV1J6TuFvbHj50VFauUNOtC3Uowa5yxgZ+l0=
 github.com/fluxcd/kustomize-controller/api v0.13.2/go.mod h1:hh8LG9D89cLeXJJv3z78aoFh03X9hn2FSiibofX3UBk=
 github.com/fluxcd/kustomize-controller/api v0.13.3/go.mod h1:3RNiEd/XnYjSTGzMqDzDbQkOYpdPFrKuS+XdgWt9pds=
 github.com/fluxcd/kustomize-controller/api v0.14.0 h1:M2i7y8I3DZUlrNDzfxwVxVBrPkB+sQrPAyVtw6OTu9E=
@@ -391,7 +389,6 @@ github.com/fluxcd/pkg/version v0.1.0/go.mod h1:V7Z/w8dxLQzv0FHqa5ox5TeyOd2zOd49E
 github.com/fluxcd/source-controller v0.0.1-beta.2/go.mod h1:tmscNdCxEt7+Xt2g1+bI38hMPw2leYMFAaCn4UlMGuw=
 github.com/fluxcd/source-controller v0.15.4 h1:FtFkrja75qGRK05CoYf9extdQO5Z3Ts4QloBSiWaHhE=
 github.com/fluxcd/source-controller v0.15.4/go.mod h1:yv3qPWT6aNYWYXdmjTjcZmUTfgoC/c7yovcnApnGKYE=
-github.com/fluxcd/source-controller/api v0.15.3 h1:xJodSIQr/pAlUhVsmaiPNLV+tabSYLjr+93remjI3WI=
 github.com/fluxcd/source-controller/api v0.15.3/go.mod h1:P1pIkaoIsiCJ/NLC7IBXPb9XEime9NvA1WN4hZu2Of4=
 github.com/fluxcd/source-controller/api v0.15.4 h1:9aRcH/WKJWt7Bp954K/wzLRuiRiHuD2osvYp74GoP64=
 github.com/fluxcd/source-controller/api v0.15.4/go.mod h1:guUCCapjzE2kocwFreQTM/IGvtAglIJc4L97mokairo=

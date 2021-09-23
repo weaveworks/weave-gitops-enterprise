@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/pctl/pkg/bootstrap"
 	"github.com/weaveworks/pctl/pkg/catalog"
 	"github.com/weaveworks/pctl/pkg/git"
@@ -41,13 +40,14 @@ type UpgradeValues struct {
 	Version        string
 }
 
-func Upgrade(w io.Writer, upgradeValues UpgradeValues) error {
+func Upgrade(upgradeValues UpgradeValues, w io.Writer) error {
 	config := config.GetConfigOrDie()
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
 	}
 
+	fmt.Fprintf(w, "Checking if entitlement exists...\n")
 	entitlement, err := getEntitlement(clientset)
 	if err != nil {
 		return err
@@ -65,21 +65,21 @@ func Upgrade(w io.Writer, upgradeValues UpgradeValues) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("Found repo url as: %v", repoURL)
 
 	if upgradeValues.RepoOrgAndName == "" {
 		githubRepoPath, err := getRepoOrgAndName(repoURL)
 		if err != nil {
 			return err
 		}
+		fmt.Fprintf(w, "Deriving org/repo for PR as %v\n", githubRepoPath)
 		upgradeValues.RepoOrgAndName = githubRepoPath
 	}
 
 	if upgradeValues.GitRepository == "" {
-		upgradeValues.GitRepository = "wego-system/" + strings.TrimSuffix(filepath.Base(repoURL), ".git")
+		gitRepositoryNameNamespace := "wego-system/" + strings.TrimSuffix(filepath.Base(repoURL), ".git")
+		fmt.Fprintf(w, "Deriving name of GitRepository Resource as %v\n", gitRepositoryNameNamespace)
+		upgradeValues.GitRepository = gitRepositoryNameNamespace
 	}
-
-	log.Infof("Using values %+v", upgradeValues)
 
 	key := entitlement.Data["deploy-key"]
 	localRepo, err := git_utils.CloneToTempDir("", upgradeValues.ProfileRepoURL, upgradeValues.ProfileBranch, key)
@@ -120,13 +120,12 @@ func getRepoURL(remote string) (string, error) {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	return strings.TrimSpace(stdout.String()), nil
 }
 
 func getEntitlement(clientset kubernetes.Interface) (*v1.Secret, error) {
-	log.Info("Checking if entitlement exists...")
 	var entitlement *v1.Secret
 
 	entitlement, err := clientset.CoreV1().Secrets("wego-system").Get(context.Background(), "weave-gitops-enterprise-credentials", metav1.GetOptions{})

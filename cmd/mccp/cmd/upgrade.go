@@ -43,7 +43,7 @@ var upgradeCmdFlags upgradeFlags
 
 func upgradeCmdRun(client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		return upgrade.Upgrade(os.Stdout, upgrade.UpgradeValues{
+		return upgrade.Upgrade(upgrade.UpgradeValues{
 			RepoOrgAndName: upgradeCmdFlags.RepoOrgAndName,
 			Remote:         upgradeCmdFlags.Remote,
 			HeadBranch:     upgradeCmdFlags.HeadBranch,
@@ -51,6 +51,6 @@ func upgradeCmdRun(client *resty.Client) func(*cobra.Command, []string) error {
 			CommitMessage:  upgradeCmdFlags.CommitMessage,
 			GitRepository:  upgradeCmdFlags.GitRepository,
 			Version:        upgradeCmdFlags.Version,
-		})
+		}, os.Stdout)
 	}
 }
