@@ -13,7 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/pctl/pkg/bootstrap"
 	"github.com/weaveworks/pctl/pkg/catalog"
-	"github.com/weaveworks/pctl/pkg/client"
 	"github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
 	"github.com/weaveworks/pctl/pkg/runner"
@@ -22,7 +21,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
@@ -31,8 +29,6 @@ type UpgradeValues struct {
 	Remote         string
 	HeadBranch     string
 	BaseBranch     string
-	Title          string
-	Description    string
 	CommitMessage  string
 	Name           string
 	Namespace      string
@@ -52,7 +48,7 @@ func Upgrade(w io.Writer) error {
 		return err
 	}
 
-	entitlement, err := PreFlightCheck(clientset)
+	entitlement, err := getEntitlement(clientset)
 	if err != nil {
 		return err
 	}
@@ -75,8 +71,6 @@ func Upgrade(w io.Writer) error {
 		Remote:         "origin",
 		HeadBranch:     "tier-upgrade-enterprise",
 		BaseBranch:     "main",
-		Title:          "Upgrade to WGE",
-		Description:    "Upgrade to WGE",
 		CommitMessage:  "Upgrade to WGE",
 		Name:           "wge-profile",
 		Namespace:      "wego-system",
@@ -105,7 +99,6 @@ func Upgrade(w io.Writer) error {
 
 	if err := createPullRequest(upgradeValues, installationDirectory); err != nil {
 		return err
-
 	}
 
 	fmt.Fprintf(w, "Upgrade pull request created\n")
@@ -135,7 +128,7 @@ func getRepoURL() (string, error) {
 	return strings.TrimSpace(stdout.String()), nil
 }
 
-func PreFlightCheck(clientset kubernetes.Interface) (*v1.Secret, error) {
+func getEntitlement(clientset kubernetes.Interface) (*v1.Secret, error) {
 	log.Info("Checking if entitlement exists...")
 	var entitlement *v1.Secret
 
@@ -149,19 +142,12 @@ func PreFlightCheck(clientset kubernetes.Interface) (*v1.Secret, error) {
 
 func addProfile(values UpgradeValues) (string, error) {
 	var (
-		err           error
-		catalogClient *client.Client
-		catalogName   string
-		profileName   string
-		version       = "latest"
+		err         error
+		profileName string
+		version     = "latest"
 	)
 
 	url := values.ProfileRepoURL
-
-	catalogClient, err = buildCatalogClient()
-	if err != nil {
-		return "", err
-	}
 
 	branch := values.ProfileBranch
 	subName := values.Name
@@ -191,12 +177,10 @@ func addProfile(values UpgradeValues) (string, error) {
 
 	cfg := catalog.InstallConfig{
 		Clients: catalog.Clients{
-			CatalogClient: catalogClient,
-			Installer:     installer,
+			Installer: installer,
 		},
 		Profile: catalog.Profile{
 			ProfileConfig: catalog.ProfileConfig{
-				CatalogName:   catalogName,
 				ConfigMap:     configMap,
 				Namespace:     namespace,
 				Path:          path,
@@ -236,17 +220,6 @@ func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, err
 		return config.GitRepository.Namespace, config.GitRepository.Name, nil
 	}
 	return "", "", fmt.Errorf("flux git repository not provided, please provide the --git-repository flag or use the pctl bootstrap functionality")
-}
-
-func buildCatalogClient() (*client.Client, error) {
-	home := homedir.HomeDir()
-	options := client.ServiceOptions{
-		KubeconfigPath: filepath.Join(home, ".kube", "config"),
-		Namespace:      "profiles-catalog-namespace",
-		ServiceName:    "profiles-catalog-name",
-		ServicePort:    "8000",
-	}
-	return client.NewFromOptions(options)
 }
 
 func createPullRequest(values UpgradeValues, installationDirectory string) error {

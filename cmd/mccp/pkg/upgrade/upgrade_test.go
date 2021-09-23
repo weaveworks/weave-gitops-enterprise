@@ -37,7 +37,7 @@ func TestPreflightCheck(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			clientset := fake.NewSimpleClientset(tt.clusterState...)
 			w := new(bytes.Buffer)
-			_, err := PreFlightCheck(clientset)
+			_, err := getEntitlement(clientset)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
