@@ -74,7 +74,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: mccp-binaries
-        path: cmd/mccp/mccp-${{ matrix.os }}-release
+        path: cmd/mccp/mccp-${{ env.TAG }}-${{ matrix.os_name }}-amd64
         retention-days: 1
     - name: Install Helm v3
       if: ${{ runner.os == 'Linux' }}
