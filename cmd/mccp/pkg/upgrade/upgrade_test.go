@@ -47,11 +47,11 @@ func TestPreflightCheck(t *testing.T) {
 }
 
 func TestGetGithubRepoPath(t *testing.T) {
-	repoPath, err := getGithubRepoPath("git@github.com:ww/repo.git")
+	repoPath, err := getRepoOrgAndName("git@github.com:ww/repo.git")
 	assert.NoError(t, err)
 	assert.Equal(t, "ww/repo", repoPath)
 
-	repoPath, err = getGithubRepoPath("https://github.com/ww/repo.git")
+	repoPath, err = getRepoOrgAndName("https://github.com/ww/repo.git")
 	assert.NoError(t, err)
 	assert.Equal(t, "ww/repo", repoPath)
 

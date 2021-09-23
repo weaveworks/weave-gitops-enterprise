@@ -25,7 +25,7 @@ import (
 )
 
 type UpgradeValues struct {
-	RepositoryURL  string
+	RepoOrgAndName string
 	Remote         string
 	HeadBranch     string
 	BaseBranch     string
@@ -38,10 +38,10 @@ type UpgradeValues struct {
 	ProfileRepoURL string
 	ProfilePath    string
 	GitRepository  string
-	Args           []string
+	Version        string
 }
 
-func Upgrade(w io.Writer) error {
+func Upgrade(w io.Writer, upgradeValues UpgradeValues) error {
 	config := config.GetConfigOrDie()
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -53,39 +53,36 @@ func Upgrade(w io.Writer) error {
 		return err
 	}
 
-	repoURL, err := getRepoURL()
+	upgradeValues.Name = "weave-gitops-enterprise"
+	upgradeValues.Namespace = "wego-system"
+	upgradeValues.ProfileBranch = "main"
+	upgradeValues.ConfigMap = ""
+	upgradeValues.Out = "."
+	upgradeValues.ProfileRepoURL = "git@github.com:weaveworks/weave-gitops-enterprise-profiles.git"
+	upgradeValues.ProfilePath = "."
+
+	repoURL, err := getRepoURL(upgradeValues.Remote)
 	if err != nil {
 		return err
 	}
 	log.Infof("Found repo url as: %v", repoURL)
 
-	githubRepoPath, err := getGithubRepoPath(repoURL)
-	if err != nil {
-		return err
+	if upgradeValues.RepoOrgAndName == "" {
+		githubRepoPath, err := getRepoOrgAndName(repoURL)
+		if err != nil {
+			return err
+		}
+		upgradeValues.RepoOrgAndName = githubRepoPath
 	}
 
-	gitRepositoryResource := "wego-system/" + strings.TrimSuffix(filepath.Base(repoURL), ".git")
-
-	upgradeValues := UpgradeValues{
-		RepositoryURL:  githubRepoPath,
-		Remote:         "origin",
-		HeadBranch:     "tier-upgrade-enterprise",
-		BaseBranch:     "main",
-		CommitMessage:  "Upgrade to WGE",
-		Name:           "wge-profile",
-		Namespace:      "wego-system",
-		ProfileBranch:  "main",
-		ConfigMap:      "",
-		Out:            ".",
-		ProfileRepoURL: "git@github.com:weaveworks/weave-gitops-enterprise-profiles.git",
-		ProfilePath:    ".",
-		GitRepository:  gitRepositoryResource,
+	if upgradeValues.GitRepository == "" {
+		upgradeValues.GitRepository = "wego-system/" + strings.TrimSuffix(filepath.Base(repoURL), ".git")
 	}
 
 	log.Infof("Using values %+v", upgradeValues)
 
 	key := entitlement.Data["deploy-key"]
-	localRepo, err := git_utils.CloneToTempDir("/tmp", upgradeValues.ProfileRepoURL, upgradeValues.ProfileBranch, key)
+	localRepo, err := git_utils.CloneToTempDir("", upgradeValues.ProfileRepoURL, upgradeValues.ProfileBranch, key)
 	if err != nil {
 		return err
 	}
@@ -106,7 +103,7 @@ func Upgrade(w io.Writer) error {
 	return nil
 }
 
-func getGithubRepoPath(url string) (string, error) {
+func getRepoOrgAndName(url string) (string, error) {
 	repoEndpoint, err := transport.NewEndpoint(url)
 	if err != nil {
 		return "", err
@@ -115,8 +112,8 @@ func getGithubRepoPath(url string) (string, error) {
 	return strings.Trim(strings.TrimSuffix(strings.TrimSpace(repoEndpoint.Path), ".git"), "/"), nil
 }
 
-func getRepoURL() (string, error) {
-	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+func getRepoURL(remote string) (string, error) {
+	cmd := exec.Command("git", "config", "--get", "remote."+remote+".url")
 	cmd.Dir = "."
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -141,25 +138,11 @@ func getEntitlement(clientset kubernetes.Interface) (*v1.Secret, error) {
 }
 
 func addProfile(values UpgradeValues) (string, error) {
-	var (
-		err         error
-		profileName string
-		version     = "latest"
-	)
-
 	url := values.ProfileRepoURL
-
-	branch := values.ProfileBranch
-	subName := values.Name
-	namespace := values.Namespace
-	configMap := values.ConfigMap
-	dir := values.Out
-	path := values.ProfilePath
-	message := values.CommitMessage
 
 	r := &runner.CLIRunner{}
 	g := git.NewCLIGit(git.CLIGitConfig{
-		Message: message,
+		Message: values.CommitMessage,
 	}, r)
 
 	gitRepoNamespace, gitRepoName, err := getGitRepositoryNamespaceAndName(values.GitRepository)
@@ -167,7 +150,7 @@ func addProfile(values UpgradeValues) (string, error) {
 		return "", err
 	}
 
-	installationDirectory := filepath.Join(dir, subName)
+	installationDirectory := filepath.Join(values.Out, values.Name)
 	installer := install.NewInstaller(install.Config{
 		GitClient:        g,
 		RootDir:          installationDirectory,
@@ -181,14 +164,14 @@ func addProfile(values UpgradeValues) (string, error) {
 		},
 		Profile: catalog.Profile{
 			ProfileConfig: catalog.ProfileConfig{
-				ConfigMap:     configMap,
-				Namespace:     namespace,
-				Path:          path,
-				ProfileBranch: branch,
-				ProfileName:   profileName,
-				SubName:       subName,
+				ConfigMap:     values.ConfigMap,
+				Namespace:     values.Namespace,
+				Path:          values.ProfilePath,
+				ProfileBranch: values.ProfileBranch,
+				ProfileName:   "",
+				SubName:       values.Name,
 				URL:           url,
-				Version:       version,
+				Version:       values.Version,
 			},
 			GitRepoConfig: catalog.GitRepoConfig{
 				Namespace: gitRepoNamespace,
@@ -223,28 +206,21 @@ func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, err
 }
 
 func createPullRequest(values UpgradeValues, installationDirectory string) error {
-	branch := values.HeadBranch
-	repo := values.RepositoryURL
-	base := values.BaseBranch
-	remote := values.Remote
-	directory := values.Out
-	message := values.CommitMessage
-
 	r := &runner.CLIRunner{}
 	g := git.NewCLIGit(git.CLIGitConfig{
-		Directory: directory,
-		Branch:    branch,
-		Remote:    remote,
-		Base:      base,
-		Message:   message,
+		Directory: values.Out,
+		Branch:    values.HeadBranch,
+		Remote:    values.Remote,
+		Base:      values.BaseBranch,
+		Message:   values.CommitMessage,
 	}, r)
 	scmClient, err := git.NewClient(git.SCMConfig{
-		Branch: branch,
-		Base:   base,
-		Repo:   repo,
+		Branch: values.HeadBranch,
+		Base:   values.BaseBranch,
+		Repo:   values.RepoOrgAndName,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create scm client: %w", err)
 	}
-	return catalog.CreatePullRequest(scmClient, g, branch, installationDirectory)
+	return catalog.CreatePullRequest(scmClient, g, values.HeadBranch, installationDirectory)
 }
