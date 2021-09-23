@@ -157,6 +157,7 @@ jobs:
         aws-region: eu-central-1
     - name: Publish helm chart to s3
       run: |
+        git fetch --tags --force
         TAG=$(git describe --always --match "v*")
         
         CHART_VALUES_PATH=./charts/mccp/values.yaml
