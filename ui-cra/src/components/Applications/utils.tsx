@@ -6,10 +6,9 @@ export const useApplicationsCount = (): number => {
   const { listApplications } = useApplications();
 
   React.useEffect(() => {
-    listApplications().then((res: any[]) => setApplications(res));
-    // listApplications is a dynamic function that changes a lot
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    listApplications &&
+      listApplications().then((res: any[]) => setApplications(res));
+  }, [listApplications]);
 
   return applications.length;
 };

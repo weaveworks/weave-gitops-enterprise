@@ -6,6 +6,7 @@ import {
 } from 'weaveworks-ui-components/lib/theme/selectors';
 import theme from 'weaveworks-ui-components/lib/theme';
 import useVersions from '../../contexts/Versions';
+import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 
 export const Title = styled.div`
   font-size: ${fontSize('large')};
@@ -56,34 +57,51 @@ const HelpLinkWrapper = styled.div`
   }
 `;
 
-export const ContentWrapper: FC = ({ children }) => {
-  const { versions } = useVersions();
-  return (
-    <Content>
-      {children}
-      <HelpLinkWrapper>
-        <div>
-          Need help? Contact us at{' '}
-          <a href="mailto:support@weave.works">support@weave.works</a>
-        </div>
-        <div>Version {versions?.capiServer}</div>
-      </HelpLinkWrapper>
-    </Content>
-  );
-};
+const EntitlementWrapper = styled.div`
+  ${contentCss};
+  background-color: #f3e9c9;
+  padding: ${small} ${medium};
+  display: flex;
+  justifycontent: 'center';
+`;
 
-export const WGContentWrapper: FC = ({ children }) => {
-  const { versions } = useVersions();
+const WarningIconWrapper = styled(WarningIcon)`
+  margin-right: ${small};
+`;
+
+export const ContentWrapper: FC<{ type?: string }> = ({ children, type }) => {
+  const { versions, entitlement } = useVersions();
   return (
-    <WGContent>
-      {children}
-      <HelpLinkWrapper>
-        <div>
-          Need help? Contact us at&nbsp;
-          <a href="mailto:support@weave.works">support@weave.works</a>
-        </div>
-        <div>Version {versions?.capiServer}</div>
-      </HelpLinkWrapper>
-    </WGContent>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {entitlement && (
+        <EntitlementWrapper>
+          <WarningIconWrapper />
+          {entitlement}
+        </EntitlementWrapper>
+      )}
+      {type === 'WG' ? (
+        <WGContent>
+          {children}
+          <HelpLinkWrapper>
+            <div>
+              Need help? Contact us at&nbsp;
+              <a href="mailto:support@weave.works">support@weave.works</a>
+            </div>
+            <div>Version {versions?.capiServer}</div>
+          </HelpLinkWrapper>
+        </WGContent>
+      ) : (
+        <Content>
+          {children}
+          <HelpLinkWrapper>
+            <div>
+              Need help? Contact us at{' '}
+              <a href="mailto:support@weave.works">support@weave.works</a>
+            </div>
+            <div>Version {versions?.capiServer}</div>
+          </HelpLinkWrapper>
+        </Content>
+      )}
+    </div>
   );
 };
