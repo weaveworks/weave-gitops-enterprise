@@ -1,5 +1,5 @@
 ---
-apiVersion: {{ include "common.capabilities.ingress.apiVersion" (dict "kubeVersion" .Capabilities.KubeVersion.GitVersion "context" $) }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   annotations:
