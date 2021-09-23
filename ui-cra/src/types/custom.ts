@@ -9,9 +9,10 @@ export type Param = {
 };
 
 export type Object = {
-  kind: string;
-  apiVersion: string;
-  parameters: Param['name'];
+  kind?: string;
+  apiVersion?: string;
+  parameters?: Param['name'];
+  name?: string;
 };
 
 export type Template = {
@@ -19,7 +20,7 @@ export type Template = {
   description?: string;
   version?: string;
   parameters?: Param[];
-  objects: Object[];
+  objects?: Object[];
   error?: string;
 };
 

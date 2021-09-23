@@ -282,10 +282,10 @@ const AddCluster: FC = () => {
   // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
   const sections = useMemo(() => {
     const groups =
-      activeTemplate?.objects.reduce(
-        (accumulator, item, index) =>
+      activeTemplate?.objects?.reduce(
+        (accumulator, item) =>
           Object.assign(accumulator, {
-            [`${index + 1}. ${item.kind}`]: item.parameters,
+            [`${item.kind}/${item.name}`]: item.parameters,
           }),
         {},
       ) || {};
@@ -307,9 +307,8 @@ const AddCluster: FC = () => {
       setActiveTemplate(getTemplate(templateName));
     }
     const steps =
-      activeTemplate?.objects?.map(
-        (object, index) => `${index + 1}. ${object.kind}`,
-      ) || [];
+      activeTemplate?.objects?.map(object => `${object.kind}/${object.name}`) ||
+      [];
     setSteps(steps);
     return history.listen(() => {
       setActiveTemplate(null);
@@ -337,8 +336,8 @@ const AddCluster: FC = () => {
           ]}
         />
         <ContentWrapper>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={10}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={9}>
               <Title>Create new cluster with template</Title>
               <CredentialsWrapper>
                 <div className="template-title">
@@ -444,7 +443,7 @@ const AddCluster: FC = () => {
                 </>
               ) : null}
             </Grid>
-            <Grid className={classes.steps} item md={2}>
+            <Grid className={classes.steps} item md={3}>
               <FormStepsNavigation
                 steps={steps}
                 activeStep={activeStep}

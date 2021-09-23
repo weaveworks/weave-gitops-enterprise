@@ -21,6 +21,7 @@ const Section = styled.div`
 const Title = styled.div`
   padding-bottom: ${theme.spacing.small};
   font-size: ${theme.fontSizes.large};
+  font-family: ${theme.fontFamilies.monospace};
 `;
 
 const Content = styled.div`
