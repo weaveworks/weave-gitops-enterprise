@@ -81,6 +81,7 @@ jobs:
     - name: Publish helm chart to s3
       if: ${{ runner.os == 'Linux' }}
       run: |
+          git fetch --tags --force
           TAG=$(git describe --always --match "v*")
           
           CHART_VALUES_PATH=./charts/mccp/values.yaml
@@ -88,7 +89,7 @@ jobs:
           make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
 
           # Publish the MCCP Helm v3 chart
-          ./bin/publish-chart-to-s3.sh $TAG $GITHUB_EVENT_NAME ./charts/mccp 3
+          ./bin/publish-chart-to-s3.sh $TAG "charts-v3" ./charts/mccp
     - name: Login to Docker Hub
       if: ${{ runner.os == 'Linux' }}
       uses: docker/login-action@v1
@@ -349,6 +350,7 @@ jobs:
         aws-region: eu-central-1
     - name: Publish mccp to s3
       run: |
+        git fetch --tags --force
         TAG=$(git describe --always --match "v*")
         # Upload uniquely tagged binaries
         aws s3 cp cmd/mccp/mccp-${{ matrix.os }} s3://weaveworks-wkp/mccp-${TAG}-${{ matrix.os_name }}-amd64
