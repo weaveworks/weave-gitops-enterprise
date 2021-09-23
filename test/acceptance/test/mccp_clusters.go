@@ -583,7 +583,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 		})
 
-		It("Verify team workspaces variations", func() {
+		It("@wkp Verify team workspaces variations", func() {
 			if getEnv("CONNECT_KIND_WKP_LEAF_TEST", "") == "" {
 				Skip("set CONNECT_KIND_WKP_LEAF_TEST env var to run this test")
 			}

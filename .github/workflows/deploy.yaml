@@ -309,10 +309,12 @@ jobs:
         go test -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
     - name: Delete WKP repository
       if: ${{ always() }}
+      continue-on-error: true
       run: |
         hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
     - name: Store acceptance test results
       if: ${{ always() }}
+      continue-on-error: true
       uses: actions/upload-artifact@v2
       with:
         name: acceptance-test-artifacts

@@ -539,27 +539,11 @@ jobs:
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
         
         ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
-        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
-    - name: Setup wkp leaf cluster
-      run: |
-        kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
-        export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
-        export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}
-        
-        # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
-        echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
-        ./test/utils/scripts/wkp.sh setup $CLUSTER_NAME ${{ github.workspace }}
-
-        # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
-        unset KUBECONFIG        
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &       
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.skip=@smoke -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
-    - name: Delete WKP repository
-      if: ${{ always() }}
-      run: |
-        hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
+        go test -ginkgo.skip=@smoke -ginkgo.skip=@wkp -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
     - name: Store acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
