@@ -64,7 +64,7 @@ const TemplatesDashboard: FC = () => {
       {!loading ? (
         <div style={{ display: 'flex' }}>
           {view === 'grid' && (
-            <ContentWrapper>
+            <ContentWrapper backgroundColor="transparent">
               <Grid container spacing={3} justifyContent="center">
                 {templates.map((template: any, index: number) => (
                   <Grid key={index} item xs={11} sm={8} md={4}>

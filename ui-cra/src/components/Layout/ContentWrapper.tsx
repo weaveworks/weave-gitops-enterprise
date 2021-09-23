@@ -35,8 +35,9 @@ export const contentCss = css`
   border-radius: ${spacing('xs')};
 `;
 
-export const Content = styled.div`
+export const Content = styled.div<{ backgroundColor?: string }>`
   ${contentCss};
+  background-color: ${props => props.backgroundColor};
 `;
 
 export const WGContent = styled.div`
@@ -70,7 +71,7 @@ const HelpLinkWrapper = styled.div`
 `;
 
 export const ContentWrapper: FC<{ type?: string; backgroundColor?: string }> =
-  ({ children, type }) => {
+  ({ children, type, backgroundColor }) => {
     const { versions, entitlement } = useVersions();
     return (
       <div style={{ display: 'flex', flexDirection: 'column' }}>
