@@ -7,15 +7,12 @@ import Typography from '@material-ui/core/Typography';
 import { useHistory } from 'react-router-dom';
 import { Template } from '../../types/custom';
 import useTemplates from '../../contexts/Templates';
-import styled from 'styled-components';
 import { OnClickAction } from '../Action';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { createStyles, makeStyles } from '@material-ui/core';
-
-const Image = styled.div<{ color: string }>`
-  background: ${props => props.color};
-  height: ${140}px;
-`;
+import { ReactComponent as EKS } from '../../assets/img/templates/eks.svg';
+import { ReactComponent as GKE } from '../../assets/img/templates/gke.svg';
+import { ReactComponent as Generic } from '../../assets/img/templates/generic.svg';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -29,10 +26,7 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-const TemplateCard: FC<{ template: Template; color: string }> = ({
-  template,
-  color,
-}) => {
+const TemplateCard: FC<{ template: Template }> = ({ template }) => {
   const classes = useStyles();
   const history = useHistory();
   const { setActiveTemplate } = useTemplates();
@@ -40,15 +34,23 @@ const TemplateCard: FC<{ template: Template; color: string }> = ({
     setActiveTemplate(template);
     history.push(`/clusters/templates/${template.name}/create`);
   };
+  const getTile = () => {
+    switch (template.provider) {
+      case 'aws':
+        return <EKS />;
+      case 'google':
+        return <GKE />;
+      default:
+        return <Generic />;
+    }
+  };
 
   const disabled = Boolean(template.error);
 
   return (
     <Card className={classes.root} data-template-name={template.name}>
       <div>
-        <CardMedia>
-          <Image color={color} />
-        </CardMedia>
+        <CardMedia>{getTile()}</CardMedia>
         <CardContent>
           <Typography gutterBottom variant="h6" component="h2">
             {template.name}

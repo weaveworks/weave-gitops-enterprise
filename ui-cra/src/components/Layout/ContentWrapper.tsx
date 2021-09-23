@@ -58,6 +58,7 @@ const WarningIconWrapper = styled(WarningIcon)`
 
 const HelpLinkWrapper = styled.div`
   ${contentCss};
+  padding: ${small} ${medium};
   color: ${({ theme }) => theme.colors.gray600};
   display: flex;
   justify-content: space-between;
