@@ -21,6 +21,10 @@ const useStyles = makeStyles(() =>
   createStyles({
     root: {
       borderRadius: '8px',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
     },
   }),
 );
@@ -41,37 +45,39 @@ const TemplateCard: FC<{ template: Template; color: string }> = ({
 
   return (
     <Card className={classes.root} data-template-name={template.name}>
-      <CardMedia>
-        <Image color={color} />
-      </CardMedia>
-      <CardContent>
-        <Typography gutterBottom variant="h6" component="h2">
-          {template.name}
-        </Typography>
-        <Typography variant="body2" color="textSecondary" component="p">
-          {template.description}
-        </Typography>
-        {template.error && (
-          <>
-            <Typography
-              className="template-error-header"
-              variant="h6"
-              component="h2"
-              color="error"
-            >
-              Error in template
-            </Typography>
-            <Typography
-              className="template-error-description"
-              variant="body2"
-              color="error"
-              component="p"
-            >
-              {template.error}
-            </Typography>
-          </>
-        )}
-      </CardContent>
+      <div>
+        <CardMedia>
+          <Image color={color} />
+        </CardMedia>
+        <CardContent>
+          <Typography gutterBottom variant="h6" component="h2">
+            {template.name}
+          </Typography>
+          <Typography variant="body2" color="textSecondary" component="p">
+            {template.description}
+          </Typography>
+          {template.error && (
+            <>
+              <Typography
+                className="template-error-header"
+                variant="h6"
+                component="h2"
+                color="error"
+              >
+                Error in template
+              </Typography>
+              <Typography
+                className="template-error-description"
+                variant="body2"
+                color="error"
+                component="p"
+              >
+                {template.error}
+              </Typography>
+            </>
+          )}
+        </CardContent>
+      </div>
       <CardActions>
         <OnClickAction
           id="create-cluster"

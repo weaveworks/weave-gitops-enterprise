@@ -50,7 +50,6 @@ const EntitlementWrapper = styled.div`
   background-color: #f3e9c9;
   padding: ${small} ${medium};
   display: flex;
-  justifycontent: 'center';
 `;
 
 const WarningIconWrapper = styled(WarningIcon)`
@@ -60,11 +59,8 @@ const WarningIconWrapper = styled(WarningIcon)`
 const HelpLinkWrapper = styled.div`
   ${contentCss};
   color: ${({ theme }) => theme.colors.gray600};
-  white-space: nowrap;
-  line-height: 1.5em;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  justify-content: space-between;
   a {
     color: ${({ theme }) => theme.colors.blue600};
   }
