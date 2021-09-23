@@ -26,6 +26,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	cmd.AddCommand(
 		templatesCmd(client),
 		clustersCmd(client),
+		upgradeCmd(client),
 	)
 
 	return cmd
