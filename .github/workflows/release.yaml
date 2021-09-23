@@ -1,0 +1,148 @@
+on:
+  push:
+    tags: [v*.*.*]
+
+name: release
+jobs:
+  build:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os_name: linux
+          - os: macOS-latest
+            os_name: darwin
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      YARN_CACHE_NAME: cache-yarn
+      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+    steps:
+    - id: cache-paths
+      run: |
+        echo "::set-output name=dir::$(yarn cache dir)"
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Get TAG
+      id: tag
+      uses: dawidd6/action-get-tag@v1
+    - name: Set environment variable
+      run: |
+        TAG=$(echo $(git describe --always --match "v*") | sed "s/^v[0-9].[0-9].[0-9]/${{ steps.tag.outputs.tag }}/")
+        echo "TAG=$TAG" >> $GITHUB_ENV
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.cache-paths.outputs.go-build }}
+          ${{ steps.cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+    - name: Yarn Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.cache-paths.outputs.dir }}
+        key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+    - name: Build all the services
+      env:
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: |
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          LOCAL_BINARIES_GOOS=darwin make cmd/mccp/mccp
+        elif [ "$RUNNER_OS" == "Linux" ]; then
+          make -j4 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
+        fi
+
+        mv cmd/mccp/mccp cmd/mccp/mccp-${{ env.TAG }}-${{ matrix.os_name }}-amd64
+    - name: Store mccp binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: mccp-binaries
+        path: cmd/mccp/mccp-${{ matrix.os }}-release
+        retention-days: 1
+    - name: Install Helm v3
+      if: ${{ runner.os == 'Linux' }}
+      uses: azure/setup-helm@v1
+      with:
+        version: v3.5.4
+    - name: Configure AWS Credentials
+      if: ${{ runner.os == 'Linux' }}
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    - name: Publish helm chart to s3
+      if: ${{ runner.os == 'Linux' }}
+      run: |      
+          CHART_VALUES_PATH=./charts/mccp/values.yaml
+          # Update the MCCP chart values.yaml file with the current image tag
+          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+          # Publish the MCCP Helm v3 chart
+          ./bin/publish-chart-to-s3.sh $TAG $GITHUB_EVENT_NAME ./charts/mccp 3
+    - name: Login to Docker Hub
+      if: ${{ runner.os == 'Linux' }}
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      if: ${{ runner.os == 'Linux' }}
+      run: make push
+      
+  releaser:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Download mccp binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: mccp-binaries
+        path: cmd/mccp
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    - name: Get TAG
+      id: tag
+      uses: dawidd6/action-get-tag@v1
+    - name: Set environment variable
+      run: |
+        TAG=$(echo $(git describe --always --match "v*") | sed "s/^v[0-9].[0-9].[0-9]/${{ steps.tag.outputs.tag }}/")
+        echo "TAG=$TAG" >> $GITHUB_ENV
+    - name: Publish mccp to s3
+      run: |
+        aws s3 cp mccp-${{ env.TAG }}-linux-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-linux-amd64
+        aws s3 cp mccp-${{ env.TAG }}-darwin-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-darwin-amd64
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        fail_on_unmatched_files: true
+        files: |
+          cmd/mccp/mccp-${{ env.TAG }}-linux-amd64
+          cmd/mccp/mccp-${{ env.TAG }}-darwin-amd64
