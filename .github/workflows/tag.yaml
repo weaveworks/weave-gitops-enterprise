@@ -1,5 +1,4 @@
 on:
-  push:
   pull_request:
   workflow_dispatch:
 
@@ -51,12 +50,14 @@ jobs:
         git describe --always --match "v*"
         git describe --always --tags --match "v*"
         tools/image-tag
-    - name: Build all the services
+    - name: Force tag fetch
       run: |
         git fetch --tags --force
         git describe --always --match "v*"
         git describe --always --tags --match "v*"
         tools/image-tag
+
+    
     
   
         
