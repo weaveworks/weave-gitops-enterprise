@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useState } from 'react';
 import { Cluster } from '../../types/kubernetes';
-import { request, requestWithHeaders } from '../../utils/request';
+import { request, requestWithCountHeader } from '../../utils/request';
 import { useInterval } from '../../utils/use-interval';
 import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
@@ -51,7 +51,7 @@ const ClustersProvider: FC = ({ children }) => {
     const newAbortController = new AbortController();
     setAbortController(newAbortController);
     setLoading(true);
-    requestWithHeaders('GET', clustersBaseUrl + clustersParameters, {
+    requestWithCountHeader('GET', clustersBaseUrl + clustersParameters, {
       cache: 'no-store',
       signal: newAbortController.signal,
     })

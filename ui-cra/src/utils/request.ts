@@ -15,9 +15,13 @@ export const processResponse = (res: Response) => {
     .catch(() => res.text().then(message => ({ success: true, message })));
 };
 
-export const processResponseHeaders = (res: Response) => {
+export const processCountHeader = (res: Response) => {
   const headersContent = res.headers.get('Content-Range')?.split('/');
   return headersContent?.[1];
+};
+
+export const processEntitlementHeaders = (res: Response) => {
+  return res.headers?.get('Entitlement-Expired-Message');
 };
 
 export const request = (
@@ -27,7 +31,7 @@ export const request = (
 ) =>
   window.fetch(query, { ...options, method }).then(res => processResponse(res));
 
-export const requestWithHeaders = (
+export const requestWithCountHeader = (
   method: RequestMethod,
   query: RequestInfo,
   options: RequestInit = {},
@@ -35,6 +39,18 @@ export const requestWithHeaders = (
   window.fetch(query, { ...options, method }).then(res =>
     processResponse(res).then(body => ({
       data: body,
-      total: Number(processResponseHeaders(res)),
+      total: Number(processCountHeader(res)),
+    })),
+  );
+
+export const requestWithEntitlementHeader = (
+  method: RequestMethod,
+  query: RequestInfo,
+  options: RequestInit = {},
+) =>
+  window.fetch(query, { ...options, method }).then(res =>
+    processResponse(res).then(body => ({
+      data: body,
+      entitlement: processEntitlementHeaders(res),
     })),
   );
