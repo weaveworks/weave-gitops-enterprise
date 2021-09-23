@@ -88,7 +88,7 @@ jobs:
           make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
 
           # Publish the MCCP Helm v3 chart
-          ./bin/publish-chart-to-s3.sh $TAG $GITHUB_EVENT_NAME ./charts/mccp 3
+          ./bin/publish-chart-to-s3.sh $TAG "nightly/charts-v3" ./charts/mccp
     - name: Login to Docker Hub
       if: ${{ runner.os == 'Linux' }}
       uses: docker/login-action@v1
