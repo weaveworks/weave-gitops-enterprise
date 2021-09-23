@@ -57,12 +57,10 @@ jobs:
         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
-    - name: Get TAG
-      id: tag
-      uses: dawidd6/action-get-tag@v1
     - name: Set environment variable
       run: |
-        TAG=$(echo $(git describe --always --match "v*") | sed "s/^v[0-9].[0-9].[0-9]/${{ steps.tag.outputs.tag }}/")
+        git fetch --tags --force
+        TAG=$(git describe --always --match "v*")
         echo "TAG=$TAG" >> $GITHUB_ENV
     - name: Build all the services
       env:
