@@ -1,8 +1,9 @@
 on:
   push:
+  pull_request:
   workflow_dispatch:
 
-name: run tests
+name: tag test
 jobs: 
   build:
     runs-on: ubuntu-latest
