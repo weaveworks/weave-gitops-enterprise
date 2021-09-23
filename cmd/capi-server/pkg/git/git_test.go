@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-logr/logr"
 	"github.com/google/go-github/v32/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
-
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
 )
 
 const (
@@ -56,7 +56,7 @@ func TestCreatePullRequestInGitHubOrganization(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	s := git.NewGitProviderService()
+	s := git.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
 	content := "---\n"
 	res, err := s.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
@@ -116,7 +116,7 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	s := git.NewGitProviderService()
+	s := git.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
 	content := "---\n"
 	res, err := s.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
@@ -200,7 +200,7 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	s := git.NewGitProviderService()
+	s := git.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
 	content := "---\n"
 	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), git.WriteFilesToBranchAndCreatePullRequestRequest{

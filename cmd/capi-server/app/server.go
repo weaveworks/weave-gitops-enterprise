@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
@@ -34,7 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func NewAPIServerCommand() *cobra.Command {
+func NewAPIServerCommand(log logr.Logger) *cobra.Command {
 	var dbURI string
 	var dbName string
 	var dbUser string
@@ -49,7 +49,7 @@ func NewAPIServerCommand() *cobra.Command {
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return StartServer(context.Background())
+			return StartServer(context.Background(), log)
 		},
 	}
 
@@ -70,7 +70,7 @@ func NewAPIServerCommand() *cobra.Command {
 	return cmd
 }
 
-func StartServer(ctx context.Context) error {
+func StartServer(ctx context.Context, log logr.Logger) error {
 	dbUri := viper.GetString("db-uri")
 	dbType := viper.GetString("db-type")
 	if dbType == "sqlite" {
@@ -104,6 +104,7 @@ func StartServer(ctx context.Context) error {
 		return err
 	}
 	library := &templates.CRDLibrary{
+		Log:       log,
 		Client:    kubeClient,
 		Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 	}
@@ -111,29 +112,31 @@ func StartServer(ctx context.Context) error {
 	if ns == "" {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
-	provider := git.NewGitProviderService()
+	provider := git.NewGitProviderService(log)
 
 	appsConfig, err := wego_server.DefaultConfig()
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
+	// Override logger to ensure consistency
+	appsConfig.Logger = log
 
 	name := viper.GetString("entitlement-secret-name")
 	namespace := viper.GetString("entitlement-secret-namespace")
 	key := client.ObjectKey{Name: name, Namespace: namespace}
 
-	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, appsConfig, key,
+	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, appsConfig, key, log,
 		grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
-		grpc_runtime.WithMetadata(TrackEvents),
+		grpc_runtime.WithMetadata(TrackEvents(log)),
 		middleware.WithGrpcErrorLogging(klogr.New()),
 	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, appsConfig *wego_server.ApplicationsConfig, entitlementSecretKey client.ObjectKey, opts ...grpc_runtime.ServeMuxOption) error {
+func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, appsConfig *wego_server.ApplicationsConfig, entitlementSecretKey client.ObjectKey, log logr.Logger, opts ...grpc_runtime.ServeMuxOption) error {
 	mux := grpc_runtime.NewServeMux(opts...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(library, provider, c, discoveryClient, db, ns))
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(log, library, provider, c, discoveryClient, db, ns))
 
 	//Add weave-gitops core handlers
 	wegoServer := wego_server.NewApplicationsServer(appsConfig)
@@ -141,21 +144,21 @@ func RunInProcessGateway(ctx context.Context, addr string, library templates.Lib
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: entitlement.EntitlementHandler(ctx, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(mux)),
+		Handler: entitlement.EntitlementHandler(ctx, log, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(log, mux)),
 	}
 
 	go func() {
 		<-ctx.Done()
-		log.Infof("Shutting down the http gateway server")
+		log.Info("Shutting down the http gateway server")
 		if err := s.Shutdown(context.Background()); err != nil {
-			log.Errorf("Failed to shutdown http gateway server: %v", err)
+			log.Error(err, "Failed to shutdown http gateway server")
 		}
 	}()
 
-	log.Infof("Starting to listen and serve on %v", addr)
+	log.Info("Starting to listen and serve", "address", addr)
 
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {
-		log.Errorf("Failed to listen and serve: %v", err)
+		log.Error(err, "Failed to listen and serve")
 		return err
 	}
 	return nil
@@ -174,23 +177,25 @@ func CustomIncomingHeaderMatcher(key string) (string, bool) {
 }
 
 // TrackEvents tracks data for specific operations.
-func TrackEvents(ctx context.Context, r *http.Request) metadata.MD {
-	var handler string
-	md := make(map[string]string)
-	if method, ok := grpc_runtime.RPCMethod(ctx); ok {
-		md["method"] = method
-		handler = method
-	}
-	if pattern, ok := grpc_runtime.HTTPPathPattern(ctx); ok {
-		md["pattern"] = pattern
-	}
+func TrackEvents(log logr.Logger) func(ctx context.Context, r *http.Request) metadata.MD {
+	return func(ctx context.Context, r *http.Request) metadata.MD {
+		var handler string
+		md := make(map[string]string)
+		if method, ok := grpc_runtime.RPCMethod(ctx); ok {
+			md["method"] = method
+			handler = method
+		}
+		if pattern, ok := grpc_runtime.HTTPPathPattern(ctx); ok {
+			md["pattern"] = pattern
+		}
 
-	track(handler)
+		track(log, handler)
 
-	return metadata.New(md)
+		return metadata.New(md)
+	}
 }
 
-func track(handler string) {
+func track(log logr.Logger, handler string) {
 	handlers := make(map[string]map[string]string)
 	handlers["ListTemplates"] = map[string]string{
 		"object":  "templates",
@@ -207,12 +212,12 @@ func track(handler string) {
 
 	for h, m := range handlers {
 		if strings.HasSuffix(handler, h) {
-			go checkVersionWithFlags(m)
+			go checkVersionWithFlags(log, m)
 		}
 	}
 }
 
-func checkVersionWithFlags(flags map[string]string) {
+func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	p := &checkpoint.CheckParams{
 		Product: "weave-gitops-enterprise",
 		Version: version.Version,
@@ -220,13 +225,13 @@ func checkVersionWithFlags(flags map[string]string) {
 	}
 	checkResponse, err := checkpoint.Check(p)
 	if err != nil {
-		log.Debugf("Failed to check version: %v.", err)
+		log.Error(err, "Failed to check version")
 		return
 	}
 	if checkResponse.Outdated {
-		log.Infof("weave-gitops-enterprise version %s is available; please update at %s.",
-			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL)
+		log.Info("There is a newer version of weave-gitops-enterprise available",
+			"latest", checkResponse.CurrentVersion, "url", checkResponse.CurrentDownloadURL)
 	} else {
-		log.Debug("weave-gitops-enterprise version is up to date.")
+		log.Info("The current weave-gitops-enterprise version is up to date", "current", version.Version)
 	}
 }
