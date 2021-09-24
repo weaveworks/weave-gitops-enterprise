@@ -133,12 +133,20 @@ jobs:
       run: |
         aws s3 cp cmd/mccp/mccp-${{ env.TAG }}-linux-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-linux-amd64
         aws s3 cp cmd/mccp/mccp-${{ env.TAG }}-darwin-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-darwin-amd64
+    - name: Build Changelog
+      id: github_release
+      uses: mikepenz/release-changelog-builder-action@v1
+      with:
+        configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         prerelease: true
         fail_on_unmatched_files: true
+        body: ${{steps.github_release.outputs.changelog}}
         files: |
           cmd/mccp/mccp-${{ env.TAG }}-linux-amd64
           cmd/mccp/mccp-${{ env.TAG }}-darwin-amd64
