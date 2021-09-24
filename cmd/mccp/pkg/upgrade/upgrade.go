@@ -197,10 +197,11 @@ func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, err
 	if err != nil {
 		return "", "", fmt.Errorf("failed to fetch current working directory: %w", err)
 	}
-	config, err := bootstrap.GetConfig(wd)
-	if err == nil && config != nil {
+	config := bootstrap.GetConfig(wd)
+	if config != nil {
 		return config.GitRepository.Namespace, config.GitRepository.Name, nil
 	}
+
 	return "", "", fmt.Errorf("flux git repository not provided, please provide the --git-repository flag or use the pctl bootstrap functionality")
 }
 
