@@ -25,7 +25,6 @@ function setup {
   echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
 
   WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1)
-  kubectl label "${WORKER_NODE}" wkp-database-volume-node=true
 
   UI_NODEPORT=30080
   NATS_NODEPORT=31490
