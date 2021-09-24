@@ -33,10 +33,14 @@ jobs:
         key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+    - name: Remove me
+      run: |
+        ls -lah
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v2
       with:
-        version: latest
+        version: v1.42
+        working-directory: ./...
         args: --verbose --version --timeout=10m --enable=misspell --enable=gofmt
         # https://github.com/golangci/golangci-lint-action/issues/244
         skip-pkg-cache: true
