@@ -1,7 +1,7 @@
 on: 
   pull_request:
     types: [opened, labeled, unlabeled, synchronize]
-name: label-PR
+name: label
 jobs:
   labelCheck:
     runs-on: ubuntu-latest
