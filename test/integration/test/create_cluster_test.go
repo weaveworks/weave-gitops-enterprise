@@ -133,7 +133,7 @@ func runClusterCreationTest(c *context, t *testing.T, version string, region str
 	}
 
 	// Label the worker node for mccp db.
-	runCommandFromCurrentDir("../../utils/scripts/mccp-setup-helpers.sh", "label")
+	_ = runCommandFromCurrentDir("../../utils/scripts/mccp-setup-helpers.sh", "label")
 
 	// Check that all components are functioning
 	if !c.shouldSkipComponents() {

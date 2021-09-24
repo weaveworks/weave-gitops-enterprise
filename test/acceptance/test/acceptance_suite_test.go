@@ -22,8 +22,8 @@ func GomegaFail(message string, callerSkip ...int) {
 	}
 
 	//Show pods
-	showItems("")
-	dumpClusterInfo("wego-system", randID)
+	_ = showItems("")
+	_ = dumpClusterInfo("wego-system", randID)
 
 	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
 		// Print cluster service log

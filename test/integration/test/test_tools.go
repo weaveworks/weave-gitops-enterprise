@@ -285,7 +285,7 @@ func (c *context) checkClusterAtExpectedNumberOfNodes(expectedNumberOfNodes int)
 func (c *context) isClusterRunning() bool {
 	for _, component := range allComponents(c.conf.Track) {
 		if !c.checkComponentRunning(component) {
-			c.showItems("pods")
+			_ = c.showItems("pods")
 			return false
 		}
 	}

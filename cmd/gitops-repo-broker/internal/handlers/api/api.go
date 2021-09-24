@@ -393,7 +393,10 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}, marsh
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(response)
+	_, err = w.Write(response)
+	if err != nil {
+		common.WriteError(w, err, http.StatusInternalServerError)
+	}
 }
 
 func getClusterFromRequest(r *http.Request, db *gorm.DB) (*views.ClusterView, error) {

@@ -1,7 +1,4 @@
 on:
-  push:
-    branches:
-      - golangci-lint
   pull_request:
   workflow_dispatch:
 
@@ -40,7 +37,7 @@ jobs:
       uses: golangci/golangci-lint-action@v2
       with:
         version: latest
-        args: --verbose --timeout=10m --disable=errcheck --enable=misspell --enable=gofmt
+        args: --verbose --version --timeout=10m --enable=misspell --enable=gofmt
 
   unit-tests:
     runs-on: ubuntu-latest
