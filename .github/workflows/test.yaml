@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO_CACHE_NAME: cache-go-modules
-      GL_DEBUG: loader
     steps:
     - id: go-cache-paths
       run: |
@@ -34,13 +33,9 @@ jobs:
         key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-    - name: golangci-lint
-      uses: golangci/golangci-lint-action@v2
-      with:
-        version: v1.42
-        args: --verbose --version --timeout=10m --enable=misspell --enable=gofmt
-        # https://github.com/golangci/golangci-lint-action/issues/244
-        skip-pkg-cache: true
+    - name: Lint
+      run: |
+        make lint
 
   unit-tests:
     runs-on: ubuntu-latest
