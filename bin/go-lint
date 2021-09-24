@@ -4,10 +4,9 @@ set -e
 
 GOPATH=$(go env GOPATH)
 if [ ! -x "${GOPATH}/bin/golangci-lint" ]; then
-    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin" v1.41.1
+    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "${GOPATH}/bin" v1.42.1
 fi
 
-export GOGC=10
 "${GOPATH}/bin/golangci-lint" run \
     --verbose \
     --enable=misspell \
