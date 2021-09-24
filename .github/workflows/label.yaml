@@ -7,7 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull request label check
-        uses: NathanielHill/check-pr-label-action@v4.0.0
+        uses: mheap/github-action-required-labels@v1
         with:
-          github-token: '${{ secrets.GITHUB_TOKEN }}'
-          valid-labels: 'bug, enhancement, ui, test, null'
+          mode: exactly
+          count: 1
+          labels: "bug, enhancement, ui, test, null"
