@@ -1,4 +1,7 @@
 on:
+  push:
+    branches:
+      - golangci-lint
   pull_request:
   workflow_dispatch:
 
@@ -33,14 +36,12 @@ jobs:
         key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-    - name: Run linters
-      run: |
-        make lint
-      # uses: golangci/golangci-lint-action@v2
-      # with:
-      #   version: v1.29
-      #   args: --timeout=600s
-            
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: latest
+        args: --verbose --timeout=10m --disable=errcheck --enable=misspell --enable=gofmt
+
   unit-tests:
     runs-on: ubuntu-latest
     env:
