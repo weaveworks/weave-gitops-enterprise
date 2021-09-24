@@ -367,8 +367,8 @@ github.com/fluxcd/kustomize-controller v0.0.1-beta.2 h1:3EM2OFR9z8FiILDgzqHHqzSx
 github.com/fluxcd/kustomize-controller v0.0.1-beta.2/go.mod h1:mLeipvpQkyof6b5IHNtqeA8CmbjfVIf92UyKkpeBY98=
 github.com/fluxcd/kustomize-controller/api v0.13.2/go.mod h1:hh8LG9D89cLeXJJv3z78aoFh03X9hn2FSiibofX3UBk=
 github.com/fluxcd/kustomize-controller/api v0.13.3/go.mod h1:3RNiEd/XnYjSTGzMqDzDbQkOYpdPFrKuS+XdgWt9pds=
-github.com/fluxcd/kustomize-controller/api v0.14.1 h1:OsErJQ3U3ReYTAtkeFo1t8UW4sjISF0a+6wsz942MT0=
-github.com/fluxcd/kustomize-controller/api v0.14.1/go.mod h1:3RNiEd/XnYjSTGzMqDzDbQkOYpdPFrKuS+XdgWt9pds=
+github.com/fluxcd/kustomize-controller/api v0.14.0 h1:M2i7y8I3DZUlrNDzfxwVxVBrPkB+sQrPAyVtw6OTu9E=
+github.com/fluxcd/kustomize-controller/api v0.14.0/go.mod h1:3RNiEd/XnYjSTGzMqDzDbQkOYpdPFrKuS+XdgWt9pds=
 github.com/fluxcd/pkg/apis/kustomize v0.1.0/go.mod h1:gEl+W5cVykCC3RfrCaqe+Pz+j4lKl2aeR4dxsom/zII=
 github.com/fluxcd/pkg/apis/kustomize v0.2.0 h1:jhu2QHvs+j3Zo9rR6w8hkO3LSC6h3M37zY5ejufOmxY=
 github.com/fluxcd/pkg/apis/kustomize v0.2.0/go.mod h1:gEl+W5cVykCC3RfrCaqe+Pz+j4lKl2aeR4dxsom/zII=
@@ -1492,8 +1492,8 @@ github.com/weaveworks/launcher v0.0.0-20180824102238-59a4fcc32c9c/go.mod h1:w9Z1
 github.com/weaveworks/libgitops v0.0.2/go.mod h1:P3TjYVc4kFAUmXolRTMWUoUNTvN2HPMTo1ZWrpOCwFM=
 github.com/weaveworks/libgitops v0.0.3 h1:O+3cn5KGn7hITDuGJmkwkExguSq8dnc9gaLhh/j9qa8=
 github.com/weaveworks/libgitops v0.0.3/go.mod h1:xXfpB1QJWp7aCiFblQgkBP3QjzbivigvXOr2ixhRJWU=
-github.com/weaveworks/pctl v0.10.0 h1:10tigVkuz9snyrgAvWQDI68b5ynphXlg2xaLRm32vNk=
-github.com/weaveworks/pctl v0.10.0/go.mod h1:FdW8/qocYDXOHMbaxVOP5QoQ8s6Lug3Ej0rPYz0uF6U=
+github.com/weaveworks/pctl v0.8.0 h1:UUGtbmCKQ9fg/9jAAJjjhyjs3HJLJhsgFGwd83DvfzQ=
+github.com/weaveworks/pctl v0.8.0/go.mod h1:eDRbIJD3OdNmcJdTjXrZez6EoS7J/a69hbN16Pd8pik=
 github.com/weaveworks/profiles v0.2.0 h1:zGOaQHCR05SEML1+BHQ/EKyf4KwPdYpss6392kIz+9A=
 github.com/weaveworks/profiles v0.2.0/go.mod h1:BmQOw7tpOxGJWSoz9tpHEo6rRAaLPASljidFdYSsRUs=
 github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca/go.mod h1:y8Luzq6JDsYVoIV0QAlnvIiq8bSaap0myMjWKyzVFTY=
@@ -1886,7 +1886,6 @@ golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20210616045830-e2b7044e8c71/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210616094352-59db8d763f22/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20210817190340-bfb29a6856f2/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 h1:xrCZDmdtoloIiooiA9q0OQb9r8HejIHYoHGhGCe1pGg=
 golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
@@ -2328,9 +2327,8 @@ k8s.io/utils v0.0.0-20201110183641-67b214c5f920/go.mod h1:jPW/WVKK9YHAvNhRxK0md/
 k8s.io/utils v0.0.0-20210517184530-5a248b5acedc/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 k8s.io/utils v0.0.0-20210527160623-6fdb442a123b/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 k8s.io/utils v0.0.0-20210707171843-4b05e18ac7d9/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
+k8s.io/utils v0.0.0-20210722164352-7f3ee0f31471 h1:DnzUXII7sVg1FJ/4JX6YDRJfLNAC7idRatPwe07suiI=
 k8s.io/utils v0.0.0-20210722164352-7f3ee0f31471/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
-k8s.io/utils v0.0.0-20210802155522-efc7438f0176 h1:Mx0aa+SUAcNRQbs5jUzV8lkDlGFU8laZsY9jrcVX5SY=
-k8s.io/utils v0.0.0-20210802155522-efc7438f0176/go.mod h1:jPW/WVKK9YHAvNhRxK0md/EJ228hCsBRufyofKtW8HA=
 knative.dev/hack v0.0.0-20210325223819-b6ab329907d3/go.mod h1:PHt8x8yX5Z9pPquBEfIj0X66f8iWkWfR0S/sarACJrI=
 knative.dev/pkg v0.0.0-20210412173742-b51994e3b312 h1:tE80vxKw9ENrLRe+U9BvLAcJ5UYpDc40r5hFoRFUXh0=
 knative.dev/pkg v0.0.0-20210412173742-b51994e3b312/go.mod h1:V/yjYpwRpIoUCavOoF8plCw72kF7rMjWPms5v2QqxA4=
@@ -2363,9 +2361,8 @@ sigs.k8s.io/controller-runtime v0.9.0/go.mod h1:TgkfvrhhEw3PlI0BRL/5xM+89y3/yc0Z
 sigs.k8s.io/controller-runtime v0.9.1/go.mod h1:cTqsgnwSOsYS03XwySYZj8k6vf0+eC4FJRcCgQ9elb4=
 sigs.k8s.io/controller-runtime v0.9.2/go.mod h1:TxzMCHyEUpaeuOiZx/bIdc2T81vfs/aKdvJt9wuu0zk=
 sigs.k8s.io/controller-runtime v0.9.5/go.mod h1:q6PpkM5vqQubEKUKOM6qr06oXGzOBcCby1DA9FbyZeA=
+sigs.k8s.io/controller-runtime v0.9.6 h1:EevVMlgUj4fC1NVM4+DB3iPkWkmGRNarA66neqv9Qew=
 sigs.k8s.io/controller-runtime v0.9.6/go.mod h1:q6PpkM5vqQubEKUKOM6qr06oXGzOBcCby1DA9FbyZeA=
-sigs.k8s.io/controller-runtime v0.10.0 h1:HgyZmMpjUOrtkaFtCnfxsR1bGRuFoAczSNbn2MoKj5U=
-sigs.k8s.io/controller-runtime v0.10.0/go.mod h1:GCdh6kqV6IY4LK0JLwX0Zm6g233RtVGdb/f0+KSfprg=
 sigs.k8s.io/controller-tools v0.4.1/go.mod h1:G9rHdZMVlBDocIxGkK3jHLWqcTMNvveypYJwrvYKjWU=
 sigs.k8s.io/kind v0.7.1-0.20200303021537-981bd80d3802/go.mod h1:HIZ3PWUezpklcjkqpFbnYOqaqsAE1JeCTEwkgvPLXjk=
 sigs.k8s.io/kind v0.9.0/go.mod h1:cxKQWwmbtRDzQ+RNKnR6gZG6fjbeTtItp5cGf+ww+1Y=

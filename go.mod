@@ -28,7 +28,7 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/libgitops v0.0.3
-	github.com/weaveworks/pctl v0.10.0
+	github.com/weaveworks/pctl v0.8.0
 	github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d
 	github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
@@ -44,7 +44,7 @@ require (
 	k8s.io/client-go v0.22.1
 	k8s.io/kubernetes v1.21.1 // indirect
 	sigs.k8s.io/cluster-api v0.3.16
-	sigs.k8s.io/controller-runtime v0.10.0
+	sigs.k8s.io/controller-runtime v0.9.6
 	sigs.k8s.io/kustomize/kyaml v0.11.1
 )
 
@@ -78,7 +78,7 @@ require (
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787 // indirect
 	github.com/fluxcd/helm-controller/api v0.11.2 // indirect
-	github.com/fluxcd/kustomize-controller/api v0.14.1 // indirect
+	github.com/fluxcd/kustomize-controller/api v0.14.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
 	github.com/fluxcd/pkg/apis/meta v0.10.1 // indirect
 	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
@@ -204,13 +204,13 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/postgres v1.0.5 // indirect
-	k8s.io/apiextensions-apiserver v0.22.1 // indirect
+	k8s.io/apiextensions-apiserver v0.21.3 // indirect
 	k8s.io/cluster-bootstrap v0.20.2 // indirect
 	k8s.io/component-base v0.22.1 // indirect
 	k8s.io/klog/v2 v2.10.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
 	k8s.io/kube-proxy v0.0.0 // indirect
-	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect
+	k8s.io/utils v0.0.0-20210722164352-7f3ee0f31471 // indirect
 	knative.dev/pkg v0.0.0-20210412173742-b51994e3b312 // indirect
 	sigs.k8s.io/kustomize/api v0.9.0 // indirect
 	sigs.k8s.io/kustomize/kstatus v0.0.2 // indirect
