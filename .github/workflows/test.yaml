@@ -38,6 +38,8 @@ jobs:
       with:
         version: latest
         args: --verbose --version --timeout=10m --enable=misspell --enable=gofmt
+        # https://github.com/golangci/golangci-lint-action/issues/244
+        skip-pkg-cache: true
 
   unit-tests:
     runs-on: ubuntu-latest
