@@ -12,6 +12,7 @@ func ToTemplateResponse(t *capiv1.CAPITemplate) *capiv1_proto.Template {
 	res := &capiv1_proto.Template{
 		Name:        t.GetName(),
 		Description: t.Spec.Description,
+		Provider:    getProvider(t),
 	}
 
 	meta, err := capi.ParseTemplateMeta(t)

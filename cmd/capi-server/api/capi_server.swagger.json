@@ -595,6 +595,9 @@
         },
         "error": {
           "type": "string"
+        },
+        "provider": {
+          "type": "string"
         }
       }
     },

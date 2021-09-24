@@ -105,6 +105,7 @@ export type Template = {
   body?: string
   objects?: TemplateObject[]
   error?: string
+  provider?: string
 }
 
 export type Parameter = {

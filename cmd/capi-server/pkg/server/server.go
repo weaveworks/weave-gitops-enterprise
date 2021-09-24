@@ -63,6 +63,29 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
 }
 
+func getProvider(t *capiv1.CAPITemplate) string {
+	meta, err := capi.ParseTemplateMeta(t)
+
+	if err != nil {
+		return ""
+	}
+
+	for _, obj := range meta.Objects {
+		switch obj.Kind {
+		case "aws":
+			return "AWSCluster"
+		case "azure":
+			return "AzureCluster"
+		case "vsphere":
+			return "VSphereCluster"
+		default:
+			return "Generic"
+		}
+	}
+
+	return ""
+}
+
 func filterTemplatesByProvider(tl map[string]*capiv1.CAPITemplate, provider string) map[string]*capiv1.CAPITemplate {
 	templates := map[string]*capiv1.CAPITemplate{}
 
