@@ -37,7 +37,6 @@ jobs:
       uses: golangci/golangci-lint-action@v2
       with:
         version: v1.42
-        working-directory: ../weave-gitops-enterprise/...
         args: --verbose --version --timeout=10m --enable=misspell --enable=gofmt
         # https://github.com/golangci/golangci-lint-action/issues/244
         skip-pkg-cache: true
