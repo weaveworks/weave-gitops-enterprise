@@ -287,11 +287,13 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("@integration Verify pull request can be created for capi template to the management cluster", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
@@ -408,11 +410,13 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			FIt("@integration Verify pull request can not be created by using exiting repository branch", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
@@ -782,7 +786,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			capdClusterName := "ui-end-to-end-capd-cluster"
 
 			JustBeforeEach(func() {
-				deleteFile([]string{kubeconfigPath})
+				_ = deleteFile([]string{kubeconfigPath})
 
 				log.Println("Connecting cluster to itself")
 				leaf := LeafSpec{
@@ -795,24 +799,26 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 
 			JustAfterEach(func() {
-				deleteFile([]string{kubeconfigPath})
+				_ = deleteFile([]string{kubeconfigPath})
 				deleteClusters([]string{capdClusterName})
 				resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 
 				log.Println("Deleting all the wkp agents")
-				mccpTestRunner.KubectlDeleteAllAgents([]string{})
-				mccpTestRunner.ResetDatabase()
+				_ = mccpTestRunner.KubectlDeleteAllAgents([]string{})
+				_ = mccpTestRunner.ResetDatabase()
 				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
 			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string

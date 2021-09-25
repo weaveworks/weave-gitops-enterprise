@@ -210,7 +210,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				}
 
 				By("And MCCP state is reset", func() {
-					mccpTestRunner.ResetDatabase()
+					_ = mccpTestRunner.ResetDatabase()
 					mccpTestRunner.VerifyMCCPPodsRunning()
 					mccpTestRunner.checkClusterService()
 				})
@@ -231,11 +231,13 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp can create pull request to management cluster", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
@@ -317,11 +319,13 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp can create multiple pull request to management cluster", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
@@ -450,11 +454,13 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			It("Verify mccp can not create pull request to management cluster using existing branch", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
@@ -657,18 +663,20 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 
 				log.Println("Deleting all the wkp agents")
-				mccpTestRunner.KubectlDeleteAllAgents([]string{})
-				mccpTestRunner.ResetDatabase()
+				_ = mccpTestRunner.KubectlDeleteAllAgents([]string{})
+				_ = mccpTestRunner.ResetDatabase()
 				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
 			It("@capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string

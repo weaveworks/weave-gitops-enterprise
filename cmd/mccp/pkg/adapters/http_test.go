@@ -535,7 +535,8 @@ func TestEntitlementExpiredHeader(t *testing.T) {
 	var buf bytes.Buffer
 	c, err := adapters.NewHttpClient(BaseURI, client, &buf)
 	assert.NoError(t, err)
-	c.RetrieveTemplates()
+	_, err = c.RetrieveTemplates()
+	assert.NoError(t, err)
 	b, err := io.ReadAll(&buf)
 	assert.NoError(t, err)
 	if string(b) != "This is a test message\n" {

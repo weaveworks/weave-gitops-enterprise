@@ -47,7 +47,8 @@ func TestGetAlertsAsEvent(t *testing.T) {
 		assert.Contains(t, req.URL.String(), "/api/v2/alerts")
 		// Send response to be tested
 		rw.Header().Set("Content-Type", "application/json")
-		rw.Write([]byte(alertResponse))
+		_, err := rw.Write([]byte(alertResponse))
+		assert.NoError(t, err)
 	}))
 	// Close the server when test finishes
 	defer server.Close()

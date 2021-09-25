@@ -579,7 +579,9 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 		}
 		listenCancel()
 	}()
-	defer srv.Shutdown(gcontext.Background())
+	defer func() {
+		_ = srv.Shutdown(gcontext.Background())
+	}()
 
 	<-listenContext.Done()
 
@@ -695,7 +697,8 @@ func TestMccpUI(t *testing.T) {
 		capiv1.AddToScheme,
 		corev1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
+	assert.NoError(t, err)
 
 	// Add entitlement secret
 	sec := &corev1.Secret{
@@ -732,12 +735,13 @@ func TestMccpUI(t *testing.T) {
 	}()
 	wg.Add(1)
 	go func() {
-		RunCAPIServer(t, ctx, cl, discoveryClient, db)
+		err := RunCAPIServer(t, ctx, cl, discoveryClient, db)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 
 	// Test ui is proxying through to broker
-	err := waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
+	err = waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
 	require.NoError(t, err)
 
 	//

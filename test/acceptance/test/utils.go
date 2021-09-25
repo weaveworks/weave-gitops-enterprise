@@ -137,7 +137,7 @@ func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() erro
 func TakeScreenShot(name string) string {
 	if webDriver != nil {
 		filepath := path.Join(SCREENSHOTS_DIR, name+".png")
-		webDriver.Screenshot(filepath)
+		_ = webDriver.Screenshot(filepath)
 		return filepath
 	}
 	return ""
@@ -740,7 +740,7 @@ func printLogs(deploymentApp []string, nameSpace string) {
 			nameSpace = "wego-system"
 		}
 		log.Printf("--------- %s  logs  \n", app)
-		runCommandPassThrough([]string{}, "kubectl", "logs", fmt.Sprintf(`deployment/%s`, app), "--all-containers=true",
+		_ = runCommandPassThrough([]string{}, "kubectl", "logs", fmt.Sprintf(`deployment/%s`, app), "--all-containers=true",
 			"--namespace", nameSpace, "--tail=100")
 	}
 }
