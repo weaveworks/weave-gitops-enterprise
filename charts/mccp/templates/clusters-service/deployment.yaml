@@ -75,8 +75,8 @@ spec:
         hostPath:
           path: {{ .Values.dbConfig.sqliteConfig.path }}
         {{- end }}
-        {{- if .Values.dbConfig.sqliteConfig.persistentVolumeClaim }}
+        {{- if .Values.dbConfig.sqliteConfig.persistentVolumeClaim.enabled }}
         persistentVolumeClaim:
-          claimName: mccp-volume
+          claimName: {{ .Values.dbConfig.sqliteConfig.persistentVolumeClaim.existingClaimName | default "wge-volume" }}
         {{- end }}
       {{- end }}
