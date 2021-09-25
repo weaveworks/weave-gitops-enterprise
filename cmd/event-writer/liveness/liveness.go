@@ -28,7 +28,10 @@ func startedHandler(started time.Time) func(http.ResponseWriter, *http.Request) 
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		data := (time.Since(started)).String()
-		_, _ = w.Write([]byte(data))
+		_, err := w.Write([]byte(data))
+		if err != nil {
+			log.Printf("Failed to write response: %v", err)
+		}
 	}
 }
 
