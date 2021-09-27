@@ -8,10 +8,11 @@ import theme from 'weaveworks-ui-components/lib/theme';
 import useVersions from '../../contexts/Versions';
 import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 
-export const Title = styled.div`
+export const Title = styled.div<{ extraPadding?: boolean }>`
   font-size: ${fontSize('large')};
   font-weight: 600;
-  padding-bottom: ${spacing('medium')};
+  padding-bottom: ${props =>
+    props.extraPadding ? spacing('xl') : spacing('medium')};
   color: ${theme.colors.gray600};
 `;
 

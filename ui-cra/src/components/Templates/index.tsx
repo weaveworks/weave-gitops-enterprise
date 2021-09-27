@@ -46,6 +46,7 @@ const localMuiTheme = createTheme({
         ...muiTheme.overrides?.MuiInputBase?.input,
         border: 'none',
         position: 'static',
+        backgroundColor: 'transparent',
       },
     },
   },
@@ -59,7 +60,11 @@ const TemplatesDashboard: FC = () => {
 
   const titleSection = (
     <TitleSection>
-      <Title>Cluster Templates</Title>
+      {view === 'grid' ? (
+        <Title extraPadding={true}>Cluster Templates</Title>
+      ) : (
+        <Title>Cluster Templates</Title>
+      )}
       <div style={{ width: '200px' }}>
         <Autocomplete
           disablePortal
