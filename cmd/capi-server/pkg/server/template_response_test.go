@@ -18,9 +18,11 @@ func TestToTemplate(t *testing.T) {
 		err      error
 	}{
 		{
-			name:     "empty",
-			value:    "",
-			expected: &capiv1_protos.Template{},
+			name:  "empty",
+			value: "",
+			expected: &capiv1_protos.Template{
+				Provider: "Generic",
+			},
 		},
 		{
 			name: "Basics",
@@ -31,7 +33,8 @@ metadata:
   name: foo
 `,
 			expected: &capiv1_protos.Template{
-				Name: "foo",
+				Name:     "foo",
+				Provider: "Generic",
 			},
 		},
 		{
