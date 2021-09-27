@@ -10,6 +10,7 @@ import (
 	"github.com/onsi/ginkgo/reporters"
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 )
 
 var theT *testing.T
@@ -22,8 +23,8 @@ func GomegaFail(message string, callerSkip ...int) {
 	}
 
 	//Show pods
-	showItems("")
-	dumpClusterInfo("wego-system", randID)
+	_ = showItems("")
+	_ = dumpClusterInfo("wego-system", randID)
 
 	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
 		// Print cluster service log
@@ -40,8 +41,10 @@ func TestAcceptance(t *testing.T) {
 	theT = t //Save the testing instance for later use
 
 	//Cleanup the workspace dir, it helps when running locally
-	_ = os.RemoveAll(ARTEFACTS_BASE_DIR)
-	_ = os.MkdirAll(SCREENSHOTS_DIR, 0700)
+	err := os.RemoveAll(ARTEFACTS_BASE_DIR)
+	assert.NoError(t, err)
+	err = os.MkdirAll(SCREENSHOTS_DIR, 0700)
+	assert.NoError(t, err)
 
 	RegisterFailHandler(Fail)
 

@@ -858,7 +858,7 @@ func checkRequiredWKSValues(wksConfig *WKSConfig) error {
 
 	err := versions.CheckValidVersion(wksConfig.KubernetesVersion)
 	if err != nil {
-		return fmt.Errorf("%v", err)
+		return fmt.Errorf("%w", err)
 	}
 
 	if len(wksConfig.ServiceCIDRBlocks) == 0 {

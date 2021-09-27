@@ -82,8 +82,8 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 	})
 
 	By("And I enter the cluster name and ingress url", func() {
-		clusterConnectionPage.ClusterName.SendKeys(clusterName)
-		clusterConnectionPage.ClusterIngressURL.SendKeys("https://google.com")
+		_ = clusterConnectionPage.ClusterName.SendKeys(clusterName)
+		_ = clusterConnectionPage.ClusterIngressURL.SendKeys("https://google.com")
 	})
 
 	By("And I click Save & next button", func() {
@@ -226,7 +226,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			}
 
 			By("And MCCP state is reset", func() {
-				mccpTestRunner.ResetDatabase()
+				_ = mccpTestRunner.ResetDatabase()
 				mccpTestRunner.VerifyMCCPPodsRunning()
 				mccpTestRunner.checkClusterService()
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -321,7 +321,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 
 			By("And I enter an all-spaces cluster name", func() {
-				clusterConnectionPage.ClusterName.SendKeys("     ")
+				_ = clusterConnectionPage.ClusterName.SendKeys("     ")
 			})
 
 			By("And I see Save & next button disabled", func() {
@@ -375,11 +375,11 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			clustersPage, clusterName, tokenURL := connectACluster(webDriver, mccpTestRunner, leaves["self"])
 
 			By("And I disconnect the cluster", func() {
-				mccpTestRunner.KubectlDelete([]string{}, tokenURL)
+				_ = mccpTestRunner.KubectlDelete([]string{}, tokenURL)
 			})
 
 			By("Then I should see the cluster status is changed to Last seen", func() {
-				mccpTestRunner.TimeTravelToLastSeen()
+				_ = mccpTestRunner.TimeTravelToLastSeen()
 				Eventually(ClusterStatusFromList(clustersPage, clusterName), ASSERTION_5MINUTE_TIME_OUT).
 					Should(MatchText(`Last seen(\r\n|\r|\n)\d minutes ago`))
 			})
@@ -394,7 +394,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 				Skip("This test case runs only with sqlite")
 			}
 
-			mccpTestRunner.ResetDatabase()
+			_ = mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
 			mccpTestRunner.checkClusterService()
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -418,7 +418,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 			By("And when a critical alert fires", func() {
 				for i := 0; i < len(alerts); i++ {
-					mccpTestRunner.FireAlert(alerts[i], severity[i], messages[i], time.Second*15)
+					_ = mccpTestRunner.FireAlert(alerts[i], severity[i], messages[i], time.Second*15)
 				}
 
 				Eventually(clustersPage.FiringAlerts, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
@@ -445,7 +445,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			clustersPage, clusterName, _ := connectACluster(webDriver, mccpTestRunner, leaves["self"])
 
 			By("And system raises a warning alert", func() {
-				mccpTestRunner.FireAlert("ExampleAlert", "warning", "oh no", time.Second*30)
+				_ = mccpTestRunner.FireAlert("ExampleAlert", "warning", "oh no", time.Second*30)
 			})
 
 			By("Then I should see the cluster status is changed to Alerting", func() {
@@ -454,13 +454,13 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 
 			By("And when warning alert is resolved after 15s", func() {
-				mccpTestRunner.TimeTravelToAlertsResolved()
+				_ = mccpTestRunner.TimeTravelToAlertsResolved()
 				Eventually(ClusterStatusFromList(clustersPage, clusterName), ASSERTION_1MINUTE_TIME_OUT).
 					Should(HaveText("Ready"))
 			})
 
 			By("And system raises a critical alert", func() {
-				mccpTestRunner.FireAlert("ExampleAlert", "critical", "oh no", time.Second*30)
+				_ = mccpTestRunner.FireAlert("ExampleAlert", "critical", "oh no", time.Second*30)
 			})
 
 			By("Then I should see the cluster status changes to Critical alerts", func() {
@@ -469,7 +469,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 
 			By("And when alert is resolved then I should see the cluster status changes back to ready", func() {
-				mccpTestRunner.TimeTravelToAlertsResolved()
+				_ = mccpTestRunner.TimeTravelToAlertsResolved()
 				Eventually(ClusterStatusFromList(clustersPage, clusterName), ASSERTION_1MINUTE_TIME_OUT).
 					Should(HaveText("Ready"))
 			})
@@ -505,7 +505,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
-			mccpTestRunner.ResetDatabase()
+			_ = mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
 			mccpTestRunner.checkClusterService()
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -526,7 +526,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 			By("And when an alert fires", func() {
 
-				mccpTestRunner.FireAlert(alert, "critical", message, time.Second*15)
+				_ = mccpTestRunner.FireAlert(alert, "critical", message, time.Second*15)
 				Eventually(clustersPage.FiringAlerts, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 
 			})
@@ -597,7 +597,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 			By("And I add a new workspace to the cluster", func() {
 				// In acceptance test this has to be the host cluster.
-				mccpTestRunner.AddWorkspace(commandEnv, clusterName)
+				_ = mccpTestRunner.AddWorkspace(commandEnv, clusterName)
 			})
 
 			By("Then I found the new workspace added to the Team Workspaces column", func() {

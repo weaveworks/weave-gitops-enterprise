@@ -51,12 +51,13 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	}
 	templates := []*capiv1_proto.Template{}
 
-	if msg.Provider != "" {
-		tl = filterTemplatesByProvider(tl, msg.Provider)
-	}
 
 	for _, t := range tl {
 		templates = append(templates, ToTemplateResponse(t))
+	}
+
+	if msg.Provider != "" {
+		templates = filterTemplatesByProvider(templates, msg.Provider)
 	}
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
@@ -78,28 +79,20 @@ func getProvider(t *capiv1.CAPITemplate) string {
 			return "AzureCluster"
 		case "VSphereCluster":
 			return "VSphereCluster"
-		default:
-			return "Generic"
 		}
 	}
 
-	return ""
+	return "Generic"
 }
 
-func filterTemplatesByProvider(tl map[string]*capiv1.CAPITemplate, provider string) map[string]*capiv1.CAPITemplate {
-	templates := map[string]*capiv1.CAPITemplate{}
+func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
+	templates := []*capiv1_proto.Template{}
 
-	for name, t := range tl {
+	for _, t := range tl {
 		providerKind := formatProviderName(provider)
-		meta, err := capi.ParseTemplateMeta(t)
-		if err != nil {
-			continue
-		}
 
-		for _, obj := range meta.Objects {
-			if obj.Kind == providerKind {
-				templates[name] = t
-			}
+		if (t.Provider == providerKind) {
+			templates = append(templates, t)
 		}
 	}
 

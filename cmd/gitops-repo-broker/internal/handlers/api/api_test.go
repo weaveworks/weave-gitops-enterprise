@@ -1602,7 +1602,9 @@ func createDatabase(t *testing.T) *gorm.DB {
 func toJSON(obj interface{}) ([]byte, error) {
 	output := bytes.NewBufferString("")
 	encoder := json.NewEncoder(output)
-	encoder.Encode(obj)
+	if err := encoder.Encode(obj); err != nil {
+		return []byte{}, err
+	}
 	return output.Bytes(), nil
 }
 

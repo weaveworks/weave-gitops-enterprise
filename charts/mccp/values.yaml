@@ -24,11 +24,15 @@ dbConfig:
   databaseType: sqlite
   databaseURI: /var/database/mccp.db
   sqliteConfig:
-    hostPathVolume: true
+    hostPathVolume: false
     path: /home/wks/database
-    persistentVolumeClaim: false
+    persistentVolumeClaim:
+      enabled: true
+      size: 10G
+      existingClaimName: ""
   postgresConfig:
     databaseName: postgres
+
 
 config:
   git:

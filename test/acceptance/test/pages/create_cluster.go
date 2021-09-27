@@ -46,7 +46,7 @@ func ScrollWindow(webDriver *agouti.Page, xOffSet int, yOffSet int) {
 
 	script := fmt.Sprintf(`window.scrollTo(%d, %d)`, xOffSet, yOffSet)
 	var result interface{}
-	webDriver.RunScript(script, map[string]interface{}{}, &result)
+	_ = webDriver.RunScript(script, map[string]interface{}{}, &result)
 }
 
 // This function waits for previw and gitops to appear (become visible)
