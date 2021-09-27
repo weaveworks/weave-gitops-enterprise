@@ -11,18 +11,13 @@ fi
 set -x 
 
 function setup {
-  if [ ${#args[@]} -ne 3 ]
+  if [ ${#args[@]} -ne 2 ]
   then
-    echo "Cluster (Repositoy) name and workspace path both are required arguments"
+    echo "Workspace path is a required argument"
     exit 1
   fi
 
-  # create unique cluster config repository name
-  CLUSTER_REPOSITORY=${args[1]}
   GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
-
-  # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
-  echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
 
   WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1)
 
@@ -43,9 +38,6 @@ function setup {
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
     fi
 
-    # Sets the UI and CAPI endpoint URL environment variables for accetance tests
-    echo "TEST_UI_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
-    echo "TEST_CAPI_ENDPOINT_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
   elif [ "$MANAGEMENT_CLUSTER_KIND" == "GKE" ]; then
     echo "GKE"
   else
@@ -55,7 +47,11 @@ function setup {
     elif [ "$(uname -s)" == "Darwin" ]; then
       WORKER_NODE_EXTERNAL_IP=$(ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
     fi
-  fi        
+  fi   
+
+  # Sets the UI and CAPI endpoint URL environment variables for acceptance tests
+  echo "TEST_UI_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
+  echo "TEST_CAPI_ENDPOINT_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
 
   kubectl create namespace prom
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -66,7 +62,7 @@ function setup {
     --values test/utils/data/mccp-prometheus-values.yaml
 
   kubectl create ns wego-system
-  kubectl apply -f ${args[2]}/test/utils/scripts/entitlement-secret.yaml
+  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
   kubectl create secret docker-registry docker-io-pull-secret \
     --namespace wego-system \
     --docker-username="${DOCKER_IO_USER}" \
@@ -109,6 +105,8 @@ function setup {
       --set "wkp-ui.image.pullSecrets[0]=docker-io-pull-secret" \
       --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
       --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
+      --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
+      --set "nginx-ingress-controller.service.type=NodePort" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
       --set "config.capi.baseBranch=main"
   fi
