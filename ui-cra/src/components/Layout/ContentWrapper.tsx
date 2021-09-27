@@ -35,8 +35,9 @@ export const contentCss = css`
   border-radius: ${spacing('xs')};
 `;
 
-export const Content = styled.div`
+export const Content = styled.div<{ backgroundColor?: string }>`
   ${contentCss};
+  background-color: ${props => props.backgroundColor};
 `;
 
 export const WGContent = styled.div`
@@ -44,64 +45,51 @@ export const WGContent = styled.div`
   padding: 0 ${medium} ${medium} 0;
 `;
 
-const HelpLinkWrapper = styled.div`
-  padding-top: ${medium};
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  color: ${({ theme }) => theme.colors.gray600};
-  white-space: nowrap;
-  line-height: 1.5em;
-  a {
-    color: ${({ theme }) => theme.colors.blue600};
-  }
-`;
-
 const EntitlementWrapper = styled.div`
   ${contentCss};
   background-color: #f3e9c9;
   padding: ${small} ${medium};
   display: flex;
-  justifycontent: 'center';
 `;
 
 const WarningIconWrapper = styled(WarningIcon)`
   margin-right: ${small};
 `;
 
-export const ContentWrapper: FC<{ type?: string }> = ({ children, type }) => {
-  const { versions, entitlement } = useVersions();
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {entitlement && (
-        <EntitlementWrapper>
-          <WarningIconWrapper />
-          {entitlement}
-        </EntitlementWrapper>
-      )}
-      {type === 'WG' ? (
-        <WGContent>
-          {children}
-          <HelpLinkWrapper>
-            <div>
-              Need help? Contact us at&nbsp;
-              <a href="mailto:support@weave.works">support@weave.works</a>
-            </div>
-            <div>Version {versions?.capiServer}</div>
-          </HelpLinkWrapper>
-        </WGContent>
-      ) : (
-        <Content>
-          {children}
-          <HelpLinkWrapper>
-            <div>
-              Need help? Contact us at{' '}
-              <a href="mailto:support@weave.works">support@weave.works</a>
-            </div>
-            <div>Version {versions?.capiServer}</div>
-          </HelpLinkWrapper>
-        </Content>
-      )}
-    </div>
-  );
-};
+const HelpLinkWrapper = styled.div`
+  ${contentCss};
+  padding: ${small} ${medium};
+  color: ${({ theme }) => theme.colors.gray600};
+  display: flex;
+  justify-content: space-between;
+  a {
+    color: ${({ theme }) => theme.colors.blue600};
+  }
+`;
+
+export const ContentWrapper: FC<{ type?: string; backgroundColor?: string }> =
+  ({ children, type, backgroundColor }) => {
+    const { versions, entitlement } = useVersions();
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {entitlement && (
+          <EntitlementWrapper>
+            <WarningIconWrapper />
+            {entitlement}
+          </EntitlementWrapper>
+        )}
+        {type === 'WG' ? (
+          <WGContent>{children}</WGContent>
+        ) : (
+          <Content backgroundColor={backgroundColor}>{children}</Content>
+        )}
+        <HelpLinkWrapper>
+          <div>
+            Need help? Contact us at&nbsp;
+            <a href="mailto:support@weave.works">support@weave.works</a>
+          </div>
+          <div>Version {versions?.capiServer}</div>
+        </HelpLinkWrapper>
+      </div>
+    );
+  };

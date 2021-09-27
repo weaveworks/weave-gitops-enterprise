@@ -53,17 +53,18 @@ func TestListTemplates(t *testing.T) {
 		{
 			name: "1 template",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+				makeTemplateConfigMap("template1", makeTemplateWithProvider(t, "AWSCluster")),
 			},
 			expected: []*capiv1_protos.Template{
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
+					Provider:    "AWSCluster",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
-							Kind:       "fookind",
+							Kind:       "AWSCluster",
 							Parameters: []string{"CLUSTER_NAME"},
 						},
 					},
@@ -88,6 +89,7 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
+					Provider:    "Generic",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -106,6 +108,7 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
+					Provider:    "Generic",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -170,6 +173,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
+					Provider:    "AWSCluster",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -200,6 +204,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
+					Provider:    "AWSCluster",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -274,6 +279,7 @@ func TestGetTemplate(t *testing.T) {
 			expected: &capiv1_protos.Template{
 				Name:        "cluster-template-1",
 				Description: "this is test template 1",
+				Provider:    "Generic",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						Name:       string("${CLUSTER_NAME}"),

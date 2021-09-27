@@ -1,5 +1,4 @@
 import React, { FC, useState } from 'react';
-import randomColor from 'randomcolor';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
@@ -13,21 +12,6 @@ import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
 import { ReactComponent as ListView } from '../../assets/img/list-view.svg';
 import theme from 'weaveworks-ui-components/lib/theme';
-
-const getColor = (seed: number) => {
-  if (seed % 2 === 0) {
-    return randomColor({
-      luminosity: 'bright',
-      seed: String(seed),
-      hue: 'blue',
-    });
-  }
-  return randomColor({
-    luminosity: 'bright',
-    seed: String(seed),
-    hue: 'orange',
-  });
-};
 
 const ActionsWrapper = styled.div`
   padding: ${theme.spacing.medium} ${theme.spacing.small} 0 0;
@@ -64,11 +48,11 @@ const TemplatesDashboard: FC = () => {
       {!loading ? (
         <div style={{ display: 'flex' }}>
           {view === 'grid' && (
-            <ContentWrapper>
+            <ContentWrapper backgroundColor="transparent">
               <Grid container spacing={3} justifyContent="center">
                 {templates.map((template: any, index: number) => (
                   <Grid key={index} item xs={11} sm={8} md={4}>
-                    <TemplateCard template={template} color={getColor(index)} />
+                    <TemplateCard template={template} />
                   </Grid>
                 ))}
               </Grid>
