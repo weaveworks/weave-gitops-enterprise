@@ -59,7 +59,7 @@ func Upgrade(upgradeValues UpgradeValues, w io.Writer) error {
 	upgradeValues.ConfigMap = ""
 	upgradeValues.Out = "."
 	upgradeValues.ProfileRepoURL = "git@github.com:weaveworks/weave-gitops-enterprise-profiles.git"
-	upgradeValues.ProfilePath = "."
+	upgradeValues.ProfilePath = "weave-gitops-enterprise"
 
 	repoURL, err := getRepoURL(upgradeValues.Remote)
 	if err != nil {

@@ -32,7 +32,7 @@ func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 }
 
 func NavigateToPage(webDriver *agouti.Page, page string) {
-	webDriver.Refresh()
+	Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 	navbarPage := Navbar(webDriver)
 	By(fmt.Sprintf("When I click %s from Navbar", page), func() {
 		Eventually(navbarPage.Templates).Should(HaveText(page))

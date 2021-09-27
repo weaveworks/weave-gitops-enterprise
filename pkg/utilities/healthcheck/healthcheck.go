@@ -11,7 +11,7 @@ func Started(started time.Time) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		data := (time.Since(started)).String()
-		w.Write([]byte(data))
+		_, _ = w.Write([]byte(data))
 	}
 }
 
@@ -19,8 +19,8 @@ func Healthz(started time.Time) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		data := (time.Since(started)).String()
-		w.Write([]byte(data))
-		w.Write([]byte("ok"))
+		_, _ = w.Write([]byte(data))
+		_, _ = w.Write([]byte("ok"))
 	}
 }
 
