@@ -25,7 +25,7 @@ interface RowProps {
 
 const TemplateRow = ({ index, template }: RowProps) => {
   const classes = useStyles();
-  const { name, description, error } = template;
+  const { name, provider, description, error } = template;
   const history = useHistory();
 
   const handleAddCluster = useCallback(
@@ -40,6 +40,7 @@ const TemplateRow = ({ index, template }: RowProps) => {
       key={name}
     >
       <TableCell>{name}</TableCell>
+      <TableCell>{provider}</TableCell>
       <TableCell>{description}</TableCell>
       <TableCell>
         {error ? (
