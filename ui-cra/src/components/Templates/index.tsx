@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
@@ -55,19 +55,24 @@ const localMuiTheme = createTheme({
 
 const TemplatesDashboard: FC = () => {
   const { templates, loading } = useTemplates();
-  const providers = [...templates.map((t: Template) => t.provider), 'All'];
+  const providers = [
+    ...Array.from(new Set(templates.map((t: Template) => t.provider))),
+    'All',
+  ];
   const clustersCount = useClusters().count;
   const templatesCount = templates.length;
   const [view, setView] = useState<string>('grid');
-  const [filteredTemplates, setFilteredTemplates] =
-    useState<Template[]>(templates);
+  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
 
-  // pass this to table also
-  const onProviderChange = (event: any, value: any) => {
-    if (value === 'All') {
+  const onProviderChange = (
+    event: React.ChangeEvent<{}>,
+    value: string | null | undefined,
+  ) => {
+    if (!value || value === 'All') {
       setFilteredTemplates(templates);
+    } else {
+      setFilteredTemplates(templates.filter(t => t.provider === value));
     }
-    setFilteredTemplates(templates.filter(t => t.provider === value));
   };
 
   const titleSection = (
@@ -90,8 +95,7 @@ const TemplatesDashboard: FC = () => {
     </TitleSection>
   );
 
-  // console.log(templates);
-  console.log(filteredTemplates);
+  useEffect(() => setFilteredTemplates(templates), [templates]);
 
   return (
     <ThemeProvider theme={localMuiTheme}>
@@ -121,12 +125,13 @@ const TemplatesDashboard: FC = () => {
               </ContentWrapper>
             )}
             {view === 'table' && (
-              <div style={{ width: '100%' }}>
-                <ContentWrapper>
-                  {titleSection}
-                  <TemplatesTable templates={filteredTemplates} />
-                </ContentWrapper>
-              </div>
+              <ContentWrapper>
+                {titleSection}
+                <TemplatesTable
+                  key={filteredTemplates.length}
+                  templates={filteredTemplates}
+                />
+              </ContentWrapper>
             )}
             <ActionsWrapper>
               <GridView

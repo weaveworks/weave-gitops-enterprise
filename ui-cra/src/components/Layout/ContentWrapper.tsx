@@ -72,7 +72,7 @@ export const ContentWrapper: FC<{ type?: string; backgroundColor?: string }> =
   ({ children, type, backgroundColor }) => {
     const { versions, entitlement } = useVersions();
     return (
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         {entitlement && (
           <EntitlementWrapper>
             <WarningIconWrapper />
