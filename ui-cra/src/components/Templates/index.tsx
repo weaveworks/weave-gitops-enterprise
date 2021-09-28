@@ -16,6 +16,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../../muiTheme';
+import { Template } from '../../types/custom';
 
 const ActionsWrapper = styled.div`
   padding: ${theme.spacing.medium} ${theme.spacing.small} 0 0;
@@ -54,9 +55,20 @@ const localMuiTheme = createTheme({
 
 const TemplatesDashboard: FC = () => {
   const { templates, loading } = useTemplates();
+  const providers = [...templates.map((t: Template) => t.provider), 'All'];
   const clustersCount = useClusters().count;
   const templatesCount = templates.length;
   const [view, setView] = useState<string>('grid');
+  const [filteredTemplates, setFilteredTemplates] =
+    useState<Template[]>(templates);
+
+  // pass this to table also
+  const onProviderChange = (event: any, value: any) => {
+    if (value === 'All') {
+      setFilteredTemplates(templates);
+    }
+    setFilteredTemplates(templates.filter(t => t.provider === value));
+  };
 
   const titleSection = (
     <TitleSection>
@@ -69,13 +81,17 @@ const TemplatesDashboard: FC = () => {
         <Autocomplete
           disablePortal
           id="filter-by-provider"
-          options={['T1', 'T2']}
+          options={providers}
+          onChange={onProviderChange}
           clearOnEscape
           renderInput={params => <TextField {...params} label="Provider" />}
         />
       </div>
     </TitleSection>
   );
+
+  // console.log(templates);
+  console.log(filteredTemplates);
 
   return (
     <ThemeProvider theme={localMuiTheme}>
@@ -96,7 +112,7 @@ const TemplatesDashboard: FC = () => {
               <ContentWrapper backgroundColor="transparent">
                 {titleSection}
                 <Grid container spacing={3} justifyContent="center">
-                  {templates.map((template: any, index: number) => (
+                  {filteredTemplates.map((template: any, index: number) => (
                     <Grid key={index} item xs={11} sm={8} md={4}>
                       <TemplateCard template={template} />
                     </Grid>
@@ -108,7 +124,7 @@ const TemplatesDashboard: FC = () => {
               <div style={{ width: '100%' }}>
                 <ContentWrapper>
                   {titleSection}
-                  <TemplatesTable templates={templates} />
+                  <TemplatesTable templates={filteredTemplates} />
                 </ContentWrapper>
               </div>
             )}
