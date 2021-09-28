@@ -1221,8 +1221,8 @@ github.com/vektah/gqlparser v1.1.2/go.mod h1:1ycwN7Ij5njmMkPPAOaRFY4rET2Enx7IkVv
 github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab h1:mW+hgchD9qUUBqnuaDBj7BkcpFPk/FxeFcUFI5lvvUw=
 github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab/go.mod h1:qkbvw5GPibQ/Nf7IZJL0UoLwmJ6858b4S/hUWRd+cH4=
 github.com/weaveworks/libgitops v0.0.3/go.mod h1:xXfpB1QJWp7aCiFblQgkBP3QjzbivigvXOr2ixhRJWU=
-github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d h1:9TNrBsX6h84T6AXIoEegfxXxWgUIS8ROLi5Hvx0vtrk=
-github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d/go.mod h1:/uez6cBidz4RvNYZR/PX/8Xl7+oxKdp9iCUKT8gZR1w=
+github.com/weaveworks/weave-gitops v0.3.0 h1:EVPyN/smBimKC0bbaD0JJ64azDxUwyLp0JPCF3BT3aw=
+github.com/weaveworks/weave-gitops v0.3.0/go.mod h1:/uez6cBidz4RvNYZR/PX/8Xl7+oxKdp9iCUKT8gZR1w=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 h1:R5+xSXgaKiTGLMzpNmkf9W5PsX9mCtMTgWUbJ7MwO70=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1/go.mod h1:xWxoy/Ff1R3VnKWacRlbmBnVSu066ykpZIkk+T/g1Vw=
 github.com/xanzy/go-gitlab v0.33.0/go.mod h1:sPLojNBn68fMUWSxIJtdVVIP8uSBYqesTfDUseX11Ug=

@@ -29,7 +29,7 @@ require (
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/libgitops v0.0.3
 	github.com/weaveworks/pctl v0.8.0
-	github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d
+	github.com/weaveworks/weave-gitops v0.3.0
 	github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	github.com/weaveworks/wksctl v0.10.2

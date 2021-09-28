@@ -1497,8 +1497,8 @@ github.com/weaveworks/pctl v0.8.0/go.mod h1:eDRbIJD3OdNmcJdTjXrZez6EoS7J/a69hbN1
 github.com/weaveworks/profiles v0.2.0 h1:zGOaQHCR05SEML1+BHQ/EKyf4KwPdYpss6392kIz+9A=
 github.com/weaveworks/profiles v0.2.0/go.mod h1:BmQOw7tpOxGJWSoz9tpHEo6rRAaLPASljidFdYSsRUs=
 github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca/go.mod h1:y8Luzq6JDsYVoIV0QAlnvIiq8bSaap0myMjWKyzVFTY=
-github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d h1:9TNrBsX6h84T6AXIoEegfxXxWgUIS8ROLi5Hvx0vtrk=
-github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d/go.mod h1:/uez6cBidz4RvNYZR/PX/8Xl7+oxKdp9iCUKT8gZR1w=
+github.com/weaveworks/weave-gitops v0.3.0 h1:EVPyN/smBimKC0bbaD0JJ64azDxUwyLp0JPCF3BT3aw=
+github.com/weaveworks/weave-gitops v0.3.0/go.mod h1:/uez6cBidz4RvNYZR/PX/8Xl7+oxKdp9iCUKT8gZR1w=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 h1:R5+xSXgaKiTGLMzpNmkf9W5PsX9mCtMTgWUbJ7MwO70=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1/go.mod h1:xWxoy/Ff1R3VnKWacRlbmBnVSu066ykpZIkk+T/g1Vw=
 github.com/weaveworks/wksctl v0.10.2 h1:NLnVgJlgD+EIy6hgQ3zUVrcUxThM4Zv8Up3xmnIrXRI=
