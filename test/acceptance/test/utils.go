@@ -713,22 +713,6 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 	return cmd.Run()
 }
 
-func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr string) {
-	command := exec.Command("sh", "-c", commandToRun)
-	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Eventually(session).Should(gexec.Exit())
-
-	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
-}
-
-func runCommandAndReturnSessionOutput(commandToRun string) *gexec.Session {
-	command := exec.Command("sh", "-c", commandToRun)
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-
-	return session
-}
-
 func getEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {
