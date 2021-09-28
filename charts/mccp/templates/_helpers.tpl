@@ -79,7 +79,7 @@ Return the appropriate apiVersion for ingress.
 {{/*
 Generate backend entry that is compatible with all Kubernetes API versions.
 Usage:
-{{ include "common.ingress.backend" (dict "serviceName" "backendName" "servicePort" "backendPort" "context" $) }}
+include "common.ingress.backend" (dict "serviceName" "backendName" "servicePort" "backendPort" "context" $)
 
 Params:
   - serviceName - String. Name of an existing service backend
@@ -106,7 +106,7 @@ service:
 {{/*
 Returns true if the ingressClassname field is supported
 Usage:
-{{ include "common.ingress.supportsIngressClassname" . }}
+include "common.ingress.supportsIngressClassname" .
 */}}
 {{- define "common.ingress.supportsIngressClassname" -}}
 {{- if semverCompare "<1.18-0" .Capabilities.KubeVersion.GitVersion -}}
@@ -119,7 +119,7 @@ Usage:
 {{/*
 Returns true if the kubernetes.io/ingress.class annotation is supported
 Usage:
-{{ include "common.ingress.supportsIngressClassAnnotation" . }}
+include "common.ingress.supportsIngressClassAnnotation" .
 */}}
 {{- define "common.ingress.supportsIngressClassAnnotation" -}}
 {{- if semverCompare "<1.18-0" .Capabilities.KubeVersion.GitVersion -}}
