@@ -2,16 +2,15 @@ import React, { FC, useState } from 'react';
 import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
-
 import { ConnectClusterGeneralForm } from './ConnectForm';
 import { ConnectClusterConnectionInstructions } from './ConnectionInstructions';
 import { ClusterDisconnectionInstructions } from './DisconnectionInstructions';
-
 import { FormState, SetFormState } from '../../../types/form';
 import { Cluster } from '../../../types/kubernetes';
 import { request } from '../../../utils/request';
 import { FlexSpacer } from '../../ListView';
 import { HandleFinish } from '../../Shared';
+import useNotifications from './../../../contexts/Notifications';
 
 export const ButtonText = styled.span`
   margin: 0 4px;
@@ -158,13 +157,14 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
   const titles = pages.map(page => page.title);
   const { content } = pages[formState.activeIndex];
   const isValid = formState.cluster.name.trim() !== '';
+  const { setNotifications } = useNotifications();
 
   const onSubmit = (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
     if (!hasNext(formState) || !isValid || submitting) {
       return;
     }
-    setFormState({ ...formState, error: '' });
+    setFormState({ ...formState });
     setSubmitting(true);
     const id = formState.cluster.id;
     const req = id
@@ -180,12 +180,20 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
         setSubmitting(false);
         setFormState({ ...formState, cluster });
         setFormState(nextPage);
+        setNotifications([
+          {
+            message: 'Cluster successfully added to the MCCP',
+            variant: 'success',
+          },
+        ]);
       })
       .catch(({ message }) => {
-        setFormState({
-          ...formState,
-          error: FRIENDLY_ERRORS[message] || message,
-        });
+        setNotifications([
+          {
+            message: FRIENDLY_ERRORS[message] || message,
+            variant: 'danger',
+          },
+        ]);
         setSubmitting(false);
       });
   };

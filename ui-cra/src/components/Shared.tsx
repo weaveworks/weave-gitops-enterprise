@@ -20,6 +20,7 @@ import { CircularProgress } from 'weaveworks-ui-components';
 import GitUrlParse from 'git-url-parse';
 import { SparkTimeline } from './SparkTimeline';
 import { getClusterStatus, ReadyStatus } from './Clusters/Status';
+import { Loader } from './Loader';
 
 export const SafeAnchor: FC<AnchorHTMLAttributes<HTMLAnchorElement>> = ({
   children,
@@ -79,10 +80,10 @@ export const Status: FC<{
 }> = ({ status, updatedAt, connecting }) => {
   if (connecting && status === 'notConnected') {
     return (
-      <Box display="flex">
-        <span>Waiting for connection from agent...</span>
-        <CircularProgress center size="small" />
-      </Box>
+      <>
+        <span>Waiting for connection from agent ...</span>
+        <Loader />
+      </>
     );
   }
   return status ? (

@@ -8,6 +8,7 @@ import { Code, Status } from '../../Shared';
 import { Poll } from '../../../utils/poll';
 import { Cluster } from '../../../types/kubernetes';
 import { asMilliseconds } from '../../../utils/time';
+import { Loader } from '../../Loader';
 
 const Container = styled.div`
   margin-right: 16px;
@@ -36,13 +37,21 @@ export const ConnectClusterConnectionInstructions: FC<{
       >
         {({ responsesById: { getCluster: cluster } }) => {
           if (!cluster) {
-            return <CircularProgress size="small" />;
+            return <Loader />;
           }
           return (
-            <Box lineHeight="24px" display="flex" alignItems="center" my={2}>
-              <Box color="text.secondary" mr={1}>
-                Cluster status
-              </Box>
+            <Box
+              lineHeight="24px"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              my={2}
+            >
+              {cluster.status !== 'notConnected' ? (
+                <Box color="text.secondary" mr={1}>
+                  Cluster status
+                </Box>
+              ) : null}
               <Status
                 connecting
                 updatedAt={cluster.updatedAt}
