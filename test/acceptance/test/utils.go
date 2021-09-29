@@ -35,10 +35,10 @@ var gitProvider string
 var seleniumServiceUrl string
 var defaultUIURL = "http://localhost:8090"
 var defaultMccpBinPath = "/usr/local/bin/mccp"
-var defaultWegoBinPath = "/usr/local/bin/wego"
+var defaultGitopsBinPath = "/usr/local/bin/gitops"
 var defaultCapiEndpointURL = "http://localhost:8090"
 
-const WEGO_DEFAULT_NAMESPACE = "wego-system"
+const GITOPS_DEFAULT_NAMESPACE = "wego-system"
 
 func GetWebDriver() *agouti.Page {
 	return webDriver
@@ -55,11 +55,11 @@ func GetMccpBinPath() string {
 	return defaultMccpBinPath
 }
 
-func GetWegoBinPath() string {
-	if os.Getenv("WEGO_BIN_PATH") != "" {
-		return os.Getenv("WEGO_BIN_PATH")
+func GetGitopsBinPath() string {
+	if os.Getenv("GITOPS_BIN_PATH") != "" {
+		return os.Getenv("GITOPS_BIN_PATH")
 	}
-	return defaultWegoBinPath
+	return defaultGitopsBinPath
 }
 
 func GetWkpUrl() string {
@@ -137,7 +137,7 @@ func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() erro
 func TakeScreenShot(name string) string {
 	if webDriver != nil {
 		filepath := path.Join(SCREENSHOTS_DIR, name+".png")
-		webDriver.Screenshot(filepath)
+		_ = webDriver.Screenshot(filepath)
 		return filepath
 	}
 	return ""
@@ -417,7 +417,7 @@ func (b RealMCCPTestRunner) ResetDatabase() error {
 }
 
 func (b RealMCCPTestRunner) VerifyMCCPPodsRunning() {
-	command := exec.Command("sh", "-c", "kubectl wait --for=condition=Ready pods --timeout=60s -n wego-system --all")
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready pods --timeout=60s -n %s --all", GITOPS_DEFAULT_NAMESPACE))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
@@ -737,10 +737,10 @@ func dumpClusterInfo(namespaces, testName string) error {
 func printLogs(deploymentApp []string, nameSpace string) {
 	for _, app := range deploymentApp {
 		if nameSpace == "" {
-			nameSpace = "wego-system"
+			nameSpace = GITOPS_DEFAULT_NAMESPACE
 		}
 		log.Printf("--------- %s  logs  \n", app)
-		runCommandPassThrough([]string{}, "kubectl", "logs", fmt.Sprintf(`deployment/%s`, app), "--all-containers=true",
+		_ = runCommandPassThrough([]string{}, "kubectl", "logs", fmt.Sprintf(`deployment/%s`, app), "--all-containers=true",
 			"--namespace", nameSpace, "--tail=100")
 	}
 }
@@ -851,7 +851,7 @@ func installInfrastructureProvider(name string) {
 	}
 }
 
-// wego system helper functions
+// gitops system helper functions
 func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration) error {
 	pollInterval := 5
 	if timeout < 5*time.Second {
@@ -889,7 +889,7 @@ func VerifyControllersInCluster(namespace string) {
 	Expect(waitForResource("deploy", "image-reflector-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
-	By("And I wait for the wego controllers to be ready", func() {
+	By("And I wait for the gitops controllers to be ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -897,19 +897,44 @@ func VerifyControllersInCluster(namespace string) {
 	})
 }
 
-func installAndVerifyWego(wegoNamespace string) {
-	By("And I run 'wego install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install --namespace=%s", GetWegoBinPath(), wegoNamespace))
+func installAndVerifyGitops(gitopsNamespace string) {
+	By("And I run 'gitops install' command with namespace "+gitopsNamespace, func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", GetGitopsBinPath(), gitopsNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
-		VerifyControllersInCluster(wegoNamespace)
+		Expect(string(session.Err.Contents())).Should(BeEmpty())
+		VerifyControllersInCluster(gitopsNamespace)
 	})
 }
 
-func resetWegoRuntime(nameSpace string) {
-	log.Printf("Resetting wego runtime in namespace %s", nameSpace)
-	err := runCommandPassThrough([]string{}, "../../utils/scripts/reset-wego.sh", nameSpace)
-	Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to reset the wego runtime in namespace %s", nameSpace))
+func removeGitopsCapiClusters(appName string, clusternames []string, nameSpace string) {
+	GITOPS_BIN_PATH := GetGitopsBinPath()
+
+	command := "app pause management"
+	By(fmt.Sprintf("And I run gitops app pause command '%s'", command), func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, command))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session).Should(gexec.Exit())
+	})
+
+	deleteClusters(clusternames)
+
+	command = "app remove " + appName
+	By(fmt.Sprintf("And I run gitops app remove command '%s'", command), func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, command))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session).Should(gexec.Exit())
+	})
+
+	command = fmt.Sprintf(`kubectl get secrets -n %s  | grep Opaque | grep wego- | cut -d' ' -f1 | xargs kubectl delete secrets -n %s`, nameSpace, nameSpace)
+	By("And I delete deploy key secret", func() {
+		command := exec.Command("sh", "-c", command)
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session).Should(gexec.Exit())
+	})
 
 }

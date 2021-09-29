@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/tebeka/selenium"
 )
 
@@ -24,7 +25,10 @@ func TestVersionInUI(t *testing.T) {
 	if err != nil {
 		t.Error("could not make selenium remote at localhost:4444\nerr: ", err)
 	}
-	defer wd.Quit()
+	defer func() {
+		err := wd.Quit()
+		assert.NoError(t, err)
+	}()
 
 	if err := wd.Get("http://localhost:8090"); err != nil {
 		t.Error("could not get WKP UI at localhost:8090\nerr: ", err)
@@ -37,7 +41,8 @@ func TestVersionInUI(t *testing.T) {
 	if err != nil {
 		t.Error("could not get WKP UI page source\nerr: ", err)
 	}
-	ioutil.WriteFile("/tmp/workspace/wkp-ui-page-source", []byte(pageSource), 0644)
+	err = ioutil.WriteFile("/tmp/workspace/wkp-ui-page-source", []byte(pageSource), 0644)
+	assert.NoError(t, err)
 
 	var output string
 	retries := 0
@@ -73,7 +78,8 @@ func TestVersionInUI(t *testing.T) {
 	if err != nil {
 		t.Error("failed to get screenshot of WKP UI\nerr: ", err)
 	}
-	ioutil.WriteFile("/tmp/workspace/wkp-ui-screenshot.png", screenShot, 0644)
+	err = ioutil.WriteFile("/tmp/workspace/wkp-ui-screenshot.png", screenShot, 0644)
+	assert.NoError(t, err)
 
 	if !correctVersion {
 		t.Error("WKP UI is not showing the correct version")

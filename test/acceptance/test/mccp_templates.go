@@ -55,7 +55,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
 
-		WEGO_BIN_PATH := GetWegoBinPath()
+		GITOPS_BIN_PATH := GetGitopsBinPath()
 
 		templateFiles := []string{}
 
@@ -240,14 +240,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				sshKey := "abcdef1234567890"
 				k8Version := "1.19.7"
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1. Cluster"] = []TemplateField{
+				paramSection["Cluster/${CLUSTER_NAME}"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
 					},
 				}
-				paramSection["3. AWSManagedControlPlane"] = []TemplateField{
+				paramSection["AWSManagedControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  region,
@@ -287,11 +287,13 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("@integration Verify pull request can be created for capi template to the management cluster", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
@@ -333,7 +335,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["7. MachineDeployment"] = []TemplateField{
+				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -405,14 +407,16 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			FIt("@integration Verify pull request can not be created by using exiting repository branch", func() {
+			It("@integration Verify pull request can not be created by using exiting repository branch", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				defer func() {
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
@@ -455,7 +459,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["7. MachineDeployment"] = []TemplateField{
+				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -591,7 +595,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				awsNodeMAchineType := "t3.micro"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["2. AWSCluster"] = []TemplateField{
+				paramSection["AWSCluster/${CLUSTER_NAME}"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  awsRegion,
@@ -614,7 +618,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["3. KubeadmControlPlane"] = []TemplateField{
+				paramSection["KubeadmControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -627,7 +631,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["4. AWSMachineTemplate"] = []TemplateField{
+				paramSection["AWSMachineTemplate/${CLUSTER_NAME}-control-plane"] = []TemplateField{
 					{
 						Name:   "AWS_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  awsControlMAchineType,
@@ -635,7 +639,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["5. MachineDeployment"] = []TemplateField{
+				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -643,7 +647,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["6. AWSMachineTemplate"] = []TemplateField{
+				paramSection["AWSMachineTemplate/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "AWS_NODE_MACHINE_TYPE",
 						Value:  awsNodeMAchineType,
@@ -711,7 +715,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				azureNodeMAchineType := "Dasv4"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["2. AzureCluster"] = []TemplateField{
+				paramSection["AzureCluster/${CLUSTER_NAME}"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  azureClusterName,
@@ -724,7 +728,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["3. KubeadmControlPlane"] = []TemplateField{
+				paramSection["KubeadmControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -737,7 +741,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["4. AzureMachineTemplate"] = []TemplateField{
+				paramSection["AzureMachineTemplate/${CLUSTER_NAME}-control-plane"] = []TemplateField{
 					{
 						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  azureControlMAchineType,
@@ -745,7 +749,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["5. MachineDeployment"] = []TemplateField{
+				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -753,7 +757,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["6. AzureMachineTemplate"] = []TemplateField{
+				paramSection["AzureMachineTemplate/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
 						Value:  azureNodeMAchineType,
@@ -779,10 +783,11 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
+			appName := "management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 
 			JustBeforeEach(func() {
-				deleteFile([]string{kubeconfigPath})
+				_ = deleteFile([]string{kubeconfigPath})
 
 				log.Println("Connecting cluster to itself")
 				leaf := LeafSpec{
@@ -795,24 +800,23 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 
 			JustAfterEach(func() {
-				deleteFile([]string{kubeconfigPath})
-				deleteClusters([]string{capdClusterName})
-				resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+				_ = deleteFile([]string{kubeconfigPath})
+				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
+
+				mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				log.Println("Deleting all the wkp agents")
-				mccpTestRunner.KubectlDeleteAllAgents([]string{})
-				mccpTestRunner.ResetDatabase()
+				_ = mccpTestRunner.KubectlDeleteAllAgents([]string{})
+				_ = mccpTestRunner.ResetDatabase()
 				mccpTestRunner.VerifyMCCPPodsRunning()
 			})
 
 			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
-				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
@@ -823,18 +827,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
-				By("And I reset wego runtime", func() {
-					resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+				By("And I install gitops to my active cluster", func() {
+					Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
 				})
 
-				By("And I install wego to my active cluster", func() {
-					Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", WEGO_BIN_PATH))
-					installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-				})
-
-				addCommand := "app add . --path=./management  --name=management  --auto-merge=true"
-				By(fmt.Sprintf("And I run wego app add command '%s in namespace %s from dir %s'", addCommand, WEGO_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
-					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+				addCommand := fmt.Sprintf("app add . --path=./management  --name=%s  --auto-merge=true", appName)
+				By(fmt.Sprintf("And I run gitops app add command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
+					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
 					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
 					Eventually(session).Should(gexec.Exit())
@@ -871,7 +871,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["7. MachineDeployment"] = []TemplateField{
+				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,

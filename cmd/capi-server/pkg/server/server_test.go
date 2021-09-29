@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/git"
@@ -52,16 +53,18 @@ func TestListTemplates(t *testing.T) {
 		{
 			name: "1 template",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+				makeTemplateConfigMap("template1", makeTemplateWithProvider(t, "AWSCluster")),
 			},
 			expected: []*capiv1_protos.Template{
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
+					Provider:    "AWSCluster",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
-							Kind:       "fookind",
+							Kind:       "AWSCluster",
 							Parameters: []string{"CLUSTER_NAME"},
 						},
 					},
@@ -86,8 +89,10 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
+					Provider:    "Generic",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "fookind",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -103,8 +108,10 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
+					Provider:    "Generic",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "fookind",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -166,8 +173,10 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
+					Provider:    "AWSCluster",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "AWSCluster",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -195,8 +204,10 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
+					Provider:    "AWSCluster",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
+							Name:       string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "AWSCluster",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -268,8 +279,10 @@ func TestGetTemplate(t *testing.T) {
 			expected: &capiv1_protos.Template{
 				Name:        "cluster-template-1",
 				Description: "this is test template 1",
+				Provider:    "Generic",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
+						Name:       string("${CLUSTER_NAME}"),
 						ApiVersion: "fooversion",
 						Kind:       "fookind",
 						Parameters: []string{"CLUSTER_NAME"},
@@ -852,11 +865,13 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
-	s := NewClusterServer(&templates.ConfigMapLibrary{
-		Client:        c,
-		ConfigMapName: configMapName,
-		Namespace:     namespace,
-	}, provider, c, dc, db, ns)
+	s := NewClusterServer(logr.Discard(),
+		&templates.ConfigMapLibrary{
+			Log:           logr.Discard(),
+			Client:        c,
+			ConfigMapName: configMapName,
+			Namespace:     namespace,
+		}, provider, c, dc, db, ns)
 
 	return s
 }

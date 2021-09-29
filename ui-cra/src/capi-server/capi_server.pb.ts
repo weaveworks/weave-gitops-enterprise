@@ -105,6 +105,7 @@ export type Template = {
   body?: string
   objects?: TemplateObject[]
   error?: string
+  provider?: string
 }
 
 export type Parameter = {
@@ -118,6 +119,7 @@ export type TemplateObject = {
   kind?: string
   apiVersion?: string
   parameters?: string[]
+  name?: string
 }
 
 export type GetEnterpriseVersionRequest = {

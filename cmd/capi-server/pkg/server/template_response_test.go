@@ -18,9 +18,11 @@ func TestToTemplate(t *testing.T) {
 		err      error
 	}{
 		{
-			name:     "empty",
-			value:    "",
-			expected: &capiv1_protos.Template{},
+			name:  "empty",
+			value: "",
+			expected: &capiv1_protos.Template{
+				Provider: "Generic",
+			},
 		},
 		{
 			name: "Basics",
@@ -31,7 +33,8 @@ metadata:
   name: foo
 `,
 			expected: &capiv1_protos.Template{
-				Name: "foo",
+				Name:     "foo",
+				Provider: "Generic",
 			},
 		},
 		{
@@ -57,6 +60,7 @@ metadata:
 			expected: &capiv1_protos.Template{
 				Name:        "cluster-template-1",
 				Description: "this is test template 1",
+				Provider:    "Generic",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						ApiVersion: "fooversion",

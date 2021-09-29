@@ -595,6 +595,9 @@
         },
         "error": {
           "type": "string"
+        },
+        "provider": {
+          "type": "string"
         }
       }
     },
@@ -612,6 +615,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "name": {
+          "type": "string"
         }
       }
     }

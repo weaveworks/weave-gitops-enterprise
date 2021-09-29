@@ -452,7 +452,7 @@ func findObjectNode(top *yaml.Node, kind, namespace, name string) *yaml.Node {
 
 func findObject(dir, kind, namespace, name string) (*ObjectInfo, error) {
 	var info *ObjectInfo
-	filepath.Walk(dir, func(path string, _ os.FileInfo, err error) error {
+	_ = filepath.Walk(dir, func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return nil
 		}

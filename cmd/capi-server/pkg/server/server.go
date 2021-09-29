@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
-	log "github.com/sirupsen/logrus"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/credentials"
@@ -30,6 +30,7 @@ import (
 )
 
 type server struct {
+	log             logr.Logger
 	library         templates.Library
 	provider        git.Provider
 	client          client.Client
@@ -39,8 +40,8 @@ type server struct {
 	ns string // The namespace where cluster objects reside
 }
 
-func NewClusterServer(library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string) capiv1_proto.ClustersServiceServer {
-	return &server{library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns}
+func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string) capiv1_proto.ClustersServiceServer {
+	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -50,32 +51,48 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	}
 	templates := []*capiv1_proto.Template{}
 
-	if msg.Provider != "" {
-		tl = filterTemplatesByProvider(tl, msg.Provider)
-	}
 
 	for _, t := range tl {
 		templates = append(templates, ToTemplateResponse(t))
+	}
+
+	if msg.Provider != "" {
+		templates = filterTemplatesByProvider(templates, msg.Provider)
 	}
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
 }
 
-func filterTemplatesByProvider(tl map[string]*capiv1.CAPITemplate, provider string) map[string]*capiv1.CAPITemplate {
-	templates := map[string]*capiv1.CAPITemplate{}
+func getProvider(t *capiv1.CAPITemplate) string {
+	meta, err := capi.ParseTemplateMeta(t)
 
-	for name, t := range tl {
-		providerKind := formatProviderName(provider)
-		meta, err := capi.ParseTemplateMeta(t)
-		if err != nil {
-			continue
+	if err != nil {
+		return ""
+	}
+
+	for _, obj := range meta.Objects {
+		switch obj.Kind {
+		case "AWSCluster":
+			return "AWSCluster"
+		case "AzureCluster":
+			return "AzureCluster"
+		case "VSphereCluster":
+			return "VSphereCluster"
 		}
+	}
 
-		for _, obj := range meta.Objects {
-			if obj.Kind == providerKind {
-				templates[name] = t
-			}
+	return "Generic"
+}
+
+func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
+	templates := []*capiv1_proto.Template{}
+
+	for _, t := range tl {
+		providerKind := formatProviderName(provider)
+
+		if (t.Provider == providerKind) {
+			templates = append(templates, t)
 		}
 	}
 
@@ -120,10 +137,7 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 }
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
-	log.WithFields(log.Fields{
-		"request_values":      msg.Values,
-		"request_credentials": msg.Credentials,
-	}).Info("Received message")
+	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
 	tm, err := s.library.Get(ctx, msg.TemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
@@ -141,7 +155,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, templateBits, msg.Credentials, msg.TemplateName)
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, s.client, templateBits, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +167,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
 	if err := validateCreateClusterPR(msg); err != nil {
-		log.WithError(err).Errorf("Failed to create pull request, message payload was invalid")
+		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
 
@@ -171,7 +185,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.client, tmplWithValues, msg.Credentials, msg.TemplateName)
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, s.client, tmplWithValues, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +198,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	// FIXME: parse and read from Cluster in yaml template
 	clusterNamespace, ok := msg.ParameterValues["NAMESPACE"]
 	if !ok {
-		log.Warn("Couldn't find NAMESPACE param in request, using 'default'.")
+		s.log.Info("Couldn't find NAMESPACE param in request, using 'default'.")
 		// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
 		clusterNamespace = "default"
 	}
@@ -239,7 +253,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			},
 		})
 		if err != nil {
-			log.WithError(err).Errorf("Failed to create pull request")
+			s.log.Error(err, "Failed to create pull request")
 			return err
 		}
 
@@ -384,7 +398,7 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 
 func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
 	if err := validateDeleteClustersPR(msg); err != nil {
-		log.WithError(err).Errorf("Failed to create pull request, message payload was invalid")
+		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
 
@@ -424,7 +438,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		Files:         filesList,
 	})
 	if err != nil {
-		log.WithError(err).Errorf("Failed to create pull request")
+		s.log.Error(err, "Failed to create pull request")
 		return nil, err
 	}
 

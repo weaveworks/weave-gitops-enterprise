@@ -11,7 +11,13 @@ app.use(express.static('build'));
 // LIST OUT PATHS EXPLICITLY SO PROXY_HOST WILL STILL WORK.
 //
 app.use(
-  ['/clusters', '/templates', '/applications', '/alerts'],
+  [
+    '/clusters',
+    '/templates',
+    '/applications',
+    '/application_detail',
+    '/alerts',
+  ],
   (req, res, next) => {
     const writeIndexResponse = (err, result) => {
       if (err) {

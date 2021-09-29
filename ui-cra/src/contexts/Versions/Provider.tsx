@@ -1,18 +1,27 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { ClustersService } from '../../capi-server/capi_server.pb';
+import { requestWithEntitlementHeader } from '../../utils/request';
 import { Versions, VersionData } from './index';
+import useNotifications from './../Notifications';
 
 const VersionsProvider: FC = ({ children }) => {
+  const [entitlement, setEntitlement] = useState<string | null>(null);
   const [versions, setVersions] = useState<VersionData>({
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   });
+  const { setNotifications } = useNotifications();
 
   const getVersions = useCallback(() => {
-    ClustersService.GetEnterpriseVersion({}).then(res => {
-      console.log('weave-gitops-enterprise capiServer:', res.version);
-      setVersions(s => ({ ...s, capiServer: res.version }));
-    });
-  }, []);
+    requestWithEntitlementHeader('GET', '/v1/enterprise/version', {
+      cache: 'no-store',
+    })
+      .then(res => {
+        setVersions(s => ({ ...s, capiServer: res.data.version }));
+        setEntitlement(res.entitlement);
+      })
+      .catch(err =>
+        setNotifications([{ message: err.message, variant: 'danger' }]),
+      );
+  }, [setNotifications]);
 
   useEffect(() => getVersions(), [getVersions]);
 
@@ -20,6 +29,7 @@ const VersionsProvider: FC = ({ children }) => {
     <Versions.Provider
       value={{
         versions,
+        entitlement,
       }}
     >
       {children}

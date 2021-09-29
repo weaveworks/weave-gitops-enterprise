@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	corev1 "k8s.io/api/core/v1"
@@ -78,7 +79,7 @@ func TestEntitlementHandler(t *testing.T) {
 			at(tt.verified, func() {
 				c := createFakeClient(tt.state)
 				key := client.ObjectKey{Name: "name", Namespace: "namespace"}
-				handler := EntitlementHandler(ctx, c, key, next)
+				handler := EntitlementHandler(ctx, logr.Discard(), c, key, next)
 				handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "http://test", nil))
 			})
 
@@ -131,7 +132,7 @@ func TestCheckEntitlementHandler(t *testing.T) {
 			})
 
 			rec := httptest.NewRecorder()
-			handler := previous(CheckEntitlementHandler(next))
+			handler := previous(CheckEntitlementHandler(logr.Discard(), next))
 			handler.ServeHTTP(rec, httptest.NewRequest("GET", "http://test", nil))
 
 			if rec.Code != tt.status {

@@ -2,6 +2,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency: 
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 name: run tests
 jobs:
   lint:
@@ -16,7 +20,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Configure git for private modules
       env:
         GITHUB_BUILD_USERNAME: wge-build-bot
@@ -33,14 +37,10 @@ jobs:
         key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-    - name: Run linters
+    - name: Lint
       run: |
         make lint
-      # uses: golangci/golangci-lint-action@v2
-      # with:
-      #   version: v1.29
-      #   args: --timeout=600s
-            
+
   unit-tests:
     runs-on: ubuntu-latest
     env:
@@ -119,6 +119,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Go Build Cache
       uses: actions/cache@v2
       with:
@@ -157,15 +158,15 @@ jobs:
         aws-region: eu-central-1
     - name: Publish helm chart to s3
       run: |
+        git fetch --tags --force
         TAG=$(git describe --always --match "v*")
-        IMAGE_TAG=$(./tools/image-tag)
         
         CHART_VALUES_PATH=./charts/mccp/values.yaml
         # Update the MCCP chart values.yaml file with the current image tag
         make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
 
         # Publish the MCCP Helm v3 chart
-        ./bin/publish-chart-to-s3.sh $TAG $IMAGE_TAG ./charts/mccp 3
+        ./bin/publish-chart-to-s3.sh $TAG "charts-v3" ./charts/mccp
     - name: Login to Docker Hub
       uses: docker/login-action@v1
       with:
@@ -313,7 +314,7 @@ jobs:
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp
-      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-linux-x86_64
+      GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
       MCCP_ACCEPTANCE: true
@@ -336,6 +337,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Go Build Cache
       uses: actions/cache@v2
       with:
@@ -368,17 +370,17 @@ jobs:
       with:
         name: mccp-binaries
         path: cmd/mccp
-    - name: Download wego binary from GitHub
+    - name: Download gitops binary from GitHub
       uses: Legion2/download-release-action@v2.1.0
       with:
         repository: weaveworks/weave-gitops
-        tag: 'v0.2.4'
-        path: cmd/wego/
-        file: wego-linux-x86_64
+        tag: 'v0.3.0'
+        path: cmd/gitops/
+        file: gitops-linux-x86_64
     - name: Change bin permissions
       run: |
         sudo chmod +x ${{ env.MCCP_BIN_PATH }}
-        sudo chmod +x ${{ env.WEGO_BIN_PATH }}
+        sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
         sudo apt-get update
@@ -405,12 +407,11 @@ jobs:
         kubectl get pods -A    
     - name: Install mccp components on management cluster
       run: |
-        CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        export CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
         
-        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
-        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
+        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
     - name: Run smoke tests
       run: |
         cd test/acceptance/test/
@@ -435,7 +436,7 @@ jobs:
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp
-      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-linux-x86_64
+      GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-linux-amd64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
@@ -461,6 +462,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0 
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Go Build Cache
       uses: actions/cache@v2
       with:
@@ -493,22 +495,17 @@ jobs:
       with:
         name: mccp-binaries
         path: cmd/mccp
-    - name: Download wego binary from GitHub
+    - name: Download gitops binary from GitHub
       uses: Legion2/download-release-action@v2.1.0
       with:
         repository: weaveworks/weave-gitops
-        tag: 'v0.2.4'
-        path: cmd/wego/
-        file: wego-linux-x86_64
-    - name: Download wk binary from s3
-      run: |
-        mkdir -p cmd/wk/
-        curl -o ${{ env.WKP_BIN_PATH }} https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-linux-amd64
+        tag: 'v0.3.0'
+        path: cmd/gitops/
+        file: gitops-linux-x86_64
     - name: Change bin permissions
       run: |
         sudo chmod +x ${{ env.MCCP_BIN_PATH }}
-        sudo chmod +x ${{ env.WEGO_BIN_PATH }}
-        sudo chmod +x ${{ env.WKP_BIN_PATH }}  
+        sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
         sudo apt-get update
@@ -535,32 +532,16 @@ jobs:
         kubectl get pods -A        
     - name: Install mccp components on management cluster
       run: |
-        CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        export CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
         
-        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
-        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
-    - name: Setup wkp leaf cluster
-      run: |
-        kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $MCCP_KIND_WKP_LEAF_KUBECONFIG
-        export KUBECONFIG=$MCCP_KIND_WKP_LEAF_KUBECONFIG
-        export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}
-        
-        # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
-        echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
-        ./test/utils/scripts/wkp.sh setup $CLUSTER_NAME ${{ github.workspace }}
-
-        # Unset KUBECONFIG to let kubectl point back to the MCCP cluster under test
-        unset KUBECONFIG        
+        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
+        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &       
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.skip=@smoke -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
-    - name: Delete WKP repository
-      if: ${{ always() }}
-      run: |
-        hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
+        go test -ginkgo.skip=@smoke -ginkgo.skip=@wkp -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
     - name: Store acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2

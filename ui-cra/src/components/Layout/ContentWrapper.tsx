@@ -6,6 +6,7 @@ import {
 } from 'weaveworks-ui-components/lib/theme/selectors';
 import theme from 'weaveworks-ui-components/lib/theme';
 import useVersions from '../../contexts/Versions';
+import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 
 export const Title = styled.div`
   font-size: ${fontSize('large')};
@@ -34,8 +35,9 @@ export const contentCss = css`
   border-radius: ${spacing('xs')};
 `;
 
-export const Content = styled.div`
+export const Content = styled.div<{ backgroundColor?: string }>`
   ${contentCss};
+  background-color: ${props => props.backgroundColor};
 `;
 
 export const WGContent = styled.div`
@@ -43,47 +45,51 @@ export const WGContent = styled.div`
   padding: 0 ${medium} ${medium} 0;
 `;
 
-const HelpLinkWrapper = styled.div`
-  padding-top: ${medium};
+const EntitlementWrapper = styled.div`
+  ${contentCss};
+  background-color: #f3e9c9;
+  padding: ${small} ${medium};
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+`;
+
+const WarningIconWrapper = styled(WarningIcon)`
+  margin-right: ${small};
+`;
+
+const HelpLinkWrapper = styled.div`
+  ${contentCss};
+  padding: ${small} ${medium};
   color: ${({ theme }) => theme.colors.gray600};
-  white-space: nowrap;
-  line-height: 1.5em;
+  display: flex;
+  justify-content: space-between;
   a {
     color: ${({ theme }) => theme.colors.blue600};
   }
 `;
 
-export const ContentWrapper: FC = ({ children }) => {
-  const { versions } = useVersions();
-  return (
-    <Content>
-      {children}
-      <HelpLinkWrapper>
-        <div>
-          Need help? Contact us at{' '}
-          <a href="mailto:support@weave.works">support@weave.works</a>
-        </div>
-        <div>Version {versions?.capiServer}</div>
-      </HelpLinkWrapper>
-    </Content>
-  );
-};
-
-export const WGContentWrapper: FC = ({ children }) => {
-  const { versions } = useVersions();
-  return (
-    <WGContent>
-      {children}
-      <HelpLinkWrapper>
-        <div>
-          Need help? Contact us at&nbsp;
-          <a href="mailto:support@weave.works">support@weave.works</a>
-        </div>
-        <div>Version {versions?.capiServer}</div>
-      </HelpLinkWrapper>
-    </WGContent>
-  );
-};
+export const ContentWrapper: FC<{ type?: string; backgroundColor?: string }> =
+  ({ children, type, backgroundColor }) => {
+    const { versions, entitlement } = useVersions();
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {entitlement && (
+          <EntitlementWrapper>
+            <WarningIconWrapper />
+            {entitlement}
+          </EntitlementWrapper>
+        )}
+        {type === 'WG' ? (
+          <WGContent>{children}</WGContent>
+        ) : (
+          <Content backgroundColor={backgroundColor}>{children}</Content>
+        )}
+        <HelpLinkWrapper>
+          <div>
+            Need help? Contact us at&nbsp;
+            <a href="mailto:support@weave.works">support@weave.works</a>
+          </div>
+          <div>Version {versions?.capiServer}</div>
+        </HelpLinkWrapper>
+      </div>
+    );
+  };

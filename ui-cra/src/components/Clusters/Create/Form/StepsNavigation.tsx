@@ -17,7 +17,8 @@ const useStyles = makeStyles(() =>
       whiteSpace: 'nowrap',
     },
     link: {
-      fontSize: `${weaveTheme.fontSizes.small}`,
+      fontSize: `${weaveTheme.fontSizes.tiny}`,
+      fontFamily: `${weaveTheme.fontFamilies.monospace}`,
       padding: `0 ${weaveTheme.spacing.small}`,
       marginBottom: `${weaveTheme.spacing.small}`,
       color: `${weaveTheme.colors.black}`,
@@ -50,17 +51,21 @@ const FormStepsNavigation: FC<{
   return (
     <div className={classes.navWrapper}>
       {sections.map((step, index) => {
+        const navStep = step.split('/');
         return (
           <div key={index} className={classes.linkWrapper}>
             <Link
-              style={{ textDecoration: 'none' }}
+              style={{
+                textDecoration: 'none',
+              }}
               className={classNames(
                 classes.link,
                 step === activeStep ? classes.activeLink : '',
               )}
               onClick={handleClick}
             >
-              {step}
+              <div>{navStep[0] + '/'}</div>
+              <div>{navStep[1]}</div>
             </Link>
           </div>
         );

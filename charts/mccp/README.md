@@ -2,7 +2,7 @@
 
 Helm chart to install the MCCP (Multi-cluster control plane) component.
 
-## TL;DR 
+## TL;DR
 
 This chart uses images from private Docker repositories so you will need to supply valid docker credentials in order to use them. You can find instructions on how to create a secret based on existing Docker credentials [here](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
@@ -32,7 +32,7 @@ To install the chart with the release name `my-release`:
 $ helm install my-release wkp/mccp
 ```
 
-The command deploys MCCP on the Kubernetes cluster in the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.
+The command deploys MCCP on the Kubernetes cluster in the default configuration.
 
 ## Uninstalling the Chart
 
@@ -41,20 +41,5 @@ To uninstall/delete the `my-release` deployment:
 ```bash
 $ helm delete my-release
 ```
+
 The command removes all the Kubernetes components associated with the chart and deletes the release.
-
-## Parameters
-
-### MCCP parameters
-| Parameter                  | Description                                                                    | Default                                                 |
-|----------------------------|--------------------------------------------------------------------------------|---------------------------------------------------------|
-| `imagePullSecrets`        | Specify docker-registry secret names as an array                               | `[]` (does not add image pull secrets to deployed pods) |
-| `images.eventWriter`        | MCCP event writer image                               | `docker.io/weaveworks/wkp-event-writer:v2.5.0` |
-| `images.gitopsRepoBroker`        | MCCP gitops repo broker image                               | `docker.io/weaveworks/wkp-gitops-repo-broker:v2.5.0` |
-| `dbConfig.databaseType`        | Database type to use as the backing store. Allowed values: `sqlite` or `postgres`                               | `sqlite` |
-| `dbConfig.databaseURI`        | Database URI. This depends on the database type and can either be a file path (for `sqlite`) or a URI (for `postgres`)                                | `/var/database/mccp.db` |
-| `sqliteConfig.hostPathVolume`        | Use a host path volume to store the database file if database type is `sqlite`                                | `true` |
-| `sqliteConfig.path`        | Host path for the database file if database type is `sqlite`                                | `/home/wks/database` |
-| `sqliteConfig.persistentVolumeClaim`        |  Use a persistent volume claim for the database file if database type is `sqlite`                               | `false` |
-| `postgresConfig.databaseName`        | Database name if database type is `postgres`                               | `postgres` |
-

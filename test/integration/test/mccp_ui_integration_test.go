@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
@@ -578,7 +579,9 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 		}
 		listenCancel()
 	}()
-	defer srv.Shutdown(gcontext.Background())
+	defer func() {
+		_ = srv.Shutdown(gcontext.Background())
+	}()
 
 	<-listenContext.Done()
 
@@ -600,6 +603,7 @@ func RunBroker(ctx gcontext.Context, dbURI string) error {
 
 func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
 	library := &templates.CRDLibrary{
+		Log:       logr.Discard(),
 		Client:    cl,
 		Namespace: "default",
 	}
@@ -609,7 +613,7 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		KubeClient: cl,
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", fakeAppsConfig, client.ObjectKey{Name: "entitlement", Namespace: "default"})
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", fakeAppsConfig, client.ObjectKey{Name: "entitlement", Namespace: "default"}, logr.Discard())
 }
 
 func RunUIServer(ctx gcontext.Context) {
@@ -693,7 +697,8 @@ func TestMccpUI(t *testing.T) {
 		capiv1.AddToScheme,
 		corev1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
+	assert.NoError(t, err)
 
 	// Add entitlement secret
 	sec := &corev1.Secret{
@@ -730,12 +735,13 @@ func TestMccpUI(t *testing.T) {
 	}()
 	wg.Add(1)
 	go func() {
-		RunCAPIServer(t, ctx, cl, discoveryClient, db)
+		err := RunCAPIServer(t, ctx, cl, discoveryClient, db)
+		assert.NoError(t, err)
 		wg.Done()
 	}()
 
 	// Test ui is proxying through to broker
-	err := waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
+	err = waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
 	require.NoError(t, err)
 
 	//
