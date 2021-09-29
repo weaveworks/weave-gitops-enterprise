@@ -1,9 +1,9 @@
 ---
-apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
+apiVersion: {{ template "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   annotations:
-    {{- if eq (include "common.ingress.supportsIngressClassAnnotation" .) "true" }}
+    {{- if eq (template "common.ingress.supportsIngressClassAnnotation" .) "true" }}
     kubernetes.io/ingress.class: mccp-nginx
     {{- end }}
     nginx.ingress.kubernetes.io/rewrite-target: /v1/$1
@@ -12,11 +12,11 @@ metadata:
   name: clusters-service
   namespace: {{ .Release.Namespace | quote }}
 spec:
-  {{- if eq (include "common.ingress.supportsIngressClassname" .) "true" }}
+  {{- if eq (template "common.ingress.supportsIngressClassname" .) "true" }}
   ingressClassName: mccp-nginx
   {{- end }}
   rules:
     - http:
         paths:
           - path: /v1/?(.*)
-            backend: {{- include "common.ingress.backend" (dict "serviceName" "clusters-service" "servicePort" 8000 "context" $)  | nindent 14 }}
+            backend: {{- template "common.ingress.backend" (dict "serviceName" "clusters-service" "servicePort" 8000 "context" $)  | nindent 14 }}
