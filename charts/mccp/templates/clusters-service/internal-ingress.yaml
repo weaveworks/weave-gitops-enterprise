@@ -1,5 +1,5 @@
 ---
-apiVersion: {{ template "common.capabilities.ingress.apiVersion" . }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   annotations:
