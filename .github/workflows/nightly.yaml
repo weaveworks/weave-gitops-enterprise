@@ -119,7 +119,7 @@ jobs:
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp-${{ matrix.os }}-nightly
-      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-${{ matrix.os_name }}-x86_64
+      GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-${{ matrix.os_name }}-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
       MCCP_EKS_LEAF_KUBECONFIG: '/tmp/mccp-eks-leaf-kubeconfig'
@@ -201,11 +201,13 @@ jobs:
       with:
         name: mccp-binaries
         path: cmd/mccp
-    - name: Download wego binary from GitHub
-      run: |
-        mkdir -p cmd/wego/
-        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.2.4/wego-${{ matrix.os_name }}-x86_64
-        mv wego-${{ matrix.os_name }}-x86_64 $WEGO_BIN_PATH
+    - name: Download gitops binary from GitHub
+      uses: Legion2/download-release-action@v2.1.0
+      with:
+        repository: weaveworks/weave-gitops
+        tag: 'v0.3.0'
+        path: cmd/gitops/
+        file: gitops-${{ matrix.os_name }}-x86_64
     - name: Download wk binary from s3
       run: |
         mkdir -p cmd/wk/
@@ -213,7 +215,7 @@ jobs:
     - name: Change bin permissions
       run: |
         sudo chmod +x ${{ env.MCCP_BIN_PATH }}
-        sudo chmod +x ${{ env.WEGO_BIN_PATH }}
+        sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
         sudo chmod +x ${{ env.WKP_BIN_PATH }}  
     - name: Setup selenium server
       run: |
@@ -252,11 +254,11 @@ jobs:
         
     - name: Install mccp componenets on EKS management cluster
       run: |
-        CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        export CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
 
-        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
+        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
     - name: Setup wkp leaf cluster
       if: ${{ runner.os == 'Linux' }}
       run: |
@@ -320,7 +322,7 @@ jobs:
   #     DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
   #     DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
   #     MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp-${{ matrix.os }}-nightly
-  #     WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-${{ matrix.os_name }}-x86_64
+  #     GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-${{ matrix.os_name }}-x86_64
   #     WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
   #     WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
   #     MCCP_GCE_LEAF_KUBECONFIG: '/tmp/mccp-gce-leaf-kubeconfig'
@@ -392,11 +394,13 @@ jobs:
   #     with:
   #       name: mccp-binaries
   #       path: cmd/mccp
-  #   - name: Download wego binary from GitHub
-  #     run: |
-  #       mkdir -p cmd/wego/
-  #       wget https://github.com/weaveworks/weave-gitops/releases/download/v0.2.4/wego-${{ matrix.os_name }}-x86_64
-  #       mv wego-${{ matrix.os_name }}-x86_64 $WEGO_BIN_PATH
+  #   - name: Download gitops binary from GitHub
+  #     uses: Legion2/download-release-action@v2.1.0
+  #     with:
+  #       repository: weaveworks/weave-gitops
+  #       tag: 'v0.3.0'
+  #       path: cmd/gitops/
+  #       file: gitops-${{ matrix.os_name }}-x86_64
   #   - name: Download wk binary from s3
   #     run: |
   #       mkdir -p cmd/wk/
@@ -404,7 +408,7 @@ jobs:
   #   - name: Change bin permissions
   #     run: |
   #       sudo chmod +x ${{ env.MCCP_BIN_PATH }}
-  #       sudo chmod +x ${{ env.WEGO_BIN_PATH }}
+  #       sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
   #       sudo chmod +x ${{ env.WKP_BIN_PATH }}  
   #   - name: Setup selenium server
   #     run: |
@@ -442,11 +446,11 @@ jobs:
   #       kubectl get all --all-namespaces -o wide        
   #   - name: Install mccp componenets on GKE management cluster
   #     run: |
-  #       CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+  #       export CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
   #       # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
   #       echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
 
-  #       ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
+  #       ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
   #   - name: Setup wkp leaf cluster
   #     if: ${{ runner.os == 'Linux' }}
   #     run: |
