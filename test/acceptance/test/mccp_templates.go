@@ -55,7 +55,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
 
-		WEGO_BIN_PATH := GetWegoBinPath()
+		GITOPS_BIN_PATH := GetGitopsBinPath()
 
 		templateFiles := []string{}
 
@@ -407,7 +407,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			FIt("@integration Verify pull request can not be created by using exiting repository branch", func() {
+			It("@integration Verify pull request can not be created by using exiting repository branch", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer func() {
@@ -783,6 +783,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
+			appName := "management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 
 			JustBeforeEach(func() {
@@ -800,8 +801,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
-				deleteClusters([]string{capdClusterName})
-				resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
+
+				mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				log.Println("Deleting all the wkp agents")
 				_ = mccpTestRunner.KubectlDeleteAllAgents([]string{})
@@ -810,11 +813,6 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 
 			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
-
-				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer func() {
-					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
@@ -829,18 +827,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
-				By("And I reset wego runtime", func() {
-					resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+				By("And I install gitops to my active cluster", func() {
+					Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
 				})
 
-				By("And I install wego to my active cluster", func() {
-					Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", WEGO_BIN_PATH))
-					installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-				})
-
-				addCommand := "app add . --path=./management  --name=management  --auto-merge=true"
-				By(fmt.Sprintf("And I run wego app add command '%s in namespace %s from dir %s'", addCommand, WEGO_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
-					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+				addCommand := fmt.Sprintf("app add . --path=./management  --name=%s  --auto-merge=true", appName)
+				By(fmt.Sprintf("And I run gitops app add command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
+					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
 					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
 					Eventually(session).Should(gexec.Exit())
