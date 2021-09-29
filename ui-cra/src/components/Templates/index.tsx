@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
@@ -62,40 +62,43 @@ const TemplatesDashboard: FC = () => {
   const clustersCount = useClusters().count;
   const templatesCount = templates.length;
   const [view, setView] = useState<string>('grid');
-  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
+  const [selectedProvider, setSelectedProvider] =
+    useState<string | null | undefined>('');
 
   const onProviderChange = (
     event: React.ChangeEvent<{}>,
     value: string | null | undefined,
-  ) => {
-    if (!value || value === 'All') {
-      setFilteredTemplates(templates);
-    } else {
-      setFilteredTemplates(templates.filter(t => t.provider === value));
-    }
-  };
+  ) => setSelectedProvider(value);
 
   const titleSection = (
     <TitleSection>
       {view === 'grid' ? (
-        <Title extraPadding={true}>Cluster Templates</Title>
+        <Title style={{ paddingBottom: theme.spacing.xl }}>
+          Cluster Templates
+        </Title>
       ) : (
         <Title>Cluster Templates</Title>
       )}
       <div style={{ width: '200px' }}>
         <Autocomplete
+          value={selectedProvider}
           disablePortal
           id="filter-by-provider"
           options={providers}
           onChange={onProviderChange}
           clearOnEscape
+          blurOnSelect="mouse"
           renderInput={params => <TextField {...params} label="Provider" />}
         />
       </div>
     </TitleSection>
   );
 
-  useEffect(() => setFilteredTemplates(templates), [templates]);
+  const filteredTemplates = selectedProvider
+    ? templates.filter(
+        t => selectedProvider === 'All' || t.provider === selectedProvider,
+      )
+    : templates;
 
   return (
     <ThemeProvider theme={localMuiTheme}>
