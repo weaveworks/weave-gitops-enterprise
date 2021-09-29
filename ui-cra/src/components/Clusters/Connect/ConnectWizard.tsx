@@ -9,8 +9,9 @@ import { FormState, SetFormState } from '../../../types/form';
 import { Cluster } from '../../../types/kubernetes';
 import { request } from '../../../utils/request';
 import { FlexSpacer } from '../../ListView';
-import { HandleFinish } from '../../Shared';
+import { HandleFinish, Status } from '../../Shared';
 import useNotifications from './../../../contexts/Notifications';
+import Box from '@material-ui/core/Box';
 
 export const ButtonText = styled.span`
   margin: 0 4px;
@@ -138,6 +139,23 @@ const FRIENDLY_ERRORS: { [key: string]: string } = {
   'UNIQUE constraint failed: clusters.token':
     'Oops! The token we generated is already in use, this is quite rare. Please try again.',
 };
+
+export const statusBox = (cluster: Cluster) => (
+  <Box
+    lineHeight="24px"
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    my={2}
+  >
+    {cluster.status !== 'notConnected' ? (
+      <Box color="text.secondary" mr={1}>
+        Cluster status
+      </Box>
+    ) : null}
+    <Status connecting updatedAt={cluster.updatedAt} status={cluster.status} />
+  </Box>
+);
 
 export const ConnectClusterWizard: FC<CreateModelProps> = ({
   connecting,
