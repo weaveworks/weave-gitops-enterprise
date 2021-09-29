@@ -248,12 +248,10 @@ jobs:
         name: mccp-binaries
         path: cmd/mccp
     - name: Download gitops binary from GitHub
-      uses: Legion2/download-release-action@v2.1.0
-      with:
-        repository: weaveworks/weave-gitops
-        tag: 'v0.3.0'
-        path: cmd/gitops/
-        file: gitops-${{ matrix.os_name }}-x86_64
+      run: |
+        mkdir -p cmd/gitops/
+        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.3.0/gitops-${{ matrix.os_name }}-x86_64
+        mv gitops-${{ matrix.os_name }}-x86_64 $GITOPS_BIN_PATH
     - name: Download wk binary from s3
       run: |
         mkdir -p cmd/wk/
