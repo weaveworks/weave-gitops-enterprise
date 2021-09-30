@@ -49,7 +49,6 @@ const TemplateCard: FC<{ template: Template }> = ({ template }) => {
 
   return (
     <Card className={classes.root} data-template-name={template.name}>
-      {/* <div> */}
       <CardMedia>{getTile()}</CardMedia>
       <CardContent>
         <Typography gutterBottom variant="h6" component="h2">
@@ -79,7 +78,6 @@ const TemplateCard: FC<{ template: Template }> = ({ template }) => {
           </>
         )}
       </CardContent>
-      {/* </div> */}
       <CardActions>
         <OnClickAction
           id="create-cluster"
