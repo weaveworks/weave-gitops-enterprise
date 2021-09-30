@@ -4,7 +4,6 @@ import theme from 'weaveworks-ui-components/lib/theme';
 import { Skeleton } from '@material-ui/lab';
 import { random, sortBy } from 'lodash';
 import {
-  Box,
   TableCell,
   TableRow,
   Tooltip as Mtooltip,
@@ -16,7 +15,6 @@ import {
   GitCommitInfo,
   FluxInfo,
 } from '../types/kubernetes';
-import { CircularProgress } from 'weaveworks-ui-components';
 import GitUrlParse from 'git-url-parse';
 import { SparkTimeline } from './SparkTimeline';
 import { getClusterStatus, ReadyStatus } from './Clusters/Status';
@@ -43,7 +41,6 @@ export interface FinishMessage {
   success: boolean;
   message: string;
 }
-export type HandleFinish = (done: FinishMessage) => void;
 
 export const NameLink = styled(SafeAnchor)`
   display: block;

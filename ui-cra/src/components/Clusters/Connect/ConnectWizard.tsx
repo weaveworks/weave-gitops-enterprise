@@ -9,7 +9,7 @@ import { FormState, SetFormState } from '../../../types/form';
 import { Cluster } from '../../../types/kubernetes';
 import { request } from '../../../utils/request';
 import { FlexSpacer } from '../../ListView';
-import { HandleFinish, Status } from '../../Shared';
+import { Status } from '../../Shared';
 import useNotifications from './../../../contexts/Notifications';
 import Box from '@material-ui/core/Box';
 
@@ -91,7 +91,6 @@ const PAGES = {
     content: (
       formState: FormState,
       setFormState: SetFormState,
-      onFinish: HandleFinish,
       connecting: boolean,
     ) => (
       <ConnectClusterGeneralForm
@@ -115,7 +114,7 @@ const PAGES = {
     content: (
       formState: FormState,
       setFormState: SetFormState,
-      onFinish: HandleFinish,
+      onFinish: () => void,
     ) => (
       <ClusterDisconnectionInstructions
         formState={formState}
@@ -125,12 +124,6 @@ const PAGES = {
     ),
   },
 };
-
-interface CreateModelProps {
-  cluster: Cluster;
-  connecting: boolean;
-  onFinish: HandleFinish;
-}
 
 // SQLite errors
 const FRIENDLY_ERRORS: { [key: string]: string } = {
@@ -157,11 +150,11 @@ export const statusBox = (cluster: Cluster) => (
   </Box>
 );
 
-export const ConnectClusterWizard: FC<CreateModelProps> = ({
-  connecting,
-  cluster,
-  onFinish,
-}) => {
+export const ConnectClusterWizard: FC<{
+  cluster: Cluster;
+  connecting: boolean;
+  onFinish: () => void;
+}> = ({ connecting, cluster, onFinish }) => {
   const pages = connecting
     ? [PAGES.general, PAGES.connect]
     : [PAGES.general, PAGES.connect, PAGES.disconnect];
@@ -229,7 +222,7 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
       />
       <form onSubmit={onSubmit}>
         <ContentContainer>
-          {content(formState, setFormState, onFinish, connecting)}
+          {content(formState, setFormState, connecting, onFinish)}
         </ContentContainer>
         <ButtonBar>
           <FlexSpacer />
@@ -240,10 +233,7 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
             </Button>
           )}
           {formState.activeIndex > 0 && (
-            <Button
-              className="close-button"
-              onClick={() => onFinish({ success: true, message: '' })}
-            >
+            <Button className="close-button" onClick={() => onFinish()}>
               Close
             </Button>
           )}
