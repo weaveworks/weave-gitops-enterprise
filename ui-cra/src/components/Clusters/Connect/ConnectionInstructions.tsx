@@ -2,12 +2,11 @@ import React, { FC } from 'react';
 import styled from 'styled-components';
 import { FormState, SetFormState } from '../../../types/form';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import { Code } from '../../Shared';
+import { Code, statusBox } from '../../Shared';
 import { Poll } from '../../../utils/poll';
 import { Cluster } from '../../../types/kubernetes';
 import { asMilliseconds } from '../../../utils/time';
 import { Loader } from '../../Loader';
-import { statusBox } from './ConnectWizard';
 
 const Container = styled.div`
   margin-right: 16px;
@@ -21,7 +20,8 @@ interface ResponsesById {
 export const ConnectClusterConnectionInstructions: FC<{
   formState: FormState;
   setFormState: SetFormState;
-}> = ({ formState }) => {
+  connecting: boolean;
+}> = ({ formState, connecting }) => {
   const getCluster = `/gitops/api/clusters/${formState.cluster.id}`;
   const { protocol, host } = window.location;
   // Quoting the URL is important for zsh
@@ -38,7 +38,7 @@ export const ConnectClusterConnectionInstructions: FC<{
           if (!cluster) {
             return <Loader />;
           }
-          return statusBox(cluster);
+          return statusBox(cluster, connecting);
         }}
       </Poll>
     </Container>

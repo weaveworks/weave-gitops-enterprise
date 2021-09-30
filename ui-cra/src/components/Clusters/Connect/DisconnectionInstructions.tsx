@@ -6,10 +6,9 @@ import Typography from '@material-ui/core/Typography';
 import { Poll } from '../../../utils/poll';
 import { asMilliseconds } from '../../../utils/time';
 import { Cluster } from '../../../types/kubernetes';
-import { Code } from '../../Shared';
+import { Code, statusBox } from '../../Shared';
 import ConfirmDeletion from './ConfirmDeletion';
 import useClusters from '../../../contexts/Clusters';
-import { statusBox } from './ConnectWizard';
 import { Loader } from '../../Loader';
 
 const Container = styled.div`
@@ -24,7 +23,8 @@ interface ResponsesById {
 export const ClusterDisconnectionInstructions: FC<{
   formState: FormState;
   setFormState: SetFormState;
-}> = ({ formState }) => {
+  connecting: boolean;
+}> = ({ formState, connecting }) => {
   const { deleteConnectedClusters } = useClusters();
 
   if (!formState.cluster.id) {
@@ -51,7 +51,7 @@ export const ClusterDisconnectionInstructions: FC<{
           if (!cluster) {
             return <Loader />;
           }
-          return statusBox(cluster);
+          return statusBox(cluster, connecting);
         }}
       </Poll>
       <DialogContentText>
