@@ -49,37 +49,35 @@ const TemplateCard: FC<{ template: Template }> = ({ template }) => {
 
   return (
     <Card className={classes.root} data-template-name={template.name}>
-      <div>
-        <CardMedia>{getTile()}</CardMedia>
-        <CardContent>
-          <Typography gutterBottom variant="h6" component="h2">
-            {template.name}
-          </Typography>
-          <Typography variant="body2" color="textSecondary" component="p">
-            {template.description}
-          </Typography>
-          {template.error && (
-            <>
-              <Typography
-                className="template-error-header"
-                variant="h6"
-                component="h2"
-                color="error"
-              >
-                Error in template
-              </Typography>
-              <Typography
-                className="template-error-description"
-                variant="body2"
-                color="error"
-                component="p"
-              >
-                {template.error}
-              </Typography>
-            </>
-          )}
-        </CardContent>
-      </div>
+      <CardMedia>{getTile()}</CardMedia>
+      <CardContent>
+        <Typography gutterBottom variant="h6" component="h2">
+          {template.name}
+        </Typography>
+        <Typography variant="body2" color="textSecondary" component="p">
+          {template.description}
+        </Typography>
+        {template.error && (
+          <>
+            <Typography
+              className="template-error-header"
+              variant="h6"
+              component="h2"
+              color="error"
+            >
+              Error in template
+            </Typography>
+            <Typography
+              className="template-error-description"
+              variant="body2"
+              color="error"
+              component="p"
+            >
+              {template.error}
+            </Typography>
+          </>
+        )}
+      </CardContent>
       <CardActions>
         <OnClickAction
           id="create-cluster"
