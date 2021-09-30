@@ -43,7 +43,7 @@ func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateTile 
 	tileNode := webDriver.Find(fmt.Sprintf(`[data-template-name="%s"]`, templateName))
 	return &TemplateTile{
 		Name:             templateName,
-		Description:      tileNode.Find(`div > p.MuiTypography-root`),
+		Description:      tileNode.Find(`P[class^=MuiTypography-root]`),
 		CreateTemplate:   tileNode.Find(`#create-cluster`),
 		ErrorHeader:      tileNode.Find(`.template-error-header`),
 		ErrorDescription: tileNode.Find(`.template-error-description`),
