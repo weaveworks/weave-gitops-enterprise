@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import { Poll } from '../../../utils/poll';
 import { asMilliseconds } from '../../../utils/time';
 import { Cluster } from '../../../types/kubernetes';
-import { Code, HandleFinish } from '../../Shared';
+import { Code } from '../../Shared';
 import ConfirmDeletion from './ConfirmDeletion';
 import useClusters from '../../../contexts/Clusters';
 import { statusBox } from './ConnectWizard';
@@ -24,8 +24,7 @@ interface ResponsesById {
 export const ClusterDisconnectionInstructions: FC<{
   formState: FormState;
   setFormState: SetFormState;
-  onFinish: HandleFinish;
-}> = ({ formState, onFinish }) => {
+}> = ({ formState }) => {
   const { deleteConnectedClusters } = useClusters();
 
   if (!formState.cluster.id) {
@@ -64,7 +63,6 @@ export const ClusterDisconnectionInstructions: FC<{
         clusters={[formState.cluster.id]}
         onClickRemove={deleteConnectedClusters}
         title="Remove cluster from the MCCP"
-        onFinish={onFinish}
       />
     </Container>
   );
