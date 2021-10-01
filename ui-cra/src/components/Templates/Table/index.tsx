@@ -96,6 +96,11 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
                     </TableSortLabel>
                   </TableCell>
                   <TableCell align="left">
+                    <ColumnHeaderTooltip title="Template Provider">
+                      <span>Provider</span>
+                    </ColumnHeaderTooltip>
+                  </TableCell>
+                  <TableCell align="left">
                     <ColumnHeaderTooltip title="Template Description">
                       <span>Description</span>
                     </ColumnHeaderTooltip>
