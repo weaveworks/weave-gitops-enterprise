@@ -31,4 +31,5 @@ dependencies:
     version: '7.4.7'
     repository: https://charts.bitnami.com/bitnami
   - name: wkp-ui
+    version: '0.1.0'
     repository: 'file://../../ui/chart/wkp-ui'
