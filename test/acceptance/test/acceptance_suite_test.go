@@ -26,12 +26,6 @@ func GomegaFail(message string, callerSkip ...int) {
 	_ = showItems("")
 	_ = dumpClusterInfo("wego-system", randID)
 
-	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
-		// Print cluster service log
-		deploymentApp := []string{"my-mccp-cluster-service"}
-		printLogs(deploymentApp, "wego-system")
-	}
-
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
 }

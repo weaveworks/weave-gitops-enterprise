@@ -100,7 +100,21 @@ The demo cluster currently lives at http://34.67.250.163:30080/ but will hopeful
 
    1. As of writing the `HelmRelease` lives in [management/weave-gitops-enterprise/artifacts/mccp-chart/helm-chart/HelmRelease.yaml](https://github.com/wkp-example-org/capd-demo-simon/blob/main/management/weave-gitops-enterprise/artifacts/mccp-chart/helm-chart/HelmRelease.yaml), but may have moved, so look around for the helm-release file if this has gone missing.
    2. Find the `spec.chart.spec.version` field and change it to the desired value.
-   3. Commit to `main` or PR and merge to `main`.
+   3. If this is an official release (`0.0.9` etc) make sure the release repo is set:
+      ```
+       sourceRef:
+         kind: HelmRepository
+         name: weave-gitops-enterprise-mccp-chart-release
+         namespace: wego-system
+      ```
+      Otherwise make sure its using dev:
+      ```
+       sourceRef:
+         kind: HelmRepository
+         name: weave-gitops-enterprise-mccp-chart-dev
+         namespace: wego-system
+      ```
+   4. Commit to `main` or PR and merge to `main`.
 
 3. Voila
 
