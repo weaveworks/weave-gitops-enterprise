@@ -7,8 +7,10 @@ spec:
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
+      required: true
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: How many machine replicas to setup.
+      required: true
   resourcetemplates:
     - apiVersion: cluster.x-k8s.io/v1alpha3
       kind: Cluster
