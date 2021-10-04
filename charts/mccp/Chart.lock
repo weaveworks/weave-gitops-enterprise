@@ -8,5 +8,5 @@ dependencies:
 - name: wkp-ui
   repository: file://../../ui/chart/wkp-ui
   version: 0.1.0
-digest: sha256:aff11aae02e840a2397d5001f5739765895a43511d8f145300ddd4a2df0064db
-generated: "2021-05-11T20:02:33.709847+02:00"
+digest: sha256:afb4d91b97d063f13157cd771234ad4457fce72a6bbf479961bbe19570b5d88e
+generated: "2021-10-01T17:11:35.07342+01:00"

@@ -42,10 +42,12 @@ func TestParseTemplateMeta(t *testing.T) {
 			{
 				Name:        "CLUSTER_NAME",
 				Description: "This is used for the cluster naming.",
+				Required:    true,
 			},
 			{
 				Name:        "CONTROL_PLANE_MACHINE_COUNT",
 				Description: "How many machine replicas to setup.",
+				Required:    true,
 			},
 		},
 	}
