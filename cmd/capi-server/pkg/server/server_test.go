@@ -285,6 +285,7 @@ func TestGetTemplate(t *testing.T) {
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						Name:       string("${CLUSTER_NAME}"),
+						DisplayName: string("ClusterName"),
 						ApiVersion: "fooversion",
 						Kind:       "fookind",
 						Parameters: []string{"CLUSTER_NAME"},

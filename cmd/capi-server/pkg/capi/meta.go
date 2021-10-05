@@ -30,8 +30,6 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 		objects = append(objects, Object{Kind: uv.GetKind(), APIVersion: uv.GetAPIVersion(), Params: tv, Name: uv.GetName(), DisplayName: uv.GetAnnotations()["capi.weave.works/display-name"]})
 	}
 
-	fmt.Println(objects)
-
 	enriched, err := ParamsFromSpec(s.Spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse parameters from the spec: %w", err)
