@@ -51,7 +51,6 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	}
 	templates := []*capiv1_proto.Template{}
 
-
 	for _, t := range tl {
 		templates = append(templates, ToTemplateResponse(t))
 	}
@@ -91,7 +90,7 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 	for _, t := range tl {
 		providerKind := formatProviderName(provider)
 
-		if (t.Provider == providerKind) {
+		if t.Provider == providerKind {
 			templates = append(templates, t)
 		}
 	}

@@ -63,7 +63,6 @@ func TestListTemplates(t *testing.T) {
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
-							DisplayName: string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "AWSCluster",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -93,10 +92,11 @@ func TestListTemplates(t *testing.T) {
 					Provider:    "Generic",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
-							Name:       string("${CLUSTER_NAME}"),
-							ApiVersion: "fooversion",
-							Kind:       "fookind",
-							Parameters: []string{"CLUSTER_NAME"},
+							Name:        string("${CLUSTER_NAME}"),
+							DisplayName: string("ClusterName"),
+							ApiVersion:  "fooversion",
+							Kind:        "fookind",
+							Parameters:  []string{"CLUSTER_NAME"},
 						},
 					},
 					Parameters: []*capiv1_protos.Parameter{
@@ -112,10 +112,11 @@ func TestListTemplates(t *testing.T) {
 					Provider:    "Generic",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
-							Name:       string("${CLUSTER_NAME}"),
-							ApiVersion: "fooversion",
-							Kind:       "fookind",
-							Parameters: []string{"CLUSTER_NAME"},
+							Name:        string("${CLUSTER_NAME}"),
+							DisplayName: string("ClusterName"),
+							ApiVersion:  "fooversion",
+							Kind:        "fookind",
+							Parameters:  []string{"CLUSTER_NAME"},
 						},
 					},
 					Parameters: []*capiv1_protos.Parameter{

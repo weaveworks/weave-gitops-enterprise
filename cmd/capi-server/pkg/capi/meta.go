@@ -47,11 +47,11 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 // Object contains the details of the object rendered from a template along with
 // the parametesr.
 type Object struct {
-	Kind       string   `json:"kind"`
-	APIVersion string   `json:"apiVersion"`
-	Name       string   `json:"name"`
-	Params     []string `json:"params"`
-	DisplayName       string   `json:"displayName"`
+	Kind        string   `json:"kind"`
+	APIVersion  string   `json:"apiVersion"`
+	Name        string   `json:"name"`
+	Params      []string `json:"params"`
+	DisplayName string   `json:"displayName"`
 }
 
 // TemplateMeta contains all the objects extracted from a CAPITemplate along
