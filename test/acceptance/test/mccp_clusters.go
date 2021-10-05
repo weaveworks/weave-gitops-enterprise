@@ -54,6 +54,57 @@ func ClusterStatusFromList(clustersPage *pages.ClustersPage, clusterName string)
 	return pages.FindClusterInList(clustersPage, clusterName).Status
 }
 
+func deleteClusterEntry(webDriver *agouti.Page, clusterNames []string) {
+	for _, clusterName := range clusterNames {
+		clustersPage := pages.GetClustersPage(webDriver)
+		clusterConnectionPage := pages.GetClusterConnectionPage(webDriver)
+		confirmDisconnectClusterDialog := pages.GetConfirmDisconnectClusterDialog(webDriver)
+
+		log.Printf("Deleting cluster entry: %s", clusterName)
+		Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+
+		By("And wait for the page to be fully loaded", func() {
+			Eventually(clustersPage.SupportEmailLink).Should(BeVisible())
+			Eventually(clustersPage.ClusterCount).Should(MatchText(`[0-9]+`))
+			Eventually(clustersPage.ClustersListSection).Should(BeFound())
+			pages.ScrollWindow(webDriver, WINDOW_SIZE_X, WINDOW_SIZE_Y)
+		})
+
+		By("And when I click edit cluster I should see disconnect cluster tab", func() {
+
+			if len(clusterName) > 256 {
+				clusterName = clusterName[0:256]
+			}
+			Expect(pages.FindClusterInList(clustersPage, clusterName).EditCluster.Click()).To(Succeed())
+
+			Eventually(clusterConnectionPage.ClusterConnectionPopup).Should(BeFound())
+			Eventually(clusterConnectionPage.DisconnectTab).Should(BeFound())
+		})
+
+		By("And I open Disconnect tab and click Remove cluster from the MCCP button", func() {
+			Expect(clusterConnectionPage.DisconnectTab.Click()).Should(Succeed())
+
+			Eventually(clusterConnectionPage.ButtonRemoveCluster).Should(BeFound())
+			Expect(clusterConnectionPage.ButtonRemoveCluster.Click()).To(Succeed())
+		})
+
+		By("Then I should see an alert popup with Remove button", func() {
+			Eventually(confirmDisconnectClusterDialog.AlertPopup, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+			Eventually(confirmDisconnectClusterDialog.ButtonRemove).Should(BeFound())
+		})
+
+		By("And I click remove button and the alert is closed", func() {
+			Expect(confirmDisconnectClusterDialog.ButtonRemove.Click()).To(Succeed())
+			Eventually(confirmDisconnectClusterDialog.AlertPopup).ShouldNot(BeFound())
+		})
+
+		By("Then I should see the cluster removed from the table", func() {
+			Eventually(pages.FindClusterInList(clustersPage, clusterName).Name, ASSERTION_1MINUTE_TIME_OUT).
+				ShouldNot(BeFound())
+		})
+	}
+}
+
 func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.ClustersPage, *pages.ClusterConnectionPage) {
 
 	//To check if page is loaded in its entirety
@@ -66,7 +117,7 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 	By("And wait for the page to be fully loaded", func() {
 		Eventually(clustersPage.SupportEmailLink).Should(BeVisible())
 		Eventually(clustersPage.ClusterCount).Should(MatchText(`[0-9]+`))
-		time.Sleep(UI_POLL_INTERVAL)
+		Eventually(clustersPage.ClustersListSection).Should(BeFound())
 		count, _ = clustersPage.ClusterCount.Text()
 		tmpCount, _ := strconv.Atoi(count)
 		expectedCount = strconv.Itoa(tmpCount + 1)
@@ -216,8 +267,6 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 		AfterEach(func() {
 			TakeNextScreenshot()
-			//Tear down
-			//Expect(webDriver.Destroy()).To(Succeed())
 		})
 
 		It("Verify MCCP page structure first time with no cluster configured", func() {
@@ -327,6 +376,8 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			By("And I see Save & next button disabled", func() {
 				Eventually(clusterConnectionPage.ButtonClusterSaveAndNext).ShouldNot(BeEnabled())
 			})
+
+			deleteClusterEntry(webDriver, []string{clusterNameMax})
 		})
 
 		It("Verify that clusters table have correct column headers ", func() {
@@ -545,42 +596,14 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 		It("Verify disconnect cluster", func() {
 			clusterName := RandString(32)
 			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
-			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
-			confirmDisconnectClusterDialog := pages.GetConfirmDisconnectClusterDialog(webDriver)
+			_, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 
 			By("And the cluster connection popup is closed", func() {
 				Expect(clusterConnectionPage.ButtonClose.Click()).To(Succeed())
 				Eventually(clusterConnectionPage.ClusterConnectionPopup).ShouldNot(BeFound())
 			})
 
-			By("And when I click edit cluster I should see disconnect cluster tab", func() {
-				Expect(pages.FindClusterInList(clustersPage, clusterName).EditCluster.Click()).To(Succeed())
-
-				Eventually(clusterConnectionPage.ClusterConnectionPopup).Should(BeFound())
-				Eventually(clusterConnectionPage.DisconnectTab).Should(BeFound())
-			})
-
-			By("And I open Disconnect tab and click Remove cluster from the MCCP button", func() {
-				Expect(clusterConnectionPage.DisconnectTab.Click()).Should(Succeed())
-
-				Eventually(clusterConnectionPage.ButtonRemoveCluster).Should(BeFound())
-				Expect(clusterConnectionPage.ButtonRemoveCluster.Click()).To(Succeed())
-			})
-
-			By("Then I should see an alert popup with Remove button", func() {
-				Eventually(confirmDisconnectClusterDialog.AlertPopup, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
-				Eventually(confirmDisconnectClusterDialog.ButtonRemove).Should(BeFound())
-			})
-
-			By("And I click remove button and the alert is closed", func() {
-				Expect(confirmDisconnectClusterDialog.ButtonRemove.Click()).To(Succeed())
-				Eventually(confirmDisconnectClusterDialog.AlertPopup).ShouldNot(BeFound())
-			})
-
-			By("Then I should see the cluster removed from the table", func() {
-				Eventually(pages.FindClusterInList(clustersPage, clusterName).Name, ASSERTION_1MINUTE_TIME_OUT).
-					ShouldNot(BeFound())
-			})
+			deleteClusterEntry(webDriver, []string{clusterName})
 		})
 
 		It("@wkp Verify team workspaces variations", func() {
