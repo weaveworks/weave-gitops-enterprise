@@ -35,6 +35,7 @@ func ToTemplateResponse(t *capiv1.CAPITemplate) *capiv1_proto.Template {
 			ApiVersion: o.APIVersion,
 			Parameters: o.Params,
 			Name:       o.Name,
+			DisplayName: o.DisplayName,
 		})
 	}
 

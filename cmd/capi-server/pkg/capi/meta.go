@@ -27,8 +27,10 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 		if err := uv.UnmarshalJSON(v.RawExtension.Raw); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
 		}
-		objects = append(objects, Object{Kind: uv.GetKind(), APIVersion: uv.GetAPIVersion(), Params: tv, Name: uv.GetName()})
+		objects = append(objects, Object{Kind: uv.GetKind(), APIVersion: uv.GetAPIVersion(), Params: tv, Name: uv.GetName(), DisplayName: uv.GetAnnotations()["capi.weave.works/display-name"]})
 	}
+
+	fmt.Println(objects)
 
 	enriched, err := ParamsFromSpec(s.Spec)
 	if err != nil {
@@ -49,6 +51,7 @@ type Object struct {
 	APIVersion string   `json:"apiVersion"`
 	Name       string   `json:"name"`
 	Params     []string `json:"params"`
+	DisplayName       string   `json:"displayName"`
 }
 
 // TemplateMeta contains all the objects extracted from a CAPITemplate along

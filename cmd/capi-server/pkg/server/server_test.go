@@ -63,6 +63,7 @@ func TestListTemplates(t *testing.T) {
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
+							DisplayName: string("${CLUSTER_NAME}"),
 							ApiVersion: "fooversion",
 							Kind:       "AWSCluster",
 							Parameters: []string{"CLUSTER_NAME"},
@@ -906,11 +907,14 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
 {
-  "apiVersion": "fooversion",
-  "kind": "fookind",
-  "metadata": {
-	"name": "${CLUSTER_NAME}"
-  }
+	"apiVersion": "fooversion",
+	"kind": "fookind",
+	"metadata": {
+	  "name": "${CLUSTER_NAME}",
+	  "annotations": {
+		 "capi.weave.works/display-name": "ClusterName"
+	  }
+	}
 }`
 	ct := &capiv1.CAPITemplate{
 		TypeMeta: metav1.TypeMeta{

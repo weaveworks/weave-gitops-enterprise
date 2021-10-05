@@ -120,6 +120,7 @@ export type TemplateObject = {
   apiVersion?: string
   parameters?: string[]
   name?: string
+  displayName?: string
 }
 
 export type GetEnterpriseVersionRequest = {
