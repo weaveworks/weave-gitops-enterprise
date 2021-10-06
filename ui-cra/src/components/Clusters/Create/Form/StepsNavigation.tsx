@@ -51,7 +51,9 @@ const FormStepsNavigation: FC<{
   return (
     <div className={classes.navWrapper}>
       {sections?.map((step, index) => {
-        const navStep = step.split('/');
+        const kindStep = step.split(' ')[0];
+        const displayNameStep = step.replace(kindStep, '');
+
         return (
           <div key={index} className={classes.linkWrapper}>
             <Link
@@ -64,8 +66,8 @@ const FormStepsNavigation: FC<{
               )}
               onClick={handleClick}
             >
-              <div>{navStep.length > 1 ? navStep[0] + '/' : navStep[0]}</div>
-              <div>{navStep[1]}</div>
+              <div>{kindStep}</div>
+              <div>{displayNameStep}</div>
             </Link>
           </div>
         );
