@@ -397,7 +397,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\nname: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n name: test-cluster\n annotations:\n  capi.weave.works/display-name: ClusterName\n",
 		},
 		{
 			// some client might send empty credentials objects
@@ -412,7 +412,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "",
 				Namespace: "",
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\nname: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n name: test-cluster\n annotations:\n  capi.weave.works/display-name: ClusterName\n",
 		},
 		{
 			name: "render template with credentials",
@@ -511,7 +511,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\nname: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n name: test-cluster\n annotations:\n  capi.weave.works/display-name: ClusterName\n",
 		},
 		{
 			name: "value contains non alphanumeric",
