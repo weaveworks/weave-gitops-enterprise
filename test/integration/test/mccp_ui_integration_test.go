@@ -588,8 +588,8 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 	return listenError
 }
 
-func RunBroker(ctx gcontext.Context, dbURI string) error {
-	srv, err := broker.NewServer(ctx, broker.ParamSet{
+func RunBroker(ctx gcontext.Context, c client.Client, dbURI string) error {
+	srv, err := broker.NewServer(ctx, c, client.ObjectKey{Name: "entitlement", Namespace: "default"}, logr.Discard(), broker.ParamSet{
 		Port:        brokerPort,
 		DbURI:       dbURI,
 		DbType:      "sqlite",
@@ -724,7 +724,7 @@ func TestMccpUI(t *testing.T) {
 	// racing with the goroutine starting.
 	wg.Add(1)
 	go func() {
-		err := RunBroker(ctx, dbURI)
+		err := RunBroker(ctx, cl, dbURI)
 		assert.NoError(t, err)
 		wg.Done()
 	}()
