@@ -853,6 +853,103 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 	}
 }
 
+func TestGetProvider(t *testing.T) {
+	tests := []struct {
+		name     string
+		template *capiv1.CAPITemplate
+		provider string
+	}{
+		{
+			name: "AWSCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AWSCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "AWSCluster",
+		},
+		{
+			name: "AWSManagedCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AWSManagedCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "AWSCluster",
+		},
+		{
+			name: "AzureCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AzureCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "AzureCluster",
+		},
+		{
+			name: "VSphereCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "VSphereCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "VSphereCluster",
+		},
+		{
+			name: "FooCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "FooCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "Generic",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.provider != getProvider(tt.template) {
+				t.Fatalf("expected %s but got %s", tt.provider, getProvider(tt.template))
+			}
+		})
+	}
+}
+
 func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{

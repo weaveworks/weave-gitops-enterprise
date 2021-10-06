@@ -72,12 +72,10 @@ func getProvider(t *capiv1.CAPITemplate) string {
 
 	for _, obj := range meta.Objects {
 		switch obj.Kind {
-		case "AWSCluster":
+		case "AWSCluster", "AWSManagedCluster":
 			return "AWSCluster"
-		case "AzureCluster":
-			return "AzureCluster"
-		case "VSphereCluster":
-			return "VSphereCluster"
+		case "AzureCluster", "VSphereCluster":
+			return obj.Kind
 		}
 	}
 
