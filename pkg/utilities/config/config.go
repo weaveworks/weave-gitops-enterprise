@@ -73,9 +73,7 @@ type FleetManagementDB struct {
 
 // Map of the sqlite configuration
 type SqliteConfig struct {
-	HostPathVolume        bool   `yaml:"hostPathVolume"`
-	Path                  string `yaml:"path"`
-	PersistentVolumeClaim bool   `yaml:"persistentVolumeClaim"`
+	PersistentVolumeClaim bool `yaml:"persistentVolumeClaim"`
 }
 
 // Map of the postgres configuration
@@ -1008,10 +1006,6 @@ func checkRequiredFleetManagementDBValues(config *FleetManagementDB) error {
 	case "sqlite":
 		if config.SqliteConfig == emptySqliteConfig {
 			return errors.New("fleetManagementDB: missing sqliteConfig section from config.yaml")
-		}
-
-		if config.SqliteConfig.HostPathVolume && config.SqliteConfig.PersistentVolumeClaim {
-			return errors.New("sqliteConfig: please set either HostPathVolume or PersistentVolumeClaim")
 		}
 	case "postgres":
 		if config.PostgresConfig == emptyPostgresConfig {

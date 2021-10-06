@@ -24,8 +24,6 @@ dbConfig:
   databaseType: sqlite
   databaseURI: /var/database/mccp.db
   sqliteConfig:
-    hostPathVolume: false
-    path: /home/wks/database
     persistentVolumeClaim:
       enabled: true
       size: 10G
