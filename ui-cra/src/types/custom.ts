@@ -13,6 +13,7 @@ export type Object = {
   apiVersion?: string;
   parameters?: Param['name'];
   name?: string;
+  displayName?: string;
 };
 
 export type Template = {

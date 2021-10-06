@@ -120,6 +120,8 @@ const useStyles = makeStyles(theme =>
   }),
 );
 
+const hasDuplicates = (array: any[]) => new Set(array).size !== array.length;
+
 const AddCluster: FC = () => {
   const classes = useStyles();
   const { credentials, loading, getCredential } = useCredentials();
@@ -284,6 +286,7 @@ const AddCluster: FC = () => {
     const groups =
       activeTemplate?.objects?.reduce(
         (accumulator, item) =>
+          // TO DO: display name or kind or kind/name if there are kind
           Object.assign(accumulator, {
             [`${item.kind}/${item.name}`]: item.parameters,
           }),
@@ -306,10 +309,19 @@ const AddCluster: FC = () => {
     if (!activeTemplate) {
       setActiveTemplate(getTemplate(templateName));
     }
-    const steps =
-      activeTemplate?.objects?.map(object => `${object.kind}/${object.name}`) ||
-      [];
-    setSteps(steps);
+
+    const stepsKinds =
+      activeTemplate?.objects?.map(object => object.kind) || [];
+    const steps = activeTemplate?.objects?.map(object => {
+      if (object.displayName && object.displayName !== '') {
+        return object.displayName;
+      } else if (!hasDuplicates(stepsKinds)) {
+        return object.kind;
+      }
+      return `${object.kind}/${object.name}`;
+    });
+
+    setSteps(steps as string[]);
     return history.listen(() => {
       setActiveTemplate(null);
       setPRPreview(null);
