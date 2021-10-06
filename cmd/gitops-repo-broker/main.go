@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
 )
 
@@ -48,6 +49,8 @@ func init() {
 	cmd.Flags().StringVar(&globalParams.DbPassword, "db-password", os.Getenv("DB_PASSWORD"), "database password")
 	cmd.Flags().StringVar(&globalParams.DbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 	cmd.Flags().StringVar(&globalParams.Port, "port", "8000", "Port to run http server on")
+	cmd.Flags().StringVar(&globalParams.EntitlementSecretName, "entitlement-secret-name", entitlement.DefaultSecretName, "The name of the entitlement secret")
+	cmd.Flags().StringVar(&globalParams.EntitlementSecretNamespace, "entitlement-secret-namespace", entitlement.DefaultSecretNamespace, "The namespace of the entitlement secret")
 
 	if os.Getenv("LOG_LEVEL") == "DEBUG" {
 		// Only log the debug severity or above.

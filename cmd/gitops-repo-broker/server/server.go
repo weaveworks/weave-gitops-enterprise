@@ -7,12 +7,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/agent"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/healthcheck"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 type ParamSet struct {
@@ -31,6 +37,8 @@ type ParamSet struct {
 	DbType                       string
 	DbBusyTimeout                string
 	Port                         string
+	EntitlementSecretName        string
+	EntitlementSecretNamespace   string
 }
 
 func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
@@ -49,6 +57,18 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 		return nil, err
 	}
 
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		v1.AddToScheme,
+	}
+	_ = schemeBuilder.AddToScheme(scheme)
+	kubeClientConfig := config.GetConfigOrDie()
+	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
+	if err != nil {
+		return nil, err
+	}
+	entitlementSecretKey := client.ObjectKey{Name: params.EntitlementSecretName, Namespace: params.EntitlementSecretNamespace}
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(
@@ -65,7 +85,7 @@ func NewServer(ctx context.Context, params ParamSet) (*http.Server, error) {
 	r.HandleFunc("/gitops/redirect", healthcheck.Redirect)
 
 	srv := &http.Server{
-		Handler: r,
+		Handler: entitlement.EntitlementHandler(ctx, logr.Discard(), kubeClient, entitlementSecretKey, entitlement.CheckEntitlementHandler(logr.Discard(), r)),
 		Addr:    fmt.Sprintf("0.0.0.0:%s", params.Port),
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: params.HttpWriteTimeout,
