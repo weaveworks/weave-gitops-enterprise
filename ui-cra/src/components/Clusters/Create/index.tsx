@@ -120,8 +120,6 @@ const useStyles = makeStyles(theme =>
   }),
 );
 
-const hasDuplicates = (array: any[]) => new Set(array).size !== array.length;
-
 const AddCluster: FC = () => {
   const classes = useStyles();
   const { credentials, loading, getCredential } = useCredentials();
@@ -284,14 +282,17 @@ const AddCluster: FC = () => {
   // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
   const sections = useMemo(() => {
     const groups =
-      activeTemplate?.objects?.reduce(
-        (accumulator, item) =>
-          // TO DO: display name or kind or kind/name if there are kind
-          Object.assign(accumulator, {
-            [`${item.kind}/${item.name}`]: item.parameters,
-          }),
-        {},
-      ) || {};
+      activeTemplate?.objects?.reduce((accumulator, item, index) => {
+        if (item.displayName && item.displayName !== '') {
+          return Object.assign(accumulator, {
+            [`${index}. ${item.kind} (${item.displayName})`]: item.parameters,
+          });
+        } else {
+          return Object.assign(accumulator, {
+            [`${index}. ${item.kind}`]: item.parameters,
+          });
+        }
+      }, {}) || {};
     Object.assign(groups, { 'ui:template': 'box' });
     return [groups];
   }, [activeTemplate]);
@@ -310,15 +311,11 @@ const AddCluster: FC = () => {
       setActiveTemplate(getTemplate(templateName));
     }
 
-    const stepsKinds =
-      activeTemplate?.objects?.map(object => object.kind) || [];
-    const steps = activeTemplate?.objects?.map(object => {
+    const steps = activeTemplate?.objects?.map((object, index) => {
       if (object.displayName && object.displayName !== '') {
-        return object.displayName;
-      } else if (!hasDuplicates(stepsKinds)) {
-        return object.kind;
+        return `${index}. ${object.kind} (${object.displayName})`;
       }
-      return `${object.kind}/${object.name}`;
+      return `${index}. ${object.kind}`;
     });
 
     setSteps(steps as string[]);
