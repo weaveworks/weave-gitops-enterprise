@@ -1005,14 +1005,16 @@ func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {
 func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
-{
-	"apiVersion": "fooversion",
-	"kind": "fookind",
-	"metadata": {
-	  "name": "${CLUSTER_NAME}",
-	  "annotations": { "capi.weave.works/display-name": "ClusterName" },
-	}
-}`
+	{
+		"apiVersion": "fooversion",
+		"kind": "fookind",
+		"metadata": {
+			"name": "${CLUSTER_NAME}",
+			"annotations": {
+				"capi.weave.works/display-name": "ClusterName"
+			},
+		}
+	}`
 	ct := &capiv1.CAPITemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "CAPITemplate",
