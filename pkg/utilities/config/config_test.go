@@ -865,20 +865,6 @@ fleetManagementDB:
   databaseType: 'sqlite'
   databaseURI: '/var/database/mccp.db'
   sqliteConfig:
-    hostPathVolume: true
-    path: '/home/wks/database'
-    persistentVolumeClaim: false
-  postgresConfig:
-    databaseName: 'postgres'
-`
-
-const invalidSqlite = `
-fleetManagementDB:
-  databaseType: 'sqlite'
-  databaseURI: '/var/database/mccp.db'
-  sqliteConfig:
-    hostPathVolume: true
-    path: '/home/wks/database'
     persistentVolumeClaim: true
   postgresConfig:
     databaseName: 'postgres'
@@ -897,8 +883,6 @@ fleetManagementDB:
   databaseType: 'postgres'
   databaseURI: 'postgres-service:5432'
   sqliteConfig:
-    hostPathVolume: true
-    path: '/home/wks/database'
     persistentVolumeClaim: false
   postgresConfig:
     databaseName: 'test'
@@ -909,8 +893,6 @@ fleetManagementDB:
   databaseType: 'postgres'
   databaseURI: 'postgres-service'
   sqliteConfig:
-    hostPathVolume: true
-    path: '/home/wks/database'
     persistentVolumeClaim: true
 `
 
@@ -919,8 +901,6 @@ fleetManagementDB:
   databaseType: 'mysql'
   databaseURI: 'postgres-service'
   sqliteConfig:
-    hostPathVolume: true
-    path: '/home/wks/database'
     persistentVolumeClaim: true
 `
 
@@ -930,7 +910,6 @@ func TestRequiredFleetManagementDBValues(t *testing.T) {
 		errorMsg string
 	}{
 		{validSqlite, "<nil>"},
-		{invalidSqlite, "sqliteConfig: please set either HostPathVolume or PersistentVolumeClaim"},
 		{missingSqlite, "fleetManagementDB: missing sqliteConfig section from config.yaml"},
 		{validPostgres, "<nil>"},
 		{missingPostgres, "fleetManagementDB: missing postgresConfig section from config.yaml"},

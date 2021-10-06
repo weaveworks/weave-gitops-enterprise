@@ -20,12 +20,6 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if eq .Values.dbConfig.databaseType "sqlite" }}
-      {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
-      nodeSelector:
-        wkp-database-volume-node: "true"
-      {{- end }}
-      {{- end }}
       containers:
         - name: event-writer
           image: {{ .Values.images.eventWriter }}
@@ -67,10 +61,6 @@ spec:
       {{- if eq .Values.dbConfig.databaseType "sqlite" }}
       volumes:
       - name: database-volume
-        {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
-        hostPath:
-          path: {{ .Values.dbConfig.sqliteConfig.path }}
-        {{- end }}
         {{- if .Values.dbConfig.sqliteConfig.persistentVolumeClaim.enabled }}
         persistentVolumeClaim:
           claimName: {{ .Values.dbConfig.sqliteConfig.persistentVolumeClaim.existingClaimName | default "wge-volume" }}
