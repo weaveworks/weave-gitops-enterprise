@@ -229,7 +229,7 @@ jobs:
         fi
     - name: Install clusterctl
       run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-${{ matrix.os_name }}-amd64 -o clusterctl
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-${{ matrix.os_name }}-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
