@@ -73,13 +73,25 @@ func getProvider(t *capiv1.CAPITemplate) string {
 	for _, obj := range meta.Objects {
 		switch obj.Kind {
 		case "AWSCluster", "AWSManagedCluster":
-			return "AWSCluster"
-		case "AzureCluster", "VSphereCluster":
-			return obj.Kind
+			return "aws"
+		case "AzureCluster", "AzureManagedCluster":
+			return "azure"
+		case "DOCluster":
+			return "digitalocean"
+		case "DockerCluster":
+			return "docker"
+		case "GCPCluster":
+			return "gcp"
+		case "OpenStackCluster":
+			return "openstack"
+		case "PacketCluster":
+			return "packet"
+		case "VSphereCluster":
+			return "vsphere"
 		}
 	}
 
-	return "Generic"
+	return ""
 }
 
 func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {

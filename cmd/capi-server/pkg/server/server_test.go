@@ -870,7 +870,7 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "AWSCluster",
+			provider: "aws",
 		},
 		{
 			name: "AWSManagedCluster",
@@ -886,7 +886,7 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "AWSCluster",
+			provider: "aws",
 		},
 		{
 			name: "AzureCluster",
@@ -902,7 +902,87 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "AzureCluster",
+			provider: "azure",
+		},
+		{
+			name: "AzureManagedCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AzureManagedCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "azure",
+		},
+		{
+			name: "DOCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "DOCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "digitalocean",
+		},
+		{
+			name: "GCPCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "GCPCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "gcp",
+		},
+		{
+			name: "OpenStackCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "OpenStackCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "openstack",
+		},
+		{
+			name: "PacketCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "PacketCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "packet",
 		},
 		{
 			name: "VSphereCluster",
@@ -918,7 +998,7 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "VSphereCluster",
+			provider: "vsphere",
 		},
 		{
 			name: "FooCluster",
@@ -934,7 +1014,7 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "Generic",
+			provider: "",
 		},
 	}
 
