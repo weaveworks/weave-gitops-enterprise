@@ -63,6 +63,23 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
 }
 
+func getKnownProviders() map[string]string {
+	providers := make(map[string]string)
+
+	providers["AWSCluster"] = "aws"
+	providers["AWSManagedCluster"] = "aws"
+	providers["AzureCluster"] = "azure"
+	providers["AzureManagedCluster"] = "azure"
+	providers["DOCluster"] = "digitalocean"
+	providers["DockerCluster"] = "docker"
+	providers["GCPCluster"] = "gcp"
+	providers["OpenStackCluster"] = "openstack"
+	providers["PacketCluster"] = "packet"
+	providers["VSphereCluster"] = "vsphere"
+
+	return providers
+}
+
 func getProvider(t *capiv1.CAPITemplate) string {
 	meta, err := capi.ParseTemplateMeta(t)
 
@@ -70,24 +87,11 @@ func getProvider(t *capiv1.CAPITemplate) string {
 		return ""
 	}
 
+	providers := getKnownProviders()
+
 	for _, obj := range meta.Objects {
-		switch obj.Kind {
-		case "AWSCluster", "AWSManagedCluster":
-			return "aws"
-		case "AzureCluster", "AzureManagedCluster":
-			return "azure"
-		case "DOCluster":
-			return "digitalocean"
-		case "DockerCluster":
-			return "docker"
-		case "GCPCluster":
-			return "gcp"
-		case "OpenStackCluster":
-			return "openstack"
-		case "PacketCluster":
-			return "packet"
-		case "VSphereCluster":
-			return "vsphere"
+		if p, ok := providers[obj.Kind]; ok {
+			return p
 		}
 	}
 
@@ -98,26 +102,12 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 	templates := []*capiv1_proto.Template{}
 
 	for _, t := range tl {
-		providerKind := formatProviderName(provider)
-
-		if t.Provider == providerKind {
+		if strings.EqualFold(t.Provider, provider) {
 			templates = append(templates, t)
 		}
 	}
 
 	return templates
-}
-
-func formatProviderName(provider string) string {
-	switch name := provider; strings.ToLower(name) {
-	case "aws":
-		return "AWSCluster"
-	case "azure":
-		return "AzureCluster"
-	case "vsphere":
-		return "VSphereCluster"
-	}
-	return ""
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {

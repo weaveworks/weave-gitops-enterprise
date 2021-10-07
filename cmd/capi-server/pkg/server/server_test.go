@@ -59,7 +59,7 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
-					Provider:    "AWSCluster",
+					Provider:    "aws",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -89,7 +89,7 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
-					Provider:    "Generic",
+					Provider:    "",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -108,7 +108,7 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
-					Provider:    "Generic",
+					Provider:    "",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -173,7 +173,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
-					Provider:    "AWSCluster",
+					Provider:    "aws",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -204,7 +204,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
-					Provider:    "AWSCluster",
+					Provider:    "aws",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -279,7 +279,7 @@ func TestGetTemplate(t *testing.T) {
 			expected: &capiv1_protos.Template{
 				Name:        "cluster-template-1",
 				Description: "this is test template 1",
-				Provider:    "Generic",
+				Provider:    "",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						Name:       string("${CLUSTER_NAME}"),
