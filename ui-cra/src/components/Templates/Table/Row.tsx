@@ -16,7 +16,7 @@ const useStyles = makeStyles(() =>
       borderBottom: '1px solid #d8d8d8',
     },
     error: {
-      style: weaveTheme.colors.orange500,
+      color: weaveTheme.colors.orange500,
     },
   }),
 );
