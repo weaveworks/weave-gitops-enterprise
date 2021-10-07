@@ -275,15 +275,6 @@ jobs:
         go mod download
     - name: Setup selenium server
       run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb
-        sudo apt-get install -y google-chrome-stable
-        CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
-
-        wget https://chromedriver.storage.googleapis.com/"${CHROME_VERSION}"/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo mv -f chromedriver /usr/local/bin/chromedriver
-
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
         # Start selenium server in standalone mode
@@ -353,7 +344,7 @@ jobs:
         go mod download
     - name: Install clusterctl
       run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-linux-amd64 -o clusterctl
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-linux-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
@@ -384,15 +375,6 @@ jobs:
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb
-        sudo apt-get install -y google-chrome-stable
-        CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
-
-        wget https://chromedriver.storage.googleapis.com/"${CHROME_VERSION}"/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo mv -f chromedriver /usr/local/bin/chromedriver
-
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
         # Start selenium server in standalone mode
@@ -479,7 +461,7 @@ jobs:
         go mod download
     - name: Install clusterctl
       run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-linux-amd64 -o clusterctl
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-linux-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
@@ -510,15 +492,6 @@ jobs:
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb
-        sudo apt-get install -y google-chrome-stable
-        CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
-
-        wget https://chromedriver.storage.googleapis.com/"${CHROME_VERSION}"/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo mv -f chromedriver /usr/local/bin/chromedriver
-
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
         # Start selenium server in standalone mode

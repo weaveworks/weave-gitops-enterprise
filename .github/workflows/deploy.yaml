@@ -229,7 +229,7 @@ jobs:
         fi
     - name: Install clusterctl
       run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-${{ matrix.os_name }}-amd64 -o clusterctl
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-${{ matrix.os_name }}-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
@@ -264,15 +264,6 @@ jobs:
     - name: Setup selenium server
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-          sudo apt-get install -y google-chrome-stable
-          CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
-
-          wget https://chromedriver.storage.googleapis.com/"${CHROME_VERSION}"/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo mv -f chromedriver /usr/local/bin/chromedriver
-
           wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
           # Start selenium server in standalone mode
