@@ -247,7 +247,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["2.AWSManagedControlPlane"] = []TemplateField{
+				paramSection["3.AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  region,
@@ -871,7 +871,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["MachineDeployment"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,

@@ -285,11 +285,12 @@ const AddCluster: FC = () => {
       activeTemplate?.objects?.reduce((accumulator, item, index) => {
         if (item.displayName && item.displayName !== '') {
           return Object.assign(accumulator, {
-            [`${index}.${item.kind} (${item.displayName})`]: item.parameters,
+            [`${index + 1}.${item.kind} (${item.displayName})`]:
+              item.parameters,
           });
         } else {
           return Object.assign(accumulator, {
-            [`${index}.${item.kind}`]: item.parameters,
+            [`${index + 1}.${item.kind}`]: item.parameters,
           });
         }
       }, {}) || {};
@@ -313,9 +314,9 @@ const AddCluster: FC = () => {
 
     const steps = activeTemplate?.objects?.map((object, index) => {
       if (object.displayName && object.displayName !== '') {
-        return `${index}.${object.kind} (${object.displayName})`;
+        return `${index + 1}.${object.kind} (${object.displayName})`;
       }
-      return `${index}.${object.kind}`;
+      return `${index + 1}.${object.kind}`;
     });
 
     setSteps(steps as string[]);
