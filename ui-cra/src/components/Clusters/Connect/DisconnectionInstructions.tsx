@@ -24,7 +24,8 @@ export const ClusterDisconnectionInstructions: FC<{
   formState: FormState;
   setFormState: SetFormState;
   connecting: boolean;
-}> = ({ formState, connecting }) => {
+  onFinish: () => void;
+}> = ({ formState, connecting, onFinish }) => {
   const { deleteConnectedClusters } = useClusters();
 
   if (!formState.cluster.id) {
@@ -63,6 +64,7 @@ export const ClusterDisconnectionInstructions: FC<{
         clusters={[formState.cluster.id]}
         onClickRemove={deleteConnectedClusters}
         title="Remove cluster from the MCCP"
+        onFinish={onFinish}
       />
     </Container>
   );

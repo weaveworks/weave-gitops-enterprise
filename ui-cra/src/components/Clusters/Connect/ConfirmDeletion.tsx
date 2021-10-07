@@ -19,7 +19,8 @@ const ConfirmDeletion: FC<{
   onClickRemove: Function;
   title: string;
   formData?: any;
-}> = ({ clusters, title, onClickRemove, formData }) => {
+  onFinish: () => void;
+}> = ({ clusters, title, onClickRemove, formData, onFinish }) => {
   const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => setOpen(true);
@@ -27,6 +28,7 @@ const ConfirmDeletion: FC<{
   const handleClickRemove = () => {
     onClickRemove({ clusters, formData });
     setOpen(false);
+    onFinish();
   };
 
   return (

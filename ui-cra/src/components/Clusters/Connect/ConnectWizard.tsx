@@ -118,11 +118,13 @@ const PAGES = {
       formState: FormState,
       setFormState: SetFormState,
       connecting: boolean,
+      onFinish: () => void,
     ) => (
       <ClusterDisconnectionInstructions
         formState={formState}
         setFormState={setFormState}
         connecting={connecting}
+        onFinish={onFinish}
       />
     ),
   },
@@ -208,7 +210,7 @@ export const ConnectClusterWizard: FC<{
       />
       <form onSubmit={onSubmit}>
         <ContentContainer>
-          {content(formState, setFormState, connecting)}
+          {content(formState, setFormState, connecting, onFinish)}
         </ContentContainer>
         <ButtonBar>
           <FlexSpacer />
