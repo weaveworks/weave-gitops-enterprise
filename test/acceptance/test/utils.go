@@ -87,6 +87,8 @@ func SetSeleniumServiceUrl(url string) {
 var GITHUB_ORG string
 var CLUSTER_REPOSITORY string
 
+const WINDOW_SIZE_X int = 1800
+const WINDOW_SIZE_Y int = 2500
 const ARTEFACTS_BASE_DIR string = "/tmp/workspace/test/"
 const SCREENSHOTS_DIR string = ARTEFACTS_BASE_DIR + "screenshots/"
 const CLUSTER_INFO_DIR string = ARTEFACTS_BASE_DIR + "cluster-info/"
@@ -207,8 +209,7 @@ func initializeWebdriver() {
 				}}}))
 		Expect(err).NotTo(HaveOccurred())
 
-		// Make the page bigger so we can see all the things in the screenshots
-		err = webDriver.Size(1800, 2500)
+		err = webDriver.Size(WINDOW_SIZE_X, WINDOW_SIZE_Y)
 		Expect(err).NotTo(HaveOccurred())
 	}
 
