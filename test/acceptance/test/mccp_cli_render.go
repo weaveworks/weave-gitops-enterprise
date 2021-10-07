@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -44,6 +45,90 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[CLI] When Capi Templates are available in the cluster", func() {
+			It("Verify mccp can list templates from template library", func() {
+
+				awsTemplateCount := 2
+				eksFargateTemplateCount := 2
+				capdTemplateCount := 5
+				totalTemplateCount := awsTemplateCount + eksFargateTemplateCount + capdTemplateCount
+				By("Apply/Install CAPITemplate", func() {
+					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(5, "capi-server-v1-template-capd.yaml")...)
+					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-aws.yaml")...)
+					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
+				})
+
+				By(fmt.Sprintf("Then I run 'mccp templates list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("And I should see template list table header", func() {
+					Eventually(session).Should(gbytes.Say(`NAME\s+DESCRIPTION`))
+				})
+
+				By("And I should see ordered list of templates", func() {
+					expected_list := make([]string, totalTemplateCount)
+					for i := 0; i < 2; i++ {
+						expected_list[i] = fmt.Sprintf("aws-cluster-template-%d", i)
+					}
+					for i := 0; i < 5; i++ {
+						expected_list[i] = fmt.Sprintf("cluster-template-development-%d", i)
+					}
+					for i := 0; i < 2; i++ {
+						expected_list[i] = fmt.Sprintf("eks-fargate-template-%d", i)
+					}
+					sort.Strings(expected_list)
+
+					for i := 0; i < totalTemplateCount; i++ {
+						Eventually(session).Should(gbytes.Say(fmt.Sprintf(`%s\s+.*`, expected_list[i])))
+					}
+
+				})
+
+				By(fmt.Sprintf("Then I run 'mccp templates list --provider AWSCluster --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--provider", "AWSCluster", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				By("And I should see templates list filtered by provider", func() {
+					awsCluster_list := make([]string, awsTemplateCount+eksFargateTemplateCount)
+					for i := 0; i < 2; i++ {
+						awsCluster_list[i] = fmt.Sprintf("aws-cluster-template-%d", i)
+					}
+					for i := 0; i < 2; i++ {
+						awsCluster_list[i] = fmt.Sprintf("eks-fargate-template-%d", i)
+					}
+					sort.Strings(awsCluster_list)
+					for i := 0; i < awsTemplateCount+eksFargateTemplateCount; i++ {
+						Eventually(session).Should(gbytes.Say(fmt.Sprintf(`%s\s+.*`, awsCluster_list[i])))
+					}
+
+					// FIXME: Uncomment whne issue #162 is fixed
+					// output := session.Wait().Out.Contents()
+					// for i := 0; i < 5; i++ {
+					// 	capd_template := fmt.Sprintf("cluster-template-development-%d", i)
+					// 	re := regexp.MustCompile(fmt.Sprintf(`%s\s+.*`, capd_template))
+					// 	Eventually((re.Find(output))).Should(BeNil())
+					// }
+
+				})
+
+				By(fmt.Sprintf("Then I run 'mccp templates list --provider FooBar --endpoint %s'", CAPI_ENDPOINT_URL), func() {
+					command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--provider", "AWSCluster", "--endpoint", CAPI_ENDPOINT_URL)
+					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				// FIXME: update the actual error message whne implemented
+				// By("And I should see error message for invalid provider", func() {
+				// 	output := session.Wait().Out.Contents()
+				// 	re := regexp.MustCompile(`Error: FooBar provider does not exists`)
+				// 	Eventually((re.Find(output))).Should(BeNil())
+				// })
+			})
+
 			It("Verify mccp can list template parameters of a template from template library", func() {
 
 				By("Apply/Install CAPITemplate", func() {
