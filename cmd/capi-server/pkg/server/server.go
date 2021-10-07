@@ -56,11 +56,26 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	}
 
 	if msg.Provider != "" {
+		if !isProviderRecognised(msg.Provider) {
+			return nil, fmt.Errorf("provider %q is not recognised", msg.Provider)
+		}
+
 		templates = filterTemplatesByProvider(templates, msg.Provider)
 	}
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
+}
+
+func isProviderRecognised(provider string) bool {
+	providers := getKnownProviders()
+	var found bool
+	for _, p := range providers {
+		if strings.EqualFold(provider, p) {
+			found = true
+		}
+	}
+	return found
 }
 
 func getKnownProviders() map[string]string {

@@ -153,12 +153,11 @@ func TestListTemplates(t *testing.T) {
 
 func TestListTemplates_FilterByProvider(t *testing.T) {
 	testCases := []struct {
-		name             string
-		provider         string
-		clusterState     []runtime.Object
-		expected         []*capiv1_protos.Template
-		err              error
-		expectedErrorStr string
+		name         string
+		provider     string
+		clusterState []runtime.Object
+		expected     []*capiv1_protos.Template
+		err          error
 	}{
 		{
 			name:     "Provider name with upper case letters",
@@ -232,6 +231,17 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				}), "template1", makeTemplate(t)),
 			},
 			expected: []*capiv1_protos.Template{},
+		},
+		{
+			name:     "Provider name not recognised",
+			provider: "foo",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+					ct.ObjectMeta.Name = "cluster-template-2"
+					ct.Spec.Description = "this is test template 2"
+				}), "template1", makeTemplate(t)),
+			},
+			err: fmt.Errorf("provider %q is not recognised", "foo"),
 		},
 	}
 
