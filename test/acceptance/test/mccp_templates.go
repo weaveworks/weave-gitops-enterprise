@@ -158,7 +158,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Expect(templatesPage.SelectProvider("aws").Click()).To(Succeed())
 
 					rowCount, _ := templatesPage.TemplatesTable.Count()
-					Eventually(rowCount).Should(Equal(1), "The number of selected template tiles rendered should be equal to number of aws templates created")
+					Eventually(rowCount).Should(Equal(4), "The number of selected template tiles rendered should be equal to number of aws templates created")
 
 					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
 					Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(Succeed()) // sending back space key
