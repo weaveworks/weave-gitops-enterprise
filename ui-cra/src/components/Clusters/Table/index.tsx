@@ -11,11 +11,10 @@ import {
   Theme,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { range } from 'lodash';
 import React, { FC, useEffect } from 'react';
 import { Cluster } from '../../../types/kubernetes';
 import { Pagination } from '../../Pagination';
-import { ColumnHeaderTooltip, SkeletonRow } from '../../Shared';
+import { ColumnHeaderTooltip } from '../../Shared';
 import ClusterRow from './Row';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
@@ -91,11 +90,6 @@ export const ClustersTable: FC<Props> = ({
   const numSelected = selectedClusters.length;
   const isSelected = (name: string) => selectedClusters.indexOf(name) !== -1;
   const rowCount = filteredClusters?.length || 0;
-
-  const showSkeleton = !filteredClusters;
-  const skeletonRows = range(0, 1).map((id, index) => (
-    <SkeletonRow index={index} key={id} />
-  ));
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
@@ -219,24 +213,22 @@ export const ClustersTable: FC<Props> = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {showSkeleton && skeletonRows}
-                {!showSkeleton &&
-                  filteredClusters?.map((cluster: Cluster, index: number) => {
-                    const isItemSelected = isSelected(cluster.name);
-                    return (
-                      <ClusterRow
-                        key={cluster.name}
-                        index={index}
-                        cluster={cluster}
-                        aria-checked={isItemSelected}
-                        onCheckboxClick={event =>
-                          handleClick(event, cluster.name)
-                        }
-                        onEdit={onEdit}
-                        selected={isItemSelected}
-                      />
-                    );
-                  })}
+                {filteredClusters?.map((cluster: Cluster, index: number) => {
+                  const isItemSelected = isSelected(cluster.name);
+                  return (
+                    <ClusterRow
+                      key={cluster.name}
+                      index={index}
+                      cluster={cluster}
+                      aria-checked={isItemSelected}
+                      onCheckboxClick={event =>
+                        handleClick(event, cluster.name)
+                      }
+                      onEdit={onEdit}
+                      selected={isItemSelected}
+                    />
+                  );
+                })}
               </TableBody>
               <TableFooter>
                 {filteredClusters?.length === 0 ? null : (

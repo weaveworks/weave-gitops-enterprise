@@ -9,9 +9,8 @@ import {
   faPlus,
   faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import { Snackbar } from '@material-ui/core';
 import { ClustersTable } from './Table';
-import { FinishMessage, Tooltip } from '../Shared';
+import { Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './Connect/ConnectDialog';
 import { useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
@@ -45,7 +44,6 @@ const MCCP: FC = () => {
   } = useClusters();
   const { setNotifications } = useNotifications();
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
-  const [finishMessage, setFinishStatus] = useState<FinishMessage | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
 
   const NEW_CLUSTER = {
@@ -120,10 +118,7 @@ const MCCP: FC = () => {
         {clusterToEdit && (
           <ConnectClusterDialog
             cluster={clusterToEdit}
-            onFinish={status => {
-              setClusterToEdit(null);
-              setFinishStatus(status);
-            }}
+            onFinish={() => setClusterToEdit(null)}
           />
         )}
         <ClustersTable
@@ -135,12 +130,6 @@ const MCCP: FC = () => {
           filteredClusters={clusters}
           count={count}
           disabled={disabled}
-        />
-        <Snackbar
-          autoHideDuration={5000}
-          open={Boolean(finishMessage?.message)}
-          message={finishMessage?.message}
-          onClose={() => setFinishStatus(null)}
         />
       </ContentWrapper>
     </PageTemplate>

@@ -11,11 +11,10 @@ import { makeStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
-import { HandleFinish } from '../../Shared';
 
 interface Props {
   cluster: Cluster;
-  onFinish: HandleFinish;
+  onFinish: () => void;
 }
 
 const useStyles = makeStyles(() =>
@@ -29,22 +28,13 @@ const useStyles = makeStyles(() =>
 export const ConnectClusterDialog: FC<Props> = ({ cluster, onFinish }) => {
   const classes = useStyles();
   return (
-    <Dialog
-      maxWidth="md"
-      fullWidth
-      onClose={() => onFinish({ success: true, message: '' })}
-      open
-    >
+    <Dialog maxWidth="md" fullWidth onClose={() => onFinish()} open>
       <div id="connection-popup" className={classes.dialog}>
         <DialogTitle disableTypography>
           <Typography variant="h5">
             {cluster.id ? 'Configure cluster' : 'Connect a cluster'}
           </Typography>
-          {onFinish ? (
-            <CloseIconButton
-              onClick={() => onFinish({ success: true, message: '' })}
-            />
-          ) : null}
+          {onFinish ? <CloseIconButton onClick={() => onFinish()} /> : null}
         </DialogTitle>
         <DialogContent>
           <ConnectClusterWizard
