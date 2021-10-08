@@ -1,14 +1,10 @@
-import { JSONSchema7 } from 'json-schema';
-import { ReactElement } from 'react';
-import { IdSchema, UiSchema } from 'react-jsonschema-form';
-
 export type Param = {
   name: string;
   description?: string;
   options?: string[];
 };
 
-export type Object = {
+export type TemplateObject = {
   kind?: string;
   apiVersion?: string;
   parameters?: Param['name'];
@@ -21,7 +17,7 @@ export type Template = {
   description?: string;
   version?: string;
   parameters?: Param[];
-  objects?: Object[];
+  objects?: TemplateObject[];
   error?: string;
   provider?: string;
 };

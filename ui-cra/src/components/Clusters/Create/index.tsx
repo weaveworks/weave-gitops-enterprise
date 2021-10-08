@@ -28,7 +28,7 @@ import * as Grouped from './Form/GroupedSchema';
 import * as UiTemplate from './Form/UITemplate';
 import FormSteps, { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
-import { Credential } from '../../../types/custom';
+import { Credential, TemplateObject } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
@@ -161,6 +161,13 @@ const AddCluster: FC = () => {
     useState<Credential | null>(null);
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
 
+  const objectTitle = (object: TemplateObject, index: number) => {
+    if (object.displayName && object.displayName !== '') {
+      return `${index + 1}.${object.kind} (${object.displayName})`;
+    }
+    return `${index + 1}.${object.kind}`;
+  };
+
   const credentialsItems: DropdownItem[] = useMemo(
     () => [
       ...credentials.map((credential: Credential) => {
@@ -282,18 +289,13 @@ const AddCluster: FC = () => {
   // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
   const sections = useMemo(() => {
     const groups =
-      activeTemplate?.objects?.reduce((accumulator, item, index) => {
-        if (item.displayName && item.displayName !== '') {
-          return Object.assign(accumulator, {
-            [`${index + 1}.${item.kind} (${item.displayName})`]:
-              item.parameters,
-          });
-        } else {
-          return Object.assign(accumulator, {
-            [`${index + 1}.${item.kind}`]: item.parameters,
-          });
-        }
-      }, {}) || {};
+      activeTemplate?.objects?.reduce(
+        (accumulator, item, index) =>
+          Object.assign(accumulator, {
+            [objectTitle(item, index)]: item.parameters,
+          }),
+        {},
+      ) || {};
     Object.assign(groups, { 'ui:template': 'box' });
     return [groups];
   }, [activeTemplate]);
@@ -312,12 +314,9 @@ const AddCluster: FC = () => {
       setActiveTemplate(getTemplate(templateName));
     }
 
-    const steps = activeTemplate?.objects?.map((object, index) => {
-      if (object.displayName && object.displayName !== '') {
-        return `${index + 1}.${object.kind} (${object.displayName})`;
-      }
-      return `${index + 1}.${object.kind}`;
-    });
+    const steps = activeTemplate?.objects?.map((object, index) =>
+      objectTitle(object, index),
+    );
 
     setSteps(steps as string[]);
     return history.listen(() => {
