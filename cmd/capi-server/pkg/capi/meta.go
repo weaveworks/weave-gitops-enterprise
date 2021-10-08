@@ -11,6 +11,9 @@ import (
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
 // contains the objects that are in the template, along with the parameters used
 // by each of the objects.
+
+const DISPLAY_NAME_ANNOTATION = "capi.weave.works/display-name"
+
 func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := map[string]bool{}
@@ -27,7 +30,12 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 		if err := uv.UnmarshalJSON(v.RawExtension.Raw); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
 		}
-		objects = append(objects, Object{Kind: uv.GetKind(), APIVersion: uv.GetAPIVersion(), Params: tv, Name: uv.GetName(), DisplayName: uv.GetAnnotations()["capi.weave.works/display-name"]})
+		objects = append(objects, Object{
+			Kind:       uv.GetKind(),
+			APIVersion: uv.GetAPIVersion(),
+			Params:     tv, Name: uv.GetName(),
+			DisplayName: uv.GetAnnotations()[DISPLAY_NAME_ANNOTATION],
+		})
 	}
 
 	enriched, err := ParamsFromSpec(s.Spec)

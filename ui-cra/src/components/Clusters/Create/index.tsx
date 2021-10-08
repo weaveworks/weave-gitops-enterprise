@@ -392,7 +392,7 @@ const AddCluster: FC = () => {
                   {PRPreview ? (
                     <>
                       <FormStep
-                        name="Preview"
+                        title="Preview"
                         active={activeStep === 'Preview'}
                         clicked={clickedStep === 'Preview'}
                         setActiveStep={setActiveStep}
@@ -409,7 +409,7 @@ const AddCluster: FC = () => {
                         </span>
                       </FormStep>
                       <FormStep
-                        name="GitOps"
+                        title="GitOps"
                         active={activeStep === 'GitOps'}
                         clicked={clickedStep === 'GitOps'}
                         setActiveStep={setActiveStep}

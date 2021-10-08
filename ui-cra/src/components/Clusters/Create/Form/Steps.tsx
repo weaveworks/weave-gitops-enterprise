@@ -18,7 +18,7 @@ const Section = styled.div`
   padding-bottom: ${theme.spacing.medium};
 `;
 
-const Title = styled.div`
+const Title = styled.div<{ name?: string }>`
   padding-bottom: ${theme.spacing.small};
   font-size: ${theme.fontSizes.large};
   font-family: ${theme.fontFamilies.monospace};
@@ -108,11 +108,11 @@ export const useOnScreen = (ref: { current: HTMLDivElement | null }) => {
 
 export const FormStep: FC<{
   step?: Property;
-  name?: string;
+  title?: string;
   active?: boolean;
   clicked?: boolean;
   setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
-}> = ({ step, name, active, clicked, setActiveStep, children }) => {
+}> = ({ step, title, active, clicked, setActiveStep, children }) => {
   const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
 
   const onScreen = useOnScreen(stepRef);
@@ -129,14 +129,14 @@ export const FormStep: FC<{
   useEffect(() => {
     setTimeout(() => {
       if (!active && onScreen) {
-        setActiveStep && setActiveStep(step?.name || name);
+        setActiveStep && setActiveStep(step?.name || title);
       }
     }, 500);
-  }, [active, setActiveStep, onScreen, step?.name, name]);
+  }, [active, setActiveStep, onScreen, step?.name, title]);
 
   return (
     <Section ref={stepRef}>
-      <Title>{step?.name || name}</Title>
+      <Title name={title}>{step?.name || title}</Title>
       {step?.children ? <Content>{step?.children}</Content> : null}
       {children}
       <SectionDivider>
