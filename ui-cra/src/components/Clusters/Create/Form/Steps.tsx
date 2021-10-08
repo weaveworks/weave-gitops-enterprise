@@ -108,11 +108,11 @@ export const useOnScreen = (ref: { current: HTMLDivElement | null }) => {
 
 export const FormStep: FC<{
   step?: Property;
-  title?: string;
+  name?: string;
   active?: boolean;
   clicked?: boolean;
   setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
-}> = ({ step, title, active, clicked, setActiveStep, children }) => {
+}> = ({ step, name, active, clicked, setActiveStep, children }) => {
   const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
 
   const onScreen = useOnScreen(stepRef);
@@ -129,14 +129,14 @@ export const FormStep: FC<{
   useEffect(() => {
     setTimeout(() => {
       if (!active && onScreen) {
-        setActiveStep && setActiveStep(step?.name || title);
+        setActiveStep && setActiveStep(step?.name || name);
       }
     }, 500);
-  }, [active, setActiveStep, onScreen, step?.name, title]);
+  }, [active, setActiveStep, onScreen, step?.name, name]);
 
   return (
     <Section ref={stepRef}>
-      <Title>{step?.name || title}</Title>
+      <Title>{step?.name || name}</Title>
       {step?.children ? <Content>{step?.children}</Content> : null}
       {children}
       <SectionDivider>
