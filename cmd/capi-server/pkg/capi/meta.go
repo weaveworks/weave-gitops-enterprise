@@ -12,7 +12,10 @@ import (
 // contains the objects that are in the template, along with the parameters used
 // by each of the objects.
 
-const DISPLAY_NAME_ANNOTATION = "capi.weave.works/display-name"
+const (
+	// DisplayNameAnnotation is the annotation used for labeling template resources
+	DisplayNameAnnotation = "capi.weave.works/display-name"
+)
 
 func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 	proc := processor.NewSimpleProcessor()
@@ -34,7 +37,7 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 			Kind:       uv.GetKind(),
 			APIVersion: uv.GetAPIVersion(),
 			Params:     tv, Name: uv.GetName(),
-			DisplayName: uv.GetAnnotations()[DISPLAY_NAME_ANNOTATION],
+			DisplayName: uv.GetAnnotations()[DisplayNameAnnotation],
 		})
 	}
 

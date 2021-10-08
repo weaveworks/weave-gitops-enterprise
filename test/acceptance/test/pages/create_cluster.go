@@ -117,7 +117,7 @@ func GetPreview(webDriver *agouti.Page) Preview {
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
-		GitOpsLabel: webDriver.FindByXPath(`//div[contains(., "Preview")]/parent::div/following-sibling::div/div[text()="GitOps"]`),
+		GitOpsLabel: webDriver.FindByName("GitOps"),
 		GitOpsFields: []FormField{
 			{
 				Label: webDriver.FindByLabel(`Create branch`),
