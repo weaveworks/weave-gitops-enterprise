@@ -56,11 +56,43 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	}
 
 	if msg.Provider != "" {
+		if !isProviderRecognised(msg.Provider) {
+			return nil, fmt.Errorf("provider %q is not recognised", msg.Provider)
+		}
+
 		templates = filterTemplatesByProvider(templates, msg.Provider)
 	}
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
+}
+
+func isProviderRecognised(provider string) bool {
+	providers := getKnownProviders()
+	var found bool
+	for _, p := range providers {
+		if strings.EqualFold(provider, p) {
+			found = true
+		}
+	}
+	return found
+}
+
+func getKnownProviders() map[string]string {
+	providers := make(map[string]string)
+
+	providers["AWSCluster"] = "aws"
+	providers["AWSManagedCluster"] = "aws"
+	providers["AzureCluster"] = "azure"
+	providers["AzureManagedCluster"] = "azure"
+	providers["DOCluster"] = "digitalocean"
+	providers["DockerCluster"] = "docker"
+	providers["GCPCluster"] = "gcp"
+	providers["OpenStackCluster"] = "openstack"
+	providers["PacketCluster"] = "packet"
+	providers["VSphereCluster"] = "vsphere"
+
+	return providers
 }
 
 func getProvider(t *capiv1.CAPITemplate) string {
@@ -70,42 +102,27 @@ func getProvider(t *capiv1.CAPITemplate) string {
 		return ""
 	}
 
+	providers := getKnownProviders()
+
 	for _, obj := range meta.Objects {
-		switch obj.Kind {
-		case "AWSCluster", "AWSManagedCluster":
-			return "AWSCluster"
-		case "AzureCluster", "VSphereCluster":
-			return obj.Kind
+		if p, ok := providers[obj.Kind]; ok {
+			return p
 		}
 	}
 
-	return "Generic"
+	return ""
 }
 
 func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
 	templates := []*capiv1_proto.Template{}
 
 	for _, t := range tl {
-		providerKind := formatProviderName(provider)
-
-		if t.Provider == providerKind {
+		if strings.EqualFold(t.Provider, provider) {
 			templates = append(templates, t)
 		}
 	}
 
 	return templates
-}
-
-func formatProviderName(provider string) string {
-	switch name := provider; strings.ToLower(name) {
-	case "aws":
-		return "AWSCluster"
-	case "azure":
-		return "AzureCluster"
-	case "vsphere":
-		return "VSphereCluster"
-	}
-	return ""
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {

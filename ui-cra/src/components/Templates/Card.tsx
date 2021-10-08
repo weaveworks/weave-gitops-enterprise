@@ -36,9 +36,9 @@ const TemplateCard: FC<{ template: Template }> = ({ template }) => {
   };
   const getTile = () => {
     switch (template.provider) {
-      case 'AWSCluster':
+      case 'aws':
         return <EKS />;
-      case 'GKECluster':
+      case 'gcp':
         return <GKE />;
       default:
         return <Generic />;

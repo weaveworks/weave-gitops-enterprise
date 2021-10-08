@@ -59,7 +59,7 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
-					Provider:    "AWSCluster",
+					Provider:    "aws",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -89,7 +89,7 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-1",
 					Description: "this is test template 1",
-					Provider:    "Generic",
+					Provider:    "",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -108,7 +108,7 @@ func TestListTemplates(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
-					Provider:    "Generic",
+					Provider:    "",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -153,12 +153,11 @@ func TestListTemplates(t *testing.T) {
 
 func TestListTemplates_FilterByProvider(t *testing.T) {
 	testCases := []struct {
-		name             string
-		provider         string
-		clusterState     []runtime.Object
-		expected         []*capiv1_protos.Template
-		err              error
-		expectedErrorStr string
+		name         string
+		provider     string
+		clusterState []runtime.Object
+		expected     []*capiv1_protos.Template
+		err          error
 	}{
 		{
 			name:     "Provider name with upper case letters",
@@ -173,7 +172,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
-					Provider:    "AWSCluster",
+					Provider:    "aws",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -204,7 +203,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				{
 					Name:        "cluster-template-2",
 					Description: "this is test template 2",
-					Provider:    "AWSCluster",
+					Provider:    "aws",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -232,6 +231,17 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 				}), "template1", makeTemplate(t)),
 			},
 			expected: []*capiv1_protos.Template{},
+		},
+		{
+			name:     "Provider name not recognised",
+			provider: "foo",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+					ct.ObjectMeta.Name = "cluster-template-2"
+					ct.Spec.Description = "this is test template 2"
+				}), "template1", makeTemplate(t)),
+			},
+			err: fmt.Errorf("provider %q is not recognised", "foo"),
 		},
 	}
 
@@ -279,7 +289,7 @@ func TestGetTemplate(t *testing.T) {
 			expected: &capiv1_protos.Template{
 				Name:        "cluster-template-1",
 				Description: "this is test template 1",
-				Provider:    "Generic",
+				Provider:    "",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						Name:       string("${CLUSTER_NAME}"),
@@ -870,7 +880,7 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "AWSCluster",
+			provider: "aws",
 		},
 		{
 			name: "AWSManagedCluster",
@@ -886,7 +896,7 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "AWSCluster",
+			provider: "aws",
 		},
 		{
 			name: "AzureCluster",
@@ -902,7 +912,87 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "AzureCluster",
+			provider: "azure",
+		},
+		{
+			name: "AzureManagedCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AzureManagedCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "azure",
+		},
+		{
+			name: "DOCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "DOCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "digitalocean",
+		},
+		{
+			name: "GCPCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "GCPCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "gcp",
+		},
+		{
+			name: "OpenStackCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "OpenStackCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "openstack",
+		},
+		{
+			name: "PacketCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "PacketCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "packet",
 		},
 		{
 			name: "VSphereCluster",
@@ -918,7 +1008,7 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "VSphereCluster",
+			provider: "vsphere",
 		},
 		{
 			name: "FooCluster",
@@ -934,7 +1024,7 @@ func TestGetProvider(t *testing.T) {
 					},
 				},
 			},
-			provider: "Generic",
+			provider: "",
 		},
 	}
 
