@@ -2,16 +2,14 @@ import React, { FC, useState } from 'react';
 import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
-
 import { ConnectClusterGeneralForm } from './ConnectForm';
 import { ConnectClusterConnectionInstructions } from './ConnectionInstructions';
 import { ClusterDisconnectionInstructions } from './DisconnectionInstructions';
-
 import { FormState, SetFormState } from '../../../types/form';
 import { Cluster } from '../../../types/kubernetes';
 import { request } from '../../../utils/request';
 import { FlexSpacer } from '../../ListView';
-import { HandleFinish } from '../../Shared';
+import useNotifications from './../../../contexts/Notifications';
 
 export const ButtonText = styled.span`
   margin: 0 4px;
@@ -91,22 +89,26 @@ const PAGES = {
     content: (
       formState: FormState,
       setFormState: SetFormState,
-      onFinish: HandleFinish,
       connecting: boolean,
     ) => (
       <ConnectClusterGeneralForm
-        connecting={connecting}
         formState={formState}
         setFormState={setFormState}
+        connecting={connecting}
       />
     ),
   },
   connect: {
     title: 'Connection instructions',
-    content: (formState: FormState, setFormState: SetFormState) => (
+    content: (
+      formState: FormState,
+      setFormState: SetFormState,
+      connecting: boolean,
+    ) => (
       <ConnectClusterConnectionInstructions
         formState={formState}
         setFormState={setFormState}
+        connecting={connecting}
       />
     ),
   },
@@ -115,22 +117,18 @@ const PAGES = {
     content: (
       formState: FormState,
       setFormState: SetFormState,
-      onFinish: HandleFinish,
+      connecting: boolean,
+      onFinish: () => void,
     ) => (
       <ClusterDisconnectionInstructions
         formState={formState}
         setFormState={setFormState}
+        connecting={connecting}
         onFinish={onFinish}
       />
     ),
   },
 };
-
-interface CreateModelProps {
-  cluster: Cluster;
-  connecting: boolean;
-  onFinish: HandleFinish;
-}
 
 // SQLite errors
 const FRIENDLY_ERRORS: { [key: string]: string } = {
@@ -140,11 +138,11 @@ const FRIENDLY_ERRORS: { [key: string]: string } = {
     'Oops! The token we generated is already in use, this is quite rare. Please try again.',
 };
 
-export const ConnectClusterWizard: FC<CreateModelProps> = ({
-  connecting,
-  cluster,
-  onFinish,
-}) => {
+export const ConnectClusterWizard: FC<{
+  cluster: Cluster;
+  connecting: boolean;
+  onFinish: () => void;
+}> = ({ connecting, cluster, onFinish }) => {
   const pages = connecting
     ? [PAGES.general, PAGES.connect]
     : [PAGES.general, PAGES.connect, PAGES.disconnect];
@@ -158,13 +156,14 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
   const titles = pages.map(page => page.title);
   const { content } = pages[formState.activeIndex];
   const isValid = formState.cluster.name.trim() !== '';
+  const { setNotifications } = useNotifications();
 
   const onSubmit = (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
     if (!hasNext(formState) || !isValid || submitting) {
       return;
     }
-    setFormState({ ...formState, error: '' });
+    setFormState({ ...formState });
     setSubmitting(true);
     const id = formState.cluster.id;
     const req = id
@@ -180,12 +179,20 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
         setSubmitting(false);
         setFormState({ ...formState, cluster });
         setFormState(nextPage);
+        setNotifications([
+          {
+            message: 'Cluster successfully added to the MCCP',
+            variant: 'success',
+          },
+        ]);
       })
       .catch(({ message }) => {
-        setFormState({
-          ...formState,
-          error: FRIENDLY_ERRORS[message] || message,
-        });
+        setNotifications([
+          {
+            message: FRIENDLY_ERRORS[message] || message,
+            variant: 'danger',
+          },
+        ]);
         setSubmitting(false);
       });
   };
@@ -203,7 +210,7 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
       />
       <form onSubmit={onSubmit}>
         <ContentContainer>
-          {content(formState, setFormState, onFinish, connecting)}
+          {content(formState, setFormState, connecting, onFinish)}
         </ContentContainer>
         <ButtonBar>
           <FlexSpacer />
@@ -214,10 +221,7 @@ export const ConnectClusterWizard: FC<CreateModelProps> = ({
             </Button>
           )}
           {formState.activeIndex > 0 && (
-            <Button
-              className="close-button"
-              onClick={() => onFinish({ success: true, message: '' })}
-            >
+            <Button className="close-button" onClick={() => onFinish()}>
               Close
             </Button>
           )}

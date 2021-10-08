@@ -9,7 +9,6 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../../Action';
-import { HandleFinish } from '../../Shared';
 
 const ButtonText = styled.span`
   margin: 0 4px;
@@ -20,7 +19,7 @@ const ConfirmDeletion: FC<{
   onClickRemove: Function;
   title: string;
   formData?: any;
-  onFinish: HandleFinish;
+  onFinish: () => void;
 }> = ({ clusters, title, onClickRemove, formData, onFinish }) => {
   const [open, setOpen] = useState(false);
 
@@ -29,7 +28,7 @@ const ConfirmDeletion: FC<{
   const handleClickRemove = () => {
     onClickRemove({ clusters, formData });
     setOpen(false);
-    onFinish({ success: true, message: '' });
+    onFinish();
   };
 
   return (

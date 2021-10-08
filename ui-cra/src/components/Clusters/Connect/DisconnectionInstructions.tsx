@@ -1,16 +1,15 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
 import { FormState, SetFormState } from '../../../types/form';
-import Box from '@material-ui/core/Box';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import Typography from '@material-ui/core/Typography';
-import { CircularProgress } from 'weaveworks-ui-components';
 import { Poll } from '../../../utils/poll';
 import { asMilliseconds } from '../../../utils/time';
 import { Cluster } from '../../../types/kubernetes';
-import { Code, HandleFinish, Status } from '../../Shared';
+import { Code, statusBox } from '../../Shared';
 import ConfirmDeletion from './ConfirmDeletion';
 import useClusters from '../../../contexts/Clusters';
+import { Loader } from '../../Loader';
 
 const Container = styled.div`
   margin-right: 16px;
@@ -24,8 +23,9 @@ interface ResponsesById {
 export const ClusterDisconnectionInstructions: FC<{
   formState: FormState;
   setFormState: SetFormState;
-  onFinish: HandleFinish;
-}> = ({ formState, onFinish }) => {
+  connecting: boolean;
+  onFinish: () => void;
+}> = ({ formState, connecting, onFinish }) => {
   const { deleteConnectedClusters } = useClusters();
 
   if (!formState.cluster.id) {
@@ -50,16 +50,9 @@ export const ClusterDisconnectionInstructions: FC<{
       >
         {({ responsesById: { getCluster: cluster } }) => {
           if (!cluster) {
-            return <CircularProgress size="small" />;
+            return <Loader />;
           }
-          return (
-            <Box lineHeight="24px" display="flex" alignItems="center" my={2}>
-              <Box color="text.secondary" mr={1}>
-                Cluster status
-              </Box>
-              <Status updatedAt={cluster.updatedAt} status={cluster.status} />
-            </Box>
-          );
+          return statusBox(cluster, connecting);
         }}
       </Poll>
       <DialogContentText>
