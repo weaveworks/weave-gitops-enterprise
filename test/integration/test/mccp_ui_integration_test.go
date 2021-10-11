@@ -34,7 +34,7 @@ import (
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	v1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -693,7 +693,7 @@ func TestMccpUI(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
-		v1.AddToScheme,
+		appsv1.AddToScheme,
 		capiv1.AddToScheme,
 		corev1.AddToScheme,
 	}
@@ -706,7 +706,7 @@ func TestMccpUI(t *testing.T) {
 			Name:      "entitlement",
 			Namespace: "default",
 		},
-		Type: "Opaque",
+		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"entitlement": []byte(entitlement)},
 	}
 

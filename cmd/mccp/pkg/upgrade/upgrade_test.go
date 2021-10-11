@@ -63,7 +63,7 @@ func createSecret() *corev1.Secret {
 			Name:      "weave-gitops-enterprise-credentials",
 			Namespace: "wego-system",
 		},
-		Type: "Opaque",
+		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"entitlement": []byte("foo")},
 	}
 }

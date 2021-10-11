@@ -8,11 +8,10 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
+	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
@@ -25,19 +24,18 @@ func TestEntitlementMiddleware(t *testing.T) {
 	}{
 		{
 			name:     "no entitlement",
-			client:   createFakeClient(),
+			client:   utils.CreateFakeClient(t),
 			expected: http.StatusInternalServerError,
 		},
 		{
 			name:     "valid entitlement",
-			client:   createFakeClient(createSecret(validEntitlement)),
+			client:   utils.CreateFakeClient(t, createSecret(validEntitlement)),
 			expected: http.StatusOK,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			defer ctx.Done()
 
 			s, err := server.NewServer(ctx, tt.client, client.ObjectKey{Name: "name", Namespace: "namespace"}, logr.Discard(), server.ParamSet{
 				DbType: "sqlite",
@@ -64,21 +62,6 @@ func TestEntitlementMiddleware(t *testing.T) {
 	}
 }
 
-func createFakeClient(clusterState ...runtime.Object) client.Client {
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		corev1.AddToScheme,
-	}
-	_ = schemeBuilder.AddToScheme(scheme)
-
-	c := fake.NewClientBuilder().
-		WithScheme(scheme).
-		WithRuntimeObjects(clusterState...).
-		Build()
-
-	return c
-}
-
 func createSecret(s string) *corev1.Secret {
 	// When reading a secret, only Data contains any data, StringData is empty
 	return &corev1.Secret{
@@ -86,7 +69,7 @@ func createSecret(s string) *corev1.Secret {
 			Name:      "name",
 			Namespace: "namespace",
 		},
-		Type: "Opaque",
+		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"entitlement": []byte(s)},
 	}
 }
