@@ -10,6 +10,8 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import Background from './assets/img/background.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
+import AuthContextProvider from './contexts/Auth';
+import { ClustersService } from './capi-server/capi_server.pb';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -71,7 +73,9 @@ const App: FC = () => {
       <ThemeProvider theme={withWGColors as Theme}>
         <MuiThemeProvider theme={muiTheme}>
           <GlobalStyle />
-          <ResponsiveDrawer />
+          <AuthContextProvider clustersService={ClustersService}>
+            <ResponsiveDrawer />
+          </AuthContextProvider>
         </MuiThemeProvider>
       </ThemeProvider>
     </BrowserRouter>

@@ -1,9 +1,10 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { Template } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Templates } from './index';
 import { useHistory } from 'react-router-dom';
 import useNotifications from './../Notifications';
+import { AuthContext } from '../Auth';
 
 const TemplatesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -13,6 +14,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [creatingPR, setCreatingPR] = useState<boolean>(false);
   const { setNotifications } = useNotifications();
+  const { clustersService } = useContext(AuthContext);
 
   const history = useHistory();
 
@@ -36,19 +38,28 @@ const TemplatesProvider: FC = ({ children }) => {
     [activeTemplate, setNotifications],
   );
 
+  // const addCluster = useCallback(
+  //   ({ ...data }) => {
+  //     setCreatingPR(true);
+  //     request('POST', '/v1/clusters', {
+  //       body: JSON.stringify(data),
+  //     })
+  //       .then(() => history.push('/clusters'))
+  //       .catch(err =>
+  //         setNotifications([{ message: err.message, variant: 'danger' }]),
+  //       )
+  //       .finally(() => setCreatingPR(false));
+  //   },
+  //   [history, setNotifications],
+  // );
+
   const addCluster = useCallback(
     ({ ...data }) => {
-      setCreatingPR(true);
-      request('POST', '/v1/clusters', {
-        body: JSON.stringify(data),
-      })
-        .then(() => history.push('/clusters'))
-        .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
-        )
-        .finally(() => setCreatingPR(false));
+      clustersService.CreatePullRequest(data).then(res => {
+        console.log(res);
+      });
     },
-    [history, setNotifications],
+    [clustersService],
   );
 
   const getTemplates = useCallback(() => {

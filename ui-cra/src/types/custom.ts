@@ -39,3 +39,8 @@ export type ListCredentialsResponse = {
   credentials?: Credential[];
   total?: number;
 };
+
+export enum GitProviderName {
+  GitHub = 'github',
+  Gitlab = 'gitlab',
+}
