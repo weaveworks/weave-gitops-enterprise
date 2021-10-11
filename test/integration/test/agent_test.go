@@ -202,7 +202,7 @@ func TestAgent(t *testing.T) {
 		case e := <-events:
 			err := e.DataAs(&actual)
 			require.NoError(t, err)
-		case <-time.After(1 * time.Second):
+		case <-time.After(2 * time.Second):
 			t.Logf("Time out waiting for event to arrive")
 		}
 
