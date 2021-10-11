@@ -29,6 +29,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+var providers = map[string]string{
+	"AWSCluster":          "aws",
+	"AWSManagedCluster":   "aws",
+	"AzureCluster":        "azure",
+	"AzureManagedCluster": "azure",
+	"DOCluster":           "digitalocean",
+	"DockerCluster":       "docker",
+	"GCPCluster":          "gcp",
+	"OpenStackCluster":    "openstack",
+	"PacketCluster":       "packet",
+	"VSphereCluster":      "vsphere",
+}
+
 type server struct {
 	log             logr.Logger
 	library         templates.Library
@@ -68,31 +81,12 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 }
 
 func isProviderRecognised(provider string) bool {
-	providers := getKnownProviders()
-	var found bool
 	for _, p := range providers {
 		if strings.EqualFold(provider, p) {
-			found = true
+			return true
 		}
 	}
-	return found
-}
-
-func getKnownProviders() map[string]string {
-	providers := make(map[string]string)
-
-	providers["AWSCluster"] = "aws"
-	providers["AWSManagedCluster"] = "aws"
-	providers["AzureCluster"] = "azure"
-	providers["AzureManagedCluster"] = "azure"
-	providers["DOCluster"] = "digitalocean"
-	providers["DockerCluster"] = "docker"
-	providers["GCPCluster"] = "gcp"
-	providers["OpenStackCluster"] = "openstack"
-	providers["PacketCluster"] = "packet"
-	providers["VSphereCluster"] = "vsphere"
-
-	return providers
+	return false
 }
 
 func getProvider(t *capiv1.CAPITemplate) string {
@@ -101,8 +95,6 @@ func getProvider(t *capiv1.CAPITemplate) string {
 	if err != nil {
 		return ""
 	}
-
-	providers := getKnownProviders()
 
 	for _, obj := range meta.Objects {
 		if p, ok := providers[obj.Kind]; ok {
