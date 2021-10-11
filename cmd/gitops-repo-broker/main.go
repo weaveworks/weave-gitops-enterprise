@@ -6,11 +6,17 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
+	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
 	"go.uber.org/zap"
 )
 
 func main() {
+	cmd := server.NewAPIServerCommand(getLogger())
+	cobra.CheckErr(cmd.Execute())
+}
+
+func getLogger() logr.Logger {
 	var log logr.Logger
 	if os.Getenv("HUMAN_LOGS") != "" {
 		if zl, err := zap.NewDevelopment(zap.AddCaller()); err != nil {
@@ -25,10 +31,5 @@ func main() {
 			log = zapr.NewLogger(zl)
 		}
 	}
-
-	cmd := server.NewAPIServerCommand(log)
-
-	if err := cmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+	return log
 }

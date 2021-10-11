@@ -18,7 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/healthcheck"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -82,7 +82,7 @@ type ParamSet struct {
 func RunServer(log logr.Logger, params ParamSet) error {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
-		v1.AddToScheme,
+		corev1.AddToScheme,
 	}
 	_ = schemeBuilder.AddToScheme(scheme)
 	kubeClientConfig := config.GetConfigOrDie()
