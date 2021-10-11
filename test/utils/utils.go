@@ -12,10 +12,7 @@ import (
 func CreateFakeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	t.Helper()
 	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		corev1.AddToScheme,
-	}
-	err := schemeBuilder.AddToScheme(scheme)
+	err := corev1.AddToScheme(scheme)
 	if err != nil {
 		t.Fatal(err)
 	}
