@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
@@ -17,28 +18,49 @@ import (
 var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
 
 func TestEntitlementMiddleware(t *testing.T) {
-	ctx := context.Background()
-	defer ctx.Done()
-
-	c := createFakeClient(createSecret(validEntitlement))
-	s, err := server.NewServer(ctx, c, client.ObjectKey{Name: "name", Namespace: "namespace"}, logr.Discard(), server.ParamSet{
-		DbType: "sqlite",
-		Port:   "8001",
-	})
-	if err != nil {
-		t.Fatalf("expected no errors but got: %v", err)
+	tests := []struct {
+		name     string
+		client   client.Client
+		expected int
+	}{
+		{
+			name:     "no entitlement",
+			client:   createFakeClient(),
+			expected: http.StatusInternalServerError,
+		},
+		{
+			name:     "valid entitlement",
+			client:   createFakeClient(createSecret(validEntitlement)),
+			expected: http.StatusOK,
+		},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			defer ctx.Done()
 
-	go func(ctx context.Context) {
-		s.ListenAndServe()
-	}(ctx)
+			s, err := server.NewServer(ctx, tt.client, client.ObjectKey{Name: "name", Namespace: "namespace"}, logr.Discard(), server.ParamSet{
+				DbType: "sqlite",
+				Port:   "8001",
+			})
+			if err != nil {
+				t.Fatalf("expected no errors but got: %v", err)
+			}
+			defer s.Close()
 
-	res, err := http.Get("http://localhost:8001/gitops/healthz")
-	if err != nil {
-		t.Fatalf("expected no errors but got: %v", err)
-	}
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
+			go func() {
+				_ = s.ListenAndServe()
+			}()
+
+			time.Sleep(100 * time.Millisecond)
+			res, err := http.Get("http://localhost:8001/gitops/healthz")
+			if err != nil {
+				t.Fatalf("expected no errors but got: %v", err)
+			}
+			if res.StatusCode != tt.expected {
+				t.Fatalf("expected status code to be %d but got %d instead", tt.expected, res.StatusCode)
+			}
+		})
 	}
 }
 
@@ -47,7 +69,7 @@ func createFakeClient(clusterState ...runtime.Object) client.Client {
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	_ = schemeBuilder.AddToScheme(scheme)
 
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).
