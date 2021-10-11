@@ -277,7 +277,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			By("And MCCP state is reset", func() {
 				_ = mccpTestRunner.ResetDatabase()
 				mccpTestRunner.VerifyMCCPPodsRunning()
-				mccpTestRunner.checkClusterService()
+				mccpTestRunner.CheckClusterService()
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 			})
 
@@ -447,7 +447,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 			_ = mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
-			mccpTestRunner.checkClusterService()
+			mccpTestRunner.CheckClusterService()
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
@@ -558,7 +558,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			}
 			_ = mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
-			mccpTestRunner.checkClusterService()
+			mccpTestRunner.CheckClusterService()
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)

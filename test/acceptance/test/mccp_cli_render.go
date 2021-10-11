@@ -34,7 +34,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 			})
 
 			By("And the Cluster service is healthy", func() {
-				mccpTestRunner.checkClusterService()
+				mccpTestRunner.CheckClusterService()
 			})
 		})
 
@@ -297,7 +297,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				By("And MCCP state is reset", func() {
 					_ = mccpTestRunner.ResetDatabase()
 					mccpTestRunner.VerifyMCCPPodsRunning()
-					mccpTestRunner.checkClusterService()
+					mccpTestRunner.CheckClusterService()
 				})
 
 				By(fmt.Sprintf("Then I run 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL), func() {
@@ -927,6 +927,103 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				// By("Then I should merge the delete pull request to delete cluster", func() {
 				// 	mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
 				// })
+			})
+		})
+
+		Context("[CLI] When entitlement is available in the cluster", func() {
+			DEPLOYMENT_APP := "my-mccp-cluster-service"
+
+			checkEntitlement := func(typeEntitelment string) {
+				checkOutput := func() {
+					switch typeEntitelment {
+					case "expired":
+						Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(`Your entitlement for Weave GitOps Enterprise has expired"`))
+					case "invalid", "missing":
+						Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(`No entitlement was found for Weave GitOps Enterprise`))
+					default:
+						Eventually(string(session.Wait().Err.Contents())).ShouldNot(MatchRegexp(`Your entitlement for Weave GitOps Enterprise has expired"`))
+						Eventually(string(session.Wait().Err.Contents())).ShouldNot(MatchRegexp(`No entitlement was found for Weave GitOps Enterprise`))
+					}
+				}
+
+				log.Printf("Running 'mccp templates list --endpoint %s'", CAPI_ENDPOINT_URL)
+				command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--endpoint", CAPI_ENDPOINT_URL)
+				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).ShouldNot(HaveOccurred())
+				checkOutput()
+
+				log.Printf("Running 'mccp templates render aws-cluster-template-0 --list-credentials --endpoint %s", CAPI_ENDPOINT_URL)
+				command = exec.Command(MCCP_BIN_PATH, "templates", "render", "aws-cluster-template-0", "--list-credentials", "--endpoint", CAPI_ENDPOINT_URL)
+				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).ShouldNot(HaveOccurred())
+				checkOutput()
+
+				log.Printf("Running 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL)
+				command = exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
+				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).ShouldNot(HaveOccurred())
+				checkOutput()
+			}
+
+			JustBeforeEach(func() {
+
+				templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
+				mccpTestRunner.CreateIPCredentials("AWS")
+			})
+
+			JustAfterEach(func() {
+				By("When I apply the valid entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should not see the error or warning message for valid entitlement", func() {
+					checkEntitlement("")
+				})
+
+				mccpTestRunner.DeleteIPCredentials("AWS")
+			})
+
+			XIt("Verify cluster service acknowledges the entitlement presences", func() {
+
+				By("When I delete the entitlement", func() {
+					Expect(mccpTestRunner.KubectlDelete([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to delete entitlement secret")
+				})
+
+				By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the error message for missing entitlement", func() {
+					checkEntitlement("invalid")
+				})
+
+				By("When I apply the expired entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the warning message for expired entitlement", func() {
+					checkEntitlement("expired")
+				})
+
+				By("When I apply the invalid entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the error message for invalid entitlement", func() {
+					checkEntitlement("missing")
+				})
 			})
 		})
 

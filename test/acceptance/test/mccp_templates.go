@@ -62,7 +62,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
-				mccpTestRunner.checkClusterService()
+				mccpTestRunner.CheckClusterService()
 			})
 			initializeWebdriver()
 		})
@@ -1099,6 +1099,68 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				// 	mccpTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
 				// })
 
+			})
+		})
+
+		Context("[UI] When entitlement is available in the cluster", func() {
+			DEPLOYMENT_APP := "my-mccp-cluster-service"
+
+			JustAfterEach(func() {
+				By("When I apply the valid entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should not see the error or warning message for valid entitlement", func() {
+					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+					Eventually(pages.GetEntitelment(webDriver, "expired")).ShouldNot(BeFound())
+					Eventually(pages.GetEntitelment(webDriver, "missing")).ShouldNot(BeFound())
+				})
+			})
+
+			It("@integration Verify cluster service acknowledges the entitlement presences", func() {
+
+				By("When I delete the entitlement", func() {
+					Expect(mccpTestRunner.KubectlDelete([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to delete entitlement secret")
+				})
+
+				By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the error message for missing entitlement", func() {
+					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+					Eventually(pages.GetEntitelment(webDriver, "missing")).Should(BeFound())
+				})
+
+				By("When I apply the expired entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the warning message for expired entitlement", func() {
+					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+					Eventually(pages.GetEntitelment(webDriver, "expired")).Should(BeFound())
+				})
+
+				By("When I apply the invalid entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the error message for invalid entitlement", func() {
+					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+					Eventually(pages.GetEntitelment(webDriver, "invalid")).Should(BeFound())
+				})
 			})
 		})
 	})

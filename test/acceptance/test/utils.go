@@ -183,7 +183,8 @@ type MCCPTestRunner interface {
 	DeleteApplyCapiTemplates(templateFiles []string)
 	CreateIPCredentials(infrastructureProvider string)
 	DeleteIPCredentials(infrastructureProvider string)
-	checkClusterService()
+	CheckClusterService()
+	RestartDeploymentPods(env []string, appName string, namespace string) error
 
 	// Git repository helper functions
 	DeleteRepo(repoName string)
@@ -357,8 +358,12 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 	})
 }
 
-func (b DatabaseMCCPTestRunner) checkClusterService() {
+func (b DatabaseMCCPTestRunner) CheckClusterService() {
 
+}
+
+func (b DatabaseMCCPTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+	return nil
 }
 
 func (b DatabaseMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
@@ -426,9 +431,9 @@ func (b RealMCCPTestRunner) VerifyMCCPPodsRunning() {
 
 func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
 	err := runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
-	fmt.Println("Leaf cluster pods after apply")
+	fmt.Println("Cluster pods after apply")
 	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
-		fmt.Printf("Error getting leaf cluster pods after apply: %v\n", err)
+		fmt.Printf("Error getting cluster pods after apply: %v\n", err)
 	}
 	return err
 }
@@ -535,7 +540,7 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
-func (b RealMCCPTestRunner) checkClusterService() {
+func (b RealMCCPTestRunner) CheckClusterService() {
 	output := func() string {
 		command := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", GetCapiEndpointUrl()+"/v1/templates")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -543,6 +548,16 @@ func (b RealMCCPTestRunner) checkClusterService() {
 		return string(session.Wait(ASSERTION_30SECONDS_TIME_OUT).Out.Contents())
 	}
 	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("200"), "Cluster Service is not healthy")
+}
+
+func (b RealMCCPTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+	// Restart the deployment pods
+	err := runCommandPassThrough(env, "kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+	if err == nil {
+		// Wait for all the deployments replicas to rolled out successfully
+		err = runCommandPassThrough(env, "kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+	}
+	return err
 }
 
 func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {

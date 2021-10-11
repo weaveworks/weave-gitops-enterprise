@@ -112,3 +112,14 @@ func (t TemplatesPage) SelectView(viewName string) *agouti.Selection {
 	}
 	return nil
 }
+
+func GetEntitelment(webDriver *agouti.Page, typeEntitelment string) *agouti.Selection {
+
+	switch typeEntitelment {
+	case "expired":
+		return webDriver.FindByXPath(`//*/div[contains(text(), "Your entitlement for Weave GitOps Enterprise has expired")]`)
+	case "invalid", "missing":
+		return webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//div[contains(text(), "No entitlement was found for Weave GitOps Enterprise")]`)
+	}
+	return nil
+}
