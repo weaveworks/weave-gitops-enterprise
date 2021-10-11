@@ -20,6 +20,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ include "mccp.serviceAccountName" . }}
       volumes:
       - name: git-key
         secret:

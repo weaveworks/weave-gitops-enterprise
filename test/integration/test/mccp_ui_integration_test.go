@@ -34,7 +34,7 @@ import (
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	v1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -588,8 +588,8 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 	return listenError
 }
 
-func RunBroker(ctx gcontext.Context, dbURI string) error {
-	srv, err := broker.NewServer(ctx, broker.ParamSet{
+func RunBroker(ctx gcontext.Context, c client.Client, dbURI string) error {
+	srv, err := broker.NewServer(ctx, c, client.ObjectKey{Name: "entitlement", Namespace: "default"}, logr.Discard(), broker.ParamSet{
 		Port:        brokerPort,
 		DbURI:       dbURI,
 		DbType:      "sqlite",
@@ -693,7 +693,7 @@ func TestMccpUI(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
-		v1.AddToScheme,
+		appsv1.AddToScheme,
 		capiv1.AddToScheme,
 		corev1.AddToScheme,
 	}
@@ -706,7 +706,7 @@ func TestMccpUI(t *testing.T) {
 			Name:      "entitlement",
 			Namespace: "default",
 		},
-		Type: "Opaque",
+		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"entitlement": []byte(entitlement)},
 	}
 
@@ -724,7 +724,7 @@ func TestMccpUI(t *testing.T) {
 	// racing with the goroutine starting.
 	wg.Add(1)
 	go func() {
-		err := RunBroker(ctx, dbURI)
+		err := RunBroker(ctx, cl, dbURI)
 		assert.NoError(t, err)
 		wg.Done()
 	}()
