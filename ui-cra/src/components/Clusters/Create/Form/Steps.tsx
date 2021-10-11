@@ -18,7 +18,7 @@ const Section = styled.div`
   padding-bottom: ${theme.spacing.medium};
 `;
 
-const Title = styled.div`
+const Title = styled.div<{ name?: string }>`
   padding-bottom: ${theme.spacing.small};
   font-size: ${theme.fontSizes.large};
   font-family: ${theme.fontFamilies.monospace};
@@ -136,7 +136,7 @@ export const FormStep: FC<{
 
   return (
     <Section ref={stepRef}>
-      <Title>{step?.name || title}</Title>
+      <Title name={title}>{step?.name || title}</Title>
       {step?.children ? <Content>{step?.children}</Content> : null}
       {children}
       <SectionDivider>

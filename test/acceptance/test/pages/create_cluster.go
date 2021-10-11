@@ -110,14 +110,14 @@ func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection 
 
 func GetPreview(webDriver *agouti.Page) Preview {
 	return Preview{
-		PreviewLabel: webDriver.FindByXPath(`//div[text()="Preview"]`),
+		PreviewLabel: webDriver.FindByName("Preview"),
 		PreviewText:  webDriver.FindByXPath(`//div[contains(., "Preview")]/following-sibling::textarea`),
 	}
 }
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
-		GitOpsLabel: webDriver.FindByXPath(`//div[contains(., "Preview")]/parent::div/following-sibling::div/div[text()="GitOps"]`),
+		GitOpsLabel: webDriver.FindByName("GitOps"),
 		GitOpsFields: []FormField{
 			{
 				Label: webDriver.FindByLabel(`Create branch`),

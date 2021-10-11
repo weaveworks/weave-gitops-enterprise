@@ -185,6 +185,7 @@ message TemplateObject {
   string api_version = 2;
   repeated string parameters = 3;
   string name = 4;
+  string display_name = 5;
 }
 
 message GetEnterpriseVersionRequest {

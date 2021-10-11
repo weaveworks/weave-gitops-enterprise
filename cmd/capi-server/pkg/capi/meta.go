@@ -11,6 +11,12 @@ import (
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
 // contains the objects that are in the template, along with the parameters used
 // by each of the objects.
+
+const (
+	// DisplayNameAnnotation is the annotation used for labeling template resources
+	DisplayNameAnnotation = "capi.weave.works/display-name"
+)
+
 func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := map[string]bool{}
@@ -27,7 +33,12 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 		if err := uv.UnmarshalJSON(v.RawExtension.Raw); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
 		}
-		objects = append(objects, Object{Kind: uv.GetKind(), APIVersion: uv.GetAPIVersion(), Params: tv, Name: uv.GetName()})
+		objects = append(objects, Object{
+			Kind:       uv.GetKind(),
+			APIVersion: uv.GetAPIVersion(),
+			Params:     tv, Name: uv.GetName(),
+			DisplayName: uv.GetAnnotations()[DisplayNameAnnotation],
+		})
 	}
 
 	enriched, err := ParamsFromSpec(s.Spec)
@@ -45,10 +56,11 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 // Object contains the details of the object rendered from a template along with
 // the parametesr.
 type Object struct {
-	Kind       string   `json:"kind"`
-	APIVersion string   `json:"apiVersion"`
-	Name       string   `json:"name"`
-	Params     []string `json:"params"`
+	Kind        string   `json:"kind"`
+	APIVersion  string   `json:"apiVersion"`
+	Name        string   `json:"name"`
+	Params      []string `json:"params"`
+	DisplayName string   `json:"displayName"`
 }
 
 // TemplateMeta contains all the objects extracted from a CAPITemplate along
