@@ -95,7 +95,7 @@ func createSecret(s string) *corev1.Secret {
 			Name:      "name",
 			Namespace: "namespace",
 		},
-		Type: "Opaque",
+		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"entitlement": []byte(s)},
 	}
 }

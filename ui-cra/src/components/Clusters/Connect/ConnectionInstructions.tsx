@@ -1,13 +1,12 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
 import { FormState, SetFormState } from '../../../types/form';
-import Box from '@material-ui/core/Box';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import { CircularProgress } from 'weaveworks-ui-components';
-import { Code, Status } from '../../Shared';
+import { Code, statusBox } from '../../Shared';
 import { Poll } from '../../../utils/poll';
 import { Cluster } from '../../../types/kubernetes';
 import { asMilliseconds } from '../../../utils/time';
+import { Loader } from '../../Loader';
 
 const Container = styled.div`
   margin-right: 16px;
@@ -21,7 +20,8 @@ interface ResponsesById {
 export const ConnectClusterConnectionInstructions: FC<{
   formState: FormState;
   setFormState: SetFormState;
-}> = ({ formState }) => {
+  connecting: boolean;
+}> = ({ formState, connecting }) => {
   const getCluster = `/gitops/api/clusters/${formState.cluster.id}`;
   const { protocol, host } = window.location;
   // Quoting the URL is important for zsh
@@ -36,20 +36,9 @@ export const ConnectClusterConnectionInstructions: FC<{
       >
         {({ responsesById: { getCluster: cluster } }) => {
           if (!cluster) {
-            return <CircularProgress size="small" />;
+            return <Loader />;
           }
-          return (
-            <Box lineHeight="24px" display="flex" alignItems="center" my={2}>
-              <Box color="text.secondary" mr={1}>
-                Cluster status
-              </Box>
-              <Status
-                connecting
-                updatedAt={cluster.updatedAt}
-                status={cluster.status}
-              />
-            </Box>
-          );
+          return statusBox(cluster, connecting);
         }}
       </Poll>
     </Container>

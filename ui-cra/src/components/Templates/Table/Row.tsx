@@ -5,7 +5,7 @@ import { Template } from '../../../types/custom';
 import { OnClickAction } from '../../Action';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useHistory } from 'react-router-dom';
-import { Tooltip } from '../../Shared';
+import weaveTheme from 'weaveworks-ui-components/lib/theme';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -14,6 +14,9 @@ const useStyles = makeStyles(() =>
     },
     normalRow: {
       borderBottom: '1px solid #d8d8d8',
+    },
+    error: {
+      color: weaveTheme.colors.orange500,
     },
   }),
 );
@@ -25,7 +28,7 @@ interface RowProps {
 
 const TemplateRow = ({ index, template }: RowProps) => {
   const classes = useStyles();
-  const { name, description, error } = template;
+  const { name, provider, description, error } = template;
   const history = useHistory();
 
   const handleAddCluster = useCallback(
@@ -40,27 +43,19 @@ const TemplateRow = ({ index, template }: RowProps) => {
       key={name}
     >
       <TableCell>{name}</TableCell>
-      <TableCell>{description}</TableCell>
+      <TableCell>{provider}</TableCell>
       <TableCell>
-        {error ? (
-          <Tooltip title={error} placement="top">
-            <OnClickAction
-              id="create-cluster"
-              icon={faPlus}
-              onClick={handleAddCluster}
-              text="CREATE CLUSTER WITH THIS TEMPLATE"
-              disabled={Boolean(error)}
-            />
-          </Tooltip>
-        ) : (
-          <OnClickAction
-            id="create-cluster"
-            icon={faPlus}
-            onClick={handleAddCluster}
-            text="CREATE CLUSTER WITH THIS TEMPLATE"
-            disabled={Boolean(error)}
-          />
-        )}
+        {description}
+        <span className={classes.error}>{error}</span>
+      </TableCell>
+      <TableCell>
+        <OnClickAction
+          id="create-cluster"
+          icon={faPlus}
+          onClick={handleAddCluster}
+          text="CREATE CLUSTER WITH THIS TEMPLATE"
+          disabled={Boolean(error)}
+        />
       </TableCell>
     </TableRow>
   );

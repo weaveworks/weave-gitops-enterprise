@@ -100,12 +100,10 @@ export type Credential = {
 export type Template = {
   name?: string
   description?: string
-  version?: string
+  provider?: string
   parameters?: Parameter[]
-  body?: string
   objects?: TemplateObject[]
   error?: string
-  provider?: string
 }
 
 export type Parameter = {
@@ -120,6 +118,7 @@ export type TemplateObject = {
   apiVersion?: string
   parameters?: string[]
   name?: string
+  displayName?: string
 }
 
 export type GetEnterpriseVersionRequest = {

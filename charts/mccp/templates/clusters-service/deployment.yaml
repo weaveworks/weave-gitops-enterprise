@@ -21,12 +21,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "mccp.serviceAccountName" . }}
-      {{- if eq .Values.dbConfig.databaseType "sqlite" }}
-      {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
-      nodeSelector:
-        wkp-database-volume-node: "true"
-      {{- end }}
-      {{- end }}
       containers:
         - name: clusters-service
           image: {{ .Values.images.clustersService }}
@@ -71,10 +65,6 @@ spec:
       {{- if eq .Values.dbConfig.databaseType "sqlite" }}
       volumes:
       - name: database-volume
-        {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
-        hostPath:
-          path: {{ .Values.dbConfig.sqliteConfig.path }}
-        {{- end }}
         {{- if .Values.dbConfig.sqliteConfig.persistentVolumeClaim.enabled }}
         persistentVolumeClaim:
           claimName: {{ .Values.dbConfig.sqliteConfig.persistentVolumeClaim.existingClaimName | default "wge-volume" }}

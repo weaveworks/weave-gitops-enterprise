@@ -1,23 +1,23 @@
 ---
-{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
-apiVersion: networking.k8s.io/v1beta1
-{{- else -}}
-apiVersion: extensions/v1beta1
-{{- end }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   annotations:
+    {{- if eq (include "common.ingress.supportsIngressClassAnnotation" .) "true" }}
     kubernetes.io/ingress.class: mccp-nginx
+    {{- end }}
     nginx.ingress.kubernetes.io/rewrite-target: /gitops/$1
   labels:
     app: gitops-repo-broker
   name: gitops-repo-broker
   namespace: {{ .Release.Namespace | quote }}
 spec:
+  {{- if eq (include "common.ingress.supportsIngressClassname" .) "true" }}
+  ingressClassName: mccp-nginx
+  {{- end }}
   rules:
     - http:
         paths:
-          - backend:
-              serviceName: gitops-repo-broker
-              servicePort: 8000
-            path: /gitops/?(.*)
+          - path: /gitops/?(.*)
+            pathType: ImplementationSpecific
+            backend: {{- include "common.ingress.backend" (dict "serviceName" "gitops-repo-broker" "servicePort" 8000 "context" $)  | nindent 14 }}

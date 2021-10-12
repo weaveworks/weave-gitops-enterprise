@@ -167,12 +167,10 @@ message Credential {
 message Template {
   string name = 1;
   string description = 2;
-  string version = 3;
+  string provider = 3;
   repeated Parameter parameters = 4;
-  string body = 5;
-  repeated TemplateObject objects = 6;
-  string error = 7; 
-  string provider = 8;
+  repeated TemplateObject objects = 5;
+  string error = 6; 
 }
 
 message Parameter {
@@ -187,6 +185,7 @@ message TemplateObject {
   string api_version = 2;
   repeated string parameters = 3;
   string name = 4;
+  string display_name = 5;
 }
 
 message GetEnterpriseVersionRequest {

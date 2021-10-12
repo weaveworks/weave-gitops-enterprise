@@ -92,10 +92,11 @@ func TestListTemplates(t *testing.T) {
 					Provider:    "Generic",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
-							Name:       string("${CLUSTER_NAME}"),
-							ApiVersion: "fooversion",
-							Kind:       "fookind",
-							Parameters: []string{"CLUSTER_NAME"},
+							Name:        string("${CLUSTER_NAME}"),
+							DisplayName: string("ClusterName"),
+							ApiVersion:  "fooversion",
+							Kind:        "fookind",
+							Parameters:  []string{"CLUSTER_NAME"},
 						},
 					},
 					Parameters: []*capiv1_protos.Parameter{
@@ -111,10 +112,11 @@ func TestListTemplates(t *testing.T) {
 					Provider:    "Generic",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
-							Name:       string("${CLUSTER_NAME}"),
-							ApiVersion: "fooversion",
-							Kind:       "fookind",
-							Parameters: []string{"CLUSTER_NAME"},
+							Name:        string("${CLUSTER_NAME}"),
+							DisplayName: string("ClusterName"),
+							ApiVersion:  "fooversion",
+							Kind:        "fookind",
+							Parameters:  []string{"CLUSTER_NAME"},
 						},
 					},
 					Parameters: []*capiv1_protos.Parameter{
@@ -282,10 +284,11 @@ func TestGetTemplate(t *testing.T) {
 				Provider:    "Generic",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
-						Name:       string("${CLUSTER_NAME}"),
-						ApiVersion: "fooversion",
-						Kind:       "fookind",
-						Parameters: []string{"CLUSTER_NAME"},
+						Name:        string("${CLUSTER_NAME}"),
+						DisplayName: string("ClusterName"),
+						ApiVersion:  "fooversion",
+						Kind:        "fookind",
+						Parameters:  []string{"CLUSTER_NAME"},
 					},
 				},
 				Parameters: []*capiv1_protos.Parameter{
@@ -394,7 +397,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
 			// some client might send empty credentials objects
@@ -409,7 +412,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "",
 				Namespace: "",
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
 			name: "render template with credentials",
@@ -508,7 +511,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
 			name: "value contains non alphanumeric",
@@ -850,6 +853,103 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 	}
 }
 
+func TestGetProvider(t *testing.T) {
+	tests := []struct {
+		name     string
+		template *capiv1.CAPITemplate
+		provider string
+	}{
+		{
+			name: "AWSCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AWSCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "AWSCluster",
+		},
+		{
+			name: "AWSManagedCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AWSManagedCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "AWSCluster",
+		},
+		{
+			name: "AzureCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AzureCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "AzureCluster",
+		},
+		{
+			name: "VSphereCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "VSphereCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "VSphereCluster",
+		},
+		{
+			name: "FooCluster",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "FooCluster"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "Generic",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.provider != getProvider(tt.template) {
+				t.Fatalf("expected %s but got %s", tt.provider, getProvider(tt.template))
+			}
+		})
+	}
+}
+
 func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
@@ -905,13 +1005,16 @@ func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {
 func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
-{
-  "apiVersion": "fooversion",
-  "kind": "fookind",
-  "metadata": {
-	"name": "${CLUSTER_NAME}"
-  }
-}`
+	{
+		"apiVersion":"fooversion",
+		"kind":"fookind",
+		"metadata":{
+		   "name":"${CLUSTER_NAME}",
+		   "annotations":{
+			  "capi.weave.works/display-name":"ClusterName"
+		   }
+		}
+	 }`
 	ct := &capiv1.CAPITemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "CAPITemplate",

@@ -575,7 +575,7 @@
         "description": {
           "type": "string"
         },
-        "version": {
+        "provider": {
           "type": "string"
         },
         "parameters": {
@@ -584,9 +584,6 @@
             "$ref": "#/definitions/v1Parameter"
           }
         },
-        "body": {
-          "type": "string"
-        },
         "objects": {
           "type": "array",
           "items": {
@@ -594,9 +591,6 @@
           }
         },
         "error": {
-          "type": "string"
-        },
-        "provider": {
           "type": "string"
         }
       }
@@ -617,6 +611,9 @@
           }
         },
         "name": {
+          "type": "string"
+        },
+        "displayName": {
           "type": "string"
         }
       }

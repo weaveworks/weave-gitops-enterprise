@@ -55,7 +55,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
 
-		WEGO_BIN_PATH := GetWegoBinPath()
+		GITOPS_BIN_PATH := GetGitopsBinPath()
 
 		templateFiles := []string{}
 
@@ -91,9 +91,36 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When Capi Templates are available in the cluster", func() {
 			It("Verify template(s) are rendered from the template library.", func() {
+				awsTemplateCount := 2
+				eksFargateTemplateCount := 2
+				azureTemplateCount := 3
+				capdTemplateCount := 5
+				totalTemplateCount := awsTemplateCount + eksFargateTemplateCount + azureTemplateCount + capdTemplateCount
 
-				noOfTemplates := 5
-				templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-capitemplate.yaml")
+				ordered_template_list := func() []string {
+					expected_list := make([]string, totalTemplateCount)
+					for i := 0; i < 2; i++ {
+						expected_list[i] = fmt.Sprintf("aws-cluster-template-%d", i)
+					}
+					for i := 0; i < 3; i++ {
+						expected_list[i] = fmt.Sprintf("azure-capi-quickstart-template-%d", i)
+					}
+					for i := 0; i < 5; i++ {
+						expected_list[i] = fmt.Sprintf("cluster-template-development-%d", i)
+					}
+					for i := 0; i < 2; i++ {
+						expected_list[i] = fmt.Sprintf("eks-fargate-template-%d", i)
+					}
+					sort.Strings(expected_list)
+					return expected_list
+				}()
+
+				By("Apply/Install CAPITemplate", func() {
+					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(5, "capi-server-v1-template-capd.yaml")...)
+					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(3, "capi-server-v1-template-azure.yaml")...)
+					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-aws.yaml")...)
+					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
+				})
 
 				pages.NavigateToPage(webDriver, "Templates")
 				templatesPage := pages.GetTemplatesPage(webDriver)
@@ -107,20 +134,69 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					templateCount, _ := strconv.Atoi(count)
 					tileCount, _ := templatesPage.TemplateTiles.Count()
 
-					Eventually(templateCount).Should(Equal(noOfTemplates), "The template header count should be equal to templates created")
-					Eventually(tileCount).Should(Equal(noOfTemplates), "The number of template tiles rendered should be equal to number of templates created")
+					Eventually(templateCount).Should(Equal(totalTemplateCount), "The template header count should be equal to templates created")
+					Eventually(tileCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
+				})
 
-					// Testing templates are ordered
-					expected_list := make([]string, noOfTemplates)
-					for i := 0; i < noOfTemplates; i++ {
-						expected_list[i] = fmt.Sprintf("cluster-template-%d", i)
+				By("And I should change the templates view to 'table'", func() {
+					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
+					rowCount, _ := templatesPage.TemplatesTable.Count()
+					Eventually(rowCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
+
+				})
+
+				By("And templates are ordered - table view", func() {
+					actual_list := templatesPage.GetTemplateTableList()
+					for i := 0; i < totalTemplateCount; i++ {
+						Expect(actual_list[i]).Should(ContainSubstring(ordered_template_list[i]))
 					}
-					sort.Strings(expected_list)
+				})
 
+				By("And templates can be filtered by provider - table view", func() {
+					// Select cluster provider by selecting from the popup list
+					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
+					Expect(templatesPage.SelectProvider("Generic").Click()).To(Succeed())
+
+					rowCount, _ := templatesPage.TemplatesTable.Count()
+					Eventually(rowCount).Should(Equal(capdTemplateCount), "The number of DockerCluster provider template tiles rendered should be equal to number of CAPD templates created")
+
+					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
+					Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(Succeed()) // sending back space key
+
+					rowCount, _ = templatesPage.TemplateTiles.Count()
+					Eventually(rowCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
+
+				})
+
+				By("And I should change the templates view to 'grid'", func() {
+					Expect(templatesPage.SelectView("grid").Click()).To(Succeed())
+					tileCount, _ := templatesPage.TemplateTiles.Count()
+					Eventually(tileCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
+				})
+
+				By("And templates are ordered - grid view", func() {
 					actual_list := templatesPage.GetTemplateTileList()
-					for i := 0; i < noOfTemplates; i++ {
-						Expect(actual_list[i]).Should(ContainSubstring(expected_list[i]))
+					for i := 0; i < totalTemplateCount; i++ {
+						Expect(actual_list[i]).Should(ContainSubstring(ordered_template_list[i]))
 					}
+				})
+
+				By("And templates can be filtered by provider - grid view", func() {
+					// Select cluster provider by selecting from the popup list
+					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
+					Expect(templatesPage.SelectProvider("AWSCluster").Click()).To(Succeed())
+
+					tileCount, _ := templatesPage.TemplateTiles.Count()
+					Eventually(tileCount).Should(Equal(awsTemplateCount+eksFargateTemplateCount), "The number of AWSCluster provider template tiles rendered should be equal to number of AWS templates created")
+
+					// Select cluster provider by typing the provider name
+					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
+					Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(Succeed()) // sending back space key
+					Expect(templatesPage.TemplateProvider.SendKeys("AzureCluster")).To(Succeed())
+					Expect(templatesPage.TemplateProviderPopup.At(0).Click()).To(Succeed())
+
+					tileCount, _ = templatesPage.TemplateTiles.Count()
+					Eventually(tileCount).Should(Equal(azureTemplateCount), "The number of AzureCluster provider template tiles rendered should be equal to number of Azure templates created")
 				})
 			})
 		})
@@ -137,7 +213,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					templatesPage.WaitForPageToLoad(webDriver)
 				})
 
-				By("And User should choose a template", func() {
+				By("And I should choose a template - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-9")
 
 					Eventually(templateTile.Description).Should(MatchText("This is test template 9"))
@@ -145,7 +221,29 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
 				})
 
-				By("And wait for Create cluster page to be fully rendered", func() {
+				By("And wait for Create cluster page to be fully rendered - grid view", func() {
+					createPage := pages.GetCreateClusterPage(webDriver)
+					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+				})
+
+				By("And I should change the templates view to 'table'", func() {
+					pages.NavigateToPage(webDriver, "Templates")
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					templatesPage.WaitForPageToLoad(webDriver)
+
+					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
+				})
+
+				By("And I should choose a template - table view", func() {
+
+					templateRow := pages.GetTemplateRow(webDriver, "cluster-template-10")
+					Eventually(templateRow.Provider).Should(MatchText("Generic"))
+					Eventually(templateRow.Description).Should(MatchText("This is test template 10"))
+					Expect(templateRow.CreateTemplate).Should(BeFound())
+					Expect(templateRow.CreateTemplate.Click()).To(Succeed())
+				})
+
+				By("And wait for Create cluster page to be fully rendered - table view", func() {
 					createPage := pages.GetCreateClusterPage(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
@@ -223,16 +321,20 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					templatesPage.WaitForPageToLoad(webDriver)
 				})
 
-				By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "eks-fargate-template-0")
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+				By("And I should change the templates view to 'table'", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
+				})
+
+				By("And I should choose a template - table view", func() {
+					templateRow := pages.GetTemplateRow(webDriver, "eks-fargate-template-0")
+					Expect(templateRow.CreateTemplate.Click()).To(Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
 					createPage.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
-					// Eventually(createPage.TemplateName).Should(MatchText(".*eks-fargate-template-0.*"))
 				})
 
 				clusterName := "my-eks-cluster"
@@ -240,14 +342,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				sshKey := "abcdef1234567890"
 				k8Version := "1.19.7"
 				paramSection := make(map[string][]TemplateField)
-				paramSection["Cluster/${CLUSTER_NAME}"] = []TemplateField{
+				paramSection["1.Cluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
 					},
 				}
-				paramSection["AWSManagedControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["3.AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  region,
@@ -335,7 +437,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -407,7 +509,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			FIt("@integration Verify pull request can not be created by using exiting repository branch", func() {
+			It("@integration Verify pull request can not be created by using exiting repository branch", func() {
 
 				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer func() {
@@ -459,7 +561,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -595,7 +697,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				awsNodeMAchineType := "t3.micro"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["AWSCluster/${CLUSTER_NAME}"] = []TemplateField{
+				paramSection["2.AWSCluster"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  awsRegion,
@@ -618,7 +720,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["KubeadmControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["3.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -631,7 +733,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["AWSMachineTemplate/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["4.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  awsControlMAchineType,
@@ -639,7 +741,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["5.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -647,7 +749,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["AWSMachineTemplate/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["6.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_NODE_MACHINE_TYPE",
 						Value:  awsNodeMAchineType,
@@ -715,7 +817,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				azureNodeMAchineType := "Dasv4"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["AzureCluster/${CLUSTER_NAME}"] = []TemplateField{
+				paramSection["2.AzureCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  azureClusterName,
@@ -728,7 +830,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["KubeadmControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["3.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -741,7 +843,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["AzureMachineTemplate/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["4.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  azureControlMAchineType,
@@ -749,7 +851,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["5.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -757,7 +859,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["AzureMachineTemplate/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["6.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
 						Value:  azureNodeMAchineType,
@@ -783,6 +885,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
+			appName := "management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 
 			JustBeforeEach(func() {
@@ -800,8 +903,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
-				deleteClusters([]string{capdClusterName})
-				resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
+
+				mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				log.Println("Deleting all the wkp agents")
 				_ = mccpTestRunner.KubectlDeleteAllAgents([]string{})
@@ -810,11 +915,6 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			})
 
 			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
-
-				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				defer func() {
-					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				}()
 
 				By("And template repo does not already exist", func() {
 					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
@@ -829,18 +929,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
-				By("And I reset wego runtime", func() {
-					resetWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+				By("And I install gitops to my active cluster", func() {
+					Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
 				})
 
-				By("And I install wego to my active cluster", func() {
-					Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", WEGO_BIN_PATH))
-					installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-				})
-
-				addCommand := "app add . --path=./management  --name=management  --auto-merge=true"
-				By(fmt.Sprintf("And I run wego app add command '%s in namespace %s from dir %s'", addCommand, WEGO_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
-					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+				addCommand := fmt.Sprintf("app add . --path=./management  --name=%s  --auto-merge=true", appName)
+				By(fmt.Sprintf("And I run gitops app add command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
+					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
 					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
 					Eventually(session).Should(gexec.Exit())
@@ -877,7 +973,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,

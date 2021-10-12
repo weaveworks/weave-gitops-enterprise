@@ -31,10 +31,11 @@ func ToTemplateResponse(t *capiv1.CAPITemplate) *capiv1_proto.Template {
 	}
 	for _, o := range meta.Objects {
 		res.Objects = append(res.Objects, &capiv1_proto.TemplateObject{
-			Kind:       o.Kind,
-			ApiVersion: o.APIVersion,
-			Parameters: o.Params,
-			Name:       o.Name,
+			Kind:        o.Kind,
+			ApiVersion:  o.APIVersion,
+			Parameters:  o.Params,
+			Name:        o.Name,
+			DisplayName: o.DisplayName,
 		})
 	}
 

@@ -4,7 +4,6 @@ import theme from 'weaveworks-ui-components/lib/theme';
 import { Skeleton } from '@material-ui/lab';
 import { random, sortBy } from 'lodash';
 import {
-  Box,
   TableCell,
   TableRow,
   Tooltip as Mtooltip,
@@ -16,10 +15,11 @@ import {
   GitCommitInfo,
   FluxInfo,
 } from '../types/kubernetes';
-import { CircularProgress } from 'weaveworks-ui-components';
 import GitUrlParse from 'git-url-parse';
 import { SparkTimeline } from './SparkTimeline';
 import { getClusterStatus, ReadyStatus } from './Clusters/Status';
+import { Loader } from './Loader';
+import Box from '@material-ui/core/Box';
 
 export const SafeAnchor: FC<AnchorHTMLAttributes<HTMLAnchorElement>> = ({
   children,
@@ -42,7 +42,6 @@ export interface FinishMessage {
   success: boolean;
   message: string;
 }
-export type HandleFinish = (done: FinishMessage) => void;
 
 export const NameLink = styled(SafeAnchor)`
   display: block;
@@ -72,19 +71,11 @@ export const NotAvailable = styled.span`
   font-family: ${theme.fontFamilies.regular};
 `;
 
-export const Status: FC<{
+const Status: FC<{
   status?: ClusterStatus;
   updatedAt?: string;
   connecting?: boolean;
-}> = ({ status, updatedAt, connecting }) => {
-  if (connecting && status === 'notConnected') {
-    return (
-      <Box display="flex">
-        <span>Waiting for connection from agent...</span>
-        <CircularProgress center size="small" />
-      </Box>
-    );
-  }
+}> = ({ status, updatedAt }) => {
   return status ? (
     <ReadyStatus
       status={getClusterStatus(status)}
@@ -96,6 +87,34 @@ export const Status: FC<{
   );
 };
 
+export const statusBox = (cluster: Cluster, connecting: boolean) => {
+  if (connecting && cluster.status === 'notConnected') {
+    return (
+      <Box
+        lineHeight="24px"
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        my={2}
+      >
+        <span>Waiting for connection from agent ...</span>
+        <Loader />
+      </Box>
+    );
+  }
+  return (
+    <Box lineHeight="24px" display="flex" my={2}>
+      <Box color="text.secondary" mr={1}>
+        Cluster status
+      </Box>
+      <Status
+        connecting
+        updatedAt={cluster.updatedAt}
+        status={cluster.status}
+      />
+    </Box>
+  );
+};
 export const Code = styled.div`
   display: flex;
   align-self: center;

@@ -20,12 +20,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if eq .Values.dbConfig.databaseType "sqlite" }}
-      {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
-      nodeSelector:
-        wkp-database-volume-node: "true"
-      {{- end }}
-      {{- end }}
+      serviceAccountName: {{ include "mccp.serviceAccountName" . }}
       volumes:
       - name: git-key
         secret:
@@ -36,10 +31,6 @@ spec:
           name: gitops-broker-ssh-config
       {{- if eq .Values.dbConfig.databaseType "sqlite" }}
       - name: database-volume
-        {{- if .Values.dbConfig.sqliteConfig.hostPathVolume }}
-        hostPath:
-          path: {{ .Values.dbConfig.sqliteConfig.path }}
-        {{- end }}
         {{- if .Values.dbConfig.sqliteConfig.persistentVolumeClaim.enabled }}
         persistentVolumeClaim:
           claimName: {{ .Values.dbConfig.sqliteConfig.persistentVolumeClaim.existingClaimName | default "wge-volume" }}

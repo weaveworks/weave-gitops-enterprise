@@ -41,6 +41,7 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 		--build-arg=version=$(VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) \
 		--file cmd/event-writer/Dockerfile \
         .

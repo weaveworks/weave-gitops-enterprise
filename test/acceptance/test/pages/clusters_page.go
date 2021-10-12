@@ -143,7 +143,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		ClusterCount:                          webDriver.Find(`.count-header .section-header-count`),
 		ConnectClusterButton:                  webDriver.Find(`#connect-cluster`),
 		PRDeleteClusterButton:                 webDriver.Find(`#delete-cluster`),
-		NoFiringAlertMessage:                  webDriver.Find(`#firing-alerts i`),
+		NoFiringAlertMessage:                  webDriver.Find(`#firing-alerts caption`),
 		FiringAlertsSection:                   webDriver.Find(`#firing-alerts`),
 		FiringAlertsHeader:                    webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[1]/div`),
 		FiringAlertsNavCtl:                    webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[2]/div/p/span/span[2]`),

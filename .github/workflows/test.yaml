@@ -54,7 +54,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Configure git for private modules
       env:
         GITHUB_BUILD_USERNAME: wge-build-bot
@@ -109,7 +109,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Configure git for private modules
       env:
         GITHUB_BUILD_USERNAME: wge-build-bot
@@ -194,7 +194,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Configure git for private modules
       env:
         GITHUB_BUILD_USERNAME: wge-build-bot
@@ -246,7 +246,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Configure git for private modules
       env:
         GITHUB_BUILD_USERNAME: wge-build-bot
@@ -275,14 +275,6 @@ jobs:
         go mod download
     - name: Setup selenium server
       run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb
-        sudo apt-get install -y google-chrome-stable
-
-        wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo mv -f chromedriver /usr/local/bin/chromedriver
-
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
         # Start selenium server in standalone mode
@@ -314,7 +306,7 @@ jobs:
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp
-      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-linux-x86_64
+      GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
       MCCP_ACCEPTANCE: true
@@ -327,7 +319,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Configure git for private modules
       env:
         GITHUB_BUILD_USERNAME: wge-build-bot
@@ -352,7 +344,7 @@ jobs:
         go mod download
     - name: Install clusterctl
       run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-linux-amd64 -o clusterctl
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-linux-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
@@ -370,27 +362,19 @@ jobs:
       with:
         name: mccp-binaries
         path: cmd/mccp
-    - name: Download wego binary from GitHub
+    - name: Download gitops binary from GitHub
       uses: Legion2/download-release-action@v2.1.0
       with:
         repository: weaveworks/weave-gitops
-        tag: 'v0.2.4'
-        path: cmd/wego/
-        file: wego-linux-x86_64
+        tag: 'v0.3.0'
+        path: cmd/gitops/
+        file: gitops-linux-x86_64
     - name: Change bin permissions
       run: |
         sudo chmod +x ${{ env.MCCP_BIN_PATH }}
-        sudo chmod +x ${{ env.WEGO_BIN_PATH }}
+        sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb
-        sudo apt-get install -y google-chrome-stable
-
-        wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo mv -f chromedriver /usr/local/bin/chromedriver
-
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
         # Start selenium server in standalone mode
@@ -407,12 +391,11 @@ jobs:
         kubectl get pods -A    
     - name: Install mccp components on management cluster
       run: |
-        CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        export CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
         
-        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
-        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &
+        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
     - name: Run smoke tests
       run: |
         cd test/acceptance/test/
@@ -437,7 +420,7 @@ jobs:
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp
-      WEGO_BIN_PATH: ${{ github.workspace }}/cmd/wego/wego-linux-x86_64
+      GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-linux-amd64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
@@ -453,7 +436,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Configure git for private modules
       env:
         GITHUB_BUILD_USERNAME: wge-build-bot
@@ -478,7 +461,7 @@ jobs:
         go mod download
     - name: Install clusterctl
       run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v0.4.2/clusterctl-linux-amd64 -o clusterctl
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-linux-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
@@ -496,32 +479,19 @@ jobs:
       with:
         name: mccp-binaries
         path: cmd/mccp
-    - name: Download wego binary from GitHub
+    - name: Download gitops binary from GitHub
       uses: Legion2/download-release-action@v2.1.0
       with:
         repository: weaveworks/weave-gitops
-        tag: 'v0.2.4'
-        path: cmd/wego/
-        file: wego-linux-x86_64
-    - name: Download wk binary from s3
-      run: |
-        mkdir -p cmd/wk/
-        curl -o ${{ env.WKP_BIN_PATH }} https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-linux-amd64
+        tag: 'v0.3.0'
+        path: cmd/gitops/
+        file: gitops-linux-x86_64
     - name: Change bin permissions
       run: |
         sudo chmod +x ${{ env.MCCP_BIN_PATH }}
-        sudo chmod +x ${{ env.WEGO_BIN_PATH }}
-        sudo chmod +x ${{ env.WKP_BIN_PATH }}  
+        sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb
-        sudo apt-get install -y google-chrome-stable
-
-        wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo mv -f chromedriver /usr/local/bin/chromedriver
-
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
         # Start selenium server in standalone mode
@@ -538,11 +508,11 @@ jobs:
         kubectl get pods -A        
     - name: Install mccp components on management cluster
       run: |
-        CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        export CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
         
-        ./test/utils/scripts/wego-enterprise.sh setup $CLUSTER_REPOSITORY ${{ github.workspace }}
+        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
         kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &       
     - name: Run acceptance tests
       run: |
