@@ -8,9 +8,6 @@ import { useApplicationsCount } from './utils';
 const WGApplicationDetail: FC = () => {
   const applicationsCount = useApplicationsCount();
 
-  const queryParams = new URLSearchParams(window.location.search);
-  const name = queryParams.get('name');
-
   return (
     <PageTemplate documentTitle="WeGO · Application Detail">
       <SectionHeader
