@@ -70,6 +70,8 @@ const TemplatesDashboard: FC = () => {
     value: string | null | undefined,
   ) => setSelectedProvider(value);
 
+  const validProviders = providers.filter(provider => provider !== '');
+
   const titleSection = (
     <TitleSection>
       {view === 'grid' ? (
@@ -84,7 +86,7 @@ const TemplatesDashboard: FC = () => {
           value={selectedProvider}
           disablePortal
           id="filter-by-provider"
-          options={providers}
+          options={validProviders}
           onChange={onProviderChange}
           clearOnEscape
           blurOnSelect="mouse"

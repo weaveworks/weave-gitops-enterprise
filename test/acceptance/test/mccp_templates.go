@@ -155,10 +155,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				By("And templates can be filtered by provider - table view", func() {
 					// Select cluster provider by selecting from the popup list
 					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
-					Expect(templatesPage.SelectProvider("Generic").Click()).To(Succeed())
+					Expect(templatesPage.SelectProvider("aws").Click()).To(Succeed())
 
 					rowCount, _ := templatesPage.TemplatesTable.Count()
-					Eventually(rowCount).Should(Equal(capdTemplateCount), "The number of DockerCluster provider template tiles rendered should be equal to number of CAPD templates created")
+					Eventually(rowCount).Should(Equal(4), "The number of selected template tiles rendered should be equal to number of aws templates created")
 
 					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
 					Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(Succeed()) // sending back space key
@@ -184,19 +184,19 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				By("And templates can be filtered by provider - grid view", func() {
 					// Select cluster provider by selecting from the popup list
 					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
-					Expect(templatesPage.SelectProvider("AWSCluster").Click()).To(Succeed())
+					Expect(templatesPage.SelectProvider("aws").Click()).To(Succeed())
 
 					tileCount, _ := templatesPage.TemplateTiles.Count()
-					Eventually(tileCount).Should(Equal(awsTemplateCount+eksFargateTemplateCount), "The number of AWSCluster provider template tiles rendered should be equal to number of AWS templates created")
+					Eventually(tileCount).Should(Equal(awsTemplateCount+eksFargateTemplateCount), "The number of aws provider template tiles rendered should be equal to number of aws templates created")
 
 					// Select cluster provider by typing the provider name
 					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
 					Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(Succeed()) // sending back space key
-					Expect(templatesPage.TemplateProvider.SendKeys("AzureCluster")).To(Succeed())
+					Expect(templatesPage.TemplateProvider.SendKeys("azure")).To(Succeed())
 					Expect(templatesPage.TemplateProviderPopup.At(0).Click()).To(Succeed())
 
 					tileCount, _ = templatesPage.TemplateTiles.Count()
-					Eventually(tileCount).Should(Equal(azureTemplateCount), "The number of AzureCluster provider template tiles rendered should be equal to number of Azure templates created")
+					Eventually(tileCount).Should(Equal(azureTemplateCount), "The number of azure provider template tiles rendered should be equal to number of azure templates created")
 				})
 			})
 		})
@@ -237,7 +237,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				By("And I should choose a template - table view", func() {
 
 					templateRow := pages.GetTemplateRow(webDriver, "cluster-template-10")
-					Eventually(templateRow.Provider).Should(MatchText("Generic"))
+					Eventually(templateRow.Provider).Should(MatchText(""))
 					Eventually(templateRow.Description).Should(MatchText("This is test template 10"))
 					Expect(templateRow.CreateTemplate).Should(BeFound())
 					Expect(templateRow.CreateTemplate.Click()).To(Succeed())
