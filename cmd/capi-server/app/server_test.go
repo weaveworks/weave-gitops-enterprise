@@ -12,6 +12,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,12 +55,21 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 	appFactory := &apputilsfakes.FakeAppFactory{}
 	kubeClient := &kubefakes.FakeKube{}
+	jwtClient := &authfakes.FakeJWTClient{
+		VerifyJWTStub: func(s string) (*auth.Claims, error) {
+			return &auth.Claims{
+				ProviderToken: "provider-token",
+			}, nil
+		},
+	}
 	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 		return kubeClient, nil
 	}
 	return &wego_server.ApplicationsConfig{
 		AppFactory: appFactory,
 		KubeClient: c,
+		Logger:     logr.Discard(),
+		JwtClient:  jwtClient,
 	}
 }
 

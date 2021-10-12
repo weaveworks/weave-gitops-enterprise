@@ -28,6 +28,7 @@ var DefaultBackoff = wait.Backoff{
 type Provider interface {
 	WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error)
 	CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error)
+	GetRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error)
 }
 
 type GitProviderService struct {
@@ -77,7 +78,7 @@ type CloneRepoToTempDirResponse struct {
 // It returns the URL of the pull request.
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	repo, err := s.getRepository(ctx, req.GitProvider, req.RepositoryURL)
+	repo, err := s.GetRepository(ctx, req.GitProvider, req.RepositoryURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get repo: %w", err)
 	}
@@ -155,7 +156,7 @@ type GitRepo struct {
 	Auth        *http.BasicAuth
 }
 
-func (s *GitProviderService) getRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error) {
+func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error) {
 	c, err := getGitProviderClient(gp)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get a git provider client for %q: %w", gp.Type, err)

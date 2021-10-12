@@ -37,16 +37,19 @@ const TemplatesProvider: FC = ({ children }) => {
   );
 
   const addCluster = useCallback(
-    ({ ...data }) => {
+    ({ ...data }, token) => {
       setCreatingPR(true);
-      request('POST', '/v1/clusters', {
-        body: JSON.stringify(data),
-      })
-        .then(() => history.push('/clusters'))
-        .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
-        )
-        .finally(() => setCreatingPR(false));
+      return (
+        request('POST', '/v1/clusters', {
+          body: JSON.stringify(data),
+          headers: new Headers({ Authorization: `token ${token}` }),
+        })
+          // .then(() => history.push('/clusters'))
+          // .catch(err =>
+          //   setNotifications([{ message: err.message, variant: 'danger' }]),
+          // )
+          .finally(() => setCreatingPR(false))
+      );
     },
     [history, setNotifications],
   );

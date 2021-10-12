@@ -3,7 +3,7 @@ module github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server
 go 1.17
 
 require (
-	github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787
+	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc
 	github.com/go-logr/logr v1.1.0
 	github.com/go-logr/zapr v1.1.0
 	github.com/google/go-cmp v0.5.6
@@ -16,7 +16,7 @@ require (
 	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d
+	github.com/weaveworks/weave-gitops v0.3.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
 	github.com/xanzy/go-gitlab v0.43.0

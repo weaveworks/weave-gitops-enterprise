@@ -32,6 +32,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	appsv1 "k8s.io/api/apps/v1"
@@ -608,9 +610,19 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		Namespace: "default",
 	}
 
+	jwtClient := &authfakes.FakeJWTClient{
+		VerifyJWTStub: func(s string) (*auth.Claims, error) {
+			return &auth.Claims{
+				ProviderToken: "provider-token",
+			}, nil
+		},
+	}
+
 	fakeAppsConfig := &wego_server.ApplicationsConfig{
 		AppFactory: &apputilsfakes.FakeAppFactory{},
 		KubeClient: cl,
+		JwtClient:  jwtClient,
+		Logger:     logr.Discard(),
 	}
 
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", fakeAppsConfig, client.ObjectKey{Name: "entitlement", Namespace: "default"}, logr.Discard())
