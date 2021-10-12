@@ -841,7 +841,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 							return string(session.Wait().Out.Contents())
 
 						}
-						Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
+						Eventually(output, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
 					})
 
 					By(fmt.Sprintf("Then I run 'mccp clusters get cli-end-to-end-capd-cluster --kubeconfig --endpoint %s'", CAPI_ENDPOINT_URL), func() {
@@ -853,7 +853,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 							return string(session.Wait().Out.Contents())
 
 						}
-						Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
+						Eventually(output, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
 					})
 				}
 
@@ -910,7 +910,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 						return string(session.Wait().Out.Contents())
 
 					}
-					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName)))
+					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName)))
 				})
 
 				By(fmt.Sprintf("And I should see the '%s' cluster status remains unchanged as 'clusterFound'", clusterName2), func() {
@@ -933,36 +933,41 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 		Context("[CLI] When entitlement is available in the cluster", func() {
 			DEPLOYMENT_APP := "my-mccp-cluster-service"
 
-			checkEntitlement := func(typeEntitelment string) {
-				checkOutput := func() {
-					switch typeEntitelment {
-					case "expired":
-						Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(`Your entitlement for Weave GitOps Enterprise has expired"`))
-					case "invalid", "missing":
-						Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(`No entitlement was found for Weave GitOps Enterprise`))
-					default:
-						Eventually(string(session.Wait().Err.Contents())).ShouldNot(MatchRegexp(`Your entitlement for Weave GitOps Enterprise has expired"`))
-						Eventually(string(session.Wait().Err.Contents())).ShouldNot(MatchRegexp(`No entitlement was found for Weave GitOps Enterprise`))
+			checkEntitlement := func(typeEntitelment string, beFound bool) {
+				checkOutput := func() bool {
+					msg := string(session.Wait().Err.Contents()) + " " + string(session.Wait().Out.Contents())
+
+					if typeEntitelment == "expired" {
+						re := regexp.MustCompile(`Your entitlement for Weave GitOps Enterprise has expired`)
+						return re.MatchString(msg)
 					}
+					re := regexp.MustCompile(`No entitlement was found for Weave GitOps Enterprise`)
+					return re.MatchString(msg)
+
+				}
+
+				matcher := BeFalse
+				if beFound {
+					matcher = BeTrue
 				}
 
 				log.Printf("Running 'mccp templates list --endpoint %s'", CAPI_ENDPOINT_URL)
 				command := exec.Command(MCCP_BIN_PATH, "templates", "list", "--endpoint", CAPI_ENDPOINT_URL)
 				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).ShouldNot(HaveOccurred())
-				checkOutput()
+				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 
 				log.Printf("Running 'mccp templates render aws-cluster-template-0 --list-credentials --endpoint %s", CAPI_ENDPOINT_URL)
 				command = exec.Command(MCCP_BIN_PATH, "templates", "render", "aws-cluster-template-0", "--list-credentials", "--endpoint", CAPI_ENDPOINT_URL)
 				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).ShouldNot(HaveOccurred())
-				checkOutput()
+				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 
 				log.Printf("Running 'mccp clusters list --endpoint %s'", CAPI_ENDPOINT_URL)
 				command = exec.Command(MCCP_BIN_PATH, "clusters", "list", "--endpoint", CAPI_ENDPOINT_URL)
 				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).ShouldNot(HaveOccurred())
-				checkOutput()
+				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 			}
 
 			JustBeforeEach(func() {
@@ -981,7 +986,8 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should not see the error or warning message for valid entitlement", func() {
-					checkEntitlement("")
+					checkEntitlement("expired", false)
+					checkEntitlement("invalid", false)
 				})
 
 				mccpTestRunner.DeleteIPCredentials("AWS")
@@ -998,7 +1004,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should see the error message for missing entitlement", func() {
-					checkEntitlement("invalid")
+					checkEntitlement("missing", true)
 				})
 
 				By("When I apply the expired entitlement", func() {
@@ -1010,7 +1016,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should see the warning message for expired entitlement", func() {
-					checkEntitlement("expired")
+					checkEntitlement("expired", true)
 				})
 
 				By("When I apply the invalid entitlement", func() {
@@ -1022,7 +1028,7 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should see the error message for invalid entitlement", func() {
-					checkEntitlement("missing")
+					checkEntitlement("invalid", true)
 				})
 			})
 		})

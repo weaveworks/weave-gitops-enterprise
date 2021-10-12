@@ -103,8 +103,8 @@ const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 const ASSERTION_6MINUTE_TIME_OUT time.Duration = 6 * time.Minute
 
-const UI_POLL_INTERVAL time.Duration = 15 * time.Second
-const CLI_POLL_INTERVAL time.Duration = 5 * time.Second
+const POLL_INTERVAL_15SECONDS time.Duration = 15 * time.Second
+const POLL_INTERVAL_5SECONDS time.Duration = 5 * time.Second
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -547,7 +547,7 @@ func (b RealMCCPTestRunner) CheckClusterService() {
 		Expect(err).ShouldNot(HaveOccurred())
 		return string(session.Wait(ASSERTION_30SECONDS_TIME_OUT).Out.Contents())
 	}
-	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("200"), "Cluster Service is not healthy")
+	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp("200"), "Cluster Service is not healthy")
 }
 
 func (b RealMCCPTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
@@ -619,7 +619,7 @@ func (b RealMCCPTestRunner) DeleteRepo(repoName string) {
 		Expect(err).ShouldNot(HaveOccurred())
 		return string(session.Wait().Err.Contents())
 	}
-	Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("Repository not found"))
+	Eventually(output, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp("Repository not found"))
 }
 
 func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
@@ -638,7 +638,7 @@ func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRep
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 
-	Expect(WaitUntil(os.Stdout, CLI_POLL_INTERVAL, ASSERTION_1MINUTE_TIME_OUT, func() error {
+	Expect(WaitUntil(os.Stdout, POLL_INTERVAL_5SECONDS, ASSERTION_1MINUTE_TIME_OUT, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, repoName)
 		command := exec.Command("sh", "-c", cmd)
 		return command.Run()
