@@ -9,7 +9,7 @@ require (
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-logr/logr v1.1.0
 	github.com/go-playground/validator/v10 v10.4.1
-	github.com/go-resty/resty/v2 v2.5.0
+	github.com/go-resty/resty/v2 v2.6.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
@@ -29,7 +29,7 @@ require (
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/libgitops v0.0.3
 	github.com/weaveworks/pctl v0.8.0
-	github.com/weaveworks/weave-gitops v0.3.0
+	github.com/weaveworks/weave-gitops v0.3.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	github.com/weaveworks/wksctl v0.10.2
@@ -76,7 +76,7 @@ require (
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/fatih/structs v1.1.0 // indirect
-	github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787 // indirect
+	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc // indirect
 	github.com/fluxcd/helm-controller/api v0.11.2 // indirect
 	github.com/fluxcd/kustomize-controller/api v0.14.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
