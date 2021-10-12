@@ -19,6 +19,12 @@ declare module '@weaveworks/weave-gitops' {
     {},
     never
   >;
+  export declare const ApplicationAdd: import('styled-components').StyledComponent<
+    ({ className }: { className?: string }) => JSX.Element,
+    import('styled-components').DefaultTheme,
+    {},
+    never
+  >;
   export declare const applicationsClient: typeof appsClient;
   export declare const useApplications: typeof _useApplications;
   export declare const LoadingPage: typeof _LoadingPage;
