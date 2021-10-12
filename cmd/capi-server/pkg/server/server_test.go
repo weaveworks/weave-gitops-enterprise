@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/api/v1alpha1"
@@ -511,7 +512,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "test-cluster",
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
 			name: "value contains non alphanumeric",
@@ -1124,4 +1125,11 @@ func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) 
 		return nil, p.err
 	}
 	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
+}
+
+func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider, url string) (gitprovider.OrgRepository, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+	return nil, nil
 }

@@ -33,6 +33,11 @@ import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import { Loader } from '../../Loader';
+import {
+  getProviderToken,
+  GithubDeviceAuthModal,
+  isUnauthenticated,
+} from '@weaveworks/weave-gitops';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -139,6 +144,7 @@ const AddCluster: FC = () => {
   const [formData, setFormData] = useState({});
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [branchName, setBranchName] = useState<string>(
     `create-clusters-branch-${random}`,
   );
@@ -224,16 +230,25 @@ const AddCluster: FC = () => {
   );
 
   const handleAddCluster = useCallback(() => {
-    addCluster({
-      credentials: infraCredential,
-      head_branch: branchName,
-      title: pullRequestTitle,
-      description: pullRequestDescription,
-      template_name: activeTemplate?.name,
-      commit_message: commitMessage,
-      parameter_values: {
-        ...formData,
+    addCluster(
+      {
+        credentials: infraCredential,
+        head_branch: branchName,
+        title: pullRequestTitle,
+        description: pullRequestDescription,
+        template_name: activeTemplate?.name,
+        commit_message: commitMessage,
+        parameter_values: {
+          ...formData,
+        },
       },
+      getProviderToken('github'),
+    ).catch(({ code }) => {
+      console.log('OH NO!', code, isUnauthenticated);
+      if (isUnauthenticated(code)) {
+        console.log('show it');
+        setShowAuthDialog(true);
+      }
     });
   }, [
     addCluster,
@@ -451,6 +466,16 @@ const AddCluster: FC = () => {
                   )}
                 </>
               ) : null}
+              <GithubDeviceAuthModal
+                onClose={() => {
+                  console.log('onClose');
+                }}
+                onSuccess={() => {
+                  console.log('onClose');
+                }}
+                open={showAuthDialog}
+                repoName="config"
+              />
             </Grid>
             <Grid className={classes.steps} item md={3}>
               <FormStepsNavigation

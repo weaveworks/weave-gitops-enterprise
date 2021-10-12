@@ -21,8 +21,11 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	grpcStatus "google.golang.org/grpc/status"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/discovery"
@@ -163,6 +166,11 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
+	providerToken, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
+	}
+
 	if err := validateCreateClusterPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
@@ -211,6 +219,16 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		baseBranch = msg.BaseBranch
 	}
 
+	gp := git.GitProvider{
+		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
+		Token:    providerToken.AccessToken,
+		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
+	}
+	_, err = s.provider.GetRepository(ctx, gp, repositoryURL)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
+	}
+
 	var pullRequestURL string
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		t, err := common_utils.Generate()
@@ -231,11 +249,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		path := getClusterPathInRepo(clusterName)
 		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider: git.GitProvider{
-				Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-				Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
-				Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-			},
+			GitProvider:   gp,
 			RepositoryURL: repositoryURL,
 			HeadBranch:    msg.HeadBranch,
 			BaseBranch:    baseBranch,

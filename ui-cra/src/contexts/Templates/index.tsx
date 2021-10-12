@@ -7,7 +7,7 @@ interface TemplatesContext {
   activeTemplate: Template | null;
   setActiveTemplate: Dispatch<React.SetStateAction<Template | null>>;
   error: string | null;
-  addCluster: (data: any) => void;
+  addCluster: (data: any, token: string) => Promise<any>;
   renderTemplate: (data: any) => void;
   getTemplate: (templateName: string) => Template | null;
   PRPreview: string | null;
