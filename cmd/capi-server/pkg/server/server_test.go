@@ -92,10 +92,11 @@ func TestListTemplates(t *testing.T) {
 					Provider:    "",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
-							Name:       string("${CLUSTER_NAME}"),
-							ApiVersion: "fooversion",
-							Kind:       "fookind",
-							Parameters: []string{"CLUSTER_NAME"},
+							Name:        string("${CLUSTER_NAME}"),
+							DisplayName: string("ClusterName"),
+							ApiVersion:  "fooversion",
+							Kind:        "fookind",
+							Parameters:  []string{"CLUSTER_NAME"},
 						},
 					},
 					Parameters: []*capiv1_protos.Parameter{
@@ -111,10 +112,11 @@ func TestListTemplates(t *testing.T) {
 					Provider:    "",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
-							Name:       string("${CLUSTER_NAME}"),
-							ApiVersion: "fooversion",
-							Kind:       "fookind",
-							Parameters: []string{"CLUSTER_NAME"},
+							Name:        string("${CLUSTER_NAME}"),
+							DisplayName: string("ClusterName"),
+							ApiVersion:  "fooversion",
+							Kind:        "fookind",
+							Parameters:  []string{"CLUSTER_NAME"},
 						},
 					},
 					Parameters: []*capiv1_protos.Parameter{
@@ -292,10 +294,11 @@ func TestGetTemplate(t *testing.T) {
 				Provider:    "",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
-						Name:       string("${CLUSTER_NAME}"),
-						ApiVersion: "fooversion",
-						Kind:       "fookind",
-						Parameters: []string{"CLUSTER_NAME"},
+						Name:        string("${CLUSTER_NAME}"),
+						DisplayName: string("ClusterName"),
+						ApiVersion:  "fooversion",
+						Kind:        "fookind",
+						Parameters:  []string{"CLUSTER_NAME"},
 					},
 				},
 				Parameters: []*capiv1_protos.Parameter{
@@ -404,7 +407,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
 			// some client might send empty credentials objects
@@ -419,7 +422,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "",
 				Namespace: "",
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
 			name: "render template with credentials",
@@ -518,7 +521,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
 			name: "value contains non alphanumeric",
@@ -1092,13 +1095,16 @@ func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {
 func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
-{
-  "apiVersion": "fooversion",
-  "kind": "fookind",
-  "metadata": {
-	"name": "${CLUSTER_NAME}"
-  }
-}`
+	{
+		"apiVersion":"fooversion",
+		"kind":"fookind",
+		"metadata":{
+		   "name":"${CLUSTER_NAME}",
+		   "annotations":{
+			  "capi.weave.works/display-name":"ClusterName"
+		   }
+		}
+	 }`
 	ct := &capiv1.CAPITemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "CAPITemplate",

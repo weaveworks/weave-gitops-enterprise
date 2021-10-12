@@ -342,14 +342,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				sshKey := "abcdef1234567890"
 				k8Version := "1.19.7"
 				paramSection := make(map[string][]TemplateField)
-				paramSection["Cluster/${CLUSTER_NAME}"] = []TemplateField{
+				paramSection["1.Cluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
 					},
 				}
-				paramSection["AWSManagedControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["3.AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  region,
@@ -437,7 +437,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -561,7 +561,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -697,7 +697,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				awsNodeMAchineType := "t3.micro"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["AWSCluster/${CLUSTER_NAME}"] = []TemplateField{
+				paramSection["2.AWSCluster"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  awsRegion,
@@ -720,7 +720,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["KubeadmControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["3.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -733,7 +733,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["AWSMachineTemplate/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["4.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  awsControlMAchineType,
@@ -741,7 +741,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["5.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -749,7 +749,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["AWSMachineTemplate/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["6.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_NODE_MACHINE_TYPE",
 						Value:  awsNodeMAchineType,
@@ -817,7 +817,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				azureNodeMAchineType := "Dasv4"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["AzureCluster/${CLUSTER_NAME}"] = []TemplateField{
+				paramSection["2.AzureCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  azureClusterName,
@@ -830,7 +830,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["KubeadmControlPlane/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["3.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -843,7 +843,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["AzureMachineTemplate/${CLUSTER_NAME}-control-plane"] = []TemplateField{
+				paramSection["4.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  azureControlMAchineType,
@@ -851,7 +851,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["5.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -859,7 +859,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					},
 				}
 
-				paramSection["AzureMachineTemplate/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["6.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
 						Value:  azureNodeMAchineType,
@@ -973,7 +973,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["MachineDeployment/${CLUSTER_NAME}-md-0"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
