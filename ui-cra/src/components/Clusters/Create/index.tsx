@@ -36,8 +36,8 @@ import { Loader } from '../../Loader';
 import {
   getProviderToken,
   GithubDeviceAuthModal,
-  isUnauthenticated,
 } from '@weaveworks/weave-gitops';
+import { isUnauthenticated } from '../../../utils/request';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -244,9 +244,7 @@ const AddCluster: FC = () => {
       },
       getProviderToken('github'),
     ).catch(({ code }) => {
-      console.log('OH NO!', code, isUnauthenticated);
       if (isUnauthenticated(code)) {
-        console.log('show it');
         setShowAuthDialog(true);
       }
     });
