@@ -120,8 +120,11 @@ func NewServer(ctx context.Context, c client.Client, entitlementSecretKey client
 	r := mux.NewRouter()
 
 	entitled := r.PathPrefix("/gitops/api").Subrouter()
-	entitled.Use(EntitlementMiddleware(ctx, log, c, entitlementSecretKey))
-	entitled.Use(CheckEntitlementMiddleware(log))
+	// entitlementMiddleware adds the entitlement in the request context so
+	// it needs to be added before checkEntitlementMiddleware which reads from
+	// the request context.
+	entitled.Use(entitlementMiddleware(ctx, log, c, entitlementSecretKey))
+	entitled.Use(checkEntitlementMiddleware(log))
 
 	entitled.HandleFunc("/agent.yaml", agent.NewGetHandler(db, params.AgentTemplateNatsURL, params.AgentTemplateAlertmanagerURL)).Methods("GET")
 	entitled.HandleFunc("/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
@@ -146,13 +149,13 @@ func NewServer(ctx context.Context, c client.Client, entitlementSecretKey client
 	return srv, nil
 }
 
-func EntitlementMiddleware(ctx context.Context, log logr.Logger, c client.Client, key types.NamespacedName) mux.MiddlewareFunc {
+func entitlementMiddleware(ctx context.Context, log logr.Logger, c client.Client, key types.NamespacedName) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return entitlement.EntitlementHandler(ctx, log, c, key, next)
 	}
 }
 
-func CheckEntitlementMiddleware(log logr.Logger) mux.MiddlewareFunc {
+func checkEntitlementMiddleware(log logr.Logger) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return entitlement.CheckEntitlementHandler(log, next)
 	}
