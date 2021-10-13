@@ -30,12 +30,33 @@ The `capi-service` requires the presence of a valid entitlement secret for it to
 
 An existing entitlement secret that you can use can be found [here](../test/utils/scripts/entitlement-secret.yaml). Alternatively, you can generate your own entitlement secret by using the `wge-credentials` binary.
 
+Create a local database (optional):
+
+```bash
+$ (cd cmd/event-writer && go run main.go database create --db-type sqlite --db-uri file:///tmp/wge.db)
+INFO[0000] created all database tables
+
+# inspect db
+$ sqlite3 /tmp/wge.db
+SQLite version 3.28.0 2019-04-15 14:49:49
+Enter ".help" for usage hints.
+
+sqlite> .tables
+alerts                 cluster_statuses       git_commits
+capi_clusters          clusters               node_info
+cluster_info           events                 pull_requests
+cluster_pull_requests  flux_info              workspaces
+sqlite>
+```
+
+Run the server:
+
 ```bash
 # Optional, configure the kube context the capi-server should use
 export KUBECONFIG=test-server-kubeconfig
 
 # Run the server configured using lots of env vars
-CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TOKEN=$GITHUB_TOKEN GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=wego-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/capi-service/main.go
+DB_URI=/tmp/wge.db CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TOKEN=$GITHUB_TOKEN GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=wego-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/capi-service/main.go
 ```
 
 You can query the local capi-server:
