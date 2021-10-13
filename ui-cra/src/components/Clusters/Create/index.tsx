@@ -10,6 +10,7 @@ import React, {
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useCredentials from '../../../contexts/Credentials';
+import useNotifications from '../../../contexts/Notifications';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
@@ -28,7 +29,11 @@ import * as Grouped from './Form/GroupedSchema';
 import * as UiTemplate from './Form/UITemplate';
 import FormSteps, { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
-import { Credential, TemplateObject } from '../../../types/custom';
+import {
+  Credential,
+  GrpcErrorCodes,
+  TemplateObject,
+} from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
@@ -36,7 +41,6 @@ import { Loader } from '../../Loader';
 import {
   getProviderToken,
   GithubDeviceAuthModal,
-  isUnauthenticated,
 } from '@weaveworks/weave-gitops';
 
 const large = weaveTheme.spacing.large;
@@ -166,6 +170,7 @@ const AddCluster: FC = () => {
   const [infraCredential, setInfraCredential] =
     useState<Credential | null>(null);
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
+  const { setNotifications } = useNotifications();
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -243,13 +248,15 @@ const AddCluster: FC = () => {
         },
       },
       getProviderToken('github'),
-    ).catch(({ code }) => {
-      console.log('OH NO!', code, isUnauthenticated);
-      if (isUnauthenticated(code)) {
-        console.log('show it');
-        setShowAuthDialog(true);
-      }
-    });
+    )
+      .then(() => history.push('/clusters'))
+      .catch(error => {
+        if (error.code === GrpcErrorCodes.Unauthenticated) {
+          setShowAuthDialog(true);
+        } else {
+          setNotifications([{ message: error.message, variant: 'danger' }]);
+        }
+      });
   }, [
     addCluster,
     formData,
@@ -259,6 +266,8 @@ const AddCluster: FC = () => {
     activeTemplate?.name,
     infraCredential,
     pullRequestDescription,
+    history,
+    setNotifications,
   ]);
 
   const required = useMemo(() => {
@@ -467,11 +476,15 @@ const AddCluster: FC = () => {
                 </>
               ) : null}
               <GithubDeviceAuthModal
-                onClose={() => {
-                  console.log('onClose');
-                }}
+                onClose={() => setShowAuthDialog(false)}
                 onSuccess={() => {
-                  console.log('onClose');
+                  setShowAuthDialog(false);
+                  setNotifications([
+                    {
+                      message: `Authentication completed successfully`,
+                      variant: 'success',
+                    },
+                  ]);
                 }}
                 open={showAuthDialog}
                 repoName="config"
@@ -518,6 +531,8 @@ const AddCluster: FC = () => {
     commitMessage,
     pullRequestTitle,
     pullRequestDescription,
+    showAuthDialog,
+    setNotifications,
   ]);
 };
 

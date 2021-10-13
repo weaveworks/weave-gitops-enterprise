@@ -39,3 +39,7 @@ export type ListCredentialsResponse = {
   credentials?: Credential[];
   total?: number;
 };
+
+export enum GrpcErrorCodes {
+  Unauthenticated = 16,
+}
