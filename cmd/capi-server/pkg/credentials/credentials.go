@@ -20,62 +20,62 @@ import (
 )
 
 type IdentityParams struct {
-	Group       string
-	Version     string
-	Kind        string
-	ClusterKind string
+	Group        string
+	Version      string
+	Kind         string
+	ClusterKinds []string
 }
 
 var IdentityParamsList = []IdentityParams{
 	// v3
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AWSClusterStaticIdentity",
-		ClusterKind: "AWSCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Version:      "v1alpha3",
+		Kind:         "AWSClusterStaticIdentity",
+		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AWSClusterRoleIdentity",
-		ClusterKind: "AWSCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Version:      "v1alpha3",
+		Kind:         "AWSClusterRoleIdentity",
+		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AzureClusterIdentity",
-		ClusterKind: "AzureCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Version:      "v1alpha3",
+		Kind:         "AzureClusterIdentity",
+		ClusterKinds: []string{"AzureCluster", "AzureManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "VSphereClusterIdentity",
-		ClusterKind: "VSphereCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Version:      "v1alpha3",
+		Kind:         "VSphereClusterIdentity",
+		ClusterKinds: []string{"VSphereCluster"},
 	},
 	// v4
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha4",
-		Kind:        "AWSClusterStaticIdentity",
-		ClusterKind: "AWSCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Version:      "v1alpha4",
+		Kind:         "AWSClusterStaticIdentity",
+		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha4",
-		Kind:        "AWSClusterRoleIdentity",
-		ClusterKind: "AWSCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Version:      "v1alpha4",
+		Kind:         "AWSClusterRoleIdentity",
+		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha4",
-		Kind:        "AzureClusterIdentity",
-		ClusterKind: "AzureCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Version:      "v1alpha4",
+		Kind:         "AzureClusterIdentity",
+		ClusterKinds: []string{"AzureCluster", "AzureManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha4",
-		Kind:        "VSphereClusterIdentity",
-		ClusterKind: "VSphereCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Version:      "v1alpha4",
+		Kind:         "VSphereClusterIdentity",
+		ClusterKinds: []string{"VSphereCluster"},
 	},
 }
 
@@ -213,10 +213,11 @@ func InjectCredentials(tmplWithValues [][]byte, creds *capiv1_proto.Credential) 
 		for _, identityParams := range IdentityParamsList {
 			// see if we can find the capi type in the list here.
 			if creds.Group == identityParams.Group && creds.Kind == identityParams.Kind && creds.Version == identityParams.Version {
-				clusterKind := identityParams.ClusterKind
-				bit, err = MaybeInjectCredentials(bit, clusterKind, creds)
-				if err != nil {
-					return nil, fmt.Errorf("unable to inject credentials %v %v %v: %v", creds, bit, clusterKind, err)
+				for _, clusterKind := range identityParams.ClusterKinds {
+					bit, err = MaybeInjectCredentials(bit, clusterKind, creds)
+					if err != nil {
+						return nil, fmt.Errorf("unable to inject credentials %v %v %v: %v", creds, bit, clusterKind, err)
+					}
 				}
 			}
 		}
