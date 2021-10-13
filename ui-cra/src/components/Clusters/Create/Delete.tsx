@@ -99,7 +99,7 @@ export const DeleteClusterDialog: FC<Props> = ({
       },
       getProviderToken('github'),
     )
-      .then(res =>
+      .then(() =>
         setNotifications([
           {
             message: `PR created successfully`,
@@ -123,7 +123,9 @@ export const DeleteClusterDialog: FC<Props> = ({
   useEffect(() => {
     if (
       notifications.length > 0 &&
-      notifications[notifications.length - 1].variant !== 'danger'
+      notifications[notifications.length - 1].variant !== 'danger' &&
+      notifications[notifications.length - 1].message !==
+        'Authentication completed successfully. Please proceed with creating the PR.'
     ) {
       cleanUp();
     }
@@ -179,7 +181,8 @@ export const DeleteClusterDialog: FC<Props> = ({
               setShowAuthDialog(false);
               setNotifications([
                 {
-                  message: `Authentication completed successfully`,
+                  message:
+                    'Authentication completed successfully. Please proceed with creating the PR.',
                   variant: 'success',
                 },
               ]);

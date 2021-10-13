@@ -478,7 +478,8 @@ const AddCluster: FC = () => {
                   setShowAuthDialog(false);
                   setNotifications([
                     {
-                      message: `Authentication completed successfully`,
+                      message:
+                        'Authentication completed successfully. Please proceed with creating the PR.',
                       variant: 'success',
                     },
                   ]);
