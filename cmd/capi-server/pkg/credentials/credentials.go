@@ -20,62 +20,36 @@ import (
 )
 
 type IdentityParams struct {
-	Group       string
-	Version     string
-	Kind        string
-	ClusterKind string
+	Group        string
+	Versions     []string
+	Kind         string
+	ClusterKinds []string
 }
 
 var IdentityParamsList = []IdentityParams{
-	// v3
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AWSClusterStaticIdentity",
-		ClusterKind: "AWSCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Versions:     []string{"v1alpha3", "v1alpha4"},
+		Kind:         "AWSClusterStaticIdentity",
+		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AWSClusterRoleIdentity",
-		ClusterKind: "AWSCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Versions:     []string{"v1alpha3", "v1alpha4"},
+		Kind:         "AWSClusterRoleIdentity",
+		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "AzureClusterIdentity",
-		ClusterKind: "AzureCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Versions:     []string{"v1alpha3", "v1alpha4"},
+		Kind:         "AzureClusterIdentity",
+		ClusterKinds: []string{"AzureCluster", "AzureManagedCluster"},
 	},
 	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha3",
-		Kind:        "VSphereClusterIdentity",
-		ClusterKind: "VSphereCluster",
-	},
-	// v4
-	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha4",
-		Kind:        "AWSClusterStaticIdentity",
-		ClusterKind: "AWSCluster",
-	},
-	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha4",
-		Kind:        "AWSClusterRoleIdentity",
-		ClusterKind: "AWSCluster",
-	},
-	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha4",
-		Kind:        "AzureClusterIdentity",
-		ClusterKind: "AzureCluster",
-	},
-	{
-		Group:       "infrastructure.cluster.x-k8s.io",
-		Version:     "v1alpha4",
-		Kind:        "VSphereClusterIdentity",
-		ClusterKind: "VSphereCluster",
+		Group:        "infrastructure.cluster.x-k8s.io",
+		Versions:     []string{"v1alpha3", "v1alpha4"},
+		Kind:         "VSphereClusterIdentity",
+		ClusterKinds: []string{"VSphereCluster"},
 	},
 }
 
@@ -92,32 +66,34 @@ func isEmptyCredentials(creds *capiv1_proto.Credential) bool {
 func FindCredentials(ctx context.Context, c client.Client, dc discovery.DiscoveryInterface) ([]unstructured.Unstructured, error) {
 	identities := []unstructured.Unstructured{}
 	for _, identityParams := range IdentityParamsList {
-		gvk := schema.GroupVersionKind{
-			Group:   identityParams.Group,
-			Version: identityParams.Version,
-			Kind:    identityParams.Kind,
-		}
+		for _, v := range identityParams.Versions {
+			gvk := schema.GroupVersionKind{
+				Group:   identityParams.Group,
+				Version: v,
+				Kind:    identityParams.Kind,
+			}
 
-		// We can skip this checkCRDExists check and let k8s do it.
-		// BUT if any of the above Identities are missing, client-go will purge its
-		// CRD cache and try and find all the available CRDs again, for each missing identity.
-		// This is a lot of requests, they get throttled, this func blows out to 10s+.
-		//
-		exists, err := checkCRDExists(dc, gvk)
-		if err != nil {
-			return nil, fmt.Errorf("failed to check if CRD exists, %v: %w", gvk, err)
-		}
-		if !exists {
-			continue
-		}
+			// We can skip this checkCRDExists check and let k8s do it.
+			// BUT if any of the above Identities are missing, client-go will purge its
+			// CRD cache and try and find all the available CRDs again, for each missing identity.
+			// This is a lot of requests, they get throttled, this func blows out to 10s+.
+			//
+			exists, err := checkCRDExists(dc, gvk)
+			if err != nil {
+				return nil, fmt.Errorf("failed to check if CRD exists, %v: %w", gvk, err)
+			}
+			if !exists {
+				continue
+			}
 
-		identityList := &unstructured.UnstructuredList{}
-		identityList.SetGroupVersionKind(gvk)
-		err = c.List(context.Background(), identityList)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list CRs of %v: %w", gvk, err)
+			identityList := &unstructured.UnstructuredList{}
+			identityList.SetGroupVersionKind(gvk)
+			err = c.List(context.Background(), identityList)
+			if err != nil {
+				return nil, fmt.Errorf("failed to list CRs of %v: %w", gvk, err)
+			}
+			identities = append(identities, identityList.Items...)
 		}
-		identities = append(identities, identityList.Items...)
 	}
 
 	// k8s doesn't internally differentiate between different apiVersions so we de-dup them
@@ -211,12 +187,15 @@ func InjectCredentials(tmplWithValues [][]byte, creds *capiv1_proto.Credential) 
 	for _, bit := range tmplWithValues {
 		var err error
 		for _, identityParams := range IdentityParamsList {
-			// see if we can find the capi type in the list here.
-			if creds.Group == identityParams.Group && creds.Kind == identityParams.Kind && creds.Version == identityParams.Version {
-				clusterKind := identityParams.ClusterKind
-				bit, err = MaybeInjectCredentials(bit, clusterKind, creds)
-				if err != nil {
-					return nil, fmt.Errorf("unable to inject credentials %v %v %v: %v", creds, bit, clusterKind, err)
+			for _, v := range identityParams.Versions {
+				// see if we can find the capi type in the list here.
+				if creds.Group == identityParams.Group && creds.Kind == identityParams.Kind && creds.Version == v {
+					for _, clusterKind := range identityParams.ClusterKinds {
+						bit, err = MaybeInjectCredentials(bit, clusterKind, creds)
+						if err != nil {
+							return nil, fmt.Errorf("unable to inject credentials %v %v %v: %v", creds, bit, clusterKind, err)
+						}
+					}
 				}
 			}
 		}

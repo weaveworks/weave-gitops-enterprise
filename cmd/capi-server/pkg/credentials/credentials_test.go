@@ -2,6 +2,7 @@ package credentials
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -110,41 +111,52 @@ func TestInjectCredentials(t *testing.T) {
 		t.Fatalf("result wasn't nil! %v", diff)
 	}
 
-	var templateBits [][]byte
-	templateBit := `
+	templateBits := [][]byte{
+		[]byte(`
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSCluster
-`
-	templateBits = append(templateBits, []byte(templateBit))
+`),
+	}
 
 	// no credentials
 	result, _ = InjectCredentials(templateBits, nil)
 	resultStr := convertToStringArray(result)
-	if diff := cmp.Diff(resultStr[0], templateBit); diff != "" {
+	if diff := cmp.Diff(resultStr[0], string(templateBits[0])); diff != "" {
 		t.Fatalf("expected didn't match result! %v", diff)
 	}
 
-	expected := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-kind: AWSCluster
+	for _, clusterKind := range []string{"AWSCluster", "AWSManagedCluster"} {
+		t.Run(clusterKind, func(t *testing.T) {
+			templateBits := [][]byte{
+				[]byte(fmt.Sprintf(`
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: %s
+`, clusterKind)),
+			}
+
+			// with creds
+			result, err := InjectCredentials(templateBits, &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "AWSClusterStaticIdentity",
+				Name:    "FooName",
+			})
+			if err != nil {
+				t.Fatalf("unexpected err %v", err)
+			}
+			resultStr = convertToStringArray(result)
+
+			expected := fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: %s
 spec:
   identityRef:
     kind: AWSClusterStaticIdentity
     name: FooName
-`
-	// with creds
-	result, err := InjectCredentials(templateBits, &capiv1_protos.Credential{
-		Group:   "infrastructure.cluster.x-k8s.io",
-		Version: "v1alpha4",
-		Kind:    "AWSClusterStaticIdentity",
-		Name:    "FooName",
-	})
-	if err != nil {
-		t.Fatalf("unexpected err %v", err)
-	}
-	resultStr = convertToStringArray(result)
-
-	if diff := cmp.Diff(resultStr[0], expected); diff != "" {
-		t.Fatalf("expected didn't match result! %v", diff)
+`, clusterKind)
+			if diff := cmp.Diff(resultStr[0], expected); diff != "" {
+				t.Fatalf("expected didn't match result! %v", diff)
+			}
+		})
 	}
 }
 
