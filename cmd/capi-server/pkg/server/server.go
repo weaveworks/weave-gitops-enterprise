@@ -417,6 +417,11 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 }
 
 func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
+	providerToken, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
+	}
+
 	if err := validateDeleteClustersPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
@@ -440,15 +445,21 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		})
 	}
 
+	gp := git.GitProvider{
+		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
+		Token:    providerToken.AccessToken,
+		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
+	}
+	_, err = s.provider.GetRepository(ctx, gp, repositoryURL)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
+	}
+
 	var pullRequestURL string
 
 	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
-			Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-			Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
-			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-		},
+		GitProvider:   gp,
 		RepositoryURL: repositoryURL,
 		HeadBranch:    msg.HeadBranch,
 		BaseBranch:    baseBranch,
