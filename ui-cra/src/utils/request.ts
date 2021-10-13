@@ -54,3 +54,11 @@ export const requestWithEntitlementHeader = (
       entitlement: processEntitlementHeaders(res),
     })),
   );
+
+export enum GrpcErrorCodes {
+  Unauthenticated = 16,
+}
+
+export const isUnauthenticated = (code: number): boolean => {
+  return code === GrpcErrorCodes.Unauthenticated;
+};
