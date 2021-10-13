@@ -36,7 +36,7 @@ const TemplatesProvider: FC = ({ children }) => {
     [activeTemplate, setNotifications],
   );
 
-  const addCluster = useCallback(({ ...data }, token) => {
+  const addCluster = useCallback(({ ...data }, token: string) => {
     setCreatingPR(true);
     return request('POST', '/v1/clusters', {
       body: JSON.stringify(data),

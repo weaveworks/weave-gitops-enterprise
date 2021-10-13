@@ -29,11 +29,7 @@ import * as Grouped from './Form/GroupedSchema';
 import * as UiTemplate from './Form/UITemplate';
 import FormSteps, { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
-import {
-  Credential,
-  GrpcErrorCodes,
-  TemplateObject,
-} from '../../../types/custom';
+import { Credential, TemplateObject } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
@@ -42,6 +38,7 @@ import {
   getProviderToken,
   GithubDeviceAuthModal,
 } from '@weaveworks/weave-gitops';
+import { isUnauthenticated } from '../../../utils/request';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -251,7 +248,7 @@ const AddCluster: FC = () => {
     )
       .then(() => history.push('/clusters'))
       .catch(error => {
-        if (error.code === GrpcErrorCodes.Unauthenticated) {
+        if (isUnauthenticated(error.code)) {
           setShowAuthDialog(true);
         } else {
           setNotifications([{ message: error.message, variant: 'danger' }]);
