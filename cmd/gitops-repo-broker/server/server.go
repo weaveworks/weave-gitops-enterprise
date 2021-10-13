@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/utilities/healthcheck"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -118,21 +119,24 @@ func NewServer(ctx context.Context, c client.Client, entitlementSecretKey client
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(
-		db, params.AgentTemplateNatsURL, params.AgentTemplateAlertmanagerURL)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")
-	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UpdateCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent)).Methods("PUT")
-	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UnregisterCluster(db)).Methods("DELETE")
-	r.HandleFunc("/gitops/api/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")
+	entitled := r.PathPrefix("/gitops/api").Subrouter()
+	entitled.Use(EntitlementMiddleware(ctx, log, c, entitlementSecretKey))
+	entitled.Use(CheckEntitlementMiddleware(log))
+
+	entitled.HandleFunc("/agent.yaml", agent.NewGetHandler(db, params.AgentTemplateNatsURL, params.AgentTemplateAlertmanagerURL)).Methods("GET")
+	entitled.HandleFunc("/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
+	entitled.HandleFunc("/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
+	entitled.HandleFunc("/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")
+	entitled.HandleFunc("/clusters/{id:[0-9]+}", api.UpdateCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent)).Methods("PUT")
+	entitled.HandleFunc("/clusters/{id:[0-9]+}", api.UnregisterCluster(db)).Methods("DELETE")
+	entitled.HandleFunc("/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")
 
 	r.HandleFunc("/gitops/started", healthcheck.Started(started))
 	r.HandleFunc("/gitops/healthz", healthcheck.Healthz(started))
 	r.HandleFunc("/gitops/redirect", healthcheck.Redirect)
 
 	srv := &http.Server{
-		Handler: entitlement.EntitlementHandler(ctx, log, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(log, r)),
+		Handler: r,
 		Addr:    fmt.Sprintf("0.0.0.0:%s", params.Port),
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: params.HttpWriteTimeout,
@@ -140,4 +144,16 @@ func NewServer(ctx context.Context, c client.Client, entitlementSecretKey client
 	}
 
 	return srv, nil
+}
+
+func EntitlementMiddleware(ctx context.Context, log logr.Logger, c client.Client, key types.NamespacedName) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return entitlement.EntitlementHandler(ctx, log, c, key, next)
+	}
+}
+
+func CheckEntitlementMiddleware(log logr.Logger) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return entitlement.CheckEntitlementHandler(log, next)
+	}
 }
