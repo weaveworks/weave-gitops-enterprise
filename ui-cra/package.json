@@ -29,7 +29,7 @@
     "@types/react-jsonschema-form": "^1.7.5",
     "@types/react-router-dom": "^5.1.7",
     "@types/styled-components": "^5.1.9",
-    "@weaveworks/weave-gitops": "/Users/simon/weave/weave-gitops/dist/",
+    "@weaveworks/weave-gitops": "/Users/alina/Desktop/projects/weave-gitops/dist/",
     "d3-scale": "3.2.1",
     "git-url-parse": "11.1.2",
     "http-proxy-middleware": "^2.0.0",

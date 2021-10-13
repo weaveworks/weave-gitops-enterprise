@@ -2322,7 +2322,7 @@
     "@typescript-eslint/types" "4.15.2"
     eslint-visitor-keys "^2.0.0"
 
-"@weaveworks/weave-gitops@/Users/simon/weave/weave-gitops/dist/":
+"@weaveworks/weave-gitops@/Users/alina/Desktop/projects/weave-gitops/dist/":
   version "0.3.1"
   dependencies:
     "@material-ui/core" "^4.12.3"
