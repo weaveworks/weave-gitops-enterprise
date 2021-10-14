@@ -124,6 +124,8 @@ function reset {
   kubectl delete service postgres
   # Delete namespaces and their respective resources
   kubectl delete namespaces wego-system prom wkp-agent
+  # Delete any orphan capitemplates
+  kubectl delete CAPITemplate --all
   
 }
 

@@ -263,11 +263,23 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					templatesPage.WaitForPageToLoad(webDriver)
 				})
 
-				By("And User should see message informing user of the invalid template in the cluster", func() {
+				By("And User should see message informing user of the invalid template in the cluster - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
 					Eventually(templateTile.ErrorHeader).Should(BeFound())
 					Expect(templateTile.ErrorDescription).Should(BeFound())
 					Expect(templateTile.CreateTemplate).ShouldNot(BeEnabled())
+				})
+
+				By("And I should change the templates view to 'table'", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
+				})
+
+				By("And User should see message informing user of the invalid template in the cluster - table view", func() {
+					templateRow := pages.GetTemplateRow(webDriver, "cluster-invalid-template-0")
+					Eventually(templateRow.Provider).Should(MatchText(""))
+					Eventually(templateRow.Description).Should(MatchText("Couldn't load template body"))
+					Expect(templateRow.CreateTemplate).ShouldNot(BeEnabled())
 				})
 			})
 		})

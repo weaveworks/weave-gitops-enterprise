@@ -69,13 +69,13 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 				By("And I should see ordered list of templates", func() {
 					expected_list := make([]string, totalTemplateCount)
-					for i := 0; i < 2; i++ {
+					for i := 0; i < awsTemplateCount; i++ {
 						expected_list[i] = fmt.Sprintf("aws-cluster-template-%d", i)
 					}
-					for i := 0; i < 5; i++ {
+					for i := 0; i < capdTemplateCount; i++ {
 						expected_list[i] = fmt.Sprintf("cluster-template-development-%d", i)
 					}
-					for i := 0; i < 2; i++ {
+					for i := 0; i < eksFargateTemplateCount; i++ {
 						expected_list[i] = fmt.Sprintf("eks-fargate-template-%d", i)
 					}
 					sort.Strings(expected_list)
@@ -94,10 +94,10 @@ func DescribeMccpCliRender(mccpTestRunner MCCPTestRunner) {
 
 				By("And I should see templates list filtered by provider", func() {
 					awsCluster_list := make([]string, awsTemplateCount+eksFargateTemplateCount)
-					for i := 0; i < 2; i++ {
+					for i := 0; i < awsTemplateCount; i++ {
 						awsCluster_list[i] = fmt.Sprintf("aws-cluster-template-%d", i)
 					}
-					for i := 0; i < 2; i++ {
+					for i := 0; i < eksFargateTemplateCount; i++ {
 						awsCluster_list[i] = fmt.Sprintf("eks-fargate-template-%d", i)
 					}
 					sort.Strings(awsCluster_list)
