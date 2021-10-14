@@ -29,7 +29,7 @@ func DescribeMccpCliList(mccpTestRunner MCCPTestRunner) {
 			})
 
 			By("And the Cluster service is healthy", func() {
-				mccpTestRunner.checkClusterService()
+				mccpTestRunner.CheckClusterService()
 			})
 		})
 
