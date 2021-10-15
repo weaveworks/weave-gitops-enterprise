@@ -226,7 +226,7 @@ jobs:
         go version
         go test -v ./test/integration/test -run TestAgent
 
-        cd cmd/capi-server
+        cd cmd/clusters-service
         go test -v ./... -tags=integration
 
   ui-integration-tests:
