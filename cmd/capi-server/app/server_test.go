@@ -53,7 +53,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 }
 
 func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
-	appFactory := &apputilsfakes.FakeAppFactory{}
+	appFactory := &apputilsfakes.FakeServerAppFactory{}
 	kubeClient := &kubefakes.FakeKube{}
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {

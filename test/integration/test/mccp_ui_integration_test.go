@@ -619,7 +619,7 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 	}
 
 	fakeAppsConfig := &wego_server.ApplicationsConfig{
-		AppFactory: &apputilsfakes.FakeAppFactory{},
+		AppFactory: &apputilsfakes.FakeServerAppFactory{},
 		KubeClient: cl,
 		JwtClient:  jwtClient,
 		Logger:     logr.Discard(),
