@@ -228,11 +228,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		baseBranch = msg.BaseBranch
 	}
 
-	gp := git.GitProvider{
-		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-		Token:    providerToken.AccessToken,
-		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-	}
+	gp := getGitProvider(providerToken.AccessToken)
 	_, err = s.provider.GetRepository(ctx, gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
@@ -445,11 +441,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		})
 	}
 
-	gp := git.GitProvider{
-		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-		Token:    providerToken.AccessToken,
-		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-	}
+	gp := getGitProvider(providerToken.AccessToken)
 	_, err = s.provider.GetRepository(ctx, gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
@@ -504,6 +496,20 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
 		WebUrl: pullRequestURL,
 	}, nil
+}
+
+func getGitProvider(requestToken string) git.GitProvider {
+	// prefer request over env token if present
+	token := requestToken
+	if token == "" {
+		token = os.Getenv("GIT_PROVIDER_TOKEN")
+	}
+
+	return git.GitProvider{
+		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
+		Token:    token,
+		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
+	}
 }
 
 func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.GetEnterpriseVersionRequest) (*capiv1_proto.GetEnterpriseVersionResponse, error) {
