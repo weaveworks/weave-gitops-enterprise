@@ -142,7 +142,7 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 	})
 
 	By("And I see cluster is added to the list", func() {
-		Eventually(clustersPage.ClusterCount, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText(expectedCount))
+		Eventually(clustersPage.ClusterCount, ASSERTION_2MINUTE_TIME_OUT).Should(HaveText(expectedCount))
 	})
 
 	return clustersPage, clusterConnectionPage

@@ -281,6 +281,7 @@ jobs:
       if: ${{ always() }}
       continue-on-error: true
       run: |
+        # We are not running WKP leaf cluster connect tests for macOS, hence no WKP repository exists for macOS job
         if [ "$RUNNER_OS" == "Linux" ]; then
           hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
         fi
@@ -463,6 +464,7 @@ jobs:
       if: ${{ always() }}
       continue-on-error: true
       run: |
+        # We are not running WKP leaf cluster connect tests for macOS, hence no WKP repository exists for macOS job
         if [ "$RUNNER_OS" == "Linux" ]; then
           hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
         fi
