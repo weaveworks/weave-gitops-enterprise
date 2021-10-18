@@ -487,6 +487,10 @@ func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.Get
 	}, nil
 }
 
+func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesRequest) (*capiv1_proto.GetProfilesResponse, error) {
+	return &capiv1_proto.GetProfilesResponse{}, nil
+}
+
 func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest) error {
 	var err error
 
