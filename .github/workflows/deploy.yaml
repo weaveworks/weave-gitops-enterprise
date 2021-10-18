@@ -138,11 +138,11 @@ jobs:
         WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
         cd ${{ github.workspace }}/cmd/event-writer && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/event-writer-results.xml
         cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
-        cd ${{ github.workspace }}/cmd/capi-server && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/capi-server-results.xml
+        cd ${{ github.workspace }}/cmd/clusters-service && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/clusters-service-results.xml
 
         cd ${{ github.workspace }}
         # Merge all coverage results
-        gocovmerge .coverprofile cmd/event-writer/.coverprofile common/.coverprofile  cmd/capi-server/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles    
+        gocovmerge .coverprofile cmd/event-writer/.coverprofile common/.coverprofile  cmd/clusters-service/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles    
         # Merge all junit test results
         jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
     # - name: Send coverage

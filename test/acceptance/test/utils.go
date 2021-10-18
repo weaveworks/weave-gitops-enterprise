@@ -22,7 +22,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

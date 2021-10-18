@@ -3,7 +3,7 @@
 
 # Boiler plate for bulding Docker containers.
 # All this must go at top of file I'm afraid.
-IMAGE_PREFIX := docker.io/weaveworks/wkp-
+IMAGE_PREFIX := docker.io/weaveworks/weave-gitops-enterprise-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe --always --match "v*")
@@ -29,9 +29,9 @@ LOCAL_BINARIES_GOOS ?= $(GOOS)
 		--build-arg=version=$(VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
-		--tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) \
+		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		$(@D)/
-	$(SUDO) docker tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))):$(IMAGE_TAG)
+	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
 
 # Takes precedence over the more general rule above
@@ -42,29 +42,43 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
-		--tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) \
+		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		--file cmd/event-writer/Dockerfile \
         .
-	$(SUDO) docker tag $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))) $(IMAGE_PREFIX)$(subst wkp-,,$(shell basename $(@D))):$(IMAGE_TAG)
+	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
 
-WEAVE_GITOPS_CLUSTERS_SERVICE := docker.io/weaveworks/weave-gitops-clusters-service
-cmd/capi-server/$(UPTODATE): cmd/capi-server/Dockerfile cmd/capi-server/*
+# Takes precedence over the more general rule above
+# The only difference is the build context
+cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/*
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
-		--tag $(WEAVE_GITOPS_CLUSTERS_SERVICE) \
-		--file cmd/capi-server/Dockerfile \
+		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
+		--file cmd/clusters-service/Dockerfile \
 		.
-	$(SUDO) docker tag $(WEAVE_GITOPS_CLUSTERS_SERVICE) $(WEAVE_GITOPS_CLUSTERS_SERVICE):$(IMAGE_TAG)
+	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
+	touch $@
+
+WKP_AGENT := docker.io/weaveworks/wkp-agent
+cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/*
+	$(SUDO) docker build \
+		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
+		--build-arg=image_tag=$(IMAGE_TAG) \
+		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
+		--tag $(WKP_AGENT) \
+		--file cmd/wkp-agent/Dockerfile \
+		$(@D)/
+	$(SUDO) docker tag $(WKP_AGENT) $(WKP_AGENT):$(IMAGE_TAG)
 	touch $@
 
 update-mccp-chart-values: update-wkp-ui-chart-values
-	sed -i "s|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker.*|gitopsRepoBroker: docker.io/weaveworks/wkp-gitops-repo-broker:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
-	sed -i "s|eventWriter: docker.io/weaveworks/wkp-event-writer.*|eventWriter: docker.io/weaveworks/wkp-event-writer:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
-	sed -i "s|clustersService: docker.io/weaveworks/weave-gitops-clusters-service.*|clustersService: docker.io/weaveworks/weave-gitops-clusters-service:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
+	sed -i "s|gitopsRepoBroker: docker.io/weaveworks/weave-gitops-enterprise-gitops-repo-broker.*|gitopsRepoBroker: docker.io/weaveworks/weave-gitops-enterprise-gitops-repo-broker:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
+	sed -i "s|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer.*|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
+	sed -i "s|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service.*|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 
 update-wkp-ui-chart-values:
 	sed -i "s|tag: .*|tag: $(IMAGE_TAG)|" $(CHART_VALUES_PATH)
@@ -84,7 +98,7 @@ DOCKERFILES := $(shell find . \
 UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
 DOCKER_IMAGE_DIRS := $(patsubst %/Dockerfile,%,$(DOCKERFILES))
 IMAGE_NAMES := $(foreach dir,$(DOCKER_IMAGE_DIRS),$(patsubst %,$(IMAGE_PREFIX)%,$(subst wkp-,,$(shell basename $(dir)))))
-IMAGE_NAMES += $(WEAVE_GITOPS_CLUSTERS_SERVICE)
+IMAGE_NAMES += $(WKP_AGENT)
 images:
 	$(info $(IMAGE_NAMES))
 	@echo > /dev/null
@@ -161,13 +175,13 @@ unit-tests-with-coverage: $(GENERATED)
 	WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/...
 	cd cmd/event-writer && go test -cover -coverprofile=.coverprofile ./...
 	cd common && go test -cover -coverprofile=.coverprofile ./...
-	cd cmd/capi-server && go test -cover -coverprofile=.coverprofile ./...
+	cd cmd/clusters-service && go test -cover -coverprofile=.coverprofile ./...
 
 unit-tests: $(GENERATED)
 	WKP_DEBUG=true go test -v ./cmd/... ./pkg/...
 	cd cmd/event-writer && go test ./converter/... ./database/... ./liveness/... ./subscribe/... ./run/... ./test/...
 	cd common && go test ./...
-	cd cmd/capi-server && go test -v ./...
+	cd cmd/clusters-service && go test -v ./...
 
 ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout 
