@@ -103,8 +103,8 @@ const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 const ASSERTION_6MINUTE_TIME_OUT time.Duration = 6 * time.Minute
 
-const UI_POLL_INTERVAL time.Duration = 15 * time.Second
-const CLI_POLL_INTERVAL time.Duration = 5 * time.Second
+const POLL_INTERVAL_15SECONDS time.Duration = 15 * time.Second
+const POLL_INTERVAL_5SECONDS time.Duration = 5 * time.Second
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -183,7 +183,8 @@ type MCCPTestRunner interface {
 	DeleteApplyCapiTemplates(templateFiles []string)
 	CreateIPCredentials(infrastructureProvider string)
 	DeleteIPCredentials(infrastructureProvider string)
-	checkClusterService()
+	CheckClusterService()
+	RestartDeploymentPods(env []string, appName string, namespace string) error
 
 	// Git repository helper functions
 	DeleteRepo(repoName string)
@@ -357,8 +358,12 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 	})
 }
 
-func (b DatabaseMCCPTestRunner) checkClusterService() {
+func (b DatabaseMCCPTestRunner) CheckClusterService() {
 
+}
+
+func (b DatabaseMCCPTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+	return nil
 }
 
 func (b DatabaseMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
@@ -426,9 +431,9 @@ func (b RealMCCPTestRunner) VerifyMCCPPodsRunning() {
 
 func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
 	err := runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
-	fmt.Println("Leaf cluster pods after apply")
+	fmt.Println("Cluster pods after apply")
 	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
-		fmt.Printf("Error getting leaf cluster pods after apply: %v\n", err)
+		fmt.Printf("Error getting cluster pods after apply: %v\n", err)
 	}
 	return err
 }
@@ -535,14 +540,24 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
-func (b RealMCCPTestRunner) checkClusterService() {
+func (b RealMCCPTestRunner) CheckClusterService() {
 	output := func() string {
 		command := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", GetCapiEndpointUrl()+"/v1/templates")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		return string(session.Wait(ASSERTION_30SECONDS_TIME_OUT).Out.Contents())
 	}
-	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("200"), "Cluster Service is not healthy")
+	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp("200"), "Cluster Service is not healthy")
+}
+
+func (b RealMCCPTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+	// Restart the deployment pods
+	err := runCommandPassThrough(env, "kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+	if err == nil {
+		// Wait for all the deployments replicas to rolled out successfully
+		err = runCommandPassThrough(env, "kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+	}
+	return err
 }
 
 func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
@@ -604,7 +619,7 @@ func (b RealMCCPTestRunner) DeleteRepo(repoName string) {
 		Expect(err).ShouldNot(HaveOccurred())
 		return string(session.Wait().Err.Contents())
 	}
-	Eventually(output, ASSERTION_2MINUTE_TIME_OUT, CLI_POLL_INTERVAL).Should(MatchRegexp("Repository not found"))
+	Eventually(output, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp("Repository not found"))
 }
 
 func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
@@ -623,7 +638,7 @@ func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRep
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 
-	Expect(WaitUntil(os.Stdout, CLI_POLL_INTERVAL, ASSERTION_1MINUTE_TIME_OUT, func() error {
+	Expect(WaitUntil(os.Stdout, POLL_INTERVAL_5SECONDS, ASSERTION_1MINUTE_TIME_OUT, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, repoName)
 		command := exec.Command("sh", "-c", cmd)
 		return command.Run()

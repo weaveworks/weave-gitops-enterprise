@@ -2,12 +2,15 @@ package server_test
 
 import (
 	"context"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
+	dbutils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,8 +40,24 @@ func TestEntitlementMiddleware(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 
+			file, err := ioutil.TempFile("", "db")
+			if err != nil {
+				t.Fatalf("expected no errors but got: %v", err)
+			}
+			defer os.Remove(file.Name())
+
+			db, err := dbutils.Open(file.Name(), "sqlite", "", "", "")
+			if err != nil {
+				t.Fatalf("expected no errors but got: %v", err)
+			}
+			err = dbutils.MigrateTables(db)
+			if err != nil {
+				t.Fatalf("expected no errors but got: %v", err)
+			}
+
 			s, err := server.NewServer(ctx, tt.client, client.ObjectKey{Name: "name", Namespace: "namespace"}, logr.Discard(), server.ParamSet{
 				DbType: "sqlite",
+				DbURI:  file.Name(),
 				Port:   "8001",
 			})
 			if err != nil {
@@ -51,7 +70,7 @@ func TestEntitlementMiddleware(t *testing.T) {
 			}()
 
 			time.Sleep(100 * time.Millisecond)
-			res, err := http.Get("http://localhost:8001/gitops/healthz")
+			res, err := http.Get("http://localhost:8001/gitops/api/clusters")
 			if err != nil {
 				t.Fatalf("expected no errors but got: %v", err)
 			}

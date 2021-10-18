@@ -75,7 +75,7 @@ func GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord
 		Name:             templateName,
 		Provider:         tileRow.FindByXPath(`td[2]`),
 		Description:      tileRow.FindByXPath(`td[3]`),
-		CreateTemplate:   tileRow.FindByXPath(`td[4]`),
+		CreateTemplate:   tileRow.FindByXPath(`td[4]/button[@id="create-cluster"]`),
 		ErrorHeader:      tileRow.Find(`.template-error-header`),
 		ErrorDescription: tileRow.Find(`.template-error-description`),
 	}
@@ -109,6 +109,17 @@ func (t TemplatesPage) SelectView(viewName string) *agouti.Selection {
 		return t.TemplateView.At(0)
 	case "table":
 		return t.TemplateView.At(1)
+	}
+	return nil
+}
+
+func GetEntitelment(webDriver *agouti.Page, typeEntitelment string) *agouti.Selection {
+
+	switch typeEntitelment {
+	case "expired":
+		return webDriver.FindByXPath(`//*/div[contains(text(), "Your entitlement for Weave GitOps Enterprise has expired")]`)
+	case "invalid", "missing":
+		return webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//div[contains(text(), "No entitlement was found for Weave GitOps Enterprise")]`)
 	}
 	return nil
 }

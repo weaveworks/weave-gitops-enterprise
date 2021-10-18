@@ -142,7 +142,7 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 	})
 
 	By("And I see cluster is added to the list", func() {
-		Eventually(clustersPage.ClusterCount, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText(expectedCount))
+		Eventually(clustersPage.ClusterCount, ASSERTION_2MINUTE_TIME_OUT).Should(HaveText(expectedCount))
 	})
 
 	return clustersPage, clusterConnectionPage
@@ -277,7 +277,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			By("And MCCP state is reset", func() {
 				_ = mccpTestRunner.ResetDatabase()
 				mccpTestRunner.VerifyMCCPPodsRunning()
-				mccpTestRunner.checkClusterService()
+				mccpTestRunner.CheckClusterService()
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 			})
 
@@ -447,7 +447,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 			_ = mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
-			mccpTestRunner.checkClusterService()
+			mccpTestRunner.CheckClusterService()
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
@@ -558,7 +558,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			}
 			_ = mccpTestRunner.ResetDatabase()
 			mccpTestRunner.VerifyMCCPPodsRunning()
-			mccpTestRunner.checkClusterService()
+			mccpTestRunner.CheckClusterService()
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)

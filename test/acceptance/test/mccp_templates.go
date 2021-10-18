@@ -62,7 +62,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
-				mccpTestRunner.checkClusterService()
+				mccpTestRunner.CheckClusterService()
 			})
 			initializeWebdriver()
 		})
@@ -263,11 +263,23 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					templatesPage.WaitForPageToLoad(webDriver)
 				})
 
-				By("And User should see message informing user of the invalid template in the cluster", func() {
+				By("And User should see message informing user of the invalid template in the cluster - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
 					Eventually(templateTile.ErrorHeader).Should(BeFound())
 					Expect(templateTile.ErrorDescription).Should(BeFound())
 					Expect(templateTile.CreateTemplate).ShouldNot(BeEnabled())
+				})
+
+				By("And I should change the templates view to 'table'", func() {
+					templatesPage := pages.GetTemplatesPage(webDriver)
+					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
+				})
+
+				By("And User should see message informing user of the invalid template in the cluster - table view", func() {
+					templateRow := pages.GetTemplateRow(webDriver, "cluster-invalid-template-0")
+					Eventually(templateRow.Provider).Should(MatchText(""))
+					Eventually(templateRow.Description).Should(MatchText("Couldn't load template body"))
+					Expect(templateRow.CreateTemplate).ShouldNot(BeEnabled())
 				})
 			})
 		})
@@ -1030,14 +1042,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText("Cluster found"))
+					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText("Cluster found"))
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Status.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
-					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, UI_POLL_INTERVAL).Should(HaveText(`"Provisioned"`))
+					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
 
 					fileErr := func() error {
 						Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
@@ -1045,7 +1057,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 						return err
 
 					}
-					Eventually(fileErr, ASSERTION_1MINUTE_TIME_OUT, UI_POLL_INTERVAL).ShouldNot(HaveOccurred())
+					Eventually(fileErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).ShouldNot(HaveOccurred())
 				})
 
 				By("And verify the kubeconfig is correct", func() {
@@ -1099,6 +1111,81 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				// 	mccpTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
 				// })
 
+			})
+		})
+
+		Context("[UI] When entitlement is available in the cluster", func() {
+			DEPLOYMENT_APP := "my-mccp-cluster-service"
+
+			checkEntitlement := func(typeEntitelment string, beFound bool) {
+				checkOutput := func() bool {
+					found, _ := pages.GetEntitelment(webDriver, typeEntitelment).Visible()
+					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+					return found
+
+				}
+
+				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+				if beFound {
+					Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
+				} else {
+					Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFalse())
+				}
+
+			}
+
+			JustAfterEach(func() {
+				By("When I apply the valid entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should not see the error or warning message for valid entitlement", func() {
+					checkEntitlement("expired", false)
+					checkEntitlement("missing", false)
+				})
+			})
+
+			It("@integration Verify cluster service acknowledges the entitlement presences", func() {
+
+				By("When I delete the entitlement", func() {
+					Expect(mccpTestRunner.KubectlDelete([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to delete entitlement secret")
+				})
+
+				By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the error message for missing entitlement", func() {
+					checkEntitlement("missing", true)
+				})
+
+				By("When I apply the expired entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the warning message for expired entitlement", func() {
+					checkEntitlement("expired", true)
+				})
+
+				By("When I apply the invalid entitlement", func() {
+					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
+				})
+
+				By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
+					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And I should see the error message for invalid entitlement", func() {
+					checkEntitlement("invalid", true)
+				})
 			})
 		})
 	})
