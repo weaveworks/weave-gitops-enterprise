@@ -139,7 +139,7 @@ jobs:
     - name: Build all the services
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: make -j4 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
+      run: make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
     - name: Store mccp binaries
       uses: actions/upload-artifact@v2
       with:
@@ -226,7 +226,7 @@ jobs:
         go version
         go test -v ./test/integration/test -run TestAgent
 
-        cd cmd/capi-server
+        cd cmd/clusters-service
         go test -v ./... -tags=integration
 
   ui-integration-tests:

@@ -32,7 +32,7 @@ require (
 	github.com/weaveworks/pctl v0.8.0
 	github.com/weaveworks/weave-gitops v0.3.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
-	github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server v0.0.0-00010101000000-000000000000
+	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	github.com/weaveworks/wksctl v0.10.2
 	go.uber.org/zap v1.19.0
@@ -222,7 +222,7 @@ replace (
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.7.0
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
 	github.com/docker/distribution => github.com/2opremio/distribution v0.0.0-20190419185413-6c9727e5e5de
-	github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server => ./cmd/capi-server
+	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service => ./cmd/clusters-service
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 	gopkg.in/jcmturner/gokrb5.v6 => github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2
 	k8s.io/api => k8s.io/api v0.21.1

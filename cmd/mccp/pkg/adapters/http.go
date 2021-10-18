@@ -9,7 +9,7 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/capi-server/pkg/protos"
+	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/mccp/pkg/templates"
 )
