@@ -8,6 +8,7 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/go-logfmt/logfmt v0.5.0
 	github.com/go-logr/logr v1.1.0
+	github.com/go-logr/zapr v1.1.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-resty/resty/v2 v2.5.0
 	github.com/google/go-cmp v0.5.6
@@ -30,9 +31,11 @@ require (
 	github.com/weaveworks/libgitops v0.0.3
 	github.com/weaveworks/pctl v0.8.0
 	github.com/weaveworks/weave-gitops v0.2.6-0.20210915135659-69953b81831d
+	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	github.com/weaveworks/wksctl v0.10.2
+	go.uber.org/zap v1.19.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/datatypes v1.0.0
@@ -40,7 +43,7 @@ require (
 	gorm.io/gorm v1.21.11
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
-	k8s.io/cli-runtime v0.21.2
+	k8s.io/cli-runtime v0.22.1
 	k8s.io/client-go v0.22.2
 	k8s.io/kubernetes v1.21.1 // indirect
 	sigs.k8s.io/cluster-api v0.3.16
@@ -57,7 +60,7 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/Microsoft/go-winio v0.4.16 // indirect
+	github.com/Microsoft/go-winio v0.4.17 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
@@ -89,7 +92,6 @@ require (
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
-	github.com/go-logr/zapr v1.1.0 // indirect
 	github.com/go-openapi/analysis v0.19.10 // indirect
 	github.com/go-openapi/errors v0.19.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -175,14 +177,12 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab // indirect
 	github.com/weaveworks/profiles v0.2.0 // indirect
-	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 // indirect
 	github.com/xanzy/go-gitlab v0.43.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	go.mongodb.org/mongo-driver v1.3.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.19.0 // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
 	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1 // indirect

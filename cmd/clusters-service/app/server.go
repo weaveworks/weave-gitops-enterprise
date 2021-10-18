@@ -104,16 +104,10 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 	if err != nil {
 		return err
 	}
-	library := &templates.CRDLibrary{
-		Log:       log,
-		Client:    kubeClient,
-		Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
-	}
 	ns := os.Getenv("CAPI_CLUSTERS_NAMESPACE")
 	if ns == "" {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
-	provider := git.NewGitProviderService(log)
 
 	appsConfig, err := wego_server.DefaultConfig()
 	if err != nil {
@@ -131,8 +125,12 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 		WithDatabase(db),
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
-		WithGitProvider(provider),
-		WithTemplateLibrary(library),
+		WithGitProvider(git.NewGitProviderService(log)),
+		WithTemplateLibrary(&templates.CRDLibrary{
+			Log:       log,
+			Client:    kubeClient,
+			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
+		}),
 		WithApplicationsConfig(appsConfig),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
