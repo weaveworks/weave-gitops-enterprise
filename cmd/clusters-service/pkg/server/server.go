@@ -80,43 +80,6 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
 }
 
-func isProviderRecognised(provider string) bool {
-	for _, p := range providers {
-		if strings.EqualFold(provider, p) {
-			return true
-		}
-	}
-	return false
-}
-
-func getProvider(t *capiv1.CAPITemplate) string {
-	meta, err := capi.ParseTemplateMeta(t)
-
-	if err != nil {
-		return ""
-	}
-
-	for _, obj := range meta.Objects {
-		if p, ok := providers[obj.Kind]; ok {
-			return p
-		}
-	}
-
-	return ""
-}
-
-func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
-	templates := []*capiv1_proto.Template{}
-
-	for _, t := range tl {
-		if strings.EqualFold(t.Provider, provider) {
-			templates = append(templates, t)
-		}
-	}
-
-	return templates
-}
-
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
 	tm, err := s.library.Get(ctx, msg.TemplateName)
 	if err != nil {
@@ -290,36 +253,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}, nil
 }
 
-func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
-	var err error
-
-	if msg.TemplateName == "" {
-		err = multierror.Append(err, fmt.Errorf("template name must be specified"))
-	}
-
-	if msg.ParameterValues == nil {
-		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
-	}
-
-	if msg.HeadBranch == "" {
-		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
-	}
-
-	if msg.Title == "" {
-		err = multierror.Append(err, fmt.Errorf("title must be specified"))
-	}
-
-	if msg.Description == "" {
-		err = multierror.Append(err, fmt.Errorf("description must be specified"))
-	}
-
-	if msg.CommitMessage == "" {
-		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
-	}
-
-	return err
-}
-
 // ListCredentials searches the management cluster and lists any objects that match specific given types
 func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCredentialsRequest) (*capiv1_proto.ListCredentialsResponse, error) {
 	creds := []*capiv1_proto.Credential{}
@@ -488,7 +421,75 @@ func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.Get
 }
 
 func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesRequest) (*capiv1_proto.GetProfilesResponse, error) {
+
 	return &capiv1_proto.GetProfilesResponse{}, nil
+}
+
+func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
+	var err error
+
+	if msg.TemplateName == "" {
+		err = multierror.Append(err, fmt.Errorf("template name must be specified"))
+	}
+
+	if msg.ParameterValues == nil {
+		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
+	}
+
+	if msg.HeadBranch == "" {
+		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
+	}
+
+	if msg.Title == "" {
+		err = multierror.Append(err, fmt.Errorf("title must be specified"))
+	}
+
+	if msg.Description == "" {
+		err = multierror.Append(err, fmt.Errorf("description must be specified"))
+	}
+
+	if msg.CommitMessage == "" {
+		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
+	}
+
+	return err
+}
+
+func isProviderRecognised(provider string) bool {
+	for _, p := range providers {
+		if strings.EqualFold(provider, p) {
+			return true
+		}
+	}
+	return false
+}
+
+func getProvider(t *capiv1.CAPITemplate) string {
+	meta, err := capi.ParseTemplateMeta(t)
+
+	if err != nil {
+		return ""
+	}
+
+	for _, obj := range meta.Objects {
+		if p, ok := providers[obj.Kind]; ok {
+			return p
+		}
+	}
+
+	return ""
+}
+
+func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
+	templates := []*capiv1_proto.Template{}
+
+	for _, t := range tl {
+		if strings.EqualFold(t.Provider, provider) {
+			templates = append(templates, t)
+		}
+	}
+
+	return templates
 }
 
 func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest) error {

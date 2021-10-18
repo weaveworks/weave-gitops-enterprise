@@ -25,7 +25,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc/metadata"
-	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -43,6 +42,7 @@ func NewAPIServerCommand(log logr.Logger) *cobra.Command {
 	var dbBusyTimeout string
 	var entitlementSecretName string
 	var entitlementSecretNamespace string
+	var profileHelmRepository string
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -61,6 +61,7 @@ func NewAPIServerCommand(log logr.Logger) *cobra.Command {
 	cmd.Flags().StringVar(&dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 	cmd.Flags().StringVar(&entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
 	cmd.Flags().StringVar(&entitlementSecretNamespace, "entitlement-secret-namespace", ent.DefaultSecretNamespace, "The namespace of the entitlement secret")
+	cmd.Flags().StringVar(&profileHelmRepository, "profile-helm-repository", "weaveworks-charts", "The name of the Flux `HelmRepository` object in the current namespace that references the profiles")
 
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -125,40 +126,60 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 	namespace := viper.GetString("entitlement-secret-namespace")
 	key := client.ObjectKey{Name: name, Namespace: namespace}
 
-	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, appsConfig, key, log,
-		grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
-		grpc_runtime.WithMetadata(TrackEvents(log)),
-		middleware.WithGrpcErrorLogging(klogr.New()),
+	return RunInProcessGateway(ctx, "0.0.0.0:8000", ns, key,
+		WithLog(log),
+		WithDatabase(db),
+		WithKubernetesClient(kubeClient),
+		WithDiscoveryClient(discoveryClient),
+		WithGitProvider(provider),
+		WithTemplateLibrary(library),
+		WithApplicationsConfig(appsConfig),
+		WithGrpcRuntimeOptions(
+			[]grpc_runtime.ServeMuxOption{
+				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
+				grpc_runtime.WithMetadata(TrackEvents(log)),
+				middleware.WithGrpcErrorLogging(klogr.New()),
+			},
+		),
 	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, appsConfig *wego_server.ApplicationsConfig, entitlementSecretKey client.ObjectKey, log logr.Logger, opts ...grpc_runtime.ServeMuxOption) error {
-	mux := grpc_runtime.NewServeMux(opts...)
+func RunInProcessGateway(ctx context.Context, addr string, ns string, entitlementSecretKey client.ObjectKey, setters ...Option) error {
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(log, library, provider, c, discoveryClient, db, ns))
+	args := &Options{
+		Log: logr.Discard(),
+	}
+
+	for _, setter := range setters {
+		setter(args)
+	}
+
+	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
+
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, ns))
 
 	//Add weave-gitops core handlers
-	wegoServer := wego_server.NewApplicationsServer(appsConfig)
+	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
 	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: entitlement.EntitlementHandler(ctx, log, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(log, mux)),
+		Handler: entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, entitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, mux)),
 	}
 
 	go func() {
 		<-ctx.Done()
-		log.Info("Shutting down the http gateway server")
+		args.Log.Info("Shutting down the http gateway server")
 		if err := s.Shutdown(context.Background()); err != nil {
-			log.Error(err, "Failed to shutdown http gateway server")
+			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}
 	}()
 
-	log.Info("Starting to listen and serve", "address", addr)
+	args.Log.Info("Starting to listen and serve", "address", addr)
 
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {
-		log.Error(err, "Failed to listen and serve")
+		args.Log.Error(err, "Failed to listen and serve")
 		return err
 	}
 	return nil
