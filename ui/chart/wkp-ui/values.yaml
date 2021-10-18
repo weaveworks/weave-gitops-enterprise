@@ -3,8 +3,8 @@ fullnameOverride: ""
 
 enabled: true
 image:
-  repository: weaveworks/wkp-ui-server
-  tag: master-d843e5ae
+  repository: weaveworks/weave-gitops-enterprise-ui-server
+  tag: HEAD-c6dbd017
   pullSecrets: []
   pullPolicy: IfNotPresent
 ingress:
