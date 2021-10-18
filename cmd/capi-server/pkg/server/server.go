@@ -175,7 +175,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
-	providerToken, err := middleware.ExtractProviderToken(ctx)
+	gp, err := getGitProvider(ctx)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -227,11 +227,9 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
 	}
-
-	gp := getGitProvider(providerToken.AccessToken)
-	_, err = s.provider.GetRepository(ctx, gp, repositoryURL)
+	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
 	}
 
 	var pullRequestURL string
@@ -254,7 +252,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		path := getClusterPathInRepo(clusterName)
 		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider:   gp,
+			GitProvider:   *gp,
 			RepositoryURL: repositoryURL,
 			HeadBranch:    msg.HeadBranch,
 			BaseBranch:    baseBranch,
@@ -413,7 +411,7 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 }
 
 func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
-	providerToken, err := middleware.ExtractProviderToken(ctx)
+	gp, err := getGitProvider(ctx)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -441,8 +439,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		})
 	}
 
-	gp := getGitProvider(providerToken.AccessToken)
-	_, err = s.provider.GetRepository(ctx, gp, repositoryURL)
+	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
 	}
@@ -451,7 +448,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider:   gp,
+		GitProvider:   *gp,
 		RepositoryURL: repositoryURL,
 		HeadBranch:    msg.HeadBranch,
 		BaseBranch:    baseBranch,
@@ -498,18 +495,29 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	}, nil
 }
 
-func getGitProvider(requestToken string) git.GitProvider {
-	// prefer request over env token if present
-	token := requestToken
-	if token == "" {
-		token = os.Getenv("GIT_PROVIDER_TOKEN")
+func getToken(ctx context.Context) (string, error) {
+	token := os.Getenv("GIT_PROVIDER_TOKEN")
+
+	providerToken, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		// fallback to env token
+		return token, nil
 	}
 
-	return git.GitProvider{
+	return providerToken.AccessToken, nil
+}
+
+func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
+	token, err := getToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &git.GitProvider{
 		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
 		Token:    token,
 		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-	}
+	}, nil
 }
 
 func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.GetEnterpriseVersionRequest) (*capiv1_proto.GetEnterpriseVersionResponse, error) {
