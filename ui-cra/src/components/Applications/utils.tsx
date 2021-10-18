@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApplications } from '@weaveworks/weave-gitops';
-import { Application } from '@weaveworks/weave-gitops/lib/api/applications/applications.pb';
+import { Application } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 export const useApplicationsCount = (): number => {
   const [applications, setApplications] = React.useState<Application[] | void>(
