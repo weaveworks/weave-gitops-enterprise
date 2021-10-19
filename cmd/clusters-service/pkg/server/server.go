@@ -10,10 +10,12 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -422,8 +424,25 @@ func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.Get
 }
 
 func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesRequest) (*capiv1_proto.GetProfilesResponse, error) {
+	// Look for helm repository object in the current namespace
+	namespace := os.Getenv("RUNTIME_NAMESPACE")
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err := s.client.Get(ctx, client.ObjectKey{
+		Name:      s.profileHelmRepositoryName,
+		Namespace: namespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
 
-	return &capiv1_proto.GetProfilesResponse{}, nil
+	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
+	if err != nil {
+		return nil, fmt.Errorf("cannot scan for profiles: %w", err)
+	}
+
+	return &capiv1_proto.GetProfilesResponse{
+		Profiles: ps,
+	}, nil
 }
 
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {

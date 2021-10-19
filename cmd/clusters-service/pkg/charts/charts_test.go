@@ -9,18 +9,20 @@ import (
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestScanCharts_with_matches(t *testing.T) {
+func TestScanCharts_with_no_matches(t *testing.T) {
 	ts := httptest.NewServer(http.FileServer(http.Dir("testdata/no_profiles")))
 	profiles, err := ScanCharts(context.TODO(), makeTestHelmRepository(ts.URL), Profiles)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want := map[string][]string{}
+	want := []*capiv1_proto.Profile{}
 	if diff := cmp.Diff(want, profiles); diff != "" {
 		t.Fatalf("expected no profiles:\n%s", diff)
 	}
@@ -33,9 +35,34 @@ func TestScanCharts_with_matching_charts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := map[string][]string{"demo-profile": []string{"1.1.0"}}
-	if diff := cmp.Diff(want, profiles); diff != "" {
-		t.Fatalf("expected no profiles:\n%s", diff)
+	want := []*capiv1_proto.Profile{
+		{
+			Name:        "demo-profile",
+			Home:        "https://helm.sh/helm",
+			Sources:     []string{"https://github.com/helm/charts"},
+			Description: "Simple demo profile",
+			Keywords:    []string{"gitops", "demo"},
+			Maintainers: []*capiv1_proto.Maintainer{
+				{
+					Name:  "WeaveWorks",
+					Email: "maintainers@weave.works",
+					Url:   "",
+				},
+				{
+					Name:  "CNCF",
+					Email: "",
+					Url:   "cncf.io",
+				},
+			},
+			Icon: "https://helm.sh/icon.png",
+			AvailableVersions: []string{
+				"1.1.0",
+				"1.1.2",
+			},
+		},
+	}
+	if diff := cmp.Diff(want, profiles, cmpopts.IgnoreUnexported(capiv1_proto.Profile{}, capiv1_proto.Maintainer{})); diff != "" {
+		t.Fatalf("expected no diff:\n%s", diff)
 	}
 }
 

@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"sort"
 
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"helm.sh/helm/pkg/repo"
 	"helm.sh/helm/v3/pkg/getter"
 	hapichart "k8s.io/helm/pkg/proto/hapi/chart"
 	"sigs.k8s.io/yaml"
-
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 )
 
 // ProfileAnnotation is the annotation that Helm charts must have to indicate
@@ -37,25 +38,48 @@ var Profiles = func(v *repo.ChartVersion) bool {
 // ScanCharts filters charts using the provided predicate.
 //
 // TODO: Add caching based on the Status Artifact Revision.
-func ScanCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred chartPredicate) (map[string][]string, error) {
+func ScanCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred chartPredicate) ([]*capiv1_proto.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {
 		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s %q: %w",
 			hr.GetName(), hr.GetNamespace(), hr.Spec.URL, err)
 	}
 
-	profiles := map[string][]string{}
+	ps := make(map[string]*capiv1_proto.Profile)
 	for name, versions := range chartRepo.Entries {
 		for _, v := range versions {
 			if pred(v) {
-				current, ok := profiles[name]
-				if !ok {
-					current = []string{}
+				// if already added, update the versions array
+				if p, ok := ps[name]; ok {
+					p.AvailableVersions = append(p.AvailableVersions, v.Version)
+				} else { // otherwise create a new profile and add to map
+					p = &capiv1_proto.Profile{
+						Name:        name,
+						Home:        v.Home,
+						Sources:     v.Sources,
+						Description: v.Description,
+						Keywords:    v.Keywords,
+						Icon:        v.Icon,
+						KubeVersion: v.KubeVersion,
+					}
+					for _, m := range v.Maintainers {
+						p.Maintainers = append(p.Maintainers, &capiv1_proto.Maintainer{
+							Name:  m.Name,
+							Email: m.Email,
+							Url:   m.Url,
+						})
+					}
+					p.AvailableVersions = append(p.AvailableVersions, v.Version)
+					ps[name] = p
 				}
-				current = append(current, v.Metadata.Version)
-				profiles[name] = current
 			}
 		}
+	}
+
+	profiles := []*capiv1_proto.Profile{}
+	for _, p := range ps {
+		sort.Strings(p.AvailableVersions)
+		profiles = append(profiles, p)
 	}
 	return profiles, nil
 }
