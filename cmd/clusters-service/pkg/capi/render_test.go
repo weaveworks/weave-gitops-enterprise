@@ -43,6 +43,37 @@ spec:
 	}
 }
 
+func TestDisablePrune(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: NotCluster
+metadata:
+  name: testing
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: testing-control-plane
+spec:
+  replicas: 5`)
+	updated, err := DisablePrune()(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: NotCluster
+metadata:
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: testing
+`
+
+	if diff := cmp.Diff(want, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}
+
 func TestInNamespace(t *testing.T) {
 	raw := []byte(`
 apiVersion: cluster.x-k8s.io/v1alpha3
