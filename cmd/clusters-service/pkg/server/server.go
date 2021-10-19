@@ -49,12 +49,13 @@ type server struct {
 	client          client.Client
 	discoveryClient discovery.DiscoveryInterface
 	capiv1_proto.UnimplementedClustersServiceServer
-	db *gorm.DB
-	ns string // The namespace where cluster objects reside
+	db                        *gorm.DB
+	ns                        string // The namespace where cluster objects reside
+	profileHelmRepositoryName string
 }
 
-func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string) capiv1_proto.ClustersServiceServer {
-	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns}
+func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string) capiv1_proto.ClustersServiceServer {
+	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns, profileHelmRepositoryName: profileHelmRepositoryName}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {

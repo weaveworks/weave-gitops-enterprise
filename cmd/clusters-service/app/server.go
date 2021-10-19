@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
@@ -93,6 +94,7 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
 		capiv1.AddToScheme,
+		sourcev1beta1.AddToScheme,
 	}
 	schemeBuilder.AddToScheme(scheme)
 	kubeClientConfig := config.GetConfigOrDie()
@@ -120,7 +122,7 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 	namespace := viper.GetString("entitlement-secret-namespace")
 	key := client.ObjectKey{Name: name, Namespace: namespace}
 
-	return RunInProcessGateway(ctx, "0.0.0.0:8000", ns, key,
+	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithDatabase(db),
 		WithKubernetesClient(kubeClient),
@@ -139,11 +141,14 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 				middleware.WithGrpcErrorLogging(klogr.New()),
 			},
 		),
+		WithProfileHelmRepository(viper.GetString("profile-helm-repository")),
+		WithCAPIClustersNamespace(ns),
+		WithEntitlementSecretKey(key),
 	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, ns string, entitlementSecretKey client.ObjectKey, setters ...Option) error {
+func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) error {
 
 	args := &Options{
 		Log: logr.Discard(),
@@ -155,7 +160,7 @@ func RunInProcessGateway(ctx context.Context, addr string, ns string, entitlemen
 
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, ns))
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository))
 
 	//Add weave-gitops core handlers
 	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
@@ -163,7 +168,7 @@ func RunInProcessGateway(ctx context.Context, addr string, ns string, entitlemen
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, entitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, mux)),
+		Handler: entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, mux)),
 	}
 
 	go func() {

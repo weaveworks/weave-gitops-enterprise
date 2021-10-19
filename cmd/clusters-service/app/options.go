@@ -12,14 +12,17 @@ import (
 )
 
 type Options struct {
-	Log                logr.Logger
-	Database           *gorm.DB
-	KubernetesClient   client.Client
-	DiscoveryClient    discovery.DiscoveryInterface
-	TemplateLibrary    templates.Library
-	GitProvider        git.Provider
-	ApplicationsConfig *server.ApplicationsConfig
-	GrpcRuntimeOptions []runtime.ServeMuxOption
+	Log                   logr.Logger
+	Database              *gorm.DB
+	KubernetesClient      client.Client
+	DiscoveryClient       discovery.DiscoveryInterface
+	TemplateLibrary       templates.Library
+	GitProvider           git.Provider
+	ApplicationsConfig    *server.ApplicationsConfig
+	GrpcRuntimeOptions    []runtime.ServeMuxOption
+	ProfileHelmRepository string
+	CAPIClustersNamespace string
+	EntitlementSecretKey  client.ObjectKey
 }
 
 type Option func(*Options)
@@ -69,5 +72,23 @@ func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 func WithGrpcRuntimeOptions(grpcRuntimeOptions []runtime.ServeMuxOption) Option {
 	return func(o *Options) {
 		o.GrpcRuntimeOptions = grpcRuntimeOptions
+	}
+}
+
+func WithProfileHelmRepository(name string) Option {
+	return func(o *Options) {
+		o.ProfileHelmRepository = name
+	}
+}
+
+func WithCAPIClustersNamespace(namespace string) Option {
+	return func(o *Options) {
+		o.CAPIClustersNamespace = namespace
+	}
+}
+
+func WithEntitlementSecretKey(key client.ObjectKey) Option {
+	return func(o *Options) {
+		o.EntitlementSecretKey = key
 	}
 }

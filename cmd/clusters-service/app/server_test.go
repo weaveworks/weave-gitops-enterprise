@@ -27,7 +27,12 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	c := createFakeClient(createSecret(validEntitlement))
 	go func(ctx context.Context) {
 		appsConfig := fakeAppsConfig(c)
-		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001", "default", client.ObjectKey{Name: "name", Namespace: "namespace"}, app.WithKubernetesClient(c), app.WithApplicationsConfig(appsConfig))
+		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001",
+			app.WithCAPIClustersNamespace("default"),
+			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
+			app.WithKubernetesClient(c),
+			app.WithApplicationsConfig(appsConfig),
+		)
 		t.Logf("%v", err)
 
 	}(ctx)
