@@ -32,7 +32,9 @@ import { Credential, TemplateObject } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
+import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { Loader } from '../../Loader';
+import Compose from '../../ProvidersCompose';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -181,6 +183,20 @@ const AddCluster: FC = () => {
     ],
     [credentials],
   );
+
+  // const profilesItems: DropdownItem[] = useMemo(
+  //   () => [
+  //     ...profiles.map(([profile]: Profile) => {
+  //       const { name } = profile;
+  //       return {
+  //         label: name,
+  //         value: name || '',
+  //       };
+  //     }),
+  //     { label: 'None', value: '' },
+  //   ],
+  //   [profiles],
+  // );
 
   const handleSelectCredentials = useCallback(
     (event: FormEvent<HTMLInputElement>, value: string) => {
@@ -382,9 +398,18 @@ const AddCluster: FC = () => {
                 }}
                 {...UiTemplate}
               >
-                <div className={classes.previewCTA}>
-                  <Button>Preview PR</Button>
-                </div>
+                <FormStep
+                  title="Profiles"
+                  active={activeStep === 'Profiles'}
+                  clicked={clickedStep === 'Profiles'}
+                  setActiveStep={setActiveStep}
+                >
+                  <span>Select profiles:&nbsp;</span>
+                  MULTI CHOICE DROPDOWN
+                  <div className={classes.previewCTA}>
+                    <Button>Preview PR</Button>
+                  </div>
+                </FormStep>
               </Form>
               {openPreview ? (
                 <>
@@ -497,9 +522,9 @@ const AddCluster: FC = () => {
 };
 
 const AddClusterWithCredentials = () => (
-  <CredentialsProvider>
+  <Compose components={[ProfilesProvider, CredentialsProvider]}>
     <AddCluster />
-  </CredentialsProvider>
+  </Compose>
 );
 
 export default AddClusterWithCredentials;
