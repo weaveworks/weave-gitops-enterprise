@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { FC, useState } from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -17,21 +17,27 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const options = ['Profile 1', 'Profile 2', 'Profile 3'];
-
-const MultiSelectDropdown = () => {
+const MultiSelectDropdown: FC<{ items: any[]; onSelectProfiles: any }> = ({
+  items,
+  onSelectProfiles,
+}) => {
   const classes = useStyles();
   const [selected, setSelected] = useState<string[]>([]);
-  const isAllSelected =
-    options.length > 0 && selected.length === options.length;
+  const isAllSelected = items.length > 0 && selected.length === items.length;
 
+  const itemsNames = items.map(item => item.name);
+
+  // causes uncontrolled rerenders?
   const handleChange = (event: any) => {
     const value = event.target.value;
     if (value[value.length - 1] === 'all') {
-      setSelected(selected.length === options.length ? [] : options);
+      setSelected(selected.length === itemsNames.length ? [] : itemsNames);
+      onSelectProfiles(selected.length === itemsNames.length ? [] : itemsNames);
       return;
     }
     setSelected(value);
+    onSelectProfiles(value);
+    // send up to the form
   };
 
   return (
@@ -49,7 +55,7 @@ const MultiSelectDropdown = () => {
               classes={{ indeterminate: classes.indeterminateColor }}
               checked={isAllSelected}
               indeterminate={
-                selected.length > 0 && selected.length < options.length
+                selected.length > 0 && selected.length < items.length
               }
               style={{
                 color: '#00B3EC',
@@ -58,17 +64,17 @@ const MultiSelectDropdown = () => {
           </ListItemIcon>
           <ListItemText primary="Select All" />
         </MenuItem>
-        {options.map(option => (
-          <MenuItem key={option} value={option}>
+        {itemsNames.map(item => (
+          <MenuItem key={item} value={item}>
             <ListItemIcon>
               <Checkbox
-                checked={selected.indexOf(option) > -1}
+                checked={selected.indexOf(item) > -1}
                 style={{
                   color: '#00B3EC',
                 }}
               />
             </ListItemIcon>
-            <ListItemText primary={option} />
+            <ListItemText primary={item} />
           </MenuItem>
         ))}
       </Select>
