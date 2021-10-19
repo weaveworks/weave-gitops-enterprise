@@ -13,6 +13,12 @@ import { createStyles, makeStyles } from '@material-ui/core';
 import { ReactComponent as EKS } from '../../assets/img/templates/eks.svg';
 import { ReactComponent as GKE } from '../../assets/img/templates/gke.svg';
 import { ReactComponent as Generic } from '../../assets/img/templates/generic.svg';
+import { ReactComponent as Azure } from '../../assets/img/templates/azure.svg';
+import { ReactComponent as DigitalOcean } from '../../assets/img/templates/digitalocean.svg';
+import { ReactComponent as Docker } from '../../assets/img/templates/docker.svg';
+import { ReactComponent as OpenStack } from '../../assets/img/templates/openstack.svg';
+import { ReactComponent as Packet } from '../../assets/img/templates/packet.svg';
+import { ReactComponent as VSphere } from '../../assets/img/templates/vsphere.svg';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -36,10 +42,22 @@ const TemplateCard: FC<{ template: Template }> = ({ template }) => {
   };
   const getTile = () => {
     switch (template.provider) {
+      case 'azure':
+        return <Azure />;
       case 'aws':
         return <EKS />;
+      case 'digitalocean':
+        return <DigitalOcean />;
+      case 'docker':
+        return <Docker />;
       case 'gcp':
         return <GKE />;
+      case 'openstack':
+        return <OpenStack />;
+      case 'packet':
+        return <Packet />;
+      case 'vsphere':
+        return <VSphere />;
       default:
         return <Generic />;
     }
