@@ -35,6 +35,7 @@ import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { Loader } from '../../Loader';
 import Compose from '../../ProvidersCompose';
+import MultiSelectDropdown from '../../MultiSelectDropdown';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -405,7 +406,7 @@ const AddCluster: FC = () => {
                   setActiveStep={setActiveStep}
                 >
                   <span>Select profiles:&nbsp;</span>
-                  MULTI CHOICE DROPDOWN
+                  <MultiSelectDropdown />
                   <div className={classes.previewCTA}>
                     <Button>Preview PR</Button>
                   </div>
