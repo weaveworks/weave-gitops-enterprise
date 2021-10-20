@@ -8,8 +8,6 @@ import useNotifications from './../Notifications';
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [error, setError] = React.useState<string | null>(null);
-  const [activeProfile, setActiveProfile] = useState<Profile | null>(null);
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const { setNotifications } = useNotifications();
 
@@ -28,41 +26,31 @@ const ProfilesProvider: FC = ({ children }) => {
   const getProfile = (profileName: string) =>
     profiles.find(profile => profile.name === profileName) || null;
 
-  const getProfiles = useCallback(
-    () => {
-      setLoading(true);
-      request('GET', profilesUrl, {
-        cache: 'no-store',
+  const getProfiles = useCallback(() => {
+    setLoading(true);
+    request('GET', profilesUrl, {
+      cache: 'no-store',
+    })
+      .then(res => setProfiles(res.profiles))
+      .catch(err => {
+        setNotifications([{ message: err.message, variant: 'danger' }]);
+        setProfiles(FAKE_PROFILES);
       })
-        .then(res => {
-          setProfiles(res.profiles);
-          setError(null);
-        })
-        .catch(err => {
-          setError(err.message);
-          // setProfiles(FAKE_PROFILES);
-        })
-        .finally(() => setLoading(false));
-    },
-    [
-      // FAKE_PROFILES
-    ],
-  );
+      .finally(() => setLoading(false));
+  }, [FAKE_PROFILES, setNotifications]);
 
   const renderProfile = useCallback(
-    data => {
+    profileName => {
       setLoading(true);
-      request('POST', `${profilesUrl}/${activeProfile?.name}/render`, {
-        body: JSON.stringify(data),
-      })
+      request('GET', `${profilesUrl}/${profileName}/render`)
         .then(data => setProfilePreview(data.renderedProfile))
         .catch(err => {
-          // setProfilePreview(FAKE_PROFILE_YAML);
           setNotifications([{ message: err.message, variant: 'danger' }]);
+          setProfilePreview(FAKE_PROFILE_YAML);
         })
         .finally(() => setLoading(false));
     },
-    [activeProfile, setNotifications],
+    [setNotifications],
   );
 
   useEffect(() => {
@@ -75,14 +63,10 @@ const ProfilesProvider: FC = ({ children }) => {
       value={{
         profiles,
         loading,
-        error,
-        setError,
         getProfile,
         profilePreview,
         setProfilePreview,
         renderProfile,
-        activeProfile,
-        setActiveProfile,
       }}
     >
       {children}

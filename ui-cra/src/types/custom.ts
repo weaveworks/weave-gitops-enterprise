@@ -52,7 +52,7 @@ export type HelmRepository = {
 };
 
 export type Profile = {
-  name?: string;
+  name: string;
   home?: string;
   sources?: string[];
   description?: string;

@@ -143,7 +143,9 @@ const AddCluster: FC = () => {
   const random = Math.random().toString(36).substring(7);
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
-  const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
+  const [selectedProfiles, setSelectedProfiles] = useState<Profile['name'][]>(
+    [],
+  );
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [branchName, setBranchName] = useState<string>(
@@ -188,20 +190,6 @@ const AddCluster: FC = () => {
     ],
     [credentials],
   );
-
-  // const profilesItems: DropdownItem[] = useMemo(
-  //   () => [
-  //     ...profiles.map(([profile]: Profile) => {
-  //       const { name } = profile;
-  //       return {
-  //         label: name,
-  //         value: name || '',
-  //       };
-  //     }),
-  //     { label: 'None', value: '' },
-  //   ],
-  //   [profiles],
-  // );
 
   const handleSelectCredentials = useCallback(
     (event: FormEvent<HTMLInputElement>, value: string) => {
@@ -412,21 +400,11 @@ const AddCluster: FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <span>Select profiles:&nbsp;</span>
                     <MultiSelectDropdown
-                      // items={profiles}
-                      items={[
-                        { name: 'Profile 1' },
-                        { name: 'Profile 2' },
-                        { name: 'Profile 3' },
-                      ]}
+                      items={profiles}
                       onSelectProfiles={setSelectedProfiles}
                     />
                   </div>
-                  <ProfilesList
-                    selectedProfiles={[
-                      { name: 'Profile 1' },
-                      { name: 'Profile 2' },
-                    ]}
-                  />
+                  <ProfilesList selectedProfiles={selectedProfiles} />
                   <div className={classes.previewCTA}>
                     <Button>Preview PR</Button>
                   </div>
@@ -540,7 +518,7 @@ const AddCluster: FC = () => {
     pullRequestTitle,
     pullRequestDescription,
     profiles,
-    // selectedProfiles,
+    selectedProfiles,
   ]);
 };
 

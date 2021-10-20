@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { Profile } from '../../../types/custom';
@@ -14,7 +14,6 @@ import { CloseIconButton } from '../../../assets/img/close-icon-button';
 import { Loader } from '../../Loader';
 import { OnClickAction } from '../../Action';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -36,35 +35,31 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const FAKE_PROFILE_YAML =
-  'apiVersion: cluster.x-k8s.io/v1alpha3\nkind: Cluster\nmetadata:\n  name: cls-name-oct18\n  namespace: default\nspec:\n';
-
-const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
+const ProfilesList: FC<{ selectedProfiles: Profile['name'][] }> = ({
   selectedProfiles,
 }) => {
   const classes = useStyles();
-  const { renderProfile, loading } = useProfiles();
+  const { profilePreview, renderProfile, loading } = useProfiles();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
-  const rows = (FAKE_PROFILE_YAML?.split('\n').length || 0) - 1;
+  const rows = (profilePreview?.split('\n').length || 0) - 1;
+
+  const handlePreview = useCallback(
+    (event: any) => {
+      setOpenYamlPreview(true);
+      renderProfile(event.target.textContent);
+    },
+    [setOpenYamlPreview, renderProfile],
+  );
 
   return useMemo(() => {
     return (
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
           {selectedProfiles.map((profile, index) => {
-            const yaml = '';
-            // renderProfile(profile.name);
             return (
-              <ListItem key={index}>
-                <ListItemText>{profile.name}</ListItemText>
-                <ListItemText
-                  onClick={() => {
-                    setOpenYamlPreview(true);
-                    // get the textarea content for the specific profile
-                  }}
-                >
-                  Values.yaml
-                </ListItemText>
+              <ListItem key={index} value={profile} onClick={handlePreview}>
+                <ListItemText>{profile}</ListItemText>
+                <ListItemText>Values.yaml</ListItemText>
                 {openYamlPreview && (
                   <Dialog
                     open
@@ -75,10 +70,13 @@ const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
                     <div id="preview-yaml-popup" className={classes.dialog}>
                       <DialogTitle disableTypography>
                         <Typography variant="h5">
-                          {profile.name} values.yaml
+                          {profile} values.yaml
                         </Typography>
                         <CloseIconButton
-                          onClick={() => setOpenYamlPreview(false)}
+                          onClick={
+                            () => console.log('why')
+                            // setOpenYamlPreview(false)
+                          }
                         />
                       </DialogTitle>
                       <DialogContent>
@@ -87,13 +85,13 @@ const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
                             <textarea
                               className={classes.textarea}
                               rows={rows}
-                              value={FAKE_PROFILE_YAML}
+                              value={profilePreview || ''}
                               readOnly
                             />
                             <OnClickAction
                               id="edit-yaml"
                               onClick={() => console.log('Call save yaml')}
-                              text="Edit profile"
+                              text="Save changes"
                               className="success"
                             />
                           </>
@@ -111,12 +109,13 @@ const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
       </Box>
     );
   }, [
-    renderProfile,
     selectedProfiles,
     classes,
     loading,
     openYamlPreview,
     rows,
+    handlePreview,
+    profilePreview,
   ]);
 };
 

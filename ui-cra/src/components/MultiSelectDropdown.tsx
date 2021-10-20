@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { Dispatch, FC, useState } from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -17,10 +17,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const MultiSelectDropdown: FC<{ items: any[]; onSelectProfiles: any }> = ({
-  items,
-  onSelectProfiles,
-}) => {
+const MultiSelectDropdown: FC<{
+  items: any[];
+  onSelectProfiles: Dispatch<React.SetStateAction<string[]>>;
+}> = ({ items, onSelectProfiles }) => {
   const classes = useStyles();
   const [selected, setSelected] = useState<string[]>([]);
   const isAllSelected = items.length > 0 && selected.length === items.length;
