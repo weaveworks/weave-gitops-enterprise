@@ -139,13 +139,7 @@ jobs:
     - name: Build all the services
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
-    - name: Store mccp binaries
-      uses: actions/upload-artifact@v2
-      with:
-        name: mccp-binaries
-        path: cmd/mccp
-        retention-days: 1
+      run: make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}    
     - name: Install Helm v3
       uses: azure/setup-helm@v1
       with:
@@ -305,11 +299,10 @@ jobs:
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-      MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp
       GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
-      MCCP_ACCEPTANCE: true
+      WGE_ACCEPTANCE: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
     steps:
     - id: go-cache-paths
@@ -357,21 +350,15 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "test-user"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Download mccp binaries
-      uses: actions/download-artifact@v2
-      with:
-        name: mccp-binaries
-        path: cmd/mccp
     - name: Download gitops binary from GitHub
       uses: Legion2/download-release-action@v2.1.0
       with:
         repository: weaveworks/weave-gitops
-        tag: 'v0.3.0'
+        tag: 'v0.3.2-rc'
         path: cmd/gitops/
         file: gitops-linux-x86_64
     - name: Change bin permissions
       run: |
-        sudo chmod +x ${{ env.MCCP_BIN_PATH }}
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
@@ -385,13 +372,13 @@ jobs:
         name: management-${{ github.run_id }}-${{ github.run_number}}
         version: "v0.11.0"
         image: kindest/node:v1.20.7
-        config: "./test/utils/data/local-mccp-kind-config.yaml"
+        config: "./test/utils/data/local-kind-config.yaml"
     - name: Kind-check
       run: |
         kubectl get pods -A    
-    - name: Install mccp components on management cluster
+    - name: Install wego enterprise components on management cluster
       run: |
-        export CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
         
@@ -419,14 +406,12 @@ jobs:
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-      MCCP_BIN_PATH: ${{ github.workspace }}/cmd/mccp/mccp
       GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-linux-amd64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
-      MCCP_ACCEPTANCE: true
+      WGE_ACCEPTANCE: true
       CONNECT_KIND_WKP_LEAF_TEST: true
-      MCCP_KIND_WKP_LEAF_KUBECONFIG: '/tmp/mccp-kind-leaf-kubeconfig'
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
     steps:
     - id: go-cache-paths
@@ -474,21 +459,15 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "test-user"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Download mccp binaries
-      uses: actions/download-artifact@v2
-      with:
-        name: mccp-binaries
-        path: cmd/mccp
     - name: Download gitops binary from GitHub
       uses: Legion2/download-release-action@v2.1.0
       with:
         repository: weaveworks/weave-gitops
-        tag: 'v0.3.0'
+        tag: 'v0.3.2-rc'
         path: cmd/gitops/
         file: gitops-linux-x86_64
     - name: Change bin permissions
       run: |
-        sudo chmod +x ${{ env.MCCP_BIN_PATH }}
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
@@ -502,18 +481,17 @@ jobs:
         name: management-${{ github.run_id }}-${{ github.run_number}}
         version: "v0.11.0"
         image: kindest/node:v1.20.7
-        config: "./test/utils/data/local-mccp-kind-config.yaml"
+        config: "./test/utils/data/local-kind-config.yaml"
     - name: Kind-check
       run: |
         kubectl get pods -A        
-    - name: Install mccp components on management cluster
+    - name: Install wego enterprise components on management cluster
       run: |
-        export CLUSTER_REPOSITORY=mccp-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
         
-        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
-        kubectl port-forward -n wego-system svc/my-mccp-nginx-ingress-controller 8090:80 &       
+        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}      
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
