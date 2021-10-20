@@ -6,7 +6,13 @@ import (
 	"testing"
 	"time"
 
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/go-logr/logr"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
@@ -14,7 +20,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -25,16 +33,40 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	defer ctx.Done()
 
 	c := createFakeClient(createSecret(validEntitlement))
+	db, err := utils.Open("", "sqlite", "", "", "")
+	if err != nil {
+		t.Fatalf("expected no errors but got %v", err)
+	}
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		corev1.AddToScheme,
+		capiv1.AddToScheme,
+		sourcev1beta1.AddToScheme,
+	}
+	schemeBuilder.AddToScheme(scheme)
+	kubeClientConfig := config.GetConfigOrDie()
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(kubeClientConfig)
+
+	if err != nil {
+		t.Fatalf("expected no errors but got %v", err)
+	}
 	go func(ctx context.Context) {
 		appsConfig := fakeAppsConfig(c)
 		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001",
 			app.WithCAPIClustersNamespace("default"),
 			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
 			app.WithKubernetesClient(c),
+			app.WithDiscoveryClient(discoveryClient),
+			app.WithDatabase(db),
 			app.WithApplicationsConfig(appsConfig),
+			app.WithTemplateLibrary(&templates.CRDLibrary{
+				Log:       logr.Discard(),
+				Client:    c,
+				Namespace: "default",
+			}),
+			app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		)
 		t.Logf("%v", err)
-
 	}(ctx)
 
 	time.Sleep(100 * time.Millisecond)

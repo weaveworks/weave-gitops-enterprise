@@ -118,10 +118,6 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 	// Override logger to ensure consistency
 	appsConfig.Logger = log
 
-	name := viper.GetString("entitlement-secret-name")
-	namespace := viper.GetString("entitlement-secret-namespace")
-	key := client.ObjectKey{Name: name, Namespace: namespace}
-
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithDatabase(db),
@@ -141,21 +137,37 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 				middleware.WithGrpcErrorLogging(klogr.New()),
 			},
 		),
-		WithProfileHelmRepository(viper.GetString("profile-helm-repository")),
 		WithCAPIClustersNamespace(ns),
-		WithEntitlementSecretKey(key),
 	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
 func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) error {
 
-	args := &Options{
-		Log: logr.Discard(),
-	}
-
+	args := defaultOptions()
 	for _, setter := range setters {
 		setter(args)
+	}
+	if args.Database == nil {
+		return fmt.Errorf("database is not set")
+	}
+	if args.KubernetesClient == nil {
+		return fmt.Errorf("Kubernetes client is not set")
+	}
+	if args.DiscoveryClient == nil {
+		return fmt.Errorf("Kubernetes discovery client is not set")
+	}
+	if args.TemplateLibrary == nil {
+		return fmt.Errorf("template library is not set")
+	}
+	if args.GitProvider == nil {
+		return fmt.Errorf("git provider is not set")
+	}
+	if args.ApplicationsConfig == nil {
+		return fmt.Errorf("applications config is not set")
+	}
+	if args.CAPIClustersNamespace == "" {
+		return fmt.Errorf("CAPI clusters namespace is not set")
 	}
 
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
@@ -216,6 +228,17 @@ func TrackEvents(log logr.Logger) func(ctx context.Context, r *http.Request) met
 		track(log, handler)
 
 		return metadata.New(md)
+	}
+}
+
+func defaultOptions() *Options {
+	return &Options{
+		Log:                   logr.Discard(),
+		ProfileHelmRepository: viper.GetString("profile-helm-repository"),
+		EntitlementSecretKey: client.ObjectKey{
+			Name:      viper.GetString("entitlement-secret-name"),
+			Namespace: viper.GetString("entitlement-secret-namespace"),
+		},
 	}
 }
 
