@@ -8,6 +8,7 @@ data:
   GIT_PROVIDER_HOSTNAME: {{ .Values.config.git.hostname }}
   CAPI_CLUSTERS_NAMESPACE: {{ .Values.config.capi.clusters.namespace }}
   CAPI_TEMPLATES_NAMESPACE: {{ .Values.config.capi.templates.namespace }}
+  INJECT_PRUNE_ANNOTATION: {{ .Values.config.capi.templates.injectPruneAnnotation }}
   CAPI_TEMPLATES_REPOSITORY_URL: {{ .Values.config.capi.repositoryURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
   {{ if not .Values.config.checkpoint.enabled }}

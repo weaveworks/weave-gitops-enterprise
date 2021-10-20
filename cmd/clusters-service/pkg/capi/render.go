@@ -13,7 +13,7 @@ import (
 // RenderOptFunc is a functional option for Rendering templates.
 type RenderOptFunc func(b []byte) ([]byte, error)
 
-func DisablePrune() RenderOptFunc {
+func InjectPruneAnnotation() RenderOptFunc {
 	return unstructuredFunc(func(uns *unstructured.Unstructured) {
 		if uns.GetKind() != "Cluster" {
 			uns.SetAnnotations(map[string]string{"kustomize.toolkit.fluxcd.io/prune": "disabled"})

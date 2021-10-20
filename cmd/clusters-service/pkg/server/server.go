@@ -181,7 +181,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if err != nil {
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
-	tmplWithValues, err := capi.Render(tmpl.Spec, msg.ParameterValues, capi.DisablePrune())
+	var tmplWithValues [][]byte
+	injectPrune := os.Getenv("INJECT_PRUNE_ANNOTATION")
+	if injectPrune == "true" {
+		tmplWithValues, err = capi.Render(tmpl.Spec, msg.ParameterValues, capi.InjectPruneAnnotation())
+	} else {
+		tmplWithValues, err = capi.Render(tmpl.Spec, msg.ParameterValues)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("unable to render template %q: %w", msg.TemplateName, err)
 	}

@@ -43,7 +43,7 @@ spec:
 	}
 }
 
-func TestDisablePrune(t *testing.T) {
+func TestInjectPruneAnnotation(t *testing.T) {
 	raw := []byte(`
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: NotCluster
@@ -56,7 +56,7 @@ metadata:
   name: testing-control-plane
 spec:
   replicas: 5`)
-	updated, err := DisablePrune()(raw)
+	updated, err := InjectPruneAnnotation()(raw)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,14 +74,14 @@ metadata:
 	}
 }
 
-func TestRender_disable_prune(t *testing.T) {
+func TestRender_InjectPruneAnnotation(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
-		DisablePrune())
+		InjectPruneAnnotation())
 	if err != nil {
 		t.Fatal(err)
 	}
