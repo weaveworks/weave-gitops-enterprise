@@ -21,8 +21,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
+	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -44,8 +44,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 		sourcev1beta1.AddToScheme,
 	}
 	schemeBuilder.AddToScheme(scheme)
-	kubeClientConfig := config.GetConfigOrDie()
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(kubeClientConfig)
+	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	if err != nil {
 		t.Fatalf("expected no errors but got %v", err)
@@ -56,7 +55,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 			app.WithCAPIClustersNamespace("default"),
 			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
 			app.WithKubernetesClient(c),
-			app.WithDiscoveryClient(discoveryClient),
+			app.WithDiscoveryClient(dc),
 			app.WithDatabase(db),
 			app.WithApplicationsConfig(appsConfig),
 			app.WithTemplateLibrary(&templates.CRDLibrary{
@@ -69,7 +68,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 		t.Logf("%v", err)
 	}(ctx)
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 	res, err := http.Get("http://localhost:8001/v1/applications")
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
