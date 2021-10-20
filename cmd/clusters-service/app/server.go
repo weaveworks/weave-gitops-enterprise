@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
@@ -25,7 +26,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc/metadata"
-	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -43,6 +43,7 @@ func NewAPIServerCommand(log logr.Logger) *cobra.Command {
 	var dbBusyTimeout string
 	var entitlementSecretName string
 	var entitlementSecretNamespace string
+	var profileHelmRepository string
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -61,6 +62,7 @@ func NewAPIServerCommand(log logr.Logger) *cobra.Command {
 	cmd.Flags().StringVar(&dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 	cmd.Flags().StringVar(&entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
 	cmd.Flags().StringVar(&entitlementSecretNamespace, "entitlement-secret-namespace", ent.DefaultSecretNamespace, "The namespace of the entitlement secret")
+	cmd.Flags().StringVar(&profileHelmRepository, "profile-helm-repository", "weaveworks-charts", "The name of the Flux `HelmRepository` object in the current namespace that references the profiles")
 
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -92,6 +94,7 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
 		capiv1.AddToScheme,
+		sourcev1beta1.AddToScheme,
 	}
 	schemeBuilder.AddToScheme(scheme)
 	kubeClientConfig := config.GetConfigOrDie()
@@ -103,16 +106,10 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 	if err != nil {
 		return err
 	}
-	library := &templates.CRDLibrary{
-		Log:       log,
-		Client:    kubeClient,
-		Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
-	}
 	ns := os.Getenv("CAPI_CLUSTERS_NAMESPACE")
 	if ns == "" {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
-	provider := git.NewGitProviderService(log)
 
 	appsConfig, err := wego_server.DefaultConfig()
 	if err != nil {
@@ -125,40 +122,67 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 	namespace := viper.GetString("entitlement-secret-namespace")
 	key := client.ObjectKey{Name: name, Namespace: namespace}
 
-	return RunInProcessGateway(ctx, "0.0.0.0:8000", library, provider, kubeClient, discoveryClient, db, ns, appsConfig, key, log,
-		grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
-		grpc_runtime.WithMetadata(TrackEvents(log)),
-		middleware.WithGrpcErrorLogging(klogr.New()),
+	return RunInProcessGateway(ctx, "0.0.0.0:8000",
+		WithLog(log),
+		WithDatabase(db),
+		WithKubernetesClient(kubeClient),
+		WithDiscoveryClient(discoveryClient),
+		WithGitProvider(git.NewGitProviderService(log)),
+		WithTemplateLibrary(&templates.CRDLibrary{
+			Log:       log,
+			Client:    kubeClient,
+			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
+		}),
+		WithApplicationsConfig(appsConfig),
+		WithGrpcRuntimeOptions(
+			[]grpc_runtime.ServeMuxOption{
+				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
+				grpc_runtime.WithMetadata(TrackEvents(log)),
+				middleware.WithGrpcErrorLogging(klogr.New()),
+			},
+		),
+		WithProfileHelmRepository(viper.GetString("profile-helm-repository")),
+		WithCAPIClustersNamespace(ns),
+		WithEntitlementSecretKey(key),
 	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, library templates.Library, provider git.Provider, c client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, appsConfig *wego_server.ApplicationsConfig, entitlementSecretKey client.ObjectKey, log logr.Logger, opts ...grpc_runtime.ServeMuxOption) error {
-	mux := grpc_runtime.NewServeMux(opts...)
+func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) error {
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(log, library, provider, c, discoveryClient, db, ns))
+	args := &Options{
+		Log: logr.Discard(),
+	}
+
+	for _, setter := range setters {
+		setter(args)
+	}
+
+	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
+
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository))
 
 	//Add weave-gitops core handlers
-	wegoServer := wego_server.NewApplicationsServer(appsConfig)
+	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
 	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: entitlement.EntitlementHandler(ctx, log, c, entitlementSecretKey, entitlement.CheckEntitlementHandler(log, mux)),
+		Handler: entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, mux)),
 	}
 
 	go func() {
 		<-ctx.Done()
-		log.Info("Shutting down the http gateway server")
+		args.Log.Info("Shutting down the http gateway server")
 		if err := s.Shutdown(context.Background()); err != nil {
-			log.Error(err, "Failed to shutdown http gateway server")
+			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}
 	}()
 
-	log.Info("Starting to listen and serve", "address", addr)
+	args.Log.Info("Starting to listen and serve", "address", addr)
 
 	if err := s.ListenAndServe(); err != http.ErrServerClosed {
-		log.Error(err, "Failed to listen and serve")
+		args.Log.Error(err, "Failed to listen and serve")
 		return err
 	}
 	return nil

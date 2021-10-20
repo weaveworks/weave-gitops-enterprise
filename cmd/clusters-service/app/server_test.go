@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -28,7 +27,12 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	c := createFakeClient(createSecret(validEntitlement))
 	go func(ctx context.Context) {
 		appsConfig := fakeAppsConfig(c)
-		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001", nil, nil, c, nil, nil, "default", appsConfig, client.ObjectKey{Name: "name", Namespace: "namespace"}, logr.Discard())
+		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001",
+			app.WithCAPIClustersNamespace("default"),
+			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
+			app.WithKubernetesClient(c),
+			app.WithApplicationsConfig(appsConfig),
+		)
 		t.Logf("%v", err)
 
 	}(ctx)

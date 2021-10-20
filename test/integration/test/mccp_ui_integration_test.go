@@ -613,7 +613,14 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		KubeClient: cl,
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", fakeAppsConfig, client.ObjectKey{Name: "entitlement", Namespace: "default"}, logr.Discard())
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
+		app.WithCAPIClustersNamespace("default"),
+		app.WithEntitlementSecretKey(client.ObjectKey{Name: "entitlement", Namespace: "default"}),
+		app.WithTemplateLibrary(library),
+		app.WithKubernetesClient(cl),
+		app.WithDiscoveryClient(discoveryClient),
+		app.WithDatabase(db),
+		app.WithApplicationsConfig(fakeAppsConfig))
 }
 
 func RunUIServer(ctx gcontext.Context) {
