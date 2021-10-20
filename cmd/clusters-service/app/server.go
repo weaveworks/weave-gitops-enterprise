@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -149,25 +150,25 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		setter(args)
 	}
 	if args.Database == nil {
-		return fmt.Errorf("database is not set")
+		return errors.New("database is not set")
 	}
 	if args.KubernetesClient == nil {
-		return fmt.Errorf("Kubernetes client is not set")
+		return errors.New("Kubernetes client is not set")
 	}
 	if args.DiscoveryClient == nil {
-		return fmt.Errorf("Kubernetes discovery client is not set")
+		return errors.New("Kubernetes discovery client is not set")
 	}
 	if args.TemplateLibrary == nil {
-		return fmt.Errorf("template library is not set")
+		return errors.New("template library is not set")
 	}
 	if args.GitProvider == nil {
-		return fmt.Errorf("git provider is not set")
+		return errors.New("git provider is not set")
 	}
 	if args.ApplicationsConfig == nil {
-		return fmt.Errorf("applications config is not set")
+		return errors.New("applications config is not set")
 	}
 	if args.CAPIClustersNamespace == "" {
-		return fmt.Errorf("CAPI clusters namespace is not set")
+		return errors.New("CAPI clusters namespace is not set")
 	}
 
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
