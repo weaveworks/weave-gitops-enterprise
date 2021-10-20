@@ -75,14 +75,6 @@ const CredentialsWrapper = styled.div`
   }
 `;
 
-const ProfilesWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  span {
-    margin-right: ${xs};
-  }
-`;
-
 const useStyles = makeStyles(theme =>
   createStyles({
     form: {
@@ -417,7 +409,7 @@ const AddCluster: FC = () => {
                   clicked={clickedStep === 'Profiles'}
                   setActiveStep={setActiveStep}
                 >
-                  <ProfilesWrapper>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
                     <span>Select profiles:&nbsp;</span>
                     <MultiSelectDropdown
                       // items={profiles}
@@ -428,13 +420,13 @@ const AddCluster: FC = () => {
                       ]}
                       onSelectProfiles={setSelectedProfiles}
                     />
-                    <ProfilesList
-                      selectedProfiles={[
-                        { name: 'Profile 1' },
-                        { name: 'Profile 2' },
-                      ]}
-                    />
-                  </ProfilesWrapper>
+                  </div>
+                  <ProfilesList
+                    selectedProfiles={[
+                      { name: 'Profile 1' },
+                      { name: 'Profile 2' },
+                    ]}
+                  />
                   <div className={classes.previewCTA}>
                     <Button>Preview PR</Button>
                   </div>
