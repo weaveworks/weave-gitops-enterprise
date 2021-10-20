@@ -27,7 +27,6 @@ const MultiSelectDropdown: FC<{ items: any[]; onSelectProfiles: any }> = ({
 
   const itemsNames = items.map(item => item.name);
 
-  // causes uncontrolled rerenders?
   const handleChange = (event: any) => {
     const value = event.target.value;
     if (value[value.length - 1] === 'all') {
@@ -37,7 +36,6 @@ const MultiSelectDropdown: FC<{ items: any[]; onSelectProfiles: any }> = ({
     }
     setSelected(value);
     onSelectProfiles(value);
-    // send up to the form
   };
 
   return (

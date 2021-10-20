@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Profile } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Profiles } from './index';
@@ -17,11 +17,10 @@ const ProfilesProvider: FC = ({ children }) => {
 
   const profilesUrl = '/v1/profiles';
 
-  const FAKE_PROFILES = [
-    { name: 'Profile 1' },
-    { name: 'Profile 2' },
-    { name: 'Profile 3' },
-  ];
+  const FAKE_PROFILES = useMemo(
+    () => [{ name: 'Profile 1' }, { name: 'Profile 2' }, { name: 'Profile 3' }],
+    [],
+  );
 
   const FAKE_PROFILE_YAML =
     'apiVersion: cluster.x-k8s.io/v1alpha3\nkind: Cluster\nmetadata:\n  name: cls-name-oct18\n  namespace: default\nspec:\n';
@@ -29,21 +28,26 @@ const ProfilesProvider: FC = ({ children }) => {
   const getProfile = (profileName: string) =>
     profiles.find(profile => profile.name === profileName) || null;
 
-  const getProfiles = useCallback(() => {
-    setLoading(true);
-    request('GET', profilesUrl, {
-      cache: 'no-store',
-    })
-      .then(res => {
-        setProfiles(res.profiles);
-        setError(null);
+  const getProfiles = useCallback(
+    () => {
+      setLoading(true);
+      request('GET', profilesUrl, {
+        cache: 'no-store',
       })
-      .catch(err => {
-        setError(err.message);
-        setProfiles(FAKE_PROFILES);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+        .then(res => {
+          setProfiles(res.profiles);
+          setError(null);
+        })
+        .catch(err => {
+          setError(err.message);
+          // setProfiles(FAKE_PROFILES);
+        })
+        .finally(() => setLoading(false));
+    },
+    [
+      // FAKE_PROFILES
+    ],
+  );
 
   const renderProfile = useCallback(
     data => {
@@ -51,11 +55,11 @@ const ProfilesProvider: FC = ({ children }) => {
       request('POST', `${profilesUrl}/${activeProfile?.name}/render`, {
         body: JSON.stringify(data),
       })
-        // .then(data => setProfilePreview(data.renderedProfile))
-        .then(data => setProfilePreview(FAKE_PROFILE_YAML))
-        .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
-        )
+        .then(data => setProfilePreview(data.renderedProfile))
+        .catch(err => {
+          // setProfilePreview(FAKE_PROFILE_YAML);
+          setNotifications([{ message: err.message, variant: 'danger' }]);
+        })
         .finally(() => setLoading(false));
     },
     [activeProfile, setNotifications],

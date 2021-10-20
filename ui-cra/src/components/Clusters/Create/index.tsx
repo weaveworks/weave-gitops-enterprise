@@ -420,10 +420,20 @@ const AddCluster: FC = () => {
                   <ProfilesWrapper>
                     <span>Select profiles:&nbsp;</span>
                     <MultiSelectDropdown
-                      items={profiles}
+                      // items={profiles}
+                      items={[
+                        { name: 'Profile 1' },
+                        { name: 'Profile 2' },
+                        { name: 'Profile 3' },
+                      ]}
                       onSelectProfiles={setSelectedProfiles}
                     />
-                    <ProfilesList selectedProfiles={selectedProfiles} />
+                    <ProfilesList
+                      selectedProfiles={[
+                        { name: 'Profile 1' },
+                        { name: 'Profile 2' },
+                      ]}
+                    />
                   </ProfilesWrapper>
                   <div className={classes.previewCTA}>
                     <Button>Preview PR</Button>
@@ -538,7 +548,7 @@ const AddCluster: FC = () => {
     pullRequestTitle,
     pullRequestDescription,
     profiles,
-    selectedProfiles,
+    // selectedProfiles,
   ]);
 };
 
