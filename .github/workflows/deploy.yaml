@@ -135,10 +135,10 @@ jobs:
         go version
         mkdir -p ${{ env.ARTEFACTS_BASE_DIR }}
         
-        go test -v -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
-        cd ${{ github.workspace }}/cmd/event-writer && go test -v -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/event-writer-results.xml
-        cd ${{ github.workspace }}/common && go test -v -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
-        cd ${{ github.workspace }}/cmd/clusters-service && go test -v -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/clusters-service-results.xml
+        WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
+        cd ${{ github.workspace }}/cmd/event-writer && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/event-writer-results.xml
+        cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
+        cd ${{ github.workspace }}/cmd/clusters-service && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/clusters-service-results.xml
 
         cd ${{ github.workspace }}
         # Merge all coverage results
