@@ -143,9 +143,7 @@ const AddCluster: FC = () => {
   const random = Math.random().toString(36).substring(7);
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
-  const [selectedProfiles, setSelectedProfiles] = useState<Profile['name'][]>(
-    [],
-  );
+  const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [branchName, setBranchName] = useState<string>(

@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { ChangeEvent, FC, useCallback, useState } from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { Profile } from '../../../types/custom';
@@ -14,6 +14,7 @@ import { CloseIconButton } from '../../../assets/img/close-icon-button';
 import { Loader } from '../../Loader';
 import { OnClickAction } from '../../Action';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import Button from '@material-ui/core/Button';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -33,26 +34,43 @@ const useStyles = makeStyles(theme => ({
     padding: xs,
     border: '1px solid #E5E5E5',
   },
+  downloadBtn: {
+    color: '#00B3EC',
+    padding: '0px',
+  },
 }));
 
-const ProfilesList: FC<{ selectedProfiles: Profile['name'][] }> = ({
+const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
   selectedProfiles,
 }) => {
   const classes = useStyles();
   const { profilePreview, renderProfile, loading } = useProfiles();
   const [activeProfile, setActiveProfile] = useState<Profile['name']>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
+  const [updatedProfiles, setUpdatedProfiles] = useState(selectedProfiles);
+
   const rows = (profilePreview?.split('\n').length || 0) - 1;
 
   const handlePreview = useCallback(
-    (event: any) => {
-      console.log(event.target);
+    (profileName: string) => {
       setOpenYamlPreview(true);
-      setActiveProfile(event.target.textContent);
-      renderProfile(event.target.textContent);
+      setActiveProfile(profileName);
+      renderProfile(profileName);
     },
     [setOpenYamlPreview, renderProfile],
   );
+
+  const handleChange = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement>) => {
+      console.log(event.target.value);
+      console.log(activeProfile);
+      // find the active profile in profileContent and update its state => setProfileContent(event.target.value);
+    },
+    [],
+  );
+  const handleUpdateProfiles = useCallback(() => {
+    //save data from form textarea and send it up to the parent form to be submitted
+  }, []);
 
   return (
     <>
@@ -60,9 +78,14 @@ const ProfilesList: FC<{ selectedProfiles: Profile['name'][] }> = ({
         <List>
           {selectedProfiles.map((profile, index) => {
             return (
-              <ListItem key={index} onClick={handlePreview}>
-                <ListItemText>{profile}</ListItemText>
-                <ListItemText>values.yaml</ListItemText>
+              <ListItem key={index}>
+                <ListItemText>{profile.name}</ListItemText>
+                <Button
+                  className={classes.downloadBtn}
+                  onClick={() => handlePreview(profile.name)}
+                >
+                  values.yaml
+                </Button>
               </ListItem>
             );
           })}
@@ -86,12 +109,12 @@ const ProfilesList: FC<{ selectedProfiles: Profile['name'][] }> = ({
                   className={classes.textarea}
                   rows={rows}
                   defaultValue={profilePreview || ''}
+                  onChange={handleChange}
                 />
                 <OnClickAction
                   id="edit-yaml"
-                  onClick={() => console.log('Call save yaml')}
+                  onClick={handleUpdateProfiles}
                   text="Save changes"
-                  className="success"
                 />
               </>
             ) : (

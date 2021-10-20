@@ -6,6 +6,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
+import { Profile } from '../types/custom';
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -15,11 +16,15 @@ const useStyles = makeStyles(theme => ({
   indeterminateColor: {
     color: '#00B3EC',
   },
+  downloadBtn: {
+    color: '#00B3EC',
+    padding: '0px',
+  },
 }));
 
 const MultiSelectDropdown: FC<{
   items: any[];
-  onSelectProfiles: Dispatch<React.SetStateAction<string[]>>;
+  onSelectProfiles?: Dispatch<React.SetStateAction<Profile[]>>;
 }> = ({ items, onSelectProfiles }) => {
   const classes = useStyles();
   const [selected, setSelected] = useState<string[]>([]);
@@ -27,15 +32,21 @@ const MultiSelectDropdown: FC<{
 
   const itemsNames = items.map(item => item.name);
 
+  const getItemsFromNames = (names: string[]) =>
+    items.filter(item => names.find(name => item.name === name));
+
   const handleChange = (event: any) => {
     const value = event.target.value;
     if (value[value.length - 1] === 'all') {
-      setSelected(selected.length === itemsNames.length ? [] : itemsNames);
-      onSelectProfiles(selected.length === itemsNames.length ? [] : itemsNames);
+      const selectedItems = selected.length === itemsNames.length ? [] : items;
+      const selectedItemsNames =
+        selected.length === itemsNames.length ? [] : itemsNames;
+      setSelected(selectedItemsNames);
+      onSelectProfiles && onSelectProfiles(selectedItems);
       return;
     }
     setSelected(value);
-    onSelectProfiles(value);
+    onSelectProfiles && onSelectProfiles(getItemsFromNames(value));
   };
 
   return (
