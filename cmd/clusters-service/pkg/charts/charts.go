@@ -9,9 +9,9 @@ import (
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"helm.sh/helm/pkg/repo"
+	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/getter"
-	hapichart "k8s.io/helm/pkg/proto/hapi/chart"
+	"helm.sh/helm/v3/pkg/repo"
 	"sigs.k8s.io/yaml"
 )
 
@@ -66,7 +66,7 @@ func ScanCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred char
 						p.Maintainers = append(p.Maintainers, &capiv1_proto.Maintainer{
 							Name:  m.Name,
 							Email: m.Email,
-							Url:   m.Url,
+							Url:   m.URL,
 						})
 					}
 					p.AvailableVersions = append(p.AvailableVersions, v.Version)
@@ -116,7 +116,7 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 	return i, nil
 }
 
-func hasAnnotation(cm *hapichart.Metadata, name string) bool {
+func hasAnnotation(cm *chart.Metadata, name string) bool {
 	for k := range cm.Annotations {
 		if k == name {
 			return true
