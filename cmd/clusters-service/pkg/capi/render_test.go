@@ -74,6 +74,45 @@ metadata:
 	}
 }
 
+func TestRender_disable_prune(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/template3.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME":                "testing",
+		"CONTROL_PLANE_MACHINE_COUNT": "5",
+	},
+		DisablePrune())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSMachineTemplate
+metadata:
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: testing-md-0
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: testing-control-plane
+spec:
+  replicas: 5
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
 func TestInNamespace(t *testing.T) {
 	raw := []byte(`
 apiVersion: cluster.x-k8s.io/v1alpha3
