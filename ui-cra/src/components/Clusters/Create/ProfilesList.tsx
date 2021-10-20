@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { Profile } from '../../../types/custom';
@@ -40,83 +40,68 @@ const ProfilesList: FC<{ selectedProfiles: Profile['name'][] }> = ({
 }) => {
   const classes = useStyles();
   const { profilePreview, renderProfile, loading } = useProfiles();
+  const [activeProfile, setActiveProfile] = useState<Profile['name']>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const rows = (profilePreview?.split('\n').length || 0) - 1;
 
   const handlePreview = useCallback(
     (event: any) => {
+      console.log(event.target);
       setOpenYamlPreview(true);
+      setActiveProfile(event.target.textContent);
       renderProfile(event.target.textContent);
     },
     [setOpenYamlPreview, renderProfile],
   );
 
-  return useMemo(() => {
-    return (
+  return (
+    <>
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
           {selectedProfiles.map((profile, index) => {
             return (
-              <ListItem key={index} value={profile} onClick={handlePreview}>
+              <ListItem key={index} onClick={handlePreview}>
                 <ListItemText>{profile}</ListItemText>
-                <ListItemText>Values.yaml</ListItemText>
-                {openYamlPreview && (
-                  <Dialog
-                    open
-                    maxWidth="md"
-                    fullWidth
-                    onClose={() => console.log('')}
-                  >
-                    <div id="preview-yaml-popup" className={classes.dialog}>
-                      <DialogTitle disableTypography>
-                        <Typography variant="h5">
-                          {profile} values.yaml
-                        </Typography>
-                        <CloseIconButton
-                          onClick={
-                            () => console.log('why')
-                            // setOpenYamlPreview(false)
-                          }
-                        />
-                      </DialogTitle>
-                      <DialogContent>
-                        {!loading ? (
-                          <>
-                            <textarea
-                              className={classes.textarea}
-                              rows={rows}
-                              value={profilePreview || ''}
-                              readOnly
-                            />
-                            <OnClickAction
-                              id="edit-yaml"
-                              onClick={() => console.log('Call save yaml')}
-                              text="Save changes"
-                              className="success"
-                            />
-                          </>
-                        ) : (
-                          <Loader />
-                        )}
-                      </DialogContent>
-                    </div>
-                  </Dialog>
-                )}
+                <ListItemText>values.yaml</ListItemText>
               </ListItem>
             );
           })}
         </List>
       </Box>
-    );
-  }, [
-    selectedProfiles,
-    classes,
-    loading,
-    openYamlPreview,
-    rows,
-    handlePreview,
-    profilePreview,
-  ]);
+      <Dialog
+        open={openYamlPreview}
+        maxWidth="md"
+        fullWidth
+        onClose={() => setOpenYamlPreview(false)}
+      >
+        <div id="preview-yaml-popup" className={classes.dialog}>
+          <DialogTitle disableTypography>
+            <Typography variant="h5">{activeProfile}</Typography>
+            <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
+          </DialogTitle>
+          <DialogContent>
+            {!loading ? (
+              <>
+                <textarea
+                  className={classes.textarea}
+                  rows={rows}
+                  defaultValue={profilePreview || ''}
+                />
+                <OnClickAction
+                  id="edit-yaml"
+                  onClick={() => console.log('Call save yaml')}
+                  text="Save changes"
+                  className="success"
+                />
+              </>
+            ) : (
+              <Loader />
+            )}
+          </DialogContent>
+        </div>
+      </Dialog>
+    </>
+  );
 };
 
 export default ProfilesList;
