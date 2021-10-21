@@ -459,6 +459,9 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 	}
 
 	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo)
+	if err := cc.UpdateCache(ctx); err != nil {
+		return nil, fmt.Errorf("failed to update Helm cache: %w", err)
+	}
 	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
 		APIVersion: helmRepo.TypeMeta.APIVersion,
 		Kind:       helmRepo.TypeMeta.Kind,
@@ -493,7 +496,7 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 	}
 
 	return &httpbody.HttpBody{
-		ContentType: "application/octet-stream",
+		ContentType: "application/json",
 		Data:        res,
 	}, nil
 }
