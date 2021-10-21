@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	broker "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
@@ -613,7 +614,15 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		KubeClient: cl,
 	}
 
-	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort, library, nil, cl, discoveryClient, db, "default", fakeAppsConfig, client.ObjectKey{Name: "entitlement", Namespace: "default"}, logr.Discard())
+	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
+		app.WithCAPIClustersNamespace("default"),
+		app.WithEntitlementSecretKey(client.ObjectKey{Name: "entitlement", Namespace: "default"}),
+		app.WithTemplateLibrary(library),
+		app.WithKubernetesClient(cl),
+		app.WithDiscoveryClient(discoveryClient),
+		app.WithDatabase(db),
+		app.WithApplicationsConfig(fakeAppsConfig),
+		app.WithGitProvider(git.NewGitProviderService(logr.Discard())))
 }
 
 func RunUIServer(ctx gcontext.Context) {

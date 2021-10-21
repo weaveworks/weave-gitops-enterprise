@@ -10,10 +10,12 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -49,12 +51,13 @@ type server struct {
 	client          client.Client
 	discoveryClient discovery.DiscoveryInterface
 	capiv1_proto.UnimplementedClustersServiceServer
-	db *gorm.DB
-	ns string // The namespace where cluster objects reside
+	db                        *gorm.DB
+	ns                        string // The namespace where cluster objects reside
+	profileHelmRepositoryName string
 }
 
-func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string) capiv1_proto.ClustersServiceServer {
-	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns}
+func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string) capiv1_proto.ClustersServiceServer {
+	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns, profileHelmRepositoryName: profileHelmRepositoryName}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -78,43 +81,6 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
-}
-
-func isProviderRecognised(provider string) bool {
-	for _, p := range providers {
-		if strings.EqualFold(provider, p) {
-			return true
-		}
-	}
-	return false
-}
-
-func getProvider(t *capiv1.CAPITemplate) string {
-	meta, err := capi.ParseTemplateMeta(t)
-
-	if err != nil {
-		return ""
-	}
-
-	for _, obj := range meta.Objects {
-		if p, ok := providers[obj.Kind]; ok {
-			return p
-		}
-	}
-
-	return ""
-}
-
-func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
-	templates := []*capiv1_proto.Template{}
-
-	for _, t := range tl {
-		if strings.EqualFold(t.Provider, provider) {
-			templates = append(templates, t)
-		}
-	}
-
-	return templates
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
@@ -290,36 +256,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}, nil
 }
 
-func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
-	var err error
-
-	if msg.TemplateName == "" {
-		err = multierror.Append(err, fmt.Errorf("template name must be specified"))
-	}
-
-	if msg.ParameterValues == nil {
-		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
-	}
-
-	if msg.HeadBranch == "" {
-		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
-	}
-
-	if msg.Title == "" {
-		err = multierror.Append(err, fmt.Errorf("title must be specified"))
-	}
-
-	if msg.Description == "" {
-		err = multierror.Append(err, fmt.Errorf("description must be specified"))
-	}
-
-	if msg.CommitMessage == "" {
-		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
-	}
-
-	return err
-}
-
 // ListCredentials searches the management cluster and lists any objects that match specific given types
 func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCredentialsRequest) (*capiv1_proto.ListCredentialsResponse, error) {
 	creds := []*capiv1_proto.Credential{}
@@ -485,6 +421,95 @@ func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.Get
 	return &capiv1_proto.GetEnterpriseVersionResponse{
 		Version: version.Version,
 	}, nil
+}
+
+func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesRequest) (*capiv1_proto.GetProfilesResponse, error) {
+	// Look for helm repository object in the current namespace
+	namespace := os.Getenv("RUNTIME_NAMESPACE")
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err := s.client.Get(ctx, client.ObjectKey{
+		Name:      s.profileHelmRepositoryName,
+		Namespace: namespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+
+	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
+	if err != nil {
+		return nil, fmt.Errorf("cannot scan for profiles: %w", err)
+	}
+
+	return &capiv1_proto.GetProfilesResponse{
+		Profiles: ps,
+	}, nil
+}
+
+func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
+	var err error
+
+	if msg.TemplateName == "" {
+		err = multierror.Append(err, fmt.Errorf("template name must be specified"))
+	}
+
+	if msg.ParameterValues == nil {
+		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
+	}
+
+	if msg.HeadBranch == "" {
+		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
+	}
+
+	if msg.Title == "" {
+		err = multierror.Append(err, fmt.Errorf("title must be specified"))
+	}
+
+	if msg.Description == "" {
+		err = multierror.Append(err, fmt.Errorf("description must be specified"))
+	}
+
+	if msg.CommitMessage == "" {
+		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
+	}
+
+	return err
+}
+
+func isProviderRecognised(provider string) bool {
+	for _, p := range providers {
+		if strings.EqualFold(provider, p) {
+			return true
+		}
+	}
+	return false
+}
+
+func getProvider(t *capiv1.CAPITemplate) string {
+	meta, err := capi.ParseTemplateMeta(t)
+
+	if err != nil {
+		return ""
+	}
+
+	for _, obj := range meta.Objects {
+		if p, ok := providers[obj.Kind]; ok {
+			return p
+		}
+	}
+
+	return ""
+}
+
+func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
+	templates := []*capiv1_proto.Template{}
+
+	for _, t := range tl {
+		if strings.EqualFold(t.Provider, provider) {
+			templates = append(templates, t)
+		}
+	}
+
+	return templates
 }
 
 func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest) error {
