@@ -241,6 +241,7 @@ const AddCluster: FC = () => {
       parameter_values: {
         ...formData,
       },
+      // profiles: updatesProfiles,
     });
   }, [
     addCluster,

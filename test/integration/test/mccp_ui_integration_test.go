@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	broker "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
@@ -620,7 +621,8 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		app.WithKubernetesClient(cl),
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithDatabase(db),
-		app.WithApplicationsConfig(fakeAppsConfig))
+		app.WithApplicationsConfig(fakeAppsConfig),
+		app.WithGitProvider(git.NewGitProviderService(logr.Discard())))
 }
 
 func RunUIServer(ctx gcontext.Context) {

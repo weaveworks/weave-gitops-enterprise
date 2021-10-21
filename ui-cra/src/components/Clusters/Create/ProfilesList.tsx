@@ -53,6 +53,7 @@ const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
 
   const handlePreview = useCallback(
     (profileName: string) => {
+      console.log(profileName);
       setOpenYamlPreview(true);
       setActiveProfile(profileName);
       renderProfile(profileName);
@@ -68,6 +69,7 @@ const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
     },
     [],
   );
+
   const handleUpdateProfiles = useCallback(() => {
     //save data from form textarea and send it up to the parent form to be submitted
   }, []);
@@ -77,12 +79,13 @@ const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
           {selectedProfiles.map((profile, index) => {
+            const name = profile.name;
             return (
               <ListItem key={index}>
-                <ListItemText>{profile.name}</ListItemText>
+                <ListItemText>{name}</ListItemText>
                 <Button
                   className={classes.downloadBtn}
-                  onClick={() => handlePreview(profile.name)}
+                  onClick={() => handlePreview(name)}
                 >
                   values.yaml
                 </Button>
