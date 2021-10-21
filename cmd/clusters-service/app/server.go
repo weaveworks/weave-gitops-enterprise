@@ -35,7 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func NewAPIServerCommand(log logr.Logger) *cobra.Command {
+func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	var dbURI string
 	var dbName string
 	var dbUser string
@@ -51,7 +51,7 @@ func NewAPIServerCommand(log logr.Logger) *cobra.Command {
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return StartServer(context.Background(), log)
+			return StartServer(context.Background(), log, tempDir)
 		},
 	}
 
@@ -73,7 +73,7 @@ func NewAPIServerCommand(log logr.Logger) *cobra.Command {
 	return cmd
 }
 
-func StartServer(ctx context.Context, log logr.Logger) error {
+func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 	dbUri := viper.GetString("db-uri")
 	dbType := viper.GetString("db-type")
 	if dbType == "sqlite" {
@@ -139,6 +139,7 @@ func StartServer(ctx context.Context, log logr.Logger) error {
 			},
 		),
 		WithCAPIClustersNamespace(ns),
+		WithHelmRepositoryCacheDirectory(tempDir),
 	)
 }
 
@@ -173,7 +174,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository))
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository, args.HelmRepositoryCacheDirectory))
 
 	//Add weave-gitops core handlers
 	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)

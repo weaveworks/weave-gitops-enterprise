@@ -56,10 +56,11 @@ type server struct {
 	db                        *gorm.DB
 	ns                        string // The namespace where cluster objects reside
 	profileHelmRepositoryName string
+	helmRepositoryCacheDir    string
 }
 
-func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string) capiv1_proto.ClustersServiceServer {
-	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns, profileHelmRepositoryName: profileHelmRepositoryName}
+func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
+	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns, profileHelmRepositoryName: profileHelmRepositoryName, helmRepositoryCacheDir: helmRepositoryCacheDir}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -458,7 +459,7 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 	}
 
-	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo)
+	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
 	if err := cc.UpdateCache(ctx); err != nil {
 		return nil, fmt.Errorf("failed to update Helm cache: %w", err)
 	}

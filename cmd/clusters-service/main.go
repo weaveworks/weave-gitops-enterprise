@@ -14,6 +14,13 @@ import (
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	tempDir, err := os.MkdirTemp("", "*")
+	if err != nil {
+		stdlog.Fatalf("Failed to create a temp directory for Helm: %v", err)
+	}
+	defer func() {
+		_ = os.RemoveAll(tempDir)
+	}()
 
 	var log logr.Logger
 	if os.Getenv("HUMAN_LOGS") != "" {
@@ -30,7 +37,7 @@ func main() {
 		}
 	}
 
-	command := app.NewAPIServerCommand(log)
+	command := app.NewAPIServerCommand(log, tempDir)
 
 	if err := command.Execute(); err != nil {
 		os.Exit(1)
