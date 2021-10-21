@@ -248,3 +248,7 @@ message GetProfileValuesRequest {
   string profile_name = 1;
   string profile_version = 2;
 }
+message GetProfileValuesResponse{
+  // The base64 encoded values file of the profile.
+  string values = 1;
+}

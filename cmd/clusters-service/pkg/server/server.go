@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
@@ -26,6 +27,7 @@ import (
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
+	"helm.sh/helm/v3/pkg/chartutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -442,6 +444,57 @@ func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesR
 
 	return &capiv1_proto.GetProfilesResponse{
 		Profiles: ps,
+	}, nil
+}
+
+func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProfileValuesRequest) (*httpbody.HttpBody, error) {
+	namespace := os.Getenv("RUNTIME_NAMESPACE")
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err := s.client.Get(ctx, client.ObjectKey{
+		Name:      s.profileHelmRepositoryName,
+		Namespace: namespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+
+	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo)
+	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
+		APIVersion: helmRepo.TypeMeta.APIVersion,
+		Kind:       helmRepo.TypeMeta.Kind,
+		Name:       helmRepo.ObjectMeta.Name,
+		Namespace:  helmRepo.ObjectMeta.Namespace,
+	}
+	ref := &charts.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
+	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
+	}
+
+	var acceptHeader string
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if accept, ok := md["accept"]; ok {
+			acceptHeader = strings.Join(accept, ",")
+		}
+	}
+
+	if strings.Contains(acceptHeader, "application/octet-stream") {
+		return &httpbody.HttpBody{
+			ContentType: "application/octet-stream",
+			Data:        bs,
+		}, nil
+	}
+
+	res, err := json.Marshal(&capiv1_proto.GetProfileValuesResponse{
+		Values: base64.StdEncoding.EncodeToString(bs),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal response to JSON: %w", err)
+	}
+
+	return &httpbody.HttpBody{
+		ContentType: "application/octet-stream",
+		Data:        res,
 	}, nil
 }
 

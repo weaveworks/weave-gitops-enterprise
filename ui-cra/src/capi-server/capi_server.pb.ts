@@ -165,6 +165,10 @@ export type GetProfileValuesRequest = {
   profileVersion?: string
 }
 
+export type GetProfileValuesResponse = {
+  values?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
