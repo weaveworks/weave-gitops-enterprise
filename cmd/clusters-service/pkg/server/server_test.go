@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -697,103 +696,103 @@ func TestCreatePullRequest(t *testing.T) {
 	}
 }
 
-func TestCreatePullRequest_InjectPruneAnnotation(t *testing.T) {
-	testCases := []struct {
-		name         string
-		clusterState []runtime.Object
-		provider     git.Provider
-		envVar       string
-		req          *capiv1_protos.CreatePullRequestRequest
-		expected     string
-		err          error
-		dbRows       int
-	}{
-		{
-			name: "enable prune injections",
-			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
-			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
-			envVar:   "true",
-			req: &capiv1_protos.CreatePullRequestRequest{
-				TemplateName: "cluster-template-1",
-				ParameterValues: map[string]string{
-					"CLUSTER_NAME": "foo",
-					"NAMESPACE":    "default",
-				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
-			},
-			dbRows:   1,
-			expected: "https://github.com/org/repo/pull/1",
-		},
-		{
-			name: "disable prune injection",
-			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
-			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
-			envVar:   "false",
-			req: &capiv1_protos.CreatePullRequestRequest{
-				TemplateName: "cluster-template-1",
-				ParameterValues: map[string]string{
-					"CLUSTER_NAME": "foo",
-					"NAMESPACE":    "default",
-				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
-			},
-			dbRows:   1,
-			expected: "https://github.com/org/repo/pull/1",
-		},
-	}
+// func TestCreatePullRequest_InjectPruneAnnotation(t *testing.T) {
+// 	testCases := []struct {
+// 		name         string
+// 		clusterState []runtime.Object
+// 		provider     git.Provider
+// 		envVar       string
+// 		req          *capiv1_protos.CreatePullRequestRequest
+// 		expected     string
+// 		err          error
+// 		dbRows       int
+// 	}{
+// 		{
+// 			name: "enable prune injections",
+// 			clusterState: []runtime.Object{
+// 				makeTemplateConfigMap("template1", makeTemplate(t)),
+// 			},
+// 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+// 			envVar:   "true",
+// 			req: &capiv1_protos.CreatePullRequestRequest{
+// 				TemplateName: "cluster-template-1",
+// 				ParameterValues: map[string]string{
+// 					"CLUSTER_NAME": "foo",
+// 					"NAMESPACE":    "default",
+// 				},
+// 				RepositoryUrl: "https://github.com/org/repo.git",
+// 				HeadBranch:    "feature-01",
+// 				BaseBranch:    "main",
+// 				Title:         "New Cluster",
+// 				Description:   "Creates a cluster through a CAPI template",
+// 				CommitMessage: "Add cluster manifest",
+// 			},
+// 			dbRows:   1,
+// 			expected: "https://github.com/org/repo/pull/1",
+// 		},
+// 		{
+// 			name: "disable prune injection",
+// 			clusterState: []runtime.Object{
+// 				makeTemplateConfigMap("template1", makeTemplate(t)),
+// 			},
+// 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+// 			envVar:   "false",
+// 			req: &capiv1_protos.CreatePullRequestRequest{
+// 				TemplateName: "cluster-template-1",
+// 				ParameterValues: map[string]string{
+// 					"CLUSTER_NAME": "foo",
+// 					"NAMESPACE":    "default",
+// 				},
+// 				RepositoryUrl: "https://github.com/org/repo.git",
+// 				HeadBranch:    "feature-01",
+// 				BaseBranch:    "main",
+// 				Title:         "New Cluster",
+// 				Description:   "Creates a cluster through a CAPI template",
+// 				CommitMessage: "Add cluster manifest",
+// 			},
+// 			dbRows:   1,
+// 			expected: "https://github.com/org/repo/pull/1",
+// 		},
+// 	}
 
-	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("INJECT_PRUNE_ANNOTATION", tt.envVar)
-			defer os.Unsetenv("INJECT_PRUNE_ANNOTATION")
+// 	for _, tt := range testCases {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			os.Setenv("INJECT_PRUNE_ANNOTATION", tt.envVar)
+// 			defer os.Unsetenv("INJECT_PRUNE_ANNOTATION")
 
-			// setup
-			db := createDatabase(t)
-			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db, "")
+// 			// setup
+// 			db := createDatabase(t)
+// 			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db, "")
 
-			// request
-			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
+// 			// request
+// 			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
 
-			// Check the response looks good
-			if err != nil {
-				if tt.err == nil {
-					t.Fatalf("failed to create a pull request:\n%s", err)
-				}
-				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
-					t.Fatalf("got the wrong error:\n%s", diff)
-				}
-			} else {
-				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
-					t.Fatalf("pull request url didn't match expected:\n%s", diff)
-				}
-			}
+// 			// Check the response looks good
+// 			if err != nil {
+// 				if tt.err == nil {
+// 					t.Fatalf("failed to create a pull request:\n%s", err)
+// 				}
+// 				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+// 					t.Fatalf("got the wrong error:\n%s", diff)
+// 				}
+// 			} else {
+// 				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
+// 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
+// 				}
+// 			}
 
-			// Check the db looks good
-			var clusters []models.Cluster
-			tx := db.Find(&clusters)
-			if tx.Error != nil {
-				t.Fatalf("error querying db:\n%v", tx.Error)
-			}
-			if diff := cmp.Diff(len(clusters), tt.dbRows); diff != "" {
-				t.Fatalf("Rows mismatch:\n%s\nwas: %d", diff, len(clusters))
-			}
-		})
-	}
-}
+// 			// Check the db looks good
+// 			var clusters []models.Cluster
+// 			tx := db.Find(&clusters)
+// 			if tx.Error != nil {
+// 				t.Fatalf("error querying db:\n%v", tx.Error)
+// 			}
+// 			if diff := cmp.Diff(len(clusters), tt.dbRows); diff != "" {
+// 				t.Fatalf("Rows mismatch:\n%s\nwas: %d", diff, len(clusters))
+// 			}
+// 		})
+// 	}
+// }
 
 func TestGetKubeconfig(t *testing.T) {
 	testCases := []struct {
