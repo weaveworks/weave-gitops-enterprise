@@ -766,11 +766,11 @@ func TestMccpUI(t *testing.T) {
 	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
 
 	// Load up the acceptance suite suite
-	mccpRunner := acceptancetest.DatabaseMCCPTestRunner{DB: db, Client: cl}
+	mccpRunner := acceptancetest.DatabaseGitopsTestRunner{DB: db, Client: cl}
 
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
 	acceptancetest.SetDefaultUIURL(uiURL)
-	acceptancetest.DescribeSpecsMccpUi(mccpRunner)
+	acceptancetest.DescribeSpecsUi(mccpRunner)
 
 	AfterSuite(func() {
 		webDriver := acceptancetest.GetWebDriver()

@@ -153,25 +153,25 @@ func TakeNextScreenshot() {
 }
 
 // Describes all the UI acceptance tests
-func DescribeSpecsMccpUi(mccpTestRunner MCCPTestRunner) {
-	DescribeMCCPClusters(mccpTestRunner)
-	DescribeMCCPTemplates(mccpTestRunner)
+func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
+	DescribeClusters(gitopsTestRunner)
+	DescribeTemplates(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
-func DescribeSpecsMccpCli(mccpTestRunner MCCPTestRunner) {
-	DescribeMccpCliHelp()
-	DescribeMccpCliList(mccpTestRunner)
-	DescribeMccpCliRender(mccpTestRunner)
+func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
+	DescribeCliHelp()
+	DescribeCliGet(gitopsTestRunner)
+	DescribeCliAddDelete(gitopsTestRunner)
 }
 
 // Interface that can be implemented either with:
 // - "Real" commands like "exec(kubectl...)"
 // - "Mock" commands like db.Create(cluster_info...)
 
-type MCCPTestRunner interface {
+type GitopsTestRunner interface {
 	ResetDatabase() error
-	VerifyMCCPPodsRunning()
+	VerifyWegoPodsRunning()
 	FireAlert(name, severity, message string, fireFor time.Duration) error
 	KubectlApply(env []string, tokenURL string) error
 	KubectlDelete(env []string, tokenURL string) error
@@ -223,32 +223,32 @@ func initializeWebdriver() {
 
 // "DB" backend that creates/delete rows
 
-type DatabaseMCCPTestRunner struct {
+type DatabaseGitopsTestRunner struct {
 	DB     *gorm.DB
 	Client goclient.Client
 }
 
-func (b DatabaseMCCPTestRunner) TimeTravelToLastSeen() error {
+func (b DatabaseGitopsTestRunner) TimeTravelToLastSeen() error {
 	oneMinuteAgo := time.Now().UTC().Add(time.Minute * -2)
 	b.DB.Exec("update cluster_info set updated_at = ?", oneMinuteAgo)
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) TimeTravelToAlertsResolved() error {
+func (b DatabaseGitopsTestRunner) TimeTravelToAlertsResolved() error {
 	b.DB.Where("1 = 1").Delete(&models.Alert{})
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) ResetDatabase() error {
+func (b DatabaseGitopsTestRunner) ResetDatabase() error {
 	b.DB.Where("1 = 1").Delete(&models.Cluster{})
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) VerifyMCCPPodsRunning() {
+func (b DatabaseGitopsTestRunner) VerifyWegoPodsRunning() {
 
 }
 
-func (b DatabaseMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
+func (b DatabaseGitopsTestRunner) KubectlApply(env []string, tokenURL string) error {
 	u, err := url.Parse(tokenURL)
 	if err != nil {
 		return err
@@ -278,7 +278,7 @@ func (b DatabaseMCCPTestRunner) KubectlApply(env []string, tokenURL string) erro
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) KubectlDelete(env []string, tokenURL string) error {
+func (b DatabaseGitopsTestRunner) KubectlDelete(env []string, tokenURL string) error {
 	//
 	// No more cluster_infos will be created anyway..
 	// FIXME: maybe we add a polling loop that keeps creating cluster_info while its connected
@@ -286,12 +286,12 @@ func (b DatabaseMCCPTestRunner) KubectlDelete(env []string, tokenURL string) err
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) KubectlDeleteAllAgents(env []string) error {
+func (b DatabaseGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
 	// No more cluster_infos will be created anyway..
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
+func (b DatabaseGitopsTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
 	var firstCluster models.Cluster
 	b.DB.Last(&firstCluster)
 
@@ -319,7 +319,7 @@ func (b DatabaseMCCPTestRunner) FireAlert(name, severity, message string, fireFo
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) AddWorkspace(env []string, clusterName string) error {
+func (b DatabaseGitopsTestRunner) AddWorkspace(env []string, clusterName string) error {
 	var firstCluster models.Cluster
 	b.DB.Where("Name = ?", clusterName).First(&firstCluster)
 
@@ -332,7 +332,7 @@ func (b DatabaseMCCPTestRunner) AddWorkspace(env []string, clusterName string) e
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
+func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
 	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
 	By("Apply/Install CAPITemplate templates", func() {
@@ -347,7 +347,7 @@ func (b DatabaseMCCPTestRunner) CreateApplyCapitemplates(templateCount int, temp
 	return templateFiles
 }
 
-func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
+func (b DatabaseGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	By("Delete CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
 			template, err := capi.ParseFile(fileName)
@@ -358,78 +358,78 @@ func (b DatabaseMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string)
 	})
 }
 
-func (b DatabaseMCCPTestRunner) CheckClusterService() {
+func (b DatabaseGitopsTestRunner) CheckClusterService() {
 
 }
 
-func (b DatabaseMCCPTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+func (b DatabaseGitopsTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
 	return nil
 }
 
-func (b DatabaseMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
+func (b DatabaseGitopsTestRunner) CreateIPCredentials(infrastructureProvider string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) DeleteIPCredentials(infrastructureProvider string) {
+func (b DatabaseGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) DeleteRepo(repoName string) {
+func (b DatabaseGitopsTestRunner) DeleteRepo(repoName string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
+func (b DatabaseGitopsTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
 	return ""
 }
 
-func (b DatabaseMCCPTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
+func (b DatabaseGitopsTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) CreateGitRepoBranch(repoAbsolutePath string, branchName string) string {
+func (b DatabaseGitopsTestRunner) CreateGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	return ""
 }
 
-func (b DatabaseMCCPTestRunner) PullBranch(repoAbsolutePath string, branch string) {
+func (b DatabaseGitopsTestRunner) PullBranch(repoAbsolutePath string, branch string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) ListPullRequest(repoAbsolutePath string) []string {
+func (b DatabaseGitopsTestRunner) ListPullRequest(repoAbsolutePath string) []string {
 	return []string{}
 }
 
-func (b DatabaseMCCPTestRunner) MergePullRequest(repoAbsolutePath string, prBranch string) {
+func (b DatabaseGitopsTestRunner) MergePullRequest(repoAbsolutePath string, prBranch string) {
 
 }
 
-func (b DatabaseMCCPTestRunner) GetRepoVisibility(org string, repo string) string {
+func (b DatabaseGitopsTestRunner) GetRepoVisibility(org string, repo string) string {
 	return ""
 }
 
 // "Real" backend that call kubectl and posts to alertmanagement
 
-type RealMCCPTestRunner struct{}
+type RealGitopsTestRunner struct{}
 
-func (b RealMCCPTestRunner) TimeTravelToLastSeen() error {
+func (b RealGitopsTestRunner) TimeTravelToLastSeen() error {
 	return nil
 }
 
-func (b RealMCCPTestRunner) TimeTravelToAlertsResolved() error {
+func (b RealGitopsTestRunner) TimeTravelToAlertsResolved() error {
 	return nil
 }
 
-func (b RealMCCPTestRunner) ResetDatabase() error {
+func (b RealGitopsTestRunner) ResetDatabase() error {
 	return runCommandPassThrough([]string{}, "../../utils/scripts/mccp-setup-helpers.sh", "reset")
 }
 
-func (b RealMCCPTestRunner) VerifyMCCPPodsRunning() {
+func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
 	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready pods --timeout=60s -n %s --all", GITOPS_DEFAULT_NAMESPACE))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
 }
 
-func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
+func (b RealGitopsTestRunner) KubectlApply(env []string, tokenURL string) error {
 	err := runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
 	fmt.Println("Cluster pods after apply")
 	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
@@ -438,15 +438,15 @@ func (b RealMCCPTestRunner) KubectlApply(env []string, tokenURL string) error {
 	return err
 }
 
-func (b RealMCCPTestRunner) KubectlDelete(env []string, tokenURL string) error {
+func (b RealGitopsTestRunner) KubectlDelete(env []string, tokenURL string) error {
 	return runCommandPassThrough(env, "kubectl", "delete", "-f", tokenURL)
 }
 
-func (b RealMCCPTestRunner) KubectlDeleteAllAgents(env []string) error {
+func (b RealGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
 	return runCommandPassThrough(env, "kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
 }
 
-func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
+func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
 	const alertTemplate = `
     [
       {
@@ -507,12 +507,12 @@ func (b RealMCCPTestRunner) FireAlert(name, severity, message string, fireFor ti
 	return nil
 }
 
-func (b RealMCCPTestRunner) AddWorkspace(env []string, clusterName string) error {
+func (b RealGitopsTestRunner) AddWorkspace(env []string, clusterName string) error {
 	return runCommandPassThrough(env, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
 }
 
 // This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability
-func (b RealMCCPTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
+func (b RealGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
 	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
 
@@ -527,7 +527,7 @@ func (b RealMCCPTestRunner) CreateApplyCapitemplates(templateCount int, template
 }
 
 // This function deletes the test capiTemplate files and do the kubectl delete to clean the cluster
-func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
+func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	By("Delete CAPITemplate templates", func() {
 
 		for _, fileName := range templateFiles {
@@ -540,7 +540,7 @@ func (b RealMCCPTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
-func (b RealMCCPTestRunner) CheckClusterService() {
+func (b RealGitopsTestRunner) CheckClusterService() {
 	output := func() string {
 		command := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", GetCapiEndpointUrl()+"/v1/templates")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -550,7 +550,7 @@ func (b RealMCCPTestRunner) CheckClusterService() {
 	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp("200"), "Cluster Service is not healthy")
 }
 
-func (b RealMCCPTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+func (b RealGitopsTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
 	// Restart the deployment pods
 	err := runCommandPassThrough(env, "kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
 	if err == nil {
@@ -560,7 +560,7 @@ func (b RealMCCPTestRunner) RestartDeploymentPods(env []string, appName string, 
 	return err
 }
 
-func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
+func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string) {
 	if infrastructureProvider == "AWS" {
 		By("Install AWSClusterStaticIdentity CRD", func() {
 			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
@@ -597,7 +597,7 @@ func (b RealMCCPTestRunner) CreateIPCredentials(infrastructureProvider string) {
 
 }
 
-func (b RealMCCPTestRunner) DeleteIPCredentials(infrastructureProvider string) {
+func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 	if infrastructureProvider == "AWS" {
 		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/aws_cluster_credentials.yaml")
 		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
@@ -609,7 +609,7 @@ func (b RealMCCPTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 	}
 }
 
-func (b RealMCCPTestRunner) DeleteRepo(repoName string) {
+func (b RealGitopsTestRunner) DeleteRepo(repoName string) {
 	log.Printf("Delete application repo: %s", path.Join(GITHUB_ORG, repoName))
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", path.Join(GITHUB_ORG, repoName))
 
@@ -622,7 +622,7 @@ func (b RealMCCPTestRunner) DeleteRepo(repoName string) {
 	Eventually(output, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp("Repository not found"))
 }
 
-func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
+func (b RealGitopsTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
 	repoAbsolutePath := path.Join("/tmp/", repoName)
 	privateRepo := ""
 	if IsPrivateRepo {
@@ -647,7 +647,7 @@ func (b RealMCCPTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRep
 	return repoAbsolutePath
 }
 
-func (b RealMCCPTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
+func (b RealGitopsTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAdd string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cp -r -f %s %s &&
                             cd %s &&
@@ -660,7 +660,7 @@ func (b RealMCCPTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAdd 
 	fmt.Println(string(session.Wait().Err.Contents()))
 }
 
-func (b RealMCCPTestRunner) CreateGitRepoBranch(repoAbsolutePath string, branchName string) string {
+func (b RealGitopsTestRunner) CreateGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -668,16 +668,16 @@ func (b RealMCCPTestRunner) CreateGitRepoBranch(repoAbsolutePath string, branchN
 	return string(session.Wait().Out.Contents())
 }
 
-func (b RealMCCPTestRunner) PullBranch(repoAbsolutePath string, branch string) {
+func (b RealGitopsTestRunner) PullBranch(repoAbsolutePath string, branch string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
-                            git pull origin %s`, repoAbsolutePath, branch))
+                            git pull origin %s --rebase`, repoAbsolutePath, branch))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 }
 
-func (b RealMCCPTestRunner) ListPullRequest(repoAbsolutePath string) []string {
+func (b RealGitopsTestRunner) ListPullRequest(repoAbsolutePath string) []string {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
                             hub pr list --limit 1 --base main --format='%%t|%%H|%%U%%n'`, repoAbsolutePath))
@@ -688,7 +688,7 @@ func (b RealMCCPTestRunner) ListPullRequest(repoAbsolutePath string) []string {
 	return strings.Split(string(session.Wait().Out.Contents()), "|")
 }
 
-func (b RealMCCPTestRunner) GetRepoVisibility(org string, repo string) string {
+func (b RealGitopsTestRunner) GetRepoVisibility(org string, repo string) string {
 	command := exec.Command("sh", "-c", fmt.Sprintf("hub api --flat repos/%s/%s|grep -i private|cut -f2", org, repo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -698,7 +698,7 @@ func (b RealMCCPTestRunner) GetRepoVisibility(org string, repo string) string {
 	return visibilityStr
 }
 
-func (b RealMCCPTestRunner) MergePullRequest(repoAbsolutePath string, prBranch string) {
+func (b RealGitopsTestRunner) MergePullRequest(repoAbsolutePath string, prBranch string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
 							git checkout main &&

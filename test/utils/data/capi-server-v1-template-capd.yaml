@@ -7,6 +7,7 @@ spec:
   description: This is the std. CAPD template{{.Count}}
   params:
     - name: CLUSTER_NAME
+      required: true
       description: This is used for the cluster naming.
     - name: NAMESPACE
       description: Namespace to create the cluster in
