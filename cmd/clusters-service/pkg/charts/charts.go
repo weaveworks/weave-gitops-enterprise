@@ -35,6 +35,10 @@ var Profiles = func(v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata, ProfileAnnotation)
 }
 
+var AllCharts = func(v *repo.ChartVersion) bool {
+	return true
+}
+
 // ScanCharts filters charts using the provided predicate.
 //
 // TODO: Add caching based on the Status Artifact Revision.
