@@ -14,17 +14,18 @@ import (
 // Options specifies the options that can be set
 // in RunInProcessGateway.
 type Options struct {
-	Log                   logr.Logger
-	Database              *gorm.DB
-	KubernetesClient      client.Client
-	DiscoveryClient       discovery.DiscoveryInterface
-	TemplateLibrary       templates.Library
-	GitProvider           git.Provider
-	ApplicationsConfig    *server.ApplicationsConfig
-	GrpcRuntimeOptions    []runtime.ServeMuxOption
-	ProfileHelmRepository string
-	CAPIClustersNamespace string
-	EntitlementSecretKey  client.ObjectKey
+	Log                          logr.Logger
+	Database                     *gorm.DB
+	KubernetesClient             client.Client
+	DiscoveryClient              discovery.DiscoveryInterface
+	TemplateLibrary              templates.Library
+	GitProvider                  git.Provider
+	ApplicationsConfig           *server.ApplicationsConfig
+	GrpcRuntimeOptions           []runtime.ServeMuxOption
+	ProfileHelmRepository        string
+	HelmRepositoryCacheDirectory string
+	CAPIClustersNamespace        string
+	EntitlementSecretKey         client.ObjectKey
 }
 
 type Option func(*Options)
@@ -113,5 +114,13 @@ func WithCAPIClustersNamespace(namespace string) Option {
 func WithEntitlementSecretKey(key client.ObjectKey) Option {
 	return func(o *Options) {
 		o.EntitlementSecretKey = key
+	}
+}
+
+// WithHelmRepositoryCacheDirectory is used to set the directory
+// for the Helm repository cache.
+func WithHelmRepositoryCacheDirectory(cacheDir string) Option {
+	return func(o *Options) {
+		o.HelmRepositoryCacheDirectory = cacheDir
 	}
 }

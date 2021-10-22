@@ -160,6 +160,15 @@ export type GetProfilesResponse = {
   profiles?: Profile[]
 }
 
+export type GetProfileValuesRequest = {
+  profileName?: string
+  profileVersion?: string
+}
+
+export type GetProfileValuesResponse = {
+  values?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -190,5 +199,8 @@ export class ClustersService {
   }
   static GetProfiles(req: GetProfilesRequest, initReq?: fm.InitReq): Promise<GetProfilesResponse> {
     return fm.fetchReq<GetProfilesRequest, GetProfilesResponse>(`/v1/profiles?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetProfileValues(req: GetProfileValuesRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
+    return fm.fetchReq<GetProfileValuesRequest, GoogleApiHttpbody.HttpBody>(`/v1/profiles/${req["profileName"]}/${req["profileVersion"]}/values?${fm.renderURLSearchParams(req, ["profileName", "profileVersion"])}`, {...initReq, method: "GET"})
   }
 }
