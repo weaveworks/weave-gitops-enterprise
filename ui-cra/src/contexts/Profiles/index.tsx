@@ -7,7 +7,7 @@ interface ProfilesContext {
   getProfile: (name: string) => Profile | null;
   profilePreview: string | null;
   setProfilePreview: Dispatch<React.SetStateAction<string | null>>;
-  renderProfile: (data: any) => void;
+  renderProfile: (profile: Profile) => Promise<any>;
 }
 
 export const Profiles = createContext<ProfilesContext | null>(null);

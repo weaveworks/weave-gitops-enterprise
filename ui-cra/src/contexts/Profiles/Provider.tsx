@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { Profile } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Profiles } from './index';
@@ -15,14 +15,6 @@ const ProfilesProvider: FC = ({ children }) => {
 
   const profilesUrl = '/v1/profiles';
 
-  const FAKE_PROFILES = useMemo(
-    () => [{ name: 'Profile 1' }, { name: 'Profile 2' }, { name: 'Profile 3' }],
-    [],
-  );
-
-  const FAKE_PROFILE_YAML =
-    'apiVersion: cluster.x-k8s.io/v1alpha3\nkind: Cluster\nmetadata:\n  name: cls-name-oct18\n  namespace: default\nspec:\n';
-
   const getProfile = (profileName: string) =>
     profiles.find(profile => profile.name === profileName) || null;
 
@@ -34,24 +26,20 @@ const ProfilesProvider: FC = ({ children }) => {
       .then(res => setProfiles(res.profiles))
       .catch(err => {
         setNotifications([{ message: err.message, variant: 'danger' }]);
-        setProfiles(FAKE_PROFILES);
       })
       .finally(() => setLoading(false));
-  }, [FAKE_PROFILES, setNotifications]);
+  }, [setNotifications]);
 
-  const renderProfile = useCallback(
-    profileName => {
-      setLoading(true);
-      request('GET', `${profilesUrl}/${profileName}/render`)
-        .then(data => setProfilePreview(data.renderedProfile))
-        .catch(err => {
-          setNotifications([{ message: err.message, variant: 'danger' }]);
-          setProfilePreview(FAKE_PROFILE_YAML);
-        })
-        .finally(() => setLoading(false));
-    },
-    [setNotifications],
-  );
+  const renderProfile = useCallback((profile: Profile) => {
+    setLoading(true);
+    const version =
+      profile.availableVersions[profile.availableVersions.length - 1];
+    return request('GET', `${profilesUrl}/${profile.name}/${version}/values`, {
+      headers: {
+        Accept: 'application/octet-stream',
+      },
+    }).finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     getProfiles();

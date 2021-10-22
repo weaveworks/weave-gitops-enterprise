@@ -62,7 +62,7 @@ export type Profile = {
   annotations?: { [key: string]: string };
   kubeVersion?: string;
   helmRepository?: HelmRepository;
-  availableVersions?: string[];
+  availableVersions: string[];
 };
 
 export type ListProfilesResponse = {

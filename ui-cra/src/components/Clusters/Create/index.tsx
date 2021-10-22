@@ -144,6 +144,8 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
+  const [updatedProfiles, setUpdatedProfiles] =
+    useState<{ name: Profile['name']; version: string; values: string }[]>();
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [branchName, setBranchName] = useState<string>(
@@ -241,7 +243,9 @@ const AddCluster: FC = () => {
       parameter_values: {
         ...formData,
       },
-      // profiles: updatesProfiles,
+
+      // updatedProfiles.map(profile => profile.values = profile.values.toString('base64'))
+      profiles: updatedProfiles,
     });
   }, [
     addCluster,
@@ -252,6 +256,7 @@ const AddCluster: FC = () => {
     activeTemplate?.name,
     infraCredential,
     pullRequestDescription,
+    updatedProfiles,
   ]);
 
   const required = useMemo(() => {
@@ -403,7 +408,10 @@ const AddCluster: FC = () => {
                       onSelectProfiles={setSelectedProfiles}
                     />
                   </div>
-                  <ProfilesList selectedProfiles={selectedProfiles} />
+                  <ProfilesList
+                    selectedProfiles={selectedProfiles}
+                    onProfilesUpdate={setUpdatedProfiles}
+                  />
                   <div className={classes.previewCTA}>
                     <Button>Preview PR</Button>
                   </div>

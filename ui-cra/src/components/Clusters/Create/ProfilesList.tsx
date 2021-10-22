@@ -1,4 +1,11 @@
-import React, { ChangeEvent, FC, useCallback, useState } from 'react';
+import React, {
+  ChangeEvent,
+  Dispatch,
+  FC,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { Profile } from '../../../types/custom';
@@ -15,6 +22,10 @@ import { Loader } from '../../Loader';
 import { OnClickAction } from '../../Action';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Button from '@material-ui/core/Button';
+import useNotifications from './../../../contexts/Notifications';
+
+const FAKE_PROFILE_YAML =
+  'apiVersion: cluster.x-k8s.io/v1alpha3\nkind: Cluster\nmetadata:\n  name: cls-name-oct18\n  namespace: default\nspec:\n';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -40,58 +51,78 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
-  selectedProfiles,
-}) => {
+const ProfilesList: FC<{
+  selectedProfiles: Profile[];
+  onProfilesUpdate: Dispatch<
+    React.SetStateAction<
+      { name: Profile['name']; version: string; values: string }[] | undefined
+    >
+  >;
+}> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
   const { profilePreview, renderProfile, loading } = useProfiles();
-  const [activeProfile, setActiveProfile] = useState<Profile['name']>();
+  const [activeProfile, setActiveProfile] = useState<Profile>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
-  const [updatedProfiles, setUpdatedProfiles] = useState(selectedProfiles);
+  const [updatedProfiles, setUpdatedProfiles] = useState<
+    { name: Profile['name']; version: string; values: string }[]
+  >([]);
+  const { setNotifications } = useNotifications();
 
   const rows = (profilePreview?.split('\n').length || 0) - 1;
 
   const handlePreview = useCallback(
-    (profileName: string) => {
-      console.log(profileName);
+    (profile: Profile) => {
       setOpenYamlPreview(true);
-      setActiveProfile(profileName);
-      renderProfile(profileName);
+      setActiveProfile(profile);
+      if (updatedProfiles.filter(p => p.name === profile.name).length === 0) {
+        renderProfile(profile).then(data => {
+          setUpdatedProfiles([
+            ...updatedProfiles,
+            {
+              name: profile.name,
+              version:
+                profile.availableVersions[profile.availableVersions.length - 1],
+              values: data.message,
+            },
+          ]);
+        });
+      }
     },
-    [setOpenYamlPreview, renderProfile],
+    [setOpenYamlPreview, renderProfile, updatedProfiles],
   );
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
-      console.log(event.target.value);
-      console.log(activeProfile);
-      // find the active profile in profileContent and update its state => setProfileContent(event.target.value);
+      const currentProfileIndex = updatedProfiles.findIndex(
+        profile => profile.name === activeProfile?.name,
+      );
+      updatedProfiles[currentProfileIndex].values = event.target.value;
     },
-    [],
+    [activeProfile, updatedProfiles],
   );
 
   const handleUpdateProfiles = useCallback(() => {
-    //save data from form textarea and send it up to the parent form to be submitted
-  }, []);
+    onProfilesUpdate(updatedProfiles);
+    setOpenYamlPreview(false);
+  }, [onProfilesUpdate, updatedProfiles]);
+
+  console.log(updatedProfiles);
 
   return (
     <>
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
-          {selectedProfiles.map((profile, index) => {
-            const name = profile.name;
-            return (
-              <ListItem key={index}>
-                <ListItemText>{name}</ListItemText>
-                <Button
-                  className={classes.downloadBtn}
-                  onClick={() => handlePreview(name)}
-                >
-                  values.yaml
-                </Button>
-              </ListItem>
-            );
-          })}
+          {selectedProfiles.map((profile, index) => (
+            <ListItem key={index}>
+              <ListItemText>{profile.name}</ListItemText>
+              <Button
+                className={classes.downloadBtn}
+                onClick={() => handlePreview(profile)}
+              >
+                values.yaml
+              </Button>
+            </ListItem>
+          ))}
         </List>
       </Box>
       <Dialog
@@ -102,7 +133,7 @@ const ProfilesList: FC<{ selectedProfiles: Profile[] }> = ({
       >
         <div id="preview-yaml-popup" className={classes.dialog}>
           <DialogTitle disableTypography>
-            <Typography variant="h5">{activeProfile}</Typography>
+            <Typography variant="h5">{activeProfile?.name}</Typography>
             <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
           </DialogTitle>
           <DialogContent>
