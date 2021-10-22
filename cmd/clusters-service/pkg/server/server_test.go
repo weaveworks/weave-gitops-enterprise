@@ -461,7 +461,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    kustomize.toolkit.fluxcd.io/prune: disabled\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n",
 		},
 	}
 

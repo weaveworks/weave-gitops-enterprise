@@ -16,7 +16,14 @@ type RenderOptFunc func(b []byte) ([]byte, error)
 func InjectPruneAnnotation() RenderOptFunc {
 	return unstructuredFunc(func(uns *unstructured.Unstructured) {
 		if uns.GetKind() != "Cluster" {
-			uns.SetAnnotations(map[string]string{"kustomize.toolkit.fluxcd.io/prune": "disabled"})
+			if uns.GetAnnotations() != nil {
+				ann := uns.DeepCopy().GetAnnotations()
+				ann["kustomize.toolkit.fluxcd.io/prune"] = "disabled"
+				unstructured.SetNestedStringMap(uns.Object, ann, "metadata", "annotations")
+
+			} else {
+				uns.SetAnnotations(map[string]string{"kustomize.toolkit.fluxcd.io/prune": "disabled"})
+			}
 		}
 	})
 }
