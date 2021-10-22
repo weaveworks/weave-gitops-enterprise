@@ -8,7 +8,6 @@ import useNotifications from './../Notifications';
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const { setNotifications } = useNotifications();
 
   const history = useHistory();
@@ -52,8 +51,6 @@ const ProfilesProvider: FC = ({ children }) => {
         profiles,
         loading,
         getProfile,
-        profilePreview,
-        setProfilePreview,
         renderProfile,
       }}
     >

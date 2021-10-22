@@ -1,11 +1,4 @@
-import React, {
-  ChangeEvent,
-  Dispatch,
-  FC,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import React, { ChangeEvent, Dispatch, FC, useCallback, useState } from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { Profile } from '../../../types/custom';
@@ -22,10 +15,6 @@ import { Loader } from '../../Loader';
 import { OnClickAction } from '../../Action';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Button from '@material-ui/core/Button';
-import useNotifications from './../../../contexts/Notifications';
-
-const FAKE_PROFILE_YAML =
-  'apiVersion: cluster.x-k8s.io/v1alpha3\nkind: Cluster\nmetadata:\n  name: cls-name-oct18\n  namespace: default\nspec:\n';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -60,22 +49,23 @@ const ProfilesList: FC<{
   >;
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
-  const { profilePreview, renderProfile, loading } = useProfiles();
-  const [activeProfile, setActiveProfile] = useState<Profile>();
+  const { renderProfile, loading } = useProfiles();
+  const [currentProfile, setCurrentProfile] = useState<Profile>();
+  const [currentProfilePreview, setCurrentProfilePreview] = useState<string>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [updatedProfiles, setUpdatedProfiles] = useState<
     { name: Profile['name']; version: string; values: string }[]
   >([]);
-  const { setNotifications } = useNotifications();
 
-  const rows = (profilePreview?.split('\n').length || 0) - 1;
+  const rows = (currentProfilePreview?.split('\n').length || 0) - 1;
 
   const handlePreview = useCallback(
     (profile: Profile) => {
       setOpenYamlPreview(true);
-      setActiveProfile(profile);
+      setCurrentProfile(profile);
       if (updatedProfiles.filter(p => p.name === profile.name).length === 0) {
         renderProfile(profile).then(data => {
+          setCurrentProfilePreview(data.message);
           setUpdatedProfiles([
             ...updatedProfiles,
             {
@@ -86,6 +76,10 @@ const ProfilesList: FC<{
             },
           ]);
         });
+      } else {
+        setCurrentProfilePreview(
+          updatedProfiles?.find(p => p.name === profile.name)?.values,
+        );
       }
     },
     [setOpenYamlPreview, renderProfile, updatedProfiles],
@@ -94,19 +88,17 @@ const ProfilesList: FC<{
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
       const currentProfileIndex = updatedProfiles.findIndex(
-        profile => profile.name === activeProfile?.name,
+        profile => profile.name === currentProfile?.name,
       );
       updatedProfiles[currentProfileIndex].values = event.target.value;
     },
-    [activeProfile, updatedProfiles],
+    [currentProfile, updatedProfiles],
   );
 
   const handleUpdateProfiles = useCallback(() => {
     onProfilesUpdate(updatedProfiles);
     setOpenYamlPreview(false);
   }, [onProfilesUpdate, updatedProfiles]);
-
-  console.log(updatedProfiles);
 
   return (
     <>
@@ -133,7 +125,7 @@ const ProfilesList: FC<{
       >
         <div id="preview-yaml-popup" className={classes.dialog}>
           <DialogTitle disableTypography>
-            <Typography variant="h5">{activeProfile?.name}</Typography>
+            <Typography variant="h5">{currentProfile?.name}</Typography>
             <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
           </DialogTitle>
           <DialogContent>
@@ -142,7 +134,7 @@ const ProfilesList: FC<{
                 <textarea
                   className={classes.textarea}
                   rows={rows}
-                  defaultValue={profilePreview || ''}
+                  defaultValue={currentProfilePreview || ''}
                   onChange={handleChange}
                 />
                 <OnClickAction
