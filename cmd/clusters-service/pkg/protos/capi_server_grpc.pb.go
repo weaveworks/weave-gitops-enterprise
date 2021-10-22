@@ -38,6 +38,9 @@ type ClustersServiceClient interface {
 	// GetProfiles returns a list of profiles
 	// from the cluster.
 	GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error)
+	// GetProfileVersionValues returns a list of profiles
+	// from the cluster.
+	GetProfileValues(ctx context.Context, in *GetProfileValuesRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 }
 
 type clustersServiceClient struct {
@@ -138,6 +141,15 @@ func (c *clustersServiceClient) GetProfiles(ctx context.Context, in *GetProfiles
 	return out, nil
 }
 
+func (c *clustersServiceClient) GetProfileValues(ctx context.Context, in *GetProfileValuesRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
+	out := new(httpbody.HttpBody)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/GetProfileValues", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -161,6 +173,9 @@ type ClustersServiceServer interface {
 	// GetProfiles returns a list of profiles
 	// from the cluster.
 	GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error)
+	// GetProfileVersionValues returns a list of profiles
+	// from the cluster.
+	GetProfileValues(context.Context, *GetProfileValuesRequest) (*httpbody.HttpBody, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -197,6 +212,9 @@ func (UnimplementedClustersServiceServer) GetEnterpriseVersion(context.Context, 
 }
 func (UnimplementedClustersServiceServer) GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProfiles not implemented")
+}
+func (UnimplementedClustersServiceServer) GetProfileValues(context.Context, *GetProfileValuesRequest) (*httpbody.HttpBody, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProfileValues not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -391,6 +409,24 @@ func _ClustersService_GetProfiles_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_GetProfileValues_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProfileValuesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetProfileValues(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/GetProfileValues",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetProfileValues(ctx, req.(*GetProfileValuesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -437,6 +473,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProfiles",
 			Handler:    _ClustersService_GetProfiles_Handler,
+		},
+		{
+			MethodName: "GetProfileValues",
+			Handler:    _ClustersService_GetProfileValues_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

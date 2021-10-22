@@ -89,8 +89,8 @@ func TestScanCharts_errors(t *testing.T) {
 
 }
 
-func makeTestHelmRepository(base string) *sourcev1beta1.HelmRepository {
-	return &sourcev1beta1.HelmRepository{
+func makeTestHelmRepository(base string, opts ...func(*sourcev1beta1.HelmRepository)) *sourcev1beta1.HelmRepository {
+	hr := &sourcev1beta1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testing",
 			Namespace: "test-ns",
@@ -103,4 +103,8 @@ func makeTestHelmRepository(base string) *sourcev1beta1.HelmRepository {
 			URL: base + "/index.yaml",
 		},
 	}
+	for _, o := range opts {
+		o(hr)
+	}
+	return hr
 }

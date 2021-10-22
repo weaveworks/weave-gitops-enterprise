@@ -179,6 +179,43 @@
         ]
       }
     },
+    "/v1/profiles/{profileName}/{profileVersion}/values": {
+      "get": {
+        "summary": "GetProfileVersionValues returns a list of profiles\nfrom the cluster.",
+        "operationId": "ClustersService_GetProfileValues",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiHttpBody"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "profileName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "profileVersion",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates": {
       "get": {
         "operationId": "ClustersService_ListTemplates",

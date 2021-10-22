@@ -26,7 +26,7 @@ COPY $CS_PATH/pkg/ pkg/
 
 ARG version
 # build
-RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$version' -linkmode external -w -extldflags \"-static\"" -a -o clusters-service main.go
+RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$version' -linkmode external -w -extldflags \"-static\"" -tags netgo -a -o clusters-service main.go
 
 FROM docker.io/governmentpaas/git-ssh
 
