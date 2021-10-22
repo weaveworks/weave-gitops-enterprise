@@ -198,31 +198,31 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		baseBranch = msg.BaseBranch
 	}
 
-	namespace := os.Getenv("RUNTIME_NAMESPACE")
-	helmRepo := &sourcev1beta1.HelmRepository{}
-	err = s.client.Get(ctx, client.ObjectKey{
-		Name:      s.profileHelmRepositoryName,
-		Namespace: namespace,
-	}, helmRepo)
-	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
-	}
-
-	var profileName string
-	var helmReleases []*helmv2beta1.HelmRelease
-	for _, pvs := range msg.Values {
-		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+	if len(msg.Values) > 0 {
+		namespace := os.Getenv("RUNTIME_NAMESPACE")
+		helmRepo := &sourcev1beta1.HelmRepository{}
+		err = s.client.Get(ctx, client.ObjectKey{
+			Name:      s.profileHelmRepositoryName,
+			Namespace: namespace,
+		}, helmRepo)
 		if err != nil {
 			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 		}
-		// Pick the name of the first chart as the profile name for now
-		if profileName == "" {
-			profileName = pvs.Name
-		}
-		helmReleases = append(helmReleases, hr)
-	}
 
-	if len(helmReleases) > 0 {
+		var profileName string
+		var helmReleases []*helmv2beta1.HelmRelease
+		for _, pvs := range msg.Values {
+			hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+			if err != nil {
+				return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+			}
+			// Pick the name of the first chart as the profile name for now
+			if profileName == "" {
+				profileName = pvs.Name
+			}
+			helmReleases = append(helmReleases, hr)
+		}
+
 		c, err := createProfile(helmReleases)
 		if err != nil {
 			return nil, err
