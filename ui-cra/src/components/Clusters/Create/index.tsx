@@ -232,6 +232,14 @@ const AddCluster: FC = () => {
     [],
   );
 
+  const encodedProfiles = updatedProfiles?.map(profile => {
+    return {
+      name: profile.name,
+      version: profile.version,
+      values: btoa(profile.values),
+    };
+  });
+
   const handleAddCluster = useCallback(() => {
     addCluster({
       credentials: infraCredential,
@@ -243,9 +251,7 @@ const AddCluster: FC = () => {
       parameter_values: {
         ...formData,
       },
-
-      // updatedProfiles.map(profile => profile.values = profile.values.toString('base64'))
-      profiles: updatedProfiles,
+      profiles: encodedProfiles,
     });
   }, [
     addCluster,
@@ -256,7 +262,7 @@ const AddCluster: FC = () => {
     activeTemplate?.name,
     infraCredential,
     pullRequestDescription,
-    updatedProfiles,
+    encodedProfiles,
   ]);
 
   const required = useMemo(() => {
