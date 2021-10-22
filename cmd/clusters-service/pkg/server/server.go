@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -31,6 +32,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
 
 var providers = map[string]string{
@@ -178,7 +180,14 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		clusterNamespace = "default"
 	}
 
+	path := getClusterPathInRepo(clusterName)
 	content := string(tmplWithValuesAndCredentials[:])
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path,
+			Content: &content,
+		},
+	}
 
 	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
 	if msg.RepositoryUrl != "" {
@@ -187,6 +196,44 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	baseBranch := os.Getenv("CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH")
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
+	}
+
+	namespace := os.Getenv("RUNTIME_NAMESPACE")
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err = s.client.Get(ctx, client.ObjectKey{
+		Name:      s.profileHelmRepositoryName,
+		Namespace: namespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+
+	var profileName string
+	var helmReleases []*helmv2beta1.HelmRelease
+	for _, pvs := range msg.Values {
+		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+		if err != nil {
+			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		}
+		// Pick the name of the first chart as the profile name for now
+		if profileName == "" {
+			profileName = pvs.Name
+		}
+		helmReleases = append(helmReleases, hr)
+	}
+
+	if len(helmReleases) > 0 {
+		c, err := createProfile(helmReleases)
+		if err != nil {
+			return nil, err
+		}
+		profilePath := fmt.Sprintf(".weave-gitops/clusters/%s/system/%s.yaml", clusterName, profileName)
+		profileContent := string(c)
+		file := gitprovider.CommitFile{
+			Path:    &profilePath,
+			Content: &profileContent,
+		}
+		files = append(files, file)
 	}
 
 	var pullRequestURL string
@@ -206,7 +253,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return err
 		}
 
-		path := getClusterPathInRepo(clusterName)
 		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 			GitProvider: git.GitProvider{
@@ -220,12 +266,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			Title:         msg.Title,
 			Description:   msg.Description,
 			CommitMessage: msg.CommitMessage,
-			Files: []gitprovider.CommitFile{
-				{
-					Path:    &path,
-					Content: &content,
-				},
-			},
+			Files:         files,
 		})
 		if err != nil {
 			s.log.Error(err, "Failed to create pull request")
@@ -500,6 +541,19 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		ContentType: "application/json",
 		Data:        res,
 	}, nil
+}
+
+func createProfile(helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
+	out := [][]byte{}
+	for _, v := range helmReleases {
+		b, err := yaml.Marshal(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to %w", err)
+		}
+		out = append(out, b)
+	}
+
+	return bytes.Join(out, []byte("---\n")), nil
 }
 
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
