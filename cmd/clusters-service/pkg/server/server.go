@@ -148,7 +148,13 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	templateBits, err := capi.Render(tm.Spec, msg.Values)
+
+	var opts []capi.RenderOptFunc
+	if os.Getenv("INJECT_PRUNE_ANNOTATION") == "enabled" {
+		opts = []capi.RenderOptFunc{capi.InjectPruneAnnotation()}
+	}
+
+	templateBits, err := capi.Render(tm.Spec, msg.Values, opts...)
 	if err != nil {
 		if missing, ok := isMissingVariableError(err); ok {
 			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", msg.TemplateName, missing)

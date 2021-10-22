@@ -397,6 +397,7 @@ func TestRenderTemplate(t *testing.T) {
 
 	testCases := []struct {
 		name             string
+		pruneEnvVar      string
 		clusterState     []runtime.Object
 		expected         string
 		err              error
@@ -454,10 +455,21 @@ func TestRenderTemplate(t *testing.T) {
 			},
 			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  name: boop\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
 		},
+		{
+			name:        "enable prune injections",
+			pruneEnvVar: "enabled",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    kustomize.toolkit.fluxcd.io/prune: disabled\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
+		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			os.Setenv("INJECT_PRUNE_ANNOTATION", tt.pruneEnvVar)
+			defer os.Unsetenv("INJECT_PRUNE_ANNOTATION")
+
 			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
@@ -660,36 +672,10 @@ func TestCreatePullRequest(t *testing.T) {
 			dbRows:   1,
 			expected: "https://github.com/org/repo/pull/1",
 		},
-		{
-			name: "enable prune injections",
-			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
-			},
-			provider:    NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
-			pruneEnvVar: "enabled",
-			req: &capiv1_protos.CreatePullRequestRequest{
-				TemplateName: "cluster-template-1",
-				ParameterValues: map[string]string{
-					"CLUSTER_NAME": "foo",
-					"NAMESPACE":    "default",
-				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
-			},
-			dbRows:   1,
-			expected: "https://github.com/org/repo/pull/1",
-		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("INJECT_PRUNE_ANNOTATION", tt.pruneEnvVar)
-			defer os.Unsetenv("INJECT_PRUNE_ANNOTATION")
-
 			// setup
 			db := createDatabase(t)
 			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db, "")
