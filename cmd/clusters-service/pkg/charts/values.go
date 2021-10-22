@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"time"
 
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -204,7 +205,8 @@ func ParseValues(chart string, version string, values string, clusterName string
 					},
 				},
 			},
-			Values: &apiextensionsv1.JSON{Raw: jsonValues},
+			Interval: metav1.Duration{Duration: time.Minute},
+			Values:   &apiextensionsv1.JSON{Raw: jsonValues},
 		},
 	}
 

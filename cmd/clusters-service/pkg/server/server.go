@@ -9,6 +9,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -30,6 +31,7 @@ import (
 	"gorm.io/gorm"
 	"helm.sh/helm/v3/pkg/chartutil"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -199,14 +201,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	if len(msg.Values) > 0 {
-		namespace := os.Getenv("RUNTIME_NAMESPACE")
-		helmRepo := &sourcev1beta1.HelmRepository{}
-		err = s.client.Get(ctx, client.ObjectKey{
-			Name:      s.profileHelmRepositoryName,
-			Namespace: namespace,
-		}, helmRepo)
-		if err != nil {
-			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		helmRepo := &sourcev1beta1.HelmRepository{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      getEnv("PROFILE_HELM_REPOSITORY", "weaveworks-charts"),
+				Namespace: getEnv("PROFILE_HELM_REPOSITORY_NAMESPACE", "wego-system"),
+			},
+			Spec: sourcev1beta1.HelmRepositorySpec{
+				Interval: metav1.Duration{Duration: time.Minute},
+				URL:      getEnv("PROFILE_HELM_REPOSITORY_URL", "https://foot.github.io/podinfo"),
+			},
 		}
 
 		var profileName string
@@ -223,7 +226,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			helmReleases = append(helmReleases, hr)
 		}
 
-		c, err := createProfile(helmReleases)
+		c, err := createProfileYAML(helmRepo, helmReleases)
 		if err != nil {
 			return nil, err
 		}
@@ -543,12 +546,27 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 	}, nil
 }
 
-func createProfile(helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
+func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
 	out := [][]byte{}
+
+	// Add HelmRepository object
+	b, err := yaml.Marshal(helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
+	}
+	out = append(out, b)
+	// Add HelmRelease objects
 	for _, v := range helmReleases {
 		b, err := yaml.Marshal(v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to %w", err)
+			return nil, fmt.Errorf("failed to marshal HelmRelease object to YAML: %w", err)
 		}
 		out = append(out, b)
 	}

@@ -14,7 +14,7 @@ spec:
         name: testing
         namespace: test-ns
       version: 0.0.2
-  interval: 0s
+  interval: 1m0s
   values:
     backend: null
     backends: []
