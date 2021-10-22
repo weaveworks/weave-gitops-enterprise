@@ -2,6 +2,8 @@ package charts
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"path"
 
@@ -11,8 +13,11 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -163,4 +168,47 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 		conf.RepositoryConfig = path.Join(h.CacheDir, "/repository.yaml")
 	}
 	return conf
+}
+
+func ParseValues(chart string, version string, values string, clusterName string, helmRepo *sourcev1beta1.HelmRepository) (*helmv2beta1.HelmRelease, error) {
+	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
+		APIVersion: helmRepo.TypeMeta.APIVersion,
+		Kind:       helmRepo.TypeMeta.Kind,
+		Name:       helmRepo.ObjectMeta.Name,
+		Namespace:  helmRepo.ObjectMeta.Namespace,
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(values)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+	}
+	vals := map[string]interface{}{}
+	yaml.Unmarshal(decoded, &vals)
+	jsonValues, err := json.Marshal(vals)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal YAML values into JSON: %w", err)
+	}
+
+	hr := helmv2beta1.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s", clusterName, chart),
+			Namespace: "wego-system",
+		},
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: helmv2beta1.GroupVersion.Identifier(),
+			Kind:       helmv2beta1.HelmReleaseKind,
+		},
+		Spec: helmv2beta1.HelmReleaseSpec{
+			Chart: helmv2beta1.HelmChartTemplate{
+				Spec: helmv2beta1.HelmChartTemplateSpec{
+					Chart:     chart,
+					Version:   version,
+					SourceRef: sourceRef,
+				},
+			},
+			Values: &apiextensionsv1.JSON{Raw: jsonValues},
+		},
+	}
+
+	return &hr, nil
 }
