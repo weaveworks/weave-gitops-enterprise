@@ -171,13 +171,6 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 }
 
 func ParseValues(chart string, version string, values string, clusterName string, helmRepo *sourcev1beta1.HelmRepository) (*helmv2beta1.HelmRelease, error) {
-	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
-		APIVersion: helmRepo.TypeMeta.APIVersion,
-		Kind:       helmRepo.TypeMeta.Kind,
-		Name:       helmRepo.ObjectMeta.Name,
-		Namespace:  helmRepo.ObjectMeta.Namespace,
-	}
-
 	decoded, err := base64.StdEncoding.DecodeString(values)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
@@ -201,9 +194,14 @@ func ParseValues(chart string, version string, values string, clusterName string
 		Spec: helmv2beta1.HelmReleaseSpec{
 			Chart: helmv2beta1.HelmChartTemplate{
 				Spec: helmv2beta1.HelmChartTemplateSpec{
-					Chart:     chart,
-					Version:   version,
-					SourceRef: sourceRef,
+					Chart:   chart,
+					Version: version,
+					SourceRef: helmv2beta1.CrossNamespaceObjectReference{
+						APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+						Kind:       sourcev1beta1.HelmRepositoryKind,
+						Name:       helmRepo.ObjectMeta.Name,
+						Namespace:  helmRepo.ObjectMeta.Namespace,
+					},
 				},
 			},
 			Values: &apiextensionsv1.JSON{Raw: jsonValues},
