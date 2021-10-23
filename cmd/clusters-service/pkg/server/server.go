@@ -9,7 +9,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -201,15 +200,22 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	if len(msg.Values) > 0 {
-		helmRepo := &sourcev1beta1.HelmRepository{
+		namespace := os.Getenv("RUNTIME_NAMESPACE")
+		helmRepo := &sourcev1beta1.HelmRepository{}
+		err = s.client.Get(ctx, client.ObjectKey{
+			Name:      s.profileHelmRepositoryName,
+			Namespace: namespace,
+		}, helmRepo)
+		if err != nil {
+			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		}
+		helmRepoTemplate := &sourcev1beta1.HelmRepository{
+			TypeMeta: helmRepo.TypeMeta,
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      getEnv("PROFILE_HELM_REPOSITORY", "weaveworks-charts"),
-				Namespace: getEnv("PROFILE_HELM_REPOSITORY_NAMESPACE", "wego-system"),
+				Name:      s.profileHelmRepositoryName,
+				Namespace: namespace,
 			},
-			Spec: sourcev1beta1.HelmRepositorySpec{
-				Interval: metav1.Duration{Duration: time.Minute},
-				URL:      getEnv("PROFILE_HELM_REPOSITORY_URL", "https://foot.github.io/podinfo"),
-			},
+			Spec: helmRepo.Spec,
 		}
 
 		var profileName string
@@ -226,7 +232,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			helmReleases = append(helmReleases, hr)
 		}
 
-		c, err := createProfileYAML(helmRepo, helmReleases)
+		c, err := createProfileYAML(helmRepoTemplate, helmReleases)
 		if err != nil {
 			return nil, err
 		}
