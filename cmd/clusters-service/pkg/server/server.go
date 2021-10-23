@@ -210,7 +210,10 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 		}
 		helmRepoTemplate := &sourcev1beta1.HelmRepository{
-			TypeMeta: helmRepo.TypeMeta,
+			TypeMeta: metav1.TypeMeta{
+				Kind:       sourcev1beta1.HelmRepositoryKind,
+				APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      s.profileHelmRepositoryName,
 				Namespace: namespace,
@@ -550,13 +553,6 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		ContentType: "application/json",
 		Data:        res,
 	}, nil
-}
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
 }
 
 func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
