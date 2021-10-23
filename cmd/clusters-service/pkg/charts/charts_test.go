@@ -91,6 +91,10 @@ func TestScanCharts_errors(t *testing.T) {
 
 func makeTestHelmRepository(base string, opts ...func(*sourcev1beta1.HelmRepository)) *sourcev1beta1.HelmRepository {
 	hr := &sourcev1beta1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1beta1.HelmRepositoryKind,
+			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testing",
 			Namespace: "test-ns",

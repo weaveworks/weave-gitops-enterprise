@@ -52,6 +52,7 @@ export type CreatePullRequestRequest = {
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   credentials?: Credential
+  values?: ProfileValues[]
 }
 
 export type CreatePullRequestResponse = {
@@ -166,6 +167,12 @@ export type GetProfileValuesRequest = {
 }
 
 export type GetProfileValuesResponse = {
+  values?: string
+}
+
+export type ProfileValues = {
+  name?: string
+  version?: string
   values?: string
 }
 
