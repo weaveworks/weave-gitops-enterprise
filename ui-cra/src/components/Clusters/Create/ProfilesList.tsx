@@ -6,9 +6,13 @@ import Box from '@material-ui/core/Box';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import useProfiles from './../../../contexts/Profiles';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogActions,
+  TextareaAutosize,
+} from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
 import { Loader } from '../../Loader';
@@ -56,8 +60,6 @@ const ProfilesList: FC<{
   const [updatedProfiles, setUpdatedProfiles] = useState<
     { name: Profile['name']; version: string; values: string }[]
   >([]);
-
-  const rows = (currentProfilePreview?.split('\n').length || 0) - 1;
 
   const handlePreview = useCallback(
     (profile: Profile) => {
@@ -119,35 +121,36 @@ const ProfilesList: FC<{
       </Box>
       <Dialog
         open={openYamlPreview}
+        className={classes.dialog}
         maxWidth="md"
         fullWidth
+        scroll="paper"
         onClose={() => setOpenYamlPreview(false)}
       >
-        <div id="preview-yaml-popup" className={classes.dialog}>
-          <DialogTitle disableTypography>
-            <Typography variant="h5">{currentProfile?.name}</Typography>
-            <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
-          </DialogTitle>
-          <DialogContent>
-            {!loading ? (
-              <>
-                <textarea
-                  className={classes.textarea}
-                  rows={rows}
-                  defaultValue={currentProfilePreview || ''}
-                  onChange={handleChange}
-                />
-                <OnClickAction
-                  id="edit-yaml"
-                  onClick={handleUpdateProfiles}
-                  text="Save changes"
-                />
-              </>
-            ) : (
-              <Loader />
-            )}
-          </DialogContent>
-        </div>
+        <DialogTitle disableTypography>
+          <Typography variant="h5">{currentProfile?.name}</Typography>
+          <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
+        </DialogTitle>
+        <DialogContent>
+          {!loading ? (
+            <>
+              <TextareaAutosize
+                className={classes.textarea}
+                defaultValue={currentProfilePreview || ''}
+                onChange={handleChange}
+              />
+            </>
+          ) : (
+            <Loader />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <OnClickAction
+            id="edit-yaml"
+            onClick={handleUpdateProfiles}
+            text="Save changes"
+          />
+        </DialogActions>
       </Dialog>
     </>
   );
