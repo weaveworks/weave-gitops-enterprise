@@ -93,12 +93,17 @@ const ProfilesList: FC<{
     setOpenYamlPreview(false);
   }, [onProfilesUpdate, updatedProfiles]);
 
-  console.log('selected', selectedProfiles);
-  console.log('updated', updatedProfiles);
-
   useEffect(() => {
+    console.log('selected', selectedProfiles);
+    console.log('updated', updatedProfiles);
+
+    const isProfileUpdated =
+      selectedProfiles.forEach(profile =>
+        updatedProfiles.filter(p => p.name === profile.name),
+      ).length !== 0;
+
     selectedProfiles.forEach(profile => {
-      if (updatedProfiles.filter(p => p.name === profile.name).length === 0) {
+      if (!isProfileUpdated) {
         renderProfile(profile).then(data => {
           setUpdatedProfiles([
             ...updatedProfiles,
