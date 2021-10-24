@@ -144,8 +144,9 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
-  const [updatedProfiles, setUpdatedProfiles] =
-    useState<{ name: Profile['name']; version: string; values: string }[]>();
+  const [updatedProfiles, setUpdatedProfiles] = useState<
+    { name: Profile['name']; version: string; values: string }[]
+  >([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [branchName, setBranchName] = useState<string>(
@@ -232,13 +233,19 @@ const AddCluster: FC = () => {
     [],
   );
 
-  const encodedProfiles = updatedProfiles?.map(profile => {
-    return {
-      name: profile.name,
-      version: profile.version,
-      values: btoa(profile.values),
-    };
-  });
+  const encodedProfiles = useCallback(
+    (profiles: { name: Profile['name']; version: string; values: string }[]) =>
+      updatedProfiles?.map(profile => {
+        return {
+          name: profile.name,
+          version: profile.version,
+          values: btoa(profile.values),
+        };
+      }),
+    [updatedProfiles],
+  );
+
+  console.log(updatedProfiles);
 
   const handleAddCluster = useCallback(() => {
     addCluster({
@@ -251,7 +258,7 @@ const AddCluster: FC = () => {
       parameter_values: {
         ...formData,
       },
-      values: encodedProfiles,
+      profiles: encodedProfiles(updatedProfiles),
     });
   }, [
     addCluster,
@@ -263,6 +270,7 @@ const AddCluster: FC = () => {
     infraCredential,
     pullRequestDescription,
     encodedProfiles,
+    updatedProfiles,
   ]);
 
   const required = useMemo(() => {

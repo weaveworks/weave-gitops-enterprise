@@ -1,4 +1,11 @@
-import React, { ChangeEvent, Dispatch, FC, useCallback, useState } from 'react';
+import React, {
+  ChangeEvent,
+  Dispatch,
+  FC,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { Profile } from '../../../types/custom';
@@ -48,13 +55,14 @@ const ProfilesList: FC<{
   selectedProfiles: Profile[];
   onProfilesUpdate: Dispatch<
     React.SetStateAction<
-      { name: Profile['name']; version: string; values: string }[] | undefined
+      { name: Profile['name']; version: string; values: string }[]
     >
   >;
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
   const { renderProfile, loading } = useProfiles();
-  const [currentProfile, setCurrentProfile] = useState<Profile>();
+  const [currentProfile, setCurrentProfile] =
+    useState<{ name: Profile['name']; version: string; values: string }>();
   const [currentProfilePreview, setCurrentProfilePreview] = useState<string>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [updatedProfiles, setUpdatedProfiles] = useState<
@@ -62,29 +70,12 @@ const ProfilesList: FC<{
   >([]);
 
   const handlePreview = useCallback(
-    (profile: Profile) => {
-      setOpenYamlPreview(true);
+    (profile: { name: Profile['name']; version: string; values: string }) => {
       setCurrentProfile(profile);
-      if (updatedProfiles.filter(p => p.name === profile.name).length === 0) {
-        renderProfile(profile).then(data => {
-          setCurrentProfilePreview(data.message);
-          setUpdatedProfiles([
-            ...updatedProfiles,
-            {
-              name: profile.name,
-              version:
-                profile.availableVersions[profile.availableVersions.length - 1],
-              values: data.message,
-            },
-          ]);
-        });
-      } else {
-        setCurrentProfilePreview(
-          updatedProfiles?.find(p => p.name === profile.name)?.values,
-        );
-      }
+      setCurrentProfilePreview(profile.values);
+      setOpenYamlPreview(true);
     },
-    [setOpenYamlPreview, renderProfile, updatedProfiles],
+    [setOpenYamlPreview],
   );
 
   const handleChange = useCallback(
@@ -102,11 +93,41 @@ const ProfilesList: FC<{
     setOpenYamlPreview(false);
   }, [onProfilesUpdate, updatedProfiles]);
 
+  console.log('selected', selectedProfiles);
+  console.log('updated', updatedProfiles);
+
+  useEffect(() => {
+    selectedProfiles.forEach(profile => {
+      if (updatedProfiles.filter(p => p.name === profile.name).length === 0) {
+        renderProfile(profile).then(data => {
+          setUpdatedProfiles([
+            ...updatedProfiles,
+            {
+              name: profile.name,
+              version:
+                profile.availableVersions[profile.availableVersions.length - 1],
+              values: data.message,
+            },
+          ]);
+        });
+      } else if (selectedProfiles.length < updatedProfiles.length) {
+        setUpdatedProfiles(
+          updatedProfiles.filter(updatedProfile =>
+            selectedProfiles.find(
+              selectedProfile => updatedProfile.name === selectedProfile.name,
+            ),
+          ),
+        );
+      }
+    });
+    onProfilesUpdate(updatedProfiles);
+  }, [renderProfile, selectedProfiles, updatedProfiles, onProfilesUpdate]);
+
   return (
     <>
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
-          {selectedProfiles.map((profile, index) => (
+          {updatedProfiles.map((profile, index) => (
             <ListItem key={index}>
               <ListItemText>{profile.name}</ListItemText>
               <Button
