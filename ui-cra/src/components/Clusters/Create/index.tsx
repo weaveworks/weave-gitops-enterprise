@@ -29,7 +29,12 @@ import * as Grouped from './Form/GroupedSchema';
 import * as UiTemplate from './Form/UITemplate';
 import FormSteps, { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
-import { Credential, Profile, TemplateObject } from '../../../types/custom';
+import {
+  Credential,
+  Profile,
+  TemplateObject,
+  UpdatedProfile,
+} from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
@@ -144,9 +149,7 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
-  const [updatedProfiles, setUpdatedProfiles] = useState<
-    { name: Profile['name']; version: string; values: string }[]
-  >([]);
+  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [branchName, setBranchName] = useState<string>(
@@ -234,18 +237,18 @@ const AddCluster: FC = () => {
   );
 
   const encodedProfiles = useCallback(
-    (profiles: { name: Profile['name']; version: string; values: string }[]) =>
-      updatedProfiles?.map(profile => {
+    (profiles: UpdatedProfile[]) =>
+      profiles?.map(profile => {
         return {
           name: profile.name,
           version: profile.version,
           values: btoa(profile.values),
         };
       }),
-    [updatedProfiles],
+    [],
   );
 
-  console.log(updatedProfiles);
+  // console.log(updatedProfiles);
 
   const handleAddCluster = useCallback(() => {
     addCluster({
@@ -269,8 +272,8 @@ const AddCluster: FC = () => {
     activeTemplate?.name,
     infraCredential,
     pullRequestDescription,
-    encodedProfiles,
     updatedProfiles,
+    encodedProfiles,
   ]);
 
   const required = useMemo(() => {

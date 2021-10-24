@@ -69,4 +69,8 @@ export type ListProfilesResponse = {
   profiles?: Profile[];
 };
 
-export type UpdatedProfile = {};
+export type UpdatedProfile = {
+  name: Profile['name'];
+  version: string;
+  values: string;
+};

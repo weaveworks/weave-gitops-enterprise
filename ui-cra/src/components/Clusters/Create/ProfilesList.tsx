@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
-import { Profile } from '../../../types/custom';
+import { Profile, UpdatedProfile } from '../../../types/custom';
 import Box from '@material-ui/core/Box';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -61,16 +61,13 @@ const ProfilesList: FC<{
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
   const { renderProfile, loading } = useProfiles();
-  const [currentProfile, setCurrentProfile] =
-    useState<{ name: Profile['name']; version: string; values: string }>();
+  const [currentProfile, setCurrentProfile] = useState<UpdatedProfile>();
   const [currentProfilePreview, setCurrentProfilePreview] = useState<string>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
-  const [updatedProfiles, setUpdatedProfiles] = useState<
-    { name: Profile['name']; version: string; values: string }[]
-  >([]);
+  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
 
   const handlePreview = useCallback(
-    (profile: { name: Profile['name']; version: string; values: string }) => {
+    (profile: UpdatedProfile) => {
       setCurrentProfile(profile);
       setCurrentProfilePreview(profile.values);
       setOpenYamlPreview(true);
@@ -94,37 +91,39 @@ const ProfilesList: FC<{
   }, [onProfilesUpdate, updatedProfiles]);
 
   useEffect(() => {
-    console.log('selected', selectedProfiles);
-    console.log('updated', updatedProfiles);
+    const isProfileUpdated = (profile: Profile) =>
+      updatedProfiles.filter(p => p.name === profile.name).length !== 0;
 
-    const isProfileUpdated =
-      selectedProfiles.forEach(profile =>
-        updatedProfiles.filter(p => p.name === profile.name),
-      ).length !== 0;
-
-    selectedProfiles.forEach(profile => {
-      if (!isProfileUpdated) {
-        renderProfile(profile).then(data => {
-          setUpdatedProfiles([
-            ...updatedProfiles,
-            {
-              name: profile.name,
-              version:
-                profile.availableVersions[profile.availableVersions.length - 1],
-              values: data.message,
-            },
-          ]);
-        });
-      } else if (selectedProfiles.length < updatedProfiles.length) {
-        setUpdatedProfiles(
-          updatedProfiles.filter(updatedProfile =>
-            selectedProfiles.find(
-              selectedProfile => updatedProfile.name === selectedProfile.name,
-            ),
+    if (
+      selectedProfiles.length === updatedProfiles.length ||
+      selectedProfiles.length > updatedProfiles.length
+    ) {
+      selectedProfiles.forEach(profile => {
+        if (!isProfileUpdated(profile)) {
+          renderProfile(profile).then(data => {
+            setUpdatedProfiles([
+              ...updatedProfiles,
+              {
+                name: profile.name,
+                version:
+                  profile.availableVersions[
+                    profile.availableVersions.length - 1
+                  ],
+                values: data.message,
+              },
+            ]);
+          });
+        }
+      });
+    } else {
+      setUpdatedProfiles(
+        updatedProfiles.filter(updatedProfile =>
+          selectedProfiles.find(
+            selectedProfile => updatedProfile.name === selectedProfile.name,
           ),
-        );
-      }
-    });
+        ),
+      );
+    }
     onProfilesUpdate(updatedProfiles);
   }, [renderProfile, selectedProfiles, updatedProfiles, onProfilesUpdate]);
 
