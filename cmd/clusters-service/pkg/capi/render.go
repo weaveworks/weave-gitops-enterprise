@@ -17,10 +17,9 @@ func InjectPruneAnnotation() RenderOptFunc {
 	return unstructuredFunc(func(uns *unstructured.Unstructured) {
 		if uns.GetKind() != "Cluster" {
 			if uns.GetAnnotations() != nil {
-				ann := uns.DeepCopy().GetAnnotations()
+				ann := uns.GetAnnotations()
 				ann["kustomize.toolkit.fluxcd.io/prune"] = "disabled"
-				unstructured.SetNestedStringMap(uns.Object, ann, "metadata", "annotations")
-
+				uns.SetAnnotations(ann)
 			} else {
 				uns.SetAnnotations(map[string]string{"kustomize.toolkit.fluxcd.io/prune": "disabled"})
 			}
