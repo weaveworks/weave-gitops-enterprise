@@ -63,7 +63,7 @@ const TemplatesDashboard: FC = () => {
   const templatesCount = templates.length;
   const [view, setView] = useState<string>('grid');
   const [selectedProvider, setSelectedProvider] =
-    useState<string | null | undefined>('');
+    useState<string | null | undefined>();
 
   const onProviderChange = (
     event: React.ChangeEvent<{}>,

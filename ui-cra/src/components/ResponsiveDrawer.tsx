@@ -34,6 +34,7 @@ import error404 from '../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
 import WGApplicationsDashboard from './Applications';
 import WGApplicationDetail from './Applications/Detail';
+import { GitOpsBlue } from './../muiTheme';
 
 const APPS_ROUTE = '/applications';
 const APP_DETAIL_ROTUE = '/application_detail';
@@ -56,7 +57,7 @@ const useStyles = makeStyles((theme: Theme) =>
         width: `calc(100% - ${drawerWidth}px)`,
         marginLeft: drawerWidth,
       },
-      backgroundColor: '#00b3ec',
+      backgroundColor: GitOpsBlue,
       boxShadow: 'none',
     },
     menuButton: {
@@ -67,7 +68,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     menuButtonBox: {
       height: '80px',
-      background: '#00b3ec',
+      background: GitOpsBlue,
       display: 'flex',
       justifyContent: 'center',
       position: 'sticky',

@@ -26,6 +26,7 @@ import { Loader } from '../../Loader';
 import { OnClickAction } from '../../Action';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Button from '@material-ui/core/Button';
+import { GitOpsBlue } from './../../../muiTheme';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -35,7 +36,7 @@ const useStyles = makeStyles(theme => ({
     width: 300,
   },
   indeterminateColor: {
-    color: '#00B3EC',
+    color: GitOpsBlue,
   },
   dialog: {
     backgroundColor: weaveTheme.colors.gray50,
@@ -46,7 +47,7 @@ const useStyles = makeStyles(theme => ({
     border: '1px solid #E5E5E5',
   },
   downloadBtn: {
-    color: '#00B3EC',
+    color: GitOpsBlue,
     padding: '0px',
   },
 }));

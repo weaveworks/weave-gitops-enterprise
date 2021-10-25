@@ -7,6 +7,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
 import { Profile } from '../types/custom';
+import { GitOpsBlue } from './../muiTheme';
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -14,10 +15,10 @@ const useStyles = makeStyles(theme => ({
     width: 300,
   },
   indeterminateColor: {
-    color: '#00B3EC',
+    color: GitOpsBlue,
   },
   downloadBtn: {
-    color: '#00B3EC',
+    color: GitOpsBlue,
     padding: '0px',
   },
 }));
@@ -67,7 +68,7 @@ const MultiSelectDropdown: FC<{
                 selected.length > 0 && selected.length < items.length
               }
               style={{
-                color: '#00B3EC',
+                color: GitOpsBlue,
               }}
             />
           </ListItemIcon>
@@ -79,7 +80,7 @@ const MultiSelectDropdown: FC<{
               <Checkbox
                 checked={selected.indexOf(item) > -1}
                 style={{
-                  color: '#00B3EC',
+                  color: GitOpsBlue,
                 }}
               />
             </ListItemIcon>
