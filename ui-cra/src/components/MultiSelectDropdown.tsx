@@ -25,29 +25,25 @@ const useStyles = makeStyles(theme => ({
 
 const MultiSelectDropdown: FC<{
   items: any[];
-  onSelectProfiles?: Dispatch<React.SetStateAction<Profile[]>>;
-}> = ({ items, onSelectProfiles }) => {
+  onSelectItems: Dispatch<React.SetStateAction<Profile[]>>;
+}> = ({ items, onSelectItems }) => {
   const classes = useStyles();
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<any[]>([]);
   const isAllSelected = items.length > 0 && selected.length === items.length;
-
-  const itemsNames = items.map(item => item.name);
 
   const getItemsFromNames = (names: string[]) =>
     items.filter(item => names.find(name => item.name === name));
 
-  const handleChange = (event: any) => {
+  const handleChange = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
     if (value[value.length - 1] === 'all') {
-      const selectedItems = selected.length === itemsNames.length ? [] : items;
-      const selectedItemsNames =
-        selected.length === itemsNames.length ? [] : itemsNames;
-      setSelected(selectedItemsNames);
-      onSelectProfiles && onSelectProfiles(selectedItems);
+      const selectedItems = selected.length === items.length ? [] : items;
+      setSelected(selectedItems);
+      onSelectItems(selectedItems);
       return;
     }
     setSelected(value);
-    onSelectProfiles && onSelectProfiles(getItemsFromNames(value));
+    onSelectItems(getItemsFromNames(value));
   };
 
   return (
@@ -74,19 +70,22 @@ const MultiSelectDropdown: FC<{
           </ListItemIcon>
           <ListItemText primary="Select All" />
         </MenuItem>
-        {itemsNames.map(item => (
-          <MenuItem key={item} value={item}>
-            <ListItemIcon>
-              <Checkbox
-                checked={selected.indexOf(item) > -1}
-                style={{
-                  color: GitOpsBlue,
-                }}
-              />
-            </ListItemIcon>
-            <ListItemText primary={item} />
-          </MenuItem>
-        ))}
+        {items.map(item => {
+          const itemName = item.name;
+          return (
+            <MenuItem key={itemName} value={itemName}>
+              <ListItemIcon>
+                <Checkbox
+                  checked={selected.indexOf(itemName) > -1}
+                  style={{
+                    color: GitOpsBlue,
+                  }}
+                />
+              </ListItemIcon>
+              <ListItemText primary={itemName} />
+            </MenuItem>
+          );
+        })}
       </Select>
     </FormControl>
   );
