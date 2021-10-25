@@ -46,12 +46,12 @@ func TestAcceptance(t *testing.T) {
 	gomega.RegisterFailHandler(GomegaFail)
 
 	defaultSuite := true
-	if os.Getenv("MCCP_ACCEPTANCE") == "true" {
+	if os.Getenv("WGE_ACCEPTANCE") == "true" {
 
 		// Runs the UI tests
-		DescribeSpecsMccpUi(RealMCCPTestRunner{})
+		DescribeSpecsUi(RealGitopsTestRunner{})
 		// Runs the CLI tests
-		DescribeSpecsMccpCli(RealMCCPTestRunner{})
+		DescribeSpecsCli(RealGitopsTestRunner{})
 
 		defaultSuite = false
 	}
