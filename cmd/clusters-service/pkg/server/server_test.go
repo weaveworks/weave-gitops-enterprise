@@ -24,8 +24,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
-	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	coretesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 )
@@ -1101,7 +1101,7 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 		WithRuntimeObjects(clusterState...).
 		Build()
 
-	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
+	dc := &fakediscovery.FakeDiscovery{Fake: &coretesting.Fake{}}
 
 	s := NewClusterServer(logr.Discard(),
 		&templates.ConfigMapLibrary{

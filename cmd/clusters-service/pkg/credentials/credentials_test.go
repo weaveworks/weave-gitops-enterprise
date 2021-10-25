@@ -13,7 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
-	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	coretesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -22,7 +23,7 @@ func TestFindCredentials(t *testing.T) {
 	u := &unstructured.Unstructured{}
 	u.Object = map[string]interface{}{
 		"metadata": map[string]interface{}{
-			"name":      "test-one",
+			"name":      "test",
 			"namespace": "test",
 		},
 		"spec": map[string]interface{}{
@@ -38,28 +39,8 @@ func TestFindCredentials(t *testing.T) {
 		Version: "v1alpha4",
 	})
 
-	v := &unstructured.Unstructured{}
-	v.Object = map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"name":      "test-two",
-			"namespace": "test",
-		},
-		"spec": map[string]interface{}{
-			"identityRef": map[string]interface{}{
-				"kind": "BarKind",
-				"name": "BarName",
-			},
-		},
-	}
-	v.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "infrastructure.cluster.x-k8s.io",
-		Kind:    "AWSCluster",
-		Version: "v1alpha4",
-	})
-
 	c, dc := createFakeClient()
 	_ = c.Create(context.Background(), u)
-	_ = c.Create(context.Background(), v)
 
 	cList, err := FindCredentials(context.Background(), c, dc)
 
@@ -235,7 +216,7 @@ func createFakeClient() (client.Client, discovery.DiscoveryInterface) {
 		WithScheme(scheme).
 		Build()
 
-	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
+	dc := &fakediscovery.FakeDiscovery{Fake: &coretesting.Fake{}}
 
 	return c, dc
 }
