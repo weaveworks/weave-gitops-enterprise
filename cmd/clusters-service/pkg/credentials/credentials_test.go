@@ -12,9 +12,64 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
+	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
+
+func TestFindCredentials(t *testing.T) {
+	u := &unstructured.Unstructured{}
+	u.Object = map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"name":      "test-one",
+			"namespace": "test",
+		},
+		"spec": map[string]interface{}{
+			"identityRef": map[string]interface{}{
+				"kind": "FooKind",
+				"name": "FooName",
+			},
+		},
+	}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "infrastructure.cluster.x-k8s.io",
+		Kind:    "AWSCluster",
+		Version: "v1alpha4",
+	})
+
+	v := &unstructured.Unstructured{}
+	v.Object = map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"name":      "test-two",
+			"namespace": "test",
+		},
+		"spec": map[string]interface{}{
+			"identityRef": map[string]interface{}{
+				"kind": "BarKind",
+				"name": "BarName",
+			},
+		},
+	}
+	v.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "infrastructure.cluster.x-k8s.io",
+		Kind:    "AWSCluster",
+		Version: "v1alpha4",
+	})
+
+	c, dc := createFakeClient()
+	_ = c.Create(context.Background(), u)
+	_ = c.Create(context.Background(), v)
+
+	cList, err := FindCredentials(context.Background(), c, dc)
+
+	if err != nil {
+		t.Fatalf("err %v", err)
+	}
+	if cList == nil {
+		t.Fatal("No credentials returned")
+	}
+}
 
 func TestMaybeInjectCredentials(t *testing.T) {
 	result, _ := MaybeInjectCredentials(nil, "", nil)
@@ -71,7 +126,7 @@ func TestCheckCredentialsExist(t *testing.T) {
 		Version: "v1alpha4",
 	})
 
-	c := createFakeClient()
+	c, _ := createFakeClient()
 	_ = c.Create(context.Background(), u)
 
 	creds := &capiv1_protos.Credential{
@@ -168,7 +223,7 @@ func convertToStringArray(in [][]byte) []string {
 	return result
 }
 
-func createFakeClient() client.Client {
+func createFakeClient() (client.Client, discovery.DiscoveryInterface) {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -176,7 +231,11 @@ func createFakeClient() client.Client {
 	}
 	schemeBuilder.AddToScheme(scheme)
 
-	return fake.NewClientBuilder().
+	c := fake.NewClientBuilder().
 		WithScheme(scheme).
 		Build()
+
+	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
+
+	return c, dc
 }
