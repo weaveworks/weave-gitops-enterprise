@@ -4,6 +4,9 @@ go 1.17
 
 require (
 	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc
+	github.com/fluxcd/helm-controller/api v0.11.1
+	github.com/fluxcd/pkg/apis/meta v0.10.0
+	github.com/fluxcd/source-controller/api v0.15.3
 	github.com/go-logr/logr v1.1.0
 	github.com/go-logr/zapr v1.1.0
 	github.com/google/go-cmp v0.5.6
@@ -30,6 +33,7 @@ require (
 	gorm.io/gorm v1.21.11
 	helm.sh/helm/v3 v3.7.1
 	k8s.io/api v0.22.2
+	k8s.io/apiextensions-apiserver v0.22.1
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
 	k8s.io/klog/v2 v2.9.0
@@ -206,7 +210,6 @@ require (
 	gorm.io/datatypes v1.0.0 // indirect
 	gorm.io/driver/postgres v1.0.5 // indirect
 	gorm.io/driver/sqlite v1.1.4 // indirect
-	k8s.io/apiextensions-apiserver v0.22.1 // indirect
 	k8s.io/apiserver v0.22.1 // indirect
 	k8s.io/cli-runtime v0.22.1 // indirect
 	k8s.io/component-base v0.22.1 // indirect
