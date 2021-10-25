@@ -52,7 +52,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 	}
 }
 
-func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
+func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
 
 		GITOPS_BIN_PATH := GetGitopsBinPath()
@@ -62,13 +62,13 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
-				mccpTestRunner.CheckClusterService()
+				gitopsTestRunner.CheckClusterService()
 			})
 			initializeWebdriver()
 		})
 
 		AfterEach(func() {
-			mccpTestRunner.DeleteApplyCapiTemplates(templateFiles)
+			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 			// Reset/empty the templateFiles list
 			templateFiles = []string{}
 		})
@@ -116,10 +116,10 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				}()
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(5, "capi-server-v1-template-capd.yaml")...)
-					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(3, "capi-server-v1-template-azure.yaml")...)
-					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-aws.yaml")...)
-					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "capi-server-v1-template-capd.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(3, "capi-server-v1-template-azure.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-aws.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -205,7 +205,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("Verify I should be able to select a template of my choice", func() {
 
 				// test selection with 50 capiTemplates
-				templateFiles = mccpTestRunner.CreateApplyCapitemplates(50, "capi-server-v1-capitemplate.yaml")
+				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(50, "capi-server-v1-capitemplate.yaml")
 
 				pages.NavigateToPage(webDriver, "Templates")
 				By("And wait for Templates page to be fully rendered", func() {
@@ -254,7 +254,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("Verify UI shows message related to an invalid template(s)", func() {
 
 				By("Apply/Install invalid CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -289,12 +289,12 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 				noOfValidTemplates := 3
 				By("Apply/Install valid CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(noOfValidTemplates, "capi-server-v1-template-eks-fargate.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfValidTemplates, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
 				noOfInvalidTemplates := 1
 				By("Apply/Install invalid CAPITemplate", func() {
-					templateFiles = append(templateFiles, mccpTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")...)
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -324,7 +324,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -400,30 +400,30 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("@integration Verify pull request can be created for capi template to the management cluster", func() {
 
-				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+				defer gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer func() {
 					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				}()
 
 				By("And template repo does not already exist", func() {
-					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = mccpTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
-					testFile := createTestFile("README.md", "# mccp-capi-template")
+					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					testFile := createTestFile("README.md", "# gitops-capi-template")
 
-					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
+					gitopsTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				By("And repo created has private visibility", func() {
-					Expect(mccpTestRunner.GetRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
+					Expect(gitopsTestRunner.GetRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY)).Should(ContainSubstring("true"))
 				})
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -506,14 +506,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And I should veriyfy the pull request in the cluster config repository", func() {
-					pullRequest := mccpTestRunner.ListPullRequest(repoAbsolutePath)
+					pullRequest := gitopsTestRunner.ListPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(prTitle))
 					Expect(pullRequest[1]).Should(Equal(prBranch))
 					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
 				})
 
 				By("And the manifests are present in the cluster config repository", func() {
-					mccpTestRunner.PullBranch(repoAbsolutePath, prBranch)
+					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
@@ -523,31 +523,31 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("@integration Verify pull request can not be created by using exiting repository branch", func() {
 
-				defer mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+				defer gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer func() {
 					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				}()
 
 				By("And template repo does not already exist", func() {
-					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = mccpTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
-					testFile := createTestFile("README.md", "# mccp-capi-template")
+					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					testFile := createTestFile("README.md", "# gitops-capi-template")
 
-					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
+					gitopsTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				branchName := "test-branch"
 				By("And create new git repository branch", func() {
-					mccpTestRunner.CreateGitRepoBranch(repoAbsolutePath, branchName)
+					gitopsTestRunner.CreateGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -625,9 +625,9 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 		})
 
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration Verify no credentials exists in mccp", func() {
+			It("@integration Verify no credentials exists in management cluster", func() {
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -660,18 +660,18 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
 			It("@integration Verify matching selected credential can be used for cluster creation", func() {
-				defer mccpTestRunner.DeleteIPCredentials("AWS")
-				defer mccpTestRunner.DeleteIPCredentials("AZURE")
+				defer gitopsTestRunner.DeleteIPCredentials("AWS")
+				defer gitopsTestRunner.DeleteIPCredentials("AZURE")
 
 				By("Apply/Install CAPITemplates", func() {
-					eksTemplateFile := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
-					azureTemplateFiles := mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
+					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
+					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
 				})
 
 				By("And create infrastructure provider credentials)", func() {
-					mccpTestRunner.CreateIPCredentials("AWS")
-					mccpTestRunner.CreateIPCredentials("AZURE")
+					gitopsTestRunner.CreateIPCredentials("AWS")
+					gitopsTestRunner.CreateIPCredentials("AZURE")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -787,14 +787,14 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
 			It("@integration Verify user can not use wrong credentials for infrastructure provider", func() {
-				defer mccpTestRunner.DeleteIPCredentials("AWS")
+				defer gitopsTestRunner.DeleteIPCredentials("AWS")
 
 				By("Apply/Install CAPITemplates", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 				})
 
 				By("And create infrastructure provider credentials)", func() {
-					mccpTestRunner.CreateIPCredentials("AWS")
+					gitopsTestRunner.CreateIPCredentials("AWS")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -910,35 +910,35 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 					AlertManagerURL: "",
 					KubeconfigPath:  "",
 				}
-				connectACluster(webDriver, mccpTestRunner, leaf)
+				connectACluster(webDriver, gitopsTestRunner, leaf)
 			})
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
 				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
 
-				mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+				gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 
 				log.Println("Deleting all the wkp agents")
-				_ = mccpTestRunner.KubectlDeleteAllAgents([]string{})
-				_ = mccpTestRunner.ResetDatabase()
-				mccpTestRunner.VerifyMCCPPodsRunning()
+				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
+				_ = gitopsTestRunner.ResetDatabase()
+				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
 			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				By("And template repo does not already exist", func() {
-					mccpTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = mccpTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
-					testFile := createTestFile("README.md", "# mccp-capi-template")
+					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					testFile := createTestFile("README.md", "# gitops-capi-template")
 
-					mccpTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
+					gitopsTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				By("And I install gitops to my active cluster", func() {
@@ -959,7 +959,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = mccpTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -1038,7 +1038,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("Then I should merge the pull request to start cluster provisioning", func() {
-					mccpTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+					gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
 				})
 
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
@@ -1085,7 +1085,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 					var pullRequest []string
 					pr := func() []string {
-						pullRequest = mccpTestRunner.ListPullRequest(repoAbsolutePath)
+						pullRequest = gitopsTestRunner.ListPullRequest(repoAbsolutePath)
 						return pullRequest
 					}
 					Eventually(pr).Should(HaveLen(3))
@@ -1097,7 +1097,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
-					mccpTestRunner.PullBranch(repoAbsolutePath, deletePRbranch)
+					gitopsTestRunner.PullBranch(repoAbsolutePath, deletePRbranch)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
@@ -1108,7 +1108,7 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				// By("Then I should merge the delete pull request to delete cluster", func() {
-				// 	mccpTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
+				// 	gitopsTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
 				// })
 
 			})
@@ -1136,11 +1136,11 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 
 			JustAfterEach(func() {
 				By("When I apply the valid entitlement", func() {
-					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
 				})
 
 				By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
-					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I should not see the error or warning message for valid entitlement", func() {
@@ -1152,11 +1152,11 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 			It("@integration Verify cluster service acknowledges the entitlement presences", func() {
 
 				By("When I delete the entitlement", func() {
-					Expect(mccpTestRunner.KubectlDelete([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to delete entitlement secret")
+					Expect(gitopsTestRunner.KubectlDelete([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to delete entitlement secret")
 				})
 
 				By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
-					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the error message for missing entitlement", func() {
@@ -1164,11 +1164,11 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("When I apply the expired entitlement", func() {
-					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
 				})
 
 				By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
-					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the warning message for expired entitlement", func() {
@@ -1176,11 +1176,11 @@ func DescribeMCCPTemplates(mccpTestRunner MCCPTestRunner) {
 				})
 
 				By("When I apply the invalid entitlement", func() {
-					Expect(mccpTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
 				})
 
 				By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
-					Expect(mccpTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the error message for invalid entitlement", func() {

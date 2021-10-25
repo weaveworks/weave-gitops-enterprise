@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -8,12 +9,16 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -24,9 +29,12 @@ import (
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
+	"helm.sh/helm/v3/pkg/chartutil"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
 
 var providers = map[string]string{
@@ -49,12 +57,14 @@ type server struct {
 	client          client.Client
 	discoveryClient discovery.DiscoveryInterface
 	capiv1_proto.UnimplementedClustersServiceServer
-	db *gorm.DB
-	ns string // The namespace where cluster objects reside
+	db                        *gorm.DB
+	ns                        string // The namespace where cluster objects reside
+	profileHelmRepositoryName string
+	helmRepositoryCacheDir    string
 }
 
-func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string) capiv1_proto.ClustersServiceServer {
-	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns}
+func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
+	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns, profileHelmRepositoryName: profileHelmRepositoryName, helmRepositoryCacheDir: helmRepositoryCacheDir}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -78,43 +88,6 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
 	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
-}
-
-func isProviderRecognised(provider string) bool {
-	for _, p := range providers {
-		if strings.EqualFold(provider, p) {
-			return true
-		}
-	}
-	return false
-}
-
-func getProvider(t *capiv1.CAPITemplate) string {
-	meta, err := capi.ParseTemplateMeta(t)
-
-	if err != nil {
-		return ""
-	}
-
-	for _, obj := range meta.Objects {
-		if p, ok := providers[obj.Kind]; ok {
-			return p
-		}
-	}
-
-	return ""
-}
-
-func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
-	templates := []*capiv1_proto.Template{}
-
-	for _, t := range tl {
-		if strings.EqualFold(t.Provider, provider) {
-			templates = append(templates, t)
-		}
-	}
-
-	return templates
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
@@ -221,7 +194,14 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		clusterNamespace = "default"
 	}
 
+	path := getClusterPathInRepo(clusterName)
 	content := string(tmplWithValuesAndCredentials[:])
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path,
+			Content: &content,
+		},
+	}
 
 	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
 	if msg.RepositoryUrl != "" {
@@ -230,6 +210,45 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	baseBranch := os.Getenv("CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH")
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
+	}
+
+	if len(msg.Values) > 0 {
+		helmRepo := &sourcev1beta1.HelmRepository{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      getEnv("PROFILE_HELM_REPOSITORY", "weaveworks-charts"),
+				Namespace: getEnv("PROFILE_HELM_REPOSITORY_NAMESPACE", "wego-system"),
+			},
+			Spec: sourcev1beta1.HelmRepositorySpec{
+				Interval: metav1.Duration{Duration: time.Minute},
+				URL:      getEnv("PROFILE_HELM_REPOSITORY_URL", "https://foot.github.io/podinfo"),
+			},
+		}
+
+		var profileName string
+		var helmReleases []*helmv2beta1.HelmRelease
+		for _, pvs := range msg.Values {
+			hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+			if err != nil {
+				return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+			}
+			// Pick the name of the first chart as the profile name for now
+			if profileName == "" {
+				profileName = pvs.Name
+			}
+			helmReleases = append(helmReleases, hr)
+		}
+
+		c, err := createProfileYAML(helmRepo, helmReleases)
+		if err != nil {
+			return nil, err
+		}
+		profilePath := fmt.Sprintf(".weave-gitops/clusters/%s/system/%s.yaml", clusterName, profileName)
+		profileContent := string(c)
+		file := gitprovider.CommitFile{
+			Path:    &profilePath,
+			Content: &profileContent,
+		}
+		files = append(files, file)
 	}
 
 	var pullRequestURL string
@@ -249,7 +268,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return err
 		}
 
-		path := getClusterPathInRepo(clusterName)
 		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 			GitProvider: git.GitProvider{
@@ -263,12 +281,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			Title:         msg.Title,
 			Description:   msg.Description,
 			CommitMessage: msg.CommitMessage,
-			Files: []gitprovider.CommitFile{
-				{
-					Path:    &path,
-					Content: &content,
-				},
-			},
+			Files:         files,
 		})
 		if err != nil {
 			s.log.Error(err, "Failed to create pull request")
@@ -300,36 +313,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	return &capiv1_proto.CreatePullRequestResponse{
 		WebUrl: pullRequestURL,
 	}, nil
-}
-
-func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
-	var err error
-
-	if msg.TemplateName == "" {
-		err = multierror.Append(err, fmt.Errorf("template name must be specified"))
-	}
-
-	if msg.ParameterValues == nil {
-		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
-	}
-
-	if msg.HeadBranch == "" {
-		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
-	}
-
-	if msg.Title == "" {
-		err = multierror.Append(err, fmt.Errorf("title must be specified"))
-	}
-
-	if msg.Description == "" {
-		err = multierror.Append(err, fmt.Errorf("description must be specified"))
-	}
-
-	if msg.CommitMessage == "" {
-		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
-	}
-
-	return err
 }
 
 // ListCredentials searches the management cluster and lists any objects that match specific given types
@@ -497,6 +480,177 @@ func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.Get
 	return &capiv1_proto.GetEnterpriseVersionResponse{
 		Version: version.Version,
 	}, nil
+}
+
+func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesRequest) (*capiv1_proto.GetProfilesResponse, error) {
+	// Look for helm repository object in the current namespace
+	namespace := os.Getenv("RUNTIME_NAMESPACE")
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err := s.client.Get(ctx, client.ObjectKey{
+		Name:      s.profileHelmRepositoryName,
+		Namespace: namespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+
+	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
+	if err != nil {
+		return nil, fmt.Errorf("cannot scan for profiles: %w", err)
+	}
+
+	return &capiv1_proto.GetProfilesResponse{
+		Profiles: ps,
+	}, nil
+}
+
+func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProfileValuesRequest) (*httpbody.HttpBody, error) {
+	namespace := os.Getenv("RUNTIME_NAMESPACE")
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err := s.client.Get(ctx, client.ObjectKey{
+		Name:      s.profileHelmRepositoryName,
+		Namespace: namespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+
+	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
+	if err := cc.UpdateCache(ctx); err != nil {
+		return nil, fmt.Errorf("failed to update Helm cache: %w", err)
+	}
+	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
+		APIVersion: helmRepo.TypeMeta.APIVersion,
+		Kind:       helmRepo.TypeMeta.Kind,
+		Name:       helmRepo.ObjectMeta.Name,
+		Namespace:  helmRepo.ObjectMeta.Namespace,
+	}
+	ref := &charts.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
+	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
+	}
+
+	var acceptHeader string
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if accept, ok := md["accept"]; ok {
+			acceptHeader = strings.Join(accept, ",")
+		}
+	}
+
+	if strings.Contains(acceptHeader, "application/octet-stream") {
+		return &httpbody.HttpBody{
+			ContentType: "application/octet-stream",
+			Data:        bs,
+		}, nil
+	}
+
+	res, err := json.Marshal(&capiv1_proto.GetProfileValuesResponse{
+		Values: base64.StdEncoding.EncodeToString(bs),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal response to JSON: %w", err)
+	}
+
+	return &httpbody.HttpBody{
+		ContentType: "application/json",
+		Data:        res,
+	}, nil
+}
+
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
+func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
+	out := [][]byte{}
+
+	// Add HelmRepository object
+	b, err := yaml.Marshal(helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
+	}
+	out = append(out, b)
+	// Add HelmRelease objects
+	for _, v := range helmReleases {
+		b, err := yaml.Marshal(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal HelmRelease object to YAML: %w", err)
+		}
+		out = append(out, b)
+	}
+
+	return bytes.Join(out, []byte("---\n")), nil
+}
+
+func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
+	var err error
+
+	if msg.TemplateName == "" {
+		err = multierror.Append(err, fmt.Errorf("template name must be specified"))
+	}
+
+	if msg.ParameterValues == nil {
+		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
+	}
+
+	if msg.HeadBranch == "" {
+		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
+	}
+
+	if msg.Title == "" {
+		err = multierror.Append(err, fmt.Errorf("title must be specified"))
+	}
+
+	if msg.Description == "" {
+		err = multierror.Append(err, fmt.Errorf("description must be specified"))
+	}
+
+	if msg.CommitMessage == "" {
+		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
+	}
+
+	return err
+}
+
+func isProviderRecognised(provider string) bool {
+	for _, p := range providers {
+		if strings.EqualFold(provider, p) {
+			return true
+		}
+	}
+	return false
+}
+
+func getProvider(t *capiv1.CAPITemplate) string {
+	meta, err := capi.ParseTemplateMeta(t)
+
+	if err != nil {
+		return ""
+	}
+
+	for _, obj := range meta.Objects {
+		if p, ok := providers[obj.Kind]; ok {
+			return p
+		}
+	}
+
+	return ""
+}
+
+func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
+	templates := []*capiv1_proto.Template{}
+
+	for _, t := range tl {
+		if strings.EqualFold(t.Provider, provider) {
+			templates = append(templates, t)
+		}
+	}
+
+	return templates
 }
 
 func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest) error {

@@ -4,15 +4,8 @@ on:
 
 name: release
 jobs:
-  build:
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            os_name: linux
-          - os: macOS-latest
-            os_name: darwin
+  build-releaser:
+    runs-on: ubuntu-latest    
     env:
       GO_CACHE_NAME: cache-go-modules
       YARN_CACHE_NAME: cache-yarn
@@ -61,33 +54,18 @@ jobs:
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       run: |
-        if [ "$RUNNER_OS" == "macOS" ]; then
-          LOCAL_BINARIES_GOOS=darwin make cmd/mccp/mccp
-        elif [ "$RUNNER_OS" == "Linux" ]; then
-          make -j4 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}
-        fi
-
-        mv cmd/mccp/mccp cmd/mccp/mccp-${{ env.TAG }}-${{ matrix.os_name }}-amd64
-    - name: Store mccp binaries
-      uses: actions/upload-artifact@v2
-      with:
-        name: mccp-binaries
-        path: cmd/mccp/mccp-${{ env.TAG }}-${{ matrix.os_name }}-amd64
-        retention-days: 1
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}    
     - name: Install Helm v3
-      if: ${{ runner.os == 'Linux' }}
       uses: azure/setup-helm@v1
       with:
         version: v3.5.4
     - name: Configure AWS Credentials
-      if: ${{ runner.os == 'Linux' }}
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
     - name: Publish helm chart to s3
-      if: ${{ runner.os == 'Linux' }}
       run: |      
           CHART_VALUES_PATH=./charts/mccp/values.yaml
           # Update the MCCP chart values.yaml file with the current image tag
@@ -95,44 +73,13 @@ jobs:
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG "releases/charts-v3" ./charts/mccp
     - name: Login to Docker Hub
-      if: ${{ runner.os == 'Linux' }}
       uses: docker/login-action@v1
       with:
         registry: docker.io
         username: ${{ secrets.WGE_DOCKER_IO_USER }}
         password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
     - name: Push images to docker registry
-      if: ${{ runner.os == 'Linux' }}
       run: make push
-      
-  releaser:
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Download mccp binaries
-      uses: actions/download-artifact@v2
-      with:
-        name: mccp-binaries
-        path: cmd/mccp
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
-    - name: Set environment variable
-      run: |
-        git fetch --tags --force
-        TAG=$(git describe --always --match "v*")
-        echo "TAG=$TAG" >> $GITHUB_ENV
-    - name: Publish mccp to s3
-      run: |
-        aws s3 cp cmd/mccp/mccp-${{ env.TAG }}-linux-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-linux-amd64
-        aws s3 cp cmd/mccp/mccp-${{ env.TAG }}-darwin-amd64 s3://weaveworks-wkp/releases/mccp-${{ env.TAG }}-darwin-amd64
     - name: Build Changelog
       id: github_release
       uses: mikepenz/release-changelog-builder-action@v1
@@ -140,13 +87,4 @@ jobs:
         configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        fail_on_unmatched_files: true
-        body: ${{steps.github_release.outputs.changelog}}
-        files: |
-          cmd/mccp/mccp-${{ env.TAG }}-linux-amd64
-          cmd/mccp/mccp-${{ env.TAG }}-darwin-amd64
+

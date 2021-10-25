@@ -69,6 +69,22 @@ service ClustersService {
         get: "/v1/enterprise/version"
     };
   }
+  // GetProfiles returns a list of profiles
+  // from the cluster.
+  rpc GetProfiles(GetProfilesRequest)
+    returns (GetProfilesResponse){
+      option (google.api.http) = {
+        get: "/v1/profiles"
+      };
+    }
+  // GetProfileVersionValues returns a list of profiles
+  // from the cluster.
+  rpc GetProfileValues(GetProfileValuesRequest)
+  returns (google.api.HttpBody){
+    option (google.api.http) = {
+      get: "/v1/profiles/{profile_name}/{profile_version}/values"
+    };
+  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -112,6 +128,8 @@ message CreatePullRequestRequest {
   string commit_message = 8;
   // Credentials
   Credential credentials = 9;
+  // The values for each profile that will be installed.
+  repeated ProfileValues values = 10;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
@@ -194,4 +212,51 @@ message GetEnterpriseVersionRequest {
 message GetEnterpriseVersionResponse {
   // The version of WeGO Enterprise
   string version = 1;
+}
+
+message Maintainer {
+  string name = 1;
+  string email = 2;
+  string url = 3;
+}
+
+message HelmRepository {
+  string name = 1;
+  string namespace = 2;
+}
+
+message Profile {
+  string name = 1;
+  string home = 2;
+  repeated string sources = 3;
+  string description = 4;
+  repeated string keywords = 5;
+  repeated Maintainer maintainers = 6;
+  string icon = 7;
+  map<string, string> annotations = 8;
+  string kube_version = 9;
+  HelmRepository helm_repository = 10;
+  repeated string available_versions = 11;
+}
+
+message GetProfilesRequest {
+}
+
+message GetProfilesResponse {
+  repeated Profile profiles = 1;
+}
+
+message GetProfileValuesRequest {
+  string profile_name = 1;
+  string profile_version = 2;
+}
+message GetProfileValuesResponse{
+  // The base64 encoded values file of the profile.
+  string values = 1;
+}
+
+message ProfileValues {
+  string name = 1;
+  string version = 2;
+  string values = 3;
 }

@@ -35,18 +35,18 @@ var leaves = map[string]LeafSpec{
 	"gce": {
 		Status:         "Critical alerts",
 		IsWKP:          true,
-		KubeconfigPath: os.Getenv("MCCP_GCE_LEAF_KUBECONFIG"),
+		KubeconfigPath: os.Getenv("GCE_LEAF_KUBECONFIG"),
 	},
 	"eks": {
 		Status:          "Critical alerts",
 		IsWKP:           false,
 		AlertManagerURL: "http://acmeprom-kube-prometheus-s-alertmanager.default:9093/api/v2",
-		KubeconfigPath:  os.Getenv("MCCP_EKS_LEAF_KUBECONFIG"),
+		KubeconfigPath:  os.Getenv("EKS_LEAF_KUBECONFIG"),
 	},
 	"kind-wkp": {
 		Status:         "Ready",
 		IsWKP:          true,
-		KubeconfigPath: os.Getenv("MCCP_KIND_WKP_LEAF_KUBECONFIG"),
+		KubeconfigPath: os.Getenv("KIND_WKP_LEAF_KUBECONFIG"),
 	},
 }
 
@@ -81,7 +81,7 @@ func deleteClusterEntry(webDriver *agouti.Page, clusterNames []string) {
 			Eventually(clusterConnectionPage.DisconnectTab).Should(BeFound())
 		})
 
-		By("And I open Disconnect tab and click Remove cluster from the MCCP button", func() {
+		By("And I open Disconnect tab and click Remove cluster from the wego button", func() {
 			Expect(clusterConnectionPage.DisconnectTab.Click()).Should(Succeed())
 
 			Eventually(clusterConnectionPage.ButtonRemoveCluster).Should(BeFound())
@@ -169,7 +169,7 @@ func getCommandEnv(leaf LeafSpec) []string {
 	return commandEnv
 }
 
-func connectACluster(webDriver *agouti.Page, mccpTestRunner MCCPTestRunner, leaf LeafSpec) (*pages.ClustersPage, string, string) {
+func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, leaf LeafSpec) (*pages.ClustersPage, string, string) {
 
 	tokenURLRegex := `https?:\/\/[-a-zA-Z0-9@:%._\+~#=]+\/gitops\/api\/agent\.yaml\?token=[0-9a-zA-Z]+`
 	var tokenURL []string
@@ -181,7 +181,7 @@ func connectACluster(webDriver *agouti.Page, mccpTestRunner MCCPTestRunner, leaf
 
 	By("And next page shows me kubectl command to apply on cluster to connect", func() {
 		// Refresh the wkp-agent state
-		err := mccpTestRunner.KubectlDeleteAllAgents(commandEnv)
+		err := gitopsTestRunner.KubectlDeleteAllAgents(commandEnv)
 		if err != nil {
 			fmt.Println("Failed to delete the wkp-agent")
 		}
@@ -203,7 +203,7 @@ func connectACluster(webDriver *agouti.Page, mccpTestRunner MCCPTestRunner, leaf
 			manifestURL = fmt.Sprintf("%s&alertmanagerURL=%s", manifestURL, leaf.AlertManagerURL)
 		}
 
-		err = mccpTestRunner.KubectlApply(commandEnv, manifestURL)
+		err = gitopsTestRunner.KubectlApply(commandEnv, manifestURL)
 		if err != nil {
 			fmt.Printf(`Failed to install the wkp-agent by applying given command: %s`, command)
 		}
@@ -253,7 +253,7 @@ func ClearIngressURL(webDriver *agouti.Page, clusterName string) {
 	Expect(pages.GetClusterConnectionPage(webDriver).ButtonClose.Click()).To(Succeed())
 }
 
-func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
+func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 	var _ = Describe("Multi-Cluster Control Plane Clusters", func() {
 
@@ -269,15 +269,15 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			TakeNextScreenshot()
 		})
 
-		It("Verify MCCP page structure first time with no cluster configured", func() {
+		It("Verify page structure first time with no cluster configured", func() {
 			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
 
-			By("And MCCP state is reset", func() {
-				_ = mccpTestRunner.ResetDatabase()
-				mccpTestRunner.VerifyMCCPPodsRunning()
-				mccpTestRunner.CheckClusterService()
+			By("And wego enterprise state is reset", func() {
+				_ = gitopsTestRunner.ResetDatabase()
+				gitopsTestRunner.VerifyWegoPodsRunning()
+				gitopsTestRunner.CheckClusterService()
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 			})
 
@@ -423,21 +423,21 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 		It("Verify last seen status", func() {
 
-			clustersPage, clusterName, tokenURL := connectACluster(webDriver, mccpTestRunner, leaves["self"])
+			clustersPage, clusterName, tokenURL := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
 			By("And I disconnect the cluster", func() {
-				_ = mccpTestRunner.KubectlDelete([]string{}, tokenURL)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, tokenURL)
 			})
 
 			By("Then I should see the cluster status is changed to Last seen", func() {
-				_ = mccpTestRunner.TimeTravelToLastSeen()
+				_ = gitopsTestRunner.TimeTravelToLastSeen()
 				Eventually(ClusterStatusFromList(clustersPage, clusterName), ASSERTION_5MINUTE_TIME_OUT).
 					Should(MatchText(`Last seen(\r\n|\r|\n)\d minutes ago`))
 			})
 		})
 
 		It("Verify user can connect a cluster", func() {
-			connectACluster(webDriver, mccpTestRunner, leaves["self"])
+			connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 		})
 
 		It("Verify alerts widget with firing alerts", func() {
@@ -445,9 +445,9 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 				Skip("This test case runs only with sqlite")
 			}
 
-			_ = mccpTestRunner.ResetDatabase()
-			mccpTestRunner.VerifyMCCPPodsRunning()
-			mccpTestRunner.CheckClusterService()
+			_ = gitopsTestRunner.ResetDatabase()
+			gitopsTestRunner.VerifyWegoPodsRunning()
+			gitopsTestRunner.CheckClusterService()
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
@@ -457,7 +457,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
 			Eventually(clustersPage.NoClusterConfigured).Should(HaveText("No clusters configured"))
 
-			clustersPage, clusterName, _ := connectACluster(webDriver, mccpTestRunner, leaves["self"])
+			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
 			alerts := [3]string{"AlertOne", "AlertTwo", "AlertThree"}
 			messages := [3]string{"Critical Alert One", "Critical Alert Two", "Critical Alert Three"}
@@ -469,7 +469,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 			By("And when a critical alert fires", func() {
 				for i := 0; i < len(alerts); i++ {
-					_ = mccpTestRunner.FireAlert(alerts[i], severity[i], messages[i], time.Second*15)
+					_ = gitopsTestRunner.FireAlert(alerts[i], severity[i], messages[i], time.Second*15)
 				}
 
 				Eventually(clustersPage.FiringAlerts, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
@@ -493,10 +493,10 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 		It("Verify that cluster status is changed to Alerting and then to Critical alerts ", func() {
 
-			clustersPage, clusterName, _ := connectACluster(webDriver, mccpTestRunner, leaves["self"])
+			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
 			By("And system raises a warning alert", func() {
-				_ = mccpTestRunner.FireAlert("ExampleAlert", "warning", "oh no", time.Second*30)
+				_ = gitopsTestRunner.FireAlert("ExampleAlert", "warning", "oh no", time.Second*30)
 			})
 
 			By("Then I should see the cluster status is changed to Alerting", func() {
@@ -505,13 +505,13 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 
 			By("And when warning alert is resolved after 15s", func() {
-				_ = mccpTestRunner.TimeTravelToAlertsResolved()
+				_ = gitopsTestRunner.TimeTravelToAlertsResolved()
 				Eventually(ClusterStatusFromList(clustersPage, clusterName), ASSERTION_1MINUTE_TIME_OUT).
 					Should(HaveText("Ready"))
 			})
 
 			By("And system raises a critical alert", func() {
-				_ = mccpTestRunner.FireAlert("ExampleAlert", "critical", "oh no", time.Second*30)
+				_ = gitopsTestRunner.FireAlert("ExampleAlert", "critical", "oh no", time.Second*30)
 			})
 
 			By("Then I should see the cluster status changes to Critical alerts", func() {
@@ -520,7 +520,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			})
 
 			By("And when alert is resolved then I should see the cluster status changes back to ready", func() {
-				_ = mccpTestRunner.TimeTravelToAlertsResolved()
+				_ = gitopsTestRunner.TimeTravelToAlertsResolved()
 				Eventually(ClusterStatusFromList(clustersPage, clusterName), ASSERTION_1MINUTE_TIME_OUT).
 					Should(HaveText("Ready"))
 			})
@@ -556,9 +556,9 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
-			_ = mccpTestRunner.ResetDatabase()
-			mccpTestRunner.VerifyMCCPPodsRunning()
-			mccpTestRunner.CheckClusterService()
+			_ = gitopsTestRunner.ResetDatabase()
+			gitopsTestRunner.VerifyWegoPodsRunning()
+			gitopsTestRunner.CheckClusterService()
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
@@ -568,7 +568,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 			Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
 			Eventually(clustersPage.NoClusterConfigured).Should(HaveText("No clusters configured"))
-			clustersPage, clusterName, _ := connectACluster(webDriver, mccpTestRunner, leaves["self"])
+			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
 			Expect(webDriver.Navigate(GetWkpUrl() + "/clusters/alerts")).To(Succeed())
 
@@ -577,7 +577,7 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 
 			By("And when an alert fires", func() {
 
-				_ = mccpTestRunner.FireAlert(alert, "critical", message, time.Second*15)
+				_ = gitopsTestRunner.FireAlert(alert, "critical", message, time.Second*15)
 				Eventually(clustersPage.FiringAlerts, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 
 			})
@@ -614,13 +614,13 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 			clusterName := RandString(32)
 			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
 			leaf := leaves["kind-wkp"]
-			clustersPage, clusterName, _ := connectACluster(webDriver, mccpTestRunner, leaf)
+			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaf)
 			cluster := pages.FindClusterInList(clustersPage, clusterName)
 			commandEnv := getCommandEnv(leaf)
 
 			By("And I add a new workspace to the cluster", func() {
 				// In acceptance test this has to be the host cluster.
-				_ = mccpTestRunner.AddWorkspace(commandEnv, clusterName)
+				_ = gitopsTestRunner.AddWorkspace(commandEnv, clusterName)
 			})
 
 			By("Then I found the new workspace added to the Team Workspaces column", func() {
@@ -644,15 +644,15 @@ func DescribeMCCPClusters(mccpTestRunner MCCPTestRunner) {
 		})
 
 		It("@gce Verify user can connect a GCE cluster", func() {
-			connectACluster(webDriver, mccpTestRunner, leaves["gce"])
+			connectACluster(webDriver, gitopsTestRunner, leaves["gce"])
 		})
 
 		It("@eks Verify user can connect an EKS cluster", func() {
-			connectACluster(webDriver, mccpTestRunner, leaves["eks"])
+			connectACluster(webDriver, gitopsTestRunner, leaves["eks"])
 		})
 
 		It("@wkp Verify user can connect a kind cluster with cluster components installed", func() {
-			connectACluster(webDriver, mccpTestRunner, leaves["kind-wkp"])
+			connectACluster(webDriver, gitopsTestRunner, leaves["kind-wkp"])
 		})
 	})
 }

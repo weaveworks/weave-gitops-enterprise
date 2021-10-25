@@ -52,6 +52,7 @@ export type CreatePullRequestRequest = {
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   credentials?: Credential
+  values?: ProfileValues[]
 }
 
 export type CreatePullRequestResponse = {
@@ -128,6 +129,53 @@ export type GetEnterpriseVersionResponse = {
   version?: string
 }
 
+export type Maintainer = {
+  name?: string
+  email?: string
+  url?: string
+}
+
+export type HelmRepository = {
+  name?: string
+  namespace?: string
+}
+
+export type Profile = {
+  name?: string
+  home?: string
+  sources?: string[]
+  description?: string
+  keywords?: string[]
+  maintainers?: Maintainer[]
+  icon?: string
+  annotations?: {[key: string]: string}
+  kubeVersion?: string
+  helmRepository?: HelmRepository
+  availableVersions?: string[]
+}
+
+export type GetProfilesRequest = {
+}
+
+export type GetProfilesResponse = {
+  profiles?: Profile[]
+}
+
+export type GetProfileValuesRequest = {
+  profileName?: string
+  profileVersion?: string
+}
+
+export type GetProfileValuesResponse = {
+  values?: string
+}
+
+export type ProfileValues = {
+  name?: string
+  version?: string
+  values?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -155,5 +203,11 @@ export class ClustersService {
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetProfiles(req: GetProfilesRequest, initReq?: fm.InitReq): Promise<GetProfilesResponse> {
+    return fm.fetchReq<GetProfilesRequest, GetProfilesResponse>(`/v1/profiles?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetProfileValues(req: GetProfileValuesRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
+    return fm.fetchReq<GetProfileValuesRequest, GoogleApiHttpbody.HttpBody>(`/v1/profiles/${req["profileName"]}/${req["profileVersion"]}/values?${fm.renderURLSearchParams(req, ["profileName", "profileVersion"])}`, {...initReq, method: "GET"})
   }
 }
