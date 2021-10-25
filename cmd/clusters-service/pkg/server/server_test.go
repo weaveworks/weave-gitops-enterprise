@@ -24,8 +24,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	fakediscovery "k8s.io/client-go/discovery/fake"
-	coretesting "k8s.io/client-go/testing"
+	"k8s.io/client-go/discovery"
+	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 )
@@ -1041,6 +1041,19 @@ func TestGetProvider(t *testing.T) {
 }
 
 func TestListCredentials(t *testing.T) {
+	u := &unstructured.Unstructured{}
+	u.Object = map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"name":      "cred-name",
+			"namespace": "cred-namespace",
+		},
+	}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "infrastructure.cluster.x-k8s.io",
+		Kind:    "AWSClusterStaticIdentity",
+		Version: "v1alpha4",
+	})
+
 	testCases := []struct {
 		name             string
 		clusterState     []runtime.Object
@@ -1050,16 +1063,30 @@ func TestListCredentials(t *testing.T) {
 	}{
 		{
 			name: "credentials returned",
-			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+			clusterState: []runtime.Object{u,
+				makeTemplateConfigMap("template1",
+					makeTemplate(t, func(ct *capiv1.CAPITemplate) {
+						ct.ObjectMeta.Name = "cluster-template-1"
+						ct.Spec.Description = "this is test template 1"
+						ct.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+							{
+								RawExtension: rawExtension(`{
+							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+							"kind": "AWSCluster",
+							"metadata": { "name": "boop" }
+						}`),
+							},
+						}
+					}),
+				),
 			},
 			expected: []*capiv1_protos.Credential{
 				{
 					Group:     "infrastructure.cluster.x-k8s.io",
 					Version:   "AWSCluster",
 					Kind:      "v1alpha4",
-					Name:      "test",
-					Namespace: "test",
+					Name:      "cred-name",
+					Namespace: "cred-namespace",
 				},
 			},
 		},
@@ -1074,7 +1101,7 @@ func TestListCredentials(t *testing.T) {
 			listCredentialsResponse, err := s.ListCredentials(context.Background(), listCredentialsRequest)
 			if err != nil {
 				if tt.err == nil {
-					t.Fatalf("failed to read the credentials:\n%s", err)
+					t.Fatalf("failed to list credentials:\n%s", err)
 				}
 				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
 					t.Fatalf("got the wrong error:\n%s", diff)
@@ -1101,7 +1128,7 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 		WithRuntimeObjects(clusterState...).
 		Build()
 
-	dc := &fakediscovery.FakeDiscovery{Fake: &coretesting.Fake{}}
+	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	s := NewClusterServer(logr.Discard(),
 		&templates.ConfigMapLibrary{

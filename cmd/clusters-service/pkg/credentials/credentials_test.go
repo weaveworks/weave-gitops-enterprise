@@ -19,38 +19,38 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func TestFindCredentials(t *testing.T) {
-	u := &unstructured.Unstructured{}
-	u.Object = map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"name":      "test",
-			"namespace": "test",
-		},
-		"spec": map[string]interface{}{
-			"identityRef": map[string]interface{}{
-				"kind": "FooKind",
-				"name": "FooName",
-			},
-		},
-	}
-	u.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "infrastructure.cluster.x-k8s.io",
-		Kind:    "AWSCluster",
-		Version: "v1alpha4",
-	})
+// func TestFindCredentials(t *testing.T) {
+// 	u := &unstructured.Unstructured{}
+// 	u.Object = map[string]interface{}{
+// 		"metadata": map[string]interface{}{
+// 			"name":      "test",
+// 			"namespace": "test",
+// 		},
+// 		"spec": map[string]interface{}{
+// 			"identityRef": map[string]interface{}{
+// 				"kind": "FooKind",
+// 				"name": "FooName",
+// 			},
+// 		},
+// 	}
+// 	u.SetGroupVersionKind(schema.GroupVersionKind{
+// 		Group:   "infrastructure.cluster.x-k8s.io",
+// 		Kind:    "AWSCluster",
+// 		Version: "v1alpha4",
+// 	})
 
-	c, dc := createFakeClient()
-	_ = c.Create(context.Background(), u)
+// 	c, dc := createFakeClient()
+// 	_ = c.Create(context.Background(), u)
 
-	cList, err := FindCredentials(context.Background(), c, dc)
+// 	cList, err := FindCredentials(context.Background(), c, dc)
 
-	if err != nil {
-		t.Fatalf("err %v", err)
-	}
-	if cList == nil {
-		t.Fatal("No credentials returned")
-	}
-}
+// 	if err != nil {
+// 		t.Fatalf("err %v", err)
+// 	}
+// 	if cList == nil {
+// 		t.Fatal("No credentials returned")
+// 	}
+// }
 
 func TestMaybeInjectCredentials(t *testing.T) {
 	result, _ := MaybeInjectCredentials(nil, "", nil)
