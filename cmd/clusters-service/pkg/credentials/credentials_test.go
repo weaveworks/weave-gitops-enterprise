@@ -12,45 +12,9 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
-	fakediscovery "k8s.io/client-go/discovery/fake"
-	coretesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
-
-// func TestFindCredentials(t *testing.T) {
-// 	u := &unstructured.Unstructured{}
-// 	u.Object = map[string]interface{}{
-// 		"metadata": map[string]interface{}{
-// 			"name":      "test",
-// 			"namespace": "test",
-// 		},
-// 		"spec": map[string]interface{}{
-// 			"identityRef": map[string]interface{}{
-// 				"kind": "FooKind",
-// 				"name": "FooName",
-// 			},
-// 		},
-// 	}
-// 	u.SetGroupVersionKind(schema.GroupVersionKind{
-// 		Group:   "infrastructure.cluster.x-k8s.io",
-// 		Kind:    "AWSCluster",
-// 		Version: "v1alpha4",
-// 	})
-
-// 	c, dc := createFakeClient()
-// 	_ = c.Create(context.Background(), u)
-
-// 	cList, err := FindCredentials(context.Background(), c, dc)
-
-// 	if err != nil {
-// 		t.Fatalf("err %v", err)
-// 	}
-// 	if cList == nil {
-// 		t.Fatal("No credentials returned")
-// 	}
-// }
 
 func TestMaybeInjectCredentials(t *testing.T) {
 	result, _ := MaybeInjectCredentials(nil, "", nil)
@@ -107,7 +71,7 @@ func TestCheckCredentialsExist(t *testing.T) {
 		Version: "v1alpha4",
 	})
 
-	c, _ := createFakeClient()
+	c := createFakeClient()
 	_ = c.Create(context.Background(), u)
 
 	creds := &capiv1_protos.Credential{
@@ -204,7 +168,7 @@ func convertToStringArray(in [][]byte) []string {
 	return result
 }
 
-func createFakeClient() (client.Client, discovery.DiscoveryInterface) {
+func createFakeClient() client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -212,11 +176,7 @@ func createFakeClient() (client.Client, discovery.DiscoveryInterface) {
 	}
 	schemeBuilder.AddToScheme(scheme)
 
-	c := fake.NewClientBuilder().
+	return fake.NewClientBuilder().
 		WithScheme(scheme).
 		Build()
-
-	dc := &fakediscovery.FakeDiscovery{Fake: &coretesting.Fake{}}
-
-	return c, dc
 }
