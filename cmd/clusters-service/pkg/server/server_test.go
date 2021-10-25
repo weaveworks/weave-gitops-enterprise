@@ -1040,6 +1040,54 @@ func TestGetProvider(t *testing.T) {
 	}
 }
 
+func TestListCredentials(t *testing.T) {
+	testCases := []struct {
+		name             string
+		clusterState     []runtime.Object
+		expected         []*capiv1_protos.Credential
+		err              error
+		expectedErrorStr string
+	}{
+		{
+			name: "credentials returned",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			expected: []*capiv1_protos.Credential{
+				{
+					Group:     "infrastructure.cluster.x-k8s.io",
+					Version:   "AWSCluster",
+					Kind:      "v1alpha4",
+					Name:      "test",
+					Namespace: "test",
+				},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+
+			listCredentialsRequest := new(capiv1_protos.ListCredentialsRequest)
+
+			listCredentialsResponse, err := s.ListCredentials(context.Background(), listCredentialsRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the credentials:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, listCredentialsResponse.Credentials, protocmp.Transform()); diff != "" {
+					t.Fatalf("credentials didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
 func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
