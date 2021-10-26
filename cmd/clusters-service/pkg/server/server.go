@@ -125,7 +125,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	}
 
 	var opts []capi.RenderOptFunc
-	if os.Getenv("INJECT_PRUNE_ANNOTATION") == "enabled" {
+	if os.Getenv("INJECT_PRUNE_ANNOTATION") != "disabled" {
 		opts = []capi.RenderOptFunc{capi.InjectPruneAnnotation()}
 	}
 
