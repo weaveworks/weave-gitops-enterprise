@@ -542,7 +542,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n",
 		},
 		{
 			name: "value contains non alphanumeric",
