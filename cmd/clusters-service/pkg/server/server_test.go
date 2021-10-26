@@ -410,7 +410,8 @@ func TestRenderTemplate(t *testing.T) {
 		credentials      *capiv1_protos.Credential
 	}{
 		{
-			name: "render template",
+			name:        "render template",
+			pruneEnvVar: "disabled",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
@@ -418,7 +419,8 @@ func TestRenderTemplate(t *testing.T) {
 		},
 		{
 			// some client might send empty credentials objects
-			name: "render template with empty credentials",
+			name:        "render template with empty credentials",
+			pruneEnvVar: "disabled",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
@@ -432,7 +434,8 @@ func TestRenderTemplate(t *testing.T) {
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
-			name: "render template with credentials",
+			name:        "render template with credentials",
+			pruneEnvVar: "disabled",
 			clusterState: []runtime.Object{
 				u,
 				makeTemplateConfigMap("template1",
