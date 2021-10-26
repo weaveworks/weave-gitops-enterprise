@@ -24,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
@@ -1083,8 +1082,8 @@ func TestListCredentials(t *testing.T) {
 			expected: []*capiv1_protos.Credential{
 				{
 					Group:     "infrastructure.cluster.x-k8s.io",
-					Version:   "AWSCluster",
-					Kind:      "v1alpha4",
+					Version:   "v1alpha4",
+					Kind:      "AWSClusterStaticIdentity",
 					Name:      "cred-name",
 					Namespace: "cred-namespace",
 				},
@@ -1128,7 +1127,22 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 		WithRuntimeObjects(clusterState...).
 		Build()
 
-	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
+	fakeClientSet := fakeclientset.NewSimpleClientset()
+	dc := fakeClientSet.Discovery()
+	fakeClientSet.Resources = []*metav1.APIResourceList{
+		{
+			GroupVersion: "infrastructure.cluster.x-k8s.io/v1alpha3",
+			APIResources: []metav1.APIResource{
+				{Kind: "AWSClusterStaticIdentity"},
+			},
+		},
+		{
+			GroupVersion: "infrastructure.cluster.x-k8s.io/v1alpha4",
+			APIResources: []metav1.APIResource{
+				{Kind: "AWSClusterStaticIdentity"},
+			},
+		},
+	}
 
 	s := NewClusterServer(logr.Discard(),
 		&templates.ConfigMapLibrary{
