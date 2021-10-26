@@ -23,7 +23,7 @@ func DescribeWKPUIAcceptance() {
 			var err error
 			if webDriver == nil {
 
-				webDriver, err = agouti.NewPage(seleniumServiceUrl, agouti.Debug, agouti.Desired(agouti.Capabilities{
+				webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
 					"chromeOptions": map[string][]string{
 						"args": {
 							//"--headless", //Uncomment to run headless
@@ -39,7 +39,7 @@ func DescribeWKPUIAcceptance() {
 
 			By("When I navigate to WKP dashboard", func() {
 
-				Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
+				Expect(webDriver.Navigate(GetWGEUrl())).To(Succeed())
 
 			})
 		})
@@ -79,11 +79,11 @@ func DescribeWKPUIAcceptance() {
 				})
 
 				By("-Add Components Link", func() {
-					Expect(dashboardPage.AddComponentsLink.Attribute("href")).To(HavePrefix(fmt.Sprintf(expectedComponentsLink, gitProvider)))
+					Expect(dashboardPage.AddComponentsLink.Attribute("href")).To(HavePrefix(fmt.Sprintf(expectedComponentsLink, GIT_PROVIDER)))
 				})
 
 				By("-Open Git Repo Link", func() {
-					Expect(dashboardPage.AddComponentsLink.Attribute("href")).To(HavePrefix(fmt.Sprintf(expectedComponentsLink, gitProvider)))
+					Expect(dashboardPage.AddComponentsLink.Attribute("href")).To(HavePrefix(fmt.Sprintf(expectedComponentsLink, GIT_PROVIDER)))
 				})
 			})
 
