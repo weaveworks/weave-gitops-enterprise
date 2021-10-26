@@ -80,25 +80,14 @@ const ClustersProvider: FC = ({ children }) => {
   }, [abortController, clustersParameters, notifications, setNotifications]);
 
   const deleteCreatedClusters = useCallback(
-    (data: DeleteClusterPRRequest) => {
+    (data: DeleteClusterPRRequest, token: string) => {
       setCreatingPR(true);
-      request('DELETE', '/v1/clusters', {
+      return request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),
-      })
-        .then(res =>
-          setNotifications([
-            {
-              message: `PR created successfully`,
-              variant: 'success',
-            },
-          ]),
-        )
-        .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
-        )
-        .finally(() => setCreatingPR(false));
+        headers: new Headers({ Authorization: `token ${token}` }),
+      }).finally(() => setCreatingPR(false));
     },
-    [setNotifications],
+    [],
   );
 
   const deleteConnectedClusters = useCallback(

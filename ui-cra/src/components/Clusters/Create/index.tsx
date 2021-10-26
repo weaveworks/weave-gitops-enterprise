@@ -10,6 +10,7 @@ import React, {
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useCredentials from '../../../contexts/Credentials';
+import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
@@ -40,6 +41,11 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { Loader } from '../../Loader';
+import {
+  getProviderToken,
+  GithubDeviceAuthModal,
+} from '@weaveworks/weave-gitops';
+import { isUnauthenticated } from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
 import MultiSelectDropdown from '../../MultiSelectDropdown';
 import ProfilesList from './ProfilesList';
@@ -152,6 +158,7 @@ const AddCluster: FC = () => {
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [branchName, setBranchName] = useState<string>(
     `create-clusters-branch-${random}`,
   );
@@ -173,6 +180,7 @@ const AddCluster: FC = () => {
   const [infraCredential, setInfraCredential] =
     useState<Credential | null>(null);
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
+  const { setNotifications } = useNotifications();
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -251,18 +259,29 @@ const AddCluster: FC = () => {
   // console.log(updatedProfiles);
 
   const handleAddCluster = useCallback(() => {
-    addCluster({
-      credentials: infraCredential,
-      head_branch: branchName,
-      title: pullRequestTitle,
-      description: pullRequestDescription,
-      template_name: activeTemplate?.name,
-      commit_message: commitMessage,
-      parameter_values: {
-        ...formData,
+    addCluster(
+      {
+        credentials: infraCredential,
+        head_branch: branchName,
+        title: pullRequestTitle,
+        description: pullRequestDescription,
+        template_name: activeTemplate?.name,
+        commit_message: commitMessage,
+        parameter_values: {
+          ...formData,
+        },
+        values: encodedProfiles(updatedProfiles),
       },
-      values: encodedProfiles(updatedProfiles),
-    });
+      getProviderToken('github'),
+    )
+      .then(() => history.push('/clusters'))
+      .catch(error => {
+        if (isUnauthenticated(error.code)) {
+          setShowAuthDialog(true);
+        } else {
+          setNotifications([{ message: error.message, variant: 'danger' }]);
+        }
+      });
   }, [
     addCluster,
     formData,
@@ -272,6 +291,8 @@ const AddCluster: FC = () => {
     activeTemplate?.name,
     infraCredential,
     pullRequestDescription,
+    history,
+    setNotifications,
     updatedProfiles,
     encodedProfiles,
   ]);
@@ -499,6 +520,21 @@ const AddCluster: FC = () => {
                   )}
                 </>
               ) : null}
+              <GithubDeviceAuthModal
+                onClose={() => setShowAuthDialog(false)}
+                onSuccess={() => {
+                  setShowAuthDialog(false);
+                  setNotifications([
+                    {
+                      message:
+                        'Authentication completed successfully. Please proceed with creating the PR.',
+                      variant: 'success',
+                    },
+                  ]);
+                }}
+                open={showAuthDialog}
+                repoName="config"
+              />
             </Grid>
             <Grid className={classes.steps} item md={3}>
               <FormStepsNavigation
@@ -541,6 +577,8 @@ const AddCluster: FC = () => {
     commitMessage,
     pullRequestTitle,
     pullRequestDescription,
+    showAuthDialog,
+    setNotifications,
     profiles,
     selectedProfiles,
   ]);

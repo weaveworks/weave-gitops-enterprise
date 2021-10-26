@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
@@ -638,7 +639,7 @@ func TestCreatePullRequest(t *testing.T) {
 				CommitMessage: "Add cluster manifest",
 			},
 			dbRows: 0,
-			err:    errors.New(`unable to create pull request and cluster rows for "cluster-template-1": oops`),
+			err:    errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
 		},
 		{
 			name: "create pull request",
@@ -1303,4 +1304,11 @@ func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) 
 		return nil, p.err
 	}
 	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
+}
+
+func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider, url string) (gitprovider.OrgRepository, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+	return nil, nil
 }

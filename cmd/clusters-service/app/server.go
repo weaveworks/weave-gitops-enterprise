@@ -180,9 +180,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
 	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)
 
+	httpHandler := middleware.WithLogging(args.Log, mux)
+	httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)
+	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
+
 	s := &http.Server{
 		Addr:    addr,
-		Handler: entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, mux)),
+		Handler: httpHandler,
 	}
 
 	go func() {
