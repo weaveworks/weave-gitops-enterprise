@@ -423,7 +423,7 @@ func (b RealGitopsTestRunner) ResetDatabase() error {
 }
 
 func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
-	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready pods --timeout=60s -n %s --all", GITOPS_DEFAULT_NAMESPACE))
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready pods --timeout=60s -n %s --all --selector='app!=wego-app'", GITOPS_DEFAULT_NAMESPACE))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
@@ -894,7 +894,7 @@ func VerifyControllersInCluster(namespace string) {
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
