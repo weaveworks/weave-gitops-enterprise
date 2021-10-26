@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"sort"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -85,6 +86,15 @@ func ScanCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred char
 }
 
 func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
+	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
+		u, err := url.Parse(chartURL)
+		if err != nil {
+			return nil, err
+		}
+		u.Host = hostname
+		chartURL = u.String()
+	}
+
 	u, err := url.Parse(chartURL)
 	if err != nil {
 		return nil, err
