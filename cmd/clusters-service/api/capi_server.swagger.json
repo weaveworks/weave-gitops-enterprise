@@ -81,7 +81,7 @@
     },
     "/v1/clusters/{clusterName}/kubeconfig": {
       "get": {
-        "summary": "GetKubeconfig returns the Kubeconfig for the given \nworkload cluster.",
+        "summary": "GetKubeconfig returns the Kubeconfig for the given\nworkload cluster.",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -762,6 +762,12 @@
         },
         "error": {
           "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },

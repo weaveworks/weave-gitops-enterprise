@@ -54,35 +54,32 @@ service ClustersService {
       get : "/v1/credentials"
     };
   }
-  // GetKubeconfig returns the Kubeconfig for the given 
+  // GetKubeconfig returns the Kubeconfig for the given
   // workload cluster.
-  rpc GetKubeconfig(GetKubeconfigRequest)
-    returns (google.api.HttpBody) {
-      option (google.api.http) = {
-        get: "/v1/clusters/{cluster_name}/kubeconfig"
-      };
-    }
+  rpc GetKubeconfig(GetKubeconfigRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/clusters/{cluster_name}/kubeconfig"
+    };
+  }
   // GetEnterpriseVersion returns the WeGO Enterprise version
   rpc GetEnterpriseVersion(GetEnterpriseVersionRequest)
-    returns (GetEnterpriseVersionResponse){
-      option (google.api.http) = {
-        get: "/v1/enterprise/version"
+      returns (GetEnterpriseVersionResponse) {
+    option (google.api.http) = {
+      get : "/v1/enterprise/version"
     };
   }
   // GetProfiles returns a list of profiles
   // from the cluster.
-  rpc GetProfiles(GetProfilesRequest)
-    returns (GetProfilesResponse){
-      option (google.api.http) = {
-        get: "/v1/profiles"
-      };
-    }
+  rpc GetProfiles(GetProfilesRequest) returns (GetProfilesResponse) {
+    option (google.api.http) = {
+      get : "/v1/profiles"
+    };
+  }
   // GetProfileVersionValues returns a list of profiles
   // from the cluster.
-  rpc GetProfileValues(GetProfileValuesRequest)
-  returns (google.api.HttpBody){
+  rpc GetProfileValues(GetProfileValuesRequest) returns (google.api.HttpBody) {
     option (google.api.http) = {
-      get: "/v1/profiles/{profile_name}/{profile_version}/values"
+      get : "/v1/profiles/{profile_name}/{profile_version}/values"
     };
   }
 }
@@ -165,11 +162,11 @@ message ListCredentialsResponse {
   int32 total = 2;
 }
 
-message GetKubeconfigRequest{
+message GetKubeconfigRequest {
   // The name of the workload cluster.
   string cluster_name = 1;
 }
-message GetKubeconfigResponse{
+message GetKubeconfigResponse {
   // The Kubeconfig of the workload cluster.
   string kubeconfig = 1;
 }
@@ -188,7 +185,8 @@ message Template {
   string provider = 3;
   repeated Parameter parameters = 4;
   repeated TemplateObject objects = 5;
-  string error = 6; 
+  string error = 6;
+  map<string, string> annotations = 8;
 }
 
 message Parameter {
@@ -206,8 +204,7 @@ message TemplateObject {
   string display_name = 5;
 }
 
-message GetEnterpriseVersionRequest {
-}
+message GetEnterpriseVersionRequest {}
 
 message GetEnterpriseVersionResponse {
   // The version of WeGO Enterprise
@@ -239,18 +236,15 @@ message Profile {
   repeated string available_versions = 11;
 }
 
-message GetProfilesRequest {
-}
+message GetProfilesRequest {}
 
-message GetProfilesResponse {
-  repeated Profile profiles = 1;
-}
+message GetProfilesResponse { repeated Profile profiles = 1; }
 
 message GetProfileValuesRequest {
   string profile_name = 1;
   string profile_version = 2;
 }
-message GetProfileValuesResponse{
+message GetProfileValuesResponse {
   // The base64 encoded values file of the profile.
   string values = 1;
 }
