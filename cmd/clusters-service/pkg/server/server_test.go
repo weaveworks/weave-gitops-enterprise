@@ -7,9 +7,13 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -27,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 )
@@ -648,7 +653,7 @@ func TestCreatePullRequest(t *testing.T) {
 				CommitMessage: "Add cluster manifest",
 			},
 			dbRows: 0,
-			err:    errors.New(`unable to create pull request and cluster rows for "cluster-template-1": oops`),
+			err:    errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
 		},
 		{
 			name: "create pull request",
@@ -1054,11 +1059,65 @@ func TestGetProvider(t *testing.T) {
 	}
 }
 
-func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
+func TestGenerateProfileFiles(t *testing.T) {
+	c := createClient(makeTestHelmRepository("base"))
+	file, err := generateProfileFiles(
+		context.TODO(),
+		"testing",
+		"test-ns",
+		"cluster-foo",
+		c,
+		[]*capiv1_protos.ProfileValues{
+			{
+				Name:    "foo",
+				Version: "0.0.1",
+				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+			},
+		},
+	)
+	assert.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cluster-foo-foo
+  namespace: wego-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  interval: 1m0s
+  values:
+    foo: bar
+status: {}
+`
+
+	assert.Equal(t, *file.Content, expected)
+}
+
+func createClient(clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
+		sourcev1beta1.AddToScheme,
 	}
 	schemeBuilder.AddToScheme(scheme)
 
@@ -1066,6 +1125,13 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 		WithScheme(scheme).
 		WithRuntimeObjects(clusterState...).
 		Build()
+
+	return c
+}
+
+func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
+
+	c := createClient(clusterState...)
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
@@ -1090,6 +1156,30 @@ func createDatabase(t *testing.T) *gorm.DB {
 		t.Fatal(err)
 	}
 	return db
+}
+
+func makeTestHelmRepository(base string, opts ...func(*sourcev1beta1.HelmRepository)) *sourcev1beta1.HelmRepository {
+	hr := &sourcev1beta1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1beta1.HelmRepositoryKind,
+			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testing",
+			Namespace: "test-ns",
+		},
+		Spec: sourcev1beta1.HelmRepositorySpec{
+			URL:      base + "/charts",
+			Interval: metav1.Duration{Duration: time.Minute * 10},
+		},
+		Status: sourcev1beta1.HelmRepositoryStatus{
+			URL: base + "/index.yaml",
+		},
+	}
+	for _, o := range opts {
+		o(hr)
+	}
+	return hr
 }
 
 func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {
@@ -1228,4 +1318,11 @@ func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) 
 		return nil, p.err
 	}
 	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
+}
+
+func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider, url string) (gitprovider.OrgRepository, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+	return nil, nil
 }

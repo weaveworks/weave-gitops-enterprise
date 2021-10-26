@@ -33,10 +33,12 @@ import Lottie from 'react-lottie-player';
 import error404 from '../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
 import WGApplicationsDashboard from './Applications';
+import WGApplicationAdd from './Applications/Add';
 import WGApplicationDetail from './Applications/Detail';
 
 const APPS_ROUTE = '/applications';
-const APP_DETAIL_ROTUE = '/application_detail';
+const APP_DETAIL_ROUTE = '/application_detail';
+const APP_ADD_ROUTE = '/application_add';
 
 const drawerWidth = 220;
 
@@ -192,9 +194,10 @@ const ResponsiveDrawer = () => {
             />
             <Route
               exact
-              path={APP_DETAIL_ROTUE}
+              path={APP_DETAIL_ROUTE}
               component={WGApplicationDetail}
             />
+            <Route exact path={APP_ADD_ROUTE} component={WGApplicationAdd} />
             <Route render={handle404} />
           </Switch>
         </main>

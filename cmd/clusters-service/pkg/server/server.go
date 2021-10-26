@@ -9,7 +9,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -26,8 +25,11 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	grpcStatus "google.golang.org/grpc/status"
 	"gorm.io/gorm"
 	"helm.sh/helm/v3/pkg/chartutil"
 	corev1 "k8s.io/api/core/v1"
@@ -151,6 +153,11 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
+	gp, err := getGitProvider(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
+	}
+
 	if err := validateCreateClusterPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
@@ -211,44 +218,24 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
 	}
+	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
+	}
 
 	if len(msg.Values) > 0 {
-		helmRepo := &sourcev1beta1.HelmRepository{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      getEnv("PROFILE_HELM_REPOSITORY", "weaveworks-charts"),
-				Namespace: getEnv("PROFILE_HELM_REPOSITORY_NAMESPACE", "wego-system"),
-			},
-			Spec: sourcev1beta1.HelmRepositorySpec{
-				Interval: metav1.Duration{Duration: time.Minute},
-				URL:      getEnv("PROFILE_HELM_REPOSITORY_URL", "https://foot.github.io/podinfo"),
-			},
-		}
-
-		var profileName string
-		var helmReleases []*helmv2beta1.HelmRelease
-		for _, pvs := range msg.Values {
-			hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
-			if err != nil {
-				return nil, fmt.Errorf("cannot find Helm repository: %w", err)
-			}
-			// Pick the name of the first chart as the profile name for now
-			if profileName == "" {
-				profileName = pvs.Name
-			}
-			helmReleases = append(helmReleases, hr)
-		}
-
-		c, err := createProfileYAML(helmRepo, helmReleases)
+		profilesFile, err := generateProfileFiles(
+			ctx,
+			s.profileHelmRepositoryName,
+			os.Getenv("RUNTIME_NAMESPACE"),
+			clusterName,
+			s.client,
+			msg.Values,
+		)
 		if err != nil {
 			return nil, err
 		}
-		profilePath := fmt.Sprintf(".weave-gitops/clusters/%s/system/%s.yaml", clusterName, profileName)
-		profileContent := string(c)
-		file := gitprovider.CommitFile{
-			Path:    &profilePath,
-			Content: &profileContent,
-		}
-		files = append(files, file)
+		files = append(files, *profilesFile)
 	}
 
 	var pullRequestURL string
@@ -270,11 +257,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider: git.GitProvider{
-				Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-				Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
-				Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-			},
+			GitProvider:   *gp,
 			RepositoryURL: repositoryURL,
 			HeadBranch:    msg.HeadBranch,
 			BaseBranch:    baseBranch,
@@ -398,6 +381,11 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 }
 
 func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
+	gp, err := getGitProvider(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
+	}
+
 	if err := validateDeleteClustersPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
@@ -421,15 +409,16 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		})
 	}
 
+	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
+	}
+
 	var pullRequestURL string
 
 	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
-			Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-			Token:    os.Getenv("GIT_PROVIDER_TOKEN"),
-			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
-		},
+		GitProvider:   *gp,
 		RepositoryURL: repositoryURL,
 		HeadBranch:    msg.HeadBranch,
 		BaseBranch:    baseBranch,
@@ -473,6 +462,31 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
 		WebUrl: pullRequestURL,
+	}, nil
+}
+
+func getToken(ctx context.Context) (string, error) {
+	token := os.Getenv("GIT_PROVIDER_TOKEN")
+
+	providerToken, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		// fallback to env token
+		return token, nil
+	}
+
+	return providerToken.AccessToken, nil
+}
+
+func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
+	token, err := getToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &git.GitProvider{
+		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
+		Token:    token,
+		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
 	}, nil
 }
 
@@ -556,13 +570,6 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		ContentType: "application/json",
 		Data:        res,
 	}, nil
-}
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
 }
 
 func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
@@ -692,4 +699,53 @@ func isMissingVariableError(err error) (string, bool) {
 		return missing, true
 	}
 	return "", false
+}
+
+func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err := kubeClient.Get(ctx, client.ObjectKey{
+		Name:      helmRepoName,
+		Namespace: helmRepoNamespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+	helmRepoTemplate := &sourcev1beta1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1beta1.HelmRepositoryKind,
+			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      helmRepoName,
+			Namespace: helmRepoNamespace,
+		},
+		Spec: helmRepo.Spec,
+	}
+
+	var profileName string
+	var helmReleases []*helmv2beta1.HelmRelease
+	for _, pvs := range profileValues {
+		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+		if err != nil {
+			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		}
+		// Pick the name of the first chart as the profile name for now
+		if profileName == "" {
+			profileName = pvs.Name
+		}
+		helmReleases = append(helmReleases, hr)
+	}
+
+	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
+	if err != nil {
+		return nil, err
+	}
+	profilePath := fmt.Sprintf(".weave-gitops/clusters/%s/system/%s.yaml", clusterName, profileName)
+	profileContent := string(c)
+	file := &gitprovider.CommitFile{
+		Path:    &profilePath,
+		Content: &profileContent,
+	}
+
+	return file, nil
 }

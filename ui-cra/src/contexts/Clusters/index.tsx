@@ -20,7 +20,10 @@ interface ClustersContext {
   orderBy: string;
   selectedClusters: string[];
   setSelectedClusters: Dispatch<React.SetStateAction<string[] | []>>;
-  deleteCreatedClusters: (data: DeleteClusterPRRequest) => void;
+  deleteCreatedClusters: (
+    data: DeleteClusterPRRequest,
+    token: string,
+  ) => Promise<any>;
   deleteConnectedClusters: (clusters: number[]) => void;
   getKubeconfig: (clusterName: string, fileName: string) => void;
 }

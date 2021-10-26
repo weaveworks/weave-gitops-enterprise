@@ -22,6 +22,11 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../../Action';
 import { Input } from '../../../utils/form';
 import { Loader } from '../../Loader';
+import {
+  getProviderToken,
+  GithubDeviceAuthModal,
+} from '@weaveworks/weave-gitops';
+import { isUnauthenticated } from '../../../utils/request';
 
 interface Props {
   selectedCapiClusters: string[];
@@ -42,6 +47,7 @@ export const DeleteClusterDialog: FC<Props> = ({
 }) => {
   const classes = useStyles();
   const random = Math.random().toString(36).substring(7);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [branchName, setBranchName] = useState<string>(
     `delete-clusters-branch-${random}`,
   );
@@ -57,7 +63,7 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
     useClusters();
-  const { notifications } = useNotifications();
+  const { notifications, setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
@@ -83,13 +89,31 @@ export const DeleteClusterDialog: FC<Props> = ({
   );
 
   const handleClickRemove = () =>
-    deleteCreatedClusters({
-      clusterNames: selectedCapiClusters,
-      headBranch: branchName,
-      title: pullRequestTitle,
-      commitMessage,
-      description: pullRequestDescription,
-    });
+    deleteCreatedClusters(
+      {
+        clusterNames: selectedCapiClusters,
+        headBranch: branchName,
+        title: pullRequestTitle,
+        commitMessage,
+        description: pullRequestDescription,
+      },
+      getProviderToken('github'),
+    )
+      .then(() =>
+        setNotifications([
+          {
+            message: `PR created successfully`,
+            variant: 'success',
+          },
+        ]),
+      )
+      .catch(error => {
+        if (isUnauthenticated(error.code)) {
+          setShowAuthDialog(true);
+        } else {
+          setNotifications([{ message: error.message, variant: 'danger' }]);
+        }
+      });
 
   const cleanUp = useCallback(() => {
     setOpenDeletePR(false);
@@ -99,7 +123,9 @@ export const DeleteClusterDialog: FC<Props> = ({
   useEffect(() => {
     if (
       notifications.length > 0 &&
-      notifications[notifications.length - 1].variant !== 'danger'
+      notifications[notifications.length - 1].variant !== 'danger' &&
+      notifications[notifications.length - 1].message !==
+        'Authentication completed successfully. Please proceed with creating the PR.'
     ) {
       cleanUp();
     }
@@ -149,6 +175,21 @@ export const DeleteClusterDialog: FC<Props> = ({
           ) : (
             <Loader />
           )}
+          <GithubDeviceAuthModal
+            onClose={() => setShowAuthDialog(false)}
+            onSuccess={() => {
+              setShowAuthDialog(false);
+              setNotifications([
+                {
+                  message:
+                    'Authentication completed successfully. Please proceed with creating the PR.',
+                  variant: 'success',
+                },
+              ]);
+            }}
+            open={showAuthDialog}
+            repoName="config"
+          />
         </DialogContent>
       </div>
     </Dialog>
