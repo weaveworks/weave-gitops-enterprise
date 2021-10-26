@@ -39,6 +39,7 @@ config:
   capi:
     templates:
       namespace: default
+      injectPruneAnnotation: enabled
     clusters:
       namespace: default
     repositoryURL: ''
