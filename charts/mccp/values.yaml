@@ -32,7 +32,7 @@ dbConfig:
     databaseName: postgres
 
 fluxCli:
-  image: ghcr.io/fluxcd/flux-cli:0.19.1
+  image: ghcr.io/fluxcd/flux-cli:v0.19.1
   binPath: /usr/local/bin/flux
 
 config:
