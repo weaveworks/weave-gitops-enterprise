@@ -160,8 +160,6 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
-      DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
-      DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-${{ matrix.os_name }}-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       SELENIUM_DEBUG: true
@@ -222,11 +220,11 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "test-user"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/    
-    - name: Download gitops binary from GitHub
+    - name: Download gitops binary from s3
       run: |
         mkdir -p cmd/gitops/
-        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.3.2-rc/gitops-${{ matrix.os_name }}-x86_64
-        mv gitops-${{ matrix.os_name }}-x86_64 $GITOPS_BIN_PATH
+        wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ matrix.os }}
+        mv gitops-${{ matrix.os }} $GITOPS_BIN_PATH
     - name: Download wk binary from s3
       run: |
         mkdir -p cmd/wk/
