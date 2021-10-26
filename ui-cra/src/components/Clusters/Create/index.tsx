@@ -11,6 +11,7 @@ import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useCredentials from '../../../contexts/Credentials';
 import useNotifications from '../../../contexts/Notifications';
+import useProfiles from '../../../contexts/Profiles';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
@@ -29,16 +30,25 @@ import * as Grouped from './Form/GroupedSchema';
 import * as UiTemplate from './Form/UITemplate';
 import FormSteps, { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
-import { Credential, TemplateObject } from '../../../types/custom';
+import {
+  Credential,
+  Profile,
+  TemplateObject,
+  UpdatedProfile,
+} from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
+import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { Loader } from '../../Loader';
 import {
   getProviderToken,
   GithubDeviceAuthModal,
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated } from '../../../utils/request';
+import Compose from '../../ProvidersCompose';
+import MultiSelectDropdown from '../../MultiSelectDropdown';
+import ProfilesList from './ProfilesList';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -129,6 +139,7 @@ const useStyles = makeStyles(theme =>
 const AddCluster: FC = () => {
   const classes = useStyles();
   const { credentials, loading, getCredential } = useCredentials();
+  const { profiles } = useProfiles();
   const {
     getTemplate,
     activeTemplate,
@@ -143,6 +154,8 @@ const AddCluster: FC = () => {
   const random = Math.random().toString(36).substring(7);
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
+  const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
+  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -231,6 +244,20 @@ const AddCluster: FC = () => {
     [],
   );
 
+  const encodedProfiles = useCallback(
+    (profiles: UpdatedProfile[]) =>
+      profiles?.map(profile => {
+        return {
+          name: profile.name,
+          version: profile.version,
+          values: btoa(profile.values),
+        };
+      }),
+    [],
+  );
+
+  // console.log(updatedProfiles);
+
   const handleAddCluster = useCallback(() => {
     addCluster(
       {
@@ -243,6 +270,7 @@ const AddCluster: FC = () => {
         parameter_values: {
           ...formData,
         },
+        values: encodedProfiles(updatedProfiles),
       },
       getProviderToken('github'),
     )
@@ -265,6 +293,8 @@ const AddCluster: FC = () => {
     pullRequestDescription,
     history,
     setNotifications,
+    updatedProfiles,
+    encodedProfiles,
   ]);
 
   const required = useMemo(() => {
@@ -403,9 +433,27 @@ const AddCluster: FC = () => {
                 }}
                 {...UiTemplate}
               >
-                <div className={classes.previewCTA}>
-                  <Button>Preview PR</Button>
-                </div>
+                <FormStep
+                  title="Profiles"
+                  active={activeStep === 'Profiles'}
+                  clicked={clickedStep === 'Profiles'}
+                  setActiveStep={setActiveStep}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span>Select profiles:&nbsp;</span>
+                    <MultiSelectDropdown
+                      items={profiles}
+                      onSelectProfiles={setSelectedProfiles}
+                    />
+                  </div>
+                  <ProfilesList
+                    selectedProfiles={selectedProfiles}
+                    onProfilesUpdate={setUpdatedProfiles}
+                  />
+                  <div className={classes.previewCTA}>
+                    <Button>Preview PR</Button>
+                  </div>
+                </FormStep>
               </Form>
               {openPreview ? (
                 <>
@@ -531,13 +579,15 @@ const AddCluster: FC = () => {
     pullRequestDescription,
     showAuthDialog,
     setNotifications,
+    profiles,
+    selectedProfiles,
   ]);
 };
 
 const AddClusterWithCredentials = () => (
-  <CredentialsProvider>
+  <Compose components={[ProfilesProvider, CredentialsProvider]}>
     <AddCluster />
-  </CredentialsProvider>
+  </Compose>
 );
 
 export default AddClusterWithCredentials;

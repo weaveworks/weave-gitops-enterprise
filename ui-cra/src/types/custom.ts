@@ -40,6 +40,37 @@ export type ListCredentialsResponse = {
   total?: number;
 };
 
-export enum GrpcErrorCodes {
-  Unauthenticated = 16,
-}
+export type Maintainer = {
+  name?: string;
+  email?: string;
+  url?: string;
+};
+
+export type HelmRepository = {
+  name?: string;
+  namespace?: string;
+};
+
+export type Profile = {
+  name: string;
+  home?: string;
+  sources?: string[];
+  description?: string;
+  keywords?: string[];
+  maintainers?: Maintainer[];
+  icon?: string;
+  annotations?: { [key: string]: string };
+  kubeVersion?: string;
+  helmRepository?: HelmRepository;
+  availableVersions: string[];
+};
+
+export type ListProfilesResponse = {
+  profiles?: Profile[];
+};
+
+export type UpdatedProfile = {
+  name: Profile['name'];
+  version: string;
+  values: string;
+};

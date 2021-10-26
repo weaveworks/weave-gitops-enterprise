@@ -9,7 +9,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -213,42 +212,18 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	if len(msg.Values) > 0 {
-		helmRepo := &sourcev1beta1.HelmRepository{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      getEnv("PROFILE_HELM_REPOSITORY", "weaveworks-charts"),
-				Namespace: getEnv("PROFILE_HELM_REPOSITORY_NAMESPACE", "wego-system"),
-			},
-			Spec: sourcev1beta1.HelmRepositorySpec{
-				Interval: metav1.Duration{Duration: time.Minute},
-				URL:      getEnv("PROFILE_HELM_REPOSITORY_URL", "https://foot.github.io/podinfo"),
-			},
-		}
-
-		var profileName string
-		var helmReleases []*helmv2beta1.HelmRelease
-		for _, pvs := range msg.Values {
-			hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
-			if err != nil {
-				return nil, fmt.Errorf("cannot find Helm repository: %w", err)
-			}
-			// Pick the name of the first chart as the profile name for now
-			if profileName == "" {
-				profileName = pvs.Name
-			}
-			helmReleases = append(helmReleases, hr)
-		}
-
-		c, err := createProfileYAML(helmRepo, helmReleases)
+		profilesFile, err := generateProfileFiles(
+			ctx,
+			s.profileHelmRepositoryName,
+			os.Getenv("RUNTIME_NAMESPACE"),
+			clusterName,
+			s.client,
+			msg.Values,
+		)
 		if err != nil {
 			return nil, err
 		}
-		profilePath := fmt.Sprintf(".weave-gitops/clusters/%s/system/%s.yaml", clusterName, profileName)
-		profileContent := string(c)
-		file := gitprovider.CommitFile{
-			Path:    &profilePath,
-			Content: &profileContent,
-		}
-		files = append(files, file)
+		files = append(files, *profilesFile)
 	}
 
 	var pullRequestURL string
@@ -585,13 +560,6 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 	}, nil
 }
 
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
-
 func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
 	out := [][]byte{}
 
@@ -719,4 +687,53 @@ func isMissingVariableError(err error) (string, bool) {
 		return missing, true
 	}
 	return "", false
+}
+
+func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err := kubeClient.Get(ctx, client.ObjectKey{
+		Name:      helmRepoName,
+		Namespace: helmRepoNamespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+	helmRepoTemplate := &sourcev1beta1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1beta1.HelmRepositoryKind,
+			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      helmRepoName,
+			Namespace: helmRepoNamespace,
+		},
+		Spec: helmRepo.Spec,
+	}
+
+	var profileName string
+	var helmReleases []*helmv2beta1.HelmRelease
+	for _, pvs := range profileValues {
+		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+		if err != nil {
+			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		}
+		// Pick the name of the first chart as the profile name for now
+		if profileName == "" {
+			profileName = pvs.Name
+		}
+		helmReleases = append(helmReleases, hr)
+	}
+
+	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
+	if err != nil {
+		return nil, err
+	}
+	profilePath := fmt.Sprintf(".weave-gitops/clusters/%s/system/%s.yaml", clusterName, profileName)
+	profileContent := string(c)
+	file := &gitprovider.CommitFile{
+		Path:    &profilePath,
+		Content: &profileContent,
+	}
+
+	return file, nil
 }
