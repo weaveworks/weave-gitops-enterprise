@@ -95,6 +95,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
+      DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-${{ matrix.os_name }}-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
@@ -281,6 +283,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
+      DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-${{ matrix.os_name }}-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
