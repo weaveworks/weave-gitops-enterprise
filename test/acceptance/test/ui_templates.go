@@ -349,8 +349,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
-				os.Setenv("INJECT_PRUNE_ANNOTATION", "enabled")
-
 				clusterName := "my-eks-cluster"
 				region := "east"
 				sshKey := "abcdef1234567890"

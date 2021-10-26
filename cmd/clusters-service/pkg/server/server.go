@@ -162,7 +162,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	var opts []capi.RenderOptFunc
-	if os.Getenv("INJECT_PRUNE_ANNOTATION") == "enabled" {
+	if os.Getenv("INJECT_PRUNE_ANNOTATION") != "disabled" {
 		opts = []capi.RenderOptFunc{capi.InjectPruneAnnotation()}
 	}
 
