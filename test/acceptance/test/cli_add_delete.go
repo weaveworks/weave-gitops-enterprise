@@ -416,7 +416,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				// FIXME - User should get some warning or error as well for chossing wrong credential/identity for the infrastructure provider
 
 				By("Then I should see preview without identity reference added to the template", func() {
-					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+name: [\s\w\d-.:/]+%s\s+---`, awsSshKeyName)), "Identity reference should not be found in preview pull request AWSCluster object")
+					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: [\s\w\d-.:/]+%s\s+---`, awsSshKeyName)), "Identity reference should not be found in preview pull request AWSCluster object")
 				})
 			})
 		})
