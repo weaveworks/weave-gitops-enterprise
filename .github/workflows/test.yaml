@@ -136,10 +136,12 @@ jobs:
         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+    - name: install moreutils
+      run: sudo apt-get install -y moreutils
     - name: Build all the services
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}    
+      run: make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} | ts
     - name: Install Helm v3
       uses: azure/setup-helm@v1
       with:
