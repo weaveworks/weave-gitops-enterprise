@@ -16,19 +16,15 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useParams } from 'react-router-dom';
-import Form from '@rjsf/material-ui';
-import { JSONSchema7 } from 'json-schema';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button, Dropdown, DropdownItem } from 'weaveworks-ui-components';
-import { ISubmitEvent, ObjectFieldTemplateProps } from '@rjsf/core';
+import { ISubmitEvent } from '@rjsf/core';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
 import { Input } from '../../../utils/form';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
-import * as Grouped from './Form/GroupedSchema';
-import * as UiTemplate from './Form/UITemplate';
-import FormSteps, { FormStep } from './Form/Steps';
+import { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
 import {
   Credential,
@@ -39,7 +35,6 @@ import {
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
-import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { Loader } from '../../Loader';
 import {
   getProviderToken,
@@ -47,8 +42,8 @@ import {
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated } from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
-import MultiSelectDropdown from '../../MultiSelectDropdown';
-import ProfilesList from './ProfilesList';
+import TemplateFields from './Form/TemplateFields';
+import ProfilesProvider from '../../../contexts/Profiles/Provider';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -211,7 +206,7 @@ const AddCluster: FC = () => {
     [getCredential],
   );
 
-  const handlePreview = useCallback(
+  const onTemplateFieldsSubmit = useCallback(
     (event: ISubmitEvent<any>) => {
       setFormData(event.formData);
       setOpenPreview(true);
@@ -295,69 +290,6 @@ const AddCluster: FC = () => {
     encodedProfiles,
   ]);
 
-  const required = useMemo(() => {
-    return activeTemplate?.parameters?.map(param => param.name);
-  }, [activeTemplate]);
-
-  const parameters = useMemo(() => {
-    return (
-      activeTemplate?.parameters?.map(param => {
-        const { name, options } = param;
-        if (options?.length !== 0) {
-          return {
-            [name]: {
-              type: 'string',
-              title: `${name}`,
-              enum: options,
-            },
-          };
-        } else {
-          return {
-            [name]: {
-              type: 'string',
-              title: `${name}`,
-            },
-          };
-        }
-      }) || []
-    );
-  }, [activeTemplate]);
-
-  const properties = useMemo(() => {
-    return Object.assign({}, ...parameters);
-  }, [parameters]);
-
-  const schema: JSONSchema7 = useMemo(() => {
-    return {
-      type: 'object',
-      properties,
-      required,
-    };
-  }, [properties, required]);
-
-  // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
-  const sections = useMemo(() => {
-    const groups =
-      activeTemplate?.objects?.reduce(
-        (accumulator, item, index) =>
-          Object.assign(accumulator, {
-            [objectTitle(item, index)]: item.parameters,
-          }),
-        {},
-      ) || {};
-    Object.assign(groups, { 'ui:template': 'box' });
-    return [groups];
-  }, [activeTemplate]);
-
-  const uiSchema = useMemo(() => {
-    return {
-      'ui:groups': sections,
-      'ui:template': (props: ObjectFieldTemplateProps) => (
-        <Grouped.ObjectFieldTemplate {...props} />
-      ),
-    };
-  }, [sections]);
-
   useEffect(() => {
     if (!activeTemplate) {
       setActiveTemplate(getTemplate(templateName));
@@ -416,43 +348,10 @@ const AddCluster: FC = () => {
                   !isLargeScreen ? classes.divider : classes.largeDivider
                 }
               />
-              <Form
-                className={classes.form}
-                schema={schema as JSONSchema7}
-                onChange={({ formData }) => setFormData(formData)}
-                formData={formData}
-                onSubmit={handlePreview}
-                onError={() => console.log('errors')}
-                uiSchema={uiSchema}
-                formContext={{
-                  templates: FormSteps,
-                  clickedStep,
-                  setActiveStep,
-                }}
-                {...UiTemplate}
-              >
-                <FormStep
-                  title="Profiles"
-                  active={activeStep === 'Profiles'}
-                  clicked={clickedStep === 'Profiles'}
-                  setActiveStep={setActiveStep}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span>Select profiles:&nbsp;</span>
-                    <MultiSelectDropdown
-                      items={profiles}
-                      onSelectItems={setSelectedProfiles}
-                    />
-                  </div>
-                  <ProfilesList
-                    selectedProfiles={selectedProfiles}
-                    onProfilesUpdate={setUpdatedProfiles}
-                  />
-                  <div className={classes.previewCTA}>
-                    <Button>Preview PR</Button>
-                  </div>
-                </FormStep>
-              </Form>
+              <TemplateFields
+                activeTemplate={activeTemplate}
+                onSubmit={onTemplateFieldsSubmit}
+              />
               {openPreview ? (
                 <>
                   {PRPreview ? (
@@ -551,10 +450,7 @@ const AddCluster: FC = () => {
     activeTemplate?.name,
     classes,
     formData,
-    handlePreview,
     handleAddCluster,
-    schema,
-    uiSchema,
     openPreview,
     PRPreview,
     rows,
