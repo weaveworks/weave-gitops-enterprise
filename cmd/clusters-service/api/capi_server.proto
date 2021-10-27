@@ -189,6 +189,7 @@ message Template {
   repeated Parameter parameters = 4;
   repeated TemplateObject objects = 5;
   string error = 6; 
+  map<string, string> annotations = 7;
 }
 
 message Parameter {
