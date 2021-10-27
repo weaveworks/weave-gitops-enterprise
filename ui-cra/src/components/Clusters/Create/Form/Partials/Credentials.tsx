@@ -1,9 +1,18 @@
-import React, { FC, FormEvent, useCallback, useMemo, useState } from 'react';
+import React, {
+  FC,
+  FormEvent,
+  useCallback,
+  useMemo,
+  useState,
+  Dispatch,
+} from 'react';
 import useCredentials from './../../../../../contexts/Credentials';
 import { Credential } from '../../../../../types/custom';
 import { Dropdown, DropdownItem } from 'weaveworks-ui-components';
 
-const Credentials: FC<{ onSelect: any }> = ({ onSelect }) => {
+const Credentials: FC<{
+  onSelect: Dispatch<React.SetStateAction<Credential | null>>;
+}> = ({ onSelect }) => {
   const { credentials, loading, getCredential } = useCredentials();
   const [infraCredential, setInfraCredential] =
     useState<Credential | null>(null);

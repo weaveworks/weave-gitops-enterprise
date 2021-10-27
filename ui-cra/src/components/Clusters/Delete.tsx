@@ -15,18 +15,18 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
 import theme from 'weaveworks-ui-components/lib/theme';
-import { CloseIconButton } from '../../../assets/img/close-icon-button';
-import useClusters from '../../../contexts/Clusters';
-import useNotifications from '../../../contexts/Notifications';
+import { CloseIconButton } from '../../assets/img/close-icon-button';
+import useClusters from '../../contexts/Clusters';
+import useNotifications from '../../contexts/Notifications';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { OnClickAction } from '../../Action';
-import { Input } from '../../../utils/form';
-import { Loader } from '../../Loader';
+import { OnClickAction } from '../Action';
+import { Input } from '../../utils/form';
+import { Loader } from '../Loader';
 import {
   getProviderToken,
   GithubDeviceAuthModal,
 } from '@weaveworks/weave-gitops';
-import { isUnauthenticated } from '../../../utils/request';
+import { isUnauthenticated } from '../../utils/request';
 
 interface Props {
   selectedCapiClusters: string[];
