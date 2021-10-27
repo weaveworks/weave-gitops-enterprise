@@ -5,6 +5,7 @@ import { NavLink } from 'react-router-dom';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
+import { GitOpsBlue } from './../muiTheme';
 
 const navItemPadding = css`
   padding: 0 ${theme.spacing.small} ${theme.spacing.small} 0;
@@ -36,7 +37,7 @@ const Title = styled.div`
   color: ${theme.colors.white};
   font-size: ${20}px;
   padding-left: ${theme.spacing.medium};
-  background: #00b3ec;
+  background: ${GitOpsBlue};
   height: ${80}px;
   position: sticky;
   top: 0;

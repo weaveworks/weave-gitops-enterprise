@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { SafeAnchor } from './Shared';
+import { GitOpsBlue } from './../muiTheme';
 
 const actionStyle = css`
   display: flex;
@@ -13,7 +14,7 @@ const actionStyle = css`
   white-space: nowrap;
 
   &:enabled {
-    color: #00b3ec;
+    color: ${GitOpsBlue};
   }
 
   &:hover:enabled {
@@ -35,7 +36,7 @@ const ActionButton = styled.button`
 
   &:enabled {
     color: ${props =>
-      props.className === 'danger' ? theme.colors.orange600 : '#00b3ec'};
+      props.className === 'danger' ? theme.colors.orange600 : GitOpsBlue};
   }
   &:hover:enabled {
     cursor: pointer;
