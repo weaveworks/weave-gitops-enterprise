@@ -19,8 +19,6 @@ import ProfilesList from '../ProfilesList';
 import useProfiles from '../../../../contexts/Profiles';
 
 const base = weaveTheme.spacing.base;
-const xxs = weaveTheme.spacing.xxs;
-const xs = weaveTheme.spacing.xs;
 const small = weaveTheme.spacing.small;
 
 const useStyles = makeStyles(theme =>
@@ -42,30 +40,18 @@ const useStyles = makeStyles(theme =>
       justifyContent: 'center',
       paddingTop: base,
     },
-    steps: {
-      display: 'flex',
-      flexDirection: 'column',
-      [theme.breakpoints.down('md')]: {
-        visibility: 'hidden',
-        height: 0,
-      },
-      paddingRight: xxs,
-    },
   }),
 );
 
 const TemplateFields: FC<{
   activeTemplate: Template | null;
-  onSubmit: (event: ISubmitEvent<any>) => void;
+  onSubmit: (formData: any, encodedProfiles: UpdatedProfile[]) => void;
 }> = ({ activeTemplate, onSubmit }) => {
   const classes = useStyles();
   const { profiles } = useProfiles();
   const [formData, setFormData] = useState({});
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
-  const [steps, setSteps] = useState<string[]>([]);
-  const [openPreview, setOpenPreview] = useState(false);
-
   const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
   const [clickedStep, setClickedStep] = useState<string>('');
 
@@ -75,14 +61,6 @@ const TemplateFields: FC<{
     }
     return `${index + 1}.${object.kind}`;
   };
-
-  const handleSubmit = useCallback(
-    (event: ISubmitEvent<any>) => {
-      setFormData(event.formData);
-      onSubmit(event.formData);
-    },
-    [setOpenPreview, setFormData],
-  );
 
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
@@ -159,6 +137,14 @@ const TemplateFields: FC<{
     };
   }, [sections]);
 
+  const handleSubmit = useCallback(
+    (event: ISubmitEvent<any>) => {
+      setFormData(event.formData);
+      onSubmit(event.formData, encodedProfiles(updatedProfiles));
+    },
+    [encodedProfiles, onSubmit, updatedProfiles],
+  );
+
   return useMemo(() => {
     return (
       <Form
@@ -200,17 +186,15 @@ const TemplateFields: FC<{
       </Form>
     );
   }, [
-    activeTemplate?.name,
     classes,
     formData,
     schema,
     uiSchema,
-    openPreview,
-    steps,
     activeStep,
     clickedStep,
     profiles,
     selectedProfiles,
+    handleSubmit,
   ]);
 };
 

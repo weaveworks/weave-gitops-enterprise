@@ -11,14 +11,12 @@ import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useCredentials from '../../../contexts/Credentials';
 import useNotifications from '../../../contexts/Notifications';
-import useProfiles from '../../../contexts/Profiles';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useParams } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button, Dropdown, DropdownItem } from 'weaveworks-ui-components';
-import { ISubmitEvent } from '@rjsf/core';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
 import { Input } from '../../../utils/form';
@@ -28,7 +26,6 @@ import { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
 import {
   Credential,
-  Profile,
   TemplateObject,
   UpdatedProfile,
 } from '../../../types/custom';
@@ -134,7 +131,6 @@ const useStyles = makeStyles(theme =>
 const AddCluster: FC = () => {
   const classes = useStyles();
   const { credentials, loading, getCredential } = useCredentials();
-  const { profiles } = useProfiles();
   const {
     getTemplate,
     activeTemplate,
@@ -149,8 +145,7 @@ const AddCluster: FC = () => {
   const random = Math.random().toString(36).substring(7);
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
-  const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
-  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
+  const [encodedProfiles, setEncodedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -207,11 +202,12 @@ const AddCluster: FC = () => {
   );
 
   const onTemplateFieldsSubmit = useCallback(
-    (event: ISubmitEvent<any>) => {
-      setFormData(event.formData);
+    (formData: any, encodedProfiles: UpdatedProfile[]) => {
+      setFormData(formData);
+      setEncodedProfiles(encodedProfiles);
       setOpenPreview(true);
       setClickedStep('Preview');
-      renderTemplate({ values: event.formData, credentials: infraCredential });
+      renderTemplate({ values: formData, credentials: infraCredential });
     },
     [setOpenPreview, setFormData, renderTemplate, infraCredential],
   );
@@ -239,18 +235,6 @@ const AddCluster: FC = () => {
     [],
   );
 
-  const encodedProfiles = useCallback(
-    (profiles: UpdatedProfile[]) =>
-      profiles?.map(profile => {
-        return {
-          name: profile.name,
-          version: profile.version,
-          values: btoa(profile.values),
-        };
-      }),
-    [],
-  );
-
   const handleAddCluster = useCallback(() => {
     addCluster(
       {
@@ -263,7 +247,7 @@ const AddCluster: FC = () => {
         parameter_values: {
           ...formData,
         },
-        values: encodedProfiles(updatedProfiles),
+        values: encodedProfiles,
       },
       getProviderToken('github'),
     )
@@ -286,7 +270,6 @@ const AddCluster: FC = () => {
     pullRequestDescription,
     history,
     setNotifications,
-    updatedProfiles,
     encodedProfiles,
   ]);
 
@@ -446,10 +429,9 @@ const AddCluster: FC = () => {
       </PageTemplate>
     );
   }, [
+    activeTemplate,
     clustersCount,
-    activeTemplate?.name,
     classes,
-    formData,
     handleAddCluster,
     openPreview,
     PRPreview,
@@ -473,8 +455,7 @@ const AddCluster: FC = () => {
     pullRequestDescription,
     showAuthDialog,
     setNotifications,
-    profiles,
-    selectedProfiles,
+    onTemplateFieldsSubmit,
   ]);
 };
 
