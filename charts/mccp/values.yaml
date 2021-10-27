@@ -31,6 +31,9 @@ dbConfig:
   postgresConfig:
     databaseName: postgres
 
+fluxCli:
+  image: ghcr.io/fluxcd/flux-cli:v0.19.1
+  binPath: /usr/local/bin/flux
 
 config:
   git:
@@ -39,6 +42,7 @@ config:
   capi:
     templates:
       namespace: default
+      injectPruneAnnotation: enabled
     clusters:
       namespace: default
     repositoryURL: ''
