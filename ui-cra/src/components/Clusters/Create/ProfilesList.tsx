@@ -13,6 +13,7 @@ import Box from '@material-ui/core/Box';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import useProfiles from './../../../contexts/Profiles';
+import useNotifications from './../../../contexts/Notifications';
 import {
   Dialog,
   DialogContent,
@@ -54,27 +55,21 @@ const useStyles = makeStyles(theme => ({
 
 const ProfilesList: FC<{
   selectedProfiles: Profile[];
-  onProfilesUpdate: Dispatch<
-    React.SetStateAction<
-      { name: Profile['name']; version: string; values: string }[]
-    >
-  >;
+  onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
-  const { renderProfile, loading } = useProfiles();
+  const { getProfileYaml, loading } = useProfiles();
   const [currentProfile, setCurrentProfile] = useState<UpdatedProfile>();
   const [currentProfilePreview, setCurrentProfilePreview] = useState<string>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
+  const { setNotifications } = useNotifications();
 
-  const handlePreview = useCallback(
-    (profile: UpdatedProfile) => {
-      setCurrentProfile(profile);
-      setCurrentProfilePreview(profile.values);
-      setOpenYamlPreview(true);
-    },
-    [setOpenYamlPreview],
-  );
+  const handlePreview = (profile: UpdatedProfile) => {
+    setCurrentProfile(profile);
+    setCurrentProfilePreview(profile.values);
+    setOpenYamlPreview(true);
+  };
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -94,26 +89,31 @@ const ProfilesList: FC<{
   useEffect(() => {
     const isProfileUpdated = (profile: Profile) =>
       updatedProfiles.filter(p => p.name === profile.name).length !== 0;
-
+    const controller = new AbortController();
+    const signal = controller.signal;
     if (
       selectedProfiles.length === updatedProfiles.length ||
       selectedProfiles.length > updatedProfiles.length
     ) {
       selectedProfiles.forEach(profile => {
         if (!isProfileUpdated(profile)) {
-          renderProfile(profile).then(data => {
-            setUpdatedProfiles([
-              ...updatedProfiles,
-              {
-                name: profile.name,
-                version:
-                  profile.availableVersions[
-                    profile.availableVersions.length - 1
-                  ],
-                values: data.message,
-              },
-            ]);
-          });
+          getProfileYaml(profile, signal)
+            .then(data => {
+              setUpdatedProfiles([
+                ...updatedProfiles,
+                {
+                  name: profile.name,
+                  version:
+                    profile.availableVersions[
+                      profile.availableVersions.length - 1
+                    ],
+                  values: data.message,
+                },
+              ]);
+            })
+            .catch(error =>
+              setNotifications([{ message: error.message, variant: 'danger' }]),
+            );
         }
       });
     } else {
@@ -126,7 +126,14 @@ const ProfilesList: FC<{
       );
     }
     onProfilesUpdate(updatedProfiles);
-  }, [renderProfile, selectedProfiles, updatedProfiles, onProfilesUpdate]);
+    return () => controller.abort();
+  }, [
+    getProfileYaml,
+    selectedProfiles,
+    updatedProfiles,
+    onProfilesUpdate,
+    setNotifications,
+  ]);
 
   return (
     <>
@@ -159,13 +166,11 @@ const ProfilesList: FC<{
         </DialogTitle>
         <DialogContent>
           {!loading ? (
-            <>
-              <TextareaAutosize
-                className={classes.textarea}
-                defaultValue={currentProfilePreview || ''}
-                onChange={handleChange}
-              />
-            </>
+            <TextareaAutosize
+              className={classes.textarea}
+              defaultValue={currentProfilePreview || ''}
+              onChange={handleChange}
+            />
           ) : (
             <Loader />
           )}
