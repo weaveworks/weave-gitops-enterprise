@@ -15,6 +15,7 @@ app.use(
     '/clusters',
     '/templates',
     '/applications',
+    '/application_add',
     '/application_detail',
     '/alerts',
   ],

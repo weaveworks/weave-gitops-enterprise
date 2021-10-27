@@ -43,6 +43,76 @@ spec:
 	}
 }
 
+func TestInjectPruneAnnotation(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: NotCluster
+metadata:
+  name: testing
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: testing-control-plane
+spec:
+  replicas: 5`)
+	updated, err := InjectPruneAnnotation()(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: NotCluster
+metadata:
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: testing
+`
+
+	if diff := cmp.Diff(want, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}
+
+func TestRender_InjectPruneAnnotation(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/template3.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME":                "testing",
+		"CONTROL_PLANE_MACHINE_COUNT": "5",
+	},
+		InjectPruneAnnotation())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSMachineTemplate
+metadata:
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: testing-md-0
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: testing-control-plane
+spec:
+  replicas: 5
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
 func TestInNamespace(t *testing.T) {
 	raw := []byte(`
 apiVersion: cluster.x-k8s.io/v1alpha3

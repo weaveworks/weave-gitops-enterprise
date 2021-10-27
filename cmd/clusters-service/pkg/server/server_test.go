@@ -5,9 +5,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
@@ -400,6 +402,7 @@ func TestRenderTemplate(t *testing.T) {
 
 	testCases := []struct {
 		name             string
+		pruneEnvVar      string
 		clusterState     []runtime.Object
 		expected         string
 		err              error
@@ -407,7 +410,8 @@ func TestRenderTemplate(t *testing.T) {
 		credentials      *capiv1_protos.Credential
 	}{
 		{
-			name: "render template",
+			name:        "render template",
+			pruneEnvVar: "disabled",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
@@ -415,7 +419,8 @@ func TestRenderTemplate(t *testing.T) {
 		},
 		{
 			// some client might send empty credentials objects
-			name: "render template with empty credentials",
+			name:        "render template with empty credentials",
+			pruneEnvVar: "disabled",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
@@ -429,7 +434,8 @@ func TestRenderTemplate(t *testing.T) {
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
 		},
 		{
-			name: "render template with credentials",
+			name:        "render template with credentials",
+			pruneEnvVar: "disabled",
 			clusterState: []runtime.Object{
 				u,
 				makeTemplateConfigMap("template1",
@@ -457,10 +463,21 @@ func TestRenderTemplate(t *testing.T) {
 			},
 			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  name: boop\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
 		},
+		{
+			name:        "enable prune injections",
+			pruneEnvVar: "enabled",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n",
+		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			os.Setenv("INJECT_PRUNE_ANNOTATION", tt.pruneEnvVar)
+			defer os.Unsetenv("INJECT_PRUNE_ANNOTATION")
+
 			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
@@ -525,7 +542,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n",
 		},
 		{
 			name: "value contains non alphanumeric",
@@ -586,6 +603,7 @@ func TestCreatePullRequest(t *testing.T) {
 		name         string
 		clusterState []runtime.Object
 		provider     git.Provider
+		pruneEnvVar  string
 		req          *capiv1_protos.CreatePullRequestRequest
 		expected     string
 		err          error
@@ -638,7 +656,7 @@ func TestCreatePullRequest(t *testing.T) {
 				CommitMessage: "Add cluster manifest",
 			},
 			dbRows: 0,
-			err:    errors.New(`unable to create pull request and cluster rows for "cluster-template-1": oops`),
+			err:    errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
 		},
 		{
 			name: "create pull request",
@@ -1303,4 +1321,11 @@ func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) 
 		return nil, p.err
 	}
 	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
+}
+
+func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider, url string) (gitprovider.OrgRepository, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+	return nil, nil
 }
