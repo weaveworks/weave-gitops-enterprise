@@ -105,6 +105,7 @@ export type Template = {
   parameters?: Parameter[]
   objects?: TemplateObject[]
   error?: string
+  annotations?: {[key: string]: string}
 }
 
 export type Parameter = {

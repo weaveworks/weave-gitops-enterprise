@@ -292,10 +292,13 @@ func TestGetTemplate(t *testing.T) {
 		{
 			name: "1 parameter",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+				makeTemplateConfigMap("template1", makeTemplate(t, func(c *capiv1.CAPITemplate) {
+					c.Annotations = map[string]string{"hi": "there"}
+				})),
 			},
 			expected: &capiv1_protos.Template{
 				Name:        "cluster-template-1",
+				Annotations: map[string]string{"hi": "there"},
 				Description: "this is test template 1",
 				Provider:    "",
 				Objects: []*capiv1_protos.TemplateObject{
