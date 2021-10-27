@@ -1,7 +1,6 @@
 import React, {
   ChangeEvent,
   FC,
-  FormEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -9,14 +8,13 @@ import React, {
 } from 'react';
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
-import useCredentials from '../../../contexts/Credentials';
 import useNotifications from '../../../contexts/Notifications';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useParams } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { Button, Dropdown, DropdownItem } from 'weaveworks-ui-components';
+import { Button } from 'weaveworks-ui-components';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
 import { Input } from '../../../utils/form';
@@ -39,8 +37,9 @@ import {
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated } from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
-import TemplateFields from './Form/TemplateFields';
+import TemplateFields from './Form/Partials/TemplateFields';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
+import Credentials from './Form/Partials/Credentials';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -130,7 +129,6 @@ const useStyles = makeStyles(theme =>
 
 const AddCluster: FC = () => {
   const classes = useStyles();
-  const { credentials, loading, getCredential } = useCredentials();
   const {
     getTemplate,
     activeTemplate,
@@ -161,7 +159,6 @@ const AddCluster: FC = () => {
   const [pullRequestDescription, setPullRequestDescription] = useState<string>(
     'This PR creates a new cluster',
   );
-
   const rows = (PRPreview?.split('\n').length || 0) - 1;
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
@@ -178,28 +175,6 @@ const AddCluster: FC = () => {
     }
     return `${index + 1}.${object.kind}`;
   };
-
-  const credentialsItems: DropdownItem[] = useMemo(
-    () => [
-      ...credentials.map((credential: Credential) => {
-        const { kind, namespace, name } = credential;
-        return {
-          label: `${kind}/${namespace || 'default'}/${name}`,
-          value: name || '',
-        };
-      }),
-      { label: 'None', value: '' },
-    ],
-    [credentials],
-  );
-
-  const handleSelectCredentials = useCallback(
-    (event: FormEvent<HTMLInputElement>, value: string) => {
-      const credential = getCredential(value);
-      setInfraCredential(credential);
-    },
-    [getCredential],
-  );
 
   const onTemplateFieldsSubmit = useCallback(
     (formData: any, encodedProfiles: UpdatedProfile[]) => {
@@ -316,15 +291,7 @@ const AddCluster: FC = () => {
                 <div className="template-title">
                   Template: <span>{activeTemplate?.name}</span>
                 </div>
-                <div className="credentials">
-                  <span>Infrastructure provider credentials:</span>
-                  <Dropdown
-                    value={infraCredential?.name}
-                    disabled={loading}
-                    items={credentialsItems}
-                    onChange={handleSelectCredentials}
-                  />
-                </div>
+                <Credentials onSelect={setInfraCredential} />
               </CredentialsWrapper>
               <Divider
                 className={
@@ -435,21 +402,17 @@ const AddCluster: FC = () => {
     activeTemplate,
     clustersCount,
     classes,
-    handleAddCluster,
     openPreview,
     PRPreview,
     rows,
+    handleAddCluster,
     handleChangeBranchName,
     handleChangeCommitMessage,
     handleChangePullRequestTitle,
     handleChangePRDescription,
-    handleSelectCredentials,
     creatingPR,
     steps,
     activeStep,
-    credentialsItems,
-    loading,
-    infraCredential?.name,
     clickedStep,
     isLargeScreen,
     branchName,
