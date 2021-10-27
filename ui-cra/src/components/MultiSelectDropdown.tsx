@@ -34,11 +34,13 @@ const MultiSelectDropdown: FC<{
   const getItemsFromNames = (names: string[]) =>
     items.filter(item => names.find(name => item.name === name));
 
+  const getNamesFromItems = (items: any[]) => items.map(item => item.name);
+
   const handleChange = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
     if (value[value.length - 1] === 'all') {
       const selectedItems = selected.length === items.length ? [] : items;
-      setSelected(selectedItems);
+      setSelected(getNamesFromItems(selectedItems));
       onSelectItems(selectedItems);
       return;
     }

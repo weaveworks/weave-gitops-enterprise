@@ -111,9 +111,12 @@ const ProfilesList: FC<{
                 },
               ]);
             })
-            .catch(error =>
-              setNotifications([{ message: error.message, variant: 'danger' }]),
-            );
+            .catch(error => {
+              if (error.message !== 'The user aborted a request.')
+                setNotifications([
+                  { message: error.message, variant: 'danger' },
+                ]);
+            });
         }
       });
     } else {
