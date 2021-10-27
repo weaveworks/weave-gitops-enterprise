@@ -334,6 +334,9 @@ const AddCluster: FC = () => {
               <TemplateFields
                 activeTemplate={activeTemplate}
                 onSubmit={onTemplateFieldsSubmit}
+                activeStep={activeStep}
+                setActiveStep={setActiveStep}
+                clickedStep={clickedStep}
               />
               {openPreview ? (
                 <>

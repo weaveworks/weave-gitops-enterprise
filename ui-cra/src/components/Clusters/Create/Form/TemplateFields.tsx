@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useMemo, useState, Dispatch } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -46,14 +46,15 @@ const useStyles = makeStyles(theme =>
 const TemplateFields: FC<{
   activeTemplate: Template | null;
   onSubmit: (formData: any, encodedProfiles: UpdatedProfile[]) => void;
-}> = ({ activeTemplate, onSubmit }) => {
+  activeStep: string | undefined;
+  setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
+  clickedStep: string;
+}> = ({ activeTemplate, onSubmit, activeStep, setActiveStep, clickedStep }) => {
   const classes = useStyles();
   const { profiles } = useProfiles();
   const [formData, setFormData] = useState({});
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
-  const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
-  const [clickedStep, setClickedStep] = useState<string>('');
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -191,6 +192,7 @@ const TemplateFields: FC<{
     schema,
     uiSchema,
     activeStep,
+    setActiveStep,
     clickedStep,
     profiles,
     selectedProfiles,
