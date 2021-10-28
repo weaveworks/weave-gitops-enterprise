@@ -30,7 +30,7 @@ require (
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/libgitops v0.0.3
 	github.com/weaveworks/pctl v0.8.0
-	github.com/weaveworks/weave-gitops v0.3.3
+	github.com/weaveworks/weave-gitops v0.4.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
@@ -47,7 +47,7 @@ require (
 	k8s.io/client-go v0.22.2
 	k8s.io/kubernetes v1.21.1 // indirect
 	sigs.k8s.io/cluster-api v0.3.16
-	sigs.k8s.io/controller-runtime v0.9.6
+	sigs.k8s.io/controller-runtime v0.10.1
 	sigs.k8s.io/kustomize/kyaml v0.12.0
 )
 
@@ -98,10 +98,11 @@ require (
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc // indirect
 	github.com/fluxcd/helm-controller/api v0.11.2 // indirect
-	github.com/fluxcd/kustomize-controller/api v0.14.0 // indirect
+	github.com/fluxcd/kustomize-controller/api v0.16.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
 	github.com/fluxcd/pkg/apis/meta v0.10.1 // indirect
 	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
+	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
 	github.com/fluxcd/source-controller/api v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -254,7 +255,7 @@ require (
 	gorm.io/driver/postgres v1.0.5 // indirect
 	helm.sh/helm/v3 v3.7.1 // indirect
 	k8s.io/apiextensions-apiserver v0.22.2 // indirect
-	k8s.io/apiserver v0.22.1 // indirect
+	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/cluster-bootstrap v0.20.2 // indirect
 	k8s.io/component-base v0.22.2 // indirect
 	k8s.io/klog/v2 v2.10.0 // indirect
@@ -264,10 +265,10 @@ require (
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a // indirect
 	knative.dev/pkg v0.0.0-20210412173742-b51994e3b312 // indirect
 	oras.land/oras-go v0.4.0 // indirect
+	sigs.k8s.io/cli-utils v0.26.0 // indirect
 	sigs.k8s.io/kustomize/api v0.10.0 // indirect
-	sigs.k8s.io/kustomize/kstatus v0.0.2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
-	sigs.k8s.io/yaml v1.2.0 // indirect
+	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
 replace (

@@ -19,7 +19,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/weave-gitops v0.3.3
+	github.com/weaveworks/weave-gitops v0.4.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
 	github.com/xanzy/go-gitlab v0.43.0
@@ -33,14 +33,14 @@ require (
 	gorm.io/gorm v1.21.11
 	helm.sh/helm/v3 v3.7.1
 	k8s.io/api v0.22.2
-	k8s.io/apiextensions-apiserver v0.22.1
+	k8s.io/apiextensions-apiserver v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
 	k8s.io/klog/v2 v2.9.0
 	sigs.k8s.io/cluster-api v0.3.16
-	sigs.k8s.io/controller-runtime v0.9.6
+	sigs.k8s.io/controller-runtime v0.10.1
 	sigs.k8s.io/kustomize/kyaml v0.12.0
-	sigs.k8s.io/yaml v1.2.0
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -85,9 +85,10 @@ require (
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/fluxcd/kustomize-controller/api v0.14.0 // indirect
+	github.com/fluxcd/kustomize-controller/api v0.16.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
 	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
+	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
@@ -211,15 +212,15 @@ require (
 	gorm.io/datatypes v1.0.0 // indirect
 	gorm.io/driver/postgres v1.0.5 // indirect
 	gorm.io/driver/sqlite v1.1.4 // indirect
-	k8s.io/apiserver v0.22.1 // indirect
+	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/cli-runtime v0.22.1 // indirect
-	k8s.io/component-base v0.22.1 // indirect
+	k8s.io/component-base v0.22.2 // indirect
 	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
 	k8s.io/kubectl v0.22.1 // indirect
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a // indirect
 	oras.land/oras-go v0.4.0 // indirect
+	sigs.k8s.io/cli-utils v0.26.0 // indirect
 	sigs.k8s.io/kustomize/api v0.10.0 // indirect
-	sigs.k8s.io/kustomize/kstatus v0.0.2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
 )
 
