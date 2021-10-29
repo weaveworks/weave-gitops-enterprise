@@ -1117,23 +1117,6 @@ status: {}
 	assert.Equal(t, *file.Content, expected)
 }
 
-func createClient(clusterState ...runtime.Object) client.Client {
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		corev1.AddToScheme,
-		capiv1.AddToScheme,
-		sourcev1beta1.AddToScheme,
-	}
-	schemeBuilder.AddToScheme(scheme)
-
-	c := fake.NewClientBuilder().
-		WithScheme(scheme).
-		WithRuntimeObjects(clusterState...).
-		Build()
-
-	return c
-}
-
 func TestListCredentials(t *testing.T) {
 	u := &unstructured.Unstructured{}
 	u.Object = map[string]interface{}{
@@ -1207,6 +1190,23 @@ func TestListCredentials(t *testing.T) {
 			}
 		})
 	}
+}
+
+func createClient(clusterState ...runtime.Object) client.Client {
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		corev1.AddToScheme,
+		capiv1.AddToScheme,
+		sourcev1beta1.AddToScheme,
+	}
+	schemeBuilder.AddToScheme(scheme)
+
+	c := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(clusterState...).
+		Build()
+
+	return c
 }
 
 func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
