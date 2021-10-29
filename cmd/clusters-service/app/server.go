@@ -24,7 +24,10 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	wego_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc/metadata"
 	v1 "k8s.io/api/core/v1"
@@ -119,6 +122,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 	// Override logger to ensure consistency
 	appsConfig.Logger = log
 
+	// Setup the flux binary needed by some weave-gitops code endpoints like adding apps
+	flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithDatabase(db),
@@ -180,9 +186,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
 	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)
 
+	httpHandler := middleware.WithLogging(args.Log, mux)
+	httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)
+	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
+
 	s := &http.Server{
 		Addr:    addr,
-		Handler: entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, mux)),
+		Handler: httpHandler,
 	}
 
 	go func() {

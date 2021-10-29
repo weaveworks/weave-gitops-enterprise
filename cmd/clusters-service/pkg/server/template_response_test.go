@@ -80,6 +80,22 @@ metadata:
 			},
 		},
 		{
+			name: "annotations",
+			value: `
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  annotations:
+    hi: there
+  name: foo
+`,
+			expected: &capiv1_protos.Template{
+				Name:        "foo",
+				Provider:    "",
+				Annotations: map[string]string{"hi": "there"},
+			},
+		},
+		{
 			name:  "With basic type errors",
 			value: makeErrorTemplate(t, `"derp"`),
 			expected: &capiv1_protos.Template{

@@ -332,7 +332,7 @@ func DescribeCliHelp() {
 				})
 
 				By("Then I should see gitops error message", func() {
-					Eventually(session.Err).Should(gbytes.Say("error"))
+					Eventually(session.Err).Should(gbytes.Say("Error: template name is required"))
 				})
 			})
 

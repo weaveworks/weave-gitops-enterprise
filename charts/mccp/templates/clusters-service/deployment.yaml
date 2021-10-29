@@ -21,6 +21,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "mccp.serviceAccountName" . }}
+      initContainers:
+      - name: mount-flux-cli-bin
+        image: {{ .Values.fluxCli.image }}
+        command: ["cp", {{ .Values.fluxCli.binPath | quote }}, "/flux-cli/flux"]
+        volumeMounts:
+        - mountPath: /flux-cli
+          name: flux-cli-volume
       containers:
         - name: clusters-service
           image: {{ .Values.images.clustersService }}
@@ -29,6 +36,8 @@ spec:
           - configMapRef:
               name: {{ include "mccp.fullname" . }}-cluster-service
           env:
+            - name: WEAVE_GITOPS_FLUX_BIN_PATH
+              value: /flux-cli/flux
             - name: RUNTIME_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -57,13 +66,17 @@ spec:
                   name: mccp-db-credentials
                   key: password
             {{- end }}
-          {{- if eq .Values.dbConfig.databaseType "sqlite" }}
           volumeMounts:
+            - name: flux-cli-volume
+              mountPath: /flux-cli
+          {{- if eq .Values.dbConfig.databaseType "sqlite" }}
             - name: database-volume
               mountPath: /var/database
           {{- end }}
-      {{- if eq .Values.dbConfig.databaseType "sqlite" }}
       volumes:
+      - name: flux-cli-volume
+        emptyDir: {}
+      {{- if eq .Values.dbConfig.databaseType "sqlite" }}
       - name: database-volume
         {{- if .Values.dbConfig.sqliteConfig.persistentVolumeClaim.enabled }}
         persistentVolumeClaim:

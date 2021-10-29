@@ -174,11 +174,12 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "test-user"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/    
-    - name: Download gitops binary from GitHub
+    - name: Download gitops binary from s3
       run: |
         mkdir -p cmd/gitops/
-        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.3.2-rc/gitops-${{ matrix.os_name }}-x86_64
-        mv gitops-${{ matrix.os_name }}-x86_64 $GITOPS_BIN_PATH    
+        
+        wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ matrix.os }}
+        mv gitops-${{ matrix.os }} $GITOPS_BIN_PATH 
     - name: Download wk binary from s3
       run: |
         mkdir -p cmd/wk/
@@ -302,7 +303,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -351,11 +352,11 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "test-user"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/    
-    - name: Download gitops binary from GitHub
+    - name: Download gitops binary from s3
       run: |
         mkdir -p cmd/gitops/
-        wget https://github.com/weaveworks/weave-gitops/releases/download/v0.3.2-rc/gitops-${{ matrix.os_name }}-x86_64
-        mv gitops-${{ matrix.os_name }}-x86_64 $GITOPS_BIN_PATH    
+        wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ matrix.os }}
+        mv gitops-${{ matrix.os }} $GITOPS_BIN_PATH 
     - name: Download wk binary from s3
       run: |
         mkdir -p cmd/wk/

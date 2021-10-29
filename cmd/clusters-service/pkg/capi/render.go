@@ -13,6 +13,19 @@ import (
 // RenderOptFunc is a functional option for Rendering templates.
 type RenderOptFunc func(b []byte) ([]byte, error)
 
+func InjectPruneAnnotation() RenderOptFunc {
+	return unstructuredFunc(func(uns *unstructured.Unstructured) {
+		if uns.GetKind() != "Cluster" {
+			ann := uns.GetAnnotations()
+			if ann == nil {
+				ann = make(map[string]string)
+			}
+			ann["kustomize.toolkit.fluxcd.io/prune"] = "disabled"
+			uns.SetAnnotations(ann)
+		}
+	})
+}
+
 // InNamespace is a Render option that updates the object metadata to put it
 // into the correct namespace.
 func InNamespace(ns string) RenderOptFunc {
