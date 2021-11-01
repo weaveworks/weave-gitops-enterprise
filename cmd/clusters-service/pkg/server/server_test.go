@@ -1216,7 +1216,7 @@ func makeTestHelmRepository(base string, opts ...func(*sourcev1beta1.HelmReposit
 			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "weaveworks-charts",
+			Name:      "testing",
 			Namespace: "test-ns",
 		},
 		Spec: sourcev1beta1.HelmRepositorySpec{
