@@ -87,4 +87,12 @@ jobs:
         configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        fail_on_unmatched_files: true
+        body: ${{steps.github_release.outputs.changelog}}
+        
 
