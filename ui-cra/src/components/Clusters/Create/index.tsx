@@ -154,7 +154,10 @@ const AddCluster: FC = () => {
         },
         getProviderToken('github'),
       )
-        .then(() => history.push('/clusters'))
+        .then(() => {
+          setPRPreview(null);
+          history.push('/clusters');
+        })
         .catch(error => {
           if (isUnauthenticated(error.code)) {
             setShowAuthDialog(true);
@@ -170,6 +173,7 @@ const AddCluster: FC = () => {
       history,
       setNotifications,
       encodedProfiles,
+      setPRPreview,
     ],
   );
 
