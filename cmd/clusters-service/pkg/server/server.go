@@ -529,7 +529,11 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		Namespace: namespace,
 	}, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		s.log.Error(err, "cannot find Helm repository")
+		return &httpbody.HttpBody{
+			ContentType: "application/json",
+			Data:        []byte{},
+		}, nil
 	}
 
 	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
