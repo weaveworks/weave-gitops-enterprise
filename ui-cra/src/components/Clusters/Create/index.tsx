@@ -1,11 +1,4 @@
-import React, {
-  ChangeEvent,
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
@@ -14,10 +7,8 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useParams } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { Button } from 'weaveworks-ui-components';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
-import { Input } from '../../../utils/form';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import { FormStep } from './Form/Steps';
@@ -40,6 +31,7 @@ import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import Credentials from './Form/Partials/Credentials';
+import GitOps from './Form/Partials/GitOps';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -103,11 +95,6 @@ const useStyles = makeStyles(theme =>
       paddingTop: small,
       paddingBottom: base,
     },
-    createCTA: {
-      display: 'flex',
-      justifyContent: 'center',
-      paddingTop: base,
-    },
     steps: {
       display: 'flex',
       flexDirection: 'column',
@@ -140,25 +127,12 @@ const AddCluster: FC = () => {
     addCluster,
     setError,
   } = useTemplates();
-  const random = Math.random().toString(36).substring(7);
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
   const [encodedProfiles, setEncodedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [branchName, setBranchName] = useState<string>(
-    `create-clusters-branch-${random}`,
-  );
-  const [pullRequestTitle, setPullRequestTitle] = useState<string>(
-    'Creates capi cluster',
-  );
-  const [commitMessage, setCommitMessage] = useState<string>(
-    'Creates capi cluster',
-  );
-  const [pullRequestDescription, setPullRequestDescription] = useState<string>(
-    'This PR creates a new cluster',
-  );
   const rows = (PRPreview?.split('\n').length || 0) - 1;
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
@@ -187,66 +161,43 @@ const AddCluster: FC = () => {
     [setOpenPreview, setFormData, renderTemplate, infraCredential],
   );
 
-  const handleChangeBranchName = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
-    [],
-  );
-
-  const handleChangePullRequestTitle = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) =>
-      setPullRequestTitle(event.target.value),
-    [],
-  );
-
-  const handleChangeCommitMessage = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) =>
-      setCommitMessage(event.target.value),
-    [],
-  );
-
-  const handleChangePRDescription = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) =>
-      setPullRequestDescription(event.target.value),
-    [],
-  );
-
-  const handleAddCluster = useCallback(() => {
-    addCluster(
-      {
-        credentials: infraCredential,
-        head_branch: branchName,
-        title: pullRequestTitle,
-        description: pullRequestDescription,
-        template_name: activeTemplate?.name,
-        commit_message: commitMessage,
-        parameter_values: {
-          ...formData,
+  const handleAddCluster = useCallback(
+    (gitOps: {
+      head_branch: string;
+      title: string;
+      description: string;
+      commit_message: string;
+    }) =>
+      addCluster(
+        {
+          ...gitOps,
+          credentials: infraCredential,
+          template_name: activeTemplate?.name,
+          parameter_values: {
+            ...formData,
+          },
+          values: encodedProfiles,
         },
-        values: encodedProfiles,
-      },
-      getProviderToken('github'),
-    )
-      .then(() => history.push('/clusters'))
-      .catch(error => {
-        if (isUnauthenticated(error.code)) {
-          setShowAuthDialog(true);
-        } else {
-          setNotifications([{ message: error.message, variant: 'danger' }]);
-        }
-      });
-  }, [
-    addCluster,
-    formData,
-    branchName,
-    pullRequestTitle,
-    commitMessage,
-    activeTemplate?.name,
-    infraCredential,
-    pullRequestDescription,
-    history,
-    setNotifications,
-    encodedProfiles,
-  ]);
+        getProviderToken('github'),
+      )
+        .then(() => history.push('/clusters'))
+        .catch(error => {
+          if (isUnauthenticated(error.code)) {
+            setShowAuthDialog(true);
+          } else {
+            setNotifications([{ message: error.message, variant: 'danger' }]);
+          }
+        }),
+    [
+      addCluster,
+      formData,
+      activeTemplate?.name,
+      infraCredential,
+      history,
+      setNotifications,
+      encodedProfiles,
+    ],
+  );
 
   useEffect(() => {
     if (!activeTemplate) {
@@ -326,43 +277,13 @@ const AddCluster: FC = () => {
                           your git provider.
                         </span>
                       </FormStep>
-                      <FormStep
-                        title="GitOps"
-                        active={activeStep === 'GitOps'}
-                        clicked={clickedStep === 'GitOps'}
+                      <GitOps
+                        onSubmit={handleAddCluster}
+                        activeStep={activeStep}
                         setActiveStep={setActiveStep}
-                      >
-                        <Input
-                          label="Create branch"
-                          placeholder={branchName}
-                          onChange={handleChangeBranchName}
-                        />
-                        <Input
-                          label="Pull request title"
-                          placeholder={pullRequestTitle}
-                          onChange={handleChangePullRequestTitle}
-                        />
-                        <Input
-                          label="Commit message"
-                          placeholder={commitMessage}
-                          onChange={handleChangeCommitMessage}
-                        />
-                        <Input
-                          label="Pull request description"
-                          placeholder={pullRequestDescription}
-                          onChange={handleChangePRDescription}
-                          multiline
-                          rows={4}
-                        />
-                        <div
-                          className={classes.createCTA}
-                          onClick={handleAddCluster}
-                        >
-                          <Button onClick={() => setClickedStep('GitOps')}>
-                            Create Pull Request
-                          </Button>
-                        </div>
-                      </FormStep>
+                        clickedStep={clickedStep}
+                        setClickedStep={setClickedStep}
+                      />
                       {creatingPR && <Loader />}
                     </>
                   ) : (
@@ -406,19 +327,11 @@ const AddCluster: FC = () => {
     PRPreview,
     rows,
     handleAddCluster,
-    handleChangeBranchName,
-    handleChangeCommitMessage,
-    handleChangePullRequestTitle,
-    handleChangePRDescription,
     creatingPR,
     steps,
     activeStep,
     clickedStep,
     isLargeScreen,
-    branchName,
-    commitMessage,
-    pullRequestTitle,
-    pullRequestDescription,
     showAuthDialog,
     setNotifications,
     onTemplateFieldsSubmit,
