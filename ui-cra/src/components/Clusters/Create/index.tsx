@@ -38,7 +38,6 @@ const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
 const xs = weaveTheme.spacing.xs;
-const small = weaveTheme.spacing.small;
 
 const CredentialsWrapper = styled.div`
   display: flex;
@@ -71,24 +70,12 @@ const CredentialsWrapper = styled.div`
 
 const useStyles = makeStyles(theme =>
   createStyles({
-    form: {
-      paddingTop: base,
-    },
-    create: {
-      paddingTop: small,
-    },
     divider: {
       marginTop: medium,
       marginBottom: base,
     },
     largeDivider: {
       margin: `${large} 0`,
-    },
-    previewCTA: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      paddingTop: small,
-      paddingBottom: base,
     },
     steps: {
       display: 'flex',

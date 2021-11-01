@@ -21,7 +21,7 @@ import useProfiles from '../../../../../contexts/Profiles';
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
 
-const useStyles = makeStyles(theme =>
+const useStyles = makeStyles(() =>
   createStyles({
     form: {
       paddingTop: base,
@@ -34,11 +34,6 @@ const useStyles = makeStyles(theme =>
       justifyContent: 'flex-end',
       paddingTop: small,
       paddingBottom: base,
-    },
-    createCTA: {
-      display: 'flex',
-      justifyContent: 'center',
-      paddingTop: base,
     },
   }),
 );

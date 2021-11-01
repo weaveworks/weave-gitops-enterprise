@@ -2,6 +2,7 @@ import React, { FC, Dispatch } from 'react';
 import { FormStep } from '../Steps';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -22,7 +23,6 @@ const Preview: FC<{
   PRPreview: string;
 }> = ({ activeStep, setActiveStep, clickedStep, PRPreview }) => {
   const classes = useStyles();
-  const rows = (PRPreview?.split('\n').length || 0) - 1;
 
   return (
     <FormStep
@@ -31,9 +31,8 @@ const Preview: FC<{
       clicked={clickedStep === 'Preview'}
       setActiveStep={setActiveStep}
     >
-      <textarea
+      <TextareaAutosize
         className={classes.textarea}
-        rows={rows}
         value={PRPreview}
         readOnly
       />
