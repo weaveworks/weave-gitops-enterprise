@@ -29,24 +29,16 @@ const ProfilesProvider: FC = ({ children }) => {
       .finally(() => setLoading(false));
   }, [setNotifications]);
 
-  const getProfileYaml = useCallback(
-    (profile: Profile, signal: AbortSignal) => {
-      setLoading(true);
-      const version =
-        profile.availableVersions[profile.availableVersions.length - 1];
-      return request(
-        'GET',
-        `${profilesUrl}/${profile.name}/${version}/values`,
-        {
-          signal,
-          headers: {
-            Accept: 'application/octet-stream',
-          },
-        },
-      ).finally(() => setLoading(false));
-    },
-    [],
-  );
+  const getProfileYaml = useCallback((profile: Profile) => {
+    setLoading(true);
+    const version =
+      profile.availableVersions[profile.availableVersions.length - 1];
+    return request('GET', `${profilesUrl}/${profile.name}/${version}/values`, {
+      headers: {
+        Accept: 'application/octet-stream',
+      },
+    }).finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     getProfiles();
