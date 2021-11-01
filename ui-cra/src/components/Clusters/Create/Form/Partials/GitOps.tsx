@@ -76,7 +76,13 @@ const GitOps: FC<{
       description: pullRequestDescription,
       commit_message: commitMessage,
     });
-  }, []);
+  }, [
+    branchName,
+    pullRequestTitle,
+    pullRequestDescription,
+    commitMessage,
+    onSubmit,
+  ]);
 
   return (
     <FormStep
