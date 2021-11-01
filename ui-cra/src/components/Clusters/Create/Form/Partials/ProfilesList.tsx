@@ -8,12 +8,12 @@ import React, {
 } from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
-import { Profile, UpdatedProfile } from '../../../types/custom';
+import { Profile, UpdatedProfile } from '../../../../../types/custom';
 import Box from '@material-ui/core/Box';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import useProfiles from './../../../contexts/Profiles';
-import useNotifications from './../../../contexts/Notifications';
+import useProfiles from '../../../../../contexts/Profiles';
+import useNotifications from '../../../../../contexts/Notifications';
 import {
   Dialog,
   DialogContent,
@@ -22,12 +22,12 @@ import {
   TextareaAutosize,
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
-import { CloseIconButton } from '../../../assets/img/close-icon-button';
-import { Loader } from '../../Loader';
-import { OnClickAction } from '../../Action';
+import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
+import { Loader } from '../../../../Loader';
+import { OnClickAction } from '../../../../Action';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Button from '@material-ui/core/Button';
-import { GitOpsBlue } from './../../../muiTheme';
+import { GitOpsBlue } from '../../../../../muiTheme';
 
 const xs = weaveTheme.spacing.xs;
 

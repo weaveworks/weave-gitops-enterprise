@@ -69,20 +69,22 @@ const GitOps: FC<{
     [],
   );
 
-  const handleGitOps = useCallback(() => {
-    onSubmit({
-      head_branch: branchName,
-      title: pullRequestTitle,
-      description: pullRequestDescription,
-      commit_message: commitMessage,
-    });
-  }, [
-    branchName,
-    pullRequestTitle,
-    pullRequestDescription,
-    commitMessage,
-    onSubmit,
-  ]);
+  const handleGitOps = useCallback(
+    () =>
+      onSubmit({
+        head_branch: branchName,
+        title: pullRequestTitle,
+        description: pullRequestDescription,
+        commit_message: commitMessage,
+      }),
+    [
+      branchName,
+      pullRequestTitle,
+      pullRequestDescription,
+      commitMessage,
+      onSubmit,
+    ],
+  );
 
   return (
     <FormStep

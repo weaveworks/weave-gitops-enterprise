@@ -11,7 +11,6 @@ import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
-import { FormStep } from './Form/Steps';
 import FormStepsNavigation from './Form/StepsNavigation';
 import {
   Credential,
@@ -32,6 +31,7 @@ import TemplateFields from './Form/Partials/TemplateFields';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import Credentials from './Form/Partials/Credentials';
 import GitOps from './Form/Partials/GitOps';
+import Preview from './Form/Partials/Preview';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -84,11 +84,6 @@ const useStyles = makeStyles(theme =>
     largeDivider: {
       margin: `${large} 0`,
     },
-    textarea: {
-      width: '100%',
-      padding: xs,
-      border: '1px solid #E5E5E5',
-    },
     previewCTA: {
       display: 'flex',
       justifyContent: 'flex-end',
@@ -103,13 +98,6 @@ const useStyles = makeStyles(theme =>
         height: 0,
       },
       paddingRight: xxs,
-    },
-    errorMessage: {
-      margin: `${weaveTheme.spacing.medium} 0`,
-      padding: weaveTheme.spacing.small,
-      border: '1px solid #E6E6E6',
-      borderRadius: weaveTheme.borderRadius.soft,
-      color: weaveTheme.colors.orange600,
     },
   }),
 );
@@ -133,7 +121,6 @@ const AddCluster: FC = () => {
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const rows = (PRPreview?.split('\n').length || 0) - 1;
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
   const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
@@ -260,23 +247,12 @@ const AddCluster: FC = () => {
                 <>
                   {PRPreview ? (
                     <>
-                      <FormStep
-                        title="Preview"
-                        active={activeStep === 'Preview'}
-                        clicked={clickedStep === 'Preview'}
+                      <Preview
+                        PRPreview={PRPreview}
+                        activeStep={activeStep}
                         setActiveStep={setActiveStep}
-                      >
-                        <textarea
-                          className={classes.textarea}
-                          rows={rows}
-                          value={PRPreview}
-                          readOnly
-                        />
-                        <span>
-                          You may edit these as part of the pull request with
-                          your git provider.
-                        </span>
-                      </FormStep>
+                        clickedStep={clickedStep}
+                      />
                       <GitOps
                         onSubmit={handleAddCluster}
                         activeStep={activeStep}
@@ -325,8 +301,6 @@ const AddCluster: FC = () => {
     classes,
     openPreview,
     PRPreview,
-    rows,
-    handleAddCluster,
     creatingPR,
     steps,
     activeStep,
@@ -335,6 +309,7 @@ const AddCluster: FC = () => {
     showAuthDialog,
     setNotifications,
     onTemplateFieldsSubmit,
+    handleAddCluster,
   ]);
 };
 

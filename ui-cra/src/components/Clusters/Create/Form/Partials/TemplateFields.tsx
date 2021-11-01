@@ -15,7 +15,7 @@ import * as Grouped from '../GroupedSchema';
 import * as UiTemplate from '../UITemplate';
 import FormSteps, { FormStep } from '../Steps';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
-import ProfilesList from '../../ProfilesList';
+import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
 
 const base = weaveTheme.spacing.base;
