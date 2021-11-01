@@ -5,7 +5,7 @@ interface ProfilesContext {
   profiles: Profile[] | [];
   loading: boolean;
   getProfile: (name: string) => Profile | null;
-  getProfileYaml: (profile: Profile, signal: AbortSignal) => Promise<any>;
+  getProfileYaml: (profile: Profile) => Promise<any>;
 }
 
 export const Profiles = createContext<ProfilesContext | null>(null);

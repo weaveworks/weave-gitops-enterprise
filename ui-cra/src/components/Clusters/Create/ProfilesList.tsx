@@ -89,15 +89,13 @@ const ProfilesList: FC<{
   useEffect(() => {
     const isProfileUpdated = (profile: Profile) =>
       updatedProfiles.filter(p => p.name === profile.name).length !== 0;
-    const controller = new AbortController();
-    const signal = controller.signal;
     if (
       selectedProfiles.length === updatedProfiles.length ||
       selectedProfiles.length > updatedProfiles.length
     ) {
       selectedProfiles.forEach(profile => {
         if (!isProfileUpdated(profile)) {
-          getProfileYaml(profile, signal)
+          getProfileYaml(profile)
             .then(data => {
               setUpdatedProfiles([
                 ...updatedProfiles,
@@ -111,12 +109,9 @@ const ProfilesList: FC<{
                 },
               ]);
             })
-            .catch(error => {
-              if (error.message !== 'The user aborted a request.')
-                setNotifications([
-                  { message: error.message, variant: 'danger' },
-                ]);
-            });
+            .catch(error =>
+              setNotifications([{ message: error.message, variant: 'danger' }]),
+            );
         }
       });
     } else {
@@ -129,7 +124,6 @@ const ProfilesList: FC<{
       );
     }
     onProfilesUpdate(updatedProfiles);
-    return () => controller.abort();
   }, [
     getProfileYaml,
     selectedProfiles,
