@@ -505,7 +505,10 @@ func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesR
 		Namespace: namespace,
 	}, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		s.log.Error(err, "cannot find Helm repository")
+		return &capiv1_proto.GetProfilesResponse{
+			Profiles: []*capiv1_proto.Profile{},
+		}, nil
 	}
 
 	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
