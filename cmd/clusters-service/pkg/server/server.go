@@ -428,7 +428,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		msg.Title = fmt.Sprintf("PR to delete clusters: %s", msg.ClusterNames)
 	}
 	if msg.Description == "" {
-		msg.Description = fmt.Sprintf("Pull request to delete clusters: %s", msg.ClusterNames)
+		msg.Description = fmt.Sprintf("Pull request to delete clusters: %s", strings.Join(msg.ClusterNames, ", "))
 	}
 	if msg.CommitMessage == "" {
 		msg.CommitMessage = "Remove clusters files"
