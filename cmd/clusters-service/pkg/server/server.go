@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -219,16 +220,16 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		baseBranch = msg.BaseBranch
 	}
 	if msg.HeadBranch == "" {
-		msg.HeadBranch = fmt.Sprintf("create-cluster-%s", msg.ParameterValues["CLUSTER_NAME"])
+		msg.HeadBranch = getHash(msg.RepositoryUrl, msg.ParameterValues["CLUSTER_NAME"], msg.BaseBranch)
 	}
 	if msg.Title == "" {
-		msg.Title = fmt.Sprintf("PR to create cluster %s", msg.ParameterValues["CLUSTER_NAME"])
+		msg.Title = fmt.Sprintf("Gitops add cluster %s", msg.ParameterValues["CLUSTER_NAME"])
 	}
 	if msg.Description == "" {
 		msg.Description = fmt.Sprintf("Pull request to create cluster %s", msg.ParameterValues["CLUSTER_NAME"])
 	}
 	if msg.CommitMessage == "" {
-		msg.CommitMessage = "Add cluster files"
+		msg.CommitMessage = "Add Cluster Manifests"
 	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
@@ -422,16 +423,17 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	}
 
 	if msg.HeadBranch == "" {
-		msg.HeadBranch = fmt.Sprintf("delete-cluster-%s", strings.Join(msg.ClusterNames, "-"))
+		clusters := strings.Join(msg.ClusterNames, "")
+		msg.HeadBranch = getHash(msg.RepositoryUrl, clusters, msg.BaseBranch)
 	}
 	if msg.Title == "" {
-		msg.Title = fmt.Sprintf("PR to delete clusters: %s", msg.ClusterNames)
+		msg.Title = fmt.Sprintf("Gitops delete clusters: %s", msg.ClusterNames)
 	}
 	if msg.Description == "" {
 		msg.Description = fmt.Sprintf("Pull request to delete clusters: %s", strings.Join(msg.ClusterNames, ", "))
 	}
 	if msg.CommitMessage == "" {
-		msg.CommitMessage = "Remove clusters files"
+		msg.CommitMessage = "Remove Clusters Manifests"
 	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
@@ -487,6 +489,11 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
 		WebUrl: pullRequestURL,
 	}, nil
+}
+
+func getHash(inputs ...string) string {
+	final := []byte(strings.Join(inputs, ""))
+	return fmt.Sprintf("wego-%x", md5.Sum(final))
 }
 
 func getToken(ctx context.Context) (string, error) {
