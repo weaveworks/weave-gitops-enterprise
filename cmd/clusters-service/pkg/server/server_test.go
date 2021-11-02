@@ -1135,7 +1135,6 @@ func TestGetProfiles(t *testing.T) {
 		},
 		{
 			name:     "without helm repo",
-			err:      errors.New("cannot find Helm repository"),
 			expected: []*capiv1_protos.Profile{},
 		},
 	}
