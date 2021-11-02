@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState, Dispatch } from 'react';
+import React, { FC, useMemo, useState, Dispatch, useEffect } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -17,6 +17,7 @@ import FormSteps, { FormStep } from '../Steps';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
+import useTemplates from '../../../../../contexts/Templates';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -59,7 +60,9 @@ const TemplateFields: FC<{
 }) => {
   const classes = useStyles();
   const { profiles } = useProfiles();
+  const { getDefaultProfiles } = useTemplates();
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
+  const [defaultProfiles, setDefaultProfiles] = useState<UpdatedProfile[]>([]);
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -130,6 +133,10 @@ const TemplateFields: FC<{
       ),
     };
   }, [sections]);
+
+  useEffect(() => {
+    activeTemplate && setDefaultProfiles(getDefaultProfiles(activeTemplate));
+  }, [activeTemplate, getDefaultProfiles]);
 
   return (
     <Form

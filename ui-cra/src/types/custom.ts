@@ -20,6 +20,7 @@ export type Template = {
   objects?: TemplateObject[];
   error?: string;
   provider?: string;
+  annotations?: string[];
 };
 
 export type ListTemplatesResponse = {

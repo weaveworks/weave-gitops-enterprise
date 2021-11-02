@@ -1,5 +1,5 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { Template } from '../../types/custom';
+import { Template, UpdatedProfile } from '../../types/custom';
 
 interface TemplatesContext {
   templates: Template[] | [];
@@ -14,6 +14,7 @@ interface TemplatesContext {
   setPRPreview: Dispatch<React.SetStateAction<string | null>>;
   creatingPR: boolean;
   setError: Dispatch<React.SetStateAction<string | null>>;
+  getDefaultProfiles: (template: Template) => UpdatedProfile[];
 }
 
 export const Templates = createContext<TemplatesContext | null>(null);
