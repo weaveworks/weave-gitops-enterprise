@@ -104,7 +104,7 @@ const AddCluster: FC = () => {
   } = useTemplates();
   const clustersCount = useClusters().count;
   const [formData, setFormData] = useState({});
-  const [encodedProfiles, setEncodedProfiles] = useState<UpdatedProfile[]>([]);
+  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -125,14 +125,25 @@ const AddCluster: FC = () => {
   };
 
   const onTemplateFieldsSubmit = useCallback(
-    (formData: any, encodedProfiles: UpdatedProfile[]) => {
+    (formData: any) => {
       setFormData(formData);
-      setEncodedProfiles(encodedProfiles);
       setOpenPreview(true);
       setClickedStep('Preview');
       renderTemplate({ values: formData, credentials: infraCredential });
     },
     [setOpenPreview, setFormData, renderTemplate, infraCredential],
+  );
+
+  const encodedProfiles = useCallback(
+    (profiles: UpdatedProfile[]) =>
+      profiles?.map(profile => {
+        return {
+          name: profile.name,
+          version: profile.version,
+          values: btoa(profile.values),
+        };
+      }),
+    [],
   );
 
   const handleAddCluster = useCallback(
@@ -150,7 +161,7 @@ const AddCluster: FC = () => {
           parameter_values: {
             ...formData,
           },
-          values: encodedProfiles,
+          values: encodedProfiles(updatedProfiles),
         },
         getProviderToken('github'),
       )
@@ -174,6 +185,7 @@ const AddCluster: FC = () => {
       setNotifications,
       encodedProfiles,
       setPRPreview,
+      updatedProfiles,
     ],
   );
 
@@ -229,10 +241,11 @@ const AddCluster: FC = () => {
               />
               <TemplateFields
                 activeTemplate={activeTemplate}
-                onSubmit={onTemplateFieldsSubmit}
                 activeStep={activeStep}
                 setActiveStep={setActiveStep}
                 clickedStep={clickedStep}
+                onProfilesUpdate={setUpdatedProfiles}
+                onSubmit={onTemplateFieldsSubmit}
               />
               {openPreview ? (
                 <>

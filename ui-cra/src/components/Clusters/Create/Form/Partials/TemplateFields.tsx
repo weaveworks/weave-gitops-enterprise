@@ -17,7 +17,6 @@ import FormSteps, { FormStep } from '../Steps';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
-import useTemplates from '../../../../../contexts/Templates';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -41,17 +40,23 @@ const useStyles = makeStyles(() =>
 
 const TemplateFields: FC<{
   activeTemplate: Template | null;
-  onSubmit: (formData: any, encodedProfiles: UpdatedProfile[]) => void;
+  onSubmit: (formData: any) => void;
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
-}> = ({ activeTemplate, onSubmit, activeStep, setActiveStep, clickedStep }) => {
+  onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
+}> = ({
+  activeTemplate,
+  onSubmit,
+  activeStep,
+  setActiveStep,
+  clickedStep,
+  onProfilesUpdate,
+}) => {
   const classes = useStyles();
   const { profiles } = useProfiles();
-  const { PRPreview } = useTemplates();
   const [formData, setFormData] = useState({});
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
-  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -59,18 +64,6 @@ const TemplateFields: FC<{
     }
     return `${index + 1}.${object.kind}`;
   };
-
-  const encodedProfiles = useCallback(
-    (profiles: UpdatedProfile[]) =>
-      profiles?.map(profile => {
-        return {
-          name: profile.name,
-          version: profile.version,
-          values: btoa(profile.values),
-        };
-      }),
-    [],
-  );
 
   const required = useMemo(() => {
     return activeTemplate?.parameters?.map(param => param.name);
@@ -138,83 +131,50 @@ const TemplateFields: FC<{
   const handleSubmit = useCallback(
     (event: ISubmitEvent<any>) => {
       setFormData(event.formData);
-      onSubmit(event.formData, encodedProfiles(updatedProfiles));
+      onSubmit(event.formData);
     },
-    [encodedProfiles, onSubmit, updatedProfiles],
+    [onSubmit],
   );
 
-  const handleProfilesUpdate = useCallback(
-    (updatedProfiles: UpdatedProfile[]) => {
-      setUpdatedProfiles(updatedProfiles);
-      PRPreview && onSubmit(formData, encodedProfiles(updatedProfiles));
-    },
-    [encodedProfiles, onSubmit, PRPreview, formData],
-  );
-
-  console.log(updatedProfiles);
-
-  return useMemo(() => {
-    return (
-      <Form
-        className={classes.form}
-        schema={schema as JSONSchema7}
-        onChange={({ formData }) => {
-          console.log(formData);
-          setFormData(formData);
-          // only resubmit data if changes are made after the initial submit / the PR Preview is first generated
-          PRPreview && onSubmit(formData, encodedProfiles(updatedProfiles));
-        }}
-        formData={formData}
-        onSubmit={handleSubmit}
-        onError={() => console.log('errors')}
-        uiSchema={uiSchema}
-        formContext={{
-          templates: FormSteps,
-          clickedStep,
-          setActiveStep,
-        }}
-        {...UiTemplate}
+  return (
+    <Form
+      className={classes.form}
+      schema={schema as JSONSchema7}
+      onChange={({ formData }) => setFormData(formData)}
+      formData={formData}
+      onSubmit={handleSubmit}
+      onError={() => console.log('errors')}
+      uiSchema={uiSchema}
+      formContext={{
+        templates: FormSteps,
+        clickedStep,
+        setActiveStep,
+      }}
+      {...UiTemplate}
+    >
+      <FormStep
+        title="Profiles"
+        active={activeStep === 'Profiles'}
+        clicked={clickedStep === 'Profiles'}
+        setActiveStep={setActiveStep}
       >
-        <FormStep
-          title="Profiles"
-          active={activeStep === 'Profiles'}
-          clicked={clickedStep === 'Profiles'}
-          setActiveStep={setActiveStep}
-        >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span>Select profiles:&nbsp;</span>
-            <MultiSelectDropdown
-              items={profiles}
-              onSelectItems={setSelectedProfiles}
-            />
-          </div>
-          <ProfilesList
-            selectedProfiles={selectedProfiles}
-            onProfilesUpdate={handleProfilesUpdate}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <span>Select profiles:&nbsp;</span>
+          <MultiSelectDropdown
+            items={profiles}
+            onSelectItems={setSelectedProfiles}
           />
-          <div className={classes.previewCTA}>
-            <Button>Preview PR</Button>
-          </div>
-        </FormStep>
-      </Form>
-    );
-  }, [
-    classes,
-    formData,
-    schema,
-    uiSchema,
-    activeStep,
-    setActiveStep,
-    clickedStep,
-    profiles,
-    selectedProfiles,
-    handleSubmit,
-    encodedProfiles,
-    onSubmit,
-    updatedProfiles,
-    PRPreview,
-    handleProfilesUpdate,
-  ]);
+        </div>
+        <ProfilesList
+          selectedProfiles={selectedProfiles}
+          onProfilesUpdate={onProfilesUpdate}
+        />
+        <div className={classes.previewCTA}>
+          <Button>Preview PR</Button>
+        </div>
+      </FormStep>
+    </Form>
+  );
 };
 
 export default TemplateFields;
