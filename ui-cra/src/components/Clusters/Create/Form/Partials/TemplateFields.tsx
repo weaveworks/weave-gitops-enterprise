@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState, Dispatch } from 'react';
+import React, { FC, useMemo, useState, Dispatch } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -8,7 +8,7 @@ import {
   TemplateObject,
   UpdatedProfile,
 } from '../../../../../types/custom';
-import { ISubmitEvent, ObjectFieldTemplateProps } from '@rjsf/core';
+import { ObjectFieldTemplateProps } from '@rjsf/core';
 import { JSONSchema7 } from 'json-schema';
 import Form from '@rjsf/material-ui';
 import * as Grouped from '../GroupedSchema';
@@ -40,22 +40,25 @@ const useStyles = makeStyles(() =>
 
 const TemplateFields: FC<{
   activeTemplate: Template | null;
-  onSubmit: (formData: any) => void;
+  onPRPreview: () => void;
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
   onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
+  onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
+  formData: any;
 }> = ({
   activeTemplate,
-  onSubmit,
+  onPRPreview,
   activeStep,
   setActiveStep,
   clickedStep,
   onProfilesUpdate,
+  formData,
+  onFormDataUpdate,
 }) => {
   const classes = useStyles();
   const { profiles } = useProfiles();
-  const [formData, setFormData] = useState({});
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
 
   const objectTitle = (object: TemplateObject, index: number) => {
@@ -128,21 +131,13 @@ const TemplateFields: FC<{
     };
   }, [sections]);
 
-  const handleSubmit = useCallback(
-    (event: ISubmitEvent<any>) => {
-      setFormData(event.formData);
-      onSubmit(event.formData);
-    },
-    [onSubmit],
-  );
-
   return (
     <Form
       className={classes.form}
       schema={schema as JSONSchema7}
-      onChange={({ formData }) => setFormData(formData)}
+      onChange={({ formData }) => onFormDataUpdate(formData)}
       formData={formData}
-      onSubmit={handleSubmit}
+      onSubmit={onPRPreview}
       onError={() => console.log('errors')}
       uiSchema={uiSchema}
       formContext={{

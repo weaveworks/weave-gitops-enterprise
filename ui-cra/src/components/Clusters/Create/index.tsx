@@ -124,15 +124,11 @@ const AddCluster: FC = () => {
     return `${index + 1}.${object.kind}`;
   };
 
-  const onTemplateFieldsSubmit = useCallback(
-    (formData: any) => {
-      setFormData(formData);
-      setOpenPreview(true);
-      setClickedStep('Preview');
-      renderTemplate({ values: formData, credentials: infraCredential });
-    },
-    [setOpenPreview, setFormData, renderTemplate, infraCredential],
-  );
+  const handlePRPreview = useCallback(() => {
+    setOpenPreview(true);
+    setClickedStep('Preview');
+    renderTemplate({ values: formData, credentials: infraCredential });
+  }, [formData, setOpenPreview, renderTemplate, infraCredential]);
 
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
@@ -244,8 +240,10 @@ const AddCluster: FC = () => {
                 activeStep={activeStep}
                 setActiveStep={setActiveStep}
                 clickedStep={clickedStep}
+                formData={formData}
+                onFormDataUpdate={setFormData}
                 onProfilesUpdate={setUpdatedProfiles}
-                onSubmit={onTemplateFieldsSubmit}
+                onPRPreview={handlePRPreview}
               />
               {openPreview ? (
                 <>
@@ -300,6 +298,7 @@ const AddCluster: FC = () => {
       </PageTemplate>
     );
   }, [
+    formData,
     activeTemplate,
     clustersCount,
     classes,
@@ -312,7 +311,7 @@ const AddCluster: FC = () => {
     isLargeScreen,
     showAuthDialog,
     setNotifications,
-    onTemplateFieldsSubmit,
+    handlePRPreview,
     handleAddCluster,
   ]);
 };
