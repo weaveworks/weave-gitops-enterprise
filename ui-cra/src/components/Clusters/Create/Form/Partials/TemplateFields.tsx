@@ -17,6 +17,7 @@ import FormSteps, { FormStep } from '../Steps';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
+import useTemplates from '../../../../../contexts/Templates';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -47,6 +48,7 @@ const TemplateFields: FC<{
 }> = ({ activeTemplate, onSubmit, activeStep, setActiveStep, clickedStep }) => {
   const classes = useStyles();
   const { profiles } = useProfiles();
+  const { PRPreview } = useTemplates();
   const [formData, setFormData] = useState({});
   const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
@@ -141,12 +143,27 @@ const TemplateFields: FC<{
     [encodedProfiles, onSubmit, updatedProfiles],
   );
 
+  const handleProfilesUpdate = useCallback(
+    (updatedProfiles: UpdatedProfile[]) => {
+      setUpdatedProfiles(updatedProfiles);
+      PRPreview && onSubmit(formData, encodedProfiles(updatedProfiles));
+    },
+    [encodedProfiles, onSubmit, PRPreview, formData],
+  );
+
+  console.log(updatedProfiles);
+
   return useMemo(() => {
     return (
       <Form
         className={classes.form}
         schema={schema as JSONSchema7}
-        onChange={({ formData }) => setFormData(formData)}
+        onChange={({ formData }) => {
+          console.log(formData);
+          setFormData(formData);
+          // only resubmit data if changes are made after the initial submit / the PR Preview is first generated
+          PRPreview && onSubmit(formData, encodedProfiles(updatedProfiles));
+        }}
         formData={formData}
         onSubmit={handleSubmit}
         onError={() => console.log('errors')}
@@ -173,7 +190,7 @@ const TemplateFields: FC<{
           </div>
           <ProfilesList
             selectedProfiles={selectedProfiles}
-            onProfilesUpdate={setUpdatedProfiles}
+            onProfilesUpdate={handleProfilesUpdate}
           />
           <div className={classes.previewCTA}>
             <Button>Preview PR</Button>
@@ -192,6 +209,11 @@ const TemplateFields: FC<{
     profiles,
     selectedProfiles,
     handleSubmit,
+    encodedProfiles,
+    onSubmit,
+    updatedProfiles,
+    PRPreview,
+    handleProfilesUpdate,
   ]);
 };
 

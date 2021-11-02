@@ -1,6 +1,5 @@
 import React, {
   ChangeEvent,
-  Dispatch,
   FC,
   useCallback,
   useEffect,
@@ -55,7 +54,7 @@ const useStyles = makeStyles(theme => ({
 
 const ProfilesList: FC<{
   selectedProfiles: Profile[];
-  onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
+  onProfilesUpdate: (updatedProfiles: UpdatedProfile[]) => void;
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
   const { getProfileYaml, loading } = useProfiles();
