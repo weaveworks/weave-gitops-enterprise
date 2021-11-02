@@ -218,6 +218,18 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
 	}
+	if msg.HeadBranch == "" {
+		msg.HeadBranch = fmt.Sprintf("create-cluster-%s", msg.ParameterValues["CLUSTER_NAME"])
+	}
+	if msg.Title == "" {
+		msg.Title = fmt.Sprintf("PR to create cluster %s", msg.ParameterValues["CLUSTER_NAME"])
+	}
+	if msg.Description == "" {
+		msg.Description = fmt.Sprintf("Pull request to create cluster %s", msg.ParameterValues["CLUSTER_NAME"])
+	}
+	if msg.CommitMessage == "" {
+		msg.CommitMessage = "Add cluster files"
+	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
@@ -409,6 +421,18 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		})
 	}
 
+	if msg.HeadBranch == "" {
+		msg.HeadBranch = fmt.Sprintf("delete-cluster-%s", strings.Join(msg.ClusterNames, "-"))
+	}
+	if msg.Title == "" {
+		msg.Title = fmt.Sprintf("PR to delete clusters: %s", msg.ClusterNames)
+	}
+	if msg.Description == "" {
+		msg.Description = fmt.Sprintf("Pull request to delete clusters: %s", msg.ClusterNames)
+	}
+	if msg.CommitMessage == "" {
+		msg.CommitMessage = "Remove clusters files"
+	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
@@ -604,22 +628,6 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
 	}
 
-	if msg.HeadBranch == "" {
-		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
-	}
-
-	if msg.Title == "" {
-		err = multierror.Append(err, fmt.Errorf("title must be specified"))
-	}
-
-	if msg.Description == "" {
-		err = multierror.Append(err, fmt.Errorf("description must be specified"))
-	}
-
-	if msg.CommitMessage == "" {
-		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
-	}
-
 	return err
 }
 
@@ -665,22 +673,6 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 
 	if msg.ClusterNames == nil {
 		err = multierror.Append(err, fmt.Errorf("at least one cluster name must be specified"))
-	}
-
-	if msg.HeadBranch == "" {
-		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
-	}
-
-	if msg.Title == "" {
-		err = multierror.Append(err, fmt.Errorf("title must be specified"))
-	}
-
-	if msg.Description == "" {
-		err = multierror.Append(err, fmt.Errorf("description must be specified"))
-	}
-
-	if msg.CommitMessage == "" {
-		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
 	}
 
 	return err

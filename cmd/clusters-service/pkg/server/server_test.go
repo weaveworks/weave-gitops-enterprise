@@ -615,7 +615,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name:   "validation errors",
 			req:    &capiv1_protos.CreatePullRequestRequest{},
-			err:    errors.New("6 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			err:    errors.New("2 errors occurred:\ntemplate name must be specified\nparameter values must be specified"),
 			dbRows: 0,
 		},
 		{
@@ -811,7 +811,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		{
 			name: "validation errors",
 			req:  &capiv1_protos.DeleteClustersPullRequestRequest{},
-			err:  errors.New("5 errors occurred:\nat least one cluster name must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			err:  errors.New("at least one cluster name must be specified"),
 		},
 		{
 			name:     "cluster does not exist",
