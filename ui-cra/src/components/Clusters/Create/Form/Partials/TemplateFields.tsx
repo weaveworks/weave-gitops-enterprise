@@ -3,7 +3,6 @@ import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import {
-  Profile,
   Template,
   TemplateObject,
   UpdatedProfile,
@@ -59,7 +58,9 @@ const TemplateFields: FC<{
 }) => {
   const classes = useStyles();
   const { updatedProfiles } = useProfiles();
-  const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
+  const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
+    [],
+  );
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -131,6 +132,11 @@ const TemplateFields: FC<{
     };
   }, [sections]);
 
+  const handleSelectProfiles = (profiles: UpdatedProfile[]) => {
+    setSelectedProfiles(profiles);
+    onProfilesUpdate(profiles);
+  };
+
   return (
     <Form
       className={classes.form}
@@ -157,12 +163,12 @@ const TemplateFields: FC<{
           <span>Select profiles:&nbsp;</span>
           <MultiSelectDropdown
             items={updatedProfiles}
-            onSelectItems={setSelectedProfiles}
+            onSelectItems={handleSelectProfiles}
           />
         </div>
         <ProfilesList
           selectedProfiles={selectedProfiles}
-          onProfilesUpdate={onProfilesUpdate}
+          onProfilesUpdate={handleSelectProfiles}
         />
         <div className={classes.previewCTA}>
           <Button>Preview PR</Button>

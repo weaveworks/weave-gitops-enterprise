@@ -49,9 +49,6 @@ const ProfilesProvider: FC = ({ children }) => {
 
   const getProfileYaml = useCallback((profile: Profile) => {
     setLoading(true);
-
-    // console.log(profile);
-
     const version =
       profile.availableVersions[profile.availableVersions.length - 1];
     return request('GET', `${profilesUrl}/${profile.name}/${version}/values`, {

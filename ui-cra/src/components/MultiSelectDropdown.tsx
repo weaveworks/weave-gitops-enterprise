@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, useState } from 'react';
+import React, { FC, useState } from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -6,7 +6,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { Profile } from '../types/custom';
 import { GitOpsBlue } from './../muiTheme';
 
 const useStyles = makeStyles(theme => ({
@@ -25,9 +24,8 @@ const useStyles = makeStyles(theme => ({
 
 const MultiSelectDropdown: FC<{
   items: any[];
-  onSelectItems: Dispatch<React.SetStateAction<Profile[]>>;
+  onSelectItems: (items: any[]) => void;
 }> = ({ items, onSelectItems }) => {
-  console.log(items);
   const classes = useStyles();
   const [selected, setSelected] = useState<any[]>([]);
   const isAllSelected = items.length > 0 && selected.length === items.length;
