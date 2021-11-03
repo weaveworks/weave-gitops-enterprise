@@ -20,7 +20,6 @@
 /cmd/ui-server/ui-server
 /cmd/update-manifest/update-manifest
 /cmd/wk/wk
-/cmd/mccp/mccp
 /cmd/wks-ci/checks/policy/policy
 /cmd/wks-ci/wks-ci
 /cmd/wks-controller/controller

@@ -72,10 +72,14 @@ var _ = BeforeSuite(func() {
 
 	SetDefaultEventuallyTimeout(ASSERTION_DEFAULT_TIME_OUT) //Things are slow on WKP UI
 
-	gitProvider = "github" //TODO - Read from config.yaml
-	seleniumServiceUrl = "http://localhost:4444/wd/hub"
+	SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
+	GIT_PROVIDER = os.Getenv("GIT_PROVIDER")
 	GITHUB_ORG = os.Getenv("GITHUB_ORG")
+	GITHUB_TOKEN = os.Getenv("PCTL_BIN_PATH")
 	CLUSTER_REPOSITORY = os.Getenv("CLUSTER_REPOSITORY")
+
+	DOCKER_IO_USER = os.Getenv("DOCKER_IO_USER")
+	DOCKER_IO_PASSWORD = os.Getenv("DOCKER_IO_PASSWORD")
 })
 
 var _ = AfterSuite(func() {

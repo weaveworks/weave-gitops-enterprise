@@ -121,11 +121,7 @@ all: $(UPTODATE_FILES) binaries
 
 check: all lint unit-tests
 
-LOCAL_BINARIES = \
-	cmd/mccp/mccp
-
 BINARIES = \
-	$(LOCAL_BINARIES) \
 	cmd/gitops-repo-broker/gitops-repo-broker \
 	cmd/ui-server/ui-server \
 	cmd/wkp-agent/wkp-agent \
@@ -140,17 +136,12 @@ cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/
 cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
 cmd/wkp-agent/.uptodate: cmd/wkp-agent/wkp-agent cmd/wkp-agent/Dockerfile
 
-cmd/mccp/mccp: cmd/mccp/*.go
-
 cmd/gitops-repo-broker/gitops-repo-broker: $(call godeps,./cmd/gitops-repo-broker)
 cmd/ui-server/ui-server: cmd/ui-server/*.go
 
 cmd/ui-server/html: ui-cra/build
 	mkdir -p $@
 	cp -r ui-cra/build $@/mccp
-
-cmd/mccp/mccp:
-	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/pkg/version.Version=$(VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ cmd/mccp/*.go
 
 cmd/gitops-repo-broker/gitops-repo-broker:
 	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
@@ -186,9 +177,6 @@ unit-tests: $(GENERATED)
 ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout 
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install && yarn build
-
-install: $(LOCAL_BINARIES)
-	cp $(LOCAL_BINARIES) `go env GOPATH`/bin
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true

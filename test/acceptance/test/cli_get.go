@@ -30,7 +30,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService()
+				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			})
 		})
 
@@ -367,7 +367,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				By("And gitops state is reset", func() {
 					_ = gitopsTestRunner.ResetDatabase()
 					gitopsTestRunner.VerifyWegoPodsRunning()
-					gitopsTestRunner.CheckClusterService()
+					gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 				})
 
 				By(fmt.Sprintf("Then I run 'gitops get cluster --endpoint %s'", CAPI_ENDPOINT_URL), func() {
