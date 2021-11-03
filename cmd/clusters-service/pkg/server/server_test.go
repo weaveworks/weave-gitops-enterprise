@@ -1118,6 +1118,50 @@ status: {}
 	assert.Equal(t, *file.Content, expected)
 }
 
+func TestGetProfiles(t *testing.T) {
+	testCases := []struct {
+		name             string
+		clusterState     []runtime.Object
+		expected         []*capiv1_protos.Profile
+		err              error
+		expectedErrorStr string
+	}{
+		{
+			name: "with helm repo",
+			clusterState: []runtime.Object{
+				makeTestHelmRepository("base"),
+			},
+			expected: []*capiv1_protos.Profile{},
+		},
+		{
+			name:     "without helm repo",
+			expected: []*capiv1_protos.Profile{},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+
+			getProfilesRequest := new(capiv1_protos.GetProfilesRequest)
+
+			getProfilesResponse, err := s.GetProfiles(context.Background(), getProfilesRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to get the profiles:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("failed to get the profiles:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, getProfilesResponse.Profiles, protocmp.Transform()); diff != "" {
+					t.Fatalf("profiles didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
 func createClient(clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
