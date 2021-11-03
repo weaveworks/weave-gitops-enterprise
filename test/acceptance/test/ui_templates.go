@@ -62,9 +62,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService()
+				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			})
-			initializeWebdriver()
+			initializeWebdriver(GetWGEUrl())
 		})
 
 		AfterEach(func() {
@@ -915,7 +915,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
-				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
+				RemoveGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
 
 				gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -943,7 +943,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I install gitops to my active cluster", func() {
 					Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
-					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
+					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				addCommand := fmt.Sprintf("app add . --path=./management  --name=%s  --auto-merge=true", appName)

@@ -262,7 +262,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			By("Given Kubernetes cluster is setup", func() {
 				//TODO - Verify that cluster is up and running using kubectl
 			})
-			initializeWebdriver()
+			initializeWebdriver(GetWGEUrl())
 		})
 
 		AfterEach(func() {
@@ -277,7 +277,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			By("And wego enterprise state is reset", func() {
 				_ = gitopsTestRunner.ResetDatabase()
 				gitopsTestRunner.VerifyWegoPodsRunning()
-				gitopsTestRunner.CheckClusterService()
+				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 			})
 
@@ -303,7 +303,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			By("And should have No alerts firing message", func() {
-				Expect(webDriver.Navigate(GetWkpUrl() + "/clusters/alerts")).To(Succeed())
+				Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
 				Eventually(clustersPage.NoFiringAlertMessage).Should(HaveText("No alerts firing"))
 			})
 
@@ -447,14 +447,14 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			_ = gitopsTestRunner.ResetDatabase()
 			gitopsTestRunner.VerifyWegoPodsRunning()
-			gitopsTestRunner.CheckClusterService()
+			gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
-			Expect(webDriver.Navigate(GetWkpUrl() + "/clusters/alerts")).To(Succeed())
+			Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
 			Eventually(clustersPage.NoFiringAlertMessage).Should(BeFound())
 
-			Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
+			Expect(webDriver.Navigate(GetWGEUrl())).To(Succeed())
 			Eventually(clustersPage.NoClusterConfigured).Should(HaveText("No clusters configured"))
 
 			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
@@ -464,7 +464,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			severity := [3]string{"critical", "warning", "critical"}
 
 			By("when I navigate to the alerts page..", func() {
-				Expect(webDriver.Navigate(GetWkpUrl() + "/clusters/alerts")).To(Succeed())
+				Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
 			})
 
 			By("And when a critical alert fires", func() {
@@ -558,19 +558,19 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			}
 			_ = gitopsTestRunner.ResetDatabase()
 			gitopsTestRunner.VerifyWegoPodsRunning()
-			gitopsTestRunner.CheckClusterService()
+			gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
 
-			Expect(webDriver.Navigate(GetWkpUrl() + "/clusters/alerts")).To(Succeed())
+			Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
 			Eventually(clustersPage.NoFiringAlertMessage).Should(BeFound())
 
-			Expect(webDriver.Navigate(GetWkpUrl())).To(Succeed())
+			Expect(webDriver.Navigate(GetWGEUrl())).To(Succeed())
 			Eventually(clustersPage.NoClusterConfigured).Should(HaveText("No clusters configured"))
 			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
-			Expect(webDriver.Navigate(GetWkpUrl() + "/clusters/alerts")).To(Succeed())
+			Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
 
 			alert := "MyAlert"
 			message := "My Critical Alert"

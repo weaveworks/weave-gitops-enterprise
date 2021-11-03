@@ -31,7 +31,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService()
+				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			})
 		})
 
@@ -427,7 +427,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			JustBeforeEach(func() {
 				log.Println("Connecting cluster to itself")
-				initializeWebdriver()
+				initializeWebdriver(GetWGEUrl())
 				leaf := LeafSpec{
 					Status:          "Ready",
 					IsWKP:           false,
@@ -438,7 +438,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			JustAfterEach(func() {
-				removeGitopsCapiClusters(appName, capdClusterNames, GITOPS_DEFAULT_NAMESPACE)
+				RemoveGitopsCapiClusters(appName, capdClusterNames, GITOPS_DEFAULT_NAMESPACE)
 
 				gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -465,7 +465,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I install gitops to my active cluster", func() {
 					Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
-					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
+					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				addCommand := fmt.Sprintf("app add . --path=./management  --name=%s  --auto-merge=true", appName)

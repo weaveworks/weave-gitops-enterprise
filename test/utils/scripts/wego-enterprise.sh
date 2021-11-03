@@ -37,9 +37,6 @@ function setup {
       gcloud compute firewall-rules create nats-node-port --allow tcp:${NATS_NODEPORT}
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
     fi
-
-  elif [ "$MANAGEMENT_CLUSTER_KIND" == "GKE" ]; then
-    echo "GKE"
   else
   # MANAGEMENT_CLUSTER_KIND is a KIND cluster
     if [ "$(uname -s)" == "Linux" ]; then
