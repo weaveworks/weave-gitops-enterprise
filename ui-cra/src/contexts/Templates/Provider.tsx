@@ -21,20 +21,6 @@ const TemplatesProvider: FC = ({ children }) => {
   const getTemplate = (templateName: string) =>
     templates.find(template => template.name === templateName) || null;
 
-  const getDefaultProfiles = (template: Template) => {
-    if (template?.annotations) {
-      const annotations = Object.entries(template?.annotations);
-      const defaultProfiles = [];
-      for (const [key, value] of annotations) {
-        if (key.includes('capi.weave.works/profile')) {
-          defaultProfiles.push(JSON.parse(value));
-        }
-      }
-      return defaultProfiles;
-    }
-    return [];
-  };
-
   const renderTemplate = useCallback(
     data => {
       setLoading(true);
@@ -90,7 +76,6 @@ const TemplatesProvider: FC = ({ children }) => {
         PRPreview,
         setPRPreview,
         creatingPR,
-        getDefaultProfiles,
       }}
     >
       {children}

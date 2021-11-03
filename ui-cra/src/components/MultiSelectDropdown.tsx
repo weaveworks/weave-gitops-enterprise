@@ -27,6 +27,7 @@ const MultiSelectDropdown: FC<{
   items: any[];
   onSelectItems: Dispatch<React.SetStateAction<Profile[]>>;
 }> = ({ items, onSelectItems }) => {
+  console.log(items);
   const classes = useStyles();
   const [selected, setSelected] = useState<any[]>([]);
   const isAllSelected = items.length > 0 && selected.length === items.length;
