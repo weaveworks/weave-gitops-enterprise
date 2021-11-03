@@ -662,7 +662,7 @@ func (b RealGitopsTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAd
 
 func GitUpdateCommitPush(repoAbsolutePath string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m 'edit repo file' && git pull --rebase && git push origin HEAD", repoAbsolutePath))
 }
 
 func GitSetUpstream(repoAbsolutePath string, upstreamBranch string) {
@@ -719,7 +719,7 @@ func (b RealGitopsTestRunner) MergePullRequest(repoAbsolutePath string, prBranch
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
 							git checkout main &&
-							git pull &&
+							git pull --no-ff &&
                             git merge --no-ff --no-edit origin/%s &&
 							git push origin main`, repoAbsolutePath, prBranch))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -1008,8 +1008,8 @@ func InstallAndVerifyPctl(gitopsNamespace string) {
 func RemoveGitopsCapiClusters(appName string, clusternames []string, nameSpace string) {
 	GITOPS_BIN_PATH := GetGitopsBinPath()
 
-	command := "app pause management"
-	By(fmt.Sprintf("And I run gitops app pause command '%s'", command), func() {
+	command := "suspend app management"
+	By(fmt.Sprintf("And I run gitops suspend app command '%s'", command), func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, command))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -1018,8 +1018,8 @@ func RemoveGitopsCapiClusters(appName string, clusternames []string, nameSpace s
 
 	deleteClusters("capi", clusternames)
 
-	command = "app remove " + appName
-	By(fmt.Sprintf("And I run gitops app remove command '%s'", command), func() {
+	command = "delete app " + appName
+	By(fmt.Sprintf("And I run gitops delete app command '%s'", command), func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, command))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())

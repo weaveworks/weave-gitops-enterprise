@@ -374,7 +374,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					output := session.Wait().Out.Contents()
 
 					// Verifying cluster object of the template for added credential reference
-					re := regexp.MustCompile(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterStaticIdentity\s+name: aws-test-identity`, awsClusterName))
+					re := regexp.MustCompile(fmt.Sprintf(`kind: AWSCluster\s+metadata:[\s\w\d-.:/]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterStaticIdentity\s+name: aws-test-identity`, awsClusterName))
 
 					Eventually((re.Find(output))).ShouldNot(BeNil(), "Failed to find identity reference in preview pull request AWSCluster object")
 				})
@@ -423,6 +423,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
 			appName := "management"
+			appPath := "./management"
 			capdClusterNames := []string{"cli-end-to-end-capd-cluster-1", "cli-end-to-end-capd-cluster-2"}
 
 			JustBeforeEach(func() {
@@ -438,6 +439,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			JustAfterEach(func() {
+				// Force delete capicluster incase delete PR fails to delete to free resources
 				RemoveGitopsCapiClusters(appName, capdClusterNames, GITOPS_DEFAULT_NAMESPACE)
 
 				gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
@@ -468,12 +470,13 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
 				})
 
-				addCommand := fmt.Sprintf("app add . --path=./management  --name=%s  --auto-merge=true", appName)
-				By(fmt.Sprintf("And I run gitops app add command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
+				addCommand := fmt.Sprintf("add app . --path=./management  --name=%s  --auto-merge=true", appName)
+				By(fmt.Sprintf("And I run gitops add app command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
 					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
 					Eventually(session).Should(gexec.Exit())
+					Expect(string(session.Err.Contents())).Should(BeEmpty())
 				})
 
 				By("And I install Docker provider infrastructure", func() {
@@ -520,6 +523,13 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 						re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName))
 						Eventually((re.Find(output))).ShouldNot(BeNil())
+					})
+
+					By("And I add a test kustomization file to the pull request (needs it because flux doesn't work with empty folders on deletion)", func() {
+						gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
+						_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
+						GitSetUpstream(repoAbsolutePath, prBranch)
+						GitUpdateCommitPush(repoAbsolutePath)
 					})
 
 					By("Then I should merge the pull request to start cluster provisioning", func() {
@@ -617,9 +627,16 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					Eventually(output).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName2)))
 				})
 
-				// By("Then I should merge the delete pull request to delete cluster", func() {
-				// 	gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
-				// })
+				By("Then I should merge the delete pull request to delete cluster", func() {
+					gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				})
+
+				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
+					clusterFound := func() error {
+						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
+					}
+					Eventually(clusterFound, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+				})
 			})
 		})
 	})
