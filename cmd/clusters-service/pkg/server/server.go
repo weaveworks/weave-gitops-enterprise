@@ -693,7 +693,7 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 }
 
 func getClusterPathInRepo(clusterName string) string {
-	return fmt.Sprintf("management/%s.yaml", clusterName)
+	return fmt.Sprintf(".wego/apps/capi/%s.yaml", clusterName)
 }
 
 func isMissingVariableError(err error) (string, bool) {
