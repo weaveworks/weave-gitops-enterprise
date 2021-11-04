@@ -319,7 +319,7 @@ const AddCluster: FC = () => {
 };
 
 const AddClusterWithCredentials = () => (
-  <Compose components={[ProfilesProvider, CredentialsProvider]}>
+  <Compose components={[CredentialsProvider]}>
     <AddCluster />
   </Compose>
 );

@@ -57,6 +57,31 @@ const ProfilesProvider: FC = ({ children }) => {
     }).finally(() => setLoading(false));
   }, []);
 
+  const getProfileValues = useCallback(
+    (optionalProfiles: Profile[]) => {
+      const optionalProfilesWithValues = [] as UpdatedProfile[];
+
+      optionalProfiles.forEach(profile =>
+        getProfileYaml(profile)
+          .then(data =>
+            optionalProfilesWithValues.push({
+              name: profile.name,
+              version:
+                profile.availableVersions[profile.availableVersions.length - 1],
+              values: data.message,
+              required: false,
+            }),
+          )
+          .catch(error =>
+            setNotifications([{ message: error.message, variant: 'danger' }]),
+          ),
+      );
+
+      return optionalProfilesWithValues;
+    },
+    [getProfileYaml, setNotifications],
+  );
+
   useEffect(() => {
     getProfiles();
     return history.listen(getProfiles);
@@ -88,37 +113,19 @@ const ProfilesProvider: FC = ({ children }) => {
           ),
       ) || [];
 
-    const isProfileUpdated = (profile: Profile) =>
-      updatedProfiles.filter(p => p.name === profile.name).length !== 0;
+    console.log(profiles);
 
-    const optionalProfilesWithValues = [] as UpdatedProfile[];
-
-    optionalProfiles.forEach(profile => {
-      if (!isProfileUpdated(profile)) {
-        getProfileYaml(profile)
-          .then(data =>
-            optionalProfilesWithValues.push({
-              name: profile.name,
-              version:
-                profile.availableVersions[profile.availableVersions.length - 1],
-              values: data.message,
-              required: false,
-            }),
-          )
-          .catch(error =>
-            setNotifications([{ message: error.message, variant: 'danger' }]),
-          );
-      }
-    });
-
-    console.log(validDefaultProfiles);
-    console.log(optionalProfilesWithValues);
+    setUpdatedProfiles([
+      ...validDefaultProfiles,
+      ...getProfileValues(optionalProfiles),
+    ]);
   }, [
+    profiles,
     activeTemplate,
     getProfileYaml,
-    profiles,
     setNotifications,
-    updatedProfiles,
+    getProfileValues,
+    history,
   ]);
 
   return (
