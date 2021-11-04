@@ -109,13 +109,6 @@ jobs:
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
-    - uses: satackey/action-docker-layer-caching@v0.0.11
-      # Ignore the failure of a step and avoid terminating the job.
-      continue-on-error: true
-      with:
-        key: docker-cache-clusters-service-{hash}
-        restore-keys: |
-          docker-cache-clusters-service-
     - name: build
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
@@ -146,13 +139,6 @@ jobs:
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
-    - uses: satackey/action-docker-layer-caching@v0.0.11
-      # Ignore the failure of a step and avoid terminating the job.
-      continue-on-error: true
-      with:
-        key: docker-cache-event-writer-{hash}
-        restore-keys: |
-          docker-cache-event-writer-
     - name: build
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
