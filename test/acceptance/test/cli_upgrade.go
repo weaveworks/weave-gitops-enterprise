@@ -122,12 +122,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
-				addCommand := fmt.Sprintf("app add . --path=./%s  --name=%s  --auto-merge=true", appPath, appName)
-				By(fmt.Sprintf("And I run gitops app add command ' %s 'in namespace %s from dir %s", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
+				addCommand := fmt.Sprintf("add app . --path=./%s  --name=%s  --auto-merge=true", appPath, appName)
+				By(fmt.Sprintf("And I run gitops add app command ' %s 'in namespace %s from dir %s", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
 					Eventually(session).Should(gexec.Exit())
+					Expect(string(session.Err.Contents())).Should(BeEmpty())
 				})
 
 				By("And I install the entitlement for cluster upgrade", func() {
@@ -151,12 +152,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				upgradeCommand := fmt.Sprintf("upgrade --git-repository %s/%s --pr-branch %s --out %s", GITOPS_DEFAULT_NAMESPACE, appName, prBranch, appPath)
+				upgradeCommand := fmt.Sprintf("upgrade --git-repository %s/%s --branch %s --out %s", GITOPS_DEFAULT_NAMESPACE, appName, prBranch, appPath)
 				By(fmt.Sprintf("And I run gitops upgrade command ' %s ' form firectory %s", upgradeCommand, repoAbsolutePath), func() {
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, upgradeCommand))
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
 					Eventually(session).Should(gexec.Exit())
+					Expect(string(session.Err.Contents())).Should(BeEmpty())
 				})
 
 				By("Then I should see pull request created to management cluster", func() {
