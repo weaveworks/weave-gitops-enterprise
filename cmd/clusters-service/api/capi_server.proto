@@ -77,8 +77,8 @@ service ClustersService {
         get: "/v1/profiles"
       };
     }
-  // GetProfileVersionValues returns a list of profiles
-  // from the cluster.
+  // GetProfileValues returns a list of values for 
+  // a given version of a profile from the cluster.
   rpc GetProfileValues(GetProfileValuesRequest)
   returns (google.api.HttpBody){
     option (google.api.http) = {

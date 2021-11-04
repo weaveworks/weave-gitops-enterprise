@@ -406,6 +406,7 @@ func TestRenderTemplate(t *testing.T) {
 	testCases := []struct {
 		name             string
 		pruneEnvVar      string
+		clusterNamespace string
 		clusterState     []runtime.Object
 		expected         string
 		err              error
@@ -413,17 +414,19 @@ func TestRenderTemplate(t *testing.T) {
 		credentials      *capiv1_protos.Credential
 	}{
 		{
-			name:        "render template",
-			pruneEnvVar: "disabled",
+			name:             "render template",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
 			// some client might send empty credentials objects
-			name:        "render template with empty credentials",
-			pruneEnvVar: "disabled",
+			name:             "render template with empty credentials",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
@@ -434,11 +437,12 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "",
 				Namespace: "",
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
-			name:        "render template with credentials",
-			pruneEnvVar: "disabled",
+			name:             "render template with credentials",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				u,
 				makeTemplateConfigMap("template1",
@@ -464,15 +468,16 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "cred-name",
 				Namespace: "cred-namespace",
 			},
-			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  name: boop\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
+			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  name: boop\n  namespace: test-ns\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
 		},
 		{
-			name:        "enable prune injections",
-			pruneEnvVar: "enabled",
+			name:             "enable prune injections",
+			pruneEnvVar:      "enabled",
+			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("template1", makeTemplate(t)),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 	}
 
@@ -480,6 +485,8 @@ func TestRenderTemplate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Setenv("INJECT_PRUNE_ANNOTATION", tt.pruneEnvVar)
 			defer os.Unsetenv("INJECT_PRUNE_ANNOTATION")
+			os.Setenv("CAPI_CLUSTERS_NAMESPACE", tt.clusterNamespace)
+			defer os.Unsetenv("CAPI_CLUSTERS_NAMESPACE")
 
 			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
 

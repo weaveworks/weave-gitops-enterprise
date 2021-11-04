@@ -13,6 +13,8 @@ import (
 // RenderOptFunc is a functional option for Rendering templates.
 type RenderOptFunc func(b []byte) ([]byte, error)
 
+// InjectPruneAnnotation injects an annotation on everything but Cluster objects
+// to instruct flux *not* to prune these objects.
 func InjectPruneAnnotation() RenderOptFunc {
 	return unstructuredFunc(func(uns *unstructured.Unstructured) {
 		if uns.GetKind() != "Cluster" {
