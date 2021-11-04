@@ -271,11 +271,9 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should see error message for invalid provider", func() {
-					output := session.Wait().Out.Contents()
-					re := regexp.MustCompile(`error:\s+.+provider \\"foobar\\" is not recognised.+`)
-					Eventually((re.Match(output))).Should(BeTrue())
+					output := session.Wait().Err.Contents()
+					Eventually(output).Should(MatchRegexp(`Error:\s+provider "foobar" is not valid.*`))
 				})
-
 			})
 
 			It("Verify gitops can list template parameters of a template from template library", func() {
