@@ -514,7 +514,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the manifests are present in the cluster config repository", func() {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
-					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/.weave-gitops/apps/capi/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})

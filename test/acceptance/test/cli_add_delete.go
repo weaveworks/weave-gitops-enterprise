@@ -249,7 +249,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the capd manifest is present in the cluster config repository", func() {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, capdPRBranch)
-					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, capdClusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/.weave-gitops/apps/capi/%s.yaml", repoAbsolutePath, capdClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 
