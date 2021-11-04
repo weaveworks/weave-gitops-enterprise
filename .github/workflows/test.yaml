@@ -96,8 +96,6 @@ jobs:
 
   build-cluster-service:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
     steps:
     - name: Configure git for private modules
       env:
@@ -126,8 +124,6 @@ jobs:
 
   build-event-writer:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
     steps:
     - name: Configure git for private modules
       env:
@@ -158,47 +154,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       YARN_CACHE_NAME: cache-yarn
-    steps:
-    - id: cache-paths
-      run: |
-        echo "::set-output name=dir::$(yarn cache dir)"
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
-    - name: Yarn Cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ steps.cache-paths.outputs.dir }}
-        key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
-    - name: build
-      env:
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: |
-        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/ui-server/.uptodate
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        registry: docker.io
-        username: ${{ secrets.WGE_DOCKER_IO_USER }}
-        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-    - name: Push images to docker registry
-      run: |
-        docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
-
-  build:
-    runs-on: ubuntu-latest
-    env:
-      GO_CACHE_NAME: cache-go-modules
-      YARN_CACHE_NAME: cache-yarn
-      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
     steps:
     - id: cache-paths
       run: |
@@ -235,6 +190,54 @@ jobs:
         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+    - name: build
+      env:
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: |
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/ui-server/.uptodate
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      run: |
+        docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GO_CACHE_NAME: cache-go-modules
+    steps:
+    - id: cache-paths
+      run: |
+        echo "::set-output name=dir::$(yarn cache dir)"
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.cache-paths.outputs.go-build }}
+          ${{ steps.cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
     - name: Build all the services
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
@@ -391,7 +394,7 @@ jobs:
        
   smoke-tests:
     runs-on: ubuntu-latest
-    needs: [build, build-cluster-service, build-event-writer]
+    needs: [build, build-cluster-service, build-event-writer, build-ui-server]
     timeout-minutes: 60
     env:
       GO_CACHE_NAME: cache-go-modules
@@ -494,7 +497,7 @@ jobs:
 
   acceptance-tests:
     runs-on: ubuntu-latest
-    needs: [lint, build, build-cluster-service, build-event-writer, unit-tests, integration-tests, ui-integration-tests]
+    needs: [lint, build, build-cluster-service, build-event-writer, build-ui-server, unit-tests, integration-tests, ui-integration-tests]
     timeout-minutes: 90
     env:
       GO_CACHE_NAME: cache-go-modules
