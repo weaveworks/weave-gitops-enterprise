@@ -256,8 +256,6 @@ const AddCluster: FC = () => {
     [],
   );
 
-  // console.log(updatedProfiles);
-
   const handleAddCluster = useCallback(() => {
     addCluster(
       {
@@ -443,7 +441,7 @@ const AddCluster: FC = () => {
                     <span>Select profiles:&nbsp;</span>
                     <MultiSelectDropdown
                       items={profiles}
-                      onSelectProfiles={setSelectedProfiles}
+                      onSelectItems={setSelectedProfiles}
                     />
                   </div>
                   <ProfilesList
