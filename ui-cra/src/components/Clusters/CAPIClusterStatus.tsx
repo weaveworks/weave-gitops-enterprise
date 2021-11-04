@@ -17,6 +17,7 @@ import styled from 'styled-components';
 import { CAPICluster } from '../../types/kubernetes';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import useClusters from './../../contexts/Clusters';
+import { GitOpsBlue } from './../../muiTheme';
 
 // styles
 
@@ -29,7 +30,7 @@ const useStyles = makeStyles(() =>
       marginTop: `${weaveTheme.spacing.medium}`,
     },
     downloadBtn: {
-      color: '#00B3EC',
+      color: GitOpsBlue,
       padding: '0px',
     },
   }),

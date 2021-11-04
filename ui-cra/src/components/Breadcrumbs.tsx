@@ -5,6 +5,8 @@ import { transparentize } from 'polished';
 import { ReactComponent as BreadcrumbDivider } from '../assets/img/breadcrumb-divider.svg';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { GitOpsBlue } from './../muiTheme';
+
 interface Size {
   size?: 'small';
 }
@@ -35,7 +37,7 @@ export const Count = styled.div<Size>`
   align-self: center;
   font-size: ${({ size }) =>
     size === 'small' ? weaveTheme.spacing.small : weaveTheme.fontSizes.normal};
-  color: #00b3ec;
+  color: ${GitOpsBlue};
   margin-left: ${weaveTheme.spacing.xxs};
   border-radius: ${weaveTheme.borderRadius.soft};
 `;
