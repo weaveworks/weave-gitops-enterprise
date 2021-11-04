@@ -29,7 +29,7 @@ const ProfilesProvider: FC = ({ children }) => {
       .finally(() => setLoading(false));
   }, [setNotifications]);
 
-  const renderProfile = useCallback((profile: Profile) => {
+  const getProfileYaml = useCallback((profile: Profile) => {
     setLoading(true);
     const version =
       profile.availableVersions[profile.availableVersions.length - 1];
@@ -51,7 +51,7 @@ const ProfilesProvider: FC = ({ children }) => {
         profiles,
         loading,
         getProfile,
-        renderProfile,
+        getProfileYaml,
       }}
     >
       {children}
