@@ -193,6 +193,7 @@ jobs:
     - name: build
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       run: |
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/ui-server/.uptodate
     - name: Login to Docker Hub
