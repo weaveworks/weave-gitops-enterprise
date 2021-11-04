@@ -14,6 +14,7 @@ import (
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+
 	tempDir, err := os.MkdirTemp("", "*")
 	if err != nil {
 		stdlog.Fatalf("Failed to create a temp directory for Helm: %v", err)
