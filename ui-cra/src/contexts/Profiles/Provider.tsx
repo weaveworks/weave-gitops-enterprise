@@ -9,7 +9,6 @@ import useTemplates from './../Templates';
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [defaultProfiles, setDefaultProfiles] = useState<UpdatedProfile[]>([]);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
@@ -27,7 +26,7 @@ const ProfilesProvider: FC = ({ children }) => {
       const defaultProfiles = [];
       for (const [key, value] of annotations) {
         if (key.includes('capi.weave.works/profile')) {
-          defaultProfiles.push(JSON.parse(value));
+          defaultProfiles.push({ ...JSON.parse(value), required: true });
         }
       }
       return defaultProfiles;
@@ -60,35 +59,67 @@ const ProfilesProvider: FC = ({ children }) => {
 
   useEffect(() => {
     getProfiles();
-    activeTemplate && setDefaultProfiles(getDefaultProfiles(activeTemplate));
     return history.listen(getProfiles);
   }, [history, getProfiles, activeTemplate]);
 
   useEffect(() => {
+    const defaultProfiles =
+      activeTemplate && getDefaultProfiles(activeTemplate);
+
+    const validDefaultProfiles =
+      defaultProfiles?.filter(profile =>
+        profiles.find(
+          p =>
+            profile.name === p.name &&
+            profile.version ===
+              p.availableVersions[p.availableVersions.length - 1],
+        ),
+      ) || [];
+
+    const optionalProfiles =
+      profiles?.filter(
+        profile =>
+          !validDefaultProfiles.find(
+            p =>
+              profile.name === p.name &&
+              profile.availableVersions[
+                profile.availableVersions.length - 1
+              ] === p.version,
+          ),
+      ) || [];
+
     const isProfileUpdated = (profile: Profile) =>
       updatedProfiles.filter(p => p.name === profile.name).length !== 0;
-    profiles.forEach(profile => {
+
+    const optionalProfilesWithValues = [] as UpdatedProfile[];
+
+    optionalProfiles.forEach(profile => {
       if (!isProfileUpdated(profile)) {
         getProfileYaml(profile)
-          .then(data => {
-            setUpdatedProfiles([
-              ...updatedProfiles,
-              {
-                name: profile.name,
-                version:
-                  profile.availableVersions[
-                    profile.availableVersions.length - 1
-                  ],
-                values: data.message,
-              },
-            ]);
-          })
+          .then(data =>
+            optionalProfilesWithValues.push({
+              name: profile.name,
+              version:
+                profile.availableVersions[profile.availableVersions.length - 1],
+              values: data.message,
+              required: false,
+            }),
+          )
           .catch(error =>
             setNotifications([{ message: error.message, variant: 'danger' }]),
           );
       }
     });
-  }, [getProfileYaml, profiles, setNotifications, updatedProfiles]);
+
+    console.log(validDefaultProfiles);
+    console.log(optionalProfilesWithValues);
+  }, [
+    activeTemplate,
+    getProfileYaml,
+    profiles,
+    setNotifications,
+    updatedProfiles,
+  ]);
 
   return (
     <Profiles.Provider

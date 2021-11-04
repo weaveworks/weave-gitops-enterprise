@@ -74,4 +74,5 @@ export type UpdatedProfile = {
   name: Profile['name'];
   version: string;
   values: string;
+  required: boolean;
 };
