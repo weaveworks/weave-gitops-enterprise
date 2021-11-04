@@ -154,6 +154,45 @@ jobs:
       run: |
         docker push docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(./tools/image-tag)
 
+  build-ui-server:
+    runs-on: ubuntu-latest
+    env:
+      YARN_CACHE_NAME: cache-yarn
+    steps:
+    - id: cache-paths
+      run: |
+        echo "::set-output name=dir::$(yarn cache dir)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: Yarn Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.cache-paths.outputs.dir }}
+        key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+    - name: build
+      env:
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: |
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/ui-server/.uptodate
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      run: |
+        docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
+
   build:
     runs-on: ubuntu-latest
     env:
@@ -200,7 +239,6 @@ jobs:
       env:
         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       run: |
-        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/ui-server/.uptodate
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/gitops-repo-broker/.uptodate
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/wkp-agent/.uptodate
     - name: Install Helm v3
