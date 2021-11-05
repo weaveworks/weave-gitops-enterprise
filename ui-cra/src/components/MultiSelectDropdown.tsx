@@ -77,10 +77,13 @@ const MultiSelectDropdown: FC<{
             <MenuItem key={itemName} value={itemName}>
               <ListItemIcon>
                 <Checkbox
-                  checked={selected.indexOf(itemName) > -1}
+                  checked={
+                    item.required === true || selected.indexOf(itemName) > -1
+                  }
                   style={{
                     color: GitOpsBlue,
                   }}
+                  disabled={item.required}
                 />
               </ListItemIcon>
               <ListItemText primary={itemName} />

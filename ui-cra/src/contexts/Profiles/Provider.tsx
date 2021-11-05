@@ -82,6 +82,8 @@ const ProfilesProvider: FC = ({ children }) => {
     [getProfileYaml, setNotifications],
   );
 
+  console.log(updatedProfiles);
+
   useEffect(() => {
     getProfiles();
     return history.listen(getProfiles);
@@ -113,12 +115,16 @@ const ProfilesProvider: FC = ({ children }) => {
           ),
       ) || [];
 
-    console.log(profiles);
+    const optionalProfilesWithValues = getProfileValues(optionalProfiles);
 
-    setUpdatedProfiles([
-      ...validDefaultProfiles,
-      ...getProfileValues(optionalProfiles),
-    ]);
+    if (validDefaultProfiles.length !== 0) {
+      setUpdatedProfiles([
+        ...validDefaultProfiles,
+        ...optionalProfilesWithValues,
+      ]);
+    } else {
+      setUpdatedProfiles(optionalProfilesWithValues);
+    }
   }, [
     profiles,
     activeTemplate,

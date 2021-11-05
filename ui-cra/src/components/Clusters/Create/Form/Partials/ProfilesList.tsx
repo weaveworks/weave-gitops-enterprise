@@ -63,9 +63,6 @@ const ProfilesList: FC<{
   const [enrichedProfiles, setEnrichedProfiles] =
     useState<UpdatedProfile[]>(selectedProfiles);
 
-  // console.log('enriched', enrichedProfiles);
-  // console.log('selected', selectedProfiles);
-
   const handlePreview = (profile: UpdatedProfile) => {
     setCurrentProfile(profile);
     setCurrentProfilePreview(profile.values);

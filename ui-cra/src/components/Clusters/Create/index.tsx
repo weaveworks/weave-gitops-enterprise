@@ -28,7 +28,6 @@ import {
 import { isUnauthenticated } from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
-import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import Credentials from './Form/Partials/Credentials';
 import GitOps from './Form/Partials/GitOps';
 import Preview from './Form/Partials/Preview';
@@ -141,8 +140,6 @@ const AddCluster: FC = () => {
       }),
     [],
   );
-
-  // console.log(updatedProfiles);
 
   const handleAddCluster = useCallback(
     (gitOps: {
