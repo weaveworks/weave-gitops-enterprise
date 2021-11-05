@@ -114,7 +114,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("Verify gitops reports an error when trying to create pull request with missing --create-pr arguments", func() {
+			It("Verify gitops reports an error when trying to create pull request with missing --from-template argument", func() {
 				// Parameter values
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
@@ -129,9 +129,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
 				})
 
-				By(fmt.Sprintf("And I run 'gitops add cluster --from-template cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --branch %s --commit-message %s --description %s --endpoint %s",
+				By(fmt.Sprintf("And I run 'gitops add cluster --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --branch %s --commit-message %s --description %s --endpoint %s",
 					clusterName, namespace, k8version, prBranch, prCommit, prDescription, CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "add", "cluster", "--from-template", "cluster-template-development-0", "--set", fmt.Sprintf("CLUSTER_NAME=%s", clusterName),
+					command := exec.Command(GITOPS_BIN_PATH, "add", "cluster", "--set", fmt.Sprintf("CLUSTER_NAME=%s", clusterName),
 						"--set", fmt.Sprintf("NAMESPACE=%s", namespace), "--set", fmt.Sprintf("KUBERNETES_VERSION=%s", k8version),
 						"--branch", prBranch, "--commit-message", prCommit, "--description", prDescription, "--endpoint", CAPI_ENDPOINT_URL)
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -139,7 +139,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should see an error for required argument to create pull request", func() {
-					Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(`Error: unable to create pull request.*title must be specified`))
+					Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(`Error: unable to create pull request.*template name must be specified`))
 				})
 			})
 
@@ -635,7 +635,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					clusterFound := func() error {
 						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
 					}
-					Eventually(clusterFound, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+					Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})
 			})
 		})
