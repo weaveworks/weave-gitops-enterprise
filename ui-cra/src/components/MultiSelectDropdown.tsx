@@ -28,7 +28,10 @@ const MultiSelectDropdown: FC<{
 }> = ({ items, onSelectItems }) => {
   const classes = useStyles();
   const [selected, setSelected] = useState<any[]>([]);
-  const isAllSelected = items.length > 0 && selected.length === items.length;
+  const isAllSelected =
+    items.length > 0 &&
+    (selected.length === items.length ||
+      items.filter(item => item.required === true).length === items.length);
 
   const getItemsFromNames = (names: string[]) =>
     items.filter(item => names.find(name => item.name === name));

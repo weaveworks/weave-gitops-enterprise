@@ -82,8 +82,6 @@ const ProfilesProvider: FC = ({ children }) => {
     [getProfileYaml, setNotifications],
   );
 
-  console.log(updatedProfiles);
-
   useEffect(() => {
     getProfiles();
     return history.listen(getProfiles);
