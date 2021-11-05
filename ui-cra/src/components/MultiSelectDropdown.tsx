@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -50,6 +50,15 @@ const MultiSelectDropdown: FC<{
     setSelected(value);
     onSelectItems(getItemsFromNames(value));
   };
+
+  useEffect(
+    () =>
+      setSelected(
+        getNamesFromItems(items.filter(item => item.required === true)),
+      ),
+
+    [items],
+  );
 
   return (
     <FormControl className={classes.formControl}>

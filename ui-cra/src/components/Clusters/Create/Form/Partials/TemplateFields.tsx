@@ -137,12 +137,13 @@ const TemplateFields: FC<{
     onProfilesUpdate(profiles);
   };
 
-  useEffect(() => {
-    const requiredItems = updatedProfiles.filter(
-      profile => profile.required === true,
-    );
-    setSelectedProfiles(requiredItems);
-  }, [updatedProfiles]);
+  useEffect(
+    () =>
+      setSelectedProfiles(
+        updatedProfiles.filter(profile => profile.required === true),
+      ),
+    [updatedProfiles],
+  );
 
   return (
     <Form
