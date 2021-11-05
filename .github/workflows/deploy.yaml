@@ -243,16 +243,12 @@ jobs:
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
         sudo chmod +x ${{ env.WKP_BIN_PATH }}  
     - name: Setup selenium server
+      if: ${{ runner.os == 'Linux' }}
       run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
-          # Start selenium server in standalone mode
-          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          selenium-server & 
-        fi
+        # Start selenium server in standalone mode
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
     - name: Setup kind management cluster
       run: |
         kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.20.7 --config test/utils/data/local-kind-config.yaml

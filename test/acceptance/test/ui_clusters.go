@@ -262,7 +262,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			By("Given Kubernetes cluster is setup", func() {
 				//TODO - Verify that cluster is up and running using kubectl
 			})
-			initializeWebdriver(GetWGEUrl())
+			InitializeWebdriver(GetWGEUrl())
 		})
 
 		AfterEach(func() {

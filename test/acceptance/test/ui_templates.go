@@ -64,7 +64,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			By("Given Kubernetes cluster is setup", func() {
 				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			})
-			initializeWebdriver(GetWGEUrl())
+			InitializeWebdriver(GetWGEUrl())
 		})
 
 		AfterEach(func() {
@@ -823,10 +823,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				// Azure template parameter values
 				azureClusterName := "my-azure-cluster"
-				azureK8version := "1.19.7"
+				azureK8version := "1.21.2"
 				azureNamespace := "default"
-				azureControlMAchineType := "HBv2"
-				azureNodeMAchineType := "Dasv4"
+				azureControlMAchineType := "Standard_D2s_v3"
+				azureNodeMAchineType := "Standard_D4_v4"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["2.AzureCluster"] = []TemplateField{
@@ -850,16 +850,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 					{
 						Name:   "KUBERNETES_VERSION",
-						Value:  azureK8version,
-						Option: "",
+						Value:  "",
+						Option: azureK8version,
 					},
 				}
 
 				paramSection["4.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
-						Value:  azureControlMAchineType,
-						Option: "",
+						Value:  "",
+						Option: azureControlMAchineType,
 					},
 				}
 
@@ -874,8 +874,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				paramSection["6.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
-						Value:  azureNodeMAchineType,
-						Option: "",
+						Value:  "",
+						Option: azureNodeMAchineType,
 					},
 				}
 
