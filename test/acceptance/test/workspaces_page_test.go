@@ -17,7 +17,7 @@ func DescribeWorkspacesAcceptance() {
 			var err error
 			if webDriver == nil {
 
-				webDriver, err = agouti.NewPage(seleniumServiceUrl, agouti.Debug, agouti.Desired(agouti.Capabilities{
+				webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
 					"chromeOptions": map[string][]string{
 						"args": {
 							//"--headless", //Uncomment to run headless
@@ -31,7 +31,7 @@ func DescribeWorkspacesAcceptance() {
 				Expect(err).NotTo(HaveOccurred())
 			}
 
-			workspacesUrl := GetWkpUrl() + "/workspaces"
+			workspacesUrl := GetWGEUrl() + "/workspaces"
 			By("When I navigate to WKP dashboard", func() {
 				Expect(webDriver.Navigate(workspacesUrl)).To(Succeed())
 			})

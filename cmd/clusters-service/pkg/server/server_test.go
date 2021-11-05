@@ -615,7 +615,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name:   "validation errors",
 			req:    &capiv1_protos.CreatePullRequestRequest{},
-			err:    errors.New("6 errors occurred:\ntemplate name must be specified\nparameter values must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			err:    errors.New("2 errors occurred:\ntemplate name must be specified\nparameter values must be specified"),
 			dbRows: 0,
 		},
 		{
@@ -811,7 +811,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		{
 			name: "validation errors",
 			req:  &capiv1_protos.DeleteClustersPullRequestRequest{},
-			err:  errors.New("5 errors occurred:\nat least one cluster name must be specified\nhead branch must be specified\ntitle must be specified\ndescription must be specified\ncommit message must be specified"),
+			err:  errors.New("at least one cluster name must be specified"),
 		},
 		{
 			name:     "cluster does not exist",
@@ -1116,6 +1116,50 @@ status: {}
 `
 
 	assert.Equal(t, *file.Content, expected)
+}
+
+func TestGetProfiles(t *testing.T) {
+	testCases := []struct {
+		name             string
+		clusterState     []runtime.Object
+		expected         []*capiv1_protos.Profile
+		err              error
+		expectedErrorStr string
+	}{
+		{
+			name: "with helm repo",
+			clusterState: []runtime.Object{
+				makeTestHelmRepository("base"),
+			},
+			expected: []*capiv1_protos.Profile{},
+		},
+		{
+			name:     "without helm repo",
+			expected: []*capiv1_protos.Profile{},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+
+			getProfilesRequest := new(capiv1_protos.GetProfilesRequest)
+
+			getProfilesResponse, err := s.GetProfiles(context.Background(), getProfilesRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to get the profiles:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("failed to get the profiles:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, getProfilesResponse.Profiles, protocmp.Transform()); diff != "" {
+					t.Fatalf("profiles didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
 }
 
 func createClient(clusterState ...runtime.Object) client.Client {

@@ -30,7 +30,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService()
+				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			})
 		})
 
@@ -271,11 +271,9 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should see error message for invalid provider", func() {
-					output := session.Wait().Out.Contents()
-					re := regexp.MustCompile(`error:\s+.+provider \\"foobar\\" is not recognised.+`)
-					Eventually((re.Match(output))).Should(BeTrue())
+					output := session.Wait().Err.Contents()
+					Eventually(output).Should(MatchRegexp(`Error:\s+provider "foobar" is not valid.*`))
 				})
-
 			})
 
 			It("Verify gitops can list template parameters of a template from template library", func() {
@@ -367,7 +365,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				By("And gitops state is reset", func() {
 					_ = gitopsTestRunner.ResetDatabase()
 					gitopsTestRunner.VerifyWegoPodsRunning()
-					gitopsTestRunner.CheckClusterService()
+					gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 				})
 
 				By(fmt.Sprintf("Then I run 'gitops get cluster --endpoint %s'", CAPI_ENDPOINT_URL), func() {

@@ -62,9 +62,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService()
+				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			})
-			initializeWebdriver()
+			initializeWebdriver(GetWGEUrl())
 		})
 
 		AfterEach(func() {
@@ -898,6 +898,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
 			appName := "management"
+			appPath := "./management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 
 			JustBeforeEach(func() {
@@ -915,7 +916,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
-				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
+				// Force delete capicluster incase delete PR fails to delete to free resources
+				RemoveGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
 
 				gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -943,15 +945,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I install gitops to my active cluster", func() {
 					Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
-					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
+					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
 				})
 
-				addCommand := fmt.Sprintf("app add . --path=./management  --name=%s  --auto-merge=true", appName)
+				addCommand := fmt.Sprintf("add app . --path=%s --name=%s --auto-merge=true", appPath, appName)
 				By(fmt.Sprintf("And I run gitops app add command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
 					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
 					Eventually(session).Should(gexec.Exit())
+					Expect(string(session.Err.Contents())).Should(BeEmpty())
 				})
 
 				By("And I install Docker provider infrastructure", func() {
@@ -1037,6 +1040,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(clusterInfo.Status).Should(HaveText("Creation PR"))
 				})
 
+				By("And I add a test kustomization file to the pull request (needs it because flux doesn't work with empty folders on deletion)", func() {
+					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
+					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
+					GitSetUpstream(repoAbsolutePath, prBranch)
+					GitUpdateCommitPush(repoAbsolutePath)
+				})
+
 				By("Then I should merge the pull request to start cluster provisioning", func() {
 					gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
 				})
@@ -1107,10 +1117,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(clusterInfo.Status).Should(HaveText("Deletion PR"))
 				})
 
-				// By("Then I should merge the delete pull request to delete cluster", func() {
-				// 	gitopsTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
-				// })
+				By("Then I should merge the delete pull request to delete cluster", func() {
+					gitopsTestRunner.MergePullRequest(repoAbsolutePath, deletePRbranch)
+				})
 
+				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
+					clusterFound := func() error {
+						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
+					}
+					Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+				})
 			})
 		})
 

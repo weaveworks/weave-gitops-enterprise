@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -218,6 +219,18 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
 	}
+	if msg.HeadBranch == "" {
+		msg.HeadBranch = getHash(msg.RepositoryUrl, msg.ParameterValues["CLUSTER_NAME"], msg.BaseBranch)
+	}
+	if msg.Title == "" {
+		msg.Title = fmt.Sprintf("Gitops add cluster %s", msg.ParameterValues["CLUSTER_NAME"])
+	}
+	if msg.Description == "" {
+		msg.Description = fmt.Sprintf("Pull request to create cluster %s", msg.ParameterValues["CLUSTER_NAME"])
+	}
+	if msg.CommitMessage == "" {
+		msg.CommitMessage = "Add Cluster Manifests"
+	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
@@ -409,6 +422,19 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		})
 	}
 
+	if msg.HeadBranch == "" {
+		clusters := strings.Join(msg.ClusterNames, "")
+		msg.HeadBranch = getHash(msg.RepositoryUrl, clusters, msg.BaseBranch)
+	}
+	if msg.Title == "" {
+		msg.Title = fmt.Sprintf("Gitops delete clusters: %s", msg.ClusterNames)
+	}
+	if msg.Description == "" {
+		msg.Description = fmt.Sprintf("Pull request to delete clusters: %s", strings.Join(msg.ClusterNames, ", "))
+	}
+	if msg.CommitMessage == "" {
+		msg.CommitMessage = "Remove Clusters Manifests"
+	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
@@ -465,6 +491,11 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	}, nil
 }
 
+func getHash(inputs ...string) string {
+	final := []byte(strings.Join(inputs, ""))
+	return fmt.Sprintf("wego-%x", md5.Sum(final))
+}
+
 func getToken(ctx context.Context) (string, error) {
 	token := os.Getenv("GIT_PROVIDER_TOKEN")
 
@@ -505,7 +536,10 @@ func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesR
 		Namespace: namespace,
 	}, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		s.log.Error(err, "cannot find Helm repository")
+		return &capiv1_proto.GetProfilesResponse{
+			Profiles: []*capiv1_proto.Profile{},
+		}, nil
 	}
 
 	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
@@ -526,7 +560,11 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		Namespace: namespace,
 	}, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		s.log.Error(err, "cannot find Helm repository")
+		return &httpbody.HttpBody{
+			ContentType: "application/json",
+			Data:        []byte{},
+		}, nil
 	}
 
 	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
@@ -604,22 +642,6 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
 	}
 
-	if msg.HeadBranch == "" {
-		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
-	}
-
-	if msg.Title == "" {
-		err = multierror.Append(err, fmt.Errorf("title must be specified"))
-	}
-
-	if msg.Description == "" {
-		err = multierror.Append(err, fmt.Errorf("description must be specified"))
-	}
-
-	if msg.CommitMessage == "" {
-		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
-	}
-
 	return err
 }
 
@@ -665,22 +687,6 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 
 	if msg.ClusterNames == nil {
 		err = multierror.Append(err, fmt.Errorf("at least one cluster name must be specified"))
-	}
-
-	if msg.HeadBranch == "" {
-		err = multierror.Append(err, fmt.Errorf("head branch must be specified"))
-	}
-
-	if msg.Title == "" {
-		err = multierror.Append(err, fmt.Errorf("title must be specified"))
-	}
-
-	if msg.Description == "" {
-		err = multierror.Append(err, fmt.Errorf("description must be specified"))
-	}
-
-	if msg.CommitMessage == "" {
-		err = multierror.Append(err, fmt.Errorf("commit message must be specified"))
 	}
 
 	return err
