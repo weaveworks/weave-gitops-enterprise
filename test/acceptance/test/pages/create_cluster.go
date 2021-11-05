@@ -51,7 +51,7 @@ func ScrollWindow(webDriver *agouti.Page, xOffSet int, yOffSet int) {
 
 // This function waits for previw and gitops to appear (become visible)
 func WaitForDynamicSecToAppear(webDriver *agouti.Page) {
-	Eventually(webDriver.FindByXPath(`//div[contains(., "Preview")]/following-sibling::textarea`)).Should(BeFound())
+	Eventually(webDriver.FindByXPath(`//div[@name="Preview"]/following-sibling::textarea[1]`)).Should(BeFound())
 	Eventually(webDriver.FindByXPath(`//div[contains(., "Preview")]/parent::div/following-sibling::div/div[text()="GitOps"]`)).Should(BeFound())
 }
 
@@ -111,7 +111,7 @@ func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection 
 func GetPreview(webDriver *agouti.Page) Preview {
 	return Preview{
 		PreviewLabel: webDriver.FindByName("Preview"),
-		PreviewText:  webDriver.FindByXPath(`//div[contains(., "Preview")]/following-sibling::textarea`),
+		PreviewText:  webDriver.FindByXPath(`//div[@name="Preview"]/following-sibling::textarea[1]`),
 	}
 }
 
