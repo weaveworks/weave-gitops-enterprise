@@ -28,10 +28,11 @@ const MultiSelectDropdown: FC<{
 }> = ({ items, onSelectItems }) => {
   const classes = useStyles();
   const [selected, setSelected] = useState<any[]>([]);
+  const onlyRequiredProfiles =
+    items.filter(item => item.required === true).length === items.length;
   const isAllSelected =
     items.length > 0 &&
-    (selected.length === items.length ||
-      items.filter(item => item.required === true).length === items.length);
+    (selected.length === items.length || onlyRequiredProfiles);
 
   const getItemsFromNames = (names: string[]) =>
     items.filter(item => names.find(name => item.name === name));
@@ -59,7 +60,7 @@ const MultiSelectDropdown: FC<{
         onChange={handleChange}
         renderValue={(selected: any) => selected.join(', ')}
       >
-        <MenuItem value="all">
+        <MenuItem value="all" disabled={onlyRequiredProfiles}>
           <ListItemIcon>
             <Checkbox
               classes={{ indeterminate: classes.indeterminateColor }}
@@ -77,7 +78,7 @@ const MultiSelectDropdown: FC<{
         {items.map(item => {
           const itemName = item.name;
           return (
-            <MenuItem key={itemName} value={itemName}>
+            <MenuItem key={itemName} value={itemName} disabled={item.required}>
               <ListItemIcon>
                 <Checkbox
                   checked={
@@ -86,7 +87,6 @@ const MultiSelectDropdown: FC<{
                   style={{
                     color: GitOpsBlue,
                   }}
-                  disabled={item.required}
                 />
               </ListItemIcon>
               <ListItemText primary={itemName} />

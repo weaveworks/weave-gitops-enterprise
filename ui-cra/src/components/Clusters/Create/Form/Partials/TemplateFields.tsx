@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState, Dispatch } from 'react';
+import React, { FC, useMemo, useState, Dispatch, useEffect } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -136,6 +136,13 @@ const TemplateFields: FC<{
     setSelectedProfiles(profiles);
     onProfilesUpdate(profiles);
   };
+
+  useEffect(() => {
+    const requiredItems = updatedProfiles.filter(
+      profile => profile.required === true,
+    );
+    setSelectedProfiles(requiredItems);
+  }, [updatedProfiles]);
 
   return (
     <Form
