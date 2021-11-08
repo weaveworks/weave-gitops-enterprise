@@ -100,9 +100,9 @@ jobs:
         path: |
           ${{ steps.cache-paths.outputs.go-build }}
           ${{ steps.cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-
+          ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
     - name: Yarn Cache
       uses: actions/cache@v2
       with:
@@ -150,9 +150,9 @@ jobs:
         path: |
           ${{ steps.cache-paths.outputs.go-build }}
           ${{ steps.cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-
+          ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
     - name: Build all the services
       run: |
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/gitops-repo-broker/.uptodate
