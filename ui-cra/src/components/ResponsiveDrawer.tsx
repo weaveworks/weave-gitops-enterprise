@@ -24,7 +24,6 @@ import {
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import VersionsProvider from '../contexts/Versions/Provider';
-import ProfilesProvider from '../contexts/Profiles/Provider';
 import Compose from './ProvidersCompose';
 import Box from '@material-ui/core/Box';
 import { PageTemplate } from './Layout/PageTemplate';
@@ -125,7 +124,6 @@ const ResponsiveDrawer = () => {
         TemplatesProvider,
         ClustersProvider,
         AlertsProvider,
-        ProfilesProvider,
         WGAppProvider,
         VersionsProvider,
       ]}

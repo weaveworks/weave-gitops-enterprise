@@ -31,6 +31,7 @@ import TemplateFields from './Form/Partials/TemplateFields';
 import Credentials from './Form/Partials/Credentials';
 import GitOps from './Form/Partials/GitOps';
 import Preview from './Form/Partials/Preview';
+import ProfilesProvider from '../../../contexts/Profiles/Provider';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -316,7 +317,7 @@ const AddCluster: FC = () => {
 };
 
 const AddClusterWithCredentials = () => (
-  <Compose components={[CredentialsProvider]}>
+  <Compose components={[ProfilesProvider, CredentialsProvider]}>
     <AddCluster />
   </Compose>
 );

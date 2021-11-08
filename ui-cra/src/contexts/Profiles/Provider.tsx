@@ -10,6 +10,9 @@ const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
+  const [optionalProfilesWithValues, setOptionalProfilesWithValues] = useState<
+    UpdatedProfile[]
+  >([]);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
 
@@ -59,27 +62,47 @@ const ProfilesProvider: FC = ({ children }) => {
 
   const getProfileValues = useCallback(
     (optionalProfiles: Profile[]) => {
-      const optionalProfilesWithValues = [] as UpdatedProfile[];
+      const isProfileUpdated = (profile: Profile) =>
+        optionalProfilesWithValues.filter(
+          p =>
+            p.name === profile.name &&
+            p.version ===
+              profile.availableVersions[profile.availableVersions.length - 1],
+        ).length !== 0;
 
-      optionalProfiles.forEach(profile =>
-        getProfileYaml(profile)
-          .then(data =>
-            optionalProfilesWithValues.push({
-              name: profile.name,
-              version:
-                profile.availableVersions[profile.availableVersions.length - 1],
-              values: data.message,
-              required: false,
-            }),
-          )
-          .catch(error =>
-            setNotifications([{ message: error.message, variant: 'danger' }]),
-          ),
-      );
+      // console.log(optionalProfiles);
 
-      return optionalProfilesWithValues;
+      optionalProfiles.forEach(profile => {
+        if (!isProfileUpdated(profile)) {
+          getProfileYaml(profile)
+            .then(data => {
+              console.log(profile, data);
+              console.log(
+                'optionalProfilesWithValues',
+                optionalProfilesWithValues,
+              );
+              setOptionalProfilesWithValues([
+                ...optionalProfilesWithValues,
+                {
+                  name: profile.name,
+                  version:
+                    profile.availableVersions[
+                      profile.availableVersions.length - 1
+                    ],
+                  values: data.message,
+                  required: false,
+                },
+              ]);
+            })
+            // You can also do a functional update 'setOptionalProfilesWithValues(o => ...)
+            .catch(error =>
+              setNotifications([{ message: error.message, variant: 'danger' }]),
+            );
+        }
+      });
+      // console.log(optionalProfilesWithValues);
     },
-    [getProfileYaml, setNotifications],
+    [getProfileYaml, setNotifications, optionalProfilesWithValues],
   );
 
   useEffect(() => {
@@ -101,6 +124,8 @@ const ProfilesProvider: FC = ({ children }) => {
         ),
       ) || [];
 
+    console.log('validDefaultProfiles', validDefaultProfiles);
+
     const optionalProfiles =
       profiles?.filter(
         profile =>
@@ -113,17 +138,19 @@ const ProfilesProvider: FC = ({ children }) => {
           ),
       ) || [];
 
-    const optionalProfilesWithValues = getProfileValues(optionalProfiles);
+    getProfileValues(optionalProfiles);
 
-    if (validDefaultProfiles.length !== 0) {
-      setUpdatedProfiles([
-        ...validDefaultProfiles,
-        ...optionalProfilesWithValues,
-      ]);
-    } else {
-      setUpdatedProfiles(optionalProfilesWithValues);
-    }
+    // console.log(optionalProfiles);
+
+    // console.log(p);
+    // console.log(validDefaultProfiles);
+
+    setUpdatedProfiles([
+      ...optionalProfilesWithValues,
+      ...validDefaultProfiles,
+    ]);
   }, [
+    optionalProfilesWithValues,
     profiles,
     activeTemplate,
     getProfileYaml,
@@ -131,6 +158,8 @@ const ProfilesProvider: FC = ({ children }) => {
     getProfileValues,
     history,
   ]);
+
+  console.log(updatedProfiles);
 
   return (
     <Profiles.Provider
