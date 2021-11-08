@@ -1491,8 +1491,6 @@ github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab/go.mod h1
 github.com/weaveworks/pctl v0.8.0/go.mod h1:eDRbIJD3OdNmcJdTjXrZez6EoS7J/a69hbN16Pd8pik=
 github.com/weaveworks/profiles v0.2.0/go.mod h1:BmQOw7tpOxGJWSoz9tpHEo6rRAaLPASljidFdYSsRUs=
 github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca/go.mod h1:y8Luzq6JDsYVoIV0QAlnvIiq8bSaap0myMjWKyzVFTY=
-github.com/weaveworks/weave-gitops v0.4.0 h1:DUhYl6X2uH4B36fZ/3KwORYywYfoU2q68C+PdhpFrwU=
-github.com/weaveworks/weave-gitops v0.4.0/go.mod h1:mLrIw8iOqKwaGcFxLOXFwPXEvHvxgrDvsYjPkvx7MxY=
 github.com/weaveworks/weave-gitops v0.4.1 h1:9Q/dlNPDC90VBDC9+rSxxS53HmDon9GKgjdfvXp9TYk=
 github.com/weaveworks/weave-gitops v0.4.1/go.mod h1:NTRcDjl3gIu5w82w+sQsQeh2Rb2nogCyfqt6yuPvlrg=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 h1:R5+xSXgaKiTGLMzpNmkf9W5PsX9mCtMTgWUbJ7MwO70=
