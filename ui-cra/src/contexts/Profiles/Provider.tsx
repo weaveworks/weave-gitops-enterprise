@@ -70,17 +70,10 @@ const ProfilesProvider: FC = ({ children }) => {
               profile.availableVersions[profile.availableVersions.length - 1],
         ).length !== 0;
 
-      // console.log(optionalProfiles);
-
       optionalProfiles.forEach(profile => {
         if (!isProfileUpdated(profile)) {
           getProfileYaml(profile)
-            .then(data => {
-              console.log(profile, data);
-              console.log(
-                'optionalProfilesWithValues',
-                optionalProfilesWithValues,
-              );
+            .then(data =>
               setOptionalProfilesWithValues([
                 ...optionalProfilesWithValues,
                 {
@@ -92,15 +85,13 @@ const ProfilesProvider: FC = ({ children }) => {
                   values: data.message,
                   required: false,
                 },
-              ]);
-            })
-            // You can also do a functional update 'setOptionalProfilesWithValues(o => ...)
+              ]),
+            )
             .catch(error =>
               setNotifications([{ message: error.message, variant: 'danger' }]),
             );
         }
       });
-      // console.log(optionalProfilesWithValues);
     },
     [getProfileYaml, setNotifications, optionalProfilesWithValues],
   );
@@ -124,8 +115,6 @@ const ProfilesProvider: FC = ({ children }) => {
         ),
       ) || [];
 
-    console.log('validDefaultProfiles', validDefaultProfiles);
-
     const optionalProfiles =
       profiles?.filter(
         profile =>
@@ -140,11 +129,6 @@ const ProfilesProvider: FC = ({ children }) => {
 
     getProfileValues(optionalProfiles);
 
-    // console.log(optionalProfiles);
-
-    // console.log(p);
-    // console.log(validDefaultProfiles);
-
     setUpdatedProfiles([
       ...optionalProfilesWithValues,
       ...validDefaultProfiles,
@@ -158,8 +142,6 @@ const ProfilesProvider: FC = ({ children }) => {
     getProfileValues,
     history,
   ]);
-
-  console.log(updatedProfiles);
 
   return (
     <Profiles.Provider
