@@ -34,9 +34,9 @@ jobs:
         path: |
           ${{ steps.go-cache-paths.outputs.go-build }}
           ${{ steps.go-cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+          ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-
     - name: Lint
       run: |
         make lint
@@ -68,9 +68,9 @@ jobs:
         path: |
           ${{ steps.go-cache-paths.outputs.go-build }}
           ${{ steps.go-cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-build-unit-tests-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-build-unit-tests-${{ env.GO_CACHE_NAME }}-
+          ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-
     - name: Install goveralls
       env:
         GO111MODULE: off
@@ -135,19 +135,15 @@ jobs:
         path: |
           ${{ steps.cache-paths.outputs.go-build }}
           ${{ steps.cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+          ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-
     - name: Yarn Cache
       uses: actions/cache@v2
       with:
-        path: ${{ steps.cache-paths.outputs.dir }}
         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
-    - name: Install dependencies
-      run: |
-        go mod download
     - name: Run integration tests
       run: |
         go version
@@ -187,9 +183,9 @@ jobs:
         path: |
           ${{ steps.cache-paths.outputs.go-build }}
           ${{ steps.cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+          ${{ runner.os }}-${{ github.job_id }}-${{ env.GO_CACHE_NAME }}-
     - name: Yarn Cache
       uses: actions/cache@v2
       with:
@@ -197,9 +193,6 @@ jobs:
         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
-    - name: Install dependencies
-      run: |
-        go mod download
     - name: Setup selenium server
       run: |
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
@@ -263,9 +256,6 @@ jobs:
         key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-    - name: Install dependencies
-      run: |
-        go mod download
     - name: Install clusterctl
       run: |
         curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-linux-amd64 -o clusterctl
@@ -365,12 +355,9 @@ jobs:
         path: |
           ${{ steps.go-cache-paths.outputs.go-build }}
           ${{ steps.go-cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-acceptance-test-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-    - name: Install dependencies
-      run: |
-        go mod download
+          ${{ runner.os }}-go-acceptance-test-${{ env.GO_CACHE_NAME }}-
     - name: Install clusterctl
       run: |
         curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-linux-amd64 -o clusterctl
