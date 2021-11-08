@@ -3,10 +3,6 @@ name: "Build and push docker images and charts"
 on:
   workflow_call:
 
-concurrency:
-  group: ${{ github.head_ref }}
-  cancel-in-progress: true
-
 jobs:
   build-cluster-service:
     runs-on: ubuntu-latest
