@@ -134,6 +134,29 @@ export const FormStep: FC<{
     }, 500);
   }, [active, setActiveStep, onScreen, step?.name, title]);
 
+  // console.log(step);
+
+  // Go through each step and check the keys of the children. Hide the keys unless it's the first occurence of the key.
+
+  // {name: '2.AWSCluster', active: false, clicked: false, children: Array(3), setActiveStep: ƒ}
+  // active: false
+
+  // children: Array(3)
+  // 0:
+  // $$typeof: Symbol(react.element)
+  // key: "AWS_REGION"
+  // props: {name: 'AWS_REGION', required: true, schema: {…}, uiSchema: {…}, errorSchema: {…}, …}
+  // ref: null
+  // type: ƒ SchemaField()
+  // _owner: FiberNode {tag: 1, key: null, stateNode: ObjectField, elementType: ƒ, type: ƒ, …}
+  // _store: {validated: false}
+  // _self: null
+  // _source: null
+  // [[Prototype]]: Object
+  // 1: {$$typeof: Symbol(react.element), key: 'AWS_SSH_KEY_NAME', ref: null, props: {…}, type: ƒ, …}
+  // 2: {$$typeof: Symbol(react.element), key: 'CLUSTER_NAME', ref: null, props: {…}, type: ƒ, …}
+  // length: 3
+
   return (
     <Section ref={stepRef}>
       <Title name={title}>{step?.name || title}</Title>

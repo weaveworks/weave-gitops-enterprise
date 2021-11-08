@@ -25,6 +25,8 @@ function doGrouping({
   formContext: ObjectFieldTemplateProps['formContext'];
   groups: string | object;
 }) {
+  console.log('properties', properties, 'groups', groups);
+
   if (!Array.isArray(groups)) {
     return properties?.map((property, index) => {
       return <div key={index}>{property.content}</div>;

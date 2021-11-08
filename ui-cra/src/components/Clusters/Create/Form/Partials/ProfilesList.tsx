@@ -71,8 +71,6 @@ const ProfilesList: FC<{
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
-      console.log(enrichedProfiles);
-      console.log(currentProfile);
       const currentProfileIndex = enrichedProfiles.findIndex(
         profile => profile.name === currentProfile?.name,
       );
