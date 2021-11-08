@@ -147,9 +147,32 @@ cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 open "https://github.com/weaveworks/weave-gitops/tree/v${WG_VERSION}/manifests/crds"
 ```
 
-## How to update the demo cluster
+## The test cluster
 
-The demo cluster currently lives at http://34.67.250.163:30080/ but will hopefully move behind a DNS address with auth _soon_.
+The test cluster currently lives at a static ip but will hopefully move behind a DNS address with auth _soon_.
+
+Hit up http://34.67.250.163:30080
+
+### `kubectl` access
+
+The private ssh key to the server lives in the `pesto test cluster ssh key` secret in 1Password.
+
+1. Grab it and save it to `~/.ssh/cluster-key`
+2. Copy `kubeconfig` using this ssh key
+   ```
+   scp -i ~/.ssh/cluster-key wks@$34.67.250.163:.kube/config demokubeconfig.txt
+   ```
+3. Port forward the api-server port (6443) in another tab
+   ```
+   ssh -i ~/.ssh/cluster-key wks@$34.67.250.163 -L 6443:localhost:6443
+   ```
+4. Use the `kubeconfig`:
+   ```
+   export KUBECONFIG=demokubeconfig.txt
+   kubectl get pods -A
+   ```
+
+### How to update the test cluster
 
 1. Figure out the version of chart you want to deploy. If we've done a release recently you can change it to `0.0.8` or a major version like that. To deploy a unreleased version from `main` or a `branch` we need to figure out the git ref version:
 
