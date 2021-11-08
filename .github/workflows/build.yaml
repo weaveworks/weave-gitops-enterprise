@@ -2,15 +2,23 @@ name: "Build and push docker images and charts"
 
 on:
   workflow_call:
+    secrets:
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN:
+      WGE_DOCKER_IO_USER:
+      WGE_DOCKER_IO_PASSWORD:
+      WGE_NPM_GITHUB_TOKEN:
+      WGE_S3_AWS_ACCESS_KEY_ID:
+      WGE_S3_AWS_SECRET_ACCESS_KEY:
+
+env:
+  GITHUB_BUILD_USERNAME: wge-build-bot
+  GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
 
 jobs:
-  build-cluster-service:
+  cluster-service:
     runs-on: ubuntu-latest
     steps:
     - name: Configure git for private modules
-      env:
-        GITHUB_BUILD_USERNAME: wge-build-bot
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Checkout code
       uses: actions/checkout@v2
@@ -18,8 +26,6 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
     - name: build
-      env:
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       run: |
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/clusters-service/.uptodate
     - name: Login to Docker Hub
@@ -32,7 +38,7 @@ jobs:
       run: |
         docker push docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(./tools/image-tag)
 
-  build-event-writer:
+  event-writer:
     runs-on: ubuntu-latest
     steps:
     - name: Configure git for private modules
@@ -60,7 +66,7 @@ jobs:
       run: |
         docker push docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(./tools/image-tag)
 
-  build-ui-server:
+  ui-server:
     runs-on: ubuntu-latest
     env:
       YARN_CACHE_NAME: cache-yarn
@@ -116,7 +122,7 @@ jobs:
       run: |
         docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
 
-  build:
+  gitops-broker-and-agent:
     runs-on: ubuntu-latest
     env:
       GO_CACHE_NAME: cache-go-modules
