@@ -1,9 +1,15 @@
+#
+# WARNING: only changing this file will not work!
+#
+# You must update the calling site (uses:) with the reference to the branch you are working on
+#
+
 name: "Build and push docker images and charts"
 
 on:
   workflow_call:
     inputs:
-      helm-repo:
+      helmrepo:
         description: 'Which helm repo to push to'
         required: true
         type: string
@@ -20,7 +26,7 @@ env:
   GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
   GO_CACHE_NAME: cache-go-modules
   YARN_CACHE_NAME: cache-yarn
-  HELM_REPO: ${{ inputs.helm-repo }}
+  HELM_REPO: ${{ inputs.helmrepo }}
 
 jobs:
   cluster-service:
