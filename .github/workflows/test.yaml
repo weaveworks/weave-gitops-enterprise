@@ -141,6 +141,7 @@ jobs:
     - name: Yarn Cache
       uses: actions/cache@v2
       with:
+        path: ${{ steps.cache-paths.outputs.dir }}
         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
