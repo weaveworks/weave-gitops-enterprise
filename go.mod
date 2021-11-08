@@ -30,7 +30,7 @@ require (
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/libgitops v0.0.3
 	github.com/weaveworks/pctl v0.8.0
-	github.com/weaveworks/weave-gitops v0.4.0
+	github.com/weaveworks/weave-gitops v0.4.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
