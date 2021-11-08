@@ -3,12 +3,12 @@ name: "Build and push docker images and charts"
 on:
   workflow_call:
     secrets:
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN:
-      WGE_DOCKER_IO_USER:
-      WGE_DOCKER_IO_PASSWORD:
-      WGE_NPM_GITHUB_TOKEN:
-      WGE_S3_AWS_ACCESS_KEY_ID:
-      WGE_S3_AWS_SECRET_ACCESS_KEY:
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: { required: true }
+      WGE_DOCKER_IO_USER: { required: true }
+      WGE_DOCKER_IO_PASSWORD: { required: true }
+      WGE_NPM_GITHUB_TOKEN: { required: true }
+      WGE_S3_AWS_ACCESS_KEY_ID: { required: true }
+      WGE_S3_AWS_SECRET_ACCESS_KEY: { required: true }
 
 env:
   GITHUB_BUILD_USERNAME: wge-build-bot
