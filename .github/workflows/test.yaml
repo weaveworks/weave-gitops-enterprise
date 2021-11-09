@@ -94,7 +94,7 @@ jobs:
   build:
     uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@main
     with:
-      helmrepo: "dev/charts-v3"
+      helmrepo: "charts-v3"
     secrets:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
