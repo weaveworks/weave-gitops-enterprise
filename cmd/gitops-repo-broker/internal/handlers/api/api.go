@@ -146,8 +146,8 @@ func RegisterCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unma
 		err = validate.Struct(crr)
 		if err != nil {
 			log.Errorf("Failed to validate payload: %v", err)
-			ErrInvalidPayload = fmt.Errorf("%v, %v", ErrInvalidPayload, "Error parsing 'url' in field 'Ingress URL'")
-			common.WriteError(w, ErrInvalidPayload, http.StatusBadRequest)
+			combinedError := fmt.Errorf("%v, %v", ErrInvalidPayload, "Error parsing 'url' in field 'Ingress URL'")
+			common.WriteError(w, combinedError, http.StatusBadRequest)
 			return
 		}
 
@@ -214,14 +214,16 @@ func UpdateCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unmars
 		err = validate.Struct(updated)
 		if err != nil {
 			log.Errorf("Failed to validate payload: %v", err)
-			common.WriteError(w, ErrInvalidPayload, http.StatusBadRequest)
+			combinedError := fmt.Errorf("%v, %v", ErrInvalidPayload, "Error parsing 'url' in field 'Ingress URL'")
+			common.WriteError(w, combinedError, http.StatusBadRequest)
 			return
 		}
 
 		id, err := getClusterIDFromRequest(r)
 		if err != nil {
 			log.Errorf("Failed to get id param from path: %v", err)
-			common.WriteError(w, ErrInvalidPayload, http.StatusBadRequest)
+			combinedError := fmt.Errorf("%v, %v", ErrInvalidPayload, "Error parsing 'id' param from path")
+			common.WriteError(w, combinedError, http.StatusBadRequest)
 			return
 		}
 
