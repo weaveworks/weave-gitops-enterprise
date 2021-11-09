@@ -27,8 +27,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -746,7 +746,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	var profileName string
 	var helmReleases []*helmv2beta1.HelmRelease
 	for _, pvs := range profileValues {
-		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+		hr, err := charts.CreateHelmRelease(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
 		if err != nil {
 			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 		}
