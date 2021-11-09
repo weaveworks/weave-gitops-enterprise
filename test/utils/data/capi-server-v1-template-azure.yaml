@@ -7,9 +7,19 @@ spec:
   description: This is Azure capi quick start template-{{.Count}}
   params:
     - name: CLUSTER_NAME
-      description: This is used for the cluster naming.
-      options: []
       required: true
+      description: This is used for the cluster naming.
+    - name: NAMESPACE
+      description: Namespace to create the cluster in
+    - name: KUBERNETES_VERSION
+      description: Kubernetes version to use for the cluster
+      options: ["1.19.7", "1.20.9", "1.21.2"]
+    - name: AZURE_CONTROL_PLANE_MACHINE_TYPE
+      description: VM control plane types
+      options: ["Standard_D2s_v3", "Standard_D4_v4"]
+    - name: AZURE_NODE_MACHINE_TYPE
+      description: VM node types
+      options: ["Standard_D2s_v3", "Standard_D4_v4"]
   resourcetemplates:
     - apiVersion: cluster.x-k8s.io/v1alpha4
       kind: Cluster

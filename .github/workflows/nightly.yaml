@@ -196,16 +196,12 @@ jobs:
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
         sudo chmod +x ${{ env.WKP_BIN_PATH }}  
     - name: Setup selenium server
+      if: ${{ runner.os == 'Linux' }}
       run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
-          # Start selenium server in standalone mode
-          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          selenium-server & 
-        fi  
+        # Start selenium server in standalone mode
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &        
     - name: Setup EKS management cluster
       run: |
         export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ matrix.os_name }}
@@ -380,16 +376,12 @@ jobs:
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
         sudo chmod +x ${{ env.WKP_BIN_PATH }}  
     - name: Setup selenium server
+      if: ${{ runner.os == 'Linux' }}
       run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
-          # Start selenium server in standalone mode
-          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          selenium-server & 
-        fi  
+        # Start selenium server in standalone mode
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
     - name: Setup GKE management cluster
       run: |
         export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ matrix.os_name }}
@@ -433,7 +425,7 @@ jobs:
       run: |
         cd test/acceptance/test/
         if [ "$RUNNER_OS" == "macOS" ]; then
-          go test -ginkgo.skip=@eks -ginkgo.skip=@gce -ginkgo.skip=@wkp -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
+          go test -ginkgo.skip=@eks -ginkgo.skip=@gce -ginkgo.skip=@wkp -ginkgo.skip=@capd -ginkgo.skip=@upgrade -ginkgo.v -v --timeout=99999s
         else
           go test -ginkgo.skip=@eks -ginkgo.skip=@gce -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
         fi
