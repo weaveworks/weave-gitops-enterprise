@@ -8,6 +8,7 @@ IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe --always --match "v*")
 WEAVE_GITOPS_VERSION=$(shell git describe --always --match "v*" | sed 's/^[^0-9]*//')
+TIME_NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 GOOS := $(shell go env GOOS)
@@ -29,6 +30,7 @@ LOCAL_BINARIES_GOOS ?= $(GOOS)
 		--build-arg=version=$(VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
+		--build-args=now=$(TIME_NOW) \
 		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		$(@D)/
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
@@ -42,6 +44,7 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
+		--build-args=now=$(TIME_NOW) \
 		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		--file cmd/event-writer/Dockerfile \
         .
@@ -56,6 +59,7 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
+		--build-args=now=$(TIME_NOW) \
 		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		--file cmd/clusters-service/Dockerfile \
 		.
@@ -69,6 +73,7 @@ cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/*
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
+		--build-args=now=$(TIME_NOW) \
 		--tag $(WKP_AGENT) \
 		--file cmd/wkp-agent/Dockerfile \
 		$(@D)/

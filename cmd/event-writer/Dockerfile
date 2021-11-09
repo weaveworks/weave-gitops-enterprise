@@ -1,5 +1,20 @@
 FROM golang:1.17 as builder
 
+ARG now
+ARG revision
+ARG version
+LABEL maintainer="Weaveworks <help@weave.works>" \
+      org.opencontainers.image.created="${now}" \
+      org.opencontainers.image.description="The Weave GitOps Enterprise Event Writer" \
+      org.opencontainers.image.documentation="https://docs.gitops.weave.works/" \
+      org.opencontainers.image.licenses="MPL-2.0" \
+      org.opencontainers.image.revision="${revision}" \
+      org.opencontainers.image.source="https://github.com/weaveworks/weave-gitops-enterprise" \
+      org.opencontainers.image.title="weave-gitops-enterprise-event-writer" \
+      org.opencontainers.image.url="https://github.com/weaveworks/weave-gitops-enterprise" \
+      org.opencontainers.image.vendor="Weaveworks" \
+      org.opencontainers.image.version="${version}"
+
 ENV EW_PATH=cmd/event-writer
 
 WORKDIR /workspace/$EW_PATH
