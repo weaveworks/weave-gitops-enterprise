@@ -125,7 +125,7 @@ kind: AWSCluster
 		t.Fatalf("expected didn't match result! %v", diff)
 	}
 
-	for _, clusterKind := range []string{"AWSCluster", "AWSManagedCluster"} {
+	for _, clusterKind := range []string{"AWSCluster", "AWSManagedCluster", "AWSManagedControlPlane"} {
 		t.Run(clusterKind, func(t *testing.T) {
 			templateBits := [][]byte{
 				[]byte(fmt.Sprintf(`
