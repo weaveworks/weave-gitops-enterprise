@@ -7,80 +7,16 @@ on:
 name: deploy
 jobs:
   build:
-    runs-on: ubuntu-latest
-    env:
-      GO_CACHE_NAME: cache-go-modules
-      YARN_CACHE_NAME: cache-yarn
-      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
-    steps:
-    - id: cache-paths
-      run: |
-        echo "::set-output name=dir::$(yarn cache dir)"
-        echo "::set-output name=go-build::$(go env GOCACHE)"
-        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
-    - name: Configure git for private modules
-      env:
-        GITHUB_BUILD_USERNAME: wge-build-bot
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Go Build Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ${{ steps.cache-paths.outputs.go-build }}
-          ${{ steps.cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-    - name: Yarn Cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ steps.cache-paths.outputs.dir }}
-        key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
-    - name: Build all the services
-      env:
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: |        
-        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN}        
-    - name: Install Helm v3
-      uses: azure/setup-helm@v1
-      with:
-        version: v3.5.4
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-central-1
-    - name: Publish helm chart to s3
-      run: |
-          git fetch --tags --force
-          TAG=$(git describe --always --match "v*")
-          
-          CHART_VALUES_PATH=./charts/mccp/values.yaml
-          # Update the MCCP chart values.yaml file with the current image tag
-          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
-
-          # Publish the MCCP Helm v3 chart
-          ./bin/publish-chart-to-s3.sh $TAG "charts-v3" ./charts/mccp
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        registry: docker.io
-        username: ${{ secrets.WGE_DOCKER_IO_USER }}
-        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-    - name: Push images to docker registry
-      run: make push
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@main
+    with:
+      helmrepo: "charts-v3"
+    secrets:
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
+      WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+      WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+      WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+      WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
 
   coverage:
     runs-on: ubuntu-latest
@@ -243,16 +179,12 @@ jobs:
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
         sudo chmod +x ${{ env.WKP_BIN_PATH }}  
     - name: Setup selenium server
+      if: ${{ runner.os == 'Linux' }}
       run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
-          # Start selenium server in standalone mode
-          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          selenium-server & 
-        fi
+        # Start selenium server in standalone mode
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
     - name: Setup kind management cluster
       run: |
         kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.20.7 --config test/utils/data/local-kind-config.yaml

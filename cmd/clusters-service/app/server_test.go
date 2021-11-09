@@ -17,6 +17,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	corev1 "k8s.io/api/core/v1"
@@ -100,11 +101,13 @@ func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 		return kubeClient, nil
 	}
+	fetcher := &applicationv2fakes.FakeFetcher{}
 	return &wego_server.ApplicationsConfig{
 		AppFactory: appFactory,
 		KubeClient: c,
 		Logger:     logr.Discard(),
 		JwtClient:  jwtClient,
+		Fetcher:    fetcher,
 	}
 }
 
