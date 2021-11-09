@@ -1,7 +1,7 @@
 // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
 
 import { ObjectFieldTemplateProps } from '@rjsf/core';
-import React, { Dispatch, ReactNode } from 'react';
+import React, { Dispatch, ReactNode, Children, ReactElement } from 'react';
 
 export function ObjectFieldTemplate(props: ObjectFieldTemplateProps) {
   return (
@@ -16,12 +16,6 @@ export function ObjectFieldTemplate(props: ObjectFieldTemplateProps) {
 }
 
 const EXTRANEOUS = Symbol('EXTRANEOUS');
-
-// children: doGrouping({
-//   properties,
-//   groups: field,
-//   formContext,
-// }),
 
 function doGrouping({
   properties,
@@ -50,8 +44,8 @@ function doGrouping({
       const GroupComponent = templates
         ? templates[g['ui:template']]
         : DefaultTemplate;
-      console.log(g);
 
+      // console.log(g);
       // keys(g)
       // 1.Cluster
       // 2.AWSCluster
@@ -73,48 +67,29 @@ function doGrouping({
           key: string,
         ) => {
           const field = g[key];
-          // the key is the group title
-
-          // the field is what's under the group
-          // ['CLUSTER_NAME'] OR ['AWS_REGION', 'AWS_SSH_KEY_NAME', 'CLUSTER_NAME']
 
           if (key.startsWith('ui:')) return acc;
           if (!Array.isArray(field)) return acc;
 
-          // the key is the next one so wont be in the accumulator.
-          // go through the accumulator's keys and children  key.children (array).key
-          // if you find any of the parameters that field has then move on. if not, add a key.props.visible => true
+          const isInAccumulator = (property: string) =>
+            acc.map(element =>
+              (Children.toArray(element.children) as ReactElement[]).filter(
+                child => {
+                  console.log(child.props);
+                  return child.props.name === property;
+                },
+              ),
+            ).length !== 0;
 
-          // example acc
-          // [{…}]
-          // 0:
-          // active: false
-          // children: (2) [{…}, {…}]
-          // clicked: false
-          // name: "1.Cluster"
-          // setActiveStep: ƒ ()
-          // [[Prototype]]: Object
+          const newProperties = properties.map(property => {
+            if (!isInAccumulator(property.name)) {
+              return { ...property, visible: true };
+            } else return { ...property, visible: false };
+          });
 
-          // children: Array(2)
-          // 0:
-          // $$typeof: Symbol(react.element)
-          // key: "CLUSTER_NAME"
-          // props: {name: 'CLUSTER_NAME', required: true, schema: {…}, uiSchema: {…}, errorSchema: {…}, …}
-          // ref: null
-          // type: ƒ SchemaField()
-          // _owner: FiberNode {tag: 1, key: null, stateNode: ObjectField, elementType: ƒ, type: ƒ, …}
-          // _store: {validated: false}
-          // _self: null
-          // _source: null
-          // [[Prototype]]: Object
+          console.log(newProperties);
 
-          const elemInAcc = acc.find(element => element.name === key);
-
-          console.log('acc', acc);
-          console.log('key', key);
-          console.log('field or the key s fields', field);
-
-          console.log(elemInAcc);
+          console.log(acc);
 
           return [
             ...acc,
@@ -125,7 +100,7 @@ function doGrouping({
               setActiveStep,
               children: doGrouping({
                 formContext,
-                properties,
+                properties: newProperties,
                 groups: field,
               }),
             },
