@@ -275,7 +275,8 @@ jobs:
     - name: Download gitops binary from s3
       run: |
         mkdir -p cmd/gitops/
-        wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-ubuntu-latest
+        # wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-ubuntu-latest
+        curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.4.1/gitops-$(uname)-$(uname -m)" -o gitops-ubuntu-latest
         mv gitops-ubuntu-latest $GITOPS_BIN_PATH
     - name: Change bin permissions
       run: |
