@@ -92,7 +92,7 @@ jobs:
     #     curl -k "https://coveralls.io/webhook?repo_token=$WGE_COVERALLS_TOKEN" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
   
   build:
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@build-optimizations
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@main
     with:
       helmrepo: "dev/charts-v3"
     secrets:
