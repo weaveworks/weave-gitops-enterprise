@@ -1039,7 +1039,7 @@ func TestRegisterCluster_ValidateRequestBody(t *testing.T) {
 	}, "", " ")
 	response := executePost(t, bytes.NewReader(data), db, json.Unmarshal, json.MarshalIndent, NewFakeTokenGenerator("fake token", nil).Generate)
 	assert.Equal(t, http.StatusBadRequest, response.Code)
-	assert.Equal(t, "{\"message\":\"Invalid payload\"}\n", response.Body.String())
+	assert.Equal(t, "{\"message\":\"Invalid payload, Error parsing 'url' in field 'Ingress URL'\"}\n", response.Body.String())
 }
 
 func TestRegisterCluster(t *testing.T) {
