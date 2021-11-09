@@ -5,7 +5,7 @@ on:
 name: release
 jobs:
   build:
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@build-optimizations
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@main
     with:
       helmrepo: "releases/charts-v3"
     secrets:
