@@ -10,11 +10,11 @@ const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
-  const [optionalProfilesWithValues, setOptionalProfilesWithValues] = useState<
-    UpdatedProfile[]
-  >([]);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
+  const [profilesWithValues, setProfilesWithValues] = useState<
+    UpdatedProfile[]
+  >([]);
 
   const history = useHistory();
 
@@ -61,51 +61,52 @@ const ProfilesProvider: FC = ({ children }) => {
   }, []);
 
   const getProfileValues = useCallback(
-    (optionalProfiles: Profile[]) => {
+    (profiles: Profile[]) => {
       const isProfileUpdated = (profile: Profile) =>
-        optionalProfilesWithValues.filter(
+        profilesWithValues.filter(
           p =>
             p.name === profile.name &&
             p.version ===
               profile.availableVersions[profile.availableVersions.length - 1],
         ).length !== 0;
 
-      optionalProfiles.forEach(profile => {
+      const profileRequests = [] as Promise<any>[];
+
+      profiles.forEach(profile => {
         if (!isProfileUpdated(profile)) {
-          getProfileYaml(profile)
-            .then(data =>
-              setOptionalProfilesWithValues([
-                ...optionalProfilesWithValues,
-                {
-                  name: profile.name,
-                  version:
-                    profile.availableVersions[
-                      profile.availableVersions.length - 1
-                    ],
-                  values: data.message,
-                  required: false,
-                },
-              ]),
-            )
-            .catch(error =>
-              setNotifications([{ message: error.message, variant: 'danger' }]),
-            );
+          profileRequests.push(
+            getProfileYaml(profile)
+              .then(data =>
+                setProfilesWithValues([
+                  ...profilesWithValues,
+                  {
+                    name: profile.name,
+                    version:
+                      profile.availableVersions[
+                        profile.availableVersions.length - 1
+                      ],
+                    values: data.message,
+                    required: false,
+                  },
+                ]),
+              )
+              .catch(error =>
+                setNotifications([
+                  { message: error.message, variant: 'danger' },
+                ]),
+              ),
+          );
         }
       });
+      return Promise.all(profileRequests);
     },
-    [getProfileYaml, setNotifications, optionalProfilesWithValues],
+    [getProfileYaml, setNotifications, profilesWithValues],
   );
 
-  useEffect(() => {
-    getProfiles();
-    return history.listen(getProfiles);
-  }, [history, getProfiles, activeTemplate]);
-
-  useEffect(() => {
+  const getValidDefaultProfiles = useCallback(() => {
     const defaultProfiles =
       activeTemplate && getDefaultProfiles(activeTemplate);
-
-    const validDefaultProfiles =
+    return (
       defaultProfiles?.filter(profile =>
         profiles.find(
           p =>
@@ -113,34 +114,41 @@ const ProfilesProvider: FC = ({ children }) => {
             profile.version ===
               p.availableVersions[p.availableVersions.length - 1],
         ),
-      ) || [];
+      ) || []
+    );
+  }, [activeTemplate, profiles]);
 
+  useEffect(() => {
+    getProfiles();
+    return history.listen(getProfiles);
+  }, [history, getProfiles, activeTemplate]);
+
+  useEffect(() => {
+    // get yaml values for all the profiles
+    getProfileValues(profiles);
+
+    // get default / required profiles for the active template
+    const validDefaultProfiles = getValidDefaultProfiles();
+
+    // get the optional profiles by excluding the default profiles from the /v1/profiles response
     const optionalProfiles =
-      profiles?.filter(
+      profilesWithValues?.filter(
         profile =>
           !validDefaultProfiles.find(
-            p =>
-              profile.name === p.name &&
-              profile.availableVersions[
-                profile.availableVersions.length - 1
-              ] === p.version,
+            p => profile.name === p.name && profile.version === p.version,
           ),
       ) || [];
 
-    getProfileValues(optionalProfiles);
-
-    setUpdatedProfiles([
-      ...optionalProfilesWithValues,
-      ...validDefaultProfiles,
-    ]);
+    setUpdatedProfiles([...optionalProfiles, ...validDefaultProfiles]);
   }, [
-    optionalProfilesWithValues,
+    profilesWithValues,
     profiles,
     activeTemplate,
     getProfileYaml,
     setNotifications,
     getProfileValues,
     history,
+    getValidDefaultProfiles,
   ]);
 
   return (
