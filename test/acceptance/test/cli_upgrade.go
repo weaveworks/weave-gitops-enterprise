@@ -78,6 +78,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 			appName := "wego-upgrade"
 			appPath := "upgrade"
+			templateFiles := []string{}
 
 			JustBeforeEach(func() {
 				current_context, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -89,6 +90,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			JustAfterEach(func() {
+
+				gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
+				templateFiles = []string{}
 
 				gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
@@ -170,10 +174,11 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should update/modify the default upgrade manifest ", func() {
-					public_ip = ClusterWorkloadNonePublicIP()
+					public_ip = ClusterWorkloadNonePublicIP("KIND")
 					natsURL := public_ip + ":" + NATS_NODEPORT
+					repositoryURL := fmt.Sprintf(`https://github.com/%s/%s`, GITHUB_ORG, CLUSTER_REPOSITORY)
 					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
-					configureConfigMapvalues(repoAbsolutePath, UI_NODEPORT, NATS_NODEPORT, natsURL, "")
+					configureConfigMapvalues(repoAbsolutePath, UI_NODEPORT, NATS_NODEPORT, natsURL, repositoryURL)
 					GitSetUpstream(repoAbsolutePath, prBranch)
 					GitUpdateCommitPush(repoAbsolutePath)
 				})
@@ -221,7 +226,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						test_ui_url = "http://localhost:8000"
 						capi_endpoint_url = "http://localhost:8000"
 					}
-					initializeWebdriver(test_ui_url)
+					InitializeWebdriver(test_ui_url)
 				})
 
 				By("And the Cluster service is healthy", func() {
