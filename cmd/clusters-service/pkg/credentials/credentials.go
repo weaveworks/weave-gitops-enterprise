@@ -31,25 +31,13 @@ var IdentityParamsList = []IdentityParams{
 		Group:        "infrastructure.cluster.x-k8s.io",
 		Versions:     []string{"v1alpha3", "v1alpha4"},
 		Kind:         "AWSClusterStaticIdentity",
-		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster"},
+		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster", "AWSManagedControlPlane"},
 	},
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
 		Versions:     []string{"v1alpha3", "v1alpha4"},
 		Kind:         "AWSClusterRoleIdentity",
 		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster", "AWSManagedControlPlane"},
-	},
-	{
-		Group:        "infrastructure.cluster.x-k8s.io",
-		Versions:     []string{"v1alpha3", "v1alpha4"},
-		Kind:         "AWSClusterStaticIdentity",
-		ClusterKinds: []string{"AWSCluster", "AWSManagedControlPlane"},
-	},
-	{
-		Group:        "infrastructure.cluster.x-k8s.io",
-		Versions:     []string{"v1alpha3", "v1alpha4"},
-		Kind:         "AWSClusterRoleIdentity",
-		ClusterKinds: []string{"AWSCluster", "AWSManagedControlPlane"},
 	},
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
