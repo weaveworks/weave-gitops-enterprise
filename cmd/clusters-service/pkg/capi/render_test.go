@@ -143,6 +143,31 @@ metadata:
 	}
 }
 
+func TestInNamespacePreservesExistingNamespace(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: old-namespace
+`)
+	updated, err := processUnstructured(raw, InNamespace("new-namespace"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: old-namespace
+`
+
+	if diff := cmp.Diff(want, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}
+
 func TestRender_in_namespace(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
