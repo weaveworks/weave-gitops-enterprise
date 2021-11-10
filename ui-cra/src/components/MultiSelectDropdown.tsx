@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -6,7 +6,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { Profile } from '../types/custom';
 import { GitOpsBlue } from './../muiTheme';
 
 const useStyles = makeStyles(theme => ({
@@ -25,11 +24,15 @@ const useStyles = makeStyles(theme => ({
 
 const MultiSelectDropdown: FC<{
   items: any[];
-  onSelectItems: Dispatch<React.SetStateAction<Profile[]>>;
+  onSelectItems: (items: any[]) => void;
 }> = ({ items, onSelectItems }) => {
   const classes = useStyles();
   const [selected, setSelected] = useState<any[]>([]);
-  const isAllSelected = items.length > 0 && selected.length === items.length;
+  const onlyRequiredProfiles =
+    items.filter(item => item.required === true).length === items.length;
+  const isAllSelected =
+    items.length > 0 &&
+    (selected.length === items.length || onlyRequiredProfiles);
 
   const getItemsFromNames = (names: string[]) =>
     items.filter(item => names.find(name => item.name === name));
@@ -48,6 +51,15 @@ const MultiSelectDropdown: FC<{
     onSelectItems(getItemsFromNames(value));
   };
 
+  useEffect(
+    () =>
+      setSelected(
+        getNamesFromItems(items.filter(item => item.required === true)),
+      ),
+
+    [items],
+  );
+
   return (
     <FormControl className={classes.formControl}>
       <Select
@@ -57,7 +69,7 @@ const MultiSelectDropdown: FC<{
         onChange={handleChange}
         renderValue={(selected: any) => selected.join(', ')}
       >
-        <MenuItem value="all">
+        <MenuItem value="all" disabled={onlyRequiredProfiles}>
           <ListItemIcon>
             <Checkbox
               classes={{ indeterminate: classes.indeterminateColor }}
@@ -75,10 +87,12 @@ const MultiSelectDropdown: FC<{
         {items.map(item => {
           const itemName = item.name;
           return (
-            <MenuItem key={itemName} value={itemName}>
+            <MenuItem key={itemName} value={itemName} disabled={item.required}>
               <ListItemIcon>
                 <Checkbox
-                  checked={selected.indexOf(itemName) > -1}
+                  checked={
+                    item.required === true || selected.indexOf(itemName) > -1
+                  }
                   style={{
                     color: GitOpsBlue,
                   }}

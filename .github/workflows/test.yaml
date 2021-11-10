@@ -94,7 +94,7 @@ jobs:
   build:
     uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@main
     with:
-      helmrepo: "dev/charts-v3"
+      helmrepo: "charts-v3"
     secrets:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
@@ -377,7 +377,8 @@ jobs:
     - name: Download gitops binary from s3
       run: |
         mkdir -p cmd/gitops/
-        wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-ubuntu-latest
+        # wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-ubuntu-latest
+        curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.4.1/gitops-$(uname)-$(uname -m)" -o gitops-ubuntu-latest
         mv gitops-ubuntu-latest $GITOPS_BIN_PATH
     - name: Change bin permissions
       run: |
