@@ -1,6 +1,5 @@
 import React, {
   ChangeEvent,
-  Dispatch,
   FC,
   useCallback,
   useEffect,
@@ -8,12 +7,11 @@ import React, {
 } from 'react';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
-import { Profile, UpdatedProfile } from '../../../../../types/custom';
+import { UpdatedProfile } from '../../../../../types/custom';
 import Box from '@material-ui/core/Box';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import useProfiles from '../../../../../contexts/Profiles';
-import useNotifications from '../../../../../contexts/Notifications';
 import {
   Dialog,
   DialogContent,
@@ -54,16 +52,16 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const ProfilesList: FC<{
-  selectedProfiles: Profile[];
-  onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
+  selectedProfiles: UpdatedProfile[];
+  onProfilesUpdate: (profiles: UpdatedProfile[]) => void;
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
-  const { getProfileYaml, loading } = useProfiles();
+  const { loading } = useProfiles();
   const [currentProfile, setCurrentProfile] = useState<UpdatedProfile>();
   const [currentProfilePreview, setCurrentProfilePreview] = useState<string>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
-  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
-  const { setNotifications } = useNotifications();
+  const [enrichedProfiles, setEnrichedProfiles] =
+    useState<UpdatedProfile[]>(selectedProfiles);
 
   const handlePreview = (profile: UpdatedProfile) => {
     setCurrentProfile(profile);
@@ -73,70 +71,28 @@ const ProfilesList: FC<{
 
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
-      const currentProfileIndex = updatedProfiles.findIndex(
+      const currentProfileIndex = enrichedProfiles.findIndex(
         profile => profile.name === currentProfile?.name,
       );
-      updatedProfiles[currentProfileIndex].values = event.target.value;
+      enrichedProfiles[currentProfileIndex].values = event.target.value;
     },
-    [currentProfile, updatedProfiles],
+    [currentProfile, enrichedProfiles],
   );
 
   const handleUpdateProfiles = useCallback(() => {
-    onProfilesUpdate(updatedProfiles);
+    onProfilesUpdate(enrichedProfiles);
     setOpenYamlPreview(false);
-  }, [onProfilesUpdate, updatedProfiles]);
+  }, [onProfilesUpdate, enrichedProfiles]);
 
   useEffect(() => {
-    const isProfileUpdated = (profile: Profile) =>
-      updatedProfiles.filter(p => p.name === profile.name).length !== 0;
-    if (
-      selectedProfiles.length === updatedProfiles.length ||
-      selectedProfiles.length > updatedProfiles.length
-    ) {
-      selectedProfiles.forEach(profile => {
-        if (!isProfileUpdated(profile)) {
-          getProfileYaml(profile)
-            .then(data => {
-              setUpdatedProfiles([
-                ...updatedProfiles,
-                {
-                  name: profile.name,
-                  version:
-                    profile.availableVersions[
-                      profile.availableVersions.length - 1
-                    ],
-                  values: data.message,
-                },
-              ]);
-            })
-            .catch(error =>
-              setNotifications([{ message: error.message, variant: 'danger' }]),
-            );
-        }
-      });
-    } else {
-      setUpdatedProfiles(
-        updatedProfiles.filter(updatedProfile =>
-          selectedProfiles.find(
-            selectedProfile => updatedProfile.name === selectedProfile.name,
-          ),
-        ),
-      );
-    }
-    onProfilesUpdate(updatedProfiles);
-  }, [
-    getProfileYaml,
-    selectedProfiles,
-    updatedProfiles,
-    onProfilesUpdate,
-    setNotifications,
-  ]);
+    setEnrichedProfiles(selectedProfiles);
+  }, [selectedProfiles]);
 
   return (
     <>
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
-          {updatedProfiles.map((profile, index) => (
+          {enrichedProfiles.map((profile, index) => (
             <ListItem key={index}>
               <ListItemText>{profile.name}</ListItemText>
               <Button

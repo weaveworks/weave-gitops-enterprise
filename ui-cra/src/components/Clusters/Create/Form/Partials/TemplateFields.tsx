@@ -1,9 +1,8 @@
-import React, { FC, useMemo, useState, Dispatch } from 'react';
+import React, { FC, useMemo, useState, Dispatch, useEffect } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import {
-  Profile,
   Template,
   TemplateObject,
   UpdatedProfile,
@@ -58,8 +57,10 @@ const TemplateFields: FC<{
   onFormDataUpdate,
 }) => {
   const classes = useStyles();
-  const { profiles } = useProfiles();
-  const [selectedProfiles, setSelectedProfiles] = useState<Profile[]>([]);
+  const { updatedProfiles } = useProfiles();
+  const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
+    [],
+  );
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -131,6 +132,19 @@ const TemplateFields: FC<{
     };
   }, [sections]);
 
+  const handleSelectProfiles = (profiles: UpdatedProfile[]) => {
+    setSelectedProfiles(profiles);
+    onProfilesUpdate(profiles);
+  };
+
+  useEffect(
+    () =>
+      setSelectedProfiles(
+        updatedProfiles.filter(profile => profile.required === true),
+      ),
+    [updatedProfiles],
+  );
+
   return (
     <Form
       className={classes.form}
@@ -156,13 +170,13 @@ const TemplateFields: FC<{
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span>Select profiles:&nbsp;</span>
           <MultiSelectDropdown
-            items={profiles}
-            onSelectItems={setSelectedProfiles}
+            items={updatedProfiles}
+            onSelectItems={handleSelectProfiles}
           />
         </div>
         <ProfilesList
           selectedProfiles={selectedProfiles}
-          onProfilesUpdate={onProfilesUpdate}
+          onProfilesUpdate={handleSelectProfiles}
         />
         <div className={classes.previewCTA}>
           <Button>Preview PR</Button>
