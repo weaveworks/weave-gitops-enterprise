@@ -479,11 +479,12 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 }
 
 func renderTemplateWithValues(t *capiv1.CAPITemplate, name string, values map[string]string) ([][]byte, error) {
-	var opts []capi.RenderOptFunc
-	if os.Getenv("INJECT_PRUNE_ANNOTATION") != "disabled" {
-		opts = []capi.RenderOptFunc{capi.InjectPruneAnnotation()}
+	opts := []capi.RenderOptFunc{
+		capi.InNamespace(os.Getenv("CAPI_CLUSTERS_NAMESPACE")),
 	}
-	opts = append(opts, capi.InNamespace(os.Getenv("CAPI_CLUSTERS_NAMESPACE")))
+	if os.Getenv("INJECT_PRUNE_ANNOTATION") != "disabled" {
+		opts = append(opts, capi.InjectPruneAnnotation)
+	}
 
 	templateBits, err := capi.Render(t.Spec, values, opts...)
 	if err != nil {
