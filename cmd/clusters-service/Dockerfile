@@ -4,16 +4,16 @@ ENV CS_PATH=cmd/clusters-service
 
 WORKDIR /workspace/$CS_PATH
 
-# copy in other module dependencies
-COPY common/ /workspace/common/
+ENV GITHUB_BUILD_USERNAME=wge-build-bot
+ARG GITHUB_BUILD_TOKEN
+RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
 
 # copy modules manifests
 COPY $CS_PATH/go.mod go.mod
 COPY $CS_PATH/go.sum go.sum
 
-ENV GITHUB_BUILD_USERNAME=wge-build-bot
-ARG GITHUB_BUILD_TOKEN
-RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+# copy in other module dependencies
+COPY common/ /workspace/common/
 
 # cache modules
 RUN go mod download

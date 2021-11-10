@@ -202,18 +202,21 @@ type GitopsTestRunner interface {
 	GetRepoVisibility(org string, repo string) string
 }
 
-func initializeWebdriver(wgeURL string) {
+func InitializeWebdriver(wgeURL string) {
 	var err error
 	if webDriver == nil {
-
-		webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-			"chromeOptions": map[string][]string{
-				"args": {
-					// "--headless", //Uncomment to run headless
-					"--disable-gpu",
-					"--no-sandbox",
-				}}}))
-		Expect(err).NotTo(HaveOccurred())
+		switch runtime.GOOS {
+		case "darwin":
+			chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox"}))
+			err = chromeDriver.Start()
+			Expect(err).NotTo(HaveOccurred())
+			webDriver, err = chromeDriver.NewPage()
+			Expect(err).NotTo(HaveOccurred())
+		case "linux":
+			webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
+				"chromeOptions": map[string][]string{"args": {"--disable-gpu", "--no-sandbox"}}}))
+			Expect(err).NotTo(HaveOccurred())
+		}
 
 		err = webDriver.Size(WINDOW_SIZE_X, WINDOW_SIZE_Y)
 		Expect(err).NotTo(HaveOccurred())
@@ -841,11 +844,10 @@ func FileExists(name string) bool {
 	return true
 }
 
-//Utility function to compute public IP of management cluster workload node
-func ClusterWorkloadNonePublicIP() string {
+//Utility function to compute public IP of cluster workload node
+func ClusterWorkloadNonePublicIP(clusterKind string) string {
 	var expernal_ip string
-	MANAGEMENT_CLUSTER_KIND := os.Getenv("MANAGEMENT_CLUSTER_KIND")
-	if MANAGEMENT_CLUSTER_KIND == "EKS" || MANAGEMENT_CLUSTER_KIND == "GKE" {
+	if clusterKind == "EKS" || clusterKind == "GKE" {
 		node_name, _ := runCommandAndReturnStringOutput(`kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1`)
 		worker_name := strings.Trim(strings.Split(node_name, "/")[1], "\n")
 		expernal_ip, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='%s')].status.addresses[?(@.type=='ExternalIP')].address}"`, worker_name))

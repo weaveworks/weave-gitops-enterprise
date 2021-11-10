@@ -428,7 +428,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			JustBeforeEach(func() {
 				log.Println("Connecting cluster to itself")
-				initializeWebdriver(GetWGEUrl())
+				InitializeWebdriver(GetWGEUrl())
 				leaf := LeafSpec{
 					Status:          "Ready",
 					IsWKP:           false,

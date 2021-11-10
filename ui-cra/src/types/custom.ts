@@ -20,6 +20,7 @@ export type Template = {
   objects?: TemplateObject[];
   error?: string;
   provider?: string;
+  annotations?: string[];
 };
 
 export type ListTemplatesResponse = {
@@ -73,4 +74,5 @@ export type UpdatedProfile = {
   name: Profile['name'];
   version: string;
   values: string;
+  required: boolean;
 };

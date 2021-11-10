@@ -508,6 +508,7 @@ github.com/form3tech-oss/jwt-go v3.2.3+incompatible/go.mod h1:pbq4aXjuKjdthFRnoD
 github.com/franela/goblin v0.0.0-20200105215937-c9ffbefa60db/go.mod h1:7dvUGVsVBjqR7JHJk0brhHOZYGmfBYOrK0ZhYMEtBr4=
 github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8/go.mod h1:ZhphrRTfi2rbfLwlschooIH4+wKKDR4Pdxhh+TRoA20=
 github.com/frankban/quicktest v1.11.3/go.mod h1:wRf/ReqHper53s+kmmSZizM8NamnL3IM0I9ntUbOk+k=
+github.com/freshautomations/stoml v0.7.0/go.mod h1:j9GKA+OhFx+h5ajLNLqz2sSQViZzeAt3GV4MfmkpcsU=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/fsnotify/fsnotify v1.5.1 h1:mZcQUHVQUQWoPXXtuf9yuEXKudkV2sx1E06UadKWpgI=
@@ -1429,6 +1430,7 @@ github.com/spf13/viper v1.3.2/go.mod h1:ZiWeW+zYFKm7srdB9IoDzzZXaJaI5eL9QjNiN/DM
 github.com/spf13/viper v1.4.0/go.mod h1:PTJ7Z/lr49W6bUbkmS1V3by4uWynFiR9p7+dSq/yZzE=
 github.com/spf13/viper v1.6.2/go.mod h1:t3iDnF5Jlj76alVNuyFBk5oUMCvsrkbvZK0WQdfDi5k=
 github.com/spf13/viper v1.7.0/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
+github.com/spf13/viper v1.7.1/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5qpdg=
 github.com/spf13/viper v1.8.1/go.mod h1:o0Pch8wJ9BVSWGQMbra6iw0oQ5oktSIBaujf1rJH9Ns=
 github.com/spf13/viper v1.9.0 h1:yR6EXjTp0y0cLN8OZg1CRZmOBdI88UcGkhgyJhu6nZk=
 github.com/spf13/viper v1.9.0/go.mod h1:+i6ajR7OX2XaiBkrcZJFK21htRk7eDeLg7+O6bhUPP4=
@@ -1489,8 +1491,8 @@ github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab/go.mod h1
 github.com/weaveworks/pctl v0.8.0/go.mod h1:eDRbIJD3OdNmcJdTjXrZez6EoS7J/a69hbN16Pd8pik=
 github.com/weaveworks/profiles v0.2.0/go.mod h1:BmQOw7tpOxGJWSoz9tpHEo6rRAaLPASljidFdYSsRUs=
 github.com/weaveworks/schemer v0.0.0-20210802122110-338b258ad2ca/go.mod h1:y8Luzq6JDsYVoIV0QAlnvIiq8bSaap0myMjWKyzVFTY=
-github.com/weaveworks/weave-gitops v0.4.0 h1:DUhYl6X2uH4B36fZ/3KwORYywYfoU2q68C+PdhpFrwU=
-github.com/weaveworks/weave-gitops v0.4.0/go.mod h1:mLrIw8iOqKwaGcFxLOXFwPXEvHvxgrDvsYjPkvx7MxY=
+github.com/weaveworks/weave-gitops v0.4.1 h1:9Q/dlNPDC90VBDC9+rSxxS53HmDon9GKgjdfvXp9TYk=
+github.com/weaveworks/weave-gitops v0.4.1/go.mod h1:NTRcDjl3gIu5w82w+sQsQeh2Rb2nogCyfqt6yuPvlrg=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 h1:R5+xSXgaKiTGLMzpNmkf9W5PsX9mCtMTgWUbJ7MwO70=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1/go.mod h1:xWxoy/Ff1R3VnKWacRlbmBnVSu066ykpZIkk+T/g1Vw=
 github.com/willf/bitset v1.1.11-0.20200630133818-d5bec3311243/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=

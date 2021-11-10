@@ -1,0 +1,188 @@
+#
+# WARNING: only changing this file will not work!
+#
+# You must update the calling site (uses:) with the reference to the branch you are working on
+#
+
+name: "Build and push docker images and charts"
+
+on:
+  workflow_call:
+    inputs:
+      helmrepo:
+        description: 'Which helm repo to push to'
+        required: true
+        type: string
+    secrets:
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: { required: true }
+      WGE_DOCKER_IO_USER: { required: true }
+      WGE_DOCKER_IO_PASSWORD: { required: true }
+      WGE_NPM_GITHUB_TOKEN: { required: true }
+      WGE_S3_AWS_ACCESS_KEY_ID: { required: true }
+      WGE_S3_AWS_SECRET_ACCESS_KEY: { required: true }
+
+env:
+  GITHUB_BUILD_USERNAME: wge-build-bot
+  GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+  GO_CACHE_NAME: cache-go-modules
+  YARN_CACHE_NAME: cache-yarn
+  HELM_REPO: ${{ inputs.helmrepo }}
+
+jobs:
+  cluster-service:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure git for private modules
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: build
+      run: |
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/clusters-service/.uptodate
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      run: |
+        docker push docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(./tools/image-tag)
+
+  event-writer:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure git for private modules
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: build
+      run: |
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/event-writer/.uptodate
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      run: |
+        docker push docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(./tools/image-tag)
+
+  ui-server:
+    runs-on: ubuntu-latest
+    steps:
+    - id: cache-paths
+      run: |
+        echo "::set-output name=dir::$(yarn cache dir)"
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+    - name: Configure git for private modules
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.cache-paths.outputs.go-build }}
+          ${{ steps.cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+    - name: Yarn Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.cache-paths.outputs.dir }}
+        key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+    - name: build
+      env:
+        GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+      run: |
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/ui-server/.uptodate
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      run: |
+        docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
+
+  gitops-broker-and-agent:
+    runs-on: ubuntu-latest
+    steps:
+    - id: cache-paths
+      run: |
+        echo "::set-output name=dir::$(yarn cache dir)"
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+    - name: Configure git for private modules
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.cache-paths.outputs.go-build }}
+          ${{ steps.cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+    - name: Build all the services
+      run: |
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/gitops-repo-broker/.uptodate
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/wkp-agent/.uptodate
+    - name: Install Helm v3
+      uses: azure/setup-helm@v1
+      with:
+        version: v3.5.4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+    - name: Publish helm chart to s3
+      run: |
+        git fetch --tags --force
+        TAG=$(git describe --always --match "v*")
+
+        CHART_VALUES_PATH=./charts/mccp/values.yaml
+        # Update the MCCP chart values.yaml file with the current image tag
+        make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+        # Publish the MCCP Helm v3 chart
+        ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      run: make push
