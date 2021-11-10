@@ -87,6 +87,11 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				// Create vanilla cluster for WGE upgrade
 				CreateCluster("kind", kind_upgrade_cluster_name, "upgrade-kind-config.yaml")
 
+				By("And cluster repo does not already exist", func() {
+					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				})
+
 			})
 
 			JustAfterEach(func() {
@@ -106,19 +111,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 			It("@upgrade Verify wego core can be upgraded to wego enterprise", func() {
 
-				By("When I install gitops/wego to my active cluster", func() {
-					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
-				})
-
-				By("And I install profile controllers to my active cluster", func() {
-					InstallAndVerifyPctl(GITOPS_DEFAULT_NAMESPACE)
-				})
-
-				By("And cluster repo does not already exist", func() {
-					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				})
-
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# gitops-capi-template")
@@ -126,13 +118,19 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
+				By("When I install gitops/wego to my active cluster", func() {
+					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
+				})
+
+				By("And I install profile controllers to my active cluster", func() {
+					InstallAndVerifyPctl(GITOPS_DEFAULT_NAMESPACE)
+				})
+
 				addCommand := fmt.Sprintf("add app . --path=./%s  --name=%s  --auto-merge=true", appPath, appName)
 				By(fmt.Sprintf("And I run gitops add app command ' %s 'in namespace %s from dir %s", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
-					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-					Eventually(session).Should(gexec.Exit())
-					Expect(string(session.Err.Contents())).Should(BeEmpty())
+					cmd := fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand)
+					_, err := runCommandAndReturnStringOutput(cmd)
+					Expect(err).Should(BeEmpty())
 				})
 
 				By("And I install the entitlement for cluster upgrade", func() {
@@ -140,19 +138,26 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I install the git repository secret for cluster service", func() {
-					command := exec.Command("sh", "-c", fmt.Sprintf(`kubectl create secret generic git-provider-credentials --namespace=%s --from-literal="GIT_PROVIDER_TOKEN=%s"`, GITOPS_DEFAULT_NAMESPACE, GITHUB_TOKEN))
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-					Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
-					Expect(string(session.Err.Contents())).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
+					cmd := fmt.Sprintf(`kubectl create secret generic git-provider-credentials --namespace=%s --from-literal="GIT_PROVIDER_TOKEN=%s"`, GITOPS_DEFAULT_NAMESPACE, GITHUB_TOKEN)
+					_, err := runCommandAndReturnStringOutput(cmd)
+					Expect(err).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
 				})
 
 				By("And I install the docker registry secret for wego enteprise components", func() {
-					command := exec.Command("sh", "-c", fmt.Sprintf(`kubectl create secret docker-registry docker-io-pull-secret --namespace=%s --docker-username=%s --docker-password=%s`, GITOPS_DEFAULT_NAMESPACE, DOCKER_IO_USER, DOCKER_IO_PASSWORD))
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-					Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
-					Expect(string(session.Err.Contents())).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
+					cmd := fmt.Sprintf(`kubectl create secret docker-registry docker-io-pull-secret --namespace=%s --docker-username=%s --docker-password=%s`, GITOPS_DEFAULT_NAMESPACE, DOCKER_IO_USER, DOCKER_IO_PASSWORD)
+					_, err := runCommandAndReturnStringOutput(cmd)
+					Expect(err).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
+				})
+
+				By(fmt.Sprintf("And wait for %s/%s GitRepository resource to be available in cluster", GITOPS_DEFAULT_NAMESPACE, appName), func() {
+					repoExists := func() bool {
+						cmd := fmt.Sprintf(`kubectl get GitRepository %s -n %s`, appName, GITOPS_DEFAULT_NAMESPACE)
+						out, _ := runCommandAndReturnStringOutput(cmd)
+
+						return out != ""
+					}
+					Eventually(repoExists, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), fmt.Sprintf("%s/%s Gitrepository does not exist in the cluster", GITOPS_DEFAULT_NAMESPACE, appName))
+
 				})
 
 				prBranch := "wego-upgrade-enterprise"
