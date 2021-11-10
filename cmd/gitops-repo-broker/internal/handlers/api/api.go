@@ -146,7 +146,8 @@ func RegisterCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unma
 		err = validate.Struct(crr)
 		if err != nil {
 			log.Errorf("Failed to validate payload: %v", err)
-			combinedError := fmt.Errorf("%v, %v", ErrInvalidPayload, "Error parsing 'url' in field 'Ingress URL'")
+			validationErrors := err.(validator.ValidationErrors)
+			combinedError := fmt.Errorf("%v, %v", ErrInvalidPayload, validationErrors)
 			common.WriteError(w, combinedError, http.StatusBadRequest)
 			return
 		}
@@ -214,7 +215,8 @@ func UpdateCluster(db *gorm.DB, validate *validator.Validate, unmarshalFn Unmars
 		err = validate.Struct(updated)
 		if err != nil {
 			log.Errorf("Failed to validate payload: %v", err)
-			combinedError := fmt.Errorf("%v, %v", ErrInvalidPayload, "Error parsing 'url' in field 'Ingress URL'")
+			validationErrors := err.(validator.ValidationErrors)
+			combinedError := fmt.Errorf("%v, %v", ErrInvalidPayload, validationErrors)
 			common.WriteError(w, combinedError, http.StatusBadRequest)
 			return
 		}

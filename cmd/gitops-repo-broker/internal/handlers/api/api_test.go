@@ -227,7 +227,7 @@ func TestUpdateCluster_ValidateRequestBody(t *testing.T) {
 	}, "", " ")
 	response := executeUpdate(t, bytes.NewReader(data), db, json.Unmarshal, json.MarshalIndent, NewFakeTokenGenerator("fake token", nil).Generate)
 	assert.Equal(t, http.StatusBadRequest, response.Code)
-	assert.Equal(t, "{\"message\":\"Invalid payload, Error parsing 'url' in field 'Ingress URL'\"}\n", response.Body.String())
+	assert.Equal(t, "{\"message\":\"Invalid payload, Key: 'ClusterUpdateRequest.IngressURL' Error:Field validation for 'IngressURL' failed on the 'url' tag\"}\n", response.Body.String())
 
 	data, _ = json.MarshalIndent(views.ClusterUpdateRequest{
 		Name:       "derp",
@@ -1064,7 +1064,7 @@ func TestRegisterCluster_ValidateRequestBody(t *testing.T) {
 	}, "", " ")
 	response := executePost(t, bytes.NewReader(data), db, json.Unmarshal, json.MarshalIndent, NewFakeTokenGenerator("fake token", nil).Generate)
 	assert.Equal(t, http.StatusBadRequest, response.Code)
-	assert.Equal(t, "{\"message\":\"Invalid payload, Error parsing 'url' in field 'Ingress URL'\"}\n", response.Body.String())
+	assert.Equal(t, "{\"message\":\"Invalid payload, Key: 'ClusterRegistrationRequest.IngressURL' Error:Field validation for 'IngressURL' failed on the 'url' tag\"}\n", response.Body.String())
 }
 
 func TestRegisterCluster(t *testing.T) {
