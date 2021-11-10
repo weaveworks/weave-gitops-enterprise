@@ -41,16 +41,17 @@ import (
 )
 
 var providers = map[string]string{
-	"AWSCluster":          "aws",
-	"AWSManagedCluster":   "aws",
-	"AzureCluster":        "azure",
-	"AzureManagedCluster": "azure",
-	"DOCluster":           "digitalocean",
-	"DockerCluster":       "docker",
-	"GCPCluster":          "gcp",
-	"OpenStackCluster":    "openstack",
-	"PacketCluster":       "packet",
-	"VSphereCluster":      "vsphere",
+	"AWSCluster":             "aws",
+	"AWSManagedCluster":      "aws",
+	"AWSManagedControlPlane": "aws",
+	"AzureCluster":           "azure",
+	"AzureManagedCluster":    "azure",
+	"DOCluster":              "digitalocean",
+	"DockerCluster":          "docker",
+	"GCPCluster":             "gcp",
+	"OpenStackCluster":       "openstack",
+	"PacketCluster":          "packet",
+	"VSphereCluster":         "vsphere",
 }
 
 type server struct {

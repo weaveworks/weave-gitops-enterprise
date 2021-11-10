@@ -934,6 +934,22 @@ func TestGetProvider(t *testing.T) {
 			provider: "aws",
 		},
 		{
+			name: "AWSManagedControlPlane",
+			template: &capiv1.CAPITemplate{
+				Spec: capiv1.CAPITemplateSpec{
+					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+								"kind": "AWSManagedControlPlane"
+							}`),
+						},
+					},
+				},
+			},
+			provider: "aws",
+		},
+		{
 			name: "AzureCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
