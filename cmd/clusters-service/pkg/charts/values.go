@@ -210,8 +210,8 @@ func ParseValues(chart string, version string, namespace string, values string, 
 				},
 			},
 			Interval:        metav1.Duration{Duration: time.Minute},
-			Values:          &apiextensionsv1.JSON{Raw: jsonValues},
 			TargetNamespace: namespace,
+			Values:          &apiextensionsv1.JSON{Raw: jsonValues},
 		},
 	}
 

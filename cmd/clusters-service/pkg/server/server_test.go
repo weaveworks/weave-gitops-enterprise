@@ -1100,7 +1100,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 			{
 				Name:      "foo",
 				Version:   "0.0.1",
-				Namespace: "wego-system",
+				Namespace: "test-namespace",
 				Values:    base64.StdEncoding.EncodeToString([]byte("foo: bar")),
 			},
 		},
@@ -1134,6 +1134,7 @@ spec:
         namespace: test-ns
       version: 0.0.1
   interval: 1m0s
+  targetNamespace: test-namespace
   values:
     foo: bar
 status: {}

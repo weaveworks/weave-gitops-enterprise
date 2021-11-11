@@ -192,7 +192,7 @@ func TestParseValues(t *testing.T) {
 		t.Fatalf("failed to read file: %v", err)
 	}
 	values := base64.StdEncoding.EncodeToString(f)
-	res, err := ParseValues("podinfo", "0.0.2", "wego-system", values, "dev", hr)
+	res, err := ParseValues("podinfo", "0.0.2", "test-namespace", values, "dev", hr)
 	if err != nil {
 		t.Fatalf("failed to parse profile values:\n%s", err)
 	}

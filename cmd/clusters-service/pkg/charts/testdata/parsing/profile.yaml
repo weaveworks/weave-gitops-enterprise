@@ -15,6 +15,7 @@ spec:
         namespace: test-ns
       version: 0.0.2
   interval: 1m0s
+  targetNamespace: test-namespace
   values:
     backend: null
     backends: []
