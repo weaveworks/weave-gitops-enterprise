@@ -156,7 +156,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 						return out != ""
 					}
-					Eventually(repoExists, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), fmt.Sprintf("%s/%s Gitrepository does not exist in the cluster", GITOPS_DEFAULT_NAMESPACE, appName))
+					Eventually(repoExists, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), fmt.Sprintf("%s/%s Gitrepository resource does not exist in the cluster", GITOPS_DEFAULT_NAMESPACE, appName))
 
 				})
 

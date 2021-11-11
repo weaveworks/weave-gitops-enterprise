@@ -86,6 +86,17 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(string(session.Err.Contents())).Should(BeEmpty())
 				})
 
+				By(fmt.Sprintf("And wait for %s/%s GitRepository resource to be available in cluster", GITOPS_DEFAULT_NAMESPACE, appName), func() {
+					repoExists := func() bool {
+						cmd := fmt.Sprintf(`kubectl get GitRepository %s -n %s`, appName, GITOPS_DEFAULT_NAMESPACE)
+						out, _ := runCommandAndReturnStringOutput(cmd)
+
+						return out != ""
+					}
+					Eventually(repoExists, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), fmt.Sprintf("%s/%s Gitrepository resource does not exist in the cluster", GITOPS_DEFAULT_NAMESPACE, appName))
+
+				})
+
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationPage(webDriver)
 
@@ -106,26 +117,26 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf(`Then %s details should be rendered`, appName), func() {
 					appDetails.WaitForPageToLoad(webDriver)
 
-					Expect(appDetails.Name).Should(MatchText(appName))
-					Expect(appDetails.DeploymentType).Should(MatchText("Kustomize"))
-					Expect(appDetails.URL).Should(MatchText(fmt.Sprintf(`ssh://git.+%s/%s.+`, GITHUB_ORG, CLUSTER_REPOSITORY)))
-					Expect(appDetails.Path).Should(MatchText(appPath))
+					Eventually(appDetails.Name).Should(MatchText(appName))
+					Eventually(appDetails.DeploymentType).Should(MatchText("Kustomize"))
+					Eventually(appDetails.URL).Should(MatchText(fmt.Sprintf(`ssh://git.+%s/%s.+`, GITHUB_ORG, CLUSTER_REPOSITORY)))
+					Eventually(appDetails.Path).Should(MatchText(appPath))
 				})
 
 				By(fmt.Sprintf(`And %s source/git status is available`, appName), func() {
 					sourceCondition := pages.GetApplicationConditions(webDriver, "Source Conditions")
-					Expect(sourceCondition.Type).Should(MatchText("Ready"))
-					Expect(sourceCondition.Status).Should(MatchText("True"))
-					Expect(sourceCondition.Reason).Should(MatchText("GitOperationSucceed"))
-					Expect(sourceCondition.Message).Should(MatchText(`Fetched revision: main/[\w\d].+`))
+					Eventually(sourceCondition.Type).Should(MatchText("Ready"))
+					Eventually(sourceCondition.Status).Should(MatchText("True"))
+					Eventually(sourceCondition.Reason).Should(MatchText("GitOperationSucceed"))
+					Eventually(sourceCondition.Message).Should(MatchText(`Fetched revision: main/[\w\d].+`))
 				})
 
 				By(fmt.Sprintf(`And %s automation/kustomization status is available`, appName), func() {
 					sourceCondition := pages.GetApplicationConditions(webDriver, "Automation Conditions")
-					Expect(sourceCondition.Type).Should(MatchText("Ready"))
-					Expect(sourceCondition.Status).Should(MatchText("True"))
-					Expect(sourceCondition.Reason).Should(MatchText("ReconciliationSucceeded"))
-					Expect(sourceCondition.Message).Should(MatchText(`Applied revision: main/[\w\d].+`))
+					Eventually(sourceCondition.Type).Should(MatchText("Ready"))
+					Eventually(sourceCondition.Status, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchText("True"))
+					Eventually(sourceCondition.Reason).Should(MatchText("ReconciliationSucceeded"))
+					Eventually(sourceCondition.Message).Should(MatchText(`Applied revision: main/[\w\d].+`))
 				})
 			})
 		})

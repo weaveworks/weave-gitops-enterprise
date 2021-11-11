@@ -44,15 +44,7 @@ func (a ApplicationDetails) WaitForPageToLoad(webDriver *agouti.Page) {
 // This function waits for main application page to be rendered
 func (a ApplicationPage) WaitForPageToLoad(webDriver *agouti.Page, appCount int) {
 	Eventually(a.ApplicationCount).Should(BeVisible())
-
-	isLoaded := func() bool {
-		_ = webDriver.Refresh()
-		if aCnt, _ := a.ApplicationCount.Text(); aCnt >= strconv.Itoa(appCount) {
-			return true
-		}
-		return false
-	}
-	Eventually(isLoaded, 2*time.Minute, 5*time.Second).Should(BeTrue(), "Application page failed to load/render as expected")
+	Eventually(a.ApplicationCount, 30*time.Second).Should(MatchText(strconv.Itoa(appCount)), "Application page failed to load/render as expected")
 }
 
 func GetApplicationPage(webDriver *agouti.Page) *ApplicationPage {
