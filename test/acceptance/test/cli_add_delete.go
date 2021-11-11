@@ -61,19 +61,16 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					output := session.Wait().Out.Contents()
 
 					// Verifying cluster object of tbe template for updated  parameter values
-					re := regexp.MustCompile(fmt.Sprintf(`kind: Cluster\s+metadata:\s+name: %[1]v\s+namespace: %[2]v[\s\w\d-.:/]+kind: KubeadmControlPlane\s+name: %[1]v-control-plane\s+namespace: %[2]v`,
+					Eventually(string(output)).Should(MatchRegexp(`kind: Cluster\s+metadata:\s+name: %[1]v\s+namespace: %[2]v[\s\w\d-.:/]+kind: KubeadmControlPlane\s+name: %[1]v-control-plane\s+namespace: %[2]v`,
 						clusterName, namespace))
-					Eventually((re.Find(output))).ShouldNot(BeNil())
 
 					// Verifying KubeadmControlPlane object of tbe template for updated  parameter values
-					re = regexp.MustCompile(fmt.Sprintf(`kind: KubeadmControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: %[2]v[\s\w\d"<%%,/:.-]+version: %[3]v`,
+					Eventually(string(output)).Should(MatchRegexp(`kind: KubeadmControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: %[2]v[\s\w\d"<%%,/:.-]+version: %[3]v`,
 						clusterName, namespace, k8version))
-					Eventually((re.Find(output))).ShouldNot(BeNil())
 
 					// Verifying MachineDeployment object of tbe template for updated  parameter values
-					re = regexp.MustCompile(fmt.Sprintf(`kind: MachineDeployment\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-md-0\s+namespace: %[2]v\s+spec:\s+clusterName: %[1]v[\s\w\d/:.-]+infrastructureRef:[\s\w\d/:.-]+version: %[3]v`,
+					Eventually(string(output)).Should(MatchRegexp(`kind: MachineDeployment\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-md-0\s+namespace: %[2]v\s+spec:\s+clusterName: %[1]v[\s\w\d/:.-]+infrastructureRef:[\s\w\d/:.-]+version: %[3]v`,
 						clusterName, namespace, k8version))
-					Eventually((re.Find(output))).ShouldNot(BeNil())
 				})
 			})
 
@@ -98,19 +95,16 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					output := session.Wait().Out.Contents()
 
 					// Verifying cluster object of tbe template for updated  parameter values
-					re := regexp.MustCompile(fmt.Sprintf(`kind: Cluster\s+metadata:\s+name: %[1]v\s+namespace: %[2]v[\s\w\d-.:/]+kind: KubeadmControlPlane\s+name: %[1]v-control-plane\s+namespace: %[2]v`,
+					Eventually(string(output)).Should(MatchRegexp(`kind: Cluster\s+metadata:\s+name: %[1]v\s+namespace: %[2]v[\s\w\d-.:/]+kind: KubeadmControlPlane\s+name: %[1]v-control-plane\s+namespace: %[2]v`,
 						clusterName, namespace))
-					Eventually((re.Find(output))).ShouldNot(BeNil())
 
 					// Verifying KubeadmControlPlane object of tbe template for updated  parameter values
-					re = regexp.MustCompile(fmt.Sprintf(`kind: KubeadmControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: %[2]v[\s\w\d"<%%,/:.-]+version: %[3]v`,
+					Eventually(string(output)).Should(MatchRegexp(`kind: KubeadmControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: %[2]v[\s\w\d"<%%,/:.-]+version: %[3]v`,
 						clusterName, namespace, k8version))
-					Eventually((re.Find(output))).ShouldNot(BeNil())
 
 					// Verifying MachineDeployment object of the template for updated  parameter values
-					re = regexp.MustCompile(fmt.Sprintf(`kind: MachineDeployment\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-md-0\s+namespace: %[2]v\s+spec:\s+clusterName: %[1]v[\s\w\d/:.-]+infrastructureRef:[\s\w\d/:.-]+version: %[3]v`,
+					Eventually(string(output)).Should(MatchRegexp(`kind: MachineDeployment\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-md-0\s+namespace: %[2]v\s+spec:\s+clusterName: %[1]v[\s\w\d/:.-]+infrastructureRef:[\s\w\d/:.-]+version: %[3]v`,
 						clusterName, namespace, k8version))
-					Eventually((re.Find(output))).ShouldNot(BeNil())
 				})
 			})
 

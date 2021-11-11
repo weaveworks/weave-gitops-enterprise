@@ -630,6 +630,8 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		Fetcher:    fetcher,
 	}
 
+	os.Setenv("CAPI_CLUSTERS_NAMESPACE", "default")
+
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
 		app.WithCAPIClustersNamespace("default"),
 		app.WithEntitlementSecretKey(client.ObjectKey{Name: "entitlement", Namespace: "default"}),
