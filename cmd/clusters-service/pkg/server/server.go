@@ -224,11 +224,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
 	}
 
+	profilesNamesapce := os.Getenv("RUNTIME_NAMESPACE")
+	if msg.ParameterValues["PROFILES_NAMESPACE"] != "" {
+		profilesNamesapce = msg.ParameterValues["PROFILES_NAMESPACE"]
+	}
 	if len(msg.Values) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
 			s.profileHelmRepositoryName,
-			os.Getenv("RUNTIME_NAMESPACE"),
+			profilesNamesapce,
 			clusterName,
 			s.client,
 			msg.Values,
