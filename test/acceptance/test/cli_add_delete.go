@@ -430,6 +430,11 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					KubeconfigPath:  "",
 				}
 				connectACluster(webDriver, gitopsTestRunner, leaf)
+
+				By("And template repo does not already exist", func() {
+					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				})
 			})
 
 			JustAfterEach(func() {
@@ -446,10 +451,6 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("@capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
-				By("And template repo does not already exist", func() {
-					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				})
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
@@ -461,7 +462,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I install gitops to my active cluster", func() {
 					Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
-					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
+					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
 				addCommand := fmt.Sprintf("add app . --path=./management  --name=%s  --auto-merge=true", appName)
