@@ -1,6 +1,7 @@
 import React, {
   ChangeEvent,
   FC,
+  FormEvent,
   useCallback,
   useEffect,
   useState,
@@ -112,6 +113,17 @@ const ProfilesList: FC<{
       const currentProfileIndex = enrichedProfiles.findIndex(
         profile => profile.name === currentProfile?.name,
       );
+
+      // name: "observability"
+      // required: true
+      // values: Array(1)
+      // 0:
+      // version: "0.0.1"
+      // yaml: undefined
+      // [[Prototype]]: Object
+      // length: 1
+      // [[Prototype]]: Array(0)
+
       // need to look for the version of the profile =>
       // enrichedProfiles[currentProfileIndex].values.find(value => currentProfileVersion === value.version).yaml
       // OLD: enrichedProfiles[currentProfileIndex].values = event.target.value;
@@ -119,7 +131,17 @@ const ProfilesList: FC<{
     [currentProfile, enrichedProfiles],
   );
 
-  const handleSelectVersion = useCallback(() => {}, []);
+  const handleSelectVersion = useCallback(
+    (
+      profile: UpdatedProfile,
+      event: FormEvent<HTMLInputElement>,
+      value: string,
+    ) => {
+      console.log(value);
+      console.log(profile);
+    },
+    [],
+  );
 
   const handleUpdateProfiles = useCallback(() => {
     onProfilesUpdate(enrichedProfiles);
@@ -148,7 +170,9 @@ const ProfilesList: FC<{
                     value={''}
                     disabled={loading}
                     items={profileVersions(profile)}
-                    onChange={handleSelectVersion}
+                    onChange={(event, value) =>
+                      handleSelectVersion(profile, event, value)
+                    }
                   />
                 </div>
                 <Button

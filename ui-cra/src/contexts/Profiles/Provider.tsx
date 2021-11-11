@@ -69,10 +69,12 @@ const ProfilesProvider: FC = ({ children }) => {
 
   const getProfileValues = useCallback(
     (profiles: Profile[]) => {
-      const profileRequests = profiles.map(profile =>
-        profile.availableVersions.map(version =>
-          getProfileYaml(profile.name, version),
-        ),
+      const profileRequests = profiles.flatMap(profile =>
+        profile.availableVersions.map(async version => {
+          const profileName = profile.name;
+          const data = await getProfileYaml(profileName, version);
+          return { name: profileName, version: version, payload: data };
+        }),
       );
       Promise.all(profileRequests)
         .then(data => console.log(data))
