@@ -190,7 +190,7 @@ func ParseValues(chart string, version string, namespace string, values string, 
 	hr := helmv2beta1.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s", clusterName, chart),
-			Namespace: namespace,
+			Namespace: "wego-system",
 		},
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: helmv2beta1.GroupVersion.Identifier(),
@@ -209,8 +209,9 @@ func ParseValues(chart string, version string, namespace string, values string, 
 					},
 				},
 			},
-			Interval: metav1.Duration{Duration: time.Minute},
-			Values:   &apiextensionsv1.JSON{Raw: jsonValues},
+			Interval:        metav1.Duration{Duration: time.Minute},
+			Values:          &apiextensionsv1.JSON{Raw: jsonValues},
+			TargetNamespace: namespace,
 		},
 	}
 
