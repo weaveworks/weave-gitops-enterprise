@@ -742,7 +742,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	var profileName string
 	var helmReleases []*helmv2beta1.HelmRelease
 	for _, pvs := range profileValues {
-		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Namespace, pvs.Values, clusterName, helmRepo)
 		if err != nil {
 			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 		}

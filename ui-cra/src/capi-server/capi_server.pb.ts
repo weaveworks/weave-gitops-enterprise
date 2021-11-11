@@ -174,6 +174,7 @@ export type GetProfileValuesResponse = {
 export type ProfileValues = {
   name?: string
   version?: string
+  namespace?: string
   values?: string
 }
 

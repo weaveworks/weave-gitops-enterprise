@@ -171,7 +171,7 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 	return conf
 }
 
-func ParseValues(chart string, version string, values string, clusterName string, helmRepo *sourcev1beta1.HelmRepository) (*helmv2beta1.HelmRelease, error) {
+func ParseValues(chart string, version string, namespace string, values string, clusterName string, helmRepo *sourcev1beta1.HelmRepository) (*helmv2beta1.HelmRelease, error) {
 	decoded, err := base64.StdEncoding.DecodeString(values)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
@@ -186,7 +186,7 @@ func ParseValues(chart string, version string, values string, clusterName string
 	hr := helmv2beta1.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s", clusterName, chart),
-			Namespace: "wego-system",
+			Namespace: namespace,
 		},
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: helmv2beta1.GroupVersion.Identifier(),

@@ -181,7 +181,7 @@
     },
     "/v1/profiles/{profileName}/{profileVersion}/values": {
       "get": {
-        "summary": "GetProfileVersionValues returns a list of profiles\nfrom the cluster.",
+        "summary": "GetProfileValues returns a list of values for \na given version of a profile from the cluster.",
         "operationId": "ClustersService_GetProfileValues",
         "responses": {
           "200": {
@@ -721,6 +721,9 @@
           "type": "string"
         },
         "version": {
+          "type": "string"
+        },
+        "namespace": {
           "type": "string"
         },
         "values": {
