@@ -1098,9 +1098,10 @@ func TestGenerateProfileFiles(t *testing.T) {
 		c,
 		[]*capiv1_protos.ProfileValues{
 			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				Name:      "foo",
+				Version:   "0.0.1",
+				Namespace: "wego-system",
+				Values:    base64.StdEncoding.EncodeToString([]byte("foo: bar")),
 			},
 		},
 	)
