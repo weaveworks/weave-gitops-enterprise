@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import styled from 'styled-components';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { UpdatedProfile } from '../../../../../types/custom';
@@ -26,7 +27,12 @@ import { OnClickAction } from '../../../../Action';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Button from '@material-ui/core/Button';
 import { GitOpsBlue } from '../../../../../muiTheme';
+import { Dropdown, DropdownItem } from 'weaveworks-ui-components';
 
+const large = weaveTheme.spacing.large;
+const medium = weaveTheme.spacing.medium;
+const base = weaveTheme.spacing.base;
+const xxs = weaveTheme.spacing.xxs;
 const xs = weaveTheme.spacing.xs;
 
 const useStyles = makeStyles(theme => ({
@@ -51,21 +57,53 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const ListItemWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  & .profile-name {
+    margin-right: ${medium};
+  }
+  & .profile-version {
+    display: flex;
+    align-items: center;
+    margin-right: ${xs};
+    width: 150px;
+    span {
+      margin-right: ${xs};
+    }
+  }
+  & .dropdown-toggle {
+    border: 1px solid #e5e5e5;
+  }
+`;
+
 const ProfilesList: FC<{
   selectedProfiles: UpdatedProfile[];
   onProfilesUpdate: (profiles: UpdatedProfile[]) => void;
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
   const { loading } = useProfiles();
-  const [currentProfile, setCurrentProfile] = useState<UpdatedProfile>();
+  const [currentProfile, setCurrentProfile] = useState<UpdatedProfile>(
+    {} as UpdatedProfile,
+  );
+  const [currentProfileVersion, setCurrentProfileVersion] = useState<string>();
   const [currentProfilePreview, setCurrentProfilePreview] = useState<string>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [enrichedProfiles, setEnrichedProfiles] =
     useState<UpdatedProfile[]>(selectedProfiles);
 
+  const profileVersions = (profile: UpdatedProfile) =>
+    profile.values.map(value => {
+      const { version } = value;
+      return {
+        label: version,
+        value: version,
+      };
+    });
+
   const handlePreview = (profile: UpdatedProfile) => {
     setCurrentProfile(profile);
-    setCurrentProfilePreview(profile.values);
+    // setCurrentProfilePreview(profile.values);
     setOpenYamlPreview(true);
   };
 
@@ -74,10 +112,14 @@ const ProfilesList: FC<{
       const currentProfileIndex = enrichedProfiles.findIndex(
         profile => profile.name === currentProfile?.name,
       );
-      enrichedProfiles[currentProfileIndex].values = event.target.value;
+      // need to look for the version of the profile =>
+      // enrichedProfiles[currentProfileIndex].values.find(value => currentProfileVersion === value.version).yaml
+      // OLD: enrichedProfiles[currentProfileIndex].values = event.target.value;
     },
     [currentProfile, enrichedProfiles],
   );
+
+  const handleSelectVersion = useCallback(() => {}, []);
 
   const handleUpdateProfiles = useCallback(() => {
     onProfilesUpdate(enrichedProfiles);
@@ -88,20 +130,35 @@ const ProfilesList: FC<{
     setEnrichedProfiles(selectedProfiles);
   }, [selectedProfiles]);
 
+  console.log(enrichedProfiles);
+
   return (
     <>
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
           {enrichedProfiles.map((profile, index) => (
-            <ListItem key={index}>
-              <ListItemText>{profile.name}</ListItemText>
-              <Button
-                className={classes.downloadBtn}
-                onClick={() => handlePreview(profile)}
-              >
-                values.yaml
-              </Button>
-            </ListItem>
+            <ListItemWrapper>
+              <ListItem key={index} className="">
+                <ListItemText className="profile-name">
+                  {profile.name}
+                </ListItemText>
+                <div className="profile-version">
+                  <span>Version</span>
+                  <Dropdown
+                    value={''}
+                    disabled={loading}
+                    items={profileVersions(profile)}
+                    onChange={handleSelectVersion}
+                  />
+                </div>
+                <Button
+                  className={classes.downloadBtn}
+                  onClick={() => handlePreview(profile)}
+                >
+                  values.yaml
+                </Button>
+              </ListItem>
+            </ListItemWrapper>
           ))}
         </List>
       </Box>

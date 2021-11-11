@@ -72,7 +72,6 @@ export type ListProfilesResponse = {
 
 export type UpdatedProfile = {
   name: Profile['name'];
-  version: string;
-  values: string;
+  values: { [key1: string]: string }[];
   required: boolean;
 };

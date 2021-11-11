@@ -135,8 +135,8 @@ const AddCluster: FC = () => {
       profiles?.map(profile => {
         return {
           name: profile.name,
-          version: profile.version,
-          values: btoa(profile.values),
+          // version: profile.version,
+          // values: btoa(profile.values),
         };
       }),
     [],

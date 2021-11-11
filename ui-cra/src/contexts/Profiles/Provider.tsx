@@ -29,7 +29,12 @@ const ProfilesProvider: FC = ({ children }) => {
       const defaultProfiles = [];
       for (const [key, value] of annotations) {
         if (key.includes('capi.weave.works/profile')) {
-          defaultProfiles.push({ ...JSON.parse(value), required: true });
+          const { name, version, values } = JSON.parse(value);
+          defaultProfiles.push({
+            name,
+            values: [{ version, yaml: values }],
+            required: true,
+          });
         }
       }
       return defaultProfiles;
@@ -49,70 +54,45 @@ const ProfilesProvider: FC = ({ children }) => {
       .finally(() => setLoading(false));
   }, [setNotifications]);
 
-  const getProfileYaml = useCallback((profile: Profile) => {
-    setLoading(true);
-    const version =
-      profile.availableVersions[profile.availableVersions.length - 1];
-    return request('GET', `${profilesUrl}/${profile.name}/${version}/values`, {
-      headers: {
-        Accept: 'application/octet-stream',
-      },
-    }).finally(() => setLoading(false));
-  }, []);
+  const getProfileYaml = useCallback(
+    (name: Profile['name'], version: string) => {
+      setLoading(true);
+      return request('GET', `${profilesUrl}/${name}/${version}/values`, {
+        headers: {
+          Accept: 'application/octet-stream',
+        },
+        referrer: `${name}/${version}`,
+      }).finally(() => setLoading(false));
+    },
+    [],
+  );
 
   const getProfileValues = useCallback(
     (profiles: Profile[]) => {
-      const isProfileUpdated = (profile: Profile) =>
-        profilesWithValues.filter(
-          p =>
-            p.name === profile.name &&
-            p.version ===
-              profile.availableVersions[profile.availableVersions.length - 1],
-        ).length !== 0;
-
-      const profileRequests = [] as Promise<any>[];
-
-      profiles.forEach(profile => {
-        if (!isProfileUpdated(profile)) {
-          profileRequests.push(
-            getProfileYaml(profile)
-              .then(data =>
-                setProfilesWithValues([
-                  ...profilesWithValues,
-                  {
-                    name: profile.name,
-                    version:
-                      profile.availableVersions[
-                        profile.availableVersions.length - 1
-                      ],
-                    values: data.message,
-                    required: false,
-                  },
-                ]),
-              )
-              .catch(error =>
-                setNotifications([
-                  { message: error.message, variant: 'danger' },
-                ]),
-              ),
-          );
-        }
-      });
-      return Promise.all(profileRequests);
+      const profileRequests = profiles.map(profile =>
+        profile.availableVersions.map(version =>
+          getProfileYaml(profile.name, version),
+        ),
+      );
+      Promise.all(profileRequests)
+        .then(data => console.log(data))
+        .catch(error => console.log(error));
     },
-    [getProfileYaml, setNotifications, profilesWithValues],
+    [getProfileYaml],
   );
 
   const getValidDefaultProfiles = useCallback(() => {
     const defaultProfiles =
       activeTemplate && getDefaultProfiles(activeTemplate);
     return (
-      defaultProfiles?.filter(profile =>
+      defaultProfiles?.filter(defaultProfile =>
         profiles.find(
-          p =>
-            profile.name === p.name &&
-            profile.version ===
-              p.availableVersions[p.availableVersions.length - 1],
+          profile =>
+            defaultProfile.name === profile.name &&
+            profile.availableVersions.find(
+              availableVersion =>
+                availableVersion === defaultProfile.values[0].version,
+            )?.length !== 0,
         ),
       ) || []
     );
@@ -135,7 +115,10 @@ const ProfilesProvider: FC = ({ children }) => {
       profilesWithValues?.filter(
         profile =>
           !validDefaultProfiles.find(
-            p => profile.name === p.name && profile.version === p.version,
+            p =>
+              profile.name === p.name &&
+              profile.values.map(value => value.version === p.values[0].version)
+                .length !== 0,
           ),
       ) || [];
 
@@ -157,7 +140,6 @@ const ProfilesProvider: FC = ({ children }) => {
         profiles,
         loading,
         getProfile,
-        getProfileYaml,
         updatedProfiles,
       }}
     >
