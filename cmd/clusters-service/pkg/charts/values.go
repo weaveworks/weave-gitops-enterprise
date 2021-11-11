@@ -183,6 +183,10 @@ func ParseValues(chart string, version string, namespace string, values string, 
 		return nil, fmt.Errorf("failed to marshal YAML values into JSON: %w", err)
 	}
 
+	if namespace == "" {
+		namespace = "wego-system"
+	}
+
 	hr := helmv2beta1.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s", clusterName, chart),
