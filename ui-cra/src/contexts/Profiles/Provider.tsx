@@ -32,7 +32,7 @@ const ProfilesProvider: FC = ({ children }) => {
           const { name, version, values } = JSON.parse(value);
           defaultProfiles.push({
             name,
-            values: [{ version, yaml: values }],
+            values: [{ version, yaml: values, selected: false }],
             required: true,
           });
         }
@@ -77,7 +77,41 @@ const ProfilesProvider: FC = ({ children }) => {
         }),
       );
       Promise.all(profileRequests)
-        .then(data => console.log(data))
+        .then(data => {
+          // updating the data here results in a continous loop
+          // setProfilesWithValues(
+          data.reduce(
+            (
+              accumulator: {
+                name: string;
+                values: { version: string; yaml: string }[];
+                required: boolean;
+              }[],
+              item,
+            ) => {
+              const profileName = accumulator.find(
+                acc => acc.name === item.name,
+              );
+              const value = {
+                version: item.version,
+                yaml: item.payload.message,
+                selected: false,
+              };
+
+              if (profileName) {
+                profileName.values.push(value);
+              } else {
+                accumulator.push({
+                  name: item.name,
+                  values: [value],
+                  required: false,
+                });
+              }
+              return accumulator;
+            },
+            [],
+          );
+        })
         .catch(error => console.log(error));
     },
     [getProfileYaml],

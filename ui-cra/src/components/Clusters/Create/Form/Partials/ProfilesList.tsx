@@ -9,7 +9,7 @@ import React, {
 import styled from 'styled-components';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
-import { UpdatedProfile } from '../../../../../types/custom';
+import { Profile, UpdatedProfile } from '../../../../../types/custom';
 import Box from '@material-ui/core/Box';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -84,51 +84,46 @@ const ProfilesList: FC<{
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
   const classes = useStyles();
   const { loading } = useProfiles();
-  const [currentProfile, setCurrentProfile] = useState<UpdatedProfile>(
-    {} as UpdatedProfile,
-  );
+  const [currentProfileName, setCurrentProfileName] = useState<string>('');
   const [currentProfileVersion, setCurrentProfileVersion] = useState<string>();
   const [currentProfilePreview, setCurrentProfilePreview] = useState<string>();
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
-  const [enrichedProfiles, setEnrichedProfiles] =
-    useState<UpdatedProfile[]>(selectedProfiles);
+  const [enrichedProfiles, setEnrichedProfiles] = useState<UpdatedProfile[]>(
+    [],
+  );
 
   const profileVersions = (profile: UpdatedProfile) =>
     profile.values.map(value => {
       const { version } = value;
       return {
-        label: version,
-        value: version,
+        label: version as string,
+        value: version as string,
       };
     });
 
-  const handlePreview = (profile: UpdatedProfile) => {
-    setCurrentProfile(profile);
-    // setCurrentProfilePreview(profile.values);
+  const handlePreview = (profileName: string, yaml: string) => {
+    setCurrentProfileName(profileName);
+    setCurrentProfilePreview(yaml);
     setOpenYamlPreview(true);
   };
 
-  const handleChange = useCallback(
+  const handleChangeYaml = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>) => {
       const currentProfileIndex = enrichedProfiles.findIndex(
-        profile => profile.name === currentProfile?.name,
+        p => p.name === currentProfileName,
       );
 
-      // name: "observability"
-      // required: true
-      // values: Array(1)
-      // 0:
-      // version: "0.0.1"
-      // yaml: undefined
-      // [[Prototype]]: Object
-      // length: 1
-      // [[Prototype]]: Array(0)
+      console.log(event.target);
 
-      // need to look for the version of the profile =>
-      // enrichedProfiles[currentProfileIndex].values.find(value => currentProfileVersion === value.version).yaml
-      // OLD: enrichedProfiles[currentProfileIndex].values = event.target.value;
+      // const [currentValue] = enrichedProfiles[
+      //   currentProfileIndex
+      // ].values.filter(item => item. === value.version);
+
+      // currentValue.yaml = event.target.value;
+
+      // enrichedProfiles[currentProfileIndex].values.find
     },
-    [currentProfile, enrichedProfiles],
+    [enrichedProfiles, currentProfileName],
   );
 
   const handleSelectVersion = useCallback(
@@ -137,10 +132,17 @@ const ProfilesList: FC<{
       event: FormEvent<HTMLInputElement>,
       value: string,
     ) => {
-      console.log(value);
-      console.log(profile);
+      const currentProfileIndex = enrichedProfiles.findIndex(
+        p => p.name === profile.name,
+      );
+
+      const [currentValue] = enrichedProfiles[
+        currentProfileIndex
+      ].values.filter(item => item.version === value);
+
+      currentValue.selected = true;
     },
-    [],
+    [currentProfileName, enrichedProfiles],
   );
 
   const handleUpdateProfiles = useCallback(() => {
@@ -152,38 +154,48 @@ const ProfilesList: FC<{
     setEnrichedProfiles(selectedProfiles);
   }, [selectedProfiles]);
 
-  console.log(enrichedProfiles);
+  // console.log(enrichedProfiles);
 
   return (
     <>
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
-          {enrichedProfiles.map((profile, index) => (
-            <ListItemWrapper>
-              <ListItem key={index} className="">
-                <ListItemText className="profile-name">
-                  {profile.name}
-                </ListItemText>
-                <div className="profile-version">
-                  <span>Version</span>
-                  <Dropdown
-                    value={''}
-                    disabled={loading}
-                    items={profileVersions(profile)}
-                    onChange={(event, value) =>
-                      handleSelectVersion(profile, event, value)
+          {enrichedProfiles.map((profile, index) => {
+            const selectedVersionYaml = profile.values.find(
+              value => value.selected === true,
+            );
+            return (
+              <ListItemWrapper>
+                <ListItem key={index} className="">
+                  <ListItemText className="profile-name">
+                    {profile.name}
+                  </ListItemText>
+                  <div className="profile-version">
+                    <span>Version</span>
+                    <Dropdown
+                      value={(selectedVersionYaml?.version as string) || ''}
+                      disabled={loading}
+                      items={profileVersions(profile)}
+                      onChange={(event, value) =>
+                        handleSelectVersion(profile, event, value)
+                      }
+                    />
+                  </div>
+                  <Button
+                    className={classes.downloadBtn}
+                    onClick={() =>
+                      handlePreview(
+                        profile.name,
+                        selectedVersionYaml?.yaml as string,
+                      )
                     }
-                  />
-                </div>
-                <Button
-                  className={classes.downloadBtn}
-                  onClick={() => handlePreview(profile)}
-                >
-                  values.yaml
-                </Button>
-              </ListItem>
-            </ListItemWrapper>
-          ))}
+                  >
+                    values.yaml
+                  </Button>
+                </ListItem>
+              </ListItemWrapper>
+            );
+          })}
         </List>
       </Box>
       <Dialog
@@ -195,7 +207,7 @@ const ProfilesList: FC<{
         onClose={() => setOpenYamlPreview(false)}
       >
         <DialogTitle disableTypography>
-          <Typography variant="h5">{currentProfile?.name}</Typography>
+          <Typography variant="h5">{currentProfileName}</Typography>
           <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
         </DialogTitle>
         <DialogContent>
@@ -203,7 +215,7 @@ const ProfilesList: FC<{
             <TextareaAutosize
               className={classes.textarea}
               defaultValue={currentProfilePreview || ''}
-              onChange={handleChange}
+              onChange={event => handleChangeYaml(event)}
             />
           ) : (
             <Loader />
