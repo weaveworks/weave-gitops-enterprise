@@ -59,7 +59,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
 			})
 
-			It("@application Verify application's status and history can be monitored", func() {
+			XIt("@application Verify application's status and history can be monitored", func() {
 
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
