@@ -32,7 +32,7 @@ const ProfilesProvider: FC = ({ children }) => {
           const { name, version, values } = JSON.parse(value);
           defaultProfiles.push({
             name,
-            values: [{ version, yaml: values, selected: false }],
+            values: [{ version, yaml: values || '', selected: false }],
             required: true,
           });
         }
@@ -94,7 +94,7 @@ const ProfilesProvider: FC = ({ children }) => {
               );
               const value = {
                 version: item.version,
-                yaml: item.payload.message,
+                yaml: item.payload.message || '',
                 selected: false,
               };
 
