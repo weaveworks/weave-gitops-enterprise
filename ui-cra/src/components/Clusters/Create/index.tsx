@@ -145,7 +145,7 @@ const AddCluster: FC = () => {
     [],
   );
 
-  console.log(encodedProfiles(updatedProfiles));
+  // console.log(encodedProfiles(updatedProfiles));
 
   const handleAddCluster = useCallback(
     (gitOps: {

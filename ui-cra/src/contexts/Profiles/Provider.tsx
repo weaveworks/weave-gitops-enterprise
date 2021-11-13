@@ -26,7 +26,7 @@ const ProfilesProvider: FC = ({ children }) => {
   const getDefaultProfiles = (template: Template) => {
     if (template?.annotations) {
       const annotations = Object.entries(template?.annotations);
-      const defaultProfiles = [];
+      const defaultProfiles = [] as UpdatedProfile[];
       for (const [key, value] of annotations) {
         if (key.includes('capi.weave.works/profile')) {
           const { name, version, values } = JSON.parse(value);
@@ -41,18 +41,6 @@ const ProfilesProvider: FC = ({ children }) => {
     }
     return [];
   };
-
-  const getProfiles = useCallback(() => {
-    setLoading(true);
-    request('GET', profilesUrl, {
-      cache: 'no-store',
-    })
-      .then(res => setProfiles(res.profiles))
-      .catch(err => {
-        setNotifications([{ message: err.message, variant: 'danger' }]);
-      })
-      .finally(() => setLoading(false));
-  }, [setNotifications]);
 
   const getProfileYaml = useCallback(
     (name: Profile['name'], version: string) => {
@@ -78,9 +66,7 @@ const ProfilesProvider: FC = ({ children }) => {
       );
       Promise.all(profileRequests)
         .then(data => {
-          // updating the data here results in a continous loop
-          // setProfilesWithValues(
-          data.reduce(
+          const profiles = data.reduce(
             (
               accumulator: {
                 name: string;
@@ -111,38 +97,57 @@ const ProfilesProvider: FC = ({ children }) => {
             },
             [],
           );
+          setProfilesWithValues(profiles);
         })
-        .catch(error => console.log(error));
+        .catch(err =>
+          setNotifications([{ message: err.message, variant: 'danger' }]),
+        );
     },
-    [getProfileYaml],
+    [getProfileYaml, setNotifications],
   );
+
+  const getProfiles = useCallback(() => {
+    setLoading(true);
+    request('GET', profilesUrl, {
+      cache: 'no-store',
+    })
+      .then(res => getProfileValues(res.profiles))
+      .catch(err => {
+        setNotifications([{ message: err.message, variant: 'danger' }]);
+      })
+      .finally(() => setLoading(false));
+  }, [setNotifications, getProfileValues]);
 
   const getValidDefaultProfiles = useCallback(() => {
     const defaultProfiles =
       activeTemplate && getDefaultProfiles(activeTemplate);
     return (
       defaultProfiles?.filter(defaultProfile =>
-        profiles.find(
+        profilesWithValues.find(
           profile =>
             defaultProfile.name === profile.name &&
-            profile.availableVersions.find(
-              availableVersion =>
-                availableVersion === defaultProfile.values[0].version,
+            profile.values.map(
+              value =>
+                (value.version as string) ===
+                (defaultProfile.values[0].version as string),
             )?.length !== 0,
         ),
       ) || []
     );
-  }, [activeTemplate, profiles]);
+  }, [activeTemplate, profilesWithValues]);
 
   useEffect(() => {
     getProfiles();
     return history.listen(getProfiles);
-  }, [history, getProfiles, activeTemplate]);
+  }, [
+    history,
+    getProfiles,
+    activeTemplate,
+    getProfileValues,
+    // profiles
+  ]);
 
   useEffect(() => {
-    // get yaml values for all the profiles
-    getProfileValues(profiles);
-
     // get default / required profiles for the active template
     const validDefaultProfiles = getValidDefaultProfiles();
 
