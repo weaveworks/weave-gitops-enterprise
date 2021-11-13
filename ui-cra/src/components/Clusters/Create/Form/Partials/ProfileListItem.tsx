@@ -29,7 +29,7 @@ import { Dropdown } from 'weaveworks-ui-components';
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   dialog: {
     backgroundColor: weaveTheme.colors.gray50,
   },
@@ -88,9 +88,16 @@ const ProfilesListItem: FC<{
       setVersion(value);
 
       profile.values.forEach(item => {
+        if (item.selected === true) {
+          item.selected = false;
+        }
+      });
+
+      profile.values.forEach(item => {
         if (item.version === value) {
           item.selected = true;
           setYaml(item.yaml as string);
+          return;
         }
       });
 
@@ -125,6 +132,7 @@ const ProfilesListItem: FC<{
   useEffect(() => {
     if (profile.values.length === 1) {
       setVersion(profile.values[0].version as string);
+      profile.values[0].selected = true;
       setYaml(profile.values[0].version as string);
     } else {
       setVersion('');

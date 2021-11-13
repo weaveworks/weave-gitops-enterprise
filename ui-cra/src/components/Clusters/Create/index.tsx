@@ -132,15 +132,20 @@ const AddCluster: FC = () => {
 
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
-      profiles?.map(profile => {
-        return {
-          name: profile.name,
-          // version: profile.version,
-          // values: btoa(profile.values),
-        };
+      profiles?.forEach(profile => {
+        profile.values.forEach(value => {
+          if (value.selected === true)
+            return {
+              name: profile.name,
+              version: value.version,
+              values: btoa(value.yaml as string),
+            };
+        });
       }),
     [],
   );
+
+  console.log(encodedProfiles(updatedProfiles));
 
   const handleAddCluster = useCallback(
     (gitOps: {

@@ -109,8 +109,6 @@ const TemplateFields: FC<{
     };
   }, [properties, required]);
 
-  console.log(selectedProfiles);
-
   // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
   const sections = useMemo(() => {
     const groups =
