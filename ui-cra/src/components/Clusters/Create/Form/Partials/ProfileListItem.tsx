@@ -69,13 +69,9 @@ const ProfilesListItem: FC<{
   updateProfile: (profile: UpdatedProfile) => void;
 }> = ({ profile, updateProfile }) => {
   const classes = useStyles();
-  const [currentProfileName, setCurrentProfileName] = useState<string>('');
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
-  const [enrichedProfiles, setEnrichedProfiles] = useState<UpdatedProfile[]>(
-    [],
-  );
 
   const profileVersions = (profile: UpdatedProfile) => [
     ...profile.values.map(value => {
@@ -85,28 +81,22 @@ const ProfilesListItem: FC<{
         value: version as string,
       };
     }),
-    // { label: 'Select', value: '' },
   ];
 
   const handleSelectVersion = useCallback(
     (event: FormEvent<HTMLInputElement>, value: string) => {
       setVersion(value);
 
-      // !!! should trigger the :
-      //   - update of the relevant yaml
-      //   - update of enrichedProfiles here!!!
+      profile.values.forEach(item => {
+        if (item.version === value) {
+          item.selected = true;
+          setYaml(item.yaml as string);
+        }
+      });
 
-      //   const currentProfileIndex = enrichedProfiles.findIndex(
-      //     p => p.name === profile.name,
-      //   );
-
-      //   const [currentValue] = enrichedProfiles[
-      //     currentProfileIndex
-      //   ].values.filter(item => item.version === value);
-
-      //   currentValue.selected = true;
+      updateProfile(profile);
     },
-    [],
+    [profile, updateProfile],
   );
 
   const handleYamlPreview = () => {
@@ -121,14 +111,16 @@ const ProfilesListItem: FC<{
     setYaml(event.target.value);
 
   const handleUpdateProfiles = useCallback(() => {
-    // !!! should trigger the :
-    //   - update of enrichedProfiles here!!!
+    profile.values.forEach(item => {
+      if (item.version === version) {
+        item.yaml = yaml;
+      }
+    });
+
+    updateProfile(profile);
 
     setOpenYamlPreview(false);
-  }, []);
-
-  const selectedVersionYaml = (profile: UpdatedProfile) =>
-    profile.values.find(value => value.selected === true);
+  }, [profile, updateProfile, version, yaml]);
 
   useEffect(() => {
     if (profile.values.length === 1) {

@@ -40,7 +40,6 @@ const Credentials: FC<{
     [getCredential, onSelect],
   );
 
-  console.log(infraCredential?.name);
   return (
     <div className="credentials">
       <span>Infrastructure provider credentials:</span>
