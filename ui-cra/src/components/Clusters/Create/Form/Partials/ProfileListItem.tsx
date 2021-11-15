@@ -81,6 +81,10 @@ const ProfilesListItem: FC<{
         value: version as string,
       };
     }),
+    {
+      label: 'Select',
+      value: '',
+    },
   ];
 
   const handleSelectVersion = useCallback(

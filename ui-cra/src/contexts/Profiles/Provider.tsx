@@ -8,7 +8,6 @@ import useTemplates from './../Templates';
 
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
@@ -19,9 +18,6 @@ const ProfilesProvider: FC = ({ children }) => {
   const history = useHistory();
 
   const profilesUrl = '/v1/profiles';
-
-  const getProfile = (profileName: string) =>
-    profiles.find(profile => profile.name === profileName) || null;
 
   const getDefaultProfiles = (template: Template) => {
     if (template?.annotations) {
@@ -42,18 +38,15 @@ const ProfilesProvider: FC = ({ children }) => {
     return [];
   };
 
-  const getProfileYaml = useCallback(
-    (name: Profile['name'], version: string) => {
-      setLoading(true);
-      return request('GET', `${profilesUrl}/${name}/${version}/values`, {
-        headers: {
-          Accept: 'application/octet-stream',
-        },
-        referrer: `${name}/${version}`,
-      }).finally(() => setLoading(false));
-    },
-    [],
-  );
+  const getProfileYaml = useCallback((name: string, version: string) => {
+    setLoading(true);
+    return request('GET', `${profilesUrl}/${name}/${version}/values`, {
+      headers: {
+        Accept: 'application/octet-stream',
+      },
+      referrer: `${name}/${version}`,
+    }).finally(() => setLoading(false));
+  }, []);
 
   const getProfileValues = useCallback(
     (profiles: Profile[]) => {
@@ -139,13 +132,7 @@ const ProfilesProvider: FC = ({ children }) => {
   useEffect(() => {
     getProfiles();
     return history.listen(getProfiles);
-  }, [
-    history,
-    getProfiles,
-    activeTemplate,
-    getProfileValues,
-    // profiles
-  ]);
+  }, [history, getProfiles, activeTemplate, getProfileValues]);
 
   useEffect(() => {
     // get default / required profiles for the active template
@@ -166,7 +153,6 @@ const ProfilesProvider: FC = ({ children }) => {
     setUpdatedProfiles([...optionalProfiles, ...validDefaultProfiles]);
   }, [
     profilesWithValues,
-    profiles,
     activeTemplate,
     getProfileYaml,
     setNotifications,
@@ -178,9 +164,7 @@ const ProfilesProvider: FC = ({ children }) => {
   return (
     <Profiles.Provider
       value={{
-        profiles,
         loading,
-        getProfile,
         updatedProfiles,
       }}
     >

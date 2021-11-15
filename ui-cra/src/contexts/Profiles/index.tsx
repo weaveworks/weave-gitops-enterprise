@@ -1,10 +1,8 @@
 import { createContext, useContext } from 'react';
-import { Profile, UpdatedProfile } from '../../types/custom';
+import { UpdatedProfile } from '../../types/custom';
 
 interface ProfilesContext {
-  profiles: Profile[] | [];
   loading: boolean;
-  getProfile: (name: string) => Profile | null;
   updatedProfiles: UpdatedProfile[];
 }
 
