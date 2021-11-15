@@ -1,4 +1,17 @@
-from golang:1.17.1 as builder
+FROM golang:1.17.1 as builder
+
+ARG now
+ARG revision
+ARG version
+LABEL maintainer="Weaveworks <help@weave.works>" \
+      org.opencontainers.image.created="${now}" \
+      org.opencontainers.image.description="The Weave GitOps Enterprise Clusters Service" \
+      org.opencontainers.image.documentation="https://docs.gitops.weave.works/" \
+      org.opencontainers.image.revision="${revision}" \
+      org.opencontainers.image.title="weave-gitops-enterprise-clusters-service" \
+      org.opencontainers.image.url="https://docs.gitops.weave.works/" \
+      org.opencontainers.image.vendor="Weaveworks" \
+      org.opencontainers.image.version="${version}"
 
 ENV CS_PATH=cmd/clusters-service
 
@@ -34,8 +47,8 @@ ENV CS_PATH=cmd/clusters-service
 
 # # Add git provider hostnames to known hosts file so we can use
 # # StrickHostKeyChecking with git+ssh
-# ADD ./known_hosts.sh /home/wkp/known_hosts.sh
-# RUN bash /home/wkp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /home/wkp/known_hosts.sh
+COPY ./tools/known_hosts.sh /tmp/known_hosts.sh
+RUN bash /tmp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /tmp/known_hosts.sh
 
 RUN apk add --no-cache ca-certificates tini
 

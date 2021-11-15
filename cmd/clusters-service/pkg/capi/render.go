@@ -11,27 +11,33 @@ import (
 )
 
 // RenderOptFunc is a functional option for Rendering templates.
-type RenderOptFunc func(b []byte) ([]byte, error)
+type RenderOptFunc func(uns *unstructured.Unstructured) error
 
-func InjectPruneAnnotation() RenderOptFunc {
-	return unstructuredFunc(func(uns *unstructured.Unstructured) {
-		if uns.GetKind() != "Cluster" {
-			ann := uns.GetAnnotations()
-			if ann == nil {
-				ann = make(map[string]string)
-			}
-			ann["kustomize.toolkit.fluxcd.io/prune"] = "disabled"
-			uns.SetAnnotations(ann)
+// InjectPruneAnnotation injects an annotation on everything but Cluster objects
+// to instruct flux *not* to prune these objects.
+func InjectPruneAnnotation(uns *unstructured.Unstructured) error {
+	if uns.GetKind() != "Cluster" {
+		ann := uns.GetAnnotations()
+		if ann == nil {
+			ann = make(map[string]string)
 		}
-	})
+		ann["kustomize.toolkit.fluxcd.io/prune"] = "disabled"
+		uns.SetAnnotations(ann)
+	}
+
+	return nil
 }
 
 // InNamespace is a Render option that updates the object metadata to put it
 // into the correct namespace.
 func InNamespace(ns string) RenderOptFunc {
-	return unstructuredFunc(func(uns *unstructured.Unstructured) {
-		uns.SetNamespace(ns)
-	})
+	return func(uns *unstructured.Unstructured) error {
+		// If not specified set it.
+		if uns.GetNamespace() == "" {
+			uns.SetNamespace(ns)
+		}
+		return nil
+	}
 }
 
 // Render takes template Spec and vars and returns a slice of byte-slices with
@@ -55,31 +61,31 @@ func Render(spec capiv1.CAPITemplateSpec, vars map[string]string, opts ...Render
 			return nil, fmt.Errorf("processing template: %w", err)
 		}
 
-		for _, o := range opts {
-			updated, err := o(data)
-			if err != nil {
-				return nil, err
-			}
-			data = updated
+		data, err = processUnstructured(data, opts...)
+		if err != nil {
+			return nil, fmt.Errorf("modifying template: %w", err)
 		}
 		processed = append(processed, data)
 	}
 	return processed, nil
 }
 
-func unstructuredFunc(f func(uo *unstructured.Unstructured)) RenderOptFunc {
+func processUnstructured(b []byte, opts ...RenderOptFunc) ([]byte, error) {
 	dec := serializer.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-	return func(b []byte) ([]byte, error) {
-		uns := &unstructured.Unstructured{}
-		_, _, err := dec.Decode(b, nil, uns)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode the YAML: %w", err)
-		}
-		f(uns)
-		updated, err := yaml.Marshal(uns)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal the updated object: %w", err)
-		}
-		return updated, nil
+	uns := &unstructured.Unstructured{}
+	_, _, err := dec.Decode(b, nil, uns)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode the YAML: %w", err)
 	}
+	for _, o := range opts {
+		err := o(uns)
+		if err != nil {
+			return nil, err
+		}
+	}
+	updated, err := yaml.Marshal(uns)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal the updated object: %w", err)
+	}
+	return updated, nil
 }

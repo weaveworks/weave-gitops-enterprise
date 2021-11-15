@@ -214,6 +214,31 @@ func TestGetCluster(t *testing.T) {
 	}
 }
 
+func TestUpdateCluster_ValidateRequestBody(t *testing.T) {
+	db, err := utils.Open("", "sqlite", "", "", "")
+	assert.NoError(t, err)
+	err = utils.MigrateTables(db)
+	assert.NoError(t, err)
+
+	// Request body
+	data, _ := json.MarshalIndent(views.ClusterUpdateRequest{
+		Name:       "derp",
+		IngressURL: "not a url",
+	}, "", " ")
+	response := executeUpdate(t, bytes.NewReader(data), db, json.Unmarshal, json.MarshalIndent, NewFakeTokenGenerator("fake token", nil).Generate)
+	assert.Equal(t, http.StatusBadRequest, response.Code)
+	assert.Equal(t, "{\"message\":\"Invalid payload, Error parsing 'url' in field 'Ingress URL'\"}\n", response.Body.String())
+
+	data, _ = json.MarshalIndent(views.ClusterUpdateRequest{
+		Name:       "derp",
+		IngressURL: "",
+	}, "", " ")
+	response = executeUpdate(t, bytes.NewReader(data), db, json.Unmarshal, json.MarshalIndent, NewFakeTokenGenerator("fake token", nil).Generate)
+	assert.Equal(t, http.StatusBadRequest, response.Code)
+	assert.Equal(t, "{\"message\":\"Invalid payload, Error parsing 'id' param from path\"}\n", response.Body.String())
+
+}
+
 func TestUpdateCluster(t *testing.T) {
 	requestTests := []struct {
 		description  string
@@ -1039,7 +1064,7 @@ func TestRegisterCluster_ValidateRequestBody(t *testing.T) {
 	}, "", " ")
 	response := executePost(t, bytes.NewReader(data), db, json.Unmarshal, json.MarshalIndent, NewFakeTokenGenerator("fake token", nil).Generate)
 	assert.Equal(t, http.StatusBadRequest, response.Code)
-	assert.Equal(t, "{\"message\":\"Invalid payload\"}\n", response.Body.String())
+	assert.Equal(t, "{\"message\":\"Invalid payload, Error parsing 'url' in field 'Ingress URL'\"}\n", response.Body.String())
 }
 
 func TestRegisterCluster(t *testing.T) {
@@ -1063,6 +1088,15 @@ func executePost(t *testing.T, r io.Reader, db *gorm.DB, unmarshalFn api.Unmarsh
 	require.Nil(t, err)
 	rec := httptest.NewRecorder()
 	handler := http.HandlerFunc(api.RegisterCluster(db, validator.New(), unmarshalFn, marshalFn, generateTokenFn))
+	handler.ServeHTTP(rec, req)
+	return rec
+}
+
+func executeUpdate(t *testing.T, r io.Reader, db *gorm.DB, unmarshalFn api.Unmarshal, marshalFn api.MarshalIndent, generateTokenFn api.GenerateToken) *httptest.ResponseRecorder {
+	req, err := http.NewRequest("POST", "", r)
+	require.Nil(t, err)
+	rec := httptest.NewRecorder()
+	handler := http.HandlerFunc(api.UpdateCluster(db, validator.New(), unmarshalFn, marshalFn))
 	handler.ServeHTTP(rec, req)
 	return rec
 }
