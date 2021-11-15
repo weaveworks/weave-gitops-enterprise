@@ -4,7 +4,7 @@ metadata:
   name: {{ include "mccp.fullname" . }}-cluster-service
   namespace: {{ .Release.Namespace }}
 data:
-  CLUSTER_NAME: {{ .Values.config.clusterName }}
+  CLUSTER_NAME: {{ .Values.config.clusterName | quote }}
   GIT_PROVIDER_TYPE: {{ .Values.config.git.type }}
   GIT_PROVIDER_HOSTNAME: {{ .Values.config.git.hostname }}
   CAPI_CLUSTERS_NAMESPACE: {{ .Values.config.capi.clusters.namespace }}
