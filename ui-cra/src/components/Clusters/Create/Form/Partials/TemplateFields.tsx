@@ -1,4 +1,11 @@
-import React, { FC, useMemo, useState, Dispatch, useEffect } from 'react';
+import React, {
+  FC,
+  useMemo,
+  useState,
+  Dispatch,
+  useEffect,
+  useCallback,
+} from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -132,18 +139,20 @@ const TemplateFields: FC<{
     };
   }, [sections]);
 
-  const handleSelectProfiles = (profiles: UpdatedProfile[]) => {
-    setSelectedProfiles(profiles);
-    onProfilesUpdate(profiles);
-  };
-
-  useEffect(
-    () =>
-      setSelectedProfiles(
-        updatedProfiles.filter(profile => profile.required === true),
-      ),
-    [updatedProfiles],
+  const handleSelectProfiles = useCallback(
+    (profiles: UpdatedProfile[]) => {
+      setSelectedProfiles(profiles);
+      onProfilesUpdate(profiles);
+    },
+    [onProfilesUpdate],
   );
+
+  useEffect(() => {
+    const requiredProfiles = updatedProfiles.filter(
+      profile => profile.required === true,
+    );
+    handleSelectProfiles(requiredProfiles);
+  }, [updatedProfiles, onProfilesUpdate, handleSelectProfiles]);
 
   return (
     <Form

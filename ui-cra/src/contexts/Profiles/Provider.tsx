@@ -8,7 +8,6 @@ import useTemplates from './../Templates';
 
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
@@ -20,16 +19,18 @@ const ProfilesProvider: FC = ({ children }) => {
 
   const profilesUrl = '/v1/profiles';
 
-  const getProfile = (profileName: string) =>
-    profiles.find(profile => profile.name === profileName) || null;
-
   const getDefaultProfiles = (template: Template) => {
     if (template?.annotations) {
       const annotations = Object.entries(template?.annotations);
-      const defaultProfiles = [];
+      const defaultProfiles = [] as UpdatedProfile[];
       for (const [key, value] of annotations) {
         if (key.includes('capi.weave.works/profile')) {
-          defaultProfiles.push({ ...JSON.parse(value), required: true });
+          const { name, version, values } = JSON.parse(value);
+          defaultProfiles.push({
+            name,
+            values: [{ version, yaml: values || '', selected: false }],
+            required: true,
+          });
         }
       }
       return defaultProfiles;
@@ -37,96 +38,103 @@ const ProfilesProvider: FC = ({ children }) => {
     return [];
   };
 
-  const getProfiles = useCallback(() => {
+  const getProfileYaml = useCallback((name: string, version: string) => {
     setLoading(true);
-    request('GET', profilesUrl, {
-      cache: 'no-store',
-    })
-      .then(res => setProfiles(res.profiles))
-      .catch(err => {
-        setNotifications([{ message: err.message, variant: 'danger' }]);
-      })
-      .finally(() => setLoading(false));
-  }, [setNotifications]);
-
-  const getProfileYaml = useCallback((profile: Profile) => {
-    setLoading(true);
-    const version =
-      profile.availableVersions[profile.availableVersions.length - 1];
-    return request('GET', `${profilesUrl}/${profile.name}/${version}/values`, {
+    return request('GET', `${profilesUrl}/${name}/${version}/values`, {
       headers: {
         Accept: 'application/octet-stream',
       },
+      referrer: `${name}/${version}`,
     }).finally(() => setLoading(false));
   }, []);
 
   const getProfileValues = useCallback(
     (profiles: Profile[]) => {
-      const isProfileUpdated = (profile: Profile) =>
-        profilesWithValues.filter(
-          p =>
-            p.name === profile.name &&
-            p.version ===
-              profile.availableVersions[profile.availableVersions.length - 1],
-        ).length !== 0;
+      const profileRequests = profiles.flatMap(profile =>
+        profile.availableVersions.map(async version => {
+          const profileName = profile.name;
+          const data = await getProfileYaml(profileName, version);
+          return { name: profileName, version: version, payload: data };
+        }),
+      );
+      Promise.all(profileRequests)
+        .then(data => {
+          const profiles = data.reduce(
+            (
+              accumulator: {
+                name: string;
+                values: { version: string; yaml: string }[];
+                required: boolean;
+              }[],
+              profile,
+            ) => {
+              const profileName = accumulator.find(
+                acc => acc.name === profile.name,
+              );
+              const value = {
+                version: profile.version,
+                yaml: profile.payload.message || '',
+                selected: false,
+              };
 
-      const profileRequests = [] as Promise<any>[];
-
-      profiles.forEach(profile => {
-        if (!isProfileUpdated(profile)) {
-          profileRequests.push(
-            getProfileYaml(profile)
-              .then(data =>
-                setProfilesWithValues([
-                  ...profilesWithValues,
-                  {
-                    name: profile.name,
-                    version:
-                      profile.availableVersions[
-                        profile.availableVersions.length - 1
-                      ],
-                    values: data.message,
-                    required: false,
-                  },
-                ]),
-              )
-              .catch(error =>
-                setNotifications([
-                  { message: error.message, variant: 'danger' },
-                ]),
-              ),
+              if (profileName) {
+                profileName.values.push(value);
+              } else {
+                accumulator.push({
+                  name: profile.name,
+                  values: [value],
+                  required: false,
+                });
+              }
+              return accumulator;
+            },
+            [],
           );
-        }
-      });
-      return Promise.all(profileRequests);
+          setProfilesWithValues(profiles);
+        })
+        .catch(err =>
+          setNotifications([{ message: err.message, variant: 'danger' }]),
+        );
     },
-    [getProfileYaml, setNotifications, profilesWithValues],
+    [getProfileYaml, setNotifications],
   );
+
+  const getProfiles = useCallback(() => {
+    setLoading(true);
+    request('GET', profilesUrl, {
+      cache: 'no-store',
+    })
+      .then(res => getProfileValues(res.profiles))
+      .catch(err => {
+        setNotifications([{ message: err.message, variant: 'danger' }]);
+      })
+      .finally(() => setLoading(false));
+  }, [setNotifications, getProfileValues]);
 
   const getValidDefaultProfiles = useCallback(() => {
     const defaultProfiles =
       activeTemplate && getDefaultProfiles(activeTemplate);
     return (
-      defaultProfiles?.filter(profile =>
-        profiles.find(
-          p =>
-            profile.name === p.name &&
-            profile.version ===
-              p.availableVersions[p.availableVersions.length - 1],
+      defaultProfiles?.filter(defaultProfile =>
+        profilesWithValues.find(
+          profile =>
+            defaultProfile.name === profile.name &&
+            profile.values.map(
+              value =>
+                (value.version as string) ===
+                (defaultProfile.values[0].version as string),
+            )?.length !== 0,
         ),
       ) || []
     );
-  }, [activeTemplate, profiles]);
+  }, [activeTemplate, profilesWithValues]);
 
   useEffect(() => {
     getProfiles();
     return history.listen(getProfiles);
-  }, [history, getProfiles, activeTemplate]);
+  }, [history, getProfiles, activeTemplate, getProfileValues]);
 
   useEffect(() => {
-    // get yaml values for all the profiles
-    getProfileValues(profiles);
-
     // get default / required profiles for the active template
     const validDefaultProfiles = getValidDefaultProfiles();
 
@@ -135,14 +143,16 @@ const ProfilesProvider: FC = ({ children }) => {
       profilesWithValues?.filter(
         profile =>
           !validDefaultProfiles.find(
-            p => profile.name === p.name && profile.version === p.version,
+            p =>
+              profile.name === p.name &&
+              profile.values.map(value => value.version === p.values[0].version)
+                .length !== 0,
           ),
       ) || [];
 
     setUpdatedProfiles([...optionalProfiles, ...validDefaultProfiles]);
   }, [
     profilesWithValues,
-    profiles,
     activeTemplate,
     getProfileYaml,
     setNotifications,
@@ -154,10 +164,7 @@ const ProfilesProvider: FC = ({ children }) => {
   return (
     <Profiles.Provider
       value={{
-        profiles,
         loading,
-        getProfile,
-        getProfileYaml,
         updatedProfiles,
       }}
     >

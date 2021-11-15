@@ -41,16 +41,17 @@ import (
 )
 
 var providers = map[string]string{
-	"AWSCluster":          "aws",
-	"AWSManagedCluster":   "aws",
-	"AzureCluster":        "azure",
-	"AzureManagedCluster": "azure",
-	"DOCluster":           "digitalocean",
-	"DockerCluster":       "docker",
-	"GCPCluster":          "gcp",
-	"OpenStackCluster":    "openstack",
-	"PacketCluster":       "packet",
-	"VSphereCluster":      "vsphere",
+	"AWSCluster":             "aws",
+	"AWSManagedCluster":      "aws",
+	"AWSManagedControlPlane": "aws",
+	"AzureCluster":           "azure",
+	"AzureManagedCluster":    "azure",
+	"DOCluster":              "digitalocean",
+	"DockerCluster":          "docker",
+	"GCPCluster":             "gcp",
+	"OpenStackCluster":       "openstack",
+	"PacketCluster":          "packet",
+	"VSphereCluster":         "vsphere",
 }
 
 type server struct {
@@ -125,17 +126,9 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	var opts []capi.RenderOptFunc
-	if os.Getenv("INJECT_PRUNE_ANNOTATION") != "disabled" {
-		opts = []capi.RenderOptFunc{capi.InjectPruneAnnotation()}
-	}
-
-	templateBits, err := capi.Render(tm.Spec, msg.Values, opts...)
+	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, msg.Values)
 	if err != nil {
-		if missing, ok := isMissingVariableError(err); ok {
-			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", msg.TemplateName, missing)
-		}
-		return nil, fmt.Errorf("error rendering template %v, %v", msg.TemplateName, err)
+		return nil, err
 	}
 
 	err = capi.ValidateRenderedTemplates(templateBits)
@@ -169,14 +162,9 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	var opts []capi.RenderOptFunc
-	if os.Getenv("INJECT_PRUNE_ANNOTATION") != "disabled" {
-		opts = []capi.RenderOptFunc{capi.InjectPruneAnnotation()}
-	}
-
-	tmplWithValues, err := capi.Render(tmpl.Spec, msg.ParameterValues, opts...)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, msg.ParameterValues)
 	if err != nil {
-		return nil, fmt.Errorf("unable to render template %q: %w", msg.TemplateName, err)
+		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
 
 	err = capi.ValidateRenderedTemplates(tmplWithValues)
@@ -489,6 +477,25 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
 		WebUrl: pullRequestURL,
 	}, nil
+}
+
+func renderTemplateWithValues(t *capiv1.CAPITemplate, name string, values map[string]string) ([][]byte, error) {
+	opts := []capi.RenderOptFunc{
+		capi.InNamespace(os.Getenv("CAPI_CLUSTERS_NAMESPACE")),
+	}
+	if os.Getenv("INJECT_PRUNE_ANNOTATION") != "disabled" {
+		opts = append(opts, capi.InjectPruneAnnotation)
+	}
+
+	templateBits, err := capi.Render(t.Spec, values, opts...)
+	if err != nil {
+		if missing, ok := isMissingVariableError(err); ok {
+			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", name, missing)
+		}
+		return nil, fmt.Errorf("error rendering template %v, %v", name, err)
+	}
+
+	return templateBits, nil
 }
 
 func getHash(inputs ...string) string {
