@@ -45,8 +45,8 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ListItemWrapper = styled.div`
-  display: flex;
-  align-items: center;
+  // display: flex;
+  // align-items: center;
   & .profile-name {
     margin-right: ${medium};
   }
@@ -81,21 +81,15 @@ const ProfilesListItem: FC<{
         value: version as string,
       };
     }),
-    {
-      label: 'Select',
-      value: '',
-    },
   ];
 
   const handleSelectVersion = useCallback(
     (event: FormEvent<HTMLInputElement>, value: string) => {
       setVersion(value);
 
-      profile.values.forEach(item => {
-        if (item.selected === true) {
-          item.selected = false;
-        }
-      });
+      profile.values.forEach(item =>
+        item.selected === true ? (item.selected = false) : null,
+      );
 
       profile.values.forEach(item => {
         if (item.version === value) {
@@ -134,20 +128,14 @@ const ProfilesListItem: FC<{
   }, [profile, updateProfile, version, yaml]);
 
   useEffect(() => {
-    if (profile.values.length === 1) {
-      setVersion(profile.values[0].version as string);
-      profile.values[0].selected = true;
-      setYaml(profile.values[0].version as string);
-    } else {
-      setVersion('');
-      setYaml('');
-    }
+    setVersion(profile.values[0].version as string);
+    setYaml(profile.values[0].version as string);
   }, [profile]);
 
   return (
     <>
       <ListItemWrapper>
-        <ListItem className="">
+        <ListItem>
           <ListItemText className="profile-name">{profile.name}</ListItemText>
           <div className="profile-version">
             <span>Version</span>

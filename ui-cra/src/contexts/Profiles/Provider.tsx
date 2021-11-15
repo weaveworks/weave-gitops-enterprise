@@ -66,14 +66,14 @@ const ProfilesProvider: FC = ({ children }) => {
                 values: { version: string; yaml: string }[];
                 required: boolean;
               }[],
-              item,
+              profile,
             ) => {
               const profileName = accumulator.find(
-                acc => acc.name === item.name,
+                acc => acc.name === profile.name,
               );
               const value = {
-                version: item.version,
-                yaml: item.payload.message || '',
+                version: profile.version,
+                yaml: profile.payload.message || '',
                 selected: false,
               };
 
@@ -81,7 +81,7 @@ const ProfilesProvider: FC = ({ children }) => {
                 profileName.values.push(value);
               } else {
                 accumulator.push({
-                  name: item.name,
+                  name: profile.name,
                   values: [value],
                   required: false,
                 });

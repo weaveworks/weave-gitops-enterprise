@@ -158,8 +158,6 @@ const AddCluster: FC = () => {
 
   console.log(updatedProfiles);
 
-  console.log(encodedProfiles(updatedProfiles));
-
   const handleAddCluster = useCallback(
     (gitOps: {
       head_branch: string;
