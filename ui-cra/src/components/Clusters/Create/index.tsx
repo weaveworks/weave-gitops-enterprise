@@ -211,6 +211,7 @@ const AddCluster: FC = () => {
     );
 
     setSteps(steps as string[]);
+
     return history.listen(() => {
       setActiveTemplate(null);
       setPRPreview(null);

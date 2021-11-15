@@ -130,6 +130,7 @@ const ProfilesListItem: FC<{
   useEffect(() => {
     setVersion(profile.values[0].version as string);
     setYaml(profile.values[0].version as string);
+    profile.values[0].selected = true;
   }, [profile]);
 
   return (
@@ -145,11 +146,7 @@ const ProfilesListItem: FC<{
               onChange={(event, value) => handleSelectVersion(event, value)}
             />
           </div>
-          <Button
-            className={classes.downloadBtn}
-            disabled={version === ''}
-            onClick={handleYamlPreview}
-          >
+          <Button className={classes.downloadBtn} onClick={handleYamlPreview}>
             values.yaml
           </Button>
         </ListItem>
