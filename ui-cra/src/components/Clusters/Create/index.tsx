@@ -132,20 +132,33 @@ const AddCluster: FC = () => {
 
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
-      profiles?.forEach(profile => {
-        profile.values.forEach(value => {
-          if (value.selected === true)
-            return {
-              name: profile.name,
-              version: value.version,
-              values: btoa(value.yaml as string),
-            };
-        });
-      }),
+      profiles.reduce(
+        (
+          accumulator: {
+            name: string;
+            version: string;
+            values: any;
+          }[],
+          profile,
+        ) => {
+          profile.values.forEach(value => {
+            if (value.selected === true)
+              accumulator.push({
+                name: profile.name,
+                version: value.version as string,
+                values: btoa(value.yaml as string),
+              });
+          });
+          return accumulator;
+        },
+        [],
+      ),
     [],
   );
 
-  // console.log(encodedProfiles(updatedProfiles));
+  console.log(updatedProfiles);
+
+  console.log(encodedProfiles(updatedProfiles));
 
   const handleAddCluster = useCallback(
     (gitOps: {

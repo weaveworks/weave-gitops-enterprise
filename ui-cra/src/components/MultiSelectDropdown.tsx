@@ -60,7 +60,7 @@ const MultiSelectDropdown: FC<{
     [items],
   );
 
-  console.log(items)
+  // console.log(items)
 
   return (
     <FormControl className={classes.formControl}>
