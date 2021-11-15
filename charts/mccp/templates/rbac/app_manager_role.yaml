@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: app-viewer-role
+  name: app-manager-role
 rules:
   - apiGroups:
       - wego.weave.works
