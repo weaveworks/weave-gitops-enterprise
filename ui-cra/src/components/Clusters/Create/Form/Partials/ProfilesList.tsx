@@ -28,7 +28,7 @@ const ProfilesList: FC<{
   }, [selectedProfiles]);
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+    <Box display="flex">
       <List>
         {enrichedProfiles.map((profile, index) => (
           <ProfileListItem

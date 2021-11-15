@@ -45,15 +45,13 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ListItemWrapper = styled.div`
-  // display: flex;
-  // align-items: center;
   & .profile-name {
     margin-right: ${medium};
   }
   & .profile-version {
     display: flex;
     align-items: center;
-    margin-right: ${xs};
+    margin-right: ${medium};
     width: 150px;
     span {
       margin-right: ${xs};
@@ -147,7 +145,7 @@ const ProfilesListItem: FC<{
             />
           </div>
           <Button className={classes.downloadBtn} onClick={handleYamlPreview}>
-            values.yaml
+            Values.yaml
           </Button>
         </ListItem>
       </ListItemWrapper>
