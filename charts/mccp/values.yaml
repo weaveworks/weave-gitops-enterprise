@@ -36,6 +36,8 @@ fluxCli:
   binPath: /usr/local/bin/flux
 
 config:
+  cluster:
+    name: default
   git:
     type: github
     hostname: github.com
