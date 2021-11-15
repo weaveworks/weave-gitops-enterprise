@@ -47,8 +47,8 @@ ENV CS_PATH=cmd/clusters-service
 
 # # Add git provider hostnames to known hosts file so we can use
 # # StrickHostKeyChecking with git+ssh
-# ADD ./known_hosts.sh /home/wkp/known_hosts.sh
-# RUN bash /home/wkp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /home/wkp/known_hosts.sh
+COPY ./tools/known_hosts.sh /tmp/known_hosts.sh
+RUN bash /tmp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /tmp/known_hosts.sh
 
 RUN apk add --no-cache ca-certificates tini
 

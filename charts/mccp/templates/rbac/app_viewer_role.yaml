@@ -26,6 +26,8 @@ rules:
       - get
       - list
       - watch
+      - patch
+      - create
   - apiGroups:
       - wego.weave.works
     resources:
