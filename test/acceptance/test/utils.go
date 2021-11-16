@@ -217,7 +217,7 @@ func InitializeWebdriver(wgeURL string) {
 			Expect(err).NotTo(HaveOccurred())
 		case "linux":
 			webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string][]string{"args": {"--disable-gpu", "--no-sandbox"}}}))
+				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox"}, "w3c": false}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
 

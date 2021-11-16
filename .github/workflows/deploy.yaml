@@ -96,6 +96,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-${{ matrix.os_name }}-x86_64
@@ -215,7 +216,7 @@ jobs:
         if [ "$RUNNER_OS" == "macOS" ]; then
           go test -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.skip=@wkp -ginkgo.v -v --timeout=99999s
         else
-          go test -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
+          go test -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s          
         fi
     - name: Delete WKP repository
       if: ${{ always() }}

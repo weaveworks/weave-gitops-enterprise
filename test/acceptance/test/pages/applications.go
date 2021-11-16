@@ -3,7 +3,6 @@ package pages
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -47,6 +46,7 @@ type DeviceActivation struct {
 	Password            *agouti.Selection
 	Signin              *agouti.Selection
 	UserCode            *agouti.MultiSelection
+	Verify              *agouti.Selection
 	Continue            *agouti.Selection
 	AuthroizeWeaveworks *agouti.Selection
 	ConfirmPassword     *agouti.Selection
@@ -60,6 +60,10 @@ type Commits struct {
 	Author  *agouti.Selection
 }
 
+func WaitForAuthenticationAlert(webDriver *agouti.Page) {
+	Eventually(webDriver.FindByXPath(`//div[@class="MuiAlert-message"][.="Authentication Successful"]`)).Should(BeVisible())
+}
+
 // This function waits for application graph to be rendered
 func (a ApplicationDetails) WaitForPageToLoad(webDriver *agouti.Page) {
 	Eventually(webDriver.Find(` svg g.output`)).Should(BeVisible(), "Application details failed to load/render as expected")
@@ -68,7 +72,9 @@ func (a ApplicationDetails) WaitForPageToLoad(webDriver *agouti.Page) {
 // This function waits for main application page to be rendered
 func (a ApplicationPage) WaitForPageToLoad(webDriver *agouti.Page, appCount int) {
 	Eventually(a.ApplicationCount).Should(BeVisible())
-	Eventually(a.ApplicationCount, 30*time.Second).Should(MatchText(strconv.Itoa(appCount)), "Application page failed to load/render as expected")
+	strCount, _ := a.ApplicationCount.Text()
+	count, _ := strconv.Atoi(strCount)
+	Expect(count).Should(BeNumerically(">=", appCount), "Application page failed to load/render as expected")
 }
 
 func GetApplicationPage(webDriver *agouti.Page) *ApplicationPage {
@@ -131,6 +137,7 @@ func ActivateDevice(webDriver *agouti.Page) *DeviceActivation {
 		Password:            webDriver.Find(`input[type=password][name*=password]`),
 		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
 		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
+		Verify:              webDriver.FindByButton(`Verify`),
 		Continue:            webDriver.Find(`[type=submit][name=commit]`),
 		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`),
 		ConfirmPassword:     webDriver.FindByButton(`password`),
@@ -155,8 +162,4 @@ func GetCommits(webDriver *agouti.Page) []Commits {
 		})
 	}
 	return retCommits
-}
-
-func WaitForAuthenticationAlert(webDriver *agouti.Page) {
-	Eventually(webDriver.FindByXPath(`//div[@class="MuiAlert-message"][.="Authentication Successful"]`)).Should(BeVisible())
 }
