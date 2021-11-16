@@ -132,13 +132,27 @@ const AddCluster: FC = () => {
 
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
-      profiles?.map(profile => {
-        return {
-          name: profile.name,
-          version: profile.version,
-          values: btoa(profile.values),
-        };
-      }),
+      profiles.reduce(
+        (
+          accumulator: {
+            name: string;
+            version: string;
+            values: any;
+          }[],
+          profile,
+        ) => {
+          profile.values.forEach(value => {
+            if (value.selected === true)
+              accumulator.push({
+                name: profile.name,
+                version: value.version as string,
+                values: btoa(value.yaml as string),
+              });
+          });
+          return accumulator;
+        },
+        [],
+      ),
     [],
   );
 
@@ -195,6 +209,7 @@ const AddCluster: FC = () => {
     );
 
     setSteps(steps as string[]);
+
     return history.listen(() => {
       setActiveTemplate(null);
       setPRPreview(null);
