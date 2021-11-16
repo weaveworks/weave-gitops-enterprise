@@ -33,6 +33,8 @@ import (
 
 var DOCKER_IO_USER string
 var DOCKER_IO_PASSWORD string
+var GITHUB_USER string
+var GITHUB_PASSWORD string
 var GIT_PROVIDER string
 var GITHUB_ORG string
 var GITHUB_TOKEN string
@@ -664,9 +666,13 @@ func (b RealGitopsTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAd
 	fmt.Println(string(session.Wait().Err.Contents()))
 }
 
-func GitUpdateCommitPush(repoAbsolutePath string) {
+func GitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m 'edit repo file' && git pull --rebase && git push origin HEAD", repoAbsolutePath))
+	if commitMessage == "" {
+		commitMessage = "edit repo file"
+	}
+
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m '%s' && git pull --rebase && git push origin HEAD", repoAbsolutePath, commitMessage))
 }
 
 func GitSetUpstream(repoAbsolutePath string, upstreamBranch string) {
@@ -962,7 +968,7 @@ func VerifyCoreControllers(namespace string) {
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "180s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
@@ -979,11 +985,19 @@ func VerifyEnterpriseControllers(releaseName string, namespace string) {
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops enterprise controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "180s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
 	})
+}
+
+func verifyWegoAddCommand(appName string, namespace string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", namespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, ASSERTION_5MINUTE_TIME_OUT).Should(gexec.Exit())
+	Expect(waitForResource("GitRepositories", appName, namespace, ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
 }
 
 func InstallAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {

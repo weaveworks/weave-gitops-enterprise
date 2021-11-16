@@ -63,7 +63,8 @@ function setup {
   kubectl create secret generic git-provider-credentials \
     --namespace=wego-system \
     --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
-  CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
+  # CHART_VERSION="0.0.14-6-gbf474f3"
+  CHART_VERSION="0.0.14-7-g1be26cc"
 
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
