@@ -44,7 +44,6 @@ const ProfilesProvider: FC = ({ children }) => {
       headers: {
         Accept: 'application/octet-stream',
       },
-      referrer: `${name}/${version}`,
     }).finally(() => setLoading(false));
   }, []);
 
