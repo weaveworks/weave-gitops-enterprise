@@ -19,24 +19,56 @@ const ProfilesProvider: FC = ({ children }) => {
 
   const profilesUrl = '/v1/profiles';
 
-  const getDefaultProfiles = (template: Template) => {
-    if (template?.annotations) {
-      const annotations = Object.entries(template?.annotations);
-      const defaultProfiles = [] as UpdatedProfile[];
-      for (const [key, value] of annotations) {
-        if (key.includes('capi.weave.works/profile')) {
-          const { name, version, values } = JSON.parse(value);
-          defaultProfiles.push({
-            name,
-            values: [{ version, yaml: values || '', selected: false }],
-            required: true,
-          });
+  const getVersionValue = useCallback(
+    (name: string, version: string) => {
+      let versionValue: string = '';
+      profilesWithValues.forEach(p =>
+        p.values.forEach(value => {
+          if (p.name === name && value.version === version) {
+            versionValue = value.yaml;
+          }
+        }),
+      );
+      return versionValue;
+    },
+    [profilesWithValues],
+  );
+
+  const getDefaultProfiles = useCallback(
+    (template: Template) => {
+      if (template?.annotations) {
+        const annotations = Object.entries(template?.annotations);
+        const defaultProfiles: UpdatedProfile[] = [];
+        for (const [key, value] of annotations) {
+          if (key.includes('capi.weave.works/profile')) {
+            const { name, version, values } = JSON.parse(value);
+            if (values !== undefined) {
+              defaultProfiles.push({
+                name,
+                values: [{ version, yaml: values, selected: false }],
+                required: true,
+              });
+            } else {
+              defaultProfiles.push({
+                name,
+                values: [
+                  {
+                    version,
+                    yaml: getVersionValue(name, version),
+                    selected: false,
+                  },
+                ],
+                required: true,
+              });
+            }
+          }
         }
+        return defaultProfiles;
       }
-      return defaultProfiles;
-    }
-    return [];
-  };
+      return [];
+    },
+    [getVersionValue],
+  );
 
   const getProfileYaml = useCallback((name: string, version: string) => {
     setLoading(true);
@@ -60,15 +92,15 @@ const ProfilesProvider: FC = ({ children }) => {
         .then(data => {
           const profiles = data.reduce(
             (
-              accumulator: {
+              profilesWithAddedValues: {
                 name: string;
                 values: { version: string; yaml: string }[];
                 required: boolean;
               }[],
               profile,
             ) => {
-              const profileName = accumulator.find(
-                acc => acc.name === profile.name,
+              const profileName = profilesWithAddedValues.find(
+                p => p.name === profile.name,
               );
               const value = {
                 version: profile.version,
@@ -79,13 +111,13 @@ const ProfilesProvider: FC = ({ children }) => {
               if (profileName) {
                 profileName.values.push(value);
               } else {
-                accumulator.push({
+                profilesWithAddedValues.push({
                   name: profile.name,
                   values: [value],
                   required: false,
                 });
               }
-              return accumulator;
+              return profilesWithAddedValues;
             },
             [],
           );
@@ -104,9 +136,9 @@ const ProfilesProvider: FC = ({ children }) => {
       cache: 'no-store',
     })
       .then(res => getProfileValues(res.profiles))
-      .catch(err => {
-        setNotifications([{ message: err.message, variant: 'danger' }]);
-      })
+      .catch(err =>
+        setNotifications([{ message: err.message, variant: 'danger' }]),
+      )
       .finally(() => setLoading(false));
   }, [setNotifications, getProfileValues]);
 
@@ -119,14 +151,12 @@ const ProfilesProvider: FC = ({ children }) => {
           profile =>
             defaultProfile.name === profile.name &&
             profile.values.map(
-              value =>
-                (value.version as string) ===
-                (defaultProfile.values[0].version as string),
+              value => value.version === defaultProfile.values[0].version,
             )?.length !== 0,
         ),
       ) || []
     );
-  }, [activeTemplate, profilesWithValues]);
+  }, [activeTemplate, profilesWithValues, getDefaultProfiles]);
 
   useEffect(() => {
     getProfiles();
