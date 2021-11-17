@@ -146,7 +146,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
     - name: Set up ssh
-      uses: ./github/actions/setup-ssh
+      uses: ./.github/actions/setup-ssh
       with:
         ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
     - name: Run integration tests
@@ -268,7 +268,7 @@ jobs:
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
     - name: Set up ssh
-      uses: ./github/actions/setup-ssh
+      uses: ./.github/actions/setup-ssh
       with:
         ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
     - name: Configure git settings
@@ -370,7 +370,7 @@ jobs:
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
     - name: Set up ssh
-      uses: ./github/actions/setup-ssh
+      uses: ./.github/actions/setup-ssh
       with:
         ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
     - name: Configure git settings

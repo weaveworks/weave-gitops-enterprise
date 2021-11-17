@@ -151,7 +151,7 @@ jobs:
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
     - name: Set up ssh
-      uses: ./github/actions/setup-ssh
+      uses: ./.github/actions/setup-ssh
       with:
         ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
     - name: Configure git settings
