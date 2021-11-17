@@ -134,12 +134,14 @@ export const FormStep: FC<{
     }, 500);
   }, [active, setActiveStep, onScreen, step?.name, title]);
 
-  // console.log(step?.children);
+  console.log(step?.children);
 
   return (
     <Section ref={stepRef}>
       <Title name={title}>{step?.name || title}</Title>
-      {step?.children ? <Content>{step?.children}</Content> : null}
+      {step?.children ? (
+        <Content>{step?.children.filter(child => child.props.visible)}</Content>
+      ) : null}
       {children}
       <SectionDivider>
         <Divider />

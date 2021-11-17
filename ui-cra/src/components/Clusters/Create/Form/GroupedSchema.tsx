@@ -1,7 +1,7 @@
 // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
 
 import { ObjectFieldTemplateProps } from '@rjsf/core';
-import React, { Dispatch, ReactNode, Children, ReactElement } from 'react';
+import React, { Dispatch, ReactNode } from 'react';
 
 export function ObjectFieldTemplate(props: ObjectFieldTemplateProps) {
   return (
@@ -10,7 +10,7 @@ export function ObjectFieldTemplate(props: ObjectFieldTemplateProps) {
         formContext: props.formContext,
         properties: props.properties,
         groups: props.uiSchema['ui:groups'],
-        hiddenFields: [],
+        previouslyVisibleFields: [],
       })}
     </>
   );
@@ -22,15 +22,13 @@ function doGrouping({
   properties,
   groups,
   formContext,
-  hiddenFields,
+  previouslyVisibleFields,
 }: {
   properties: ObjectFieldTemplateProps['properties'];
   formContext: ObjectFieldTemplateProps['formContext'];
   groups: string | object;
-  hiddenFields: any;
+  previouslyVisibleFields: string[];
 }) {
-  console.log('hiddenFields', hiddenFields);
-
   if (!Array.isArray(groups)) {
     return properties?.map((property, index) => {
       return <div key={index}>{property.content}</div>;
@@ -41,7 +39,12 @@ function doGrouping({
       const found = properties?.filter(property => property.name === g);
       if (found?.length === 1) {
         const el = found[0];
-        return el.content;
+
+        const visible = previouslyVisibleFields.includes(el.content.props.name)
+          ? false
+          : true;
+
+        return React.cloneElement(el.content, { visible });
       }
       return EXTRANEOUS;
     } else if (typeof g === 'object') {
@@ -50,17 +53,7 @@ function doGrouping({
         ? templates[g['ui:template']]
         : DefaultTemplate;
 
-      // console.log(g);
-      // keys(g)
-      // 1.Cluster
-      // 2.AWSCluster
-      // 3.KubeadmControlPlane
-      // 4.AWSMachineTemplate
-      // 5.MachineDeployment
-      // 6.AWSMachineTemplate
-      // 7.KubeadmConfigTemplate
-
-      let visitedFields: string[] = [];
+      let previouslyVisibleFields: string[] = [];
 
       const _properties = Object.keys(g).reduce(
         (
@@ -78,9 +71,7 @@ function doGrouping({
           if (key.startsWith('ui:')) return acc;
           if (!Array.isArray(field)) return acc;
 
-          console.log('key:', key, 'field:', field);
-
-          const result = [
+          const section = [
             ...acc,
             {
               name: key,
@@ -91,29 +82,33 @@ function doGrouping({
                 formContext,
                 properties,
                 groups: field,
-                hiddenFields: visitedFields,
+                previouslyVisibleFields,
               }),
             },
           ];
 
-          visitedFields = [...visitedFields, ...field];
+          previouslyVisibleFields = Array.from(
+            new Set([...previouslyVisibleFields, ...field]),
+          );
 
-          return result;
+          return section;
         },
         [],
       );
 
       return <GroupComponent key={index} properties={_properties} />;
     }
+
     throw new Error('Invalid object type: ' + typeof g + ' ' + g);
   });
+
   return mapped;
 }
 
 function DefaultTemplate(props: {
   properties: ObjectFieldTemplateProps['properties'];
 }) {
-  return props?.properties?.map((p, index) => (
-    <div key={index}>{p.content}</div>
-  ));
+  return props?.properties?.map((p, index) => {
+    return <div key={index}>{p.content}</div>;
+  });
 }
