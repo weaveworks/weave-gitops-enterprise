@@ -10,8 +10,9 @@ runs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+        ssh-private-key: ${{ inputs.ssh-private-key }}
     - name: Add known_hosts
+      shell: bash
       run: |
         mkdir -p ~/.ssh
         touch ~/.ssh/known_hosts
