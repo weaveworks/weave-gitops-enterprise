@@ -47,6 +47,9 @@ jobs:
       GO_CACHE_NAME: cache-go-modules
       WGE_COVERALLS_TOKEN: ${{ secrets.WGE_COVERALLS_TOKEN }}
     steps:
+    - id: print-keys
+      run: |
+        cat /etc/ssh/ssh_known_hosts
     - id: go-cache-paths
       run: |
         echo "::set-output name=go-build::$(go env GOCACHE)"
