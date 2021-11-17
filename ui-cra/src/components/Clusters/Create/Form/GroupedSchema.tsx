@@ -10,6 +10,7 @@ export function ObjectFieldTemplate(props: ObjectFieldTemplateProps) {
         formContext: props.formContext,
         properties: props.properties,
         groups: props.uiSchema['ui:groups'],
+        hiddenFields: [],
       })}
     </>
   );
@@ -21,11 +22,15 @@ function doGrouping({
   properties,
   groups,
   formContext,
+  hiddenFields,
 }: {
   properties: ObjectFieldTemplateProps['properties'];
   formContext: ObjectFieldTemplateProps['formContext'];
   groups: string | object;
+  hiddenFields: any;
 }) {
+  console.log('hiddenFields', hiddenFields);
+
   if (!Array.isArray(groups)) {
     return properties?.map((property, index) => {
       return <div key={index}>{property.content}</div>;
@@ -55,6 +60,8 @@ function doGrouping({
       // 6.AWSMachineTemplate
       // 7.KubeadmConfigTemplate
 
+      let visitedFields: string[] = [];
+
       const _properties = Object.keys(g).reduce(
         (
           acc: {
@@ -71,27 +78,9 @@ function doGrouping({
           if (key.startsWith('ui:')) return acc;
           if (!Array.isArray(field)) return acc;
 
-          const isInAccumulator = (property: string) =>
-            acc.map(element =>
-              (Children.toArray(element.children) as ReactElement[]).filter(
-                child => {
-                  console.log(child.props);
-                  return child.props.name === property;
-                },
-              ),
-            ).length !== 0;
+          console.log('key:', key, 'field:', field);
 
-          const newProperties = properties.map(property => {
-            if (!isInAccumulator(property.name)) {
-              return { ...property, visible: true };
-            } else return { ...property, visible: false };
-          });
-
-          console.log(newProperties);
-
-          console.log(acc);
-
-          return [
+          const result = [
             ...acc,
             {
               name: key,
@@ -100,11 +89,16 @@ function doGrouping({
               setActiveStep,
               children: doGrouping({
                 formContext,
-                properties: newProperties,
+                properties,
                 groups: field,
+                hiddenFields: visitedFields,
               }),
             },
           ];
+
+          visitedFields = [...visitedFields, ...field];
+
+          return result;
         },
         [],
       );

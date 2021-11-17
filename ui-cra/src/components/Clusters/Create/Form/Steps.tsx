@@ -134,7 +134,7 @@ export const FormStep: FC<{
     }, 500);
   }, [active, setActiveStep, onScreen, step?.name, title]);
 
-  console.log(step?.children);
+  // console.log(step?.children);
 
   return (
     <Section ref={stepRef}>
