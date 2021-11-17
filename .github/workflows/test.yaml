@@ -148,6 +148,7 @@ jobs:
     - name: Add known_hosts
       run: |
         mkdir -p ~/.ssh
+        touch ~/.ssh/known_hosts
         ssh-keygen -R github.com
         cat > ~/.ssh/known_hosts <<- EOM
         # github.com:22 SSH-2.0-babeld-a73e1397
