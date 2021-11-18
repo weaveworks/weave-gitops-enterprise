@@ -228,6 +228,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
@@ -328,6 +329,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-linux-amd64
       SELENIUM_DEBUG: true
