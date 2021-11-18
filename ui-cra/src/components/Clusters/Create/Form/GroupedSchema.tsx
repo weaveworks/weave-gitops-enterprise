@@ -108,7 +108,7 @@ function doGrouping({
 function DefaultTemplate(props: {
   properties: ObjectFieldTemplateProps['properties'];
 }) {
-  return props?.properties?.map((p, index) => {
-    return <div key={index}>{p.content}</div>;
-  });
+  return props?.properties?.map((p, index) => (
+    <div key={index}>{p.content}</div>
+  ));
 }

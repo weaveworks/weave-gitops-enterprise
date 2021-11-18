@@ -1,41 +1,14 @@
 import React, {
   Dispatch,
-  FC,
   ReactElement,
-  Ref,
+  useCallback,
   useEffect,
-  useMemo,
-  useRef,
   useState,
 } from 'react';
-import Divider from '@material-ui/core/Divider';
-import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../../../../muiTheme';
-
-const Section = styled.div`
-  padding-bottom: ${theme.spacing.medium};
-`;
-
-const Title = styled.div<{ name?: string }>`
-  padding-bottom: ${theme.spacing.small};
-  font-size: ${theme.fontSizes.large};
-  font-family: ${theme.fontFamilies.monospace};
-`;
-
-const Content = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  overflow: hidden;
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-`;
-
-const SectionDivider = styled.div`
-  margin-top: ${theme.spacing.medium};
-`;
+import { FormStep } from './Step';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -82,90 +55,51 @@ interface Property {
   children: ReactElement[];
 }
 
-export const useOnScreen = (ref: { current: HTMLDivElement | null }) => {
-  const [isIntersecting, setIntersecting] = useState(false);
-
-  const observer = useMemo(
-    () =>
-      new IntersectionObserver(
-        ([entry]) => setIntersecting(entry.isIntersecting),
-        { rootMargin: '-50% 0px' },
-      ),
-    [],
-  );
-
-  useEffect(() => {
-    if (ref.current) {
-      observer.observe(ref.current);
-      return () => {
-        observer.disconnect();
-      };
-    }
-  }, [observer, ref]);
-
-  return isIntersecting;
-};
-
-export const FormStep: FC<{
-  step?: Property;
-  title?: string;
-  active?: boolean;
-  clicked?: boolean;
-  setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
-}> = ({ step, title, active, clicked, setActiveStep, children }) => {
-  const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
-
-  const onScreen = useOnScreen(stepRef);
-
-  useEffect(() => {
-    if (clicked) {
-      stepRef?.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  }, [clicked]);
-
-  useEffect(() => {
-    setTimeout(() => {
-      if (!active && onScreen) {
-        setActiveStep && setActiveStep(step?.name || title);
-      }
-    }, 500);
-  }, [active, setActiveStep, onScreen, step?.name, title]);
-
-  console.log(step?.children);
-
-  return (
-    <Section ref={stepRef}>
-      <Title name={title}>{step?.name || title}</Title>
-      {step?.children ? (
-        <Content>{step?.children.filter(child => child.props.visible)}</Content>
-      ) : null}
-      {children}
-      <SectionDivider>
-        <Divider />
-      </SectionDivider>
-    </Section>
-  );
-};
-
 const FormSteps = {
-  box: (props: { properties: Property[] }) => (
-    <ThemeProvider theme={localMuiTheme}>
-      {props.properties.map((p, index) => {
-        return (
-          <FormStep
-            key={index}
-            step={p}
-            active={p.active}
-            clicked={p.clicked}
-            setActiveStep={p.setActiveStep}
-          />
-        );
-      })}
-    </ThemeProvider>
-  ),
+  Box: (props: { properties: Property[] }) => {
+    const [properties, setProperties] = useState<Property[]>([]);
+
+    const makeChildVisible = (childName: string) => {
+      console.log(childName);
+    };
+
+    const getChildrenOccurences = useCallback(() => {
+      const getChildrenNames = properties.flatMap(property =>
+        property.children.map(child => child.props.name),
+      );
+
+      return getChildrenNames.reduce((namesWithCount, name) => {
+        Object.keys(namesWithCount).includes(name)
+          ? namesWithCount[name]++
+          : (namesWithCount[name] = 1);
+        return namesWithCount;
+      }, {});
+    }, [properties]);
+
+    useEffect(() => {
+      setProperties(props.properties);
+    }, [props.properties]);
+
+    const childrenOccurences = getChildrenOccurences();
+
+    return (
+      <ThemeProvider theme={localMuiTheme}>
+        {properties.map((p, index) => {
+          return (
+            <FormStep
+              key={index}
+              step={p}
+              active={p.active}
+              clicked={p.clicked}
+              setActiveStep={p.setActiveStep}
+              childrenOccurences={childrenOccurences}
+              makeChildVisible={makeChildVisible}
+            />
+          );
+        })}
+      </ThemeProvider>
+    );
+  },
 };
 
 export default FormSteps;

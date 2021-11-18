@@ -19,10 +19,11 @@ import { JSONSchema7 } from 'json-schema';
 import Form from '@rjsf/material-ui';
 import * as Grouped from '../GroupedSchema';
 import * as UiTemplate from '../UITemplate';
-import FormSteps, { FormStep } from '../Steps';
+import FormSteps from '../Steps';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
+import { FormStep } from '../Step';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -126,7 +127,7 @@ const TemplateFields: FC<{
           }),
         {},
       ) || {};
-    Object.assign(groups, { 'ui:template': 'box' });
+    Object.assign(groups, { 'ui:template': 'Box' });
     return [groups];
   }, [activeTemplate]);
 

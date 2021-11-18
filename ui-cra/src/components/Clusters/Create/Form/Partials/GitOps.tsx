@@ -1,9 +1,9 @@
 import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
-import { FormStep } from '../Steps';
 import { Input } from '../../../../../utils/form';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button } from 'weaveworks-ui-components';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { FormStep } from '../Step';
 
 const base = weaveTheme.spacing.base;
 
