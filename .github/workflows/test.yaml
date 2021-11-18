@@ -145,6 +145,10 @@ jobs:
         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+    - name: Set up ssh
+      uses: ./.github/actions/setup-ssh
+      with:
+        ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
     - name: Run integration tests
       run: |
         go version
@@ -263,8 +267,8 @@ jobs:
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
-    - name: Set up ssh agent
-      uses: webfactory/ssh-agent@v0.5.2
+    - name: Set up ssh
+      uses: ./.github/actions/setup-ssh
       with:
         ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
     - name: Configure git settings
@@ -365,8 +369,8 @@ jobs:
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
         clusterctl version 
-    - name: Set up ssh agent
-      uses: webfactory/ssh-agent@v0.5.2
+    - name: Set up ssh
+      uses: ./.github/actions/setup-ssh
       with:
         ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
     - name: Configure git settings
