@@ -985,19 +985,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// // Parameter values
 				clusterName := capdClusterName
 				namespace := "default"
-				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["7.MachineDeployment"] = []TemplateField{
+				paramSection["1.Cluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
-					},
-					{
-						Name:   "KUBERNETES_VERSION",
-						Value:  k8Version,
-						Option: "1.19.8",
 					},
 					{
 						Name:   "NAMESPACE",
