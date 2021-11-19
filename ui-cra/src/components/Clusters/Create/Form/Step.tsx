@@ -28,6 +28,9 @@ const Content = styled.div`
   align-items: center;
   flex-wrap: wrap;
   overflow: hidden;
+  .step-child {
+    display: flex;
+  }
   @media (max-width: 768px) {
     flex-direction: column;
   }
@@ -88,7 +91,6 @@ export const FormStep: FC<{
   children,
 }) => {
   const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
-
   const onScreen = useOnScreen(stepRef);
 
   useEffect(() => {
@@ -116,19 +118,25 @@ export const FormStep: FC<{
     <Section ref={stepRef}>
       <Title name={title}>{step?.name || title}</Title>
       <Content>
-        {step?.children.map(child => {
+        {step?.children.map((child, index) => {
           if (child.props.visible) {
+            const occurences =
+              (childrenOccurences && childrenOccurences[child.props.name]) || 0;
+
+            console.log(index, child.props.name);
+
             return (
-              <div style={{ display: 'flex', flexFlow: 'column' }}>
-                {child}
+              <div key={index} className="step-child">
+                <div>{child}</div>
                 <Button onClick={() => handleClick(child.props.name)}>
                   Populates &nbsp;
-                  {childrenOccurences && childrenOccurences[child.props.name]}
-                  &nbsp; fields
+                  {occurences}
+                  &nbsp; {occurences > 1 ? 'fields' : 'field'}
                 </Button>
               </div>
             );
           }
+          return null;
         })}
       </Content>
       {children}

@@ -18,8 +18,8 @@ const localMuiTheme = createTheme({
       ...muiTheme.overrides?.MuiInputBase,
       root: {
         ...muiTheme.overrides?.MuiInputBase?.root,
-        marginRight: `${theme.spacing.xxl}`,
-        marginBottom: `${theme.spacing.xs}`,
+        marginRight: `${theme.spacing.xs}`,
+        marginBottom: `${theme.spacing.small}`,
       },
       input: {
         ...muiTheme.overrides?.MuiInputBase?.input,
@@ -59,9 +59,24 @@ const FormSteps = {
   Box: (props: { properties: Property[] }) => {
     const [properties, setProperties] = useState<Property[]>([]);
 
-    const makeChildVisible = (childName: string) => {
-      console.log(childName);
-    };
+    const makeChildVisible = useCallback(
+      (childName: string) => {
+        const updatedProperties = properties.map(property => {
+          const updatedChildren = property.children.map(child => {
+            if (child.props.name === childName) {
+              return React.cloneElement(child, {
+                visible: true,
+              });
+            }
+            return child;
+          });
+          property.children = updatedChildren;
+          return property;
+        });
+        setProperties(updatedProperties);
+      },
+      [properties],
+    );
 
     const getChildrenOccurences = useCallback(() => {
       const getChildrenNames = properties.flatMap(property =>
@@ -77,6 +92,7 @@ const FormSteps = {
     }, [properties]);
 
     useEffect(() => {
+      console.log('updating props by typing in form triggers rerender');
       setProperties(props.properties);
     }, [props.properties]);
 
