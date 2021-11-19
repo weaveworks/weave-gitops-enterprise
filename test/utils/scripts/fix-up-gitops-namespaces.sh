@@ -29,6 +29,7 @@ END
 
 echo "$PATCH"
 cd $1
+git branch --set-upstream-to=origin/main main
 git pull
 echo "$PATCH" | git apply
 git commit -am "fix up ns"
