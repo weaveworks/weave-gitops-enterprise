@@ -234,7 +234,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					eksPRUrl = string(match[1])
 				})
 
-				By("And I should veriyfy the eks pull request in the cluster config repository", func() {
+				By("And I should verify the eks pull request in the cluster config repository", func() {
 					pullRequest := gitopsTestRunner.ListPullRequest(repoAbsolutePath)
 					Expect(pullRequest[0]).Should(Equal(eksPRTitle))
 					Expect(pullRequest[1]).Should(Equal(eksPRBranch))
