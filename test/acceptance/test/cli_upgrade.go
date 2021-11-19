@@ -114,23 +114,15 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# gitops-capi-template")
-
-					gitopsTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
 					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
-				By("And I install profile controllers to my active cluster", func() {
-					InstallAndVerifyPctl(GITOPS_DEFAULT_NAMESPACE)
-				})
-
-				addCommand := fmt.Sprintf("add app . --path=./%s  --name=%s  --auto-merge=true", appPath, appName)
-				By(fmt.Sprintf("And I run gitops add app command ' %s 'in namespace %s from dir %s", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
-					cmd := fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand)
-					_, err := runCommandAndReturnStringOutput(cmd)
-					Expect(err).Should(BeEmpty())
+				// FIXME: to remove...
+				By("And I fix up the missing namespaces on some roles and bindings", func() {
+					runCommandPassThrough([]string{}, "../../utils/scripts/fix-up-gitops-namespaces.sh", repoAbsolutePath)
 				})
 
 				By("And I install the entitlement for cluster upgrade", func() {
@@ -143,18 +135,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(err).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
 				})
 
-				By("And I install the docker registry secret for wego enteprise components", func() {
-					cmd := fmt.Sprintf(`kubectl create secret docker-registry docker-io-pull-secret --namespace=%s --docker-username=%s --docker-password=%s`, GITOPS_DEFAULT_NAMESPACE, DOCKER_IO_USER, DOCKER_IO_PASSWORD)
-					_, err := runCommandAndReturnStringOutput(cmd)
-					Expect(err).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
-				})
-
-				By("Then I should see gitops add command linked the repo to the cluster", func() {
-					verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
-				})
-
 				prBranch := "wego-upgrade-enterprise"
-				upgradeCommand := fmt.Sprintf("upgrade --git-repository %s/%s --branch %s --out %s", GITOPS_DEFAULT_NAMESPACE, appName, prBranch, appPath)
+				profileVersion := "0.0.15"
+				upgradeCommand := fmt.Sprintf("upgrade --profile-version %s --branch %s", profileVersion, prBranch)
 				By(fmt.Sprintf("And I run gitops upgrade command ' %s ' form firectory %s", upgradeCommand, repoAbsolutePath), func() {
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, upgradeCommand))
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -166,7 +149,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				By("Then I should see pull request created to management cluster", func() {
 					output := session.Wait().Out.Contents()
 
-					re := regexp.MustCompile(`PR created.*:[\s\w\d]+(?P<URL>https.*\/\d+)`)
+					re := regexp.MustCompile(`Pull Request created.*:[\s\w\d]+(?P<URL>https.*\/\d+)`)
 					match := re.FindSubmatch([]byte(output))
 					Eventually(match[1]).ShouldNot(BeNil(), "Failed to Create pull request")
 				})
