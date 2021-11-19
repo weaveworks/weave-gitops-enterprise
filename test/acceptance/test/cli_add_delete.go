@@ -259,13 +259,13 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 
-				By("Then I should see cluster status as 'pullRequestCreated'", func() {
+				By("Then I should see cluster status as 'Creation PR'", func() {
 					output := session.Wait().Out.Contents()
-					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
+					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS\s+STATUS_MESSAGE`))
 
-					re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, eksClusterName))
+					re := regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, eksClusterName))
 					Eventually((re.Find(output))).ShouldNot(BeNil())
-					re = regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, capdClusterName))
+					re = regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, capdClusterName))
 					Eventually((re.Find(output))).ShouldNot(BeNil())
 				})
 			})
@@ -512,11 +512,11 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 
-					By("And I should see cluster status as 'pullRequestCreated'", func() {
+					By("And I should see cluster status as 'Creation PR'", func() {
 						output := session.Wait().Out.Contents()
-						Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
+						Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS\s+STATUS_MESSAGE`))
 
-						re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName))
+						re := regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, clusterName))
 						Eventually((re.Find(output))).ShouldNot(BeNil())
 					})
 
@@ -608,7 +608,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						return string(session.Wait().Out.Contents())
 
 					}
-					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName)))
+					Eventually(output, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+Deletion PR`, clusterName)))
 				})
 
 				By(fmt.Sprintf("And I should see the '%s' cluster status remains unchanged as 'clusterFound'", clusterName2), func() {
