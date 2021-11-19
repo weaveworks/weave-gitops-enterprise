@@ -19,7 +19,6 @@ const localMuiTheme = createTheme({
       root: {
         ...muiTheme.overrides?.MuiInputBase?.root,
         marginRight: `${theme.spacing.xs}`,
-        marginBottom: `${theme.spacing.small}`,
       },
       input: {
         ...muiTheme.overrides?.MuiInputBase?.input,
@@ -44,6 +43,12 @@ const localMuiTheme = createTheme({
         minWidth: '155px',
       },
     },
+    // MuiButton: {
+    //   label: {
+    //     ...muiTheme.overrides?.MuiButton?.label,
+    //     color: 'red',
+    //   },
+    // },
   },
 });
 

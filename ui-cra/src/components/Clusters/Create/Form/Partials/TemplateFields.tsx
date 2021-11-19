@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
 import {
   Template,
   TemplateObject,
@@ -24,26 +23,33 @@ import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
 import { FormStep } from '../Step';
+import styled from 'styled-components';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    form: {
-      paddingTop: base,
-    },
-    create: {
-      paddingTop: small,
-    },
-    previewCTA: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      paddingTop: small,
-      paddingBottom: base,
-    },
-  }),
-);
+const FormWrapper = styled(Form)`
+  .form-group {
+    padding-top: ${base};
+    .step-child {
+      .step-child-btn-CLUSTER_NAME {
+        color: red;
+      }
+    }
+  }
+  .profiles {
+    .profiles-select {
+      display: flex;
+      align-items: center;
+    }
+    .previewCTA {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: ${small};
+      padding-bottom: ${base};
+    }
+  }
+`;
 
 const TemplateFields: FC<{
   activeTemplate: Template | null;
@@ -64,7 +70,6 @@ const TemplateFields: FC<{
   formData,
   onFormDataUpdate,
 }) => {
-  const classes = useStyles();
   const { updatedProfiles } = useProfiles();
   const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
     [],
@@ -156,8 +161,7 @@ const TemplateFields: FC<{
   }, [updatedProfiles, onProfilesUpdate, handleSelectProfiles]);
 
   return (
-    <Form
-      className={classes.form}
+    <FormWrapper
       schema={schema as JSONSchema7}
       onChange={({ formData }) => onFormDataUpdate(formData)}
       formData={formData}
@@ -172,12 +176,13 @@ const TemplateFields: FC<{
       {...UiTemplate}
     >
       <FormStep
+        className="profiles"
         title="Profiles"
         active={activeStep === 'Profiles'}
         clicked={clickedStep === 'Profiles'}
         setActiveStep={setActiveStep}
       >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="profiles-select">
           <span>Select profiles:&nbsp;</span>
           <MultiSelectDropdown
             items={updatedProfiles}
@@ -188,11 +193,11 @@ const TemplateFields: FC<{
           selectedProfiles={selectedProfiles}
           onProfilesUpdate={handleSelectProfiles}
         />
-        <div className={classes.previewCTA}>
+        <div className="previewCTA">
           <Button>Preview PR</Button>
         </div>
       </FormStep>
-    </Form>
+    </FormWrapper>
   );
 };
 

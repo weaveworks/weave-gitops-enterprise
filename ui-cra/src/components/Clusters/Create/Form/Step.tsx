@@ -11,7 +11,8 @@ import React, {
 import Divider from '@material-ui/core/Divider';
 import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
-import Button from '@material-ui/core/Button';
+import { Button } from 'weaveworks-ui-components';
+import classNames from 'classnames';
 
 const Section = styled.div`
   padding-bottom: ${theme.spacing.medium};
@@ -25,11 +26,18 @@ const Title = styled.div<{ name?: string }>`
 
 const Content = styled.div`
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
   overflow: hidden;
+  .form-group {
+  }
   .step-child {
     display: flex;
+    margin-bottom: ${theme.spacing.small};
+    margin-right: ${theme.spacing.large};
+    .step-child-btn {
+      align-self: flex-end;
+      height: 40px;
+      overflow: hidden;
+    }
   }
   @media (max-width: 768px) {
     flex-direction: column;
@@ -73,6 +81,7 @@ export const useOnScreen = (ref: { current: HTMLDivElement | null }) => {
 };
 
 export const FormStep: FC<{
+  className?: string;
   step?: Property;
   title?: string;
   active?: boolean;
@@ -81,6 +90,7 @@ export const FormStep: FC<{
   childrenOccurences?: { [key: string]: number }[];
   makeChildVisible?: (childName: string) => void;
 }> = ({
+  className,
   step,
   title,
   active,
@@ -115,7 +125,7 @@ export const FormStep: FC<{
   };
 
   return (
-    <Section ref={stepRef}>
+    <Section ref={stepRef} className={className}>
       <Title name={title}>{step?.name || title}</Title>
       <Content>
         {step?.children.map((child, index) => {
@@ -127,12 +137,21 @@ export const FormStep: FC<{
 
             return (
               <div key={index} className="step-child">
-                <div>{child}</div>
-                <Button onClick={() => handleClick(child.props.name)}>
-                  Populates &nbsp;
-                  {occurences}
-                  &nbsp; {occurences > 1 ? 'fields' : 'field'}
-                </Button>
+                {child}
+                {occurences > 1 ? (
+                  <Button
+                    className={classNames(
+                      'step-child-btn',
+                      `step-child-btn-${child.props.name}`,
+                    )}
+                    title={child.props.name}
+                    onClick={() => handleClick(child.props.name)}
+                  >
+                    Show &nbsp;
+                    {occurences}
+                    &nbsp; populated occurences
+                  </Button>
+                ) : null}
               </div>
             );
           }
