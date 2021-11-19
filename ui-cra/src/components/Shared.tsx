@@ -44,7 +44,6 @@ export interface FinishMessage {
 }
 
 export const NameLink = styled(SafeAnchor)`
-  display: block;
   white-space: nowrap;
   color: ${theme.colors.blue600};
   &:hover {
