@@ -3,7 +3,6 @@ package pages
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -36,6 +35,35 @@ type ApplicationDetails struct {
 	Path           *agouti.Selection
 }
 
+type AuthenticateGithub struct {
+	AuthenticateGithub *agouti.Selection
+	AccessCode         *agouti.Selection
+	AuthroizeButton    *agouti.Selection
+}
+
+type DeviceActivation struct {
+	Username            *agouti.Selection
+	Password            *agouti.Selection
+	Signin              *agouti.Selection
+	UserCode            *agouti.MultiSelection
+	Verify              *agouti.Selection
+	Continue            *agouti.Selection
+	AuthroizeWeaveworks *agouti.Selection
+	ConfirmPassword     *agouti.Selection
+	ConnectedMessage    *agouti.Selection
+}
+
+type Commits struct {
+	SHA     *agouti.Selection
+	Date    *agouti.Selection
+	Message *agouti.Selection
+	Author  *agouti.Selection
+}
+
+func WaitForAuthenticationAlert(webDriver *agouti.Page) {
+	Eventually(webDriver.FindByXPath(`//div[@class="MuiAlert-message"][.="Authentication Successful"]`)).Should(BeVisible())
+}
+
 // This function waits for application graph to be rendered
 func (a ApplicationDetails) WaitForPageToLoad(webDriver *agouti.Page) {
 	Eventually(webDriver.Find(` svg g.output`)).Should(BeVisible(), "Application details failed to load/render as expected")
@@ -44,7 +72,13 @@ func (a ApplicationDetails) WaitForPageToLoad(webDriver *agouti.Page) {
 // This function waits for main application page to be rendered
 func (a ApplicationPage) WaitForPageToLoad(webDriver *agouti.Page, appCount int) {
 	Eventually(a.ApplicationCount).Should(BeVisible())
-	Eventually(a.ApplicationCount, 30*time.Second).Should(MatchText(strconv.Itoa(appCount)), "Application page failed to load/render as expected")
+	count := func() int {
+		_ = webDriver.Refresh()
+		strCount, _ := a.ApplicationCount.Text()
+		c, _ := strconv.Atoi(strCount)
+		return c
+	}
+	Eventually(count).Should(BeNumerically(">=", appCount), "Application page failed to load/render as expected")
 }
 
 func GetApplicationPage(webDriver *agouti.Page) *ApplicationPage {
@@ -91,4 +125,45 @@ func GetApplicationConditions(webDriver *agouti.Page, condition string) *Conditi
 		Reason:  sourceConditions.FindByXPath(`td[3]`),
 		Message: sourceConditions.FindByXPath(`td[4]`),
 	}
+}
+
+func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
+	return &AuthenticateGithub{
+		AuthenticateGithub: webDriver.FindByButton(`Authenticate with Github`),
+		AccessCode:         webDriver.Find(`div[class*=GithubDeviceAuthModal__P]:first-child`),
+		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),
+	}
+}
+
+func ActivateDevice(webDriver *agouti.Page) *DeviceActivation {
+	return &DeviceActivation{
+		Username:            webDriver.Find(`input[type=text][name=login]`),
+		Password:            webDriver.Find(`input[type=password][name*=password]`),
+		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
+		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
+		Verify:              webDriver.FindByButton(`Verify`),
+		Continue:            webDriver.Find(`[type=submit][name=commit]`),
+		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`),
+		ConfirmPassword:     webDriver.FindByButton(`password`),
+		ConnectedMessage:    webDriver.FindByXPath(`//p[contains(text(), "device is now connected")]`),
+	}
+}
+
+func GetCommits(webDriver *agouti.Page) []Commits {
+	Eventually(webDriver.All(`div[class^=CommitsTable] thead tr`)).Should(BeVisible())
+
+	commits := webDriver.All(`div[class^=CommitsTable] tbody > tr`)
+	cCnt, _ := commits.Count()
+
+	retCommits := []Commits{}
+
+	for i := 0; i < cCnt; i++ {
+		retCommits = append(retCommits, Commits{
+			SHA:     commits.At(i).FindByXPath(`td[1]`),
+			Date:    commits.At(i).FindByXPath(`td[2]`),
+			Message: commits.At(i).FindByXPath(`td[3]`),
+			Author:  commits.At(i).FindByXPath(`td[4]`),
+		})
+	}
+	return retCommits
 }

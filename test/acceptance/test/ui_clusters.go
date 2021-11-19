@@ -563,14 +563,14 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			clustersPage := pages.GetClustersPage(webDriver)
 
-			Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
+			pages.NavigateToPage(webDriver, "Alerts")
 			Eventually(clustersPage.NoFiringAlertMessage).Should(BeFound())
 
 			Expect(webDriver.Navigate(GetWGEUrl())).To(Succeed())
 			Eventually(clustersPage.NoClusterConfigured).Should(HaveText("No clusters configured"))
 			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
-			Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
+			pages.NavigateToPage(webDriver, "Alerts")
 
 			alert := "MyAlert"
 			message := "My Critical Alert"
@@ -586,9 +586,9 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 				alert := pages.FindAlertInFiringAlertsWidget(clustersPage, alert)
 				Eventually(alert.ClusterName).Should(HaveText(clusterName))
-				Expect(webDriver).To(HaveWindowCount(1))
+				winCount, _ := webDriver.WindowCount()
 				Expect(alert.ClusterName.Click()).To(Succeed())
-				Expect(webDriver).To(HaveWindowCount(2))
+				Expect(webDriver).To(HaveWindowCount(winCount + 1))
 				Eventually(clustersPage.NoFiringAlertMessage, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 			})
 		})

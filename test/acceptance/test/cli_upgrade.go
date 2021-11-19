@@ -149,15 +149,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(err).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
 				})
 
-				By(fmt.Sprintf("And wait for %s/%s GitRepository resource to be available in cluster", GITOPS_DEFAULT_NAMESPACE, appName), func() {
-					repoExists := func() bool {
-						cmd := fmt.Sprintf(`kubectl get GitRepository %s -n %s`, appName, GITOPS_DEFAULT_NAMESPACE)
-						out, _ := runCommandAndReturnStringOutput(cmd)
-
-						return out != ""
-					}
-					Eventually(repoExists, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), fmt.Sprintf("%s/%s Gitrepository resource does not exist in the cluster", GITOPS_DEFAULT_NAMESPACE, appName))
-
+				By("Then I should see gitops add command linked the repo to the cluster", func() {
+					verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				prBranch := "wego-upgrade-enterprise"
@@ -185,7 +178,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
 					configureConfigMapvalues(repoAbsolutePath, UI_NODEPORT, NATS_NODEPORT, natsURL, repositoryURL)
 					GitSetUpstream(repoAbsolutePath, prBranch)
-					GitUpdateCommitPush(repoAbsolutePath)
+					GitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
 				By("Then I should merge the pull request to start weave gitops enterprise upgrade", func() {
@@ -199,7 +192,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				By("And I can change the config map values for the upgrade profile", func() {
 					repositoryURL := fmt.Sprintf(`https://github.com/%s/%s`, GITHUB_ORG, CLUSTER_REPOSITORY)
 					configureConfigMapvalues(repoAbsolutePath, "", "", "", repositoryURL)
-					GitUpdateCommitPush(repoAbsolutePath)
+					GitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
 				By("Then I restart the cluster service pod for capi config to take effect", func() {

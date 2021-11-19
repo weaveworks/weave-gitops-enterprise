@@ -73,9 +73,11 @@ var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(ASSERTION_DEFAULT_TIME_OUT) //Things are slow on WKP UI
 
 	SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
+	GITHUB_USER = os.Getenv("GITHUB_USER")
+	GITHUB_PASSWORD = os.Getenv("GITHUB_PASSWORD")
 	GIT_PROVIDER = os.Getenv("GIT_PROVIDER")
 	GITHUB_ORG = os.Getenv("GITHUB_ORG")
-	GITHUB_TOKEN = os.Getenv("PCTL_BIN_PATH")
+	GITHUB_TOKEN = os.Getenv("GITHUB_TOKEN")
 	CLUSTER_REPOSITORY = os.Getenv("CLUSTER_REPOSITORY")
 
 	DOCKER_IO_USER = os.Getenv("DOCKER_IO_USER")

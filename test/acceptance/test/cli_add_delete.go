@@ -524,7 +524,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
 						_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
 						GitSetUpstream(repoAbsolutePath, prBranch)
-						GitUpdateCommitPush(repoAbsolutePath)
+						GitUpdateCommitPush(repoAbsolutePath, "")
 					})
 
 					By("Then I should merge the pull request to start cluster provisioning", func() {
