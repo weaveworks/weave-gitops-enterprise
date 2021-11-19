@@ -76,8 +76,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 			var public_ip string
 			kind_upgrade_cluster_name := "test-upgrade"
 
-			appName := "wego-upgrade"
-			appPath := "upgrade"
 			templateFiles := []string{}
 
 			JustBeforeEach(func() {
@@ -113,7 +111,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
-					testFile := createTestFile("README.md", "# gitops-capi-template")
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
