@@ -119,7 +119,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				// FIXME: to remove...
 				By("And I fix up the missing namespaces on some roles and bindings", func() {
-					runCommandPassThrough([]string{}, "../../utils/scripts/fix-up-gitops-namespaces.sh", repoAbsolutePath)
+					err := runCommandPassThrough([]string{}, "../../utils/scripts/fix-up-gitops-namespaces.sh", repoAbsolutePath)
+					Expect(err).ShouldNot(HaveOccurred())
 				})
 
 				By("And I install the entitlement for cluster upgrade", func() {
