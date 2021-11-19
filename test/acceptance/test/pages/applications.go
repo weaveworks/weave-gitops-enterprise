@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -15,6 +16,18 @@ type ApplicationPage struct {
 	ApplicationCount  *agouti.Selection
 	AddApplication    *agouti.Selection
 	ApplicationTable  *agouti.MultiSelection
+}
+
+type AddApplication struct {
+	Name            *agouti.Selection
+	K8sNamespace    *agouti.Selection
+	SourceRepoUrl   *agouti.Selection
+	ConfigRepoUrl   *agouti.Selection
+	Path            *agouti.Selection
+	Branch          *agouti.Selection
+	AutoMerge       *agouti.Selection
+	Submit          *agouti.Selection
+	ViewApplication *agouti.Selection
 }
 
 type Applicationrow struct {
@@ -41,11 +54,12 @@ type AuthenticateGithub struct {
 	AuthroizeButton    *agouti.Selection
 }
 
-type DeviceActivation struct {
+type DeviceActivationGitHub struct {
 	Username            *agouti.Selection
 	Password            *agouti.Selection
 	Signin              *agouti.Selection
 	UserCode            *agouti.MultiSelection
+	AuthCode            *agouti.Selection
 	Verify              *agouti.Selection
 	Continue            *agouti.Selection
 	AuthroizeWeaveworks *agouti.Selection
@@ -60,8 +74,18 @@ type Commits struct {
 	Author  *agouti.Selection
 }
 
-func WaitForAuthenticationAlert(webDriver *agouti.Page) {
-	Eventually(webDriver.FindByXPath(`//div[@class="MuiAlert-message"][.="Authentication Successful"]`)).Should(BeVisible())
+func ElementExist(element *agouti.Selection) bool {
+	for range [5]int{} {
+		if count, _ := element.Count(); count == 1 {
+			return true
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return false
+}
+
+func WaitForAuthenticationAlert(webDriver *agouti.Page, alert_success_msg string) {
+	Eventually(webDriver.FindByXPath(fmt.Sprintf(`//div[@class="MuiAlert-message"][.="%s"]`, alert_success_msg))).Should(BeVisible())
 }
 
 // This function waits for application graph to be rendered
@@ -90,6 +114,21 @@ func GetApplicationPage(webDriver *agouti.Page) *ApplicationPage {
 	}
 
 	return &applicationPage
+}
+
+func GetAddApplicationForm(webDriver *agouti.Page) *AddApplication {
+	return &AddApplication{
+		Name:            webDriver.Find(`input#name`),
+		K8sNamespace:    webDriver.Find(`input#namespace`),
+		SourceRepoUrl:   webDriver.Find(`input#url`),
+		ConfigRepoUrl:   webDriver.Find(`input#configUrl`),
+		Path:            webDriver.Find(`input#path`),
+		Branch:          webDriver.Find(`input#branch`),
+		AutoMerge:       webDriver.Find(`input[type=checkbox]`),
+		Submit:          webDriver.FindByButton(`Submit`),
+		ViewApplication: webDriver.FindByButton("View Applications"),
+	}
+
 }
 
 func GetApplicationRow(applicationPage *ApplicationPage, applicationeName string) *Applicationrow {
@@ -135,12 +174,13 @@ func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
 	}
 }
 
-func ActivateDevice(webDriver *agouti.Page) *DeviceActivation {
-	return &DeviceActivation{
+func ActivateDeviceGithub(webDriver *agouti.Page) *DeviceActivationGitHub {
+	return &DeviceActivationGitHub{
 		Username:            webDriver.Find(`input[type=text][name=login]`),
 		Password:            webDriver.Find(`input[type=password][name*=password]`),
 		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
 		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
+		AuthCode:            webDriver.Find(`input#otp`),
 		Verify:              webDriver.FindByButton(`Verify`),
 		Continue:            webDriver.Find(`[type=submit][name=commit]`),
 		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`),
