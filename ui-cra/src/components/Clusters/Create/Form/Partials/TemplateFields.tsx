@@ -31,13 +31,6 @@ const small = weaveTheme.spacing.small;
 const FormWrapper = styled(Form)`
   .form-group {
     padding-top: ${base};
-    .step-child {
-      // btn-class should kick in only if the first child is clicked as we need all the children to be on the page
-      .step-child-btn-CLUSTER_NAME {
-        color: red;
-        // display: none;
-      }
-    }
   }
   .profiles {
     .profiles-select {

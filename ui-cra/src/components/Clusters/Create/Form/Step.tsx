@@ -12,7 +12,7 @@ import Divider from '@material-ui/core/Divider';
 import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
-import classNames from 'classnames';
+import { GitOpsBlue } from '../../../../muiTheme';
 
 const Section = styled.div`
   padding-bottom: ${theme.spacing.medium};
@@ -27,8 +27,6 @@ const Title = styled.div<{ name?: string }>`
 const Content = styled.div`
   display: flex;
   overflow: hidden;
-  .form-group {
-  }
   .step-child {
     display: flex;
     margin-bottom: ${theme.spacing.small};
@@ -37,6 +35,10 @@ const Content = styled.div`
       align-self: flex-end;
       height: 40px;
       overflow: hidden;
+    }
+    span {
+      color: ${GitOpsBlue};
+      font-weight: 600;
     }
   }
   @media (max-width: 768px) {
@@ -132,24 +134,15 @@ export const FormStep: FC<{
           if (child.props.visible) {
             const occurences =
               (childrenOccurences && childrenOccurences[child.props.name]) || 0;
-
-            console.log(index, child.props.name);
-
             return (
               <div key={index} className="step-child">
                 {child}
-                {occurences > 1 ? (
+                {occurences > 1 && child.props.firstOfAKind ? (
                   <Button
-                    className={classNames(
-                      'step-child-btn',
-                      `step-child-btn-${child.props.name}`,
-                    )}
-                    title={child.props.name}
+                    className="step-child-btn"
                     onClick={() => handleClick(child.props.name)}
                   >
-                    Show &nbsp;
-                    {occurences}
-                    &nbsp; populated occurences
+                    Show <span>{occurences}</span> populated fields
                   </Button>
                 ) : null}
               </div>

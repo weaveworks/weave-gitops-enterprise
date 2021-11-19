@@ -43,12 +43,6 @@ const localMuiTheme = createTheme({
         minWidth: '155px',
       },
     },
-    // MuiButton: {
-    //   label: {
-    //     ...muiTheme.overrides?.MuiButton?.label,
-    //     color: 'red',
-    //   },
-    // },
   },
 });
 
@@ -62,7 +56,7 @@ interface Property {
 
 const FormSteps = {
   Box: (props: { properties: Property[] }) => {
-    const [properties, setProperties] = useState<Property[]>([]);
+    const [properties, setProperties] = useState<Property[]>(props.properties);
 
     const makeChildVisible = useCallback(
       (childName: string) => {
@@ -100,6 +94,8 @@ const FormSteps = {
       console.log('updating props by typing in form triggers rerender');
       setProperties(props.properties);
     }, [props.properties]);
+
+    console.log('i am rerendering');
 
     const childrenOccurences = getChildrenOccurences();
 
