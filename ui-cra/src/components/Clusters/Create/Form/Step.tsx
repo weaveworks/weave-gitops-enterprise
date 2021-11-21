@@ -139,6 +139,7 @@ export const FormStep: FC<{
                 {child}
                 {occurences > 1 && child.props.firstOfAKind ? (
                   <Button
+                    type="button"
                     className="step-child-btn"
                     onClick={() => handleClick(child.props.name)}
                   >
