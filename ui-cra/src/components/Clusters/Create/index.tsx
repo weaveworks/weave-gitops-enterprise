@@ -137,7 +137,7 @@ const AddCluster: FC = () => {
           accumulator: {
             name: string;
             version: string;
-            values: any;
+            values: string;
           }[],
           profile,
         ) => {
@@ -145,8 +145,8 @@ const AddCluster: FC = () => {
             if (value.selected === true)
               accumulator.push({
                 name: profile.name,
-                version: value.version as string,
-                values: btoa(value.yaml as string),
+                version: value.version,
+                values: btoa(value.yaml),
               });
           });
           return accumulator;

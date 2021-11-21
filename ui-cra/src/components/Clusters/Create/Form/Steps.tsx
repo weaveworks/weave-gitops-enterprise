@@ -36,6 +36,9 @@ const localMuiTheme = createTheme({
       shrink: {
         transform: 'none',
       },
+      asterisk: {
+        display: 'none',
+      },
     },
     MuiSelect: {
       select: {
