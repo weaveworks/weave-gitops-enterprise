@@ -259,13 +259,13 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 
-				By("Then I should see cluster status as 'pullRequestCreated'", func() {
+				By("Then I should see cluster status as 'Creation PR'", func() {
 					output := session.Wait().Out.Contents()
 					Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
 
-					re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, eksClusterName))
+					re := regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, eksClusterName))
 					Eventually((re.Find(output))).ShouldNot(BeNil())
-					re = regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, capdClusterName))
+					re = regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, capdClusterName))
 					Eventually((re.Find(output))).ShouldNot(BeNil())
 				})
 			})
@@ -512,11 +512,11 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						Expect(err).ShouldNot(HaveOccurred())
 					})
 
-					By("And I should see cluster status as 'pullRequestCreated'", func() {
+					By("And I should see cluster status as 'Creation PR'", func() {
 						output := session.Wait().Out.Contents()
 						Eventually(string(output)).Should(MatchRegexp(`NAME\s+STATUS`))
 
-						re := regexp.MustCompile(fmt.Sprintf(`%s\s+pullRequestCreated`, clusterName))
+						re := regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, clusterName))
 						Eventually((re.Find(output))).ShouldNot(BeNil())
 					})
 
