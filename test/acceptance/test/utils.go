@@ -33,6 +33,8 @@ import (
 
 var DOCKER_IO_USER string
 var DOCKER_IO_PASSWORD string
+var GITHUB_USER string
+var GITHUB_PASSWORD string
 var GIT_PROVIDER string
 var GITHUB_ORG string
 var GITHUB_TOKEN string
@@ -104,6 +106,7 @@ const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
 const ASSERTION_30SECONDS_TIME_OUT time.Duration = 30 * time.Second
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
 const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
+const ASSERTION_3MINUTE_TIME_OUT time.Duration = 3 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 const ASSERTION_6MINUTE_TIME_OUT time.Duration = 6 * time.Minute
 
@@ -160,6 +163,7 @@ func TakeNextScreenshot() {
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
+	DescribeApplications(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -202,18 +206,21 @@ type GitopsTestRunner interface {
 	GetRepoVisibility(org string, repo string) string
 }
 
-func initializeWebdriver(wgeURL string) {
+func InitializeWebdriver(wgeURL string) {
 	var err error
 	if webDriver == nil {
-
-		webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-			"chromeOptions": map[string][]string{
-				"args": {
-					// "--headless", //Uncomment to run headless
-					"--disable-gpu",
-					"--no-sandbox",
-				}}}))
-		Expect(err).NotTo(HaveOccurred())
+		switch runtime.GOOS {
+		case "darwin":
+			chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox"}))
+			err = chromeDriver.Start()
+			Expect(err).NotTo(HaveOccurred())
+			webDriver, err = chromeDriver.NewPage()
+			Expect(err).NotTo(HaveOccurred())
+		case "linux":
+			webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
+				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox"}, "w3c": false}}))
+			Expect(err).NotTo(HaveOccurred())
+		}
 
 		err = webDriver.Size(WINDOW_SIZE_X, WINDOW_SIZE_Y)
 		Expect(err).NotTo(HaveOccurred())
@@ -660,14 +667,23 @@ func (b RealGitopsTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAd
 	fmt.Println(string(session.Wait().Err.Contents()))
 }
 
-func GitUpdateCommitPush(repoAbsolutePath string) {
+func GitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m 'edit repo file' && git pull --rebase && git push origin HEAD", repoAbsolutePath))
+	if commitMessage == "" {
+		commitMessage = "edit repo file"
+	}
+
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m '%s' && git pull --rebase && git push origin HEAD", repoAbsolutePath, commitMessage))
 }
 
 func GitSetUpstream(repoAbsolutePath string, upstreamBranch string) {
 	log.Infof("Setting tracking/upstream remote branch %s", upstreamBranch)
 	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git branch -u origin/%s", repoAbsolutePath, upstreamBranch))
+}
+
+func GetGitRepositoryURL(repoAbsolutePath string) string {
+	repoURL, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git config --get remote.origin.url`, repoAbsolutePath))
+	return strings.Trim(repoURL, "\n")
 }
 
 func (b RealGitopsTestRunner) CreateGitRepoBranch(repoAbsolutePath string, branchName string) string {
@@ -748,8 +764,9 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 
 func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr string) {
 	command := exec.Command("sh", "-c", commandToRun)
-	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Eventually(session).Should(gexec.Exit())
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
 
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
@@ -841,11 +858,10 @@ func FileExists(name string) bool {
 	return true
 }
 
-//Utility function to compute public IP of management cluster workload node
-func ClusterWorkloadNonePublicIP() string {
+//Utility function to compute public IP of cluster workload node
+func ClusterWorkloadNonePublicIP(clusterKind string) string {
 	var expernal_ip string
-	MANAGEMENT_CLUSTER_KIND := os.Getenv("MANAGEMENT_CLUSTER_KIND")
-	if MANAGEMENT_CLUSTER_KIND == "EKS" || MANAGEMENT_CLUSTER_KIND == "GKE" {
+	if clusterKind == "EKS" || clusterKind == "GKE" {
 		node_name, _ := runCommandAndReturnStringOutput(`kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1`)
 		worker_name := strings.Trim(strings.Split(node_name, "/")[1], "\n")
 		expernal_ip, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='%s')].status.addresses[?(@.type=='ExternalIP')].address}"`, worker_name))
@@ -953,10 +969,10 @@ func VerifyCoreControllers(namespace string) {
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "180s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+		Eventually(session, ASSERTION_3MINUTE_TIME_OUT).Should(gexec.Exit())
 	})
 }
 
@@ -970,16 +986,24 @@ func VerifyEnterpriseControllers(releaseName string, namespace string) {
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops enterprise controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "180s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+		Eventually(session, ASSERTION_3MINUTE_TIME_OUT).Should(gexec.Exit())
 	})
 }
 
-func InstallAndVerifyGitops(gitopsNamespace string) {
+func verifyWegoAddCommand(appName string, namespace string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", namespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, ASSERTION_5MINUTE_TIME_OUT).Should(gexec.Exit())
+	Expect(waitForResource("GitRepositories", appName, namespace, ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
+}
+
+func InstallAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 	By("And I run 'gitops install' command with namespace "+gitopsNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", GetGitopsBinPath(), gitopsNamespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --app-config-url %s --namespace=%s", GetGitopsBinPath(), manifestRepoURL, gitopsNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
@@ -1006,32 +1030,59 @@ func InstallAndVerifyPctl(gitopsNamespace string) {
 }
 
 func RemoveGitopsCapiClusters(appName string, clusternames []string, nameSpace string) {
-	GITOPS_BIN_PATH := GetGitopsBinPath()
-
-	command := "suspend app management"
-	By(fmt.Sprintf("And I run gitops suspend app command '%s'", command), func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, command))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
-	})
+	SusspendGitopsApplication(appName, nameSpace)
 
 	deleteClusters("capi", clusternames)
 
-	command = "delete app " + appName
-	By(fmt.Sprintf("And I run gitops delete app command '%s'", command), func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, command))
+	DeleteGitopsApplication(appName, nameSpace)
+	DeleteGitopsDeploySecret(nameSpace)
+}
+
+func SusspendGitopsApplication(appName string, nameSpace string) {
+	command := fmt.Sprintf("suspend app %s", appName)
+	By(fmt.Sprintf("And I run gitops suspend app command '%s'", command), func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GetGitopsBinPath(), command))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
 	})
+}
 
-	command = fmt.Sprintf(`kubectl get secrets -n %s  | grep Opaque | grep wego- | cut -d' ' -f1 | xargs kubectl delete secrets -n %s`, nameSpace, nameSpace)
+func ListGitopsApplication(appName string, nameSpace string) string {
+	var session *gexec.Session
+	var err error
+
+	cmd := fmt.Sprintf("get app %s", appName)
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GetGitopsBinPath(), cmd))
+	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	return string(session.Out.Contents())
+}
+
+func DeleteGitopsApplication(appName string, nameSpace string) {
+	command := "delete app " + appName
+	By(fmt.Sprintf("And I run gitops delete app command '%s'", command), func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GetGitopsBinPath(), command))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session).Should(gexec.Exit())
+
+		appDeleted := func() bool {
+			status := ListGitopsApplication(appName, nameSpace)
+			return status == ""
+		}
+		Eventually(appDeleted, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), fmt.Sprintf("%s application failed to delete", appName))
+	})
+}
+
+func DeleteGitopsDeploySecret(nameSpace string) {
+	command := fmt.Sprintf(`kubectl get secrets -n %[1]v  | grep Opaque | grep wego- | cut -d' ' -f1 | xargs kubectl delete secrets -n %[1]v`, nameSpace)
 	By("And I delete deploy key secret", func() {
 		command := exec.Command("sh", "-c", command)
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
 	})
-
 }

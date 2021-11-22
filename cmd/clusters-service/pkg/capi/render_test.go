@@ -56,7 +56,7 @@ metadata:
   name: testing-control-plane
 spec:
   replicas: 5`)
-	updated, err := InjectPruneAnnotation()(raw)
+	updated, err := processUnstructured(raw, InjectPruneAnnotation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestRender_InjectPruneAnnotation(t *testing.T) {
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
-		InjectPruneAnnotation())
+		InjectPruneAnnotation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +126,7 @@ metadata:
   name: testing-control-plane
 spec:
   replicas: 5`)
-	updated, err := InNamespace("new-namespace")(raw)
+	updated, err := processUnstructured(raw, InNamespace("new-namespace"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,6 +136,31 @@ kind: Cluster
 metadata:
   name: testing
   namespace: new-namespace
+`
+
+	if diff := cmp.Diff(want, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}
+
+func TestInNamespacePreservesExistingNamespace(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: old-namespace
+`)
+	updated, err := processUnstructured(raw, InNamespace("new-namespace"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: old-namespace
 `
 
 	if diff := cmp.Diff(want, string(updated)); diff != "" {
@@ -188,12 +213,14 @@ func TestRender_with_options(t *testing.T) {
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "2",
 	},
-		unstructuredFunc(func(uns *unstructured.Unstructured) {
+		func(uns *unstructured.Unstructured) error {
 			uns.SetName("just-a-test")
-		}),
-		unstructuredFunc(func(uns *unstructured.Unstructured) {
+			return nil
+		},
+		func(uns *unstructured.Unstructured) error {
 			uns.SetNamespace("not-a-real-namespace")
-		}),
+			return nil
+		},
 	)
 	if err != nil {
 		t.Fatal(err)

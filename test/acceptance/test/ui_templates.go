@@ -64,7 +64,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			By("Given Kubernetes cluster is setup", func() {
 				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
 			})
-			initializeWebdriver(GetWGEUrl())
+			InitializeWebdriver(GetWGEUrl())
 		})
 
 		AfterEach(func() {
@@ -389,9 +389,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(preview.PreviewLabel).Should(BeFound())
 					pages.ScrollWindow(webDriver, 0, 500)
 
-					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
+					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
 					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
-					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: %[4]v`, clusterName, region, sshKey, k8Version))))
+					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: default\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: %[4]v`, clusterName, region, sshKey, k8Version))))
 					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-fargate-0`, clusterName))))
 				})
 			})
@@ -823,10 +823,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				// Azure template parameter values
 				azureClusterName := "my-azure-cluster"
-				azureK8version := "1.19.7"
+				azureK8version := "1.21.2"
 				azureNamespace := "default"
-				azureControlMAchineType := "HBv2"
-				azureNodeMAchineType := "Dasv4"
+				azureControlMAchineType := "Standard_D2s_v3"
+				azureNodeMAchineType := "Standard_D4_v4"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["2.AzureCluster"] = []TemplateField{
@@ -850,16 +850,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 					{
 						Name:   "KUBERNETES_VERSION",
-						Value:  azureK8version,
-						Option: "",
+						Value:  "",
+						Option: azureK8version,
 					},
 				}
 
 				paramSection["4.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
-						Value:  azureControlMAchineType,
-						Option: "",
+						Value:  "",
+						Option: azureControlMAchineType,
 					},
 				}
 
@@ -874,8 +874,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				paramSection["6.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
-						Value:  azureNodeMAchineType,
-						Option: "",
+						Value:  "",
+						Option: azureNodeMAchineType,
 					},
 				}
 
@@ -912,6 +912,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					KubeconfigPath:  "",
 				}
 				connectACluster(webDriver, gitopsTestRunner, leaf)
+
+				By("And template repo does not already exist", func() {
+					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
+					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				})
 			})
 
 			JustAfterEach(func() {
@@ -930,11 +935,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
-				By("And template repo does not already exist", func() {
-					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				})
-
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
@@ -945,7 +945,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I install gitops to my active cluster", func() {
 					Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
-					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE)
+					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
 				addCommand := fmt.Sprintf("add app . --path=%s --name=%s --auto-merge=true", appPath, appName)
@@ -1044,7 +1044,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
 					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
 					GitSetUpstream(repoAbsolutePath, prBranch)
-					GitUpdateCommitPush(repoAbsolutePath)
+					GitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
 				By("Then I should merge the pull request to start cluster provisioning", func() {

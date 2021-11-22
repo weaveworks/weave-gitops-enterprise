@@ -262,7 +262,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			By("Given Kubernetes cluster is setup", func() {
 				//TODO - Verify that cluster is up and running using kubectl
 			})
-			initializeWebdriver(GetWGEUrl())
+			InitializeWebdriver(GetWGEUrl())
 		})
 
 		AfterEach(func() {
@@ -563,14 +563,14 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			clustersPage := pages.GetClustersPage(webDriver)
 
-			Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
+			pages.NavigateToPage(webDriver, "Alerts")
 			Eventually(clustersPage.NoFiringAlertMessage).Should(BeFound())
 
 			Expect(webDriver.Navigate(GetWGEUrl())).To(Succeed())
 			Eventually(clustersPage.NoClusterConfigured).Should(HaveText("No clusters configured"))
 			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
-			Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
+			pages.NavigateToPage(webDriver, "Alerts")
 
 			alert := "MyAlert"
 			message := "My Critical Alert"
@@ -586,9 +586,9 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 				alert := pages.FindAlertInFiringAlertsWidget(clustersPage, alert)
 				Eventually(alert.ClusterName).Should(HaveText(clusterName))
-				Expect(webDriver).To(HaveWindowCount(1))
+				winCount, _ := webDriver.WindowCount()
 				Expect(alert.ClusterName.Click()).To(Succeed())
-				Expect(webDriver).To(HaveWindowCount(2))
+				Expect(webDriver).To(HaveWindowCount(winCount + 1))
 				Eventually(clustersPage.NoFiringAlertMessage, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 			})
 		})
@@ -606,7 +606,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			deleteClusterEntry(webDriver, []string{clusterName})
 		})
 
-		It("@wkp Verify team workspaces variations", func() {
+		XIt("@wkp Verify team workspaces variations", func() {
 			if getEnv("CONNECT_KIND_WKP_LEAF_TEST", "") == "" {
 				Skip("set CONNECT_KIND_WKP_LEAF_TEST env var to run this test")
 			}
@@ -651,7 +651,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			connectACluster(webDriver, gitopsTestRunner, leaves["eks"])
 		})
 
-		It("@wkp Verify user can connect a kind cluster with cluster components installed", func() {
+		XIt("@wkp Verify user can connect a kind cluster with cluster components installed", func() {
 			connectACluster(webDriver, gitopsTestRunner, leaves["kind-wkp"])
 		})
 	})

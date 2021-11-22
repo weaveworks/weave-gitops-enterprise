@@ -29,8 +29,7 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/libgitops v0.0.3
-	github.com/weaveworks/pctl v0.8.0
-	github.com/weaveworks/weave-gitops v0.4.0
+	github.com/weaveworks/weave-gitops v0.4.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
@@ -43,7 +42,7 @@ require (
 	gorm.io/gorm v1.21.11
 	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
-	k8s.io/cli-runtime v0.22.1
+	k8s.io/cli-runtime v0.22.1 // indirect
 	k8s.io/client-go v0.22.2
 	k8s.io/kubernetes v1.21.1 // indirect
 	sigs.k8s.io/cluster-api v0.3.16
@@ -53,7 +52,6 @@ require (
 
 require (
 	cloud.google.com/go v0.93.3 // indirect
-	code.gitea.io/sdk/gitea v0.14.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.18 // indirect
@@ -74,10 +72,10 @@ require (
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/aws/eks-distro-build-tooling/release v0.0.0-20201211225747-07f05a470de8 // indirect
+	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitnami-labs/sealed-secrets v0.12.5 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/bluekeyes/go-gitdiff v0.4.0 // indirect
 	github.com/cavaliercoder/go-rpm v0.0.0-20200122174316-8cb9fd9c31a8 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/chanwit/plandiff v1.0.0 // indirect
@@ -140,7 +138,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
-	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
@@ -155,7 +152,6 @@ require (
 	github.com/jackc/pgtype v1.5.0 // indirect
 	github.com/jackc/pgx/v4 v4.9.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/jenkins-x/go-scm v1.10.10 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/jmoiron/sqlx v1.3.1 // indirect
@@ -196,7 +192,6 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
-	github.com/otiai10/copy v1.6.0 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -208,8 +203,6 @@ require (
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/shurcooL/githubv4 v0.0.0-20190718010115-4ba037080260 // indirect
-	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -218,7 +211,6 @@ require (
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab // indirect
-	github.com/weaveworks/profiles v0.2.0 // indirect
 	github.com/xanzy/go-gitlab v0.43.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
@@ -263,7 +255,6 @@ require (
 	k8s.io/kube-proxy v0.0.0 // indirect
 	k8s.io/kubectl v0.22.1 // indirect
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a // indirect
-	knative.dev/pkg v0.0.0-20210412173742-b51994e3b312 // indirect
 	oras.land/oras-go v0.4.0 // indirect
 	sigs.k8s.io/cli-utils v0.26.0 // indirect
 	sigs.k8s.io/kustomize/api v0.10.0 // indirect
