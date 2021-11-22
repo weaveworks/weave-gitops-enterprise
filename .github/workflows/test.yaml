@@ -117,7 +117,7 @@ jobs:
         path: bin
     - name: Change bin permissions
       run: |
-        cp bin/gitops-${{steps.gitsha.outputs.sha}} ${{ env.GITOPS_BIN_PATH }}
+        cp bin/gitops-${{needs.build-gitops.outputs.gitsha}} ${{ env.GITOPS_BIN_PATH }}
         sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
     # - name: Download gitops binary from s3
     #   run: |
