@@ -59,15 +59,25 @@ interface Property {
 
 const FormSteps = {
   Box: (props: { properties: Property[] }) => {
-    const [properties, setProperties] = useState<Property[]>(props.properties);
+    const [properties, setProperties] = useState<Property[]>([]);
+    const [repeatChildrenVisible, setRepeatChildrenVisible] =
+      useState<boolean>(false);
+    const [childrenOccurences, setChildrenOccurences] =
+      useState<
+        {
+          name: string;
+          groupVisible: boolean;
+          count: number;
+        }[]
+      >();
 
-    const makeChildVisible = useCallback(
+    const switchChildVisibility = useCallback(
       (childName: string) => {
         const updatedProperties = properties.map(property => {
           const updatedChildren = property.children.map(child => {
-            if (child.props.name === childName) {
+            if (child.props.name === childName && !child.props.firstOfAKind) {
               return React.cloneElement(child, {
-                visible: true,
+                visible: !child.props.visible,
               });
             }
             return child;
@@ -81,26 +91,41 @@ const FormSteps = {
     );
 
     const getChildrenOccurences = useCallback(() => {
-      const getChildrenNames = properties.flatMap(property =>
-        property.children.map(child => child.props.name),
+      const getChildrenNamesAndVisibility = properties.flatMap(property =>
+        property.children.map(child => {
+          return { name: child.props.name, visible: child.props.visible };
+        }),
       );
 
-      return getChildrenNames.reduce((namesWithCount, name) => {
-        Object.keys(namesWithCount).includes(name)
-          ? namesWithCount[name]++
-          : (namesWithCount[name] = 1);
-        return namesWithCount;
-      }, {});
+      let childrenCountGroupVisibility: {
+        name: string;
+        groupVisible: boolean;
+        count: number;
+      }[] = [];
+
+      getChildrenNamesAndVisibility.forEach(child => {
+        const relevantChild = childrenCountGroupVisibility.find(
+          c => c.name === child.name,
+        );
+        if (relevantChild) {
+          relevantChild.count++;
+          relevantChild.groupVisible = child.visible;
+        } else {
+          childrenCountGroupVisibility.push({
+            name: child.name,
+            count: 1,
+            groupVisible: child.visible,
+          });
+        }
+      });
+
+      return childrenCountGroupVisibility;
     }, [properties]);
 
     useEffect(() => {
-      console.log('updating props by typing in form triggers rerender');
       setProperties(props.properties);
-    }, [props.properties]);
-
-    console.log('i am rerendering');
-
-    const childrenOccurences = getChildrenOccurences();
+      setChildrenOccurences(getChildrenOccurences());
+    }, [props.properties, getChildrenOccurences]);
 
     return (
       <ThemeProvider theme={localMuiTheme}>
@@ -113,7 +138,9 @@ const FormSteps = {
               clicked={p.clicked}
               setActiveStep={p.setActiveStep}
               childrenOccurences={childrenOccurences}
-              makeChildVisible={makeChildVisible}
+              switchChildVisibility={switchChildVisibility}
+              repeatChildrenVisible={repeatChildrenVisible}
+              setRepeatChildrenVisible={setRepeatChildrenVisible}
             />
           );
         })}

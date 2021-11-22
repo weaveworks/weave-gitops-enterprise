@@ -3,6 +3,7 @@ import React, {
   FC,
   ReactElement,
   Ref,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -89,8 +90,10 @@ export const FormStep: FC<{
   active?: boolean;
   clicked?: boolean;
   setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
-  childrenOccurences?: { [key: string]: number }[];
-  makeChildVisible?: (childName: string) => void;
+  childrenOccurences?: { [key: string]: any }[];
+  switchChildVisibility?: (childName: string) => void;
+  repeatChildrenVisible?: boolean;
+  setRepeatChildrenVisible?: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   className,
   step,
@@ -99,8 +102,10 @@ export const FormStep: FC<{
   clicked,
   setActiveStep,
   childrenOccurences,
-  makeChildVisible,
+  switchChildVisibility,
   children,
+  repeatChildrenVisible,
+  setRepeatChildrenVisible,
 }) => {
   const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
   const onScreen = useOnScreen(stepRef);
@@ -122,9 +127,14 @@ export const FormStep: FC<{
     }, 500);
   }, [active, setActiveStep, onScreen, step?.name, title]);
 
-  const handleClick = (childName: string) => {
-    makeChildVisible && makeChildVisible(childName);
-  };
+  const handleClick = useCallback(
+    (childName: string) => {
+      setRepeatChildrenVisible &&
+        setRepeatChildrenVisible(!repeatChildrenVisible);
+      switchChildVisibility && switchChildVisibility(childName);
+    },
+    [repeatChildrenVisible, switchChildVisibility, setRepeatChildrenVisible],
+  );
 
   return (
     <Section ref={stepRef} className={className}>
@@ -132,18 +142,20 @@ export const FormStep: FC<{
       <Content>
         {step?.children.map((child, index) => {
           if (child.props.visible) {
-            const occurences =
-              (childrenOccurences && childrenOccurences[child.props.name]) || 0;
+            const occurences = childrenOccurences?.find(
+              c => c.name === child.props.name,
+            );
             return (
               <div key={index} className="step-child">
                 {child}
-                {occurences > 1 && child.props.firstOfAKind ? (
+                {occurences?.count > 1 && child.props.firstOfAKind ? (
                   <Button
                     type="button"
                     className="step-child-btn"
                     onClick={() => handleClick(child.props.name)}
                   >
-                    Show <span>{occurences}</span> populated fields
+                    {repeatChildrenVisible ? 'Hide' : 'Show'}&nbsp;
+                    <span>{occurences?.count}</span> populated fields
                   </Button>
                 ) : null}
               </div>
