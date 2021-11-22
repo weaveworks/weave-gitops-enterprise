@@ -35,6 +35,9 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ include "mccp.fullname" . }}-cluster-service
+          - secretRef:
+              name: git-provider-credentials
+              optional: true
           env:
             - name: WEAVE_GITOPS_FLUX_BIN_PATH
               value: /flux-cli/flux
@@ -42,12 +45,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: GIT_PROVIDER_TOKEN
-              valueFrom: 
-                secretKeyRef:
-                  name: git-provider-credentials
-                  key: GIT_PROVIDER_TOKEN
-                  optional: true
             - name: DB_URI
               value: {{ .Values.dbConfig.databaseURI }}
             - name: DB_TYPE

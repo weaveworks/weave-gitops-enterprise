@@ -33,6 +33,8 @@ import (
 
 var DOCKER_IO_USER string
 var DOCKER_IO_PASSWORD string
+var GITHUB_USER string
+var GITHUB_PASSWORD string
 var GIT_PROVIDER string
 var GITHUB_ORG string
 var GITHUB_TOKEN string
@@ -104,6 +106,7 @@ const ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
 const ASSERTION_30SECONDS_TIME_OUT time.Duration = 30 * time.Second
 const ASSERTION_1MINUTE_TIME_OUT time.Duration = 1 * time.Minute
 const ASSERTION_2MINUTE_TIME_OUT time.Duration = 2 * time.Minute
+const ASSERTION_3MINUTE_TIME_OUT time.Duration = 3 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 const ASSERTION_6MINUTE_TIME_OUT time.Duration = 6 * time.Minute
 
@@ -215,7 +218,7 @@ func InitializeWebdriver(wgeURL string) {
 			Expect(err).NotTo(HaveOccurred())
 		case "linux":
 			webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string][]string{"args": {"--disable-gpu", "--no-sandbox"}}}))
+				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox"}, "w3c": false}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
 
@@ -664,9 +667,13 @@ func (b RealGitopsTestRunner) GitAddCommitPush(repoAbsolutePath string, fileToAd
 	fmt.Println(string(session.Wait().Err.Contents()))
 }
 
-func GitUpdateCommitPush(repoAbsolutePath string) {
+func GitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m 'edit repo file' && git pull --rebase && git push origin HEAD", repoAbsolutePath))
+	if commitMessage == "" {
+		commitMessage = "edit repo file"
+	}
+
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m '%s' && git pull --rebase && git push origin HEAD", repoAbsolutePath, commitMessage))
 }
 
 func GitSetUpstream(repoAbsolutePath string, upstreamBranch string) {
@@ -962,10 +969,10 @@ func VerifyCoreControllers(namespace string) {
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "180s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+		Eventually(session, ASSERTION_3MINUTE_TIME_OUT).Should(gexec.Exit())
 	})
 }
 
@@ -979,11 +986,19 @@ func VerifyEnterpriseControllers(releaseName string, namespace string) {
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops enterprise controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "180s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+		Eventually(session, ASSERTION_3MINUTE_TIME_OUT).Should(gexec.Exit())
 	})
+}
+
+func verifyWegoAddCommand(appName string, namespace string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", namespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, ASSERTION_5MINUTE_TIME_OUT).Should(gexec.Exit())
+	Expect(waitForResource("GitRepositories", appName, namespace, ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
 }
 
 func InstallAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
