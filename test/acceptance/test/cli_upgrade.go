@@ -99,9 +99,10 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				prBranch := "wego-upgrade-enterprise"
 				profileVersion := "0.0.15"
-				By(fmt.Sprintf("And I run gitops upgrade command form directory %s", repoAbsolutePath), func() {
+				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := public_ip + ":" + NATS_NODEPORT
-					upgradeCommand := fmt.Sprintf("upgrade --profile-version %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=31490'", profileVersion, prBranch, natsURL)
+					repositoryURL := fmt.Sprintf(`https://github.com/%s/%s`, GITHUB_ORG, CLUSTER_REPOSITORY)
+					upgradeCommand := fmt.Sprintf("upgrade --profile-version %s --app-config-url %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=31490'", profileVersion, repositoryURL, prBranch, natsURL)
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, upgradeCommand))
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
@@ -122,16 +123,16 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should see cluster upgraded from 'wego core' to 'wego enterprise'", func() {
-					VerifyEnterpriseControllers("mccp-chart", GITOPS_DEFAULT_NAMESPACE)
+					VerifyEnterpriseControllers("weave-gitops-enterprise", GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
-					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service mccp-chart-nginx-ingress-controller -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
+					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service weave-gitops-enterprise-nginx-ingress-controller -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					if strings.Trim(serviceType, "\n") == "NodePort" {
 						capi_endpoint_url = "http://" + public_ip + ":" + UI_NODEPORT
 						test_ui_url = "http://" + public_ip + ":" + UI_NODEPORT
 					} else {
-						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s deployments.apps/mccp-chart-nginx-ingress-controller 8000:80", GITOPS_DEFAULT_NAMESPACE)
+						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s deployments.apps/weave-gitops-enterprise-nginx-ingress-controller 8000:80", GITOPS_DEFAULT_NAMESPACE)
 
 						cmd := exec.Command("sh", "-c", commandToRun)
 						session, _ := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)

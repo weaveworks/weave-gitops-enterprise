@@ -630,6 +630,7 @@ func (b RealGitopsTestRunner) DeleteRepo(repoName string) {
 }
 
 func (b RealGitopsTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateRepo bool) string {
+	log.Printf("Init and create repo: %s, %v\n", repoName, IsPrivateRepo)
 	repoAbsolutePath := path.Join("/tmp/", repoName)
 	privateRepo := ""
 	if IsPrivateRepo {
@@ -727,6 +728,7 @@ func (b RealGitopsTestRunner) GetRepoVisibility(org string, repo string) string 
 func (b RealGitopsTestRunner) MergePullRequest(repoAbsolutePath string, prBranch string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
+							git fetch
 							git checkout main &&
 							git pull --no-ff &&
                             git merge --no-ff --no-edit origin/%s &&
@@ -970,11 +972,11 @@ func VerifyCoreControllers(namespace string) {
 }
 
 func VerifyEnterpriseControllers(releaseName string, namespace string) {
-	Expect(waitForResource("deploy", releaseName+"-gitops-repo-broker", namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+"-event-writer", namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+"-cluster-service", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+"-mccp-gitops-repo-broker", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+"-mccp-event-writer", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+"-mccp-cluster-service", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller-default-backend", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller-default-backen", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-wkp-ui-server", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
