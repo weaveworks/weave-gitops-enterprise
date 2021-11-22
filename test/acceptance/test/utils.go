@@ -703,13 +703,6 @@ func (b RealGitopsTestRunner) PullBranch(repoAbsolutePath string, branch string)
 	Eventually(session).Should(gexec.Exit())
 }
 
-func pullGitRepo(repoAbsolutePath string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git pull", repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-}
-
 func (b RealGitopsTestRunner) ListPullRequest(repoAbsolutePath string) []string {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&

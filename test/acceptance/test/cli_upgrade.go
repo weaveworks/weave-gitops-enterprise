@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os/exec"
 	"path"
@@ -13,39 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
-
-func configureConfigMapvalues(repoAbsolutePath string, uiNodePort string, natsNodeport string, natsURL string, repositoryURL string) {
-	pullGitRepo(repoAbsolutePath)
-
-	configMapYaml := path.Join(repoAbsolutePath, "upgrade", "weave-gitops-enterprise", "artifacts", "mccp-chart", "helm-chart", "ConfigMap.yaml")
-
-	input, err := ioutil.ReadFile(configMapYaml)
-	Expect(err).ShouldNot(HaveOccurred())
-
-	lines := strings.Split(string(input), "\n")
-
-	for i, line := range lines {
-		if uiNodePort != "" && strings.Contains(line, "nginx-ingress-controller") {
-			lines = append(lines[:i+2], lines[i+1:]...)
-			lines[i+2] = "        type: NodePort"
-			lines[i+5] = "            " + uiNodePort
-		}
-		if natsNodeport != "" && strings.Contains(line, "nodePort: 31490") {
-			lines[i] = "          nodePort: " + natsNodeport
-		}
-		if natsURL != "" && strings.Contains(line, "natsURL: ") {
-			lines[i] = "      natsURL: " + natsURL
-		}
-		if repositoryURL != "" && strings.Contains(line, "repositoryURL: ") {
-			lines[i] = "        repositoryURL: " + repositoryURL
-		}
-	}
-
-	output := strings.Join(lines, "\n")
-	err = ioutil.WriteFile(configMapYaml, []byte(output), 0644)
-	Expect(err).ShouldNot(HaveOccurred())
-
-}
 
 func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops upgrade Tests", func() {
@@ -117,12 +83,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
-				// FIXME: to remove...
-				By("And I fix up the missing namespaces on some roles and bindings", func() {
-					err := runCommandPassThrough([]string{}, "../../utils/scripts/fix-up-gitops-namespaces.sh", repoAbsolutePath)
-					Expect(err).ShouldNot(HaveOccurred())
-				})
-
 				By("And I install the entitlement for cluster upgrade", func() {
 					Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
 				})
@@ -133,10 +93,15 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(err).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
 				})
 
+				By("And I should update/modify the default upgrade manifest ", func() {
+					public_ip = ClusterWorkloadNonePublicIP("KIND")
+				})
+
 				prBranch := "wego-upgrade-enterprise"
 				profileVersion := "0.0.15"
-				upgradeCommand := fmt.Sprintf("upgrade --profile-version %s --branch %s", profileVersion, prBranch)
-				By(fmt.Sprintf("And I run gitops upgrade command ' %s ' form firectory %s", upgradeCommand, repoAbsolutePath), func() {
+				By(fmt.Sprintf("And I run gitops upgrade command form directory %s", repoAbsolutePath), func() {
+					natsURL := public_ip + ":" + NATS_NODEPORT
+					upgradeCommand := fmt.Sprintf("upgrade --profile-version %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=31490'", profileVersion, prBranch, natsURL)
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, upgradeCommand))
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
@@ -152,39 +117,12 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Eventually(match[1]).ShouldNot(BeNil(), "Failed to Create pull request")
 				})
 
-				By("And I should update/modify the default upgrade manifest ", func() {
-					public_ip = ClusterWorkloadNonePublicIP("KIND")
-					natsURL := public_ip + ":" + NATS_NODEPORT
-					repositoryURL := fmt.Sprintf(`https://github.com/%s/%s`, GITHUB_ORG, CLUSTER_REPOSITORY)
-					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
-					configureConfigMapvalues(repoAbsolutePath, UI_NODEPORT, NATS_NODEPORT, natsURL, repositoryURL)
-					GitSetUpstream(repoAbsolutePath, prBranch)
-					GitUpdateCommitPush(repoAbsolutePath, "")
-				})
-
 				By("Then I should merge the pull request to start weave gitops enterprise upgrade", func() {
 					gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
 				})
 
 				By("And I should see cluster upgraded from 'wego core' to 'wego enterprise'", func() {
 					VerifyEnterpriseControllers("mccp-chart", GITOPS_DEFAULT_NAMESPACE)
-				})
-
-				By("And I can change the config map values for the upgrade profile", func() {
-					repositoryURL := fmt.Sprintf(`https://github.com/%s/%s`, GITHUB_ORG, CLUSTER_REPOSITORY)
-					configureConfigMapvalues(repoAbsolutePath, "", "", "", repositoryURL)
-					GitUpdateCommitPush(repoAbsolutePath, "")
-				})
-
-				By("Then I restart the cluster service pod for capi config to take effect", func() {
-					configmapValuesUpdated := func() bool {
-						data, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get configmap -n %s weave-gitops-enterprise-mccp-chart-defaultvalues -o jsonpath="{.data}"`, GITOPS_DEFAULT_NAMESPACE))
-						re := regexp.MustCompile(fmt.Sprintf(`repositoryURL:\s*(?P<url>https:.*%s)`, CLUSTER_REPOSITORY))
-						return len(re.FindSubmatch([]byte(data))) > 0
-					}
-
-					Eventually(configmapValuesUpdated, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), "ConfigMap values failed to reconcile")
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, "mccp-chart-cluster-service", GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
