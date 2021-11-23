@@ -64,7 +64,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string, ale
 }
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
-	var _ = Describe("Gitops upgrade Tests", func() {
+	var _ = Describe("Gitops application UI Tests", func() {
 
 		GITOPS_BIN_PATH := GetGitopsBinPath()
 		var repoAbsolutePath string
