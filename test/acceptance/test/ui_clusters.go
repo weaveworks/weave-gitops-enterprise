@@ -606,7 +606,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			deleteClusterEntry(webDriver, []string{clusterName})
 		})
 
-		It("@wkp Verify team workspaces variations", func() {
+		XIt("@wkp Verify team workspaces variations", func() {
 			if getEnv("CONNECT_KIND_WKP_LEAF_TEST", "") == "" {
 				Skip("set CONNECT_KIND_WKP_LEAF_TEST env var to run this test")
 			}
@@ -651,7 +651,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			connectACluster(webDriver, gitopsTestRunner, leaves["eks"])
 		})
 
-		It("@wkp Verify user can connect a kind cluster with cluster components installed", func() {
+		XIt("@wkp Verify user can connect a kind cluster with cluster components installed", func() {
 			connectACluster(webDriver, gitopsTestRunner, leaves["kind-wkp"])
 		})
 	})
