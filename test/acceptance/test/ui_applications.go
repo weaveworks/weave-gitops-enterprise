@@ -5,14 +5,63 @@ import (
 	"os/exec"
 	"path"
 	"strings"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
+
+func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string, alert_success_msg string) {
+	if gitProvider == "github" {
+		authenticate := pages.AuthenticateWithGithub(webDriver)
+
+		if pages.ElementExist(authenticate.AuthenticateGithub) {
+			Expect(authenticate.AuthenticateGithub.Click()).To(Succeed())
+			Eventually(authenticate.AccessCode).Should(BeVisible())
+			accessCode, _ := authenticate.AccessCode.Text()
+			Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
+			accessCode = strings.Replace(accessCode, "-", "", 1)
+
+			// Move to device activation window
+			TakeScreenShot("application_authentication")
+			Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to github authentication window")
+			TakeScreenShot("github_authentication")
+
+			activate := pages.ActivateDeviceGithub(webDriver)
+			Eventually(activate.Username).Should(BeVisible())
+			Expect(activate.Username.SendKeys(GITHUB_USER)).To(Succeed())
+			Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
+			Expect(activate.Signin.Click()).To(Succeed())
+
+			Eventually(activate.AuthCode).Should(BeVisible())
+			// Generate 6 digit authentication OTP for MFA
+			authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
+			Expect(activate.AuthCode.SendKeys(authCode)).To(Succeed())
+
+			Eventually(activate.Continue).Should(BeVisible())
+			Expect(activate.UserCode.At(0).SendKeys(accessCode)).To(Succeed())
+			Expect(activate.Continue.Click()).To(Succeed())
+
+			Eventually(activate.AuthroizeWeaveworks).Should(BeEnabled())
+			Expect(activate.AuthroizeWeaveworks.Click()).To(Succeed())
+
+			if pages.ElementExist(activate.ConfirmPassword) {
+				Eventually(activate.ConfirmPassword).Should(BeVisible())
+				Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
+			}
+
+			Eventually(activate.ConnectedMessage).Should(BeVisible())
+
+			// Device is connected, now move back to application window
+			Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
+			pages.WaitForAuthenticationAlert(webDriver, alert_success_msg)
+		}
+	}
+
+}
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops upgrade Tests", func() {
@@ -66,7 +115,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("@application Verify application's status and history can be monitored.", func() {
-
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
 					testFile := createTestFile("README.md", "# gitops-capi-template")
@@ -87,13 +135,43 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(string(session.Err.Contents())).Should(BeEmpty())
 				})
 
-				By("Then I should see gitops add command linked the repo to the cluster", func() {
-					verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
-				})
+				pages.NavigateToPage(webDriver, "Applications")
+				applicationsPage := pages.GetApplicationPage(webDriver)
+				// app add from UI is not working due to wego core older release
+				// addApp := pages.GetAddApplicationForm(webDriver)
+
+				// By("And wait for Application page to be rendered", func() {
+				// 	applicationsPage.WaitForPageToLoad(webDriver, 0)
+				// 	Eventually(applicationsPage.ApplicationHeader).Should(BeVisible())
+				// 	Eventually(applicationsPage.AddApplication).Should(BeVisible())
+				// })
+
+				// By(fmt.Sprintf("Then I add application '%s' to weave gitops cluster", appName), func() {
+				// 	Expect(applicationsPage.AddApplication.Click()).To(Succeed())
+
+				// 	Eventually(addApp.Name).Should(BeVisible())
+				// 	Expect(addApp.Name.SendKeys(appName)).To(Succeed())
+				// 	Expect(addApp.SourceRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
+				// 	Expect(addApp.ConfigRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
+				// 	Expect(addApp.Path.SendKeys(fmt.Sprintf(`./%s`, appPath))).To(Succeed())
+				// 	Expect(addApp.AutoMerge.Check()).To(Succeed())
+
+				// 	Expect(addApp.Submit.Click()).To(Succeed())
+
+				// })
+
+				// By(`And authenticate with Github`, func() {
+				// 	AuthenticateWithGitProvider(webDriver, "github", "Application added successfully!")
+				// 	Expect(addApp.ViewApplication.Click()).To(Succeed())
+				// })
 
 				By("And I add the kustomization file for application deployment", func() {
 					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
 					GitUpdateCommitPush(repoAbsolutePath, kustomizationCommitMsg)
+				})
+
+				By("Then I should see gitops add command linked the repo to the cluster", func() {
+					verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("And I should see workload is deployed to the cluster", func() {
@@ -105,10 +183,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(session, ASSERTION_5MINUTE_TIME_OUT).Should(gexec.Exit())
 				})
 
-				pages.NavigateToPage(webDriver, "Applications")
-				applicationsPage := pages.GetApplicationPage(webDriver)
-
 				By("And wait for Application page to be rendered", func() {
+					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 					applicationsPage.WaitForPageToLoad(webDriver, 1)
 					Eventually(applicationsPage.ApplicationHeader).Should(BeVisible())
 					Eventually(applicationsPage.AddApplication).Should(BeVisible())
@@ -145,74 +221,21 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(sourceCondition.Message).Should(MatchText(`Applied revision: main/[\w\d].+`))
 				})
 
-				verify2FA := false
-				By(`And authenticate with Github`, func() {
-					authenticate := pages.AuthenticateWithGithub(webDriver)
-
-					if count, _ := authenticate.AuthenticateGithub.Count(); count == 1 {
-						Expect(authenticate.AuthenticateGithub.Click()).To(Succeed())
-						Eventually(authenticate.AccessCode).Should(BeVisible())
-						accessCode, _ := authenticate.AccessCode.Text()
-						Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
-						accessCode = strings.Replace(accessCode, "-", "", 1)
-
-						// Move to device activation window
-						TakeScreenShot("application_authentication")
-						Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to github authentication window")
-						TakeScreenShot("github_authentication")
-
-						activate := pages.ActivateDevice(webDriver)
-						Eventually(activate.Username).Should(BeVisible())
-						Expect(activate.Username.SendKeys(GITHUB_USER)).To(Succeed())
-						Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
-						Expect(activate.Signin.Click()).To(Succeed())
-
-						// Poll to allow verify 2FA screen appears. It should not appear when 2FA is enabled and the device is trusted
-						for range [10]int{} {
-							if count, _ := activate.Verify.Count(); count == 1 {
-								verify2FA = true
-								break
-							}
-							time.Sleep(time.Second)
-						}
-
-						// We can not do much and can not verify 2FA for CI bot
-						if !verify2FA {
-							Eventually(activate.Continue).Should(BeVisible())
-							Expect(activate.UserCode.At(0).SendKeys(accessCode)).To(Succeed())
-							Expect(activate.Continue.Click()).To(Succeed())
-
-							Eventually(activate.AuthroizeWeaveworks).Should(BeEnabled())
-							Expect(activate.AuthroizeWeaveworks.Click()).To(Succeed())
-
-							if count, _ := activate.ConfirmPassword.Count(); count == 1 {
-								Eventually(activate.ConfirmPassword).Should(BeVisible())
-								Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
-							}
-
-							Eventually(activate.ConnectedMessage).Should(BeVisible())
-
-							// Device is connected, now move back to application window
-							Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
-							pages.WaitForAuthenticationAlert(webDriver)
-							Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
-						}
-					}
+				By(`Then authenticate with Github`, func() {
+					AuthenticateWithGitProvider(webDriver, "github", "Authentication Successful")
+					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				})
 
-				By(fmt.Sprintf(`And verify %s commit history`, appName), func() {
-					// 2FA for CI bot is not possible and therefore skipping application verifying commit history
-					if !verify2FA {
-						commits := pages.GetCommits(webDriver)
-						commitFound := false
-						for j := 0; j < len(commits); j++ {
-							if msg, _ := commits[j].Message.Text(); msg == kustomizationCommitMsg {
-								commitFound = true
-								break
-							}
+				By(fmt.Sprintf(`And verify %s application commit history`, appName), func() {
+					commits := pages.GetCommits(webDriver)
+					commitFound := false
+					for j := 0; j < len(commits); j++ {
+						if msg, _ := commits[j].Message.Text(); msg == kustomizationCommitMsg {
+							commitFound = true
+							break
 						}
-						Expect(commitFound).Should(BeTrue(), fmt.Sprintf(`'%s' commit message was not found in '%s' application's commit history`, kustomizationCommitMsg, appName))
 					}
+					Expect(commitFound).Should(BeTrue(), fmt.Sprintf(`'%s' commit message was not found in '%s' application's commit history`, kustomizationCommitMsg, appName))
 				})
 			})
 		})
