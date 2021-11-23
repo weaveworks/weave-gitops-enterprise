@@ -102,7 +102,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := public_ip + ":" + NATS_NODEPORT
 					repositoryURL := fmt.Sprintf(`https://github.com/%s/%s`, GITHUB_ORG, CLUSTER_REPOSITORY)
-					upgradeCommand := fmt.Sprintf("upgrade --profile-version %s --app-config-url %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=31490'", profileVersion, repositoryURL, prBranch, natsURL)
+					upgradeCommand := fmt.Sprintf("upgrade --profile-version %s --app-config-url %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s'", profileVersion, repositoryURL, prBranch, natsURL, NATS_NODEPORT)
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, upgradeCommand))
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())

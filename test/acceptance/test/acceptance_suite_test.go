@@ -24,7 +24,7 @@ func GomegaFail(message string, callerSkip ...int) {
 
 	//Show pods
 	_ = showItems("")
-	_ = dumpClusterInfo("wego-system,wkp-agent", randID)
+	_ = dumpClusterInfo("wego-system", randID)
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
