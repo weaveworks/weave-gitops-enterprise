@@ -4,7 +4,7 @@ kind: Service
 metadata:
   labels:
     control-plane: controller-manager
-  name: cluster-bootstrap-controller-controller-manager-metrics-service
+  name: cluster-bootstrap-controller-metrics-service
   namespace: {{ .Release.Namespace | quote }}
 spec:
   ports:
