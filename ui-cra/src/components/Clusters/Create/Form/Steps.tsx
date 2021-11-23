@@ -26,8 +26,6 @@ const localMuiTheme = createTheme({
         '&:focus': {
           border: 'none',
         },
-        // disabled: 'true',
-        // '&:disabled': { backgroundColor: 'red' },
       },
     },
     MuiInputLabel: {
@@ -123,7 +121,6 @@ const FormSteps = {
     }, [properties]);
 
     useEffect(() => {
-      console.log('i am rerendering');
       setProperties(props.properties);
       setChildrenOccurences(getChildrenOccurences());
     }, [props.properties, getChildrenOccurences]);

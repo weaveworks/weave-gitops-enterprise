@@ -4,7 +4,6 @@ import { ObjectFieldTemplateProps } from '@rjsf/core';
 import React, { Dispatch, ReactNode } from 'react';
 
 export function ObjectFieldTemplate(props: ObjectFieldTemplateProps) {
-  console.log(props);
   return (
     <>
       {doGrouping({
