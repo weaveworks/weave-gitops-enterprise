@@ -229,7 +229,7 @@ jobs:
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
-      GITOPS_BIN_PATH: ${{ github.workspace }}/cmd/gitops/gitops-linux-x86_64
+      GITOPS_BIN_PATH: /tmp/gitops
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
       WGE_ACCEPTANCE: true
@@ -277,14 +277,10 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "test-user"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Download gitops binary from s3
-      run: |
-        mkdir -p cmd/gitops/
-        wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-ubuntu-latest
-        mv gitops-ubuntu-latest $GITOPS_BIN_PATH
-    - name: Change bin permissions
-      run: |
-        sudo chmod +x ${{ env.GITOPS_BIN_PATH }}
+    - name: Get a gitops-binary
+      uses: ./.github/actions/gitops-binary
+      with:
+        path: ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
@@ -387,7 +383,6 @@ jobs:
     - name: Get a gitops-binary
       uses: ./.github/actions/gitops-binary
       with:
-        os: ${{ matrix.os }}
         path: ${{ env.GITOPS_BIN_PATH }}
     - name: Setup selenium server
       run: |
