@@ -37,6 +37,10 @@ jobs:
       CONNECT_KIND_WKP_LEAF_TEST: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
     steps:
+    - name: "Setup dynamic env vars"
+      run: |
+        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+        echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
     - id: go-cache-paths
       run: |
         echo "::set-output name=go-build::$(go env GOCACHE)"
