@@ -112,7 +112,10 @@ function reset {
   kubectl delete deployment postgres
   kubectl delete service postgres
   # Delete namespaces and their respective resources
-  kubectl delete namespaces wego-system prom wkp-agent
+  kubectl delete namespaces prom wkp-agent
+  # Delete wego system from the management cluster
+  $GITOPS_BIN_PATH flux uninstall --silent
+  $GITOPS_BIN_PATH flux uninstall --namespace wego-system --silent
   # Delete any orphan capitemplates
   kubectl delete CAPITemplate --all
   
