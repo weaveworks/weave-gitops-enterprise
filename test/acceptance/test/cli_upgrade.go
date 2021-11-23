@@ -123,7 +123,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should see cluster upgraded from 'wego core' to 'wego enterprise'", func() {
-					VerifyEnterpriseControllers("weave-gitops-enterprise", "-mccp-", GITOPS_DEFAULT_NAMESPACE)
+					VerifyEnterpriseControllers("weave-gitops-enterprise", "mccp-", GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
