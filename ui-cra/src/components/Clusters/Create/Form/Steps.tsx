@@ -60,14 +60,13 @@ interface Property {
 const FormSteps = {
   Box: (props: { properties: Property[] }) => {
     const [properties, setProperties] = useState<Property[]>([]);
-    const [childrenOccurences, setChildrenOccurences] =
-      useState<
-        {
-          name: string;
-          groupVisible: boolean;
-          count: number;
-        }[]
-      >();
+    const [childrenOccurences, setChildrenOccurences] = useState<
+      {
+        name: string;
+        groupVisible: boolean;
+        count: number;
+      }[]
+    >([]);
 
     const switchChildVisibility = useCallback(
       (childName: string) => {
@@ -136,6 +135,7 @@ const FormSteps = {
               clicked={p.clicked}
               setActiveStep={p.setActiveStep}
               childrenOccurences={childrenOccurences}
+              setChildrenOccurences={setChildrenOccurences}
               switchChildVisibility={switchChildVisibility}
             />
           );

@@ -104,7 +104,20 @@ export const FormStep: FC<{
   active?: boolean;
   clicked?: boolean;
   setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
-  childrenOccurences?: { [key: string]: any }[];
+  childrenOccurences?: {
+    name: string;
+    groupVisible: boolean;
+    count: number;
+  }[];
+  setChildrenOccurences?: Dispatch<
+    React.SetStateAction<
+      {
+        name: string;
+        groupVisible: boolean;
+        count: number;
+      }[]
+    >
+  >;
   switchChildVisibility?: (childName: string) => void;
 }> = ({
   className,
@@ -115,10 +128,10 @@ export const FormStep: FC<{
   setActiveStep,
   childrenOccurences,
   switchChildVisibility,
+  setChildrenOccurences,
   children,
 }) => {
   const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
-  const [repeatChildrenVisible, setRepeatChildrenVisible] = useState<boolean>();
   const onScreen = useOnScreen(stepRef);
 
   useEffect(() => {
@@ -140,13 +153,18 @@ export const FormStep: FC<{
 
   const handleClick = useCallback(
     (childName: string) => {
-      setRepeatChildrenVisible(!repeatChildrenVisible);
+      const newChildrenOccurences =
+        childrenOccurences?.map(child =>
+          child.name === childName
+            ? Object.assign({}, child, { groupVisible: true })
+            : child,
+        ) || [];
+
+      setChildrenOccurences && setChildrenOccurences(newChildrenOccurences);
       switchChildVisibility && switchChildVisibility(childName);
     },
-    [repeatChildrenVisible, switchChildVisibility, setRepeatChildrenVisible],
+    [switchChildVisibility, childrenOccurences, setChildrenOccurences],
   );
-
-  useEffect(() => setRepeatChildrenVisible(false), [step]);
 
   return (
     <Section ref={stepRef} className={className}>
@@ -154,9 +172,13 @@ export const FormStep: FC<{
       <Content>
         {step?.children.map((child, index) => {
           if (child.props.visible) {
-            const occurences = childrenOccurences?.find(
+            const childOccurences = childrenOccurences?.find(
               c => c.name === child.props.name,
-            );
+            ) as {
+              name: string;
+              groupVisible: boolean;
+              count: number;
+            };
             return (
               <div
                 key={index}
@@ -168,14 +190,14 @@ export const FormStep: FC<{
                 )}
               >
                 {child}
-                {occurences?.count > 1 && child.props.firstOfAKind ? (
+                {childOccurences?.count > 1 && child.props.firstOfAKind ? (
                   <Button
                     type="button"
                     className="step-child-btn"
                     onClick={() => handleClick(child.props.name)}
                   >
-                    {repeatChildrenVisible ? 'Hide' : 'Show'}&nbsp;
-                    <span>{occurences?.count}</span> populated fields
+                    {childOccurences?.groupVisible ? 'Hide' : 'Show'}&nbsp;
+                    <span>{childOccurences.count}</span> populated fields
                   </Button>
                 ) : null}
               </div>

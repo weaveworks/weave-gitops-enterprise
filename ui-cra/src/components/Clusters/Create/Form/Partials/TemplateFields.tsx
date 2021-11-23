@@ -133,8 +133,6 @@ const TemplateFields: FC<{
 
   const uiSchema = useMemo(() => {
     return {
-      // 'ui:widget': 'hidden',
-      'ui:autofocus': true,
       'ui:groups': sections,
       'ui:template': (props: ObjectFieldTemplateProps) => (
         <Grouped.ObjectFieldTemplate {...props} />
