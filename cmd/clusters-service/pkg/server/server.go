@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -27,6 +28,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -66,6 +68,8 @@ type server struct {
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
 }
+
+var DefaultRepositoryPath string = filepath.Join(wegogit.WegoRoot, wegogit.WegoAppDir, "capi")
 
 func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
 	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns, profileHelmRepositoryName: profileHelmRepositoryName, helmRepositoryCacheDir: helmRepositoryCacheDir}
@@ -700,7 +704,11 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 }
 
 func getClusterPathInRepo(clusterName string) string {
-	return fmt.Sprintf("management/%s.yaml", clusterName)
+	repositoryPath := os.Getenv("CAPI_REPOSITORY_PATH")
+	if repositoryPath == "" {
+		repositoryPath = DefaultRepositoryPath
+	}
+	return filepath.Join(repositoryPath, fmt.Sprintf("%s.yaml", clusterName))
 }
 
 func isMissingVariableError(err error) (string, bool) {
