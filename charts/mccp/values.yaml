@@ -61,7 +61,7 @@ gitopsRepoBroker:
 
 agentTemplate:
   natsScheme: nats
-  natsURL: nats-client.wkp-mccp:4222
+  natsURL: weave-gitops-enterprise-nats-client.wego-system:4222
 
 nats:
   auth:
