@@ -170,6 +170,7 @@ jobs:
       uses: ./.github/actions/gitops-binary
       with:
         os: ${{ matrix.os }}
+        os_name: ${{ matrix.os_name }}
         path: ${{ env.GITOPS_BIN_PATH }}
     - name: Download pctl binary from GH
       run: |

@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/onsi/ginkgo"
@@ -79,6 +80,7 @@ var _ = BeforeSuite(func() {
 	GITHUB_ORG = os.Getenv("GITHUB_ORG")
 	GITHUB_TOKEN = os.Getenv("GITHUB_TOKEN")
 	CLUSTER_REPOSITORY = os.Getenv("CLUSTER_REPOSITORY")
+	GIT_REPOSITORY_URL = "https://" + path.Join("github.com", GITHUB_ORG, CLUSTER_REPOSITORY)
 
 	DOCKER_IO_USER = os.Getenv("DOCKER_IO_USER")
 	DOCKER_IO_PASSWORD = os.Getenv("DOCKER_IO_PASSWORD")
