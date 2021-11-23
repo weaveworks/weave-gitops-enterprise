@@ -9,6 +9,10 @@ inputs:
     description: "`macOS-latest` or `ubuntu-latest`"
     required: false
     default: "ubuntu-latest"
+  os_name:
+    description: "`linux` or `darwin`"
+    required: false
+    default: "linux"
 runs:
   using: "composite"
   steps:
@@ -19,7 +23,7 @@ runs:
         # wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ inputs.os }}
         # mv gitops-${{ inputs.os }} ${{ inputs.path }}
 
-        curl -LO https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0-rc2/gitops-linux-x86_64.tar.gz
+        curl -LO https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0-rc2/gitops-${{ inputs.os_name }}-x86_64.tar.gz
         tar -xf gitops-linux-x86_64.tar.gz
         mv gitops ${{ inputs.path }}
 
