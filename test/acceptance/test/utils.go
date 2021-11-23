@@ -974,8 +974,8 @@ func VerifyCoreControllers(namespace string) {
 func VerifyEnterpriseControllers(releaseName string, mccpPrefix, namespace string) {
 	// SOMETIMES (?) (with helm install ./local-path), the mccpPrefix is skipped
 	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"gitops-repo-broker", namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+mccpPrefix+"event-writer", namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+mccpPrefix+"cluster-service", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"event-writer", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"cluster-service", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	// FIXME
 	// const maxDeploymentLength = 63
