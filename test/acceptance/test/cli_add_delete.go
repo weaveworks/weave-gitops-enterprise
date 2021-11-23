@@ -417,7 +417,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
 			appName := "management"
-			appPath := "./management"
+			appPath := "./.weave-gitops/apps/capi"
 			capdClusterNames := []string{"cli-end-to-end-capd-cluster-1", "cli-end-to-end-capd-cluster-2"}
 
 			JustBeforeEach(func() {
@@ -469,7 +469,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
-				addCommand := fmt.Sprintf("add app . --path=./management  --name=%s  --auto-merge=true", appName)
+				addCommand := fmt.Sprintf("add app . --path=%s  --name=%s  --auto-merge=true", appPath, appName)
 				By(fmt.Sprintf("And I run gitops add app command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
 					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -600,7 +600,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
-					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/.weave-gitops/apps/capi/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 

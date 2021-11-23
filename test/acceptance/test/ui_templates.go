@@ -898,7 +898,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
 			appName := "management"
-			appPath := "./management"
+			appPath := "./.weave-gitops/apps/capi"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 
 			JustBeforeEach(func() {
@@ -1108,7 +1108,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, deletePRbranch)
-					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/.weave-gitops/apps/capi/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 
