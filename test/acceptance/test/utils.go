@@ -972,11 +972,12 @@ func VerifyCoreControllers(namespace string) {
 }
 
 func VerifyEnterpriseControllers(releaseName string, namespace string) {
+	const maxDeploymentLength = 63
 	Expect(waitForResource("deploy", releaseName+"-mccp-gitops-repo-broker", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-mccp-event-writer", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-mccp-cluster-service", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller-default-backen", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", (releaseName + "-nginx-ingress-controller-default-backend")[:maxDeploymentLength], namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-wkp-ui-server", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, ASSERTION_2MINUTE_TIME_OUT))
 
