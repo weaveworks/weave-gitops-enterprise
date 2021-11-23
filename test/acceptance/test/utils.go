@@ -433,7 +433,7 @@ func (b RealGitopsTestRunner) ResetDatabase() error {
 }
 
 func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
-	VerifyEnterpriseControllers("my-mccp", GITOPS_DEFAULT_NAMESPACE)
+	VerifyEnterpriseControllers("my-mccp", "", GITOPS_DEFAULT_NAMESPACE)
 }
 
 func (b RealGitopsTestRunner) KubectlApply(env []string, tokenURL string) error {
@@ -971,10 +971,11 @@ func VerifyCoreControllers(namespace string) {
 	})
 }
 
-func VerifyEnterpriseControllers(releaseName string, namespace string) {
-	Expect(waitForResource("deploy", releaseName+"-mccp-gitops-repo-broker", namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+"-mccp-event-writer", namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+"-mccp-cluster-service", namespace, ASSERTION_2MINUTE_TIME_OUT))
+func VerifyEnterpriseControllers(releaseName string, mccpPrefix, namespace string) {
+	// SOMETIMES (?) (with helm install ./local-path), the mccpPrefix is skipped
+	Expect(waitForResource("deploy", releaseName+mccpPrefix+"gitops-repo-broker", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+mccpPrefix+"event-writer", namespace, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+mccpPrefix+"cluster-service", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller", namespace, ASSERTION_2MINUTE_TIME_OUT))
 	// FIXME
 	// const maxDeploymentLength = 63
