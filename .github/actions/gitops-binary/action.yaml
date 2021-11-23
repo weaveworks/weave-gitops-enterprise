@@ -1,0 +1,24 @@
+name: 'Get gitops binary'
+description: 'Get or build the gitops binary'
+inputs:
+  path:
+    description: 'where shall it go?'
+    required: true
+    default: /tmp/gitops
+  os:
+    description: "`macOS-latest` or `ubuntu-latest`"
+    required: false
+    default: "ubuntu-latest"
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      name: Download gitops binary from s3
+      run: |
+        # Not working right now
+        # wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ inputs.os }}
+        # mv gitops-${{ inputs.os }} ${{ inputs.path }}
+
+        curl -LO https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0-rc2/gitops-linux-x86_64.tar.gz
+        tar -xf gitops-linux-x86_64.tar.gz
+        mv gitops ${{ inputs.path }}
