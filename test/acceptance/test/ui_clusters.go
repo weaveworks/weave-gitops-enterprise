@@ -589,6 +589,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				winCount, _ := webDriver.WindowCount()
 				Expect(alert.ClusterName.Click()).To(Succeed())
 				Expect(webDriver).To(HaveWindowCount(winCount + 1))
+				Expect(webDriver.CloseWindow()).To(Succeed())
 				Eventually(clustersPage.NoFiringAlertMessage, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 			})
 		})
