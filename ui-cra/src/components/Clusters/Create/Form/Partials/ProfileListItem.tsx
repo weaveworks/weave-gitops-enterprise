@@ -141,6 +141,7 @@ const ProfilesListItem: FC<{
             <Dropdown
               value={version}
               items={profileVersions(profile)}
+              disabled={profile.required}
               onChange={(event, value) => handleSelectVersion(event, value)}
             />
           </div>
@@ -174,6 +175,7 @@ const ProfilesListItem: FC<{
             id="edit-yaml"
             onClick={handleUpdateProfiles}
             text="Save changes"
+            disabled={profile.required}
           />
         </DialogActions>
       </Dialog>
