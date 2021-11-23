@@ -110,8 +110,7 @@ export const FormStep: FC<{
   children,
 }) => {
   const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
-  const [repeatChildrenVisible, setRepeatChildrenVisible] =
-    useState<boolean>(false);
+  const [repeatChildrenVisible, setRepeatChildrenVisible] = useState<boolean>();
   const onScreen = useOnScreen(stepRef);
 
   useEffect(() => {
@@ -138,6 +137,8 @@ export const FormStep: FC<{
     },
     [repeatChildrenVisible, switchChildVisibility, setRepeatChildrenVisible],
   );
+
+  useEffect(() => setRepeatChildrenVisible(false), [step]);
 
   return (
     <Section ref={stepRef} className={className}>
