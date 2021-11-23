@@ -645,8 +645,9 @@ func (b RealGitopsTestRunner) InitAndCreateEmptyRepo(repoName string, IsPrivateR
                             hub create %s %s`, repoAbsolutePath, repoAbsolutePath, path.Join(GITHUB_ORG, repoName), privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+	Eventually(session).Should(gexec.Exit(), "err %v, out, %v", string(session.Err.Contents()), string(session.Out.Contents()))
 
+	log.Printf("Waiting for repo to be created %v/%v", GITHUB_ORG, repoName)
 	Expect(WaitUntil(os.Stdout, POLL_INTERVAL_5SECONDS, ASSERTION_1MINUTE_TIME_OUT, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, repoName)
 		command := exec.Command("sh", "-c", cmd)

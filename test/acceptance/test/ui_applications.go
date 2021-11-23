@@ -11,6 +11,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
@@ -19,6 +20,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string, ale
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
 		if pages.ElementExist(authenticate.AuthenticateGithub) {
+			log.Info("Found, authing...")
 			Expect(authenticate.AuthenticateGithub.Click()).To(Succeed())
 			Eventually(authenticate.AccessCode).Should(BeVisible())
 			accessCode, _ := authenticate.AccessCode.Text()
@@ -64,7 +66,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string, ale
 }
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
-	var _ = Describe("Gitops upgrade Tests", func() {
+	var _ = Describe("Gitops application UI Tests", func() {
 
 		GITOPS_BIN_PATH := GetGitopsBinPath()
 		var repoAbsolutePath string

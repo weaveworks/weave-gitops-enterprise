@@ -13,13 +13,13 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -89,7 +89,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 }
 
 func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
-	appFactory := &apputilsfakes.FakeServerAppFactory{}
+	appFactory := &servicesfakes.FakeFactory{}
 	kubeClient := &kubefakes.FakeKube{}
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
@@ -103,7 +103,7 @@ func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 	}
 	fetcher := &applicationv2fakes.FakeFetcher{}
 	return &wego_server.ApplicationsConfig{
-		AppFactory: appFactory,
+		Factory:    appFactory,
 		KubeClient: c,
 		Logger:     logr.Discard(),
 		JwtClient:  jwtClient,

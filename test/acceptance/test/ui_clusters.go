@@ -552,7 +552,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			})
 		})
 
-		It("Verify clicking on alert name in alerts widget will take to the cluster page", func() {
+		FIt("Verify clicking on alert name in alerts widget will take to the cluster page", func() {
 			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
@@ -583,7 +583,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			By("Then alerts appear in the firing alerts widget with hyper link cluster name ", func() {
-
 				alert := pages.FindAlertInFiringAlertsWidget(clustersPage, alert)
 				Eventually(alert.ClusterName).Should(HaveText(clusterName))
 				//
