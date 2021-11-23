@@ -430,7 +430,7 @@ func (b RealGitopsTestRunner) TimeTravelToAlertsResolved() error {
 }
 
 func (b RealGitopsTestRunner) ResetDatabase() error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/mccp-setup-helpers.sh", "reset")
+	return runCommandPassThrough([]string{}, "../../utils/scripts/wego-enterprise.sh", "reset_mccp")
 }
 
 func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
