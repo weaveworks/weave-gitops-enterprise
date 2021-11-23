@@ -2,9 +2,9 @@
 
 args=("$@")
 
-if [ -z ${args[0]} ] || ([ ${args[0]} != 'setup' ] && [ ${args[0]} != 'reset' ])
+if [ -z ${args[0]} ] || ([ ${args[0]} != 'setup' ] && [ ${args[0]} != 'reset' ] && [ ${args[0]} != 'reset_mccp' ])
 then 
-    echo "Invalid option, valid values => [ setup, reset ]"
+    echo "Invalid option, valid values => [ setup, reset, reset_mccp ]"
     exit 1
 fi
 
@@ -85,6 +85,7 @@ function setup {
       --set "nginx-ingress-controller.service.type=NodePort" \
       --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
+      --set "config.capi.repositoryPath=./management" \
       --set "config.capi.baseBranch=main" \
       --set "dbConfig.databaseType=postgres" \
       --set "postgresConfig.databaseName=postgres" \
@@ -97,6 +98,7 @@ function setup {
       --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
       --set "nginx-ingress-controller.service.type=NodePort" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
+      --set "config.capi.repositoryPath=./management" \
       --set "config.capi.baseBranch=main"
   fi
 
@@ -112,15 +114,49 @@ function reset {
   kubectl delete deployment postgres
   kubectl delete service postgres
   # Delete namespaces and their respective resources
-  kubectl delete namespaces wego-system prom wkp-agent
+  kubectl delete namespaces prom wkp-agent
+  # Delete wego system from the management cluster
+  $GITOPS_BIN_PATH flux uninstall --silent
+  $GITOPS_BIN_PATH flux uninstall --namespace wego-system --silent
   # Delete any orphan capitemplates
   kubectl delete CAPITemplate --all
   
+}
+
+function reset_mccp {
+    EVENT_WRITER_POD=$(kubectl get pods -n wego-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
+    GITOPS_BROKER_POD=$(kubectl get pods -n wego-system|grep gitops-repo-broker|tr -s ' '|cut -f1 -d ' ')    
+
+    # Sometime due to the test conditions the cluster service pod is in transition state i.e. one terminating and the new one is being created at the same time.
+    # Under such state we have two cluster srvice pods momentarily 
+    counter=10
+    while [ $counter -gt 0 ]
+    do
+        CLUSTER_SERVICE_POD=$(kubectl get pods -n wego-system|grep cluster-service|tr -s ' '|cut -f1 -d ' ')
+        pod_count=$(echo $CLUSTER_SERVICE_POD | wc -w |awk '{print $1}')
+        if [ $pod_count -gt 1 ]
+        then            
+            sleep 2
+            counter=$(( $counter - 1 ))
+        else
+            break
+        fi        
+    done    
+
+    echo $EVENT_WRITER_POD
+    echo $GITOPS_BROKER_POD
+    echo $CLUSTER_SERVICE_POD
+    kubectl exec -n wego-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
+    kubectl delete -n wego-system pod $EVENT_WRITER_POD
+    kubectl delete -n wego-system pod $GITOPS_BROKER_POD
+    kubectl delete -n wego-system pod $CLUSTER_SERVICE_POD
 }
 
 if [ ${args[0]} = 'setup' ]; then
     setup
 elif [ ${args[0]} = 'reset' ]; then
     reset
+elif [ ${args[0]} = 'reset_mccp' ]; then
+    reset_mccp
 fi
 
