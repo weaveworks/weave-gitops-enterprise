@@ -101,6 +101,7 @@ require (
 	github.com/fluxcd/pkg/apis/meta v0.10.1 // indirect
 	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
 	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
+	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/fluxcd/source-controller/api v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
