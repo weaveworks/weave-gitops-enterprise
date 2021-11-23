@@ -39,6 +39,7 @@ var GIT_PROVIDER string
 var GITHUB_ORG string
 var GITHUB_TOKEN string
 var CLUSTER_REPOSITORY string
+var GIT_REPOSITORY_URL string
 var SELENIUM_SERVICE_URL string
 
 var webDriver *agouti.Page
