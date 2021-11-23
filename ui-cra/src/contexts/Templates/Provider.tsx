@@ -40,7 +40,7 @@ const TemplatesProvider: FC = ({ children }) => {
     setCreatingPR(true);
     return request('POST', '/v1/clusters', {
       body: JSON.stringify(data),
-      headers: new Headers({ Authorization: `token ${token}` }),
+      headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
     }).finally(() => setCreatingPR(false));
   }, []);
 
