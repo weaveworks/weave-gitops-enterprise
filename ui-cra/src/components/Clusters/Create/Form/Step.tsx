@@ -14,6 +14,7 @@ import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { GitOpsBlue } from '../../../../muiTheme';
+import classNames from 'classnames';
 
 const Section = styled.div`
   padding-bottom: ${theme.spacing.medium};
@@ -40,6 +41,11 @@ const Content = styled.div`
     span {
       color: ${GitOpsBlue};
       font-weight: 600;
+    }
+  }
+  .step-child-disabled {
+    input {
+      background-color: red;
     }
   }
   @media (max-width: 768px) {
@@ -92,8 +98,6 @@ export const FormStep: FC<{
   setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
   childrenOccurences?: { [key: string]: any }[];
   switchChildVisibility?: (childName: string) => void;
-  repeatChildrenVisible?: boolean;
-  setRepeatChildrenVisible?: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   className,
   step,
@@ -104,10 +108,10 @@ export const FormStep: FC<{
   childrenOccurences,
   switchChildVisibility,
   children,
-  repeatChildrenVisible,
-  setRepeatChildrenVisible,
 }) => {
   const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
+  const [repeatChildrenVisible, setRepeatChildrenVisible] =
+    useState<boolean>(false);
   const onScreen = useOnScreen(stepRef);
 
   useEffect(() => {
@@ -129,8 +133,7 @@ export const FormStep: FC<{
 
   const handleClick = useCallback(
     (childName: string) => {
-      setRepeatChildrenVisible &&
-        setRepeatChildrenVisible(!repeatChildrenVisible);
+      setRepeatChildrenVisible(!repeatChildrenVisible);
       switchChildVisibility && switchChildVisibility(childName);
     },
     [repeatChildrenVisible, switchChildVisibility, setRepeatChildrenVisible],
@@ -146,7 +149,15 @@ export const FormStep: FC<{
               c => c.name === child.props.name,
             );
             return (
-              <div key={index} className="step-child">
+              <div
+                key={index}
+                className={classNames(
+                  'step-child',
+                  child.props.firstOfAKind === false
+                    ? 'step-child-disabled'
+                    : '',
+                )}
+              >
                 {child}
                 {occurences?.count > 1 && child.props.firstOfAKind ? (
                   <Button

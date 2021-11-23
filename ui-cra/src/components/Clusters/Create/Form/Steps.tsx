@@ -26,6 +26,7 @@ const localMuiTheme = createTheme({
         '&:focus': {
           border: 'none',
         },
+        '&:step-child': { backgroundColor: 'red' },
       },
     },
     MuiInputLabel: {
@@ -60,8 +61,6 @@ interface Property {
 const FormSteps = {
   Box: (props: { properties: Property[] }) => {
     const [properties, setProperties] = useState<Property[]>([]);
-    const [repeatChildrenVisible, setRepeatChildrenVisible] =
-      useState<boolean>(false);
     const [childrenOccurences, setChildrenOccurences] =
       useState<
         {
@@ -139,8 +138,6 @@ const FormSteps = {
               setActiveStep={p.setActiveStep}
               childrenOccurences={childrenOccurences}
               switchChildVisibility={switchChildVisibility}
-              repeatChildrenVisible={repeatChildrenVisible}
-              setRepeatChildrenVisible={setRepeatChildrenVisible}
             />
           );
         })}
