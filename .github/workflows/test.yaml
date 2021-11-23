@@ -95,6 +95,19 @@ jobs:
 
         # Start selenium server in standalone mode
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+    - name: Setup kind management cluster
+      uses: engineerd/setup-kind@v0.5.0
+      with:
+        name: management-${{ github.run_id }}-${{ github.run_number}}
+        version: "v0.11.0"
+        image: kindest/node:v1.20.7
+        config: "./test/utils/data/local-kind-config.yaml"
+    - name: Kind-check
+      run: |
+        kubectl get pods -A
+    - name: Install wego enterprise components on management cluster
+      run: |
+        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
