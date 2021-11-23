@@ -452,6 +452,10 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			It("@capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
+				By("Check wge is all running", func() {
+					gitopsTestRunner.VerifyWegoPodsRunning()
+				})
+
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
