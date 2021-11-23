@@ -85,6 +85,7 @@ function setup {
       --set "nginx-ingress-controller.service.type=NodePort" \
       --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
+      --set "config.capi.repositoryPath=./management" \
       --set "config.capi.baseBranch=main" \
       --set "dbConfig.databaseType=postgres" \
       --set "postgresConfig.databaseName=postgres" \
@@ -97,6 +98,7 @@ function setup {
       --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
       --set "nginx-ingress-controller.service.type=NodePort" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
+      --set "config.capi.repositoryPath=./management" \
       --set "config.capi.baseBranch=main"
   fi
 

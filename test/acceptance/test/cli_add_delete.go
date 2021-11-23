@@ -243,13 +243,13 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the capd manifest is present in the cluster config repository", func() {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, capdPRBranch)
-					_, err := os.Stat(fmt.Sprintf("%s/.weave-gitops/apps/capi/%s.yaml", repoAbsolutePath, capdClusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, capdClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 
 				By("And the eks manifest is present in the cluster config repository", func() {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, eksPRBranch)
-					_, err := os.Stat(fmt.Sprintf("%s/.weave-gitops/apps/capi/%s.yaml", repoAbsolutePath, eksClusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, eksClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 
@@ -417,7 +417,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
 			appName := "management"
-			appPath := "./.weave-gitops/apps/capi"
+			appPath := "./management"
 			capdClusterNames := []string{"cli-end-to-end-capd-cluster-1", "cli-end-to-end-capd-cluster-2"}
 
 			JustBeforeEach(func() {
@@ -600,7 +600,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
-					_, err := os.Stat(fmt.Sprintf("%s/.weave-gitops/apps/capi/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 
