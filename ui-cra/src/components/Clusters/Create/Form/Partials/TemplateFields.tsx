@@ -119,8 +119,11 @@ const TemplateFields: FC<{
 
   // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
   const sections = useMemo(() => {
+    const excludeObjectsWithoutParams = activeTemplate?.objects?.filter(
+      object => object.parameters?.length !== 0,
+    );
     const groups =
-      activeTemplate?.objects?.reduce(
+      excludeObjectsWithoutParams?.reduce(
         (accumulator, item, index) =>
           Object.assign(accumulator, {
             [objectTitle(item, index)]: item.parameters,
