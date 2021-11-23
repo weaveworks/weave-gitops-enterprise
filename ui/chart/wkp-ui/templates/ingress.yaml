@@ -2,7 +2,7 @@
 {{- $serviceName := .Values.service.name -}}
 {{- $servicePort := .Values.service.port -}}
 {{- $ingressPath := .Values.ingress.path -}}
-apiVersion: extensions/v1beta1
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ include "wkp-ui.fullname" . }}
@@ -31,9 +31,8 @@ spec:
   - host: {{ . }}
     http:
       paths:
-      - path: {{ $ingressPath }}
-        backend:
-          serviceName: {{ $serviceName }}
-          servicePort: {{ $servicePort }}
+      - pathType: ImplementationSpecific
+        path: {{ $ingressPath }}
+        backend: {{- include "common.ingress.backend" (dict "serviceName" $serviceName "servicePort" $servicePort "context" $)  | nindent 14 }}
   {{- end }}
 {{- end }}
