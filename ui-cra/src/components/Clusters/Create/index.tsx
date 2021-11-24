@@ -32,6 +32,7 @@ import Credentials from './Form/Partials/Credentials';
 import GitOps from './Form/Partials/GitOps';
 import Preview from './Form/Partials/Preview';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
+import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -173,7 +174,7 @@ const AddCluster: FC = () => {
           },
           values: encodedProfiles(updatedProfiles),
         },
-        getProviderToken('github'),
+        getProviderToken('GitHub' as GitProvider),
       )
         .then(() => {
           setPRPreview(null);

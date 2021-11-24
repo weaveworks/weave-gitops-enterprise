@@ -27,6 +27,7 @@ import {
   GithubDeviceAuthModal,
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated } from '../../utils/request';
+import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 interface Props {
   selectedCapiClusters: string[];
@@ -97,7 +98,7 @@ export const DeleteClusterDialog: FC<Props> = ({
         commitMessage,
         description: pullRequestDescription,
       },
-      getProviderToken('github'),
+      getProviderToken('GitHub' as GitProvider),
     )
       .then(() =>
         setNotifications([

@@ -583,7 +583,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			By("Then alerts appear in the firing alerts widget with hyper link cluster name ", func() {
-
 				alert := pages.FindAlertInFiringAlertsWidget(clustersPage, alert)
 				Eventually(alert.ClusterName).Should(HaveText(clusterName))
 				//
