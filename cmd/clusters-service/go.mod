@@ -19,7 +19,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/weave-gitops v0.4.1
+	github.com/weaveworks/weave-gitops v0.5.0-rc2.0.20211123165841-1e77f2ae0aed
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
 	github.com/xanzy/go-gitlab v0.43.0
@@ -90,6 +90,7 @@ require (
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
 	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
 	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
+	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
