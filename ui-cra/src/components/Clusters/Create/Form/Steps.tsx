@@ -3,6 +3,7 @@ import React, {
   ReactElement,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import theme from 'weaveworks-ui-components/lib/theme';
@@ -117,24 +118,26 @@ const FormSteps = {
       setChildrenOccurences(getChildrenOccurences());
     }, [props.properties, getChildrenOccurences]);
 
-    return (
-      <ThemeProvider theme={localMuiTheme}>
-        {properties.map((p, index) => {
-          return (
-            <FormStep
-              key={index}
-              step={p}
-              active={p.active}
-              clicked={p.clicked}
-              setActiveStep={p.setActiveStep}
-              childrenOccurences={childrenOccurences}
-              setChildrenOccurences={setChildrenOccurences}
-              switchChildVisibility={switchChildVisibility}
-            />
-          );
-        })}
-      </ThemeProvider>
-    );
+    return useMemo(() => {
+      return (
+        <ThemeProvider theme={localMuiTheme}>
+          {properties.map((p, index) => {
+            return (
+              <FormStep
+                key={index}
+                step={p}
+                active={p.active}
+                clicked={p.clicked}
+                setActiveStep={p.setActiveStep}
+                childrenOccurences={childrenOccurences}
+                setChildrenOccurences={setChildrenOccurences}
+                switchChildVisibility={switchChildVisibility}
+              />
+            );
+          })}
+        </ThemeProvider>
+      );
+    }, [childrenOccurences, switchChildVisibility]);
   },
 };
 
