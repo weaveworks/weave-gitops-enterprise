@@ -72,9 +72,9 @@ const TemplateFields: FC<{
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
-      return `${index + 1}.${object.kind} (${object.displayName})`;
+      return `${index + 1}. ${object.kind} (${object.displayName})`;
     }
-    return `${index + 1}.${object.kind}`;
+    return `${index + 1}. ${object.kind}`;
   };
 
   const required = useMemo(() => {

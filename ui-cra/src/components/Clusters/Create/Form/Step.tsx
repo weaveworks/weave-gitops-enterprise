@@ -15,15 +15,23 @@ import theme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { GitOpsBlue } from '../../../../muiTheme';
 import classNames from 'classnames';
+import { ChildrenOccurences } from '../../../../types/custom';
 
 const Section = styled.div`
   padding-bottom: ${theme.spacing.medium};
 `;
 
 const Title = styled.div<{ name?: string }>`
+  display: flex;
+  align-items: center;
   padding-bottom: ${theme.spacing.small};
   font-size: ${theme.fontSizes.large};
-  font-family: ${theme.fontFamilies.monospace};
+  span {
+    margin-left: ${theme.spacing.small};
+    font-size: ${theme.fontSizes.tiny};
+    color: rgba(0, 0, 0, 0.54);
+    font-weight: 400;
+  }
 `;
 
 const Content = styled.div`
@@ -104,20 +112,8 @@ export const FormStep: FC<{
   active?: boolean;
   clicked?: boolean;
   setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
-  childrenOccurences?: {
-    name: string;
-    groupVisible: boolean;
-    count: number;
-  }[];
-  setChildrenOccurences?: Dispatch<
-    React.SetStateAction<
-      {
-        name: string;
-        groupVisible: boolean;
-        count: number;
-      }[]
-    >
-  >;
+  childrenOccurences?: ChildrenOccurences[];
+  setChildrenOccurences?: Dispatch<React.SetStateAction<ChildrenOccurences[]>>;
   switchChildVisibility?: (childName: string) => void;
 }> = ({
   className,
@@ -166,19 +162,26 @@ export const FormStep: FC<{
     [switchChildVisibility, childrenOccurences, setChildrenOccurences],
   );
 
+  const hiddenFieldsPerStep =
+    step?.children.filter(child => !child.props.visible).length || 0;
+
   return (
     <Section ref={stepRef} className={className}>
-      <Title name={title}>{step?.name || title}</Title>
+      <Title name={title}>
+        {step?.name || title}&nbsp;
+        {hiddenFieldsPerStep !== 0 ? (
+          <span>
+            (&nbsp;{hiddenFieldsPerStep}&nbsp;
+            {hiddenFieldsPerStep > 1 ? 'HIDDEN FIELDS' : 'HIDDEN FIELD'} )
+          </span>
+        ) : null}
+      </Title>
       <Content>
         {step?.children.map((child, index) => {
           if (child.props.visible) {
             const childOccurences = childrenOccurences?.find(
               c => c.name === child.props.name,
-            ) as {
-              name: string;
-              groupVisible: boolean;
-              count: number;
-            };
+            ) as ChildrenOccurences;
             return (
               <div
                 key={index}

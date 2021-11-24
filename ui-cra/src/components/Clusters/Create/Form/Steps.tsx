@@ -9,6 +9,7 @@ import theme from 'weaveworks-ui-components/lib/theme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../../../../muiTheme';
 import { FormStep } from './Step';
+import { ChildrenOccurences } from '../../../../types/custom';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -61,11 +62,7 @@ const FormSteps = {
   Box: (props: { properties: Property[] }) => {
     const [properties, setProperties] = useState<Property[]>([]);
     const [childrenOccurences, setChildrenOccurences] = useState<
-      {
-        name: string;
-        groupVisible: boolean;
-        count: number;
-      }[]
+      ChildrenOccurences[]
     >([]);
 
     const switchChildVisibility = useCallback(
@@ -94,19 +91,15 @@ const FormSteps = {
         }),
       );
 
-      let childrenCountGroupVisibility: {
-        name: string;
-        groupVisible: boolean;
-        count: number;
-      }[] = [];
+      let childrenCountGroupVisibility: ChildrenOccurences[] = [];
 
       getChildrenNamesAndVisibility.forEach(child => {
-        const relevantChild = childrenCountGroupVisibility.find(
+        const currentChild = childrenCountGroupVisibility.find(
           c => c.name === child.name,
         );
-        if (relevantChild) {
-          relevantChild.count++;
-          relevantChild.groupVisible = child.visible;
+        if (currentChild) {
+          currentChild.count++;
+          currentChild.groupVisible = child.visible;
         } else {
           childrenCountGroupVisibility.push({
             name: child.name,

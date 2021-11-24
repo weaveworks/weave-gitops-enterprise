@@ -18,7 +18,6 @@ const useStyles = makeStyles(() =>
     },
     link: {
       fontSize: `${weaveTheme.fontSizes.tiny}`,
-      fontFamily: `${weaveTheme.fontFamilies.monospace}`,
       padding: `0 ${weaveTheme.spacing.small}`,
       marginBottom: `${weaveTheme.spacing.small}`,
       color: `${weaveTheme.colors.black}`,
@@ -53,6 +52,7 @@ const FormStepsNavigation: FC<{
   return (
     <div className={classes.navWrapper}>
       {sections?.map((step, index) => {
+        console.log(step);
         const kindStep = step.split(' ')[0];
         const displayNameStep = step.replace(kindStep, '');
 
