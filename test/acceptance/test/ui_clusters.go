@@ -552,7 +552,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			})
 		})
 
-		FIt("Verify clicking on alert name in alerts widget will take to the cluster page", func() {
+		It("Verify clicking on alert name in alerts widget will take to the cluster page", func() {
 			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
