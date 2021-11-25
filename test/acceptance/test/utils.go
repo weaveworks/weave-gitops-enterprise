@@ -45,7 +45,6 @@ var SELENIUM_SERVICE_URL string
 
 var webDriver *agouti.Page
 var defaultUIURL = "http://localhost:8090"
-var defaultPctlBinPath = "/usr/local/bin/pctl"
 var defaultGitopsBinPath = "/usr/local/bin/gitops"
 var defaultCapiEndpointURL = "http://localhost:8090"
 
@@ -58,13 +57,6 @@ func GetWebDriver() *agouti.Page {
 
 func SetWebDriver(wb *agouti.Page) {
 	webDriver = wb
-}
-
-func GetPctlBinPath() string {
-	if os.Getenv("PCTL_BIN_PATH") != "" {
-		return os.Getenv("PCTL_BIN_PATH")
-	}
-	return defaultPctlBinPath
 }
 
 func GetGitopsBinPath() string {
@@ -1018,23 +1010,6 @@ func InstallAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
 		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyCoreControllers(gitopsNamespace)
-	})
-}
-
-func InstallAndVerifyPctl(gitopsNamespace string) {
-	By("And I run 'pctl install' command with flux-namespace "+gitopsNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --flux-namespace=%s", GetPctlBinPath(), gitopsNamespace))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
-		Expect(string(session.Err.Contents())).Should(BeEmpty())
-
-		By("And I wait for the pctl controller to be ready", func() {
-			command := exec.Command("sh", "-c", "kubectl wait --for=condition=Ready --timeout=120s -n profiles-system --all pod")
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
-		})
 	})
 }
 
