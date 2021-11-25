@@ -404,7 +404,11 @@ func TestListTemplateProfiles(t *testing.T) {
 		{
 			name: "1 profile",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+				makeTemplateConfigMap("template1", makeTemplate(t, func(c *capiv1.CAPITemplate) {
+					c.Annotations = map[string]string{
+						"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
+					}
+				})),
 			},
 			expected: []*capiv1_protos.TemplateProfile{
 				{
@@ -1356,9 +1360,6 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "cluster-template-1",
-			Annotations: map[string]string{
-				"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\"}",
-			},
 		},
 		Spec: capiv1.CAPITemplateSpec{
 			Description: "this is test template 1",
