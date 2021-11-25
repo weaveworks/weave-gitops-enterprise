@@ -181,7 +181,7 @@
     },
     "/v1/profiles/{profileName}/{profileVersion}/values": {
       "get": {
-        "summary": "GetProfileVersionValues returns a list of profiles\nfrom the cluster.",
+        "summary": "GetProfileValues returns a list of values for \na given version of a profile from the cluster.",
         "operationId": "ClustersService_GetProfileValues",
         "responses": {
           "200": {
@@ -284,6 +284,36 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/v1ListTemplateParamsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/templates/{templateName}/profiles": {
+      "get": {
+        "operationId": "ClustersService_ListTemplateProfiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplateProfilesResponse"
             }
           },
           "default": {
@@ -602,6 +632,23 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Parameter"
+          }
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TemplateObject"
+          }
+        }
+      }
+    },
+    "v1ListTemplateProfilesResponse": {
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Profile"
           }
         },
         "objects": {

@@ -24,6 +24,12 @@ service ClustersService {
       get : "/v1/templates/{template_name}/params"
     };
   }
+  rpc ListTemplateProfiles(ListTemplateProfilesRequest)
+      returns (ListTemplateProfilesResponse) {
+    option (google.api.http) = {
+      get : "/v1/templates/{template_name}/profiles"
+    };
+  }
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (google.api.http) = {
       post : "/v1/templates/{template_name}/render"
@@ -99,6 +105,12 @@ message GetTemplateResponse { Template template = 1; }
 message ListTemplateParamsRequest { string template_name = 1; }
 message ListTemplateParamsResponse {
   repeated Parameter parameters = 1;
+  repeated TemplateObject objects = 2;
+}
+
+message ListTemplateProfilesRequest { string template_name = 1; }
+message ListTemplateProfilesResponse {
+  repeated Profile profiles = 1;
   repeated TemplateObject objects = 2;
 }
 

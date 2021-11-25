@@ -27,8 +27,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -121,6 +121,21 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 	}
 
 	return &capiv1_proto.ListTemplateParamsResponse{Parameters: t.Parameters, Objects: t.Objects}, err
+}
+
+func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.ListTemplateProfilesRequest) (*capiv1_proto.ListTemplateProfilesResponse, error) {
+	tm, err := s.library.Get(ctx, msg.TemplateName)
+	if err != nil {
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+	}
+	t := ToTemplateResponse(tm)
+	if t.Error != "" {
+		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.TemplateName, t.Error)
+	}
+
+	profiles := getProfilesFromTemplate(t.Annotations)
+
+	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
@@ -769,4 +784,16 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	}
 
 	return file, nil
+}
+
+func getProfilesFromTemplate(annotations map[string]string) map[string]string {
+	res := map[string]string{}
+
+	for k, v := range annotations {
+		if strings.Contains(k, "capi.weave.works/profile-") {
+			res[k] = v
+		}
+	}
+
+	return res
 }
