@@ -389,6 +389,56 @@ func TestListTemplateParams(t *testing.T) {
 	}
 }
 
+func TestListTemplateProfiles(t *testing.T) {
+	testCases := []struct {
+		name             string
+		clusterState     []runtime.Object
+		expected         []*capiv1_protos.TemplateProfile
+		err              error
+		expectedErrorStr string
+	}{
+		{
+			name: "1 profile err",
+			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace"),
+		},
+		{
+			name: "1 profile",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			expected: []*capiv1_protos.TemplateProfile{
+				{
+					Name:    "profile-a",
+					Version: "v0.0.1",
+				},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+
+			listTemplateProfilesRequest := new(capiv1_protos.ListTemplateProfilesRequest)
+			listTemplateProfilesRequest.TemplateName = "cluster-template-1"
+
+			listTemplateProfilesResponse, err := s.ListTemplateProfiles(context.Background(), listTemplateProfilesRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the profiles:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, listTemplateProfilesResponse.Profiles, protocmp.Transform()); diff != "" {
+					t.Fatalf("profiles didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
 func TestRenderTemplate(t *testing.T) {
 	u := &unstructured.Unstructured{}
 	u.Object = map[string]interface{}{
@@ -1185,6 +1235,23 @@ func TestGetProfiles(t *testing.T) {
 	}
 }
 
+func TestGetProfilesFromTemplate(t *testing.T) {
+	annotations := map[string]string{
+		"capi.weave.works/profile-0": "{\"name\": \"observability\", \"version\": \"0.0.1\" }",
+	}
+
+	expected := []*capiv1_protos.TemplateProfile{
+		{
+			Name:    "observability",
+			Version: "0.0.1",
+		},
+	}
+
+	result := getProfilesFromTemplate(annotations)
+
+	assert.Equal(t, result, expected)
+}
+
 func createClient(clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
@@ -1278,7 +1345,8 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		"metadata":{
 		   "name":"${CLUSTER_NAME}",
 		   "annotations":{
-			  "capi.weave.works/display-name":"ClusterName"
+			  "capi.weave.works/display-name":"ClusterName",
+			  "capi.weave.works/profile-0":"{\"name\": \"profile-a\", \"version\": \"0.0.1\" }"
 		   }
 		}
 	 }`

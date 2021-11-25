@@ -110,7 +110,7 @@ message ListTemplateParamsResponse {
 
 message ListTemplateProfilesRequest { string template_name = 1; }
 message ListTemplateProfilesResponse {
-  repeated Profile profiles = 1;
+  repeated TemplateProfile profiles = 1;
   repeated TemplateObject objects = 2;
 }
 
@@ -209,6 +209,11 @@ message Parameter {
   string description = 2;
   bool required = 3;
   repeated string options = 4;
+}
+
+message TemplateProfile {
+  string name = 1;
+  string version = 2;
 }
 
 message TemplateObject {

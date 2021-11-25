@@ -32,6 +32,15 @@ export type ListTemplateParamsResponse = {
   objects?: TemplateObject[]
 }
 
+export type ListTemplateProfilesRequest = {
+  templateName?: string
+}
+
+export type ListTemplateProfilesResponse = {
+  profiles?: TemplateProfile[]
+  objects?: TemplateObject[]
+}
+
 export type RenderTemplateRequest = {
   templateName?: string
   values?: {[key: string]: string}
@@ -115,6 +124,11 @@ export type Parameter = {
   options?: string[]
 }
 
+export type TemplateProfile = {
+  name?: string
+  version?: string
+}
+
 export type TemplateObject = {
   kind?: string
   apiVersion?: string
@@ -186,6 +200,9 @@ export class ClustersService {
   }
   static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
     return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/templates/${req["templateName"]}/params?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
+  }
+  static ListTemplateProfiles(req: ListTemplateProfilesRequest, initReq?: fm.InitReq): Promise<ListTemplateProfilesResponse> {
+    return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/templates/${req["templateName"]}/profiles?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})

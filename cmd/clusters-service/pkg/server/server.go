@@ -786,14 +786,16 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	return file, nil
 }
 
-func getProfilesFromTemplate(annotations map[string]string) map[string]string {
-	res := map[string]string{}
+func getProfilesFromTemplate(annotations map[string]string) []*capiv1_proto.TemplateProfile {
+	profiles := []*capiv1_proto.TemplateProfile{}
+	profile := capiv1_proto.TemplateProfile{}
 
 	for k, v := range annotations {
 		if strings.Contains(k, "capi.weave.works/profile-") {
-			res[k] = v
+			json.Unmarshal([]byte(v), &profile)
+			profiles = append(profiles, &profile)
 		}
 	}
 
-	return res
+	return profiles
 }

@@ -648,7 +648,7 @@
         "profiles": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Profile"
+            "$ref": "#/definitions/v1TemplateProfile"
           }
         },
         "objects": {
@@ -837,6 +837,17 @@
           "type": "string"
         },
         "displayName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TemplateProfile": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
           "type": "string"
         }
       }
