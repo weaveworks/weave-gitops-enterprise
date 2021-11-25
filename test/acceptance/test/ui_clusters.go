@@ -585,13 +585,14 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			By("Then alerts appear in the firing alerts widget with hyper link cluster name ", func() {
 				alert := pages.FindAlertInFiringAlertsWidget(clustersPage, alert)
 				Eventually(alert.ClusterName).Should(HaveText(clusterName))
-				//
-				// FIXME: this seems to be causing issues with github oauth if this window lingers around
-				//
-				// winCount, _ := webDriver.WindowCount()
-				// Expect(alert.ClusterName.Click()).To(Succeed())
-				// Expect(webDriver).To(HaveWindowCount(winCount + 1))
-				//
+
+				winCount, _ := webDriver.WindowCount()
+				Expect(alert.ClusterName.Click()).To(Succeed())
+				Expect(webDriver).To(HaveWindowCount(winCount + 1))
+				Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to cluster page window")
+				Expect(webDriver.CloseWindow()).ShouldNot(HaveOccurred())
+				Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to weave gitops enterprise window")
+
 				Eventually(clustersPage.NoFiringAlertMessage, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 			})
 		})

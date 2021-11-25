@@ -25,6 +25,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/types"
@@ -48,6 +49,7 @@ var defaultPctlBinPath = "/usr/local/bin/pctl"
 var defaultGitopsBinPath = "/usr/local/bin/gitops"
 var defaultCapiEndpointURL = "http://localhost:8090"
 
+const WGE_WINDOW_NAME = "weave-gitops-enterprise"
 const GITOPS_DEFAULT_NAMESPACE = "wego-system"
 
 func GetWebDriver() *agouti.Page {
@@ -227,8 +229,15 @@ func InitializeWebdriver(wgeURL string) {
 		Expect(err).NotTo(HaveOccurred())
 	}
 
-	By("When I navigate to MCCP UI Page", func() {
+	By("When I navigate to WGE UI Page", func() {
 		Expect(webDriver.Navigate(wgeURL)).To(Succeed())
+	})
+
+	By(fmt.Sprintf("And I set the default WGE window name to: %s", WGE_WINDOW_NAME), func() {
+		pages.SetWindowName(webDriver, WGE_WINDOW_NAME)
+		weaveGitopsWindowName := pages.GetWindowName(webDriver)
+		Expect(weaveGitopsWindowName).To(Equal(WGE_WINDOW_NAME))
+
 	})
 }
 
