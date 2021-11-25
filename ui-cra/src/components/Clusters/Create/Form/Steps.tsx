@@ -3,7 +3,6 @@ import React, {
   ReactElement,
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 import theme from 'weaveworks-ui-components/lib/theme';
@@ -57,6 +56,7 @@ interface Property {
   clicked?: boolean;
   setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
   children: ReactElement[];
+  addUserSelectedFields: (name: string) => void;
 }
 
 const FormSteps = {
@@ -86,7 +86,7 @@ const FormSteps = {
     );
 
     const getChildrenOccurences = useCallback(() => {
-      const getChildrenNamesAndVisibility = properties.flatMap(property =>
+      const getChildrenNamesAndVisibility = properties?.flatMap(property =>
         property.children.map(child => {
           return { name: child.props.name, visible: child.props.visible };
         }),
@@ -94,7 +94,7 @@ const FormSteps = {
 
       let childrenCountGroupVisibility: ChildrenOccurences[] = [];
 
-      getChildrenNamesAndVisibility.forEach(child => {
+      getChildrenNamesAndVisibility?.forEach(child => {
         const currentChild = childrenCountGroupVisibility.find(
           c => c.name === child.name,
         );
@@ -118,26 +118,25 @@ const FormSteps = {
       setChildrenOccurences(getChildrenOccurences());
     }, [props.properties, getChildrenOccurences]);
 
-    return useMemo(() => {
-      return (
-        <ThemeProvider theme={localMuiTheme}>
-          {properties.map((p, index) => {
-            return (
-              <FormStep
-                key={index}
-                step={p}
-                active={p.active}
-                clicked={p.clicked}
-                setActiveStep={p.setActiveStep}
-                childrenOccurences={childrenOccurences}
-                setChildrenOccurences={setChildrenOccurences}
-                switchChildVisibility={switchChildVisibility}
-              />
-            );
-          })}
-        </ThemeProvider>
-      );
-    }, [childrenOccurences, switchChildVisibility]);
+    return (
+      <ThemeProvider theme={localMuiTheme}>
+        {properties?.map((p, index) => {
+          return (
+            <FormStep
+              key={index}
+              step={p}
+              active={p.active}
+              clicked={p.clicked}
+              setActiveStep={p.setActiveStep}
+              childrenOccurences={childrenOccurences}
+              setChildrenOccurences={setChildrenOccurences}
+              switchChildVisibility={switchChildVisibility}
+              addUserSelectedFields={p.addUserSelectedFields}
+            />
+          );
+        })}
+      </ThemeProvider>
+    );
   },
 };
 

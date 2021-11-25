@@ -115,6 +115,7 @@ export const FormStep: FC<{
   childrenOccurences?: ChildrenOccurences[];
   setChildrenOccurences?: Dispatch<React.SetStateAction<ChildrenOccurences[]>>;
   switchChildVisibility?: (childName: string) => void;
+  addUserSelectedFields?: (name: string) => void;
 }> = ({
   className,
   step,
@@ -126,6 +127,7 @@ export const FormStep: FC<{
   switchChildVisibility,
   setChildrenOccurences,
   children,
+  addUserSelectedFields,
 }) => {
   const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
   const onScreen = useOnScreen(stepRef);
@@ -147,19 +149,31 @@ export const FormStep: FC<{
     }, 500);
   }, [active, setActiveStep, onScreen, step?.name, title]);
 
+  // const handleClick = useCallback(
+  //   (childName: string) => {
+  //     const newChildrenOccurences =
+  //       childrenOccurences?.map(child =>
+  //         child.name === childName
+  //           ? Object.assign({}, child, { groupVisible: true })
+  //           : child,
+  //       ) || [];
+
+  //     setChildrenOccurences && setChildrenOccurences(newChildrenOccurences);
+  //     switchChildVisibility && switchChildVisibility(childName);
+  //   },
+  //   [switchChildVisibility, childrenOccurences, setChildrenOccurences],
+  // );
+
   const handleClick = useCallback(
     (childName: string) => {
-      const newChildrenOccurences =
-        childrenOccurences?.map(child =>
-          child.name === childName
-            ? Object.assign({}, child, { groupVisible: true })
-            : child,
-        ) || [];
-
-      setChildrenOccurences && setChildrenOccurences(newChildrenOccurences);
-      switchChildVisibility && switchChildVisibility(childName);
+      addUserSelectedFields && addUserSelectedFields(childName);
     },
-    [switchChildVisibility, childrenOccurences, setChildrenOccurences],
+    [
+      // switchChildVisibility,
+      // childrenOccurences,
+      // setChildrenOccurences,
+      addUserSelectedFields,
+    ],
   );
 
   const hiddenFieldsPerStep =

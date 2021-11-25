@@ -5,6 +5,7 @@ import React, {
   Dispatch,
   useEffect,
   useCallback,
+  ReactNode,
 } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
@@ -16,7 +17,6 @@ import {
 import { ObjectFieldTemplateProps } from '@rjsf/core';
 import { JSONSchema7 } from 'json-schema';
 import Form from '@rjsf/material-ui';
-import * as Grouped from '../GroupedSchema';
 import * as UiTemplate from '../UITemplate';
 import FormSteps from '../Steps';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
@@ -24,6 +24,8 @@ import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
 import { FormStep } from '../Step';
 import styled from 'styled-components';
+
+const EXTRANEOUS = Symbol('EXTRANEOUS');
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -134,15 +136,6 @@ const TemplateFields: FC<{
     return [groups];
   }, [activeTemplate]);
 
-  const uiSchema = useMemo(() => {
-    return {
-      'ui:groups': sections,
-      'ui:template': (props: ObjectFieldTemplateProps) => (
-        <Grouped.ObjectFieldTemplate {...props} />
-      ),
-    };
-  }, [sections]);
-
   const handleSelectProfiles = useCallback(
     (profiles: UpdatedProfile[]) => {
       setSelectedProfiles(profiles);
@@ -150,6 +143,159 @@ const TemplateFields: FC<{
     },
     [onProfilesUpdate],
   );
+
+  const DefaultTemplate = useCallback(
+    (props: { properties: ObjectFieldTemplateProps['properties'] }) => {
+      return props?.properties?.map((p, index) => (
+        <div key={index}>{p.content}</div>
+      ));
+    },
+    [],
+  );
+
+  const [userSelectedFields, setUserSelectedFields] = useState<string[]>([]);
+
+  const addUserSelectedFields = useCallback(
+    (name: string) => {
+      console.log('jhfd');
+      if (userSelectedFields.includes(name)) {
+        setUserSelectedFields(userSelectedFields.filter(el => el !== name));
+      } else {
+        setUserSelectedFields([...userSelectedFields, name]);
+      }
+    },
+    [userSelectedFields],
+  );
+
+  const doGrouping = useCallback(
+    ({
+      properties,
+      groups,
+      formContext,
+      previouslyVisibleFields,
+      userSelectedFields,
+    }: {
+      properties: ObjectFieldTemplateProps['properties'];
+      formContext: ObjectFieldTemplateProps['formContext'];
+      groups: string | object;
+      previouslyVisibleFields: string[];
+      userSelectedFields: string[];
+    }) => {
+      if (!Array.isArray(groups)) {
+        return properties?.map((property, index) => {
+          return <div key={index}>{property.content}</div>;
+        });
+      }
+      const mapped = groups.map((g, index) => {
+        if (typeof g === 'string') {
+          const found = properties?.filter(property => property.name === g);
+          if (found?.length === 1) {
+            const el = found[0];
+
+            const firstOfAKind = previouslyVisibleFields.includes(
+              el.content.props.name,
+            )
+              ? false
+              : true;
+            let visible =
+              firstOfAKind ||
+              userSelectedFields.includes(el.content.props.name);
+
+            return React.cloneElement(el.content, { visible, firstOfAKind });
+          }
+          return EXTRANEOUS;
+        } else if (typeof g === 'object') {
+          const { templates, activeStep, setActiveStep, clickedStep } =
+            formContext;
+          const GroupComponent = templates
+            ? templates[g['ui:template']]
+            : DefaultTemplate;
+
+          let previouslyVisibleFields: string[] = [];
+
+          const _properties = Object.keys(g).reduce(
+            (
+              acc: {
+                name: string;
+                active: boolean;
+                clicked: boolean;
+                setActiveStep: Dispatch<
+                  React.SetStateAction<string | undefined>
+                >;
+                children: ReactNode;
+              }[],
+              key: string,
+            ) => {
+              const field = g[key];
+
+              if (key.startsWith('ui:')) return acc;
+              if (!Array.isArray(field)) return acc;
+
+              const section = [
+                ...acc,
+                {
+                  name: key,
+                  active: key === activeStep,
+                  clicked: key === clickedStep,
+                  setActiveStep,
+                  addUserSelectedFields,
+                  children: doGrouping({
+                    formContext,
+                    properties,
+                    groups: field,
+                    previouslyVisibleFields,
+                    userSelectedFields,
+                  }),
+                },
+              ];
+
+              previouslyVisibleFields = Array.from(
+                new Set([...previouslyVisibleFields, ...field]),
+              );
+              console.log('previously visible fields', previouslyVisibleFields);
+
+              return section;
+            },
+            [],
+          );
+
+          return <GroupComponent key={index} properties={_properties} />;
+        }
+
+        throw new Error('Invalid object type: ' + typeof g + ' ' + g);
+      });
+
+      return mapped;
+    },
+    [DefaultTemplate, addUserSelectedFields],
+  );
+
+  const ObjectFieldTemplate = useCallback(
+    (props: ObjectFieldTemplateProps) => {
+      console.log('regrouping');
+      return (
+        <>
+          {doGrouping({
+            formContext: props.formContext,
+            properties: props.properties,
+            groups: props.uiSchema['ui:groups'],
+            previouslyVisibleFields: [],
+            userSelectedFields,
+          })}
+        </>
+      );
+    },
+    [doGrouping, userSelectedFields],
+  );
+
+  const uiSchema = useMemo(() => {
+    return {
+      'ui:groups': sections,
+      'ui:template': (props: ObjectFieldTemplateProps) => (
+        <ObjectFieldTemplate {...props} />
+      ),
+    };
+  }, [sections, ObjectFieldTemplate]);
 
   useEffect(() => {
     const requiredProfiles = updatedProfiles.filter(

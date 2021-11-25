@@ -52,7 +52,6 @@ const FormStepsNavigation: FC<{
   return (
     <div className={classes.navWrapper}>
       {sections?.map((step, index) => {
-        console.log(step);
         const kindStep = step.split(' ')[0];
         const displayNameStep = step.replace(kindStep, '');
 
