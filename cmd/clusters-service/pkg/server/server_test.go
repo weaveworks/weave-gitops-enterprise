@@ -1237,13 +1237,13 @@ func TestGetProfiles(t *testing.T) {
 
 func TestGetProfilesFromTemplate(t *testing.T) {
 	annotations := map[string]string{
-		"capi.weave.works/profile-0": "{\"name\": \"observability\", \"version\": \"0.0.1\" }",
+		"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
 	}
 
 	expected := []*capiv1_protos.TemplateProfile{
 		{
-			Name:    "observability",
-			Version: "0.0.1",
+			Name:    "profile-a",
+			Version: "v0.0.1",
 		},
 	}
 
@@ -1345,8 +1345,7 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		"metadata":{
 		   "name":"${CLUSTER_NAME}",
 		   "annotations":{
-			  "capi.weave.works/display-name":"ClusterName",
-			  "capi.weave.works/profile-0":"{\"name\": \"profile-a\", \"version\": \"0.0.1\" }"
+			  "capi.weave.works/display-name":"ClusterName"
 		   }
 		}
 	 }`
@@ -1357,6 +1356,9 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "cluster-template-1",
+			Annotations: map[string]string{
+				"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\"}",
+			},
 		},
 		Spec: capiv1.CAPITemplateSpec{
 			Description: "this is test template 1",

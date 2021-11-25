@@ -130,7 +130,7 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	}
 	t := ToTemplateResponse(tm)
 	if t.Error != "" {
-		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.TemplateName, t.Error)
+		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.TemplateName, t.Error)
 	}
 
 	profiles := getProfilesFromTemplate(t.Annotations)
