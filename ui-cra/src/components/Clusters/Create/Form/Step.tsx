@@ -51,19 +51,6 @@ const Content = styled.div`
       font-weight: 600;
     }
   }
-  .step-child-disabled {
-    input {
-      background-color: #f5f5f5;
-      cursor: not-allowed;
-    }
-    input:focus-within {
-      pointer-events: none;
-    }
-    div[role='button'] {
-      background-color: #f5f5f5;
-      pointer-events: none;
-    }
-  }
   @media (max-width: 768px) {
     flex-direction: column;
   }
@@ -173,15 +160,7 @@ export const FormStep: FC<{
               c => c.name === child.props.name,
             ) as ChildrenOccurences;
             return (
-              <div
-                key={index}
-                className={classNames(
-                  'step-child',
-                  child.props.firstOfAKind === false
-                    ? 'step-child-disabled'
-                    : '',
-                )}
-              >
+              <div key={index} className="step-child">
                 {child}
                 {childOccurences?.count > 1 && child.props.firstOfAKind ? (
                   <Button

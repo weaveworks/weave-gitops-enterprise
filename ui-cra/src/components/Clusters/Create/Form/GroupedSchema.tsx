@@ -46,8 +46,13 @@ const doGrouping = ({
           : true;
         let visible =
           firstOfAKind || userSelectedFields.includes(el.content.props.name);
+        let disabled = !firstOfAKind;
 
-        return React.cloneElement(el.content, { visible, firstOfAKind });
+        return React.cloneElement(el.content, {
+          visible,
+          firstOfAKind,
+          disabled,
+        });
       }
       return EXTRANEOUS;
     } else if (typeof g === 'object') {
