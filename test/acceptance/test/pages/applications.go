@@ -3,7 +3,6 @@ package pages
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -27,6 +26,7 @@ type AddApplication struct {
 	Branch          *agouti.Selection
 	AutoMerge       *agouti.Selection
 	Submit          *agouti.Selection
+	GitCredentials  *agouti.Selection
 	ViewApplication *agouti.Selection
 }
 
@@ -74,16 +74,6 @@ type Commits struct {
 	Author  *agouti.Selection
 }
 
-func ElementExist(element *agouti.Selection) bool {
-	for range [5]int{} {
-		if count, _ := element.Count(); count == 1 {
-			return true
-		}
-		time.Sleep(1 * time.Second)
-	}
-	return false
-}
-
 func WaitForAuthenticationAlert(webDriver *agouti.Page, alert_success_msg string) {
 	Eventually(webDriver.FindByXPath(fmt.Sprintf(`//div[@class="MuiAlert-message"][.="%s"]`, alert_success_msg))).Should(BeVisible())
 }
@@ -126,6 +116,7 @@ func GetAddApplicationForm(webDriver *agouti.Page) *AddApplication {
 		Branch:          webDriver.Find(`input#branch`),
 		AutoMerge:       webDriver.Find(`input[type=checkbox]`),
 		Submit:          webDriver.FindByButton(`Submit`),
+		GitCredentials:  webDriver.Find(`div.auth-message`),
 		ViewApplication: webDriver.FindByButton("View Applications"),
 	}
 

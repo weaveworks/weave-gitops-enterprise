@@ -36,7 +36,6 @@ jobs:
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       GITOPS_BIN_PATH: /tmp/gitops
-      PCTL_BIN_PATH: ${{ github.workspace }}/cmd/pctl/pctl_${{ matrix.os_name }}_amd64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
       EKS_LEAF_KUBECONFIG: '/tmp/eks-leaf-kubeconfig'
@@ -123,13 +122,7 @@ jobs:
       with:
         os: ${{ matrix.os }}
         os_name: ${{ matrix.os_name }}
-        path: ${{ env.GITOPS_BIN_PATH }}
-    - name: Download pctl binary from GH
-      run: |
-        mkdir -p cmd/pctl/
-        wget https://github.com/weaveworks/pctl/releases/download/v0.11.0/pctl_${{ matrix.os_name }}_amd64.tar.gz
-        tar -xf pctl_${{ matrix.os_name }}_amd64.tar.gz
-        mv pctl $PCTL_BIN_PATH
+        path: ${{ env.GITOPS_BIN_PATH }}    
     - name: Download wk binary from s3
       run: |
         mkdir -p cmd/wk/
@@ -233,7 +226,6 @@ jobs:
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       GITOPS_BIN_PATH: /tmp/gitops
-      PCTL_BIN_PATH: ${{ github.workspace }}/cmd/pctl/pctl_${{ matrix.os_name }}_amd64
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
       GCE_LEAF_KUBECONFIG: '/tmp/gce-leaf-kubeconfig'
@@ -311,12 +303,6 @@ jobs:
         os: ${{ matrix.os }}
         os_name: ${{ matrix.os_name }}
         path: ${{ env.GITOPS_BIN_PATH }}
-    - name: Download pctl binary from GH
-      run: |
-        mkdir -p cmd/pctl/
-        wget https://github.com/weaveworks/pctl/releases/download/v0.11.0/pctl_${{ matrix.os_name }}_amd64.tar.gz
-        tar -xf pctl_${{ matrix.os_name }}_amd64.tar.gz
-        mv pctl $PCTL_BIN_PATH
     - name: Download wk binary from s3
       run: |
         mkdir -p cmd/wk/
