@@ -66,27 +66,6 @@ const FormSteps = {
       ChildrenOccurences[]
     >([]);
 
-    console.log('blabls');
-
-    const switchChildVisibility = useCallback(
-      (childName: string) => {
-        const updatedProperties = properties.map(property => {
-          const updatedChildren = property.children.map(child => {
-            if (child.props.name === childName && !child.props.firstOfAKind) {
-              return React.cloneElement(child, {
-                visible: !child.props.visible,
-              });
-            }
-            return child;
-          });
-          property.children = updatedChildren;
-          return property;
-        });
-        setProperties(updatedProperties);
-      },
-      [properties],
-    );
-
     const getChildrenOccurences = useCallback(() => {
       const getChildrenNamesAndVisibility = properties?.flatMap(property =>
         property.children.map(child => {
@@ -131,8 +110,6 @@ const FormSteps = {
               clicked={p.clicked}
               setActiveStep={p.setActiveStep}
               childrenOccurences={childrenOccurences}
-              setChildrenOccurences={setChildrenOccurences}
-              switchChildVisibility={switchChildVisibility}
               addUserSelectedFields={p.addUserSelectedFields}
             />
           );

@@ -3,32 +3,31 @@
 import { ObjectFieldTemplateProps } from '@rjsf/core';
 import React, { Dispatch, ReactNode } from 'react';
 
-export function ObjectFieldTemplate(props: ObjectFieldTemplateProps) {
-  return (
-    <>
-      {doGrouping({
-        formContext: props.formContext,
-        properties: props.properties,
-        groups: props.uiSchema['ui:groups'],
-        previouslyVisibleFields: [],
-      })}
-    </>
-  );
-}
-
 const EXTRANEOUS = Symbol('EXTRANEOUS');
 
-function doGrouping({
+const DefaultTemplate = (props: {
+  properties: ObjectFieldTemplateProps['properties'];
+}) => {
+  return props?.properties?.map((p, index) => (
+    <div key={index}>{p.content}</div>
+  ));
+};
+
+const doGrouping = ({
   properties,
   groups,
   formContext,
   previouslyVisibleFields,
+  userSelectedFields,
+  addUserSelectedFields,
 }: {
   properties: ObjectFieldTemplateProps['properties'];
   formContext: ObjectFieldTemplateProps['formContext'];
   groups: string | object;
   previouslyVisibleFields: string[];
-}) {
+  userSelectedFields: string[];
+  addUserSelectedFields: (name: string) => void;
+}) => {
   if (!Array.isArray(groups)) {
     return properties?.map((property, index) => {
       return <div key={index}>{property.content}</div>;
@@ -40,10 +39,13 @@ function doGrouping({
       if (found?.length === 1) {
         const el = found[0];
 
-        const visible = previouslyVisibleFields.includes(el.content.props.name)
+        const firstOfAKind = previouslyVisibleFields.includes(
+          el.content.props.name,
+        )
           ? false
           : true;
-        const firstOfAKind = visible ? true : false;
+        let visible =
+          firstOfAKind || userSelectedFields.includes(el.content.props.name);
 
         return React.cloneElement(el.content, { visible, firstOfAKind });
       }
@@ -79,11 +81,14 @@ function doGrouping({
               active: key === activeStep,
               clicked: key === clickedStep,
               setActiveStep,
+              addUserSelectedFields,
               children: doGrouping({
                 formContext,
                 properties,
                 groups: field,
                 previouslyVisibleFields,
+                userSelectedFields,
+                addUserSelectedFields,
               }),
             },
           ];
@@ -104,12 +109,21 @@ function doGrouping({
   });
 
   return mapped;
-}
+};
 
-function DefaultTemplate(props: {
-  properties: ObjectFieldTemplateProps['properties'];
-}) {
-  return props?.properties?.map((p, index) => (
-    <div key={index}>{p.content}</div>
-  ));
-}
+const ObjectFieldTemplate = (props: any) => {
+  return (
+    <>
+      {doGrouping({
+        formContext: props.formContext,
+        properties: props.properties,
+        groups: props.uiSchema['ui:groups'],
+        previouslyVisibleFields: [],
+        userSelectedFields: props.userSelectedFields,
+        addUserSelectedFields: props.addUserSelectedFields,
+      })}
+    </>
+  );
+};
+
+export default ObjectFieldTemplate;

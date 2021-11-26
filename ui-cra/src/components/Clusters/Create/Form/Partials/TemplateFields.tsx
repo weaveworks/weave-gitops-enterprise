@@ -5,7 +5,6 @@ import React, {
   Dispatch,
   useEffect,
   useCallback,
-  ReactNode,
 } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
@@ -24,8 +23,7 @@ import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
 import { FormStep } from '../Step';
 import styled from 'styled-components';
-
-const EXTRANEOUS = Symbol('EXTRANEOUS');
+import ObjectFieldTemplate from '../GroupedSchema';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -73,6 +71,7 @@ const TemplateFields: FC<{
   );
   const [userSelectedFields, setUserSelectedFields] = useState<string[]>([]);
   const [formContextId, setFormContextId] = useState<number>(0);
+  const [uiSchema, setuiSchema] = useState<any>({});
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -138,28 +137,12 @@ const TemplateFields: FC<{
     return [groups];
   }, [activeTemplate]);
 
-  const [uiSchema, setuiSchema] = useState<any>({
-    'ui:groups': sections,
-    'ui:template': (props: ObjectFieldTemplateProps) => (
-      <ObjectFieldTemplate {...props} />
-    ),
-  });
-
   const handleSelectProfiles = useCallback(
     (profiles: UpdatedProfile[]) => {
       setSelectedProfiles(profiles);
       onProfilesUpdate(profiles);
     },
     [onProfilesUpdate],
-  );
-
-  const DefaultTemplate = useCallback(
-    (props: { properties: ObjectFieldTemplateProps['properties'] }) => {
-      return props?.properties?.map((p, index) => (
-        <div key={index}>{p.content}</div>
-      ));
-    },
-    [],
   );
 
   const addUserSelectedFields = useCallback(
@@ -173,132 +156,17 @@ const TemplateFields: FC<{
     [userSelectedFields],
   );
 
-  const doGrouping = useCallback(
-    ({
-      properties,
-      groups,
-      formContext,
-      previouslyVisibleFields,
-      userSelectedFields,
-    }: {
-      properties: ObjectFieldTemplateProps['properties'];
-      formContext: ObjectFieldTemplateProps['formContext'];
-      groups: string | object;
-      previouslyVisibleFields: string[];
-      userSelectedFields: string[];
-    }) => {
-      if (!Array.isArray(groups)) {
-        return properties?.map((property, index) => {
-          return <div key={index}>{property.content}</div>;
-        });
-      }
-      const mapped = groups.map((g, index) => {
-        if (typeof g === 'string') {
-          const found = properties?.filter(property => property.name === g);
-          if (found?.length === 1) {
-            const el = found[0];
-
-            const firstOfAKind = previouslyVisibleFields.includes(
-              el.content.props.name,
-            )
-              ? false
-              : true;
-            let visible =
-              firstOfAKind ||
-              userSelectedFields.includes(el.content.props.name);
-
-            return React.cloneElement(el.content, { visible, firstOfAKind });
-          }
-          return EXTRANEOUS;
-        } else if (typeof g === 'object') {
-          const { templates, activeStep, setActiveStep, clickedStep } =
-            formContext;
-          const GroupComponent = templates
-            ? templates[g['ui:template']]
-            : DefaultTemplate;
-
-          let previouslyVisibleFields: string[] = [];
-
-          const _properties = Object.keys(g).reduce(
-            (
-              acc: {
-                name: string;
-                active: boolean;
-                clicked: boolean;
-                setActiveStep: Dispatch<
-                  React.SetStateAction<string | undefined>
-                >;
-                children: ReactNode;
-              }[],
-              key: string,
-            ) => {
-              const field = g[key];
-
-              if (key.startsWith('ui:')) return acc;
-              if (!Array.isArray(field)) return acc;
-
-              const section = [
-                ...acc,
-                {
-                  name: key,
-                  active: key === activeStep,
-                  clicked: key === clickedStep,
-                  setActiveStep,
-                  addUserSelectedFields,
-                  children: doGrouping({
-                    formContext,
-                    properties,
-                    groups: field,
-                    previouslyVisibleFields,
-                    userSelectedFields,
-                  }),
-                },
-              ];
-
-              previouslyVisibleFields = Array.from(
-                new Set([...previouslyVisibleFields, ...field]),
-              );
-
-              return section;
-            },
-            [],
-          );
-
-          return <GroupComponent key={index} properties={_properties} />;
-        }
-
-        throw new Error('Invalid object type: ' + typeof g + ' ' + g);
-      });
-
-      return mapped;
-    },
-    [DefaultTemplate, addUserSelectedFields],
-  );
-
-  const ObjectFieldTemplate = useCallback(
-    (props: ObjectFieldTemplateProps) => {
-      return (
-        <>
-          {doGrouping({
-            formContext: props.formContext,
-            properties: props.properties,
-            groups: props.uiSchema['ui:groups'],
-            previouslyVisibleFields: [],
-            userSelectedFields,
-          })}
-        </>
-      );
-    },
-    [doGrouping, userSelectedFields],
-  );
-
   useEffect(() => {
-    setFormContextId((prevState: any) => prevState + 1);
+    setFormContextId((prevState: number) => prevState + 1);
 
     setuiSchema({
       'ui:groups': sections,
       'ui:template': (props: ObjectFieldTemplateProps) => (
-        <ObjectFieldTemplate {...props} />
+        <ObjectFieldTemplate
+          {...props}
+          userSelectedFields={userSelectedFields}
+          addUserSelectedFields={addUserSelectedFields}
+        />
       ),
     });
 
@@ -311,7 +179,8 @@ const TemplateFields: FC<{
     onProfilesUpdate,
     handleSelectProfiles,
     sections,
-    ObjectFieldTemplate,
+    addUserSelectedFields,
+    userSelectedFields,
   ]);
 
   return (
