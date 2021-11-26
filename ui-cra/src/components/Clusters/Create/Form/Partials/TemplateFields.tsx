@@ -71,12 +71,14 @@ const TemplateFields: FC<{
   const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
     [],
   );
+  const [userSelectedFields, setUserSelectedFields] = useState<string[]>([]);
+  const [formContextId, setFormContextId] = useState<number>(0);
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
-      return `${index + 1}. ${object.kind} (${object.displayName})`;
+      return `${index + 1}.${object.kind} (${object.displayName})`;
     }
-    return `${index + 1}. ${object.kind}`;
+    return `${index + 1}.${object.kind}`;
   };
 
   const required = useMemo(() => {
@@ -136,6 +138,13 @@ const TemplateFields: FC<{
     return [groups];
   }, [activeTemplate]);
 
+  const [uiSchema, setuiSchema] = useState<any>({
+    'ui:groups': sections,
+    'ui:template': (props: ObjectFieldTemplateProps) => (
+      <ObjectFieldTemplate {...props} />
+    ),
+  });
+
   const handleSelectProfiles = useCallback(
     (profiles: UpdatedProfile[]) => {
       setSelectedProfiles(profiles);
@@ -153,11 +162,8 @@ const TemplateFields: FC<{
     [],
   );
 
-  const [userSelectedFields, setUserSelectedFields] = useState<string[]>([]);
-
   const addUserSelectedFields = useCallback(
     (name: string) => {
-      console.log('jhfd');
       if (userSelectedFields.includes(name)) {
         setUserSelectedFields(userSelectedFields.filter(el => el !== name));
       } else {
@@ -252,7 +258,6 @@ const TemplateFields: FC<{
               previouslyVisibleFields = Array.from(
                 new Set([...previouslyVisibleFields, ...field]),
               );
-              console.log('previously visible fields', previouslyVisibleFields);
 
               return section;
             },
@@ -272,7 +277,6 @@ const TemplateFields: FC<{
 
   const ObjectFieldTemplate = useCallback(
     (props: ObjectFieldTemplateProps) => {
-      console.log('regrouping');
       return (
         <>
           {doGrouping({
@@ -288,21 +292,27 @@ const TemplateFields: FC<{
     [doGrouping, userSelectedFields],
   );
 
-  const uiSchema = useMemo(() => {
-    return {
+  useEffect(() => {
+    setFormContextId((prevState: any) => prevState + 1);
+
+    setuiSchema({
       'ui:groups': sections,
       'ui:template': (props: ObjectFieldTemplateProps) => (
         <ObjectFieldTemplate {...props} />
       ),
-    };
-  }, [sections, ObjectFieldTemplate]);
+    });
 
-  useEffect(() => {
     const requiredProfiles = updatedProfiles.filter(
       profile => profile.required === true,
     );
     handleSelectProfiles(requiredProfiles);
-  }, [updatedProfiles, onProfilesUpdate, handleSelectProfiles]);
+  }, [
+    updatedProfiles,
+    onProfilesUpdate,
+    handleSelectProfiles,
+    sections,
+    ObjectFieldTemplate,
+  ]);
 
   return (
     <FormWrapper
@@ -313,6 +323,7 @@ const TemplateFields: FC<{
       onError={() => console.log('errors')}
       uiSchema={uiSchema}
       formContext={{
+        formContextId,
         templates: FormSteps,
         clickedStep,
         setActiveStep,

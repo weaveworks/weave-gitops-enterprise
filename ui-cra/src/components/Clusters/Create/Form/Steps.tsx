@@ -66,6 +66,8 @@ const FormSteps = {
       ChildrenOccurences[]
     >([]);
 
+    console.log('blabls');
+
     const switchChildVisibility = useCallback(
       (childName: string) => {
         const updatedProperties = properties.map(property => {
