@@ -14,7 +14,6 @@ import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
 import { GitOpsBlue } from '../../../../muiTheme';
-import classNames from 'classnames';
 import { ChildrenOccurences } from '../../../../types/custom';
 
 const Section = styled.div`
