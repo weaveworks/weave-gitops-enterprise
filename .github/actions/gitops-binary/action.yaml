@@ -24,7 +24,7 @@ runs:
         # mv gitops-${{ inputs.os }} ${{ inputs.path }}
 
         curl -LO https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0-rc2/gitops-${{ inputs.os_name }}-x86_64.tar.gz
-        tar -xf gitops-linux-x86_64.tar.gz
+        tar -xf gitops-${{ inputs.os_name }}-x86_64.tar.gz
         mv gitops ${{ inputs.path }}
 
         # Print out Version
