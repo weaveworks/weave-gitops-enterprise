@@ -40,15 +40,6 @@ type GitOps struct {
 	ErrorBar     *agouti.Selection
 }
 
-// scrolls the window
-func ScrollWindow(webDriver *agouti.Page, xOffSet int, yOffSet int) {
-	// script := fmt.Sprintf(`var elmnt = document.evaluate('%s', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; elmnt.scrollIntoView();`, xpath)
-
-	script := fmt.Sprintf(`window.scrollTo(%d, %d)`, xOffSet, yOffSet)
-	var result interface{}
-	_ = webDriver.RunScript(script, map[string]interface{}{}, &result)
-}
-
 // This function waits for previw and gitops to appear (become visible)
 func WaitForDynamicSecToAppear(webDriver *agouti.Page) {
 	Eventually(webDriver.FindByXPath(`//div[@name="Preview"]/following-sibling::textarea[1]`)).Should(BeFound())
