@@ -25,6 +25,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/types"
@@ -44,10 +45,10 @@ var SELENIUM_SERVICE_URL string
 
 var webDriver *agouti.Page
 var defaultUIURL = "http://localhost:8090"
-var defaultPctlBinPath = "/usr/local/bin/pctl"
 var defaultGitopsBinPath = "/usr/local/bin/gitops"
 var defaultCapiEndpointURL = "http://localhost:8090"
 
+const WGE_WINDOW_NAME = "weave-gitops-enterprise"
 const GITOPS_DEFAULT_NAMESPACE = "wego-system"
 
 func GetWebDriver() *agouti.Page {
@@ -56,13 +57,6 @@ func GetWebDriver() *agouti.Page {
 
 func SetWebDriver(wb *agouti.Page) {
 	webDriver = wb
-}
-
-func GetPctlBinPath() string {
-	if os.Getenv("PCTL_BIN_PATH") != "" {
-		return os.Getenv("PCTL_BIN_PATH")
-	}
-	return defaultPctlBinPath
 }
 
 func GetGitopsBinPath() string {
@@ -227,8 +221,15 @@ func InitializeWebdriver(wgeURL string) {
 		Expect(err).NotTo(HaveOccurred())
 	}
 
-	By("When I navigate to MCCP UI Page", func() {
+	By("When I navigate to WGE UI Page", func() {
 		Expect(webDriver.Navigate(wgeURL)).To(Succeed())
+	})
+
+	By(fmt.Sprintf("And I set the default WGE window name to: %s", WGE_WINDOW_NAME), func() {
+		pages.SetWindowName(webDriver, WGE_WINDOW_NAME)
+		weaveGitopsWindowName := pages.GetWindowName(webDriver)
+		Expect(weaveGitopsWindowName).To(Equal(WGE_WINDOW_NAME))
+
 	})
 }
 
@@ -1009,23 +1010,6 @@ func InstallAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
 		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyCoreControllers(gitopsNamespace)
-	})
-}
-
-func InstallAndVerifyPctl(gitopsNamespace string) {
-	By("And I run 'pctl install' command with flux-namespace "+gitopsNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --flux-namespace=%s", GetPctlBinPath(), gitopsNamespace))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
-		Expect(string(session.Err.Contents())).Should(BeEmpty())
-
-		By("And I wait for the pctl controller to be ready", func() {
-			command := exec.Command("sh", "-c", "kubectl wait --for=condition=Ready --timeout=120s -n profiles-system --all pod")
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
-		})
 	})
 }
 

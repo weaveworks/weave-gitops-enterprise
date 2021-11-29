@@ -15,7 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string, alert_success_msg string) {
+func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
 	if gitProvider == "github" {
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
@@ -50,16 +50,11 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string, ale
 			Eventually(activate.AuthroizeWeaveworks).Should(BeEnabled())
 			Expect(activate.AuthroizeWeaveworks.Click()).To(Succeed())
 
-			if pages.ElementExist(activate.ConfirmPassword) {
-				Eventually(activate.ConfirmPassword).Should(BeVisible())
-				Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
-			}
-
 			Eventually(activate.ConnectedMessage).Should(BeVisible())
+			Expect(webDriver.CloseWindow()).ShouldNot(HaveOccurred())
 
 			// Device is connected, now move back to application window
-			Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
-			pages.WaitForAuthenticationAlert(webDriver, alert_success_msg)
+			Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
 		}
 	}
 
@@ -136,17 +131,15 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(session).Should(gexec.Exit())
 					Expect(string(session.Err.Contents())).Should(BeEmpty())
 				})
-
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationPage(webDriver)
-				// app add from UI is not working due to wego core older release
 				// addApp := pages.GetAddApplicationForm(webDriver)
 
-				// By("And wait for Application page to be rendered", func() {
-				// 	applicationsPage.WaitForPageToLoad(webDriver, 0)
-				// 	Eventually(applicationsPage.ApplicationHeader).Should(BeVisible())
-				// 	Eventually(applicationsPage.AddApplication).Should(BeVisible())
-				// })
+				By("And wait for Application page to be rendered", func() {
+					applicationsPage.WaitForPageToLoad(webDriver, 0)
+					Eventually(applicationsPage.ApplicationHeader).Should(BeVisible())
+					Eventually(applicationsPage.AddApplication).Should(BeVisible())
+				})
 
 				// By(fmt.Sprintf("Then I add application '%s' to weave gitops cluster", appName), func() {
 				// 	Expect(applicationsPage.AddApplication.Click()).To(Succeed())
@@ -155,15 +148,15 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				// 	Expect(addApp.Name.SendKeys(appName)).To(Succeed())
 				// 	Expect(addApp.SourceRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
 				// 	Expect(addApp.ConfigRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
-				// 	Expect(addApp.Path.SendKeys(fmt.Sprintf(`./%s`, appPath))).To(Succeed())
+				// 	Expect(addApp.Path.SendKeys(appPath)).To(Succeed())
 				// 	Expect(addApp.AutoMerge.Check()).To(Succeed())
-
-				// 	Expect(addApp.Submit.Click()).To(Succeed())
-
 				// })
 
 				// By(`And authenticate with Github`, func() {
-				// 	AuthenticateWithGitProvider(webDriver, "github", "Application added successfully!")
+				// 	AuthenticateWithGitProvider(webDriver, "github")
+				// 	Eventually(addApp.GitCredentials).Should(BeVisible())
+				// 	Expect(addApp.Submit.Click()).To(Succeed())
+				// 	pages.WaitForAuthenticationAlert(webDriver, "Application added successfully!")
 				// 	Expect(addApp.ViewApplication.Click()).To(Succeed())
 				// })
 
@@ -224,8 +217,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(`Then authenticate with Github`, func() {
-					AuthenticateWithGitProvider(webDriver, "github", "Authentication Successful")
+					AuthenticateWithGitProvider(webDriver, "github")
+					pages.WaitForAuthenticationAlert(webDriver, "Authentication Successful")
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+
 				})
 
 				By(fmt.Sprintf(`And verify %s application commit history`, appName), func() {
