@@ -24,6 +24,10 @@ service ClustersService {
       get : "/v1/templates/{template_name}/params"
     };
   }
+  // Returns a list of profiles within that template
+  // `gitops get <template-name> --list-profiles`
+  // The template annotations appear in the following form
+  // capi.weave.works/profile-<n> where n is a number
   rpc ListTemplateProfiles(ListTemplateProfilesRequest)
       returns (ListTemplateProfilesResponse) {
     option (google.api.http) = {
