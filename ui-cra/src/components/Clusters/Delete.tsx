@@ -25,9 +25,10 @@ import { Loader } from '../Loader';
 import {
   getProviderToken,
   GithubDeviceAuthModal,
+  RepoInputWithAuth,
 } from '@weaveworks/weave-gitops';
-import { isUnauthenticated } from '../../utils/request';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import { isUnauthenticated } from '../../utils/request';
 
 interface Props {
   selectedCapiClusters: string[];
@@ -190,6 +191,27 @@ export const DeleteClusterDialog: FC<Props> = ({
             }}
             open={showAuthDialog}
             repoName="config"
+          />
+          {/* <RepoInputWithAuth /> */}
+          <RepoInputWithAuth
+            isAuthenticated={false}
+            onChange={e => {
+              console.log(e);
+            }}
+            onProviderChange={(provider: GitProvider) => {
+              console.log(provider);
+            }}
+            onAuthClick={provider => {
+              if (provider === GitProvider.GitHub) {
+                console.log('open GithubAuth modal');
+              }
+            }}
+            required
+            id="url"
+            label="Source Repo URL"
+            variant="standard"
+            value=""
+            helperText=""
           />
         </DialogContent>
       </div>
