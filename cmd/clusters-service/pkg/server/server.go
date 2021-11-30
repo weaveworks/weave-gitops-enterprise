@@ -27,8 +27,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -769,4 +769,22 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	}
 
 	return file, nil
+}
+
+func (s *server) getConfig(ctx context.Context) (*capiv1_proto.GetConfigResponse, error) {
+	gp, err := getGitProvider(ctx)
+
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error authenticatingt: %s", err.Error())
+	}
+
+	var repositoryURL string
+
+	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
+
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
+	}
+
+	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
 }

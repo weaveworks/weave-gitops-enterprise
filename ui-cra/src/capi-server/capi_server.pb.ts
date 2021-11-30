@@ -177,6 +177,13 @@ export type ProfileValues = {
   values?: string
 }
 
+export type GetConfigRequest = {
+}
+
+export type GetConfigResponse = {
+  repositoryURL?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -210,5 +217,8 @@ export class ClustersService {
   }
   static GetProfileValues(req: GetProfileValuesRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
     return fm.fetchReq<GetProfileValuesRequest, GoogleApiHttpbody.HttpBody>(`/v1/profiles/${req["profileName"]}/${req["profileVersion"]}/values?${fm.renderURLSearchParams(req, ["profileName", "profileVersion"])}`, {...initReq, method: "GET"})
+  }
+  static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
+    return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

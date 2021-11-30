@@ -85,6 +85,11 @@ service ClustersService {
       get: "/v1/profiles/{profile_name}/{profile_version}/values"
     };
   }
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
+    option (google.api.http) = {
+      get : "/v1/config"
+    };
+  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -260,4 +265,10 @@ message ProfileValues {
   string name = 1;
   string version = 2;
   string values = 3;
+}
+
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  string repositoryURL = 1;
 }

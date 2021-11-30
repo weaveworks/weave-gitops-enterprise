@@ -192,14 +192,13 @@ export const DeleteClusterDialog: FC<Props> = ({
             open={showAuthDialog}
             repoName="config"
           />
-          {/* We dont actually need this, just the bit that manages the grabing */}
-          {/* of the token from Gitlab */}
           <RepoInputWithAuth
             isAuthenticated={false}
             onChange={e => {
               // update value in state
               console.log(e);
             }}
+            // disabled={true}
             onProviderChange={(provider: GitProvider) => {
               console.log(provider);
             }}
