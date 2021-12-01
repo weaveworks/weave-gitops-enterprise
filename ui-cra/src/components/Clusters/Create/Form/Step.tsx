@@ -25,7 +25,7 @@ const Title = styled.div<{ name?: string }>`
   align-items: center;
   padding-bottom: ${theme.spacing.small};
   font-size: ${theme.fontSizes.large};
-  span {
+  span.metadata {
     margin-left: ${theme.spacing.small};
     font-size: ${theme.fontSizes.tiny};
     color: rgba(0, 0, 0, 0.54);
@@ -150,7 +150,7 @@ export const FormStep: FC<{
       <Title name={title}>
         <span className="section-name">{step?.name || title}</span>&nbsp;
         {hiddenFieldsPerStep !== 0 ? (
-          <span>
+          <span className="metadata">
             (&nbsp;{hiddenFieldsPerStep}&nbsp;
             {hiddenFieldsPerStep > 1 ? 'HIDDEN FIELDS' : 'HIDDEN FIELD'} )
           </span>
