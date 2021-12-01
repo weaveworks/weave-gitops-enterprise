@@ -784,32 +784,50 @@ func TestCreatePullRequest(t *testing.T) {
 			dbRows: 1,
 			committedFiles: []CommittedFile{
 				{
+					Path: ".weave-gitops/apps/capi/dev.yaml",
+					Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: dev
+`,
+				},
+				{
 					Path: ".weave-gitops/clusters/dev/system/demo-profile.yaml",
-					Content: `---
-					apiVersion: source.toolkit.fluxcd.io/v1beta1
-					kind: HelmRepository
-					metadata:
-					  name: weaveworks-charts
-					  namespace: default
-					spec:
-					  interval: 1m
-					  url: https://github.com/org/repo.git
-					---
-					apiVersion: helm.toolkit.fluxcd.io/v2beta1
-					kind: HelmRelease
-					metadata:
-					  name: test
-					  namespace: default
-					spec:
-					  chart:
-						spec:
-						  chart: podinfo
-						  sourceRef:
-							kind: HelmRepository
-							name: weaveworks-charts
-							namespace: default
-						  version: 0.1.0
-					  interval: 1m`,
+					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: default
+spec:
+  interval: 10m0s
+  url: http://127.0.0.1:%s/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: dev-demo-profile
+  namespace: wego-system
+spec:
+  chart:
+    spec:
+      chart: demo-profile
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+      version: 0.0.1
+  interval: 1m0s
+  values:
+    favoriteDrink: coffee
+status: {}
+`,
 				},
 			},
 			expected: "https://github.com/org/repo/pull/1",
