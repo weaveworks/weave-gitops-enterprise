@@ -254,9 +254,46 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
 	}
+	// wip
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err = s.client.Get(ctx, client.ObjectKey{
+		Name:      s.profileHelmRepositoryName,
+		Namespace: os.Getenv("RUNTIME_NAMESPACE"),
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+
+	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
+		APIVersion: helmRepo.TypeMeta.APIVersion,
+		Kind:       helmRepo.TypeMeta.Kind,
+		Name:       helmRepo.ObjectMeta.Name,
+		Namespace:  helmRepo.ObjectMeta.Namespace,
+	}
+
+	for _, pvs := range msg.Values {
+		// Check the values and if empty use profile defaults. This should happen before parsing.
+		if pvs.Values == "" {
+			ref := &charts.ChartReference{Chart: pvs.Name, Version: pvs.Version, SourceRef: sourceRef}
+			bs, err := s.helmChartClient.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+			if err != nil {
+				return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
+			}
+			// Base64 encode the content of values.yaml and assign it
+			pvs.Values = base64.StdEncoding.EncodeToString(bs)
+		}
+
+		// Check the version and if empty use thr latest version in profile defaults.
+		if pvs.Version == "" {
+			pvs.Version, err = getProfileLatestVersion(ctx, pvs.Name, helmRepo)
+			if err != nil {
+				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
+			}
+		}
+	}
 
 	if len(msg.Values) > 0 {
-		profilesFile, err := s.generateProfileFiles(
+		profilesFile, err := generateProfileFiles(
 			ctx,
 			s.profileHelmRepositoryName,
 			os.Getenv("RUNTIME_NAMESPACE"),
@@ -753,7 +790,7 @@ func isMissingVariableError(err error) (string, bool) {
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func (s *server) generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1beta1.HelmRepository{}
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Name:      helmRepoName,
@@ -774,35 +811,9 @@ func (s *server) generateProfileFiles(ctx context.Context, helmRepoName, helmRep
 		Spec: helmRepo.Spec,
 	}
 
-	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
-		APIVersion: helmRepo.TypeMeta.APIVersion,
-		Kind:       helmRepo.TypeMeta.Kind,
-		Name:       helmRepo.ObjectMeta.Name,
-		Namespace:  helmRepo.ObjectMeta.Namespace,
-	}
-
 	var profileName string
 	var helmReleases []*helmv2beta1.HelmRelease
 	for _, pvs := range profileValues {
-		// Check the values and if empty use profile defaults. This should happen before parsing.
-		if pvs.Values == "" {
-			ref := &charts.ChartReference{Chart: pvs.Name, Version: pvs.Version, SourceRef: sourceRef}
-			bs, err := s.helmChartClient.FileFromChart(ctx, ref, chartutil.ValuesfileName)
-			if err != nil {
-				return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
-			}
-			// Base64 encode the content of values.yaml and assign it
-			pvs.Values = base64.StdEncoding.EncodeToString(bs)
-		}
-
-		// Check the version and if empty use thr latest version in profile defaults.
-		if pvs.Version == "" {
-			pvs.Version, err = getProfileLatestVersion(ctx, pvs.Name, helmRepo)
-			if err != nil {
-				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
-			}
-		}
-
 		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
 		if err != nil {
 			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
