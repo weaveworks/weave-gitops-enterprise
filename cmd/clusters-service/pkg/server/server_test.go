@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -26,6 +28,8 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -1347,7 +1351,8 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	// TODO: Pass in a HelmRepo for testing
-	hr = makeTestHelmRepository("base")
+	ts := httptest.NewServer(makeServeMux(t))
+	hr = makeTestHelmRepository(ts.URL)
 	cc := makeChartClient(t, c, hr)
 
 	s := NewClusterServer(logr.Discard(),
@@ -1565,4 +1570,50 @@ func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepos
 type CommittedFile struct {
 	Path    string
 	Content string
+}
+
+func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/charts/index.yaml", func(w http.ResponseWriter, req *http.Request) {
+		b, err := yaml.Marshal(makeTestChartIndex(opts...))
+		if err != nil {
+			t.Fatal(err)
+		}
+		w.Write(b)
+	})
+	mux.Handle("/", http.FileServer(http.Dir("testdata")))
+	return mux
+}
+
+func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
+	ri := &repo.IndexFile{
+		APIVersion: "v1",
+		Entries: map[string]repo.ChartVersions{
+			"demo-profile": repo.ChartVersions{
+				{
+					Metadata: &chart.Metadata{
+						Annotations: map[string]string{
+							charts.ProfileAnnotation: "demo-profile",
+						},
+						Description: "Simple demo profile",
+						Home:        "https://example.com/testing",
+						Name:        "demo-profile",
+						Sources: []string{
+							"https://example.com/testing",
+						},
+						Version: "0.0.1",
+					},
+					Created: time.Now(),
+					Digest:  "aaff4545f79d8b2913a10cb400ebb6fa9c77fe813287afbacf1a0b897cdffffff",
+					URLs: []string{
+						"/charts/demo-profile-0.1.0.tgz",
+					},
+				},
+			},
+		},
+	}
+	for _, o := range opts {
+		o(ri)
+	}
+	return ri
 }
