@@ -771,7 +771,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	return file, nil
 }
 
-func (s *server) getConfig(ctx context.Context) (*capiv1_proto.GetConfigResponse, error) {
+func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigRequest) (*capiv1_proto.GetConfigResponse, error) {
 	gp, err := getGitProvider(ctx)
 
 	if err != nil {
@@ -788,3 +788,7 @@ func (s *server) getConfig(ctx context.Context) (*capiv1_proto.GetConfigResponse
 
 	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
 }
+
+
+// have GetConfig(context.Context) (*capi_server.GetConfigResponse, error)
+// want GetConfig(context.Context, *capi_server.GetConfigRequest) (*capi_server.GetConfigResponse, error)
