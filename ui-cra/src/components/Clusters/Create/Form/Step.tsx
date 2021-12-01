@@ -142,9 +142,13 @@ export const FormStep: FC<{
     step?.children.filter(child => !child.props.visible).length || 0;
 
   return (
-    <Section ref={stepRef} className={className}>
+    <Section
+      data-name={step?.name || title}
+      ref={stepRef}
+      className={className}
+    >
       <Title name={title}>
-        {step?.name || title}&nbsp;
+        <span className="section-name">{step?.name || title}</span>&nbsp;
         {hiddenFieldsPerStep !== 0 ? (
           <span>
             (&nbsp;{hiddenFieldsPerStep}&nbsp;

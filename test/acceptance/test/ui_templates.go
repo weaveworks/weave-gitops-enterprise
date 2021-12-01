@@ -28,7 +28,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 	for section, parameters := range paramSection {
 		By(fmt.Sprintf("And set template section %s parameter values", section), func() {
 			templateSection := createPage.GetTemplateSection(webDriver, section)
-			Expect(templateSection.Name).Should(HaveText(section))
+			Eventually(templateSection.Name, ASSERTION_6MINUTE_TIME_OUT).Should(HaveText(section))
 
 			for i := 0; i < len(parameters); i++ {
 				paramSet := false
@@ -321,7 +321,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
+			FIt("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
