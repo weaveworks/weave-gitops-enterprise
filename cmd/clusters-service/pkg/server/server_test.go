@@ -1589,7 +1589,7 @@ func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
 		}
 		w.Write(b)
 	})
-	mux.Handle("/", http.FileServer(http.Dir("testdata")))
+	mux.Handle("/", http.FileServer(http.Dir("../charts/testdata")))
 	return mux
 }
 
@@ -1597,7 +1597,7 @@ func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
 	ri := &repo.IndexFile{
 		APIVersion: "v1",
 		Entries: map[string]repo.ChartVersions{
-			"demo-profile": repo.ChartVersions{
+			"demo-profile": {
 				{
 					Metadata: &chart.Metadata{
 						Annotations: map[string]string{
@@ -1614,7 +1614,7 @@ func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
 					Created: time.Now(),
 					Digest:  "aaff4545f79d8b2913a10cb400ebb6fa9c77fe813287afbacf1a0b897cdffffff",
 					URLs: []string{
-						"/charts/demo-profile-0.0.1.tgz",
+						"/charts/demo-profile-0.1.0.tgz",
 					},
 				},
 			},
