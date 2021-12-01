@@ -2,7 +2,6 @@ package charts
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"path"
@@ -19,7 +18,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/yaml"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/runtime/dependency"
@@ -175,54 +173,6 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 		conf.RepositoryConfig = path.Join(h.CacheDir, "/repository.yaml")
 	}
 	return conf
-}
-
-// CreateHelmRelease creates and returns a new HelmRelease using the chart
-// details presented.
-//
-// values is assumed to be a base64 encoded JSON body.
-func CreateHelmRelease(chart, version, values, clusterName string, helmRepo *sourcev1beta1.HelmRepository) (*helmv2beta1.HelmRelease, error) {
-	decoded, err := base64.StdEncoding.DecodeString(values)
-	if err != nil {
-		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
-	}
-	vals := map[string]interface{}{}
-	if err := yaml.Unmarshal(decoded, &vals); err != nil {
-		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
-	}
-	jsonValues, err := json.Marshal(vals)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal YAML values into JSON: %w", err)
-	}
-
-	hr := helmv2beta1.HelmRelease{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", clusterName, chart),
-			Namespace: "wego-system",
-		},
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: helmv2beta1.GroupVersion.Identifier(),
-			Kind:       helmv2beta1.HelmReleaseKind,
-		},
-		Spec: helmv2beta1.HelmReleaseSpec{
-			Chart: helmv2beta1.HelmChartTemplate{
-				Spec: helmv2beta1.HelmChartTemplateSpec{
-					Chart:   chart,
-					Version: version,
-					SourceRef: helmv2beta1.CrossNamespaceObjectReference{
-						APIVersion: sourcev1beta1.GroupVersion.Identifier(),
-						Kind:       sourcev1beta1.HelmRepositoryKind,
-						Name:       helmRepo.ObjectMeta.Name,
-						Namespace:  helmRepo.ObjectMeta.Namespace,
-					},
-				},
-			},
-			Interval: metav1.Duration{Duration: time.Minute},
-			Values:   &apiextensionsv1.JSON{Raw: jsonValues},
-		},
-	}
-
-	return &hr, nil
 }
 
 // MakeHelmReleasesInLayers accepts a set of ChartInstall requests and returns

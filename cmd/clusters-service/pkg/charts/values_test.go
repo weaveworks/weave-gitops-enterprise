@@ -2,7 +2,6 @@ package charts
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 	"github.com/fluxcd/pkg/runtime/dependency"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/google/go-cmp/cmp"
-	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
@@ -209,31 +207,6 @@ func TestFileFromChart_missing_chart(t *testing.T) {
 
 	_, err := cc.FileFromChart(context.TODO(), c, "values.yaml")
 	test.AssertErrorMatch(t, `chart "demo-profile" version "0.0.2" has no downloadable URLs`, err)
-}
-
-func TestCreateHelmRelease(t *testing.T) {
-	ts := httptest.NewServer(makeServeMux(t, func(ri *repo.IndexFile) {
-		ri.Entries["demo-profile"][0].Metadata.Version = "0.0.2"
-		ri.Entries["demo-profile"][0].URLs = nil
-	}))
-	t.Cleanup(func() {
-		ts.Close()
-	})
-	hr := makeTestHelmRepository(ts.URL)
-	f, err := os.ReadFile("testdata/parsing/values.yaml")
-	if err != nil {
-		t.Fatalf("failed to read file: %v", err)
-	}
-	values := base64.StdEncoding.EncodeToString(f)
-	res, err := CreateHelmRelease("podinfo", "0.0.2", values, "dev", hr)
-	if err != nil {
-		t.Fatalf("failed to parse profile values:\n%s", err)
-	}
-	actual, _ := yaml.Marshal(res)
-	expected, _ := os.ReadFile("testdata/parsing/profile.yaml")
-	if diff := cmp.Diff(expected, actual, protocmp.Transform()); diff != "" {
-		t.Fatalf("Helm release didn't match expected:\n%s", diff)
-	}
 }
 
 func TestMakeHelmReleasesInLayers(t *testing.T) {
