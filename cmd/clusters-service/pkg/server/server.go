@@ -73,7 +73,18 @@ type server struct {
 var DefaultRepositoryPath string = filepath.Join(wegogit.WegoRoot, wegogit.WegoAppDir, "capi")
 
 func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string, helmChartClient *charts.HelmChartClient) capiv1_proto.ClustersServiceServer {
-	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns, profileHelmRepositoryName: profileHelmRepositoryName, helmRepositoryCacheDir: helmRepositoryCacheDir}
+	return &server{
+		log:                       log,
+		library:                   library,
+		provider:                  provider,
+		client:                    client,
+		discoveryClient:           discoveryClient,
+		db:                        db,
+		ns:                        ns,
+		profileHelmRepositoryName: profileHelmRepositoryName,
+		helmRepositoryCacheDir:    helmRepositoryCacheDir,
+		helmChartClient:           helmChartClient,
+	}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -245,7 +256,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	if len(msg.Values) > 0 {
-		profilesFile, err := s.GenerateProfileFiles(
+		profilesFile, err := s.generateProfileFiles(
 			ctx,
 			s.profileHelmRepositoryName,
 			os.Getenv("RUNTIME_NAMESPACE"),
@@ -742,7 +753,7 @@ func isMissingVariableError(err error) (string, bool) {
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func (s *server) GenerateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+func (s *server) generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1beta1.HelmRepository{}
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Name:      helmRepoName,

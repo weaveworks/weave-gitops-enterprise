@@ -775,8 +775,8 @@ func TestCreatePullRequest(t *testing.T) {
 				CommitMessage: "Add cluster manifest",
 				Values: []*capiv1_protos.ProfileValues{
 					{
-						Name:    "observability",
-						Version: "1.0.0",
+						Name:    "demo-profile",
+						Version: "0.0.1",
 						Values:  base64.StdEncoding.EncodeToString([]byte(``)),
 					},
 				},
@@ -813,9 +813,17 @@ func TestCreatePullRequest(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			_ = os.Setenv("RUNTIME_NAMESPACE", "default") // needs to match the helm repo namespace
+			defer os.Unsetenv("RUNTIME_NAMESPACE")
 			// setup
+			ts := httptest.NewServer(makeServeMux(t))
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
+				hr.Name = "weaveworks-charts"
+				hr.Namespace = "default"
+			})
+			tt.clusterState = append(tt.clusterState, hr)
 			db := createDatabase(t)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, db, "", nil)
+			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, db, "", hr)
 
 			// request
 			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
@@ -1350,10 +1358,10 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
-	// TODO: Pass in a HelmRepo for testing
-	ts := httptest.NewServer(makeServeMux(t))
-	hr = makeTestHelmRepository(ts.URL)
-	cc := makeChartClient(t, c, hr)
+	var cc *charts.HelmChartClient
+	if hr != nil {
+		cc = makeChartClient(t, c, hr)
+	}
 
 	s := NewClusterServer(logr.Discard(),
 		&templates.ConfigMapLibrary{
@@ -1606,7 +1614,7 @@ func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
 					Created: time.Now(),
 					Digest:  "aaff4545f79d8b2913a10cb400ebb6fa9c77fe813287afbacf1a0b897cdffffff",
 					URLs: []string{
-						"/charts/demo-profile-0.1.0.tgz",
+						"/charts/demo-profile-0.0.1.tgz",
 					},
 				},
 			},
