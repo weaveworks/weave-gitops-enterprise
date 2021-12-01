@@ -674,15 +674,15 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 
 func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
-		name          string
-		clusterState  []runtime.Object
-		provider      git.Provider
-		pruneEnvVar   string
-		req           *capiv1_protos.CreatePullRequestRequest
-		expected      string
-		commitedFiles []CommittedFile
-		err           error
-		dbRows        int
+		name           string
+		clusterState   []runtime.Object
+		provider       git.Provider
+		pruneEnvVar    string
+		req            *capiv1_protos.CreatePullRequestRequest
+		expected       string
+		committedFiles []CommittedFile
+		err            error
+		dbRows         int
 	}{
 		{
 			name:   "validation errors",
@@ -782,7 +782,7 @@ func TestCreatePullRequest(t *testing.T) {
 				},
 			},
 			dbRows: 1,
-			commitedFiles: []CommittedFile{
+			committedFiles: []CommittedFile{
 				{
 					Path: ".weave-gitops/clusters/dev/system/demo-profile.yaml",
 					Content: `---
@@ -846,7 +846,7 @@ func TestCreatePullRequest(t *testing.T) {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
-				if diff := cmp.Diff(tt.commitedFiles, fakeGitProvider.CommittedFiles); len(tt.commitedFiles) > 0 && diff != "" {
+				if diff := cmp.Diff(tt.committedFiles, fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
 			}
@@ -1537,14 +1537,14 @@ type FakeGitProvider struct {
 	url            string
 	repo           *git.GitRepo
 	err            error
-	CommittedFiles []gitprovider.CommitFile
+	committedFiles []gitprovider.CommitFile
 }
 
 func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
 	if p.err != nil {
 		return nil, p.err
 	}
-	p.CommittedFiles = append(p.CommittedFiles, req.Files...)
+	p.committedFiles = append(p.committedFiles, req.Files...)
 	return &git.WriteFilesToBranchAndCreatePullRequestResponse{WebURL: p.url}, nil
 }
 
@@ -1560,6 +1560,17 @@ func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider,
 		return nil, p.err
 	}
 	return nil, nil
+}
+
+func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
+	var committedFiles []CommittedFile
+	for _, f := range p.committedFiles {
+		committedFiles = append(committedFiles, CommittedFile{
+			Path:    *f.Path,
+			Content: *f.Content,
+		})
+	}
+	return committedFiles
 }
 
 func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepository) *charts.HelmChartClient {
