@@ -1347,6 +1347,7 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	// TODO: Pass in a HelmRepo for testing
+	hr = makeTestHelmRepository("base")
 	cc := makeChartClient(t, c, hr)
 
 	s := NewClusterServer(logr.Discard(),
