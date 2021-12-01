@@ -37,9 +37,7 @@ var _ ChartClient = (*HelmChartClient)(nil)
 
 func TestValuesForChart(t *testing.T) {
 	ts := httptest.NewServer(makeServeMux(t))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL)
 	c := &ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(hr)}
 	cc := makeChartClient(t, makeTestClient(t), hr)
@@ -60,9 +58,8 @@ func TestValuesForChart(t *testing.T) {
 func TestValuesForChart_basic_auth_via_Secret(t *testing.T) {
 	fc := makeTestClient(t, makeTestSecret("test", "password"))
 	ts := httptest.NewServer(basicAuthHandler(makeServeMux(t), "test", "password"))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
+
 	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
 		hr.Spec.SecretRef = &fluxmeta.LocalObjectReference{
 			Name: testSecretName,
@@ -95,9 +92,7 @@ func TestUpdateCache_with_bad_url(t *testing.T) {
 func TestUpdateCache_with_missing_missing_secret_for_auth(t *testing.T) {
 	fc := makeTestClient(t)
 	ts := httptest.NewServer(basicAuthHandler(makeServeMux(t), "test", "password"))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
 		hr.Spec.SecretRef = &fluxmeta.LocalObjectReference{
 			Name: testSecretName,
@@ -120,9 +115,7 @@ func TestUpdateCache_with_missing_missing_secret_for_auth(t *testing.T) {
 
 func TestValuesForChart_missing_version(t *testing.T) {
 	ts := httptest.NewServer(makeServeMux(t))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL)
 	c := &ChartReference{Chart: "demo-profile", Version: "0.0.2", SourceRef: referenceForRepository(hr)}
 	cc := makeChartClient(t, makeTestClient(t), hr)
@@ -136,9 +129,7 @@ func TestValuesForChart_missing_chart(t *testing.T) {
 		ri.Entries["demo-profile"][0].Metadata.Version = "0.0.2"
 		ri.Entries["demo-profile"][0].URLs = nil
 	}))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL)
 	c := &ChartReference{Chart: "demo-profile", Version: "0.0.2", SourceRef: referenceForRepository(hr)}
 	cc := makeChartClient(t, makeTestClient(t), hr)
@@ -149,9 +140,7 @@ func TestValuesForChart_missing_chart(t *testing.T) {
 
 func TestFileFromChart(t *testing.T) {
 	ts := httptest.NewServer(makeServeMux(t))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL)
 	c := &ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(hr)}
 	cc := makeChartClient(t, makeTestClient(t), hr)
@@ -169,9 +158,7 @@ func TestFileFromChart(t *testing.T) {
 
 func TestFileFromChart_with_unknown_name(t *testing.T) {
 	ts := httptest.NewServer(makeServeMux(t))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL)
 	c := &ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(hr)}
 	cc := makeChartClient(t, makeTestClient(t), hr)
@@ -182,9 +169,7 @@ func TestFileFromChart_with_unknown_name(t *testing.T) {
 
 func TestFileFromChart_missing_version(t *testing.T) {
 	ts := httptest.NewServer(makeServeMux(t))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL)
 	c := &ChartReference{Chart: "demo-profile", Version: "0.0.2", SourceRef: referenceForRepository(hr)}
 	cc := makeChartClient(t, makeTestClient(t), hr)
@@ -198,9 +183,7 @@ func TestFileFromChart_missing_chart(t *testing.T) {
 		ri.Entries["demo-profile"][0].Metadata.Version = "0.0.2"
 		ri.Entries["demo-profile"][0].URLs = nil
 	}))
-	t.Cleanup(func() {
-		ts.Close()
-	})
+	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL)
 	c := &ChartReference{Chart: "demo-profile", Version: "0.0.2", SourceRef: referenceForRepository(hr)}
 	cc := makeChartClient(t, makeTestClient(t), hr)
