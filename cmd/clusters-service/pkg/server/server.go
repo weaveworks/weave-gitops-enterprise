@@ -784,6 +784,14 @@ func (s *server) GenerateProfileFiles(ctx context.Context, helmRepoName, helmRep
 			pvs.Values = base64.StdEncoding.EncodeToString(bs)
 		}
 
+		// Check the version and if empty use thr latest version in profile defaults.
+		if pvs.Version == "" {
+			pvs.Version, err = getProfileLatestVersion(ctx, pvs.Name, helmRepo)
+			if err != nil {
+				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
+			}
+		}
+
 		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
 		if err != nil {
 			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
@@ -822,4 +830,21 @@ func getProfilesFromTemplate(annotations map[string]string) []*capiv1_proto.Temp
 	}
 
 	return profiles
+}
+
+// getProfileLatestVersion returns the latest profile version if not given
+func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev1beta1.HelmRepository) (string, error) {
+	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
+	version := ""
+	if err != nil {
+		return "", fmt.Errorf("cannot scan for profiles: %w", err)
+	}
+
+	for _, p := range ps {
+		if p.Name == name {
+			version = p.AvailableVersions[len(p.AvailableVersions)-1]
+		}
+	}
+
+	return version, nil
 }
