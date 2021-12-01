@@ -18,6 +18,7 @@ import theme from 'weaveworks-ui-components/lib/theme';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
+import useVersions from '../../contexts/Versions';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../Action';
 import { Input } from '../../utils/form';
@@ -48,6 +49,8 @@ export const DeleteClusterDialog: FC<Props> = ({
   setOpenDeletePR,
 }) => {
   const classes = useStyles();
+  const { repositoryURL } = useVersions();
+
   const random = Math.random().toString(36).substring(7);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [branchName, setBranchName] = useState<string>(
@@ -123,6 +126,8 @@ export const DeleteClusterDialog: FC<Props> = ({
   }, [setOpenDeletePR, setSelectedClusters]);
 
   useEffect(() => {
+    if (true) {
+    }
     if (
       notifications.length > 0 &&
       notifications[notifications.length - 1].variant !== 'danger' &&
@@ -132,6 +137,8 @@ export const DeleteClusterDialog: FC<Props> = ({
       cleanUp();
     }
   }, [notifications, setOpenDeletePR, setSelectedClusters, cleanUp]);
+
+  console.log(repositoryURL);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
@@ -192,30 +199,26 @@ export const DeleteClusterDialog: FC<Props> = ({
             open={showAuthDialog}
             repoName="config"
           />
-          <RepoInputWithAuth
-            isAuthenticated={false}
-            onChange={e => {
-              // update value in state
-              console.log(e);
-            }}
-            // disabled={true}
-            onProviderChange={(provider: GitProvider) => {
-              console.log(provider);
-            }}
-            onAuthClick={provider => {
-              console.log('');
-              if (provider === ('GitHub' as GitProvider)) {
-                console.log('open GithubAuth modal');
-              }
-            }}
-            required
-            id="url"
-            label="Source Repo URL"
-            variant="standard"
-            // state value
-            value=""
-            helperText=""
-          />
+          {repositoryURL && (
+            <RepoInputWithAuth
+              isAuthenticated={false}
+              disabled={true}
+              onProviderChange={(provider: GitProvider) => {
+                console.log(provider);
+              }}
+              onAuthClick={provider => {
+                if (provider === ('GitHub' as GitProvider)) {
+                  console.log('open GithubAuth modal');
+                }
+              }}
+              required
+              id="url"
+              label="Source Repo URL"
+              variant="standard"
+              value="URL here"
+              helperText=""
+            />
+          )}
         </DialogContent>
       </div>
     </Dialog>
