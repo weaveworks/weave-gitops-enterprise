@@ -238,6 +238,10 @@ func TestCreateHelmRelease(t *testing.T) {
 
 func TestMakeHelmReleasesInLayers(t *testing.T) {
 	emptyValues := map[string]interface{}{}
+	testValues := map[string]interface{}{
+		"testing": "value",
+		"allowed": false,
+	}
 	dependsOn := func(name string) func(hr *helmv2beta1.HelmRelease) {
 		return func(hr *helmv2beta1.HelmRelease) {
 			hr.Spec.DependsOn = append(hr.Spec.DependsOn,
@@ -245,7 +249,9 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 		}
 	}
 
-	hr := makeTestHelmRepository("https://example.com/charts")
+	hr := makeTestHelmRepository("https://example.com/charts", func(h *sourcev1beta1.HelmRepository) {
+		h.ObjectMeta.Namespace = "helm-repo-ns"
+	})
 	layeredTests := []struct {
 		name     string
 		installs []ChartInstall
@@ -254,19 +260,19 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 		{
 			name:     "install with no layers",
 			installs: []ChartInstall{{Layer: "", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
-			want:     []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", "test-ns", "test-chart", "0.0.1")},
+			want:     []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", hr.GetName(), hr.GetNamespace(), "test-chart", "0.0.1")},
 		},
 		{
 			name:     "install with values",
-			installs: []ChartInstall{{Layer: "", Values: map[string]interface{}{"testing": "value"}, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
-			want: []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", "test-ns", "test-chart", "0.0.1", func(hr *helmv2beta1.HelmRelease) {
-				hr.Spec.Values = &apiextensionsv1.JSON{Raw: []byte("testing: value\n")}
+			installs: []ChartInstall{{Layer: "", Values: testValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
+			want: []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", func(hr *helmv2beta1.HelmRelease) {
+				hr.Spec.Values = &apiextensionsv1.JSON{Raw: []byte(`{"allowed":false,"testing":"value"}`)}
 			})},
 		},
 		{
 			name:     "install with one layer",
 			installs: []ChartInstall{{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
-			want:     []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", "test-ns", "test-chart", "0.0.1")},
+			want:     []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1")},
 		},
 		{
 			name: "install with two layers",
@@ -274,8 +280,8 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("other-chart", "0.0.1", hr)}},
 			want: []*helmv2beta1.HelmRelease{
-				makeTestHelmRelease("test-cluster-other-chart", "testing", "test-ns", "other-chart", "0.0.1", dependsOn("test-cluster-test-chart")),
-				makeTestHelmRelease("test-cluster-test-chart", "testing", "test-ns", "test-chart", "0.0.1")},
+				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1", dependsOn("test-cluster-test-chart")),
+				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1")},
 		},
 		{
 			name: "install with two charts in layer",
@@ -284,9 +290,9 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("new-chart", "0.0.2", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
 			want: []*helmv2beta1.HelmRelease{
-				makeTestHelmRelease("test-cluster-new-chart", "testing", "test-ns", "new-chart", "0.0.2"),
-				makeTestHelmRelease("test-cluster-other-chart", "testing", "test-ns", "other-chart", "0.0.1"),
-				makeTestHelmRelease("test-cluster-test-chart", "testing", "test-ns", "test-chart", "0.0.1",
+				makeTestHelmRelease("test-cluster-new-chart", "testing", hr.GetNamespace(), "new-chart", "0.0.2"),
+				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1"),
+				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1",
 					dependsOn("test-cluster-other-chart"),
 					dependsOn("test-cluster-new-chart")),
 			},
@@ -297,15 +303,15 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				{Layer: "", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("other-chart", "0.0.1", hr)}},
 			want: []*helmv2beta1.HelmRelease{
-				makeTestHelmRelease("test-cluster-other-chart", "testing", "test-ns", "other-chart", "0.0.1"),
-				makeTestHelmRelease("test-cluster-test-chart", "testing", "test-ns", "test-chart", "0.0.1", dependsOn("test-cluster-other-chart")),
+				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1"),
+				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", dependsOn("test-cluster-other-chart")),
 			},
 		},
 	}
 
 	for _, tt := range layeredTests {
 		t.Run(tt.name, func(t *testing.T) {
-			r, err := MakeHelmReleasesInLayers("test-cluster", "test-ns", tt.installs)
+			r, err := MakeHelmReleasesInLayers("test-cluster", hr.GetNamespace(), tt.installs)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -342,7 +348,7 @@ func referenceForRepository(s *sourcev1beta1.HelmRepository) helmv2beta1.CrossNa
 		APIVersion: s.TypeMeta.APIVersion,
 		Kind:       s.TypeMeta.Kind,
 		Name:       s.ObjectMeta.Name,
-		Namespace:  s.ObjectMeta.Name,
+		Namespace:  s.ObjectMeta.Namespace,
 	}
 }
 
@@ -462,7 +468,7 @@ func makeTestHelmRelease(name, repoName, repoNS, chart, version string, opts ...
 				},
 			},
 			Interval: metav1.Duration{Duration: time.Minute},
-			Values:   &apiextensionsv1.JSON{Raw: []byte("{}\n")},
+			Values:   &apiextensionsv1.JSON{Raw: []byte("{}")},
 		},
 	}
 	for _, o := range opts {

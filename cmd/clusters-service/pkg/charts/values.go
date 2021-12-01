@@ -258,7 +258,7 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 	var releases []*helmv2beta1.HelmRelease
 	for _, layer := range layerDependencies {
 		for _, install := range layerInstalls[layer.name] {
-			jsonValues, err := yaml.Marshal(install.Values)
+			jsonValues, err := json.Marshal(install.Values)
 			if err != nil {
 				return nil, fmt.Errorf("failed to marshal values for chart %s: %w", install.Ref.Chart, err)
 			}
@@ -280,7 +280,7 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 								APIVersion: sourcev1beta1.GroupVersion.Identifier(),
 								Kind:       sourcev1beta1.HelmRepositoryKind,
 								Name:       install.Ref.SourceRef.Name,
-								Namespace:  namespace,
+								Namespace:  install.Ref.SourceRef.Namespace,
 							},
 						},
 					},
