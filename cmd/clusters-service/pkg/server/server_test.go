@@ -784,27 +784,32 @@ func TestCreatePullRequest(t *testing.T) {
 			dbRows: 1,
 			commitedFiles: []CommittedFile{
 				{
-					Path: ".weave-gitops/clusters/dev/system/observability.yaml",
-					Content: `kube-prometheus-stack:
-					enabled: true
-					grafana:
-					  ingress:
-						path: /grafana/?(.*)
-						enabled: true
-						annotations:
-						  kubernetes.io/ingress.class: mccp-nginx
-					  grafana.ini:
-						server:
-						  root_url: https://localhost:3000/grafana/
-						  serve_from_sub_path: true
-					alertmanager:
-					  ingress:
-						paths: [ "/alertmanager/?(.*)" ]
-						enabled: true
-						annotations:
-						  kubernetes.io/ingress.class: mccp-nginx
-						  nginx.ingress.kubernetes.io/rewrite-target: /$1
-						  nginx.ingress.kubernetes.io/use-regex: "true"`,
+					Path: ".weave-gitops/clusters/dev/system/demo-profile.yaml",
+					Content: `---
+					apiVersion: source.toolkit.fluxcd.io/v1beta1
+					kind: HelmRepository
+					metadata:
+					  name: weaveworks-charts
+					  namespace: default
+					spec:
+					  interval: 1m
+					  url: https://github.com/org/repo.git
+					---
+					apiVersion: helm.toolkit.fluxcd.io/v2beta1
+					kind: HelmRelease
+					metadata:
+					  name: test
+					  namespace: default
+					spec:
+					  chart:
+						spec:
+						  chart: podinfo
+						  sourceRef:
+							kind: HelmRepository
+							name: weaveworks-charts
+							namespace: default
+						  version: 0.1.0
+					  interval: 1m`,
 				},
 			},
 			expected: "https://github.com/org/repo/pull/1",
