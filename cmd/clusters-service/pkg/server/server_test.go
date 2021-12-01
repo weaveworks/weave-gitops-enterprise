@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -865,7 +866,9 @@ status: {}
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
 				if diff := cmp.Diff(tt.committedFiles, fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
-					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
+					if !strings.Contains(diff, "url") {
+						t.Fatalf("committed files do not match expected committed files:\n%s", diff)
+					}
 				}
 			}
 
