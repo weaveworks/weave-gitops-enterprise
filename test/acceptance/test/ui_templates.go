@@ -28,7 +28,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 	for section, parameters := range paramSection {
 		By(fmt.Sprintf("And set template section %s parameter values", section), func() {
 			templateSection := createPage.GetTemplateSection(webDriver, section)
-			Eventually(templateSection.Name, ASSERTION_6MINUTE_TIME_OUT).Should(HaveText(section))
+			Expect(templateSection.Name).Should(HaveText(section))
 
 			for i := 0; i < len(parameters); i++ {
 				paramSet := false
@@ -321,7 +321,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			FIt("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
+			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
 
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
@@ -446,13 +446,19 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
+				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
+					},
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
 					},
 					{
 						Name:   "NAMESPACE",
@@ -564,13 +570,19 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "quick-capd-cluster2"
 				namespace := "quick-capi"
+				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
+					},
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
 					},
 					{
 						Name:   "NAMESPACE",
@@ -973,13 +985,19 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// // Parameter values
 				clusterName := capdClusterName
 				namespace := "default"
+				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["7.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
+					},
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
 					},
 					{
 						Name:   "NAMESPACE",
