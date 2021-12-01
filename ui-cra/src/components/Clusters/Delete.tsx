@@ -24,12 +24,14 @@ import { OnClickAction } from '../Action';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import {
+  CallbackStateContextProvider,
   getProviderToken,
   GithubDeviceAuthModal,
   RepoInputWithAuth,
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated } from '../../utils/request';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 
 interface Props {
   selectedCapiClusters: string[];
@@ -50,6 +52,19 @@ export const DeleteClusterDialog: FC<Props> = ({
 }) => {
   const classes = useStyles();
   const { repositoryURL } = useVersions();
+
+  let initialFormState = {
+    name: '',
+    namespace: 'wego-system',
+    path: './',
+    branch: 'main',
+    url: repositoryURL,
+    configUrl: '',
+    autoMerge: false,
+    provider: '',
+  };
+
+  const [formState, setFormState] = React.useState(initialFormState);
 
   const random = Math.random().toString(36).substring(7);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -142,85 +157,88 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
-      <div id="delete-popup" className={classes.dialog}>
-        <DialogTitle disableTypography>
-          <Typography variant="h5">Create PR to remove clusters</Typography>
-          <CloseIconButton onClick={cleanUp} />
-        </DialogTitle>
-        <DialogContent>
-          {!creatingPR ? (
-            <>
-              <Input
-                label="Create branch"
-                placeholder={branchName}
-                onChange={handleChangeBranchName}
-              />
-              <Input
-                label="Pull request title"
-                placeholder={pullRequestTitle}
-                onChange={handleChangePullRequestTitle}
-              />
-              <Input
-                label="Commit message"
-                placeholder={commitMessage}
-                onChange={handleChangeCommitMessage}
-              />
-              <Input
-                label="Pull request description"
-                placeholder={pullRequestDescription}
-                onChange={handleChangePRDescription}
-                multiline
-                rows={4}
-              />
-              <OnClickAction
-                id="delete-cluster"
-                icon={faTrashAlt}
-                onClick={handleClickRemove}
-                text="Remove clusters from the MCCP"
-                className="danger"
-                disabled={selectedCapiClusters.length === 0}
-              />
-            </>
-          ) : (
-            <Loader />
-          )}
-          <GithubDeviceAuthModal
-            onClose={() => setShowAuthDialog(false)}
-            onSuccess={() => {
-              setShowAuthDialog(false);
-              setNotifications([
-                {
-                  message:
-                    'Authentication completed successfully. Please proceed with creating the PR.',
-                  variant: 'success',
-                },
-              ]);
-            }}
-            open={showAuthDialog}
-            repoName="config"
-          />
-          {repositoryURL && (
-            <RepoInputWithAuth
-              isAuthenticated={false}
-              disabled={true}
-              onProviderChange={(provider: GitProvider) => {
-                console.log(provider);
+      <CallbackStateContextProvider
+        callbackState={{ page: '/clusters' as PageRoute, state: formState }}
+      >
+        <div id="delete-popup" className={classes.dialog}>
+          <DialogTitle disableTypography>
+            <Typography variant="h5">Create PR to remove clusters</Typography>
+            <CloseIconButton onClick={cleanUp} />
+          </DialogTitle>
+          <DialogContent>
+            {!creatingPR ? (
+              <>
+                <Input
+                  label="Create branch"
+                  placeholder={branchName}
+                  onChange={handleChangeBranchName}
+                />
+                <Input
+                  label="Pull request title"
+                  placeholder={pullRequestTitle}
+                  onChange={handleChangePullRequestTitle}
+                />
+                <Input
+                  label="Commit message"
+                  placeholder={commitMessage}
+                  onChange={handleChangeCommitMessage}
+                />
+                <Input
+                  label="Pull request description"
+                  placeholder={pullRequestDescription}
+                  onChange={handleChangePRDescription}
+                  multiline
+                  rows={4}
+                />
+                <OnClickAction
+                  id="delete-cluster"
+                  icon={faTrashAlt}
+                  onClick={handleClickRemove}
+                  text="Remove clusters from the MCCP"
+                  className="danger"
+                  disabled={selectedCapiClusters.length === 0}
+                />
+              </>
+            ) : (
+              <Loader />
+            )}
+            <GithubDeviceAuthModal
+              onClose={() => setShowAuthDialog(false)}
+              onSuccess={() => {
+                setShowAuthDialog(false);
+                setNotifications([
+                  {
+                    message:
+                      'Authentication completed successfully. Please proceed with creating the PR.',
+                    variant: 'success',
+                  },
+                ]);
               }}
-              onAuthClick={provider => {
-                if (provider === ('GitHub' as GitProvider)) {
-                  console.log('open GithubAuth modal');
-                }
-              }}
-              required
-              id="url"
-              label="Source Repo URL"
-              variant="standard"
-              value="URL here"
-              helperText=""
+              open={showAuthDialog}
+              repoName="config"
             />
-          )}
-        </DialogContent>
-      </div>
+            {repositoryURL && (
+              <RepoInputWithAuth
+                isAuthenticated={false}
+                onProviderChange={(provider: GitProvider) => {
+                  setFormState({ ...formState, provider });
+                }}
+                onAuthClick={provider => {
+                  if (provider === ('GitHub' as GitProvider)) {
+                    console.log('open GithubAuth modal');
+                  }
+                }}
+                required
+                id="url"
+                label="Source Repo URL"
+                variant="standard"
+                value={formState.url}
+                helperText=""
+              />
+            )}
+          </DialogContent>
+        </div>
+      </CallbackStateContextProvider>
     </Dialog>
   );
 };
