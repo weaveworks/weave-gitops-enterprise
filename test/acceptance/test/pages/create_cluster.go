@@ -43,7 +43,7 @@ type GitOps struct {
 // This function waits for previw and gitops to appear (become visible)
 func WaitForDynamicSecToAppear(webDriver *agouti.Page) {
 	Eventually(webDriver.FindByXPath(`//div[@name="Preview"]/following-sibling::textarea[1]`)).Should(BeFound())
-	Eventually(webDriver.FindByXPath(`//div[contains(., "Preview")]/parent::div/following-sibling::div/div[text()="GitOps"]`)).Should(BeFound())
+	Eventually(webDriver.FindByXPath(`//div[@name="GitOps"]`)).Should(BeFound())
 }
 
 //CreateCluster initialises the webDriver object
@@ -67,9 +67,9 @@ func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
 }
 
 func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {
-
-	name := webdriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "form-group field field-object")]/child::div//div[.="%s"]`, sectionName))
-	fields := webdriver.AllByXPath(fmt.Sprintf(`//div[contains(@class, "form-group field field-object")]/child::div//div[.="%s"]/following-sibling::div[1]/div`, sectionName))
+	section := webdriver.Find(fmt.Sprintf(`div[data-name="%s"]`, sectionName))
+	name := section.Find(".section-name")
+	fields := section.All(".step-child")
 
 	formFields := []FormField{}
 	fCnt, _ := fields.Count()
