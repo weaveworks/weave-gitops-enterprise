@@ -446,6 +446,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
+				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.Cluster"] = []TemplateField{
@@ -458,6 +459,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Name:   "NAMESPACE",
 						Value:  namespace,
 						Option: "",
+					},
+				}
+				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
 					},
 				}
 
@@ -564,6 +572,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "quick-capd-cluster2"
 				namespace := "quick-capi"
+				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.Cluster"] = []TemplateField{
@@ -576,6 +585,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Name:   "NAMESPACE",
 						Value:  namespace,
 						Option: "",
+					},
+				}
+				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
 					},
 				}
 
@@ -970,9 +986,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
-				// // Parameter values
+				// Parameter values
 				clusterName := capdClusterName
 				namespace := "default"
+				k8Version := "1.19.7"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.Cluster"] = []TemplateField{
@@ -985,6 +1002,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Name:   "NAMESPACE",
 						Value:  namespace,
 						Option: "",
+					},
+				}
+				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  k8Version,
+						Option: "1.19.8",
 					},
 				}
 
