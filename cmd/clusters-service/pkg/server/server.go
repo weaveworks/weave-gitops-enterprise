@@ -788,7 +788,3 @@ func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigReque
 
 	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
 }
-
-
-// have GetConfig(context.Context) (*capi_server.GetConfigResponse, error)
-// want GetConfig(context.Context, *capi_server.GetConfigRequest) (*capi_server.GetConfigResponse, error)
