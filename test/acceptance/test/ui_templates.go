@@ -713,6 +713,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				awsNodeMAchineType := "t3.micro"
 
 				paramSection := make(map[string][]TemplateField)
+				paramSection["1.Cluster"] = []TemplateField{
+					{
+						Name:   "CLUSTER_NAME",
+						Value:  awsClusterName,
+						Option: "",
+					},
+				}
 				paramSection["2.AWSCluster"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
@@ -722,11 +729,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					{
 						Name:   "AWS_SSH_KEY_NAME",
 						Value:  awsSshKeyName,
-						Option: "",
-					},
-					{
-						Name:   "CLUSTER_NAME",
-						Value:  awsClusterName,
 						Option: "",
 					},
 					{
@@ -833,7 +835,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				azureNodeMAchineType := "Standard_D4_v4"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["2.AzureCluster"] = []TemplateField{
+				paramSection["1.Cluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  azureClusterName,
