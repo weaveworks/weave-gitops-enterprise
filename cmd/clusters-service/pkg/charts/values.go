@@ -175,7 +175,7 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 	return conf
 }
 
-// MakeHelmReleasesInLayers accepts a set of ChartInstall requests and returns
+// MakeHelmReleasesInLayers accepts a set of ChartInstall requests and
 // returns a set of HelmReleases that are configured with appropriate
 // dependencies.
 //
