@@ -54,13 +54,7 @@ export const DeleteClusterDialog: FC<Props> = ({
   const { repositoryURL } = useVersions();
 
   let initialFormState = {
-    name: '',
-    namespace: 'wego-system',
-    path: './',
-    branch: 'main',
     url: repositoryURL,
-    configUrl: '',
-    autoMerge: false,
     provider: '',
   };
 
@@ -141,8 +135,6 @@ export const DeleteClusterDialog: FC<Props> = ({
   }, [setOpenDeletePR, setSelectedClusters]);
 
   useEffect(() => {
-    if (true) {
-    }
     if (
       notifications.length > 0 &&
       notifications[notifications.length - 1].variant !== 'danger' &&
@@ -152,8 +144,6 @@ export const DeleteClusterDialog: FC<Props> = ({
       cleanUp();
     }
   }, [notifications, setOpenDeletePR, setSelectedClusters, cleanUp]);
-
-  console.log(repositoryURL);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
