@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { Button } from 'weaveworks-ui-components';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
 import {
   Template,
   TemplateObject,
@@ -17,32 +16,35 @@ import {
 import { ObjectFieldTemplateProps } from '@rjsf/core';
 import { JSONSchema7 } from 'json-schema';
 import Form from '@rjsf/material-ui';
-import * as Grouped from '../GroupedSchema';
 import * as UiTemplate from '../UITemplate';
-import FormSteps, { FormStep } from '../Steps';
+import FormSteps from '../Steps';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import ProfilesList from './ProfilesList';
 import useProfiles from '../../../../../contexts/Profiles';
+import { FormStep } from '../Step';
+import styled from 'styled-components';
+import ObjectFieldTemplate from '../GroupedSchema';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    form: {
-      paddingTop: base,
-    },
-    create: {
-      paddingTop: small,
-    },
-    previewCTA: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      paddingTop: small,
-      paddingBottom: base,
-    },
-  }),
-);
+const FormWrapper = styled(Form)`
+  .form-group {
+    padding-top: ${base};
+  }
+  .profiles {
+    .profiles-select {
+      display: flex;
+      align-items: center;
+    }
+    .previewCTA {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: ${small};
+      padding-bottom: ${base};
+    }
+  }
+`;
 
 const TemplateFields: FC<{
   activeTemplate: Template | null;
@@ -63,11 +65,13 @@ const TemplateFields: FC<{
   formData,
   onFormDataUpdate,
 }) => {
-  const classes = useStyles();
   const { updatedProfiles } = useProfiles();
   const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
     [],
   );
+  const [userSelectedFields, setUserSelectedFields] = useState<string[]>([]);
+  const [formContextId, setFormContextId] = useState<number>(0);
+  const [uiSchema, setuiSchema] = useState<any>({});
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -118,26 +122,20 @@ const TemplateFields: FC<{
 
   // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
   const sections = useMemo(() => {
+    const excludeObjectsWithoutParams = activeTemplate?.objects?.filter(
+      object => object.parameters?.length !== 0,
+    );
     const groups =
-      activeTemplate?.objects?.reduce(
+      excludeObjectsWithoutParams?.reduce(
         (accumulator, item, index) =>
           Object.assign(accumulator, {
             [objectTitle(item, index)]: item.parameters,
           }),
         {},
       ) || {};
-    Object.assign(groups, { 'ui:template': 'box' });
+    Object.assign(groups, { 'ui:template': 'Box' });
     return [groups];
   }, [activeTemplate]);
-
-  const uiSchema = useMemo(() => {
-    return {
-      'ui:groups': sections,
-      'ui:template': (props: ObjectFieldTemplateProps) => (
-        <Grouped.ObjectFieldTemplate {...props} />
-      ),
-    };
-  }, [sections]);
 
   const handleSelectProfiles = useCallback(
     (profiles: UpdatedProfile[]) => {
@@ -147,16 +145,46 @@ const TemplateFields: FC<{
     [onProfilesUpdate],
   );
 
+  const addUserSelectedFields = useCallback(
+    (name: string) => {
+      if (userSelectedFields.includes(name)) {
+        setUserSelectedFields(userSelectedFields.filter(el => el !== name));
+      } else {
+        setUserSelectedFields([...userSelectedFields, name]);
+      }
+    },
+    [userSelectedFields],
+  );
+
   useEffect(() => {
+    setFormContextId((prevState: number) => prevState + 1);
+
+    setuiSchema({
+      'ui:groups': sections,
+      'ui:template': (props: ObjectFieldTemplateProps) => (
+        <ObjectFieldTemplate
+          {...props}
+          userSelectedFields={userSelectedFields}
+          addUserSelectedFields={addUserSelectedFields}
+        />
+      ),
+    });
+
     const requiredProfiles = updatedProfiles.filter(
       profile => profile.required === true,
     );
     handleSelectProfiles(requiredProfiles);
-  }, [updatedProfiles, onProfilesUpdate, handleSelectProfiles]);
+  }, [
+    updatedProfiles,
+    onProfilesUpdate,
+    handleSelectProfiles,
+    sections,
+    addUserSelectedFields,
+    userSelectedFields,
+  ]);
 
   return (
-    <Form
-      className={classes.form}
+    <FormWrapper
       schema={schema as JSONSchema7}
       onChange={({ formData }) => onFormDataUpdate(formData)}
       formData={formData}
@@ -164,6 +192,7 @@ const TemplateFields: FC<{
       onError={() => console.log('errors')}
       uiSchema={uiSchema}
       formContext={{
+        formContextId,
         templates: FormSteps,
         clickedStep,
         setActiveStep,
@@ -171,12 +200,13 @@ const TemplateFields: FC<{
       {...UiTemplate}
     >
       <FormStep
+        className="profiles"
         title="Profiles"
         active={activeStep === 'Profiles'}
         clicked={clickedStep === 'Profiles'}
         setActiveStep={setActiveStep}
       >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="profiles-select">
           <span>Select profiles:&nbsp;</span>
           <MultiSelectDropdown
             items={updatedProfiles}
@@ -187,11 +217,11 @@ const TemplateFields: FC<{
           selectedProfiles={selectedProfiles}
           onProfilesUpdate={handleSelectProfiles}
         />
-        <div className={classes.previewCTA}>
+        <div className="previewCTA">
           <Button>Preview PR</Button>
         </div>
       </FormStep>
-    </Form>
+    </FormWrapper>
   );
 };
 
