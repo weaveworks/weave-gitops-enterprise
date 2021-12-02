@@ -25,6 +25,8 @@ import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import {
   CallbackStateContextProvider,
+  clearCallbackState,
+  getCallbackState,
   getProviderToken,
   GithubDeviceAuthModal,
   RepoInputWithAuth,
@@ -58,8 +60,20 @@ export const DeleteClusterDialog: FC<Props> = ({
     provider: '',
   };
 
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    initialFormState = {
+      ...initialFormState,
+      ...callbackState.state,
+    };
+    // Once we read it into the form, clear the state to avoid it auto-populating all the time
+    clearCallbackState();
+  }
+
   const [formState, setFormState] = React.useState(initialFormState);
 
+  const [authSuccess, setAuthSuccess] = React.useState(false);
   const random = Math.random().toString(36).substring(7);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [branchName, setBranchName] = useState<string>(
@@ -131,8 +145,16 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   const cleanUp = useCallback(() => {
     setOpenDeletePR(false);
+    setShowAuthDialog(false);
     setSelectedClusters([]);
   }, [setOpenDeletePR, setSelectedClusters]);
+
+  const credentialsDetected =
+    authSuccess ||
+    !!getProviderToken(formState.provider as GitProvider) ||
+    !!callbackState;
+
+  const isAuthenticated = !!formState.url && credentialsDetected;
 
   useEffect(() => {
     if (
@@ -180,13 +202,38 @@ export const DeleteClusterDialog: FC<Props> = ({
                   multiline
                   rows={4}
                 />
+                <RepoInputWithAuth
+                  style={{
+                    marginBottom: theme.spacing.base,
+                    width: '80%',
+                  }}
+                  className="create styles to pass"
+                  isAuthenticated={isAuthenticated}
+                  onProviderChange={(provider: GitProvider) => {
+                    setFormState({ ...formState, provider });
+                  }}
+                  onAuthClick={provider => {
+                    if (provider === ('GitHub' as GitProvider)) {
+                      setShowAuthDialog(true);
+                    }
+                  }}
+                  required
+                  id="url"
+                  label="Source Repo URL"
+                  variant="standard"
+                  value={formState.url}
+                  helperText=""
+                  disabled={true}
+                />
                 <OnClickAction
                   id="delete-cluster"
                   icon={faTrashAlt}
                   onClick={handleClickRemove}
                   text="Remove clusters from the MCCP"
                   className="danger"
-                  disabled={selectedCapiClusters.length === 0}
+                  disabled={
+                    selectedCapiClusters.length === 0 || !isAuthenticated
+                  }
                 />
               </>
             ) : (
@@ -196,6 +243,7 @@ export const DeleteClusterDialog: FC<Props> = ({
               onClose={() => setShowAuthDialog(false)}
               onSuccess={() => {
                 setShowAuthDialog(false);
+                setAuthSuccess(true);
                 setNotifications([
                   {
                     message:
@@ -207,25 +255,6 @@ export const DeleteClusterDialog: FC<Props> = ({
               open={showAuthDialog}
               repoName="config"
             />
-            {repositoryURL && (
-              <RepoInputWithAuth
-                isAuthenticated={false}
-                onProviderChange={(provider: GitProvider) => {
-                  setFormState({ ...formState, provider });
-                }}
-                onAuthClick={provider => {
-                  if (provider === ('GitHub' as GitProvider)) {
-                    console.log('open GithubAuth modal');
-                  }
-                }}
-                required
-                id="url"
-                label="Source Repo URL"
-                variant="standard"
-                value={formState.url}
-                helperText=""
-              />
-            )}
           </DialogContent>
         </div>
       </CallbackStateContextProvider>
