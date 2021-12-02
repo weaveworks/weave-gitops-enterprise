@@ -204,6 +204,13 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				dependency.CrossNamespaceDependencyReference{Name: name})
 		}
 	}
+	layerLabel := func(name string) func(hr *helmv2beta1.HelmRelease) {
+		return func(hr *helmv2beta1.HelmRelease) {
+			hr.ObjectMeta.Labels = map[string]string{
+				LayerLabel: name,
+			}
+		}
+	}
 
 	hr := makeTestHelmRepository("https://example.com/charts", func(h *sourcev1beta1.HelmRepository) {
 		h.ObjectMeta.Namespace = "helm-repo-ns"
@@ -228,7 +235,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 		{
 			name:     "install with one layer",
 			installs: []ChartInstall{{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
-			want:     []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1")},
+			want:     []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", layerLabel("layer-0"))},
 		},
 		{
 			name: "install with two layers",
@@ -236,8 +243,8 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("other-chart", "0.0.1", hr)}},
 			want: []*helmv2beta1.HelmRelease{
-				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1", dependsOn("test-cluster-test-chart")),
-				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1")},
+				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1", dependsOn("test-cluster-test-chart"), layerLabel("layer-1")),
+				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", layerLabel("layer-0"))},
 		},
 		{
 			name: "install with two charts in layer",
@@ -246,11 +253,11 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("new-chart", "0.0.2", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
 			want: []*helmv2beta1.HelmRelease{
-				makeTestHelmRelease("test-cluster-new-chart", "testing", hr.GetNamespace(), "new-chart", "0.0.2"),
-				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1"),
+				makeTestHelmRelease("test-cluster-new-chart", "testing", hr.GetNamespace(), "new-chart", "0.0.2", layerLabel("layer-0")),
+				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1", layerLabel("layer-0")),
 				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1",
 					dependsOn("test-cluster-other-chart"),
-					dependsOn("test-cluster-new-chart")),
+					dependsOn("test-cluster-new-chart"), layerLabel("layer-1")),
 			},
 		},
 		{
@@ -259,7 +266,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				{Layer: "", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("other-chart", "0.0.1", hr)}},
 			want: []*helmv2beta1.HelmRelease{
-				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1"),
+				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1", layerLabel("layer-1")),
 				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", dependsOn("test-cluster-other-chart")),
 			},
 		},

@@ -24,9 +24,15 @@ import (
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 )
 
-// LayerAnnotation is the annotation that Helm charts can have to indicate which
-// layer they should be in, the HelmRelease DependsOn is calculated from this.
-const LayerAnnotation = "weave.works/layer"
+const (
+	// LayerAnnotation is the annotation that Helm charts can have to indicate which
+	// layer they should be in, the HelmRelease DependsOn is calculated from this.
+	LayerAnnotation = "weave.works/layer"
+
+	// LayerLabel is applied to created HelmReleases which makes it possible to
+	// query for HelmReleases that are applied in a layer.
+	LayerLabel = "weave.works/applied-layer"
+)
 
 // ChartReference is a Helm chart reference, the SourceRef is a Flux
 // SourceReference for the Helm chart.
@@ -195,16 +201,16 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 		layerInstalls[v.Layer] = current
 	}
 
-	var names []string
+	var layerNames []string
 	for k := range layerInstalls {
-		names = append(names, k)
+		layerNames = append(layerNames, k)
 	}
 
 	makeHelmReleaseName := func(clusterName, installName string) string {
 		return clusterName + "-" + installName
 	}
 
-	layerDependencies := pairLayers(names)
+	layerDependencies := pairLayers(layerNames)
 	var releases []*helmv2beta1.HelmRelease
 	for _, layer := range layerDependencies {
 		for _, install := range layerInstalls[layer.name] {
@@ -244,6 +250,11 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 						dependency.CrossNamespaceDependencyReference{
 							Name: makeHelmReleaseName(clusterName, v.Ref.Chart),
 						})
+				}
+			}
+			if layer.name != "" {
+				hr.Labels = map[string]string{
+					LayerLabel: layer.name,
 				}
 			}
 			releases = append(releases, &hr)

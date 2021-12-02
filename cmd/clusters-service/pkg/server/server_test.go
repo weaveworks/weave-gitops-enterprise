@@ -1178,6 +1178,8 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
+  labels:
+    weave.works/applied-layer: testing
   name: cluster-foo-bar
   namespace: wego-system
 spec:
