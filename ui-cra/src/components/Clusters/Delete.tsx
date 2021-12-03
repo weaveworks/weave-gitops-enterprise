@@ -31,7 +31,6 @@ import {
   GithubDeviceAuthModal,
   RepoInputWithAuth,
 } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated } from '../../utils/request';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -216,7 +215,6 @@ export const DeleteClusterDialog: FC<Props> = ({
                     marginBottom: theme.spacing.base,
                     width: '80%',
                   }}
-                  className="create styles to pass"
                   isAuthenticated={isAuthenticated}
                   onProviderChange={(provider: GitProvider) => {
                     setFormState({ ...formState, provider });

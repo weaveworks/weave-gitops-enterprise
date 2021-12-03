@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
@@ -515,6 +516,36 @@ func TestRenderTemplate(t *testing.T) {
 	}
 }
 
+func TestGetConfig(t *testing.T) {
+	testCases := []struct {
+		name  string
+		value string
+	}{
+		{
+			name:  "value set",
+			value: "https://github.com/user/blog",
+		},
+		{
+			name:  "value not set",
+			value: "",
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			os.Setenv("CAPI_TEMPLATES_REPOSITORY_URL", tt.value)
+			defer os.Unsetenv("CAPI_TEMPLATES_REPOSITORY_URL")
+
+			s := createServer(nil, "", "", nil, nil, "")
+
+			res, _ := s.GetConfig(context.Background(), &capiv1_proto.GetConfigRequest{})
+
+			if diff := cmp.Diff(tt.value, res.RepositoryURL, protocmp.Transform()); diff != "" {
+				t.Fatalf("repository URL didn't match expected:\n%s", diff)
+			}
+		})
+	}
+}
 func TestRenderTemplate_MissingVariables(t *testing.T) {
 	clusterState := []runtime.Object{
 		makeTemplateConfigMap("template1", makeTemplate(t)),

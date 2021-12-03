@@ -772,19 +772,8 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 }
 
 func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigRequest) (*capiv1_proto.GetConfigResponse, error) {
-	gp, err := getGitProvider(ctx)
 
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error authenticatingt: %s", err.Error())
-	}
-
-	var repositoryURL string
-
-	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
-
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
-	}
+	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
 
 	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
 }
