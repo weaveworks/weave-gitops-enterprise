@@ -21,10 +21,7 @@ import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import { Loader } from '../../Loader';
-import {
-  getProviderToken,
-  GithubDeviceAuthModal,
-} from '@weaveworks/weave-gitops';
+import { getProviderToken } from '@weaveworks/weave-gitops';
 import { isUnauthenticated } from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
@@ -277,6 +274,8 @@ const AddCluster: FC = () => {
                         setActiveStep={setActiveStep}
                         clickedStep={clickedStep}
                         setClickedStep={setClickedStep}
+                        showAuthDialog={showAuthDialog}
+                        setShowAuthDialog={setShowAuthDialog}
                       />
                       {creatingPR && <Loader />}
                     </>
@@ -285,21 +284,6 @@ const AddCluster: FC = () => {
                   )}
                 </>
               ) : null}
-              <GithubDeviceAuthModal
-                onClose={() => setShowAuthDialog(false)}
-                onSuccess={() => {
-                  setShowAuthDialog(false);
-                  setNotifications([
-                    {
-                      message:
-                        'Authentication completed successfully. Please proceed with creating the PR.',
-                      variant: 'success',
-                    },
-                  ]);
-                }}
-                open={showAuthDialog}
-                repoName="config"
-              />
             </Grid>
             <Grid className={classes.steps} item md={3}>
               <FormStepsNavigation
@@ -326,7 +310,6 @@ const AddCluster: FC = () => {
     clickedStep,
     isLargeScreen,
     showAuthDialog,
-    setNotifications,
     handlePRPreview,
     handleAddCluster,
   ]);

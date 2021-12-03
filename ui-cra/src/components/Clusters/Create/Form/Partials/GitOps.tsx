@@ -4,10 +4,11 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button } from 'weaveworks-ui-components';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { FormStep } from '../Step';
+import GitAuth from './GitAuth';
 
 const base = weaveTheme.spacing.base;
 
-const useStyles = makeStyles(theme =>
+const useStyles = makeStyles(() =>
   createStyles({
     createCTA: {
       display: 'flex',
@@ -28,8 +29,19 @@ const GitOps: FC<{
     description: string;
     commit_message: string;
   }) => Promise<void>;
-}> = ({ activeStep, setActiveStep, clickedStep, setClickedStep, onSubmit }) => {
+  showAuthDialog: boolean;
+  setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
+}> = ({
+  activeStep,
+  setActiveStep,
+  clickedStep,
+  setClickedStep,
+  onSubmit,
+  showAuthDialog,
+  setShowAuthDialog,
+}) => {
   const classes = useStyles();
+  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const random = Math.random().toString(36).substring(7);
 
@@ -115,8 +127,16 @@ const GitOps: FC<{
         multiline
         rows={4}
       />
+      <GitAuth
+        setEnableCreatePR={setEnableCreatePR}
+        showAuthDialog={showAuthDialog}
+        setShowAuthDialog={setShowAuthDialog}
+      />
       <div className={classes.createCTA} onClick={handleGitOps}>
-        <Button onClick={() => setClickedStep('GitOps')}>
+        <Button
+          onClick={() => setClickedStep('GitOps')}
+          disabled={!enableCreatePR}
+        >
           Create Pull Request
         </Button>
       </div>
