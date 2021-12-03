@@ -31,6 +31,7 @@ import {
   GithubDeviceAuthModal,
   RepoInputWithAuth,
 } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated } from '../../utils/request';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -67,7 +68,6 @@ export const DeleteClusterDialog: FC<Props> = ({
       ...initialFormState,
       ...callbackState.state,
     };
-    // Once we read it into the form, clear the state to avoid it auto-populating all the time
     clearCallbackState();
   }
 
@@ -124,6 +124,7 @@ export const DeleteClusterDialog: FC<Props> = ({
         title: pullRequestTitle,
         commitMessage,
         description: pullRequestDescription,
+        repositoryUrl: repositoryURL,
       },
       getProviderToken('GitHub' as GitProvider),
     )
@@ -157,6 +158,8 @@ export const DeleteClusterDialog: FC<Props> = ({
   const isAuthenticated = !!formState.url && credentialsDetected;
 
   useEffect(() => {
+    setFormState(prevState => ({ ...prevState, url: repositoryURL }));
+
     if (
       notifications.length > 0 &&
       notifications[notifications.length - 1].variant !== 'danger' &&
@@ -165,7 +168,13 @@ export const DeleteClusterDialog: FC<Props> = ({
     ) {
       cleanUp();
     }
-  }, [notifications, setOpenDeletePR, setSelectedClusters, cleanUp]);
+  }, [
+    notifications,
+    setOpenDeletePR,
+    setSelectedClusters,
+    cleanUp,
+    repositoryURL,
+  ]);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
@@ -211,6 +220,12 @@ export const DeleteClusterDialog: FC<Props> = ({
                   isAuthenticated={isAuthenticated}
                   onProviderChange={(provider: GitProvider) => {
                     setFormState({ ...formState, provider });
+                  }}
+                  onChange={e => {
+                    setFormState({
+                      ...formState,
+                      url: e.currentTarget.value,
+                    });
                   }}
                   onAuthClick={provider => {
                     if (provider === ('GitHub' as GitProvider)) {

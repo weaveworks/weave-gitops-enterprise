@@ -2,14 +2,17 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 import { request, requestWithEntitlementHeader } from '../../utils/request';
 import { Versions, VersionData } from './index';
 import useNotifications from './../Notifications';
+import { useHistory } from 'react-router-dom';
 
 const VersionsProvider: FC = ({ children }) => {
   const [entitlement, setEntitlement] = useState<string | null>(null);
   const [versions, setVersions] = useState<VersionData>({
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   });
-  const [repositoryURL, setRepositoryURL] = useState<string | null>(null);
+  const [repositoryURL, setRepositoryURL] = useState<string>('');
   const { setNotifications } = useNotifications();
+
+  const history = useHistory();
 
   const getVersions = useCallback(() => {
     requestWithEntitlementHeader('GET', '/v1/enterprise/version', {
@@ -32,7 +35,7 @@ const VersionsProvider: FC = ({ children }) => {
         setRepositoryURL(res.setRepositoryURL);
       })
       .catch(err => {
-        setRepositoryURL('https://gitlab.com/user/blog');
+        setRepositoryURL('https://gitlab.com/alina48/test-alina');
         setNotifications([{ message: err.message, variant: 'danger' }]);
       });
   }, [setNotifications]);
@@ -40,7 +43,12 @@ const VersionsProvider: FC = ({ children }) => {
   useEffect(() => {
     getVersions();
     getConfig();
-  }, [getVersions, getConfig]);
+
+    return history.listen(() => {
+      getVersions();
+      getConfig();
+    });
+  }, [getVersions, getConfig, history]);
 
   return (
     <Versions.Provider

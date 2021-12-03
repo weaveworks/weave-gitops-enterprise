@@ -208,7 +208,6 @@ const ResponsiveDrawer = () => {
               path={GITLAB_OAUTH_CALLBACK}
               component={({ location }: any) => {
                 const params = qs.parse(location.search);
-                console.log(params);
                 return (
                   <OAuthCallback
                     provider={'GitLab' as GitProvider}
