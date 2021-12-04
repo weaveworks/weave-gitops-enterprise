@@ -23,17 +23,10 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../Action';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
-import {
-  CallbackStateContextProvider,
-  clearCallbackState,
-  getCallbackState,
-  getProviderToken,
-  GithubDeviceAuthModal,
-  RepoInputWithAuth,
-} from '@weaveworks/weave-gitops';
+import { getProviderToken } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated } from '../../utils/request';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import GitAuth from './Create/Form/Partials/GitAuth';
 
 interface Props {
   selectedCapiClusters: string[];
@@ -55,26 +48,10 @@ export const DeleteClusterDialog: FC<Props> = ({
   const classes = useStyles();
   const { repositoryURL } = useVersions();
 
-  let initialFormState = {
-    url: repositoryURL,
-    provider: '',
-  };
-
-  const callbackState = getCallbackState();
-
-  if (callbackState) {
-    initialFormState = {
-      ...initialFormState,
-      ...callbackState.state,
-    };
-    clearCallbackState();
-  }
-
-  const [formState, setFormState] = React.useState(initialFormState);
-
-  const [authSuccess, setAuthSuccess] = React.useState(false);
   const random = Math.random().toString(36).substring(7);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+
   const [branchName, setBranchName] = useState<string>(
     `delete-clusters-branch-${random}`,
   );
@@ -149,16 +126,7 @@ export const DeleteClusterDialog: FC<Props> = ({
     setSelectedClusters([]);
   }, [setOpenDeletePR, setSelectedClusters]);
 
-  const credentialsDetected =
-    authSuccess ||
-    !!getProviderToken(formState.provider as GitProvider) ||
-    !!callbackState;
-
-  const isAuthenticated = !!formState.url && credentialsDetected;
-
   useEffect(() => {
-    setFormState(prevState => ({ ...prevState, url: repositoryURL }));
-
     if (
       notifications.length > 0 &&
       notifications[notifications.length - 1].variant !== 'danger' &&
@@ -177,100 +145,55 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
-      <CallbackStateContextProvider
-        callbackState={{ page: '/clusters' as PageRoute, state: formState }}
-      >
-        <div id="delete-popup" className={classes.dialog}>
-          <DialogTitle disableTypography>
-            <Typography variant="h5">Create PR to remove clusters</Typography>
-            <CloseIconButton onClick={cleanUp} />
-          </DialogTitle>
-          <DialogContent>
-            {!creatingPR ? (
-              <>
-                <Input
-                  label="Create branch"
-                  placeholder={branchName}
-                  onChange={handleChangeBranchName}
-                />
-                <Input
-                  label="Pull request title"
-                  placeholder={pullRequestTitle}
-                  onChange={handleChangePullRequestTitle}
-                />
-                <Input
-                  label="Commit message"
-                  placeholder={commitMessage}
-                  onChange={handleChangeCommitMessage}
-                />
-                <Input
-                  label="Pull request description"
-                  placeholder={pullRequestDescription}
-                  onChange={handleChangePRDescription}
-                  multiline
-                  rows={4}
-                />
-                <RepoInputWithAuth
-                  style={{
-                    marginBottom: theme.spacing.base,
-                    width: '80%',
-                  }}
-                  isAuthenticated={isAuthenticated}
-                  onProviderChange={(provider: GitProvider) => {
-                    setFormState({ ...formState, provider });
-                  }}
-                  onChange={e => {
-                    setFormState({
-                      ...formState,
-                      url: e.currentTarget.value,
-                    });
-                  }}
-                  onAuthClick={provider => {
-                    if (provider === ('GitHub' as GitProvider)) {
-                      setShowAuthDialog(true);
-                    }
-                  }}
-                  required
-                  id="url"
-                  label="Source Repo URL"
-                  variant="standard"
-                  value={formState.url}
-                  helperText=""
-                  disabled={true}
-                />
-                <OnClickAction
-                  id="delete-cluster"
-                  icon={faTrashAlt}
-                  onClick={handleClickRemove}
-                  text="Remove clusters from the MCCP"
-                  className="danger"
-                  disabled={
-                    selectedCapiClusters.length === 0 || !isAuthenticated
-                  }
-                />
-              </>
-            ) : (
-              <Loader />
-            )}
-            <GithubDeviceAuthModal
-              onClose={() => setShowAuthDialog(false)}
-              onSuccess={() => {
-                setShowAuthDialog(false);
-                setAuthSuccess(true);
-                setNotifications([
-                  {
-                    message:
-                      'Authentication completed successfully. Please proceed with creating the PR.',
-                    variant: 'success',
-                  },
-                ]);
-              }}
-              open={showAuthDialog}
-              repoName="config"
-            />
-          </DialogContent>
-        </div>
-      </CallbackStateContextProvider>
+      <div id="delete-popup" className={classes.dialog}>
+        <DialogTitle disableTypography>
+          <Typography variant="h5">Create PR to remove clusters</Typography>
+          <CloseIconButton onClick={cleanUp} />
+        </DialogTitle>
+        <DialogContent>
+          {!creatingPR ? (
+            <>
+              <Input
+                label="Create branch"
+                placeholder={branchName}
+                onChange={handleChangeBranchName}
+              />
+              <Input
+                label="Pull request title"
+                placeholder={pullRequestTitle}
+                onChange={handleChangePullRequestTitle}
+              />
+              <Input
+                label="Commit message"
+                placeholder={commitMessage}
+                onChange={handleChangeCommitMessage}
+              />
+              <Input
+                label="Pull request description"
+                placeholder={pullRequestDescription}
+                onChange={handleChangePRDescription}
+                multiline
+                rows={4}
+              />
+              <GitAuth
+                setEnableCreatePR={setEnableCreatePR}
+                showAuthDialog={showAuthDialog}
+                setShowAuthDialog={setShowAuthDialog}
+              />
+              <OnClickAction
+                id="delete-cluster"
+                icon={faTrashAlt}
+                onClick={handleClickRemove}
+                text="Remove clusters from the MCCP"
+                className="danger"
+                disabled={selectedCapiClusters.length === 0 || !enableCreatePR}
+              />
+            </>
+          ) : (
+            <Loader />
+          )}
+        </DialogContent>
+      </div>
     </Dialog>
   );
 };
