@@ -118,13 +118,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 
 	// Create a new HelmChartClient to query HelmRepository objects
 	helmRepo := &sourcev1beta1.HelmRepository{}
-	if err = kubeClient.Get(ctx, client.ObjectKey{
-		Name:      viper.GetString("profile-helm-repository"),
-		Namespace: os.Getenv("RUNTIME_NAMESPACE"),
-	}, helmRepo); err != nil {
-		return fmt.Errorf("cannot find Helm repository: %w", err)
-	}
-
 	cc := charts.NewHelmChartClient(kubeClient, os.Getenv("RUNTIME_NAMESPACE"), helmRepo, charts.WithCacheDir(tempDir))
 
 	appsConfig, err := wego_server.DefaultConfig()
