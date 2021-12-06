@@ -61,7 +61,7 @@ const GitAuth: FC<{
   return (
     <CallbackStateContextProvider
       callbackState={{
-        page: `/clusters/templates/${activeTemplate}/create` as PageRoute,
+        page: `/clusters` as PageRoute,
         state: formState,
       }}
     >
