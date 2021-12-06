@@ -645,8 +645,7 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		}, nil
 	}
 
-	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
-	if err := cc.UpdateCache(ctx); err != nil {
+	if err := s.helmChartClient.UpdateCache(ctx); err != nil {
 		return nil, fmt.Errorf("failed to update Helm cache: %w", err)
 	}
 	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
@@ -656,7 +655,7 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		Namespace:  helmRepo.ObjectMeta.Namespace,
 	}
 	ref := &charts.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
-	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+	bs, err := s.helmChartClient.FileFromChart(ctx, ref, chartutil.ValuesfileName)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
 	}
