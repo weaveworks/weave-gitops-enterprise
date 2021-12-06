@@ -205,7 +205,7 @@ jobs:
       with:
         name: acceptance-test-artifacts-${{ matrix.os }}
         path: ${{ env.ARTEFACTS_BASE_DIR }}
-        retention-days: 1
+        retention-days: 7
 
   test-gke:
     needs: [build]
@@ -384,5 +384,5 @@ jobs:
       with:
         name: acceptance-test-artifacts-${{ matrix.os }}
         path: ${{ env.ARTEFACTS_BASE_DIR }}
-        retention-days: 1  
+        retention-days: 7  
   
