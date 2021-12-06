@@ -275,6 +275,9 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		// Check the values and if empty use profile defaults. This should happen before parsing.
 		if pvs.Values == "" {
 			ref := &charts.ChartReference{Chart: pvs.Name, Version: pvs.Version, SourceRef: sourceRef}
+			if err := s.helmChartClient.UpdateCache(ctx); err != nil {
+				return nil, fmt.Errorf("failed to update Helm cache: %w", err)
+			}
 			bs, err := s.helmChartClient.FileFromChart(ctx, ref, chartutil.ValuesfileName)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)

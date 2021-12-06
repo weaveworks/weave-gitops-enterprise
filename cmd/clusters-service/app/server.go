@@ -126,9 +126,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 	}
 
 	cc := charts.NewHelmChartClient(kubeClient, os.Getenv("RUNTIME_NAMESPACE"), helmRepo, charts.WithCacheDir(tempDir))
-	if err := cc.UpdateCache(ctx); err != nil {
-		return fmt.Errorf("failed to update Helm cache: %w", err)
-	}
 
 	appsConfig, err := wego_server.DefaultConfig()
 	if err != nil {
