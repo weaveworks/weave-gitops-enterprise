@@ -30,7 +30,7 @@ The `clusters-service` requires the presence of a valid entitlement secret for i
 
 An existing entitlement secret that you can use can be found [here](../test/utils/scripts/entitlement-secret.yaml). Alternatively, you can generate your own entitlement secret by using the `wge-credentials` binary.
 
-Create a local database (optional):
+#### Create a local database (optional):
 
 ```bash
 $ (cd cmd/event-writer && go run main.go database create --db-type sqlite --db-uri file:///tmp/wge.db)
@@ -49,14 +49,34 @@ cluster_pull_requests  flux_info              workspaces
 sqlite>
 ```
 
-Run the server:
+#### Port forward the source-controller to access profiles (optional)
+
+To query profiles the `cluster-service` needs to be able to DNS resolve the source-controller which providers the helm-repo (profile) info.
+
+Goes like this: `/v1/profiles` on the `clusters-service` finds the `HelmRepository` CR to figure out the URL where it can get a copy of the `index.yaml` that lists all the profiles.
+
+```yaml
+kind: HelmRepository
+status:
+  # some url that only resolves when running inside the cluster
+  url: source-controller.svc.wego-system/my-repo/index.yaml
+```
+
+Outside the cluster this is no good (e.g. `curl`ing the above URL will fail). To fix this we need to:
+
+1. expose the source-controller outside the cluster (in another tab):
+   - `kubectl -n wego-system port-forward svc/source-controller 8080:80`
+2. tell the `cluster-service` to forget about _most_ of that above URL it finds on the `HelmRepository` and use the port-forwarded one instead:
+   - `SOURCE_CONTROLLER_LOCALHOST=localhost:8080`
+
+#### Run the server:
 
 ```bash
 # Optional, configure the kube context the capi-server should use
 export KUBECONFIG=test-server-kubeconfig
 
 # Run the server configured using lots of env vars
-DB_URI=/tmp/wge.db CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=wego-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
+DB_URI=/tmp/wge.db CAPI_CLUSTERS_NAMESPACE=default SOURCE_CONTROLLER_LOCALHOST=localhost:8080 CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=wego-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
 ```
 
 You can query the local capi-server:
@@ -158,17 +178,18 @@ Hit up http://34.67.250.163:30080
 The private ssh key to the server lives in the `pesto test cluster ssh key` secret in 1Password.
 
 1. Grab it and save it to `~/.ssh/cluster-key`
-2. Copy `kubeconfig` using this ssh key
+1. Set permissions `chmod 600 ~/.ssh/cluster-key`
+1. Add it to your current ssh agent session with `ssh-add ~/.ssh/cluster-key`
+1. Copy `kubeconfig` using this ssh key
    ```
-   scp -i ~/.ssh/cluster-key wks@$34.67.250.163:.kube/config demokubeconfig.txt
+   LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 scp wks@34.67.250.163:.kube/config ~/.kube/config
    ```
-3. Port forward the api-server port (6443) in another tab
+1. Port forward the api-server port (6443) in another tab
    ```
-   ssh -i ~/.ssh/cluster-key wks@$34.67.250.163 -L 6443:localhost:6443
+   ssh wks@34.67.250.163 -L 6443:localhost:6443
    ```
-4. Use the `kubeconfig`:
+1. Use the `kubeconfig`:
    ```
-   export KUBECONFIG=demokubeconfig.txt
    kubectl get pods -A
    ```
 
