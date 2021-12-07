@@ -147,6 +147,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					if AuthenticateWithGitProvider(webDriver, "github") {
 						Eventually(addApp.GitCredentials).Should(BeVisible())
 					}
+					addApp = pages.GetAddApplicationForm(webDriver)
 					Expect(addApp.Submit.Click()).To(Succeed())
 					pages.WaitForAuthenticationAlert(webDriver, "Application added successfully!")
 					Expect(addApp.ViewApplication.Click()).To(Succeed())
