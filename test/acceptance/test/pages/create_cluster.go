@@ -67,7 +67,9 @@ func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
 }
 
 func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {
-	section := webdriver.Find(fmt.Sprintf(`div[data-name="%s"]`, sectionName))
+	paramSection := fmt.Sprintf(`div[data-name="%s"]`, sectionName)
+	Eventually(webdriver.Find(paramSection)).Should(BeFound())
+	section := webdriver.Find(paramSection)
 	name := section.Find(".section-name")
 	fields := section.All(".step-child")
 

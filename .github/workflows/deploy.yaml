@@ -103,6 +103,7 @@ jobs:
       GITOPS_BIN_PATH: /tmp/gitops
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       SELENIUM_DEBUG: true
+      MANAGEMENT_CLUSTER: management-${{ github.run_id }}-${{ github.run_number}}
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
       WGE_ACCEPTANCE: true
       KIND_WKP_LEAF_KUBECONFIG: '/tmp/wkp-kind-leaf-kubeconfig'
@@ -187,7 +188,7 @@ jobs:
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
     - name: Setup kind management cluster
       run: |
-        kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.20.7 --config test/utils/data/local-kind-config.yaml
+        kind create cluster --name $MANAGEMENT_CLUSTER --image=kindest/node:v1.20.7 --config test/utils/data/local-kind-config.yaml
         kubectl get pods -A     
     - name: Install wego entriprise componenets on management cluster
       run: |

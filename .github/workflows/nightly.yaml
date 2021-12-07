@@ -42,6 +42,7 @@ jobs:
       KIND_WKP_LEAF_KUBECONFIG: '/tmp/wkp-kind-leaf-kubeconfig'
       ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
       MANAGEMENT_CLUSTER_KIND: EKS
+      MANAGEMENT_CLUSTER: wego-enterprise-nightly-cluster-${{ matrix.os_name }}
       SELENIUM_DEBUG: true
       WGE_ACCEPTANCE: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
@@ -139,15 +140,14 @@ jobs:
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &        
     - name: Setup EKS management cluster
       run: |
-        export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ matrix.os_name }}
         export CLUSTER_VERSION=1.21
 
-        export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
+        export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $MANAGEMENT_CLUSTER)
         if [ -z $CLUSTER_EXISTS ]
         then
-          eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION
+          eksctl create cluster --name=$MANAGEMENT_CLUSTER --version=$CLUSTER_VERSION
         fi
-        eksctl utils write-kubeconfig --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
+        eksctl utils write-kubeconfig --cluster=$MANAGEMENT_CLUSTER --kubeconfig=$HOME/.kube/config
         kubectl config rename-context $(kubectl config current-context) test-eks-${{ matrix.os_name }}
         ls -la $HOME/.kube
         kubectl get nodes -A
@@ -232,6 +232,7 @@ jobs:
       KIND_WKP_LEAF_KUBECONFIG: '/tmp/wkp-kind-leaf-kubeconfig'
       ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
       MANAGEMENT_CLUSTER_KIND: GKE
+      MANAGEMENT_CLUSTER: wego-enterprise-nightly-cluster-${{ matrix.os_name }}
       SELENIUM_DEBUG: true
       WGE_ACCEPTANCE: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
@@ -319,15 +320,14 @@ jobs:
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
     - name: Setup GKE management cluster
       run: |
-        export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ matrix.os_name }}
         export CLUSTER_VERSION=1.21
         export CLUSTER_REGION=us-central1-a
-        export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
+        export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $MANAGEMENT_CLUSTER)
         if [ -z $CLUSTER_EXISTS ]
         then
-          gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
+          gcloud container clusters create $MANAGEMENT_CLUSTER --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
         fi
-        gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
+        gcloud container clusters get-credentials $MANAGEMENT_CLUSTER --zone $CLUSTER_REGION
         kubectl config rename-context $(kubectl config current-context) test-gke-${{ matrix.os_name }}
         ls -la $HOME/.kube
         kubectl get nodes -A

@@ -777,16 +777,16 @@ func getEnv(key, fallback string) string {
 	return value
 }
 
-// showItems displays the current set of a specified object type in tabular format
-func showItems(itemType string) error {
+// ShowItems displays the current set of a specified object type in tabular format
+func ShowItems(itemType string) error {
 	if itemType != "" {
 		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
 	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
-func dumpClusterInfo(namespaces, testName string) error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", namespaces, testName, CLUSTER_INFO_DIR)
+func DumpClusterInfo(testName string) error {
+	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, CLUSTER_INFO_DIR)
 }
 
 // This function generates multiple capitemplate files from a single capitemplate to be used as test data

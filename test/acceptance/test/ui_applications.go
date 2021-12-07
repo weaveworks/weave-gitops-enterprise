@@ -15,7 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
+func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) bool {
 	if gitProvider == "github" {
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
@@ -55,9 +55,11 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
 
 			// Device is connected, now move back to application window
 			Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
+
+			return true
 		}
 	}
-
+	return false
 }
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
@@ -65,9 +67,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 		GITOPS_BIN_PATH := GetGitopsBinPath()
 		var repoAbsolutePath string
-
-		var session *gexec.Session
-		var err error
 
 		BeforeEach(func() {
 
@@ -123,17 +122,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
-				addCommand := fmt.Sprintf("add app . --path=./%s  --name=%s  --auto-merge=true", appPath, appName)
-				By(fmt.Sprintf("And I run gitops add app command ' %s 'in namespace %s from dir %s", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
-					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-					Eventually(session).Should(gexec.Exit())
-					Expect(string(session.Err.Contents())).Should(BeEmpty())
-				})
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationPage(webDriver)
-				// addApp := pages.GetAddApplicationForm(webDriver)
+				addApp := pages.GetAddApplicationForm(webDriver)
 
 				By("And wait for Application page to be rendered", func() {
 					applicationsPage.WaitForPageToLoad(webDriver, 0)
@@ -141,24 +132,25 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(applicationsPage.AddApplication).Should(BeVisible())
 				})
 
-				// By(fmt.Sprintf("Then I add application '%s' to weave gitops cluster", appName), func() {
-				// 	Expect(applicationsPage.AddApplication.Click()).To(Succeed())
+				By(fmt.Sprintf("Then I add application '%s' to weave gitops cluster", appName), func() {
+					Expect(applicationsPage.AddApplication.Click()).To(Succeed())
 
-				// 	Eventually(addApp.Name).Should(BeVisible())
-				// 	Expect(addApp.Name.SendKeys(appName)).To(Succeed())
-				// 	Expect(addApp.SourceRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
-				// 	Expect(addApp.ConfigRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
-				// 	Expect(addApp.Path.SendKeys(appPath)).To(Succeed())
-				// 	Expect(addApp.AutoMerge.Check()).To(Succeed())
-				// })
+					Eventually(addApp.Name).Should(BeVisible())
+					Expect(addApp.Name.SendKeys(appName)).To(Succeed())
+					Expect(addApp.SourceRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
+					Expect(addApp.ConfigRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
+					Expect(addApp.Path.SendKeys(appPath)).To(Succeed())
+					Expect(addApp.AutoMerge.Check()).To(Succeed())
+				})
 
-				// By(`And authenticate with Github`, func() {
-				// 	AuthenticateWithGitProvider(webDriver, "github")
-				// 	Eventually(addApp.GitCredentials).Should(BeVisible())
-				// 	Expect(addApp.Submit.Click()).To(Succeed())
-				// 	pages.WaitForAuthenticationAlert(webDriver, "Application added successfully!")
-				// 	Expect(addApp.ViewApplication.Click()).To(Succeed())
-				// })
+				By(`And authenticate with Github`, func() {
+					if AuthenticateWithGitProvider(webDriver, "github") {
+						Eventually(addApp.GitCredentials).Should(BeVisible())
+					}
+					Expect(addApp.Submit.Click()).To(Succeed())
+					pages.WaitForAuthenticationAlert(webDriver, "Application added successfully!")
+					Expect(addApp.ViewApplication.Click()).To(Succeed())
+				})
 
 				By("And I add the kustomization file for application deployment", func() {
 					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
@@ -217,10 +209,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(`Then authenticate with Github`, func() {
-					AuthenticateWithGitProvider(webDriver, "github")
-					pages.WaitForAuthenticationAlert(webDriver, "Authentication Successful")
+					if AuthenticateWithGitProvider(webDriver, "github") {
+						pages.WaitForAuthenticationAlert(webDriver, "Authentication Successful")
+					}
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
-
 				})
 
 				By(fmt.Sprintf(`And verify %s application commit history`, appName), func() {
