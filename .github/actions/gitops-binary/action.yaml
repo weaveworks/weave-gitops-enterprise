@@ -19,13 +19,13 @@ runs:
     - shell: bash
       name: Download gitops binary from s3
       run: |
-        # Not working right now
-        # wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ inputs.os }}
-        # mv gitops-${{ inputs.os }} ${{ inputs.path }}
+        wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ inputs.os }}        
+        mv gitops-${{ inputs.os }} ${{ inputs.path }}
+        sudo chmod +x ${{ inputs.path }}
 
-        curl -LO https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0-rc2/gitops-${{ inputs.os_name }}-x86_64.tar.gz
-        tar -xf gitops-${{ inputs.os_name }}-x86_64.tar.gz
-        mv gitops ${{ inputs.path }}
+        # curl -LO https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0-rc2/gitops-${{ inputs.os_name }}-x86_64.tar.gz
+        # tar -xf gitops-${{ inputs.os_name }}-x86_64.tar.gz
+        # mv gitops ${{ inputs.path }}
 
         # Print out Version
         ${{ inputs.path }} version
