@@ -52,13 +52,15 @@ export class Poll<ResponsesById> extends PureComponent<
     }
   }
 
+  // Type 'QueriesById<ResponsesById>' is missing the following properties from type 'Request': cache, credentials, destination, headers, and 17 more.
+
   doParallelRequests = () => {
     const { requestOptions, queriesById } = this.props;
     const requestInfo = values<QueriesById<ResponsesById>>(queriesById);
     return new Promise<ResponsesById>((resolve, reject) => {
       // Make requests for all the queries at the same time.
       Promise.all(
-        requestInfo.map(query => request('GET', query, requestOptions)),
+        requestInfo.map((query: any) => request('GET', query, requestOptions)),
       )
         .then(responses => {
           // If any the queries responds with an error, reject the whole promise ...

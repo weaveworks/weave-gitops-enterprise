@@ -2,6 +2,7 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
+import useVersions from '../../../contexts/Versions';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
@@ -21,7 +22,12 @@ import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import { Loader } from '../../Loader';
-import { getProviderToken } from '@weaveworks/weave-gitops';
+import {
+  CallbackStateContextProvider,
+  clearCallbackState,
+  getCallbackState,
+  getProviderToken,
+} from '@weaveworks/weave-gitops';
 import { isUnauthenticated } from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
@@ -30,6 +36,7 @@ import GitOps from './Form/Partials/GitOps';
 import Preview from './Form/Partials/Preview';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -101,7 +108,24 @@ const AddCluster: FC = () => {
     setError,
   } = useTemplates();
   const clustersCount = useClusters().count;
-  const [formData, setFormData] = useState({});
+  const { repositoryURL } = useVersions();
+
+  let initialFormData = {
+    url: repositoryURL,
+    provider: '',
+  };
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    initialFormData = {
+      ...initialFormData,
+      ...callbackState.state,
+    };
+    clearCallbackState();
+  }
+
+  const [formData, setFormData] = useState(initialFormData);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
@@ -110,10 +134,12 @@ const AddCluster: FC = () => {
   const history = useHistory();
   const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
   const [clickedStep, setClickedStep] = useState<string>('');
-  const [infraCredential, setInfraCredential] =
-    useState<Credential | null>(null);
+  const [infraCredential, setInfraCredential] = useState<Credential | null>(
+    null,
+  );
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
+  const page = `/clusters/templates/${activeTemplate?.name}/create`;
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -171,7 +197,7 @@ const AddCluster: FC = () => {
           },
           values: encodedProfiles(updatedProfiles),
         },
-        getProviderToken('GitHub' as GitProvider),
+        getProviderToken(formData.provider as GitProvider),
       )
         .then(() => {
           setPRPreview(null);
@@ -223,81 +249,96 @@ const AddCluster: FC = () => {
     setPRPreview,
   ]);
 
+  useEffect(() => {
+    setFormData(prevState => ({ ...prevState, url: repositoryURL }));
+  }, [repositoryURL, formData.url]);
+
   return useMemo(() => {
     return (
-      <PageTemplate documentTitle="WeGo · Create new cluster">
-        <SectionHeader
-          className="count-header"
-          path={[
-            { label: 'Clusters', url: '/', count: clustersCount },
-            { label: 'Create new cluster' },
-          ]}
-        />
-        <ContentWrapper>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={9}>
-              <Title>Create new cluster with template</Title>
-              <CredentialsWrapper>
-                <div className="template-title">
-                  Template: <span>{activeTemplate?.name}</span>
-                </div>
-                <Credentials onSelect={setInfraCredential} />
-              </CredentialsWrapper>
-              <Divider
-                className={
-                  !isLargeScreen ? classes.divider : classes.largeDivider
-                }
-              />
-              <TemplateFields
-                activeTemplate={activeTemplate}
-                activeStep={activeStep}
-                setActiveStep={setActiveStep}
-                clickedStep={clickedStep}
-                formData={formData}
-                onFormDataUpdate={setFormData}
-                onProfilesUpdate={setUpdatedProfiles}
-                onPRPreview={handlePRPreview}
-              />
-              {openPreview ? (
-                <>
-                  {PRPreview ? (
-                    <>
-                      <Preview
-                        PRPreview={PRPreview}
-                        activeStep={activeStep}
-                        setActiveStep={setActiveStep}
-                        clickedStep={clickedStep}
-                      />
-                      <GitOps
-                        onSubmit={handleAddCluster}
-                        activeStep={activeStep}
-                        setActiveStep={setActiveStep}
-                        clickedStep={clickedStep}
-                        setClickedStep={setClickedStep}
-                        showAuthDialog={showAuthDialog}
-                        setShowAuthDialog={setShowAuthDialog}
-                      />
-                      {creatingPR && <Loader />}
-                    </>
-                  ) : (
-                    <Loader />
-                  )}
-                </>
-              ) : null}
+      <CallbackStateContextProvider
+        callbackState={{
+          page: page as PageRoute,
+          state: formData,
+        }}
+      >
+        <PageTemplate documentTitle="WeGo · Create new cluster">
+          <SectionHeader
+            className="count-header"
+            path={[
+              { label: 'Clusters', url: '/', count: clustersCount },
+              { label: 'Create new cluster' },
+            ]}
+          />
+
+          <ContentWrapper>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={9}>
+                <Title>Create new cluster with template</Title>
+                <CredentialsWrapper>
+                  <div className="template-title">
+                    Template: <span>{activeTemplate?.name}</span>
+                  </div>
+                  <Credentials onSelect={setInfraCredential} />
+                </CredentialsWrapper>
+                <Divider
+                  className={
+                    !isLargeScreen ? classes.divider : classes.largeDivider
+                  }
+                />
+                <TemplateFields
+                  activeTemplate={activeTemplate}
+                  activeStep={activeStep}
+                  setActiveStep={setActiveStep}
+                  clickedStep={clickedStep}
+                  formData={formData}
+                  onFormDataUpdate={setFormData}
+                  onProfilesUpdate={setUpdatedProfiles}
+                  onPRPreview={handlePRPreview}
+                />
+                {openPreview ? (
+                  <>
+                    {PRPreview ? (
+                      <>
+                        <Preview
+                          PRPreview={PRPreview}
+                          activeStep={activeStep}
+                          setActiveStep={setActiveStep}
+                          clickedStep={clickedStep}
+                        />
+                        <GitOps
+                          formData={formData}
+                          setFormData={setFormData}
+                          onSubmit={handleAddCluster}
+                          activeStep={activeStep}
+                          setActiveStep={setActiveStep}
+                          clickedStep={clickedStep}
+                          setClickedStep={setClickedStep}
+                          showAuthDialog={showAuthDialog}
+                          setShowAuthDialog={setShowAuthDialog}
+                        />
+                        {creatingPR && <Loader />}
+                      </>
+                    ) : (
+                      <Loader />
+                    )}
+                  </>
+                ) : null}
+              </Grid>
+              <Grid className={classes.steps} item md={3}>
+                <FormStepsNavigation
+                  steps={steps}
+                  activeStep={activeStep}
+                  setClickedStep={setClickedStep}
+                  PRPreview={PRPreview}
+                />
+              </Grid>
             </Grid>
-            <Grid className={classes.steps} item md={3}>
-              <FormStepsNavigation
-                steps={steps}
-                activeStep={activeStep}
-                setClickedStep={setClickedStep}
-                PRPreview={PRPreview}
-              />
-            </Grid>
-          </Grid>
-        </ContentWrapper>
-      </PageTemplate>
+          </ContentWrapper>
+        </PageTemplate>
+      </CallbackStateContextProvider>
     );
   }, [
+    page,
     formData,
     activeTemplate,
     clustersCount,

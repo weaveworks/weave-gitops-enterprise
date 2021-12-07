@@ -19,6 +19,8 @@ const useStyles = makeStyles(() =>
 );
 
 const GitOps: FC<{
+  formData: any;
+  setFormData: Dispatch<React.SetStateAction<any>>;
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
@@ -32,6 +34,8 @@ const GitOps: FC<{
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
+  formData,
+  setFormData,
   activeStep,
   setActiveStep,
   clickedStep,
@@ -128,6 +132,8 @@ const GitOps: FC<{
         rows={4}
       />
       <GitAuth
+        formData={formData}
+        setFormData={setFormData}
         setEnableCreatePR={setEnableCreatePR}
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}

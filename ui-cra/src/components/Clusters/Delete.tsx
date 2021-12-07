@@ -175,11 +175,11 @@ export const DeleteClusterDialog: FC<Props> = ({
                 multiline
                 rows={4}
               />
-              <GitAuth
+              {/* <GitAuth
                 setEnableCreatePR={setEnableCreatePR}
                 showAuthDialog={showAuthDialog}
                 setShowAuthDialog={setShowAuthDialog}
-              />
+              /> */}
               <OnClickAction
                 id="delete-cluster"
                 icon={faTrashAlt}
