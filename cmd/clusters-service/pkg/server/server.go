@@ -27,8 +27,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -623,7 +623,6 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 
 func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
 	out := [][]byte{}
-
 	// Add HelmRepository object
 	b, err := yaml.Marshal(helmRepo)
 	if err != nil {
@@ -744,19 +743,31 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	}
 
 	var profileName string
-	var helmReleases []*helmv2beta1.HelmRelease
-	for _, pvs := range profileValues {
-		hr, err := charts.ParseValues(pvs.Name, pvs.Version, pvs.Values, clusterName, helmRepo)
+	var installs []charts.ChartInstall
+	for _, v := range profileValues {
+		parsed, err := parseValues(v.Values)
 		if err != nil {
-			return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
-		// Pick the name of the first chart as the profile name for now
-		if profileName == "" {
-			profileName = pvs.Name
-		}
-		helmReleases = append(helmReleases, hr)
+		installs = append(installs, charts.ChartInstall{
+			Ref: charts.ChartReference{
+				Chart:   v.Name,
+				Version: v.Version,
+				SourceRef: helmv2beta1.CrossNamespaceObjectReference{
+					Name:      helmRepo.GetName(),
+					Namespace: helmRepo.GetNamespace(),
+					Kind:      "HelmRepository",
+				},
+			},
+			Layer:  v.Layer,
+			Values: parsed,
+		})
 	}
 
+	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "wego-system", installs)
+	if err != nil {
+		return nil, fmt.Errorf("making helm releases for cluster %s: %w", clusterName, err)
+	}
 	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
 	if err != nil {
 		return nil, err
@@ -769,4 +780,17 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	}
 
 	return file, nil
+}
+
+func parseValues(s string) (map[string]interface{}, error) {
+	decoded, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+	}
+
+	vals := map[string]interface{}{}
+	if err := yaml.Unmarshal(decoded, &vals); err != nil {
+		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
+	}
+	return vals, nil
 }
