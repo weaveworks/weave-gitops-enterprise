@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -85,14 +86,16 @@ func (a ApplicationDetails) WaitForPageToLoad(webDriver *agouti.Page) {
 
 // This function waits for main application page to be rendered
 func (a ApplicationPage) WaitForPageToLoad(webDriver *agouti.Page, appCount int) {
-	Eventually(a.ApplicationCount).Should(BeVisible())
 	count := func() int {
 		_ = webDriver.Refresh()
-		strCount, _ := a.ApplicationCount.Text()
+		applicationCount := webDriver.FindByXPath(`//*[@href="/applications"]/parent::div[@role="heading"]/following-sibling::div`)
+		Eventually(applicationCount).Should(BeVisible())
+		strCount, _ := applicationCount.Text()
 		c, _ := strconv.Atoi(strCount)
+		fmt.Println(c)
 		return c
 	}
-	Eventually(count).Should(BeNumerically(">=", appCount), "Application page failed to load/render as expected")
+	Eventually(count, 30*time.Second, 5*time.Second).Should(BeNumerically(">=", appCount), "Application page failed to load/render as expected")
 }
 
 func GetApplicationPage(webDriver *agouti.Page) *ApplicationPage {
