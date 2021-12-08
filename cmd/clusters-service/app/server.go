@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/go-checkpoint"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
@@ -116,10 +115,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 
-	// Create a new HelmChartClient to query HelmRepository objects
-	helmRepo := &sourcev1beta1.HelmRepository{}
-	cc := charts.NewHelmChartClient(kubeClient, os.Getenv("RUNTIME_NAMESPACE"), helmRepo, charts.WithCacheDir(tempDir))
-
 	appsConfig, err := wego_server.DefaultConfig()
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
@@ -151,7 +146,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 		),
 		WithCAPIClustersNamespace(ns),
 		WithHelmRepositoryCacheDirectory(tempDir),
-		WithHelmChartClient(cc),
 	)
 }
 
@@ -186,8 +180,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository, args.HelmRepositoryCacheDirectory, args.HelmChartClient))
-
+	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository, args.HelmRepositoryCacheDirectory))
 	//Add weave-gitops core handlers
 	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
 	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)

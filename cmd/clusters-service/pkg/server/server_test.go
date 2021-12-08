@@ -1464,10 +1464,10 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
-	var cc *charts.HelmChartClient
-	if hr != nil {
-		cc = makeChartClient(t, c, hr)
-	}
+	// var cc *charts.HelmChartClient
+	// if hr != nil {
+	// 	cc = makeChartClient(t, c, hr)
+	// }
 
 	s := NewClusterServer(logr.Discard(),
 		&templates.ConfigMapLibrary{
@@ -1475,7 +1475,7 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 			Client:        c,
 			ConfigMapName: configMapName,
 			Namespace:     namespace,
-		}, provider, c, dc, db, ns, "weaveworks-charts", "", cc)
+		}, provider, c, dc, db, ns, "weaveworks-charts", "")
 
 	return s
 }

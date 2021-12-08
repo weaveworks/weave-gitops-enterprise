@@ -67,12 +67,11 @@ type server struct {
 	ns                        string // The namespace where cluster objects reside
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
-	helmChartClient           *charts.HelmChartClient
 }
 
 var DefaultRepositoryPath string = filepath.Join(wegogit.WegoRoot, wegogit.WegoAppDir, "capi")
 
-func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string, helmChartClient *charts.HelmChartClient) capiv1_proto.ClustersServiceServer {
+func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
 	return &server{
 		log:                       log,
 		library:                   library,
@@ -83,7 +82,6 @@ func NewClusterServer(log logr.Logger, library templates.Library, provider git.P
 		ns:                        ns,
 		profileHelmRepositoryName: profileHelmRepositoryName,
 		helmRepositoryCacheDir:    helmRepositoryCacheDir,
-		helmChartClient:           helmChartClient,
 	}
 }
 
@@ -275,10 +273,11 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		// Check the values and if empty use profile defaults. This should happen before parsing.
 		if pvs.Values == "" {
 			ref := &charts.ChartReference{Chart: pvs.Name, Version: pvs.Version, SourceRef: sourceRef}
-			if err := s.helmChartClient.UpdateCache(ctx); err != nil {
+			cc := charts.NewHelmChartClient(s.client, os.Getenv("RUNTIME_NAMESPACE"), helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
+			if err := cc.UpdateCache(ctx); err != nil {
 				return nil, fmt.Errorf("failed to update Helm cache: %w", err)
 			}
-			bs, err := s.helmChartClient.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+			bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
 			}
@@ -645,7 +644,8 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		}, nil
 	}
 
-	if err := s.helmChartClient.UpdateCache(ctx); err != nil {
+	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
+	if err := cc.UpdateCache(ctx); err != nil {
 		return nil, fmt.Errorf("failed to update Helm cache: %w", err)
 	}
 	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
@@ -655,7 +655,7 @@ func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProf
 		Namespace:  helmRepo.ObjectMeta.Namespace,
 	}
 	ref := &charts.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
-	bs, err := s.helmChartClient.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
 	}
