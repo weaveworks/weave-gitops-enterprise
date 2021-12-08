@@ -137,7 +137,7 @@ const AddCluster: FC = () => {
   );
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
-  const page = `/clusters/templates/${activeTemplate?.name}/create`;
+  const authRedirectPage = `/clusters/templates/${activeTemplate?.name}/create`;
 
   const objectTitle = (object: TemplateObject, index: number) => {
     if (object.displayName && object.displayName !== '') {
@@ -256,7 +256,7 @@ const AddCluster: FC = () => {
       <PageTemplate documentTitle="WeGo · Create new cluster">
         <CallbackStateContextProvider
           callbackState={{
-            page: page as PageRoute,
+            page: authRedirectPage as PageRoute,
             state: formData,
           }}
         >
@@ -335,7 +335,7 @@ const AddCluster: FC = () => {
       </PageTemplate>
     );
   }, [
-    page,
+    authRedirectPage,
     formData,
     activeTemplate,
     clustersCount,

@@ -23,10 +23,15 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../Action';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
-import { getProviderToken } from '@weaveworks/weave-gitops';
+import {
+  CallbackStateContextProvider,
+  getCallbackState,
+  getProviderToken,
+} from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 
 interface Props {
   selectedCapiClusters: string[];
@@ -46,49 +51,82 @@ export const DeleteClusterDialog: FC<Props> = ({
   setOpenDeletePR,
 }) => {
   const classes = useStyles();
-  const { repositoryURL } = useVersions();
-
   const random = Math.random().toString(36).substring(7);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  const { repositoryURL } = useVersions();
+  const authRedirectPage = `/clusters/delete`;
 
-  const [branchName, setBranchName] = useState<string>(
-    `delete-clusters-branch-${random}`,
-  );
-  const [pullRequestTitle, setPullRequestTitle] = useState<string>(
-    'Deletes capi cluster(s)',
-  );
-  const [commitMessage, setCommitMessage] = useState<string>(
-    'Deletes capi cluster(s)',
-  );
-  const [pullRequestDescription, setPullRequestDescription] = useState<string>(
-    `Delete clusters: ${selectedCapiClusters.map(c => c).join(', ')}`,
-  );
+  interface FormData {
+    url: string;
+    provider: string;
+    branchName: string;
+    pullRequestTitle: string;
+    commitMessage: string;
+    pullRequestDescription: string;
+  }
+
+  let initialFormData = {
+    url: repositoryURL,
+    provider: '',
+    branchName: `delete-clusters-branch-${random}`,
+    pullRequestTitle: 'Deletes capi cluster(s)',
+    commitMessage: 'Deletes capi cluster(s)',
+    pullRequestDescription: `Delete clusters: ${selectedCapiClusters
+      .map(c => c)
+      .join(', ')}`,
+  };
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    initialFormData = {
+      ...initialFormData,
+      ...callbackState.state,
+    };
+    console.log(callbackState);
+    // setOpenDeletePR(true);
+  }
+
+  const [formData, setFormData] = useState<FormData>(initialFormData);
 
   const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
     useClusters();
   const { notifications, setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
+    (event: ChangeEvent<HTMLInputElement>) =>
+      setFormData((prevState: any) => ({
+        ...prevState,
+        branchName: event.target.value,
+      })),
     [],
   );
 
   const handleChangePullRequestTitle = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setPullRequestTitle(event.target.value),
+      setFormData((prevState: any) => ({
+        ...prevState,
+        pullRequestTitle: event.target.value,
+      })),
     [],
   );
 
   const handleChangeCommitMessage = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setCommitMessage(event.target.value),
+      setFormData((prevState: any) => ({
+        ...prevState,
+        commitMessage: event.target.value,
+      })),
     [],
   );
 
   const handleChangePRDescription = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setPullRequestDescription(event.target.value),
+      setFormData((prevState: any) => ({
+        ...prevState,
+        pullRequestDescription: event.target.value,
+      })),
     [],
   );
 
@@ -96,13 +134,13 @@ export const DeleteClusterDialog: FC<Props> = ({
     deleteCreatedClusters(
       {
         clusterNames: selectedCapiClusters,
-        headBranch: branchName,
-        title: pullRequestTitle,
-        commitMessage,
-        description: pullRequestDescription,
+        headBranch: formData.branchName,
+        title: formData.pullRequestTitle,
+        commitMessage: formData.commitMessage,
+        description: formData.pullRequestDescription,
         repositoryUrl: repositoryURL,
       },
-      getProviderToken('GitHub' as GitProvider),
+      getProviderToken(formData.provider as GitProvider),
     )
       .then(() =>
         setNotifications([
@@ -143,57 +181,75 @@ export const DeleteClusterDialog: FC<Props> = ({
     repositoryURL,
   ]);
 
+  useEffect(() => {
+    setFormData((prevState: FormData) => ({
+      ...prevState,
+      url: repositoryURL,
+    }));
+  }, [repositoryURL]);
+
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
-      <div id="delete-popup" className={classes.dialog}>
-        <DialogTitle disableTypography>
-          <Typography variant="h5">Create PR to remove clusters</Typography>
-          <CloseIconButton onClick={cleanUp} />
-        </DialogTitle>
-        <DialogContent>
-          {!creatingPR ? (
-            <>
-              <Input
-                label="Create branch"
-                placeholder={branchName}
-                onChange={handleChangeBranchName}
-              />
-              <Input
-                label="Pull request title"
-                placeholder={pullRequestTitle}
-                onChange={handleChangePullRequestTitle}
-              />
-              <Input
-                label="Commit message"
-                placeholder={commitMessage}
-                onChange={handleChangeCommitMessage}
-              />
-              <Input
-                label="Pull request description"
-                placeholder={pullRequestDescription}
-                onChange={handleChangePRDescription}
-                multiline
-                rows={4}
-              />
-              {/* <GitAuth
-                setEnableCreatePR={setEnableCreatePR}
-                showAuthDialog={showAuthDialog}
-                setShowAuthDialog={setShowAuthDialog}
-              /> */}
-              <OnClickAction
-                id="delete-cluster"
-                icon={faTrashAlt}
-                onClick={handleClickRemove}
-                text="Remove clusters from the MCCP"
-                className="danger"
-                disabled={selectedCapiClusters.length === 0 || !enableCreatePR}
-              />
-            </>
-          ) : (
-            <Loader />
-          )}
-        </DialogContent>
-      </div>
+      <CallbackStateContextProvider
+        callbackState={{
+          page: authRedirectPage as PageRoute,
+          state: formData,
+        }}
+      >
+        <div id="delete-popup" className={classes.dialog}>
+          <DialogTitle disableTypography>
+            <Typography variant="h5">Create PR to remove clusters</Typography>
+            <CloseIconButton onClick={cleanUp} />
+          </DialogTitle>
+          <DialogContent>
+            {!creatingPR ? (
+              <>
+                <Input
+                  label="Create branch"
+                  placeholder={formData.branchName}
+                  onChange={handleChangeBranchName}
+                />
+                <Input
+                  label="Pull request title"
+                  placeholder={formData.pullRequestTitle}
+                  onChange={handleChangePullRequestTitle}
+                />
+                <Input
+                  label="Commit message"
+                  placeholder={formData.commitMessage}
+                  onChange={handleChangeCommitMessage}
+                />
+                <Input
+                  label="Pull request description"
+                  placeholder={formData.pullRequestDescription}
+                  onChange={handleChangePRDescription}
+                  multiline
+                  rows={4}
+                />
+                <GitAuth
+                  formData={formData}
+                  setFormData={setFormData}
+                  setEnableCreatePR={setEnableCreatePR}
+                  showAuthDialog={showAuthDialog}
+                  setShowAuthDialog={setShowAuthDialog}
+                />
+                <OnClickAction
+                  id="delete-cluster"
+                  icon={faTrashAlt}
+                  onClick={handleClickRemove}
+                  text="Remove clusters from the MCCP"
+                  className="danger"
+                  disabled={
+                    selectedCapiClusters.length === 0 || !enableCreatePR
+                  }
+                />
+              </>
+            ) : (
+              <Loader />
+            )}
+          </DialogContent>
+        </div>
+      </CallbackStateContextProvider>
     </Dialog>
   );
 };

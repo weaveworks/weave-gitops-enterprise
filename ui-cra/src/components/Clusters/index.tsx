@@ -102,6 +102,7 @@ const MCCP: FC = () => {
                 onClick={() => {
                   setNotifications([]);
                   setOpenDeletePR(true);
+                  history.push('/clusters/delete');
                 }}
                 text="CREATE A PR TO DELETE CLUSTERS"
                 disabled={selectedCapiClusters.length === 0}
