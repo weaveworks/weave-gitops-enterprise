@@ -32,6 +32,7 @@ const VersionsProvider: FC = ({ children }) => {
       cache: 'no-store',
     })
       .then(res => setRepositoryURL('https://gitlab.com/alina48/test-alina'))
+      // .then(res => setRepositoryURL(res.repositoryURL))
       .catch(err => {
         setNotifications([{ message: err.message, variant: 'danger' }]);
       });

@@ -24,7 +24,6 @@ import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import { Loader } from '../../Loader';
 import {
   CallbackStateContextProvider,
-  clearCallbackState,
   getCallbackState,
   getProviderToken,
 } from '@weaveworks/weave-gitops';
@@ -122,10 +121,9 @@ const AddCluster: FC = () => {
       ...initialFormData,
       ...callbackState.state,
     };
-    clearCallbackState();
   }
 
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState<any>(initialFormData);
   const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
@@ -250,18 +248,18 @@ const AddCluster: FC = () => {
   ]);
 
   useEffect(() => {
-    setFormData(prevState => ({ ...prevState, url: repositoryURL }));
-  }, [repositoryURL, formData.url]);
+    setFormData((prevState: any) => ({ ...prevState, url: repositoryURL }));
+  }, [repositoryURL]);
 
   return useMemo(() => {
     return (
-      <CallbackStateContextProvider
-        callbackState={{
-          page: page as PageRoute,
-          state: formData,
-        }}
-      >
-        <PageTemplate documentTitle="WeGo · Create new cluster">
+      <PageTemplate documentTitle="WeGo · Create new cluster">
+        <CallbackStateContextProvider
+          callbackState={{
+            page: page as PageRoute,
+            state: formData,
+          }}
+        >
           <SectionHeader
             className="count-header"
             path={[
@@ -269,7 +267,6 @@ const AddCluster: FC = () => {
               { label: 'Create new cluster' },
             ]}
           />
-
           <ContentWrapper>
             <Grid container spacing={2}>
               <Grid item xs={12} md={9}>
@@ -334,8 +331,8 @@ const AddCluster: FC = () => {
               </Grid>
             </Grid>
           </ContentWrapper>
-        </PageTemplate>
-      </CallbackStateContextProvider>
+        </CallbackStateContextProvider>
+      </PageTemplate>
     );
   }, [
     page,

@@ -52,8 +52,6 @@ export class Poll<ResponsesById> extends PureComponent<
     }
   }
 
-  // Type 'QueriesById<ResponsesById>' is missing the following properties from type 'Request': cache, credentials, destination, headers, and 17 more.
-
   doParallelRequests = () => {
     const { requestOptions, queriesById } = this.props;
     const requestInfo = values<QueriesById<ResponsesById>>(queriesById);
