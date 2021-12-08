@@ -281,4 +281,5 @@ message ProfileValues {
   string name = 1;
   string version = 2;
   string values = 3;
+  string layer = 4;
 }

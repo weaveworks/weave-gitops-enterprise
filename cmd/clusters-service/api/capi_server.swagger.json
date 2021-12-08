@@ -308,6 +308,7 @@
     },
     "/v1/templates/{templateName}/profiles": {
       "get": {
+        "summary": "Returns a list of profiles within that template\n`gitops get \u003ctemplate-name\u003e --list-profiles`\nThe template annotations appear in the following form\ncapi.weave.works/profile-\u003cn\u003e where n is a number",
         "operationId": "ClustersService_ListTemplateProfiles",
         "responses": {
           "200": {
@@ -771,6 +772,9 @@
           "type": "string"
         },
         "values": {
+          "type": "string"
+        },
+        "layer": {
           "type": "string"
         }
       }

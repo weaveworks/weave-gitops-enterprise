@@ -2,10 +2,10 @@ package charts
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"path"
+	"sort"
 	"time"
 
 	"helm.sh/helm/v3/pkg/action"
@@ -18,10 +18,20 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/yaml"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/pkg/runtime/dependency"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+)
+
+const (
+	// LayerAnnotation is the annotation that Helm charts can have to indicate which
+	// layer they should be in, the HelmRelease DependsOn is calculated from this.
+	LayerAnnotation = "weave.works/layer"
+
+	// LayerLabel is applied to created HelmReleases which makes it possible to
+	// query for HelmReleases that are applied in a layer.
+	LayerLabel = "weave.works/applied-layer"
 )
 
 // ChartReference is a Helm chart reference, the SourceRef is a Flux
@@ -171,44 +181,120 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 	return conf
 }
 
-func ParseValues(chart string, version string, values string, clusterName string, helmRepo *sourcev1beta1.HelmRepository) (*helmv2beta1.HelmRelease, error) {
-	decoded, err := base64.StdEncoding.DecodeString(values)
-	if err != nil {
-		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
-	}
-	vals := map[string]interface{}{}
-	yaml.Unmarshal(decoded, &vals)
-	jsonValues, err := json.Marshal(vals)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal YAML values into JSON: %w", err)
+// MakeHelmReleasesInLayers accepts a set of ChartInstall requests and
+// returns a set of HelmReleases that are configured with appropriate
+// dependencies.
+//
+// If the Charts are annotated with a layer, the charts will be installed in the
+// layer order.
+//
+// For charts without a layer, these will be configured to depend on the highest
+// layer.
+func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartInstall) ([]*helmv2beta1.HelmRelease, error) {
+	layerInstalls := map[string][]ChartInstall{}
+	for _, v := range installs {
+		current, ok := layerInstalls[v.Layer]
+		if !ok {
+			current = []ChartInstall{}
+		}
+		current = append(current, v)
+		layerInstalls[v.Layer] = current
 	}
 
-	hr := helmv2beta1.HelmRelease{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", clusterName, chart),
-			Namespace: "wego-system",
-		},
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: helmv2beta1.GroupVersion.Identifier(),
-			Kind:       helmv2beta1.HelmReleaseKind,
-		},
-		Spec: helmv2beta1.HelmReleaseSpec{
-			Chart: helmv2beta1.HelmChartTemplate{
-				Spec: helmv2beta1.HelmChartTemplateSpec{
-					Chart:   chart,
-					Version: version,
-					SourceRef: helmv2beta1.CrossNamespaceObjectReference{
-						APIVersion: sourcev1beta1.GroupVersion.Identifier(),
-						Kind:       sourcev1beta1.HelmRepositoryKind,
-						Name:       helmRepo.ObjectMeta.Name,
-						Namespace:  helmRepo.ObjectMeta.Namespace,
-					},
+	var layerNames []string
+	for k := range layerInstalls {
+		layerNames = append(layerNames, k)
+	}
+
+	makeHelmReleaseName := func(clusterName, installName string) string {
+		return clusterName + "-" + installName
+	}
+
+	layerDependencies := pairLayers(layerNames)
+	var releases []*helmv2beta1.HelmRelease
+	for _, layer := range layerDependencies {
+		for _, install := range layerInstalls[layer.name] {
+			jsonValues, err := json.Marshal(install.Values)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal values for chart %s: %w", install.Ref.Chart, err)
+			}
+			hr := helmv2beta1.HelmRelease{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      makeHelmReleaseName(clusterName, install.Ref.Chart),
+					Namespace: namespace,
 				},
-			},
-			Interval: metav1.Duration{Duration: time.Minute},
-			Values:   &apiextensionsv1.JSON{Raw: jsonValues},
-		},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: helmv2beta1.GroupVersion.Identifier(),
+					Kind:       helmv2beta1.HelmReleaseKind,
+				},
+				Spec: helmv2beta1.HelmReleaseSpec{
+					Chart: helmv2beta1.HelmChartTemplate{
+						Spec: helmv2beta1.HelmChartTemplateSpec{
+							Chart:   install.Ref.Chart,
+							Version: install.Ref.Version,
+							SourceRef: helmv2beta1.CrossNamespaceObjectReference{
+								APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+								Kind:       sourcev1beta1.HelmRepositoryKind,
+								Name:       install.Ref.SourceRef.Name,
+								Namespace:  install.Ref.SourceRef.Namespace,
+							},
+						},
+					},
+					Interval: metav1.Duration{Duration: time.Minute},
+					Values:   &apiextensionsv1.JSON{Raw: jsonValues},
+				},
+			}
+			if layer.dependsOn != "" {
+				for _, v := range layerInstalls[layer.dependsOn] {
+					hr.Spec.DependsOn = append(hr.Spec.DependsOn,
+						dependency.CrossNamespaceDependencyReference{
+							Name: makeHelmReleaseName(clusterName, v.Ref.Chart),
+						})
+				}
+			}
+			if layer.name != "" {
+				hr.Labels = map[string]string{
+					LayerLabel: layer.name,
+				}
+			}
+			releases = append(releases, &hr)
+		}
 	}
 
-	return &hr, nil
+	sort.Slice(releases, func(i, j int) bool { return releases[i].GetName() < releases[j].GetName() })
+	return releases, nil
+}
+
+type layerDependency struct {
+	name      string
+	dependsOn string
+}
+
+// iterate over a slice returning slice where element 1 will be configured to
+// depend on layer 0.
+//
+// The sorting is determined lexicographically.
+func pairLayers(names []string) []layerDependency {
+	sort.Sort(sort.Reverse(sort.StringSlice(names)))
+	deps := []layerDependency{}
+	for i := range names {
+		if i < len(names)-1 {
+			deps = append(deps, layerDependency{name: names[i], dependsOn: names[i+1]})
+			continue
+		}
+		dep := layerDependency{name: names[i]}
+		if names[i] == "" && len(names) > 0 {
+			dep.dependsOn = names[0]
+		}
+		deps = append(deps, dep)
+	}
+	return deps
+}
+
+// ChartInstall configures the installation of a specific chart into a
+// cluster.
+type ChartInstall struct {
+	Ref    ChartReference
+	Layer  string
+	Values map[string]interface{}
 }

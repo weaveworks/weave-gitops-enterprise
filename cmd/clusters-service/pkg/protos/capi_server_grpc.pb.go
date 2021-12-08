@@ -22,6 +22,10 @@ type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
+	// Returns a list of profiles within that template
+	// `gitops get <template-name> --list-profiles`
+	// The template annotations appear in the following form
+	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
 	// Creates a pull request for a cluster template.
@@ -167,6 +171,10 @@ type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
+	// Returns a list of profiles within that template
+	// `gitops get <template-name> --list-profiles`
+	// The template annotations appear in the following form
+	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
 	// Creates a pull request for a cluster template.

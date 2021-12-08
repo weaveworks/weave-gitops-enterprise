@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	. "github.com/sclevine/agouti/matchers"
 )
 
 type ClusterInformation struct {
@@ -71,6 +73,11 @@ type ClustersPage struct {
 	ClustersListPaginationPerPageDropdown       *agouti.Selection
 	ClustersListPaginationPerPageDropdownSecond *agouti.Selection
 	MessageBar                                  *agouti.Selection
+}
+
+// This function waits for cluster to appear in the cluste table (become visible)
+func (c ClustersPage) WaitForClusterToAppear(webDriver *agouti.Page, clusterName string) {
+	Eventually(webDriver.Find(fmt.Sprintf(`#clusters-list > div > table > tbody > tr.summary[data-cluster-name="%s"]`, clusterName))).Should(BeFound())
 }
 
 // FindClusterInList finds the cluster with given name
