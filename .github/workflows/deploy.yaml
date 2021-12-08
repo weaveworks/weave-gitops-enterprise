@@ -78,7 +78,7 @@ jobs:
           name: unit-tests-artifacts
           path: |
             ${{ env.ARTEFACTS_BASE_DIR }}
-          retention-days: 1
+          retention-days: 7
 
   acceptance-tests:
     runs-on: ${{matrix.os}}
@@ -232,7 +232,7 @@ jobs:
       with:
         name: acceptance-test-artifacts
         path: ${{ env.ARTEFACTS_BASE_DIR }}
-        retention-days: 1
+        retention-days: 7
 
   # publish-test-results:
   #   runs-on: ubuntu-latest

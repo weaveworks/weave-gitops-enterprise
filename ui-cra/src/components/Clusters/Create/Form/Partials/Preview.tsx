@@ -1,8 +1,8 @@
 import React, { FC, Dispatch } from 'react';
-import { FormStep } from '../Steps';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import { FormStep } from '../Step';
 
 const xs = weaveTheme.spacing.xs;
 

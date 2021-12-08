@@ -38,8 +38,8 @@ type ClustersServiceClient interface {
 	// GetProfiles returns a list of profiles
 	// from the cluster.
 	GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error)
-	// GetProfileVersionValues returns a list of profiles
-	// from the cluster.
+	// GetProfileValues returns a list of values for
+	// a given version of a profile from the cluster.
 	GetProfileValues(ctx context.Context, in *GetProfileValuesRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 }
 
@@ -173,8 +173,8 @@ type ClustersServiceServer interface {
 	// GetProfiles returns a list of profiles
 	// from the cluster.
 	GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error)
-	// GetProfileVersionValues returns a list of profiles
-	// from the cluster.
+	// GetProfileValues returns a list of values for
+	// a given version of a profile from the cluster.
 	GetProfileValues(context.Context, *GetProfileValuesRequest) (*httpbody.HttpBody, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }

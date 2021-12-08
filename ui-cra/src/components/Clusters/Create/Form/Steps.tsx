@@ -1,41 +1,15 @@
 import React, {
   Dispatch,
-  FC,
   ReactElement,
-  Ref,
+  useCallback,
   useEffect,
-  useMemo,
-  useRef,
   useState,
 } from 'react';
-import Divider from '@material-ui/core/Divider';
-import styled from 'styled-components';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../../../../muiTheme';
-
-const Section = styled.div`
-  padding-bottom: ${theme.spacing.medium};
-`;
-
-const Title = styled.div<{ name?: string }>`
-  padding-bottom: ${theme.spacing.small};
-  font-size: ${theme.fontSizes.large};
-  font-family: ${theme.fontFamilies.monospace};
-`;
-
-const Content = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  overflow: hidden;
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
-`;
-
-const SectionDivider = styled.div`
-  margin-top: ${theme.spacing.medium};
-`;
+import { FormStep } from './Step';
+import { ChildrenOccurences } from '../../../../types/custom';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -45,8 +19,7 @@ const localMuiTheme = createTheme({
       ...muiTheme.overrides?.MuiInputBase,
       root: {
         ...muiTheme.overrides?.MuiInputBase?.root,
-        marginRight: `${theme.spacing.xxl}`,
-        marginBottom: `${theme.spacing.xs}`,
+        marginRight: `${theme.spacing.xs}`,
       },
       input: {
         ...muiTheme.overrides?.MuiInputBase?.input,
@@ -64,6 +37,9 @@ const localMuiTheme = createTheme({
       shrink: {
         transform: 'none',
       },
+      asterisk: {
+        display: 'none',
+      },
     },
     MuiSelect: {
       select: {
@@ -80,88 +56,67 @@ interface Property {
   clicked?: boolean;
   setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
   children: ReactElement[];
+  addUserSelectedFields: (name: string) => void;
 }
 
-export const useOnScreen = (ref: { current: HTMLDivElement | null }) => {
-  const [isIntersecting, setIntersecting] = useState(false);
-
-  const observer = useMemo(
-    () =>
-      new IntersectionObserver(
-        ([entry]) => setIntersecting(entry.isIntersecting),
-        { rootMargin: '-50% 0px' },
-      ),
-    [],
-  );
-
-  useEffect(() => {
-    if (ref.current) {
-      observer.observe(ref.current);
-      return () => {
-        observer.disconnect();
-      };
-    }
-  }, [observer, ref]);
-
-  return isIntersecting;
-};
-
-export const FormStep: FC<{
-  step?: Property;
-  title?: string;
-  active?: boolean;
-  clicked?: boolean;
-  setActiveStep?: Dispatch<React.SetStateAction<string | undefined>>;
-}> = ({ step, title, active, clicked, setActiveStep, children }) => {
-  const stepRef: Ref<HTMLDivElement> = useRef<HTMLDivElement>(null);
-
-  const onScreen = useOnScreen(stepRef);
-
-  useEffect(() => {
-    if (clicked) {
-      stepRef?.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  }, [clicked]);
-
-  useEffect(() => {
-    setTimeout(() => {
-      if (!active && onScreen) {
-        setActiveStep && setActiveStep(step?.name || title);
-      }
-    }, 500);
-  }, [active, setActiveStep, onScreen, step?.name, title]);
-
-  return (
-    <Section ref={stepRef}>
-      <Title name={title}>{step?.name || title}</Title>
-      {step?.children ? <Content>{step?.children}</Content> : null}
-      {children}
-      <SectionDivider>
-        <Divider />
-      </SectionDivider>
-    </Section>
-  );
-};
-
 const FormSteps = {
-  box: (props: { properties: Property[] }) => (
-    <ThemeProvider theme={localMuiTheme}>
-      {props.properties.map((p, index) => {
-        return (
-          <FormStep
-            key={index}
-            step={p}
-            active={p.active}
-            clicked={p.clicked}
-            setActiveStep={p.setActiveStep}
-          />
+  Box: (props: { properties: Property[] }) => {
+    const [properties, setProperties] = useState<Property[]>([]);
+    const [childrenOccurences, setChildrenOccurences] = useState<
+      ChildrenOccurences[]
+    >([]);
+
+    const getChildrenOccurences = useCallback(() => {
+      const getChildrenNamesAndVisibility = properties?.flatMap(property =>
+        property.children.map(child => {
+          return { name: child.props.name, visible: child.props.visible };
+        }),
+      );
+
+      let childrenCountGroupVisibility: ChildrenOccurences[] = [];
+
+      getChildrenNamesAndVisibility?.forEach(child => {
+        const currentChild = childrenCountGroupVisibility.find(
+          c => c.name === child.name,
         );
-      })}
-    </ThemeProvider>
-  ),
+        if (currentChild) {
+          currentChild.count++;
+          currentChild.groupVisible = child.visible;
+        } else {
+          childrenCountGroupVisibility.push({
+            name: child.name,
+            count: 1,
+            groupVisible: child.visible,
+          });
+        }
+      });
+
+      return childrenCountGroupVisibility;
+    }, [properties]);
+
+    useEffect(() => {
+      setProperties(props.properties);
+      setChildrenOccurences(getChildrenOccurences());
+    }, [props.properties, getChildrenOccurences]);
+
+    return (
+      <ThemeProvider theme={localMuiTheme}>
+        {properties?.map((p, index) => {
+          return (
+            <FormStep
+              key={index}
+              step={p}
+              active={p.active}
+              clicked={p.clicked}
+              setActiveStep={p.setActiveStep}
+              childrenOccurences={childrenOccurences}
+              addUserSelectedFields={p.addUserSelectedFields}
+            />
+          );
+        })}
+      </ThemeProvider>
+    );
+  },
 };
 
 export default FormSteps;

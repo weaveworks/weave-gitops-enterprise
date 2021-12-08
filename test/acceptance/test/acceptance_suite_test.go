@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/onsi/ginkgo"
@@ -23,9 +24,16 @@ func GomegaFail(message string, callerSkip ...int) {
 		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
 	}
 
-	//Show pods
+	// Show management cluster pods etc.
 	_ = showItems("")
 	_ = dumpClusterInfo("wego-system", randID)
+
+	ginkgoTestDescription := CurrentGinkgoTestDescription()
+	if strings.Contains(ginkgoTestDescription.TestText, "@capd") {
+		_ = dumpClusterInfo("capd-system", randID)
+	} else if strings.Contains(ginkgoTestDescription.TestText, "@capa") {
+		_ = dumpClusterInfo("capa-system", randID)
+	}
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)

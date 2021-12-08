@@ -75,6 +75,7 @@ func deleteClusterEntry(webDriver *agouti.Page, clusterNames []string) {
 			if len(clusterName) > 256 {
 				clusterName = clusterName[0:256]
 			}
+			clustersPage.WaitForClusterToAppear(webDriver, clusterName)
 			Expect(pages.FindClusterInList(clustersPage, clusterName).EditCluster.Click()).To(Succeed())
 
 			Eventually(clusterConnectionPage.ClusterConnectionPopup).Should(BeFound())
@@ -348,8 +349,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			By("And I should see the cluster name being shortened to the first 256 characters added", func() {
 				cluster := pages.FindClusterInList(clustersPage, clusterNameMax[0:256])
-				Eventually(cluster.Name, ASSERTION_1MINUTE_TIME_OUT).
-					Should(HaveText(clusterNameMax[0:256]))
+				Eventually(cluster.Name, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText(clusterNameMax[0:256]))
 			})
 
 			By("When I click Connect a cluster button", func() {
