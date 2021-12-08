@@ -53,6 +53,8 @@ config:
     baseBranch: main
   checkpoint:
     enabled: true
+  auth:
+    enabled: false
 
 gitopsRepoBroker:
   gitRepo:

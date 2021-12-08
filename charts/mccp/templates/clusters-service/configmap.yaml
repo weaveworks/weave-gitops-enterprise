@@ -16,4 +16,7 @@ data:
   {{ if not .Values.config.checkpoint.enabled }}
   CHECKPOINT_DISABLE: 1
   {{ end }}
- 
+  {{ if .Values.config.auth.enabled }}
+  WEAVE_GITOPS_AUTH_ENABLED: true
+  WEAVE_GITOPS_AUTH_OIDC_ISSUER_URL: {{ .Values.config.auth.oidcIssuerURL | quote }}
+  {{ end }}

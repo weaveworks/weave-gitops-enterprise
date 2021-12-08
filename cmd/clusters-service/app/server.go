@@ -188,6 +188,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	httpHandler := middleware.WithLogging(args.Log, mux)
 	httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)
+	// TODO: Add auth middleware when ready
 	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
 
 	s := &http.Server{
