@@ -296,7 +296,7 @@ jobs:
         config: "./test/utils/data/local-kind-config.yaml"
     - name: Kind-check
       run: |
-        kubectl get pods -A    
+        kubectl get pods -A
     - name: Install wego enterprise components on management cluster
       run: |
         export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
