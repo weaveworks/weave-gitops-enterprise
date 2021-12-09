@@ -1251,6 +1251,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 		context.TODO(),
 		"testing",
 		"test-ns",
+		"",
 		"cluster-foo",
 		c,
 		[]*capiv1_protos.ProfileValues{
@@ -1303,6 +1304,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		context.TODO(),
 		"testing",
 		"test-ns",
+		"",
 		"cluster-foo",
 		c,
 		[]*capiv1_protos.ProfileValues{
