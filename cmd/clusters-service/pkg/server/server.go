@@ -259,7 +259,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		Namespace: os.Getenv("RUNTIME_NAMESPACE"),
 	}, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		s.log.Error(err, "cannot find Helm repository")
 	}
 
 	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
