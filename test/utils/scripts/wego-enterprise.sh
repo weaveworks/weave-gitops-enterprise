@@ -100,7 +100,7 @@ function setup {
       --set "nginx-ingress-controller.service.type=NodePort" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
       --set "config.capi.repositoryPath=./management" \
-      --set "config.cluster.name=${MANAGEMENT_CLUSTER}" \
+      --set "config.cluster.name=kind-${MANAGEMENT_CLUSTER}" \
       --set "config.capi.baseBranch=main"
   fi
 
