@@ -52,17 +52,19 @@ const TemplateFields: FC<{
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
-  onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
+  // onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
   onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
   formData: any;
+  setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({
   activeTemplate,
   onPRPreview,
   activeStep,
   setActiveStep,
   clickedStep,
-  onProfilesUpdate,
+  // onProfilesUpdate,
   formData,
+  setFormData,
   onFormDataUpdate,
 }) => {
   const { updatedProfiles } = useProfiles();
@@ -140,9 +142,9 @@ const TemplateFields: FC<{
   const handleSelectProfiles = useCallback(
     (profiles: UpdatedProfile[]) => {
       setSelectedProfiles(profiles);
-      onProfilesUpdate(profiles);
+      setFormData((prevState: any) => ({ ...prevState, profiles }));
     },
-    [onProfilesUpdate],
+    [setFormData],
   );
 
   const addUserSelectedFields = useCallback(
@@ -173,20 +175,27 @@ const TemplateFields: FC<{
     const requiredProfiles = updatedProfiles.filter(
       profile => profile.required === true,
     );
-    handleSelectProfiles(requiredProfiles);
+
+    handleSelectProfiles(formData.profiles || requiredProfiles);
   }, [
     updatedProfiles,
-    onProfilesUpdate,
     handleSelectProfiles,
     sections,
     addUserSelectedFields,
     userSelectedFields,
+    formData.profiles,
   ]);
+
+  console.log('formData', formData);
+  console.log('selected profiles', selectedProfiles);
 
   return (
     <FormWrapper
       schema={schema as JSONSchema7}
-      onChange={({ formData }) => onFormDataUpdate(formData)}
+      onChange={({ formData }) => {
+        setFormData((prevState: any) => ({ ...prevState, formData }));
+        onFormDataUpdate(formData);
+      }}
       formData={formData}
       onSubmit={onPRPreview}
       onError={() => console.log('errors')}
@@ -209,7 +218,11 @@ const TemplateFields: FC<{
         <div className="profiles-select">
           <span>Select profiles:&nbsp;</span>
           <MultiSelectDropdown
-            items={updatedProfiles}
+            items={
+              formData?.profiles?.length > 0
+                ? formData.profiles
+                : updatedProfiles
+            }
             onSelectItems={handleSelectProfiles}
           />
         </div>

@@ -24,6 +24,7 @@ import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import { Loader } from '../../Loader';
 import {
   CallbackStateContextProvider,
+  clearCallbackState,
   getCallbackState,
   getProviderToken,
 } from '@weaveworks/weave-gitops';
@@ -117,6 +118,7 @@ const AddCluster: FC = () => {
   const callbackState = getCallbackState();
 
   if (callbackState) {
+    console.log(callbackState.state);
     initialFormData = {
       ...initialFormData,
       ...callbackState.state,
@@ -124,7 +126,6 @@ const AddCluster: FC = () => {
   }
 
   const [formData, setFormData] = useState<any>(initialFormData);
-  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -149,7 +150,13 @@ const AddCluster: FC = () => {
   const handlePRPreview = useCallback(() => {
     setOpenPreview(true);
     setClickedStep('Preview');
-    renderTemplate({ values: formData, credentials: infraCredential });
+
+    const { url, provider, profiles, ...templateFields } = formData;
+
+    renderTemplate({
+      values: templateFields,
+      credentials: infraCredential,
+    });
   }, [formData, setOpenPreview, renderTemplate, infraCredential]);
 
   const encodedProfiles = useCallback(
@@ -193,7 +200,7 @@ const AddCluster: FC = () => {
           parameter_values: {
             ...formData,
           },
-          values: encodedProfiles(updatedProfiles),
+          values: encodedProfiles(formData.profiles),
         },
         getProviderToken(formData.provider as GitProvider),
       )
@@ -217,7 +224,6 @@ const AddCluster: FC = () => {
       setNotifications,
       encodedProfiles,
       setPRPreview,
-      updatedProfiles,
     ],
   );
 
@@ -236,6 +242,7 @@ const AddCluster: FC = () => {
       setActiveTemplate(null);
       setPRPreview(null);
       setError(null);
+      clearCallbackState();
     });
   }, [
     activeTemplate,
@@ -288,8 +295,8 @@ const AddCluster: FC = () => {
                   setActiveStep={setActiveStep}
                   clickedStep={clickedStep}
                   formData={formData}
+                  setFormData={setFormData}
                   onFormDataUpdate={setFormData}
-                  onProfilesUpdate={setUpdatedProfiles}
                   onPRPreview={handlePRPreview}
                 />
                 {openPreview ? (
