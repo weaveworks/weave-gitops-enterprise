@@ -231,7 +231,6 @@ jobs:
       GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       GITOPS_BIN_PATH: /tmp/gitops
       SELENIUM_DEBUG: true
-      MANAGEMENT_CLUSTER: management-${{ github.run_id }}-${{ github.run_number}}
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
       WGE_ACCEPTANCE: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
@@ -291,9 +290,9 @@ jobs:
     - name: Setup kind management cluster
       uses: engineerd/setup-kind@v0.5.0
       with:
-        name: ${{ env.MANAGEMENT_CLUSTER }}
+        name: management-${{ github.run_id }}-${{ github.run_number}}
         version: "v0.11.0"
-        image: kindest/node:v1.20.7
+        image: kindest/node:v1.21.1
         config: "./test/utils/data/local-kind-config.yaml"
     - name: Kind-check
       run: |
@@ -331,7 +330,6 @@ jobs:
       GITOPS_BIN_PATH: /tmp/gitops
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-linux-amd64
       SELENIUM_DEBUG: true
-      MANAGEMENT_CLUSTER: management-${{ github.run_id }}-${{ github.run_number}}
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
       WGE_ACCEPTANCE: true
       CONNECT_KIND_WKP_LEAF_TEST: true
@@ -401,9 +399,9 @@ jobs:
     - name: Setup kind management cluster
       uses: engineerd/setup-kind@v0.5.0
       with:
-        name: ${{ env.MANAGEMENT_CLUSTER }}
+        name: management-${{ github.run_id }}-${{ github.run_number}}
         version: "v0.11.0"
-        image: kindest/node:v1.20.7
+        image: kindest/node:v1.21.1
         config: "./test/utils/data/local-kind-config.yaml"
     - name: Kind-check
       run: |
