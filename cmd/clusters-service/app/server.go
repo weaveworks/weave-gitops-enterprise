@@ -181,6 +181,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
 	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository, args.HelmRepositoryCacheDirectory))
+
 	//Add weave-gitops core handlers
 	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
 	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)

@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops/pkg/server"
@@ -27,7 +26,6 @@ type Options struct {
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	EntitlementSecretKey         client.ObjectKey
-	HelmChartClient              *charts.HelmChartClient
 }
 
 type Option func(*Options)
@@ -124,12 +122,5 @@ func WithEntitlementSecretKey(key client.ObjectKey) Option {
 func WithHelmRepositoryCacheDirectory(cacheDir string) Option {
 	return func(o *Options) {
 		o.HelmRepositoryCacheDirectory = cacheDir
-	}
-}
-
-// WithHelmChartClient is used to set the Helm chart client
-func WithHelmChartClient(cc *charts.HelmChartClient) Option {
-	return func(o *Options) {
-		o.HelmChartClient = cc
 	}
 }
