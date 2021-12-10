@@ -156,7 +156,7 @@ const TemplateFields: FC<{
     [userSelectedFields],
   );
 
-  console.log('formData', formData.profiles);
+  console.log('formData', formData);
 
   useEffect(() => {
     setFormContextId((prevState: number) => prevState + 1);
@@ -176,13 +176,20 @@ const TemplateFields: FC<{
       profile => profile.required === true,
     );
 
-    handleSelectProfiles(requiredProfiles);
+    console.log(requiredProfiles, formData.profiles);
+
+    if (formData?.profiles) {
+      handleSelectProfiles(formData?.profiles);
+    } else {
+      handleSelectProfiles(requiredProfiles);
+    }
   }, [
     updatedProfiles,
     handleSelectProfiles,
     sections,
     addUserSelectedFields,
     userSelectedFields,
+    formData.profiles,
   ]);
 
   // how is the form updated from the form data that comes from callbackState

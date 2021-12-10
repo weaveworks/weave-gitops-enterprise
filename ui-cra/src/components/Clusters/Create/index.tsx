@@ -118,7 +118,7 @@ const AddCluster: FC = () => {
   const callbackState = getCallbackState();
 
   if (callbackState) {
-    console.log(callbackState.state);
+    // console.log(callbackState.state);
     initialFormData = {
       ...initialFormData,
       ...callbackState.state,
