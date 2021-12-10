@@ -2,9 +2,8 @@
 
 set -u
 
-NAMESPACES="$1"
-TEST_NAME="$2"
-ARCHIVED_LOGS_PATH=$3
+TEST_NAME="$1"
+ARCHIVED_LOGS_PATH=$2
 
 LOGS_PATH=/tmp/dumped-cluster-logs/
 rm -rf "$LOGS_PATH"
