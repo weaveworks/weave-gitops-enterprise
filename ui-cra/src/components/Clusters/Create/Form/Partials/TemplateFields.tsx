@@ -64,7 +64,6 @@ const TemplateFields: FC<{
   // onProfilesUpdate,
   formData,
   setFormData,
-  onFormDataUpdate,
 }) => {
   const { updatedProfiles } = useProfiles();
   const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(

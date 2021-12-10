@@ -149,10 +149,7 @@ const AddCluster: FC = () => {
 
   const handlePRPreview = useCallback(() => {
     setOpenPreview(true);
-    setClickedStep('Preview');
-
     const { url, provider, profiles, ...templateFields } = formData;
-
     renderTemplate({
       values: templateFields,
       credentials: infraCredential,
@@ -299,34 +296,28 @@ const AddCluster: FC = () => {
                   onFormDataUpdate={setFormData}
                   onPRPreview={handlePRPreview}
                 />
-                {openPreview ? (
-                  <>
-                    {PRPreview ? (
-                      <>
-                        <Preview
-                          PRPreview={PRPreview}
-                          activeStep={activeStep}
-                          setActiveStep={setActiveStep}
-                          clickedStep={clickedStep}
-                        />
-                        <GitOps
-                          formData={formData}
-                          setFormData={setFormData}
-                          onSubmit={handleAddCluster}
-                          activeStep={activeStep}
-                          setActiveStep={setActiveStep}
-                          clickedStep={clickedStep}
-                          setClickedStep={setClickedStep}
-                          showAuthDialog={showAuthDialog}
-                          setShowAuthDialog={setShowAuthDialog}
-                        />
-                        {creatingPR && <Loader />}
-                      </>
-                    ) : (
-                      <Loader />
-                    )}
-                  </>
+                {openPreview && PRPreview ? (
+                  <Preview
+                    openPreview={openPreview}
+                    setOpenPreview={setOpenPreview}
+                    PRPreview={PRPreview}
+                    activeStep={activeStep}
+                    setActiveStep={setActiveStep}
+                    clickedStep={clickedStep}
+                  />
                 ) : null}
+                <GitOps
+                  formData={formData}
+                  setFormData={setFormData}
+                  onSubmit={handleAddCluster}
+                  activeStep={activeStep}
+                  setActiveStep={setActiveStep}
+                  clickedStep={clickedStep}
+                  setClickedStep={setClickedStep}
+                  showAuthDialog={showAuthDialog}
+                  setShowAuthDialog={setShowAuthDialog}
+                />
+                {creatingPR && <Loader />}
               </Grid>
               <Grid className={classes.steps} item md={3}>
                 <FormStepsNavigation
