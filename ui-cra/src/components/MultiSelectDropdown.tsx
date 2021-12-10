@@ -51,8 +51,6 @@ const MultiSelectDropdown: FC<{
     onSelectItems(getItemsFromNames(value));
   };
 
-  // console.log('items', items);
-
   useEffect(
     () =>
       setSelected(

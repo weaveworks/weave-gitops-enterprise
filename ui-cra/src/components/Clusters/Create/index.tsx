@@ -37,6 +37,7 @@ import Preview from './Form/Partials/Preview';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import Profiles from './Form/Partials/Profiles';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -118,7 +119,6 @@ const AddCluster: FC = () => {
   const callbackState = getCallbackState();
 
   if (callbackState) {
-    // console.log(callbackState.state);
     initialFormData = {
       ...initialFormData,
       ...callbackState.state,
@@ -288,13 +288,20 @@ const AddCluster: FC = () => {
                 />
                 <TemplateFields
                   activeTemplate={activeTemplate}
-                  activeStep={activeStep}
+                  // activeStep={activeStep}
                   setActiveStep={setActiveStep}
                   clickedStep={clickedStep}
                   formData={formData}
                   setFormData={setFormData}
                   onFormDataUpdate={setFormData}
                   onPRPreview={handlePRPreview}
+                />
+                <Profiles
+                  activeStep={activeStep}
+                  setActiveStep={setActiveStep}
+                  clickedStep={clickedStep}
+                  formData={formData}
+                  setFormData={setFormData}
                 />
                 {openPreview && PRPreview ? (
                   <Preview
