@@ -52,7 +52,6 @@ const TemplateFields: FC<{
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
-  // onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
   onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
@@ -158,6 +157,8 @@ const TemplateFields: FC<{
     [userSelectedFields],
   );
 
+  console.log('formData', formData.profiles);
+
   useEffect(() => {
     setFormContextId((prevState: number) => prevState + 1);
 
@@ -176,26 +177,21 @@ const TemplateFields: FC<{
       profile => profile.required === true,
     );
 
-    handleSelectProfiles(formData.profiles || requiredProfiles);
+    handleSelectProfiles(requiredProfiles);
   }, [
     updatedProfiles,
     handleSelectProfiles,
     sections,
     addUserSelectedFields,
     userSelectedFields,
-    formData.profiles,
   ]);
 
-  console.log('formData', formData);
-  console.log('selected profiles', selectedProfiles);
+  // how is the form updated from the form data that comes from callbackState
 
   return (
     <FormWrapper
       schema={schema as JSONSchema7}
-      onChange={({ formData }) => {
-        setFormData((prevState: any) => ({ ...prevState, formData }));
-        onFormDataUpdate(formData);
-      }}
+      onChange={({ formData }) => setFormData(formData)}
       formData={formData}
       onSubmit={onPRPreview}
       onError={() => console.log('errors')}
@@ -218,11 +214,7 @@ const TemplateFields: FC<{
         <div className="profiles-select">
           <span>Select profiles:&nbsp;</span>
           <MultiSelectDropdown
-            items={
-              formData?.profiles?.length > 0
-                ? formData.profiles
-                : updatedProfiles
-            }
+            items={updatedProfiles}
             onSelectItems={handleSelectProfiles}
           />
         </div>
