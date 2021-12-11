@@ -29,7 +29,7 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/libgitops v0.0.3
-	github.com/weaveworks/weave-gitops v0.5.0-rc2.0.20211123165841-1e77f2ae0aed
+	github.com/weaveworks/weave-gitops v0.5.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
