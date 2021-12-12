@@ -116,16 +116,23 @@ const AddCluster: FC = () => {
     provider: '',
   };
 
+  let initialProfiles = {};
+
   const callbackState = getCallbackState();
 
   if (callbackState) {
     initialFormData = {
       ...initialFormData,
-      ...callbackState.state,
+      ...callbackState.state.formData,
+    };
+    initialProfiles = {
+      ...initialProfiles,
+      ...callbackState.state.profiles,
     };
   }
 
   const [formData, setFormData] = useState<any>(initialFormData);
+  const [profiles, setProfiles] = useState<any>(initialProfiles);
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -261,7 +268,7 @@ const AddCluster: FC = () => {
         <CallbackStateContextProvider
           callbackState={{
             page: authRedirectPage as PageRoute,
-            state: formData,
+            state: { formData, profiles },
           }}
         >
           <SectionHeader
@@ -288,7 +295,6 @@ const AddCluster: FC = () => {
                 />
                 <TemplateFields
                   activeTemplate={activeTemplate}
-                  // activeStep={activeStep}
                   setActiveStep={setActiveStep}
                   clickedStep={clickedStep}
                   formData={formData}
@@ -300,8 +306,8 @@ const AddCluster: FC = () => {
                   activeStep={activeStep}
                   setActiveStep={setActiveStep}
                   clickedStep={clickedStep}
-                  formData={formData}
-                  setFormData={setFormData}
+                  profiles={profiles}
+                  setProfiles={setProfiles}
                 />
                 {openPreview && PRPreview ? (
                   <Preview
@@ -342,6 +348,7 @@ const AddCluster: FC = () => {
   }, [
     authRedirectPage,
     formData,
+    profiles,
     activeTemplate,
     clustersCount,
     classes,

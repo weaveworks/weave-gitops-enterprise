@@ -1,4 +1,11 @@
-import React, { Dispatch, FC, useCallback, useEffect, useState } from 'react';
+import React, {
+  Dispatch,
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
 import useProfiles from '../../../../../contexts/Profiles';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
@@ -15,55 +22,72 @@ const Profiles: FC<{
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
-  formData: any;
-  setFormData: Dispatch<React.SetStateAction<any>>;
-}> = ({ activeStep, setActiveStep, clickedStep, formData, setFormData }) => {
+  profiles: any;
+  setProfiles: Dispatch<React.SetStateAction<any>>;
+}> = ({ activeStep, setActiveStep, clickedStep, profiles, setProfiles }) => {
   const { updatedProfiles } = useProfiles();
   const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
     [],
   );
 
   const handleSelectProfiles = useCallback(
-    (profiles: UpdatedProfile[]) => {
-      setSelectedProfiles(profiles);
-      setFormData((prevState: any) => ({ ...prevState, profiles }));
+    (selectProfiles: UpdatedProfile[]) => {
+      setSelectedProfiles(selectProfiles);
+      // setSelectedProfiles((prevState: any) => ({
+      //   ...prevState,
+      //   profiles: selectProfiles,
+      // }));
+      setProfiles((prevState: any) => ({
+        ...prevState,
+        profiles: selectProfiles,
+      }));
     },
-    [setFormData],
+    [setProfiles],
   );
 
   useEffect(() => {
     const requiredProfiles = updatedProfiles.filter(
       profile => profile.required === true,
     );
-
-    if (formData?.profiles?.length > 0) {
-      handleSelectProfiles(formData?.profiles);
+    if (profiles?.length > 0) {
+      setSelectedProfiles(profiles);
     } else {
-      handleSelectProfiles(requiredProfiles);
+      setSelectedProfiles(requiredProfiles);
     }
-  }, [updatedProfiles, handleSelectProfiles, formData?.profiles]);
+  }, [updatedProfiles, handleSelectProfiles, profiles]);
 
-  return (
-    <FormStep
-      className="profiles"
-      title="Profiles"
-      active={activeStep === 'Profiles'}
-      clicked={clickedStep === 'Profiles'}
-      setActiveStep={setActiveStep}
-    >
-      <ProfilesDropdown>
-        <span>Select profiles:&nbsp;</span>
-        <MultiSelectDropdown
-          items={updatedProfiles}
-          onSelectItems={handleSelectProfiles}
+  console.log(selectedProfiles);
+
+  return useMemo(() => {
+    return (
+      <FormStep
+        className="profiles"
+        title="Profiles"
+        active={activeStep === 'Profiles'}
+        clicked={clickedStep === 'Profiles'}
+        setActiveStep={setActiveStep}
+      >
+        <ProfilesDropdown>
+          <span>Select profiles:&nbsp;</span>
+          <MultiSelectDropdown
+            items={updatedProfiles}
+            onSelectItems={handleSelectProfiles}
+          />
+        </ProfilesDropdown>
+        <ProfilesList
+          selectedProfiles={selectedProfiles}
+          onProfilesUpdate={handleSelectProfiles}
         />
-      </ProfilesDropdown>
-      <ProfilesList
-        selectedProfiles={selectedProfiles}
-        onProfilesUpdate={handleSelectProfiles}
-      />
-    </FormStep>
-  );
+      </FormStep>
+    );
+  }, [
+    activeStep,
+    clickedStep,
+    handleSelectProfiles,
+    selectedProfiles,
+    setActiveStep,
+    updatedProfiles,
+  ]);
 };
 
 export default Profiles;
