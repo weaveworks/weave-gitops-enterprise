@@ -39,17 +39,8 @@ const Profiles: FC<{
   );
 
   useEffect(() => {
-    const requiredProfiles = updatedProfiles.filter(
-      profile => profile.required === true,
-    );
-    if (profiles?.length > 0) {
-      setSelectedProfiles(profiles);
-    } else {
-      setSelectedProfiles(requiredProfiles);
-    }
-  }, [updatedProfiles, handleSelectProfiles, profiles]);
-
-  console.log(selectedProfiles);
+    setSelectedProfiles(profiles);
+  }, [profiles]);
 
   return (
     <FormStep

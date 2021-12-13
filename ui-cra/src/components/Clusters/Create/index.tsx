@@ -3,6 +3,7 @@ import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
 import useVersions from '../../../contexts/Versions';
+import useProfiles from '../../../contexts/Profiles';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
@@ -110,15 +111,21 @@ const AddCluster: FC = () => {
   } = useTemplates();
   const clustersCount = useClusters().count;
   const { repositoryURL } = useVersions();
+  const { updatedProfiles } = useProfiles();
+  const requiredProfiles = updatedProfiles.filter(
+    profile => profile.required === true,
+  );
 
   let initialFormData = {
     url: repositoryURL,
     provider: '',
   };
 
-  let initialProfiles = {};
+  let initialProfiles = requiredProfiles;
 
   const callbackState = getCallbackState();
+
+  console.log(callbackState);
 
   if (callbackState) {
     initialFormData = {
@@ -156,7 +163,7 @@ const AddCluster: FC = () => {
 
   const handlePRPreview = useCallback(() => {
     setOpenPreview(true);
-    const { url, provider, profiles, ...templateFields } = formData;
+    const { url, provider, ...templateFields } = formData;
     renderTemplate({
       values: templateFields,
       credentials: infraCredential,
@@ -261,6 +268,8 @@ const AddCluster: FC = () => {
   useEffect(() => {
     setFormData((prevState: any) => ({ ...prevState, url: repositoryURL }));
   }, [repositoryURL]);
+
+  console.log(initialProfiles);
 
   return useMemo(() => {
     return (

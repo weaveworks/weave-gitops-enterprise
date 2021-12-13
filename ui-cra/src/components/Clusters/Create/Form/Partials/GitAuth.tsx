@@ -44,7 +44,7 @@ const GitAuth: FC<{
       <RepoInputWithAuth
         style={{
           marginBottom: weaveTheme.spacing.base,
-          width: '80%',
+          width: '100%',
         }}
         isAuthenticated={isAuthenticated}
         onProviderChange={(provider: GitProvider) => {

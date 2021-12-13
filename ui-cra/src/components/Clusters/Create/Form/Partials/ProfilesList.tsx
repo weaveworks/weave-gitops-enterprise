@@ -24,6 +24,7 @@ const ProfilesList: FC<{
   );
 
   useEffect(() => {
+    console.log(selectedProfiles);
     setEnrichedProfiles(selectedProfiles);
   }, [selectedProfiles]);
 
