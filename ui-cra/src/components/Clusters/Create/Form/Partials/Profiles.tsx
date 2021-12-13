@@ -58,36 +58,27 @@ const Profiles: FC<{
 
   console.log(selectedProfiles);
 
-  return useMemo(() => {
-    return (
-      <FormStep
-        className="profiles"
-        title="Profiles"
-        active={activeStep === 'Profiles'}
-        clicked={clickedStep === 'Profiles'}
-        setActiveStep={setActiveStep}
-      >
-        <ProfilesDropdown>
-          <span>Select profiles:&nbsp;</span>
-          <MultiSelectDropdown
-            items={updatedProfiles}
-            onSelectItems={handleSelectProfiles}
-          />
-        </ProfilesDropdown>
-        <ProfilesList
-          selectedProfiles={selectedProfiles}
-          onProfilesUpdate={handleSelectProfiles}
+  return (
+    <FormStep
+      className="profiles"
+      title="Profiles"
+      active={activeStep === 'Profiles'}
+      clicked={clickedStep === 'Profiles'}
+      setActiveStep={setActiveStep}
+    >
+      <ProfilesDropdown>
+        <span>Select profiles:&nbsp;</span>
+        <MultiSelectDropdown
+          items={updatedProfiles}
+          onSelectItems={handleSelectProfiles}
         />
-      </FormStep>
-    );
-  }, [
-    activeStep,
-    clickedStep,
-    handleSelectProfiles,
-    selectedProfiles,
-    setActiveStep,
-    updatedProfiles,
-  ]);
+      </ProfilesDropdown>
+      <ProfilesList
+        selectedProfiles={selectedProfiles}
+        onProfilesUpdate={handleSelectProfiles}
+      />
+    </FormStep>
+  );
 };
 
 export default Profiles;

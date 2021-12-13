@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { Cluster } from '../../types/kubernetes';
@@ -19,6 +19,12 @@ import styled from 'styled-components';
 import { OnClickAction } from '../Action';
 import theme from 'weaveworks-ui-components/lib/theme';
 import { DeleteClusterDialog } from './Delete';
+import {
+  CallbackStateContextProvider,
+  getCallbackState,
+} from '@weaveworks/weave-gitops';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import useVersions from '../../contexts/Versions';
 
 interface Size {
   size?: 'small';
@@ -45,11 +51,54 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
+  const random = Math.random().toString(36).substring(7);
+  const { repositoryURL } = useVersions();
+  const capiClusters = clusters.filter(cls => cls.capiCluster);
+  const selectedCapiClusters = selectedClusters.filter(cls =>
+    capiClusters.find(c => c.name === cls),
+  );
+  const authRedirectPage = `/clusters`;
 
   const NEW_CLUSTER = {
     name: '',
     token: '',
   };
+
+  interface FormData {
+    url: string;
+    provider: string;
+    branchName: string;
+    pullRequestTitle: string;
+    commitMessage: string;
+    pullRequestDescription: string;
+  }
+
+  let initialFormData = {
+    url: repositoryURL,
+    provider: '',
+    branchName: `delete-clusters-branch-${random}`,
+    pullRequestTitle: 'Deletes capi cluster(s)',
+    commitMessage: 'Deletes capi cluster(s)',
+    pullRequestDescription: `Delete clusters: ${selectedCapiClusters
+      .map(c => c)
+      .join(', ')}`,
+  };
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    initialFormData = {
+      ...initialFormData,
+      ...callbackState.state,
+    };
+
+    // console.log(callbackState);
+    // setOpenDeletePR(true);
+  }
+
+  console.log(callbackState);
+
+  const [formData, setFormData] = useState<FormData>(initialFormData);
 
   const history = useHistory();
   const { activeTemplate } = useTemplates();
@@ -62,77 +111,94 @@ const MCCP: FC = () => {
     history.push(`/clusters/templates/${activeTemplate.name}/create`);
   }, [activeTemplate, history]);
 
-  const capiClusters = clusters.filter(cls => cls.capiCluster);
+  // const capiClusters = clusters.filter(cls => cls.capiCluster);
 
-  const selectedCapiClusters = selectedClusters.filter(cls =>
-    capiClusters.find(c => c.name === cls),
-  );
+  // const selectedCapiClusters = selectedClusters.filter(cls =>
+  //   capiClusters.find(c => c.name === cls),
+  // );
+
+  // const authRedirectPage = `/clusters`;
+
+  useEffect(() => {
+    if (callbackState) {
+      setOpenDeletePR(true);
+    }
+  }, [callbackState]);
 
   return (
     <PageTemplate documentTitle="WeGo · Clusters">
-      <SectionHeader
-        className="count-header"
-        path={[{ label: 'Clusters', url: 'clusters', count }]}
-      />
-      <ContentWrapper>
-        <Title>Connected clusters dashboard</Title>
-        <ActionsWrapper>
-          <OnClickAction
-            id="create-cluster"
-            icon={faPlus}
-            onClick={handleAddCluster}
-            text="CREATE A CLUSTER"
-          />
-          <OnClickAction
-            id="connect-cluster"
-            icon={faArrowUp}
-            onClick={() => setClusterToEdit(NEW_CLUSTER)}
-            text="CONNECT A CLUSTER"
-          />
-          <Tooltip
-            title="No CAPI clusters selected"
-            placement="top"
-            disabled={selectedCapiClusters.length !== 0}
-          >
-            <div>
-              <OnClickAction
-                className="danger"
-                id="delete-cluster"
-                icon={faTrashAlt}
-                onClick={() => {
-                  setNotifications([]);
-                  setOpenDeletePR(true);
-                  history.push('/clusters/delete');
-                }}
-                text="CREATE A PR TO DELETE CLUSTERS"
-                disabled={selectedCapiClusters.length === 0}
+      <CallbackStateContextProvider
+        callbackState={{
+          page: authRedirectPage as PageRoute,
+          state: { formData, selectedCapiClusters },
+        }}
+      >
+        <SectionHeader
+          className="count-header"
+          path={[{ label: 'Clusters', url: 'clusters', count }]}
+        />
+        <ContentWrapper>
+          <Title>Connected clusters dashboard</Title>
+          <ActionsWrapper>
+            <OnClickAction
+              id="create-cluster"
+              icon={faPlus}
+              onClick={handleAddCluster}
+              text="CREATE A CLUSTER"
+            />
+            <OnClickAction
+              id="connect-cluster"
+              icon={faArrowUp}
+              onClick={() => setClusterToEdit(NEW_CLUSTER)}
+              text="CONNECT A CLUSTER"
+            />
+            <Tooltip
+              title="No CAPI clusters selected"
+              placement="top"
+              disabled={selectedCapiClusters.length !== 0}
+            >
+              <div>
+                <OnClickAction
+                  className="danger"
+                  id="delete-cluster"
+                  icon={faTrashAlt}
+                  onClick={() => {
+                    setNotifications([]);
+                    setOpenDeletePR(true);
+                    // history.push('/clusters/delete');
+                  }}
+                  text="CREATE A PR TO DELETE CLUSTERS"
+                  disabled={selectedCapiClusters.length === 0}
+                />
+              </div>
+            </Tooltip>
+            {openDeletePR && (
+              <DeleteClusterDialog
+                formData={formData}
+                setFormData={setFormData}
+                selectedCapiClusters={selectedCapiClusters}
+                setOpenDeletePR={setOpenDeletePR}
               />
-            </div>
-          </Tooltip>
-          {openDeletePR && (
-            <DeleteClusterDialog
-              selectedCapiClusters={selectedCapiClusters}
-              setOpenDeletePR={setOpenDeletePR}
+            )}
+          </ActionsWrapper>
+          {clusterToEdit && (
+            <ConnectClusterDialog
+              cluster={clusterToEdit}
+              onFinish={() => setClusterToEdit(null)}
             />
           )}
-        </ActionsWrapper>
-        {clusterToEdit && (
-          <ConnectClusterDialog
-            cluster={clusterToEdit}
-            onFinish={() => setClusterToEdit(null)}
+          <ClustersTable
+            onEdit={cluster => setClusterToEdit(cluster)}
+            order={order}
+            orderBy={orderBy}
+            onSortChange={handleRequestSort}
+            onSelectPageParams={handleSetPageParams}
+            filteredClusters={clusters}
+            count={count}
+            disabled={disabled}
           />
-        )}
-        <ClustersTable
-          onEdit={cluster => setClusterToEdit(cluster)}
-          order={order}
-          orderBy={orderBy}
-          onSortChange={handleRequestSort}
-          onSelectPageParams={handleSetPageParams}
-          filteredClusters={clusters}
-          count={count}
-          disabled={disabled}
-        />
-      </ContentWrapper>
+        </ContentWrapper>
+      </CallbackStateContextProvider>
     </PageTemplate>
   );
 };
