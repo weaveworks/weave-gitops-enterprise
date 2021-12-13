@@ -6,6 +6,7 @@ require (
 	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc
 	github.com/fluxcd/helm-controller/api v0.11.2
 	github.com/fluxcd/pkg/apis/meta v0.10.1
+	github.com/fluxcd/pkg/runtime v0.12.1
 	github.com/fluxcd/source-controller/api v0.15.4
 	github.com/go-logr/logr v1.1.0
 	github.com/go-logr/zapr v1.1.0
@@ -88,7 +89,6 @@ require (
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fluxcd/kustomize-controller/api v0.16.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
-	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
 	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
 	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
