@@ -72,6 +72,10 @@ function setup {
   fi
   helm repo update
 
+  # Install weave-gitops prior installing weave-gitops-enterprise to resemble end-user workflow
+  # Git repository doesn't exist at this point, therefore we just ignore the erros relataing to repository not found
+  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} 
+
   if [ "${MANAGEMENT_CLUSTER_KIND}" == "EKS" ] || [ "${MANAGEMENT_CLUSTER_KIND}" == "GKE" ]; then
     # Create postgres DB
     kubectl apply -f test/utils/data/postgres-manifests.yaml
@@ -86,6 +90,7 @@ function setup {
       --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
       --set "config.capi.repositoryPath=./management" \
+      --set "config.cluster.name=$(kubectl config current-context)", \
       --set "config.capi.baseBranch=main" \
       --set "dbConfig.databaseType=postgres" \
       --set "postgresConfig.databaseName=postgres" \
@@ -99,11 +104,12 @@ function setup {
       --set "nginx-ingress-controller.service.type=NodePort" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
       --set "config.capi.repositoryPath=./management" \
+      --set "config.cluster.name=$(kubectl config current-context)" \
       --set "config.capi.baseBranch=main"
   fi
 
   # Wait for cluster to settle
-  kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod
+  kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod --selector='app!=wego-app'
   kubectl get pods -A
 
   exit 0

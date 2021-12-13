@@ -751,6 +751,9 @@
         },
         "values": {
           "type": "string"
+        },
+        "layer": {
+          "type": "string"
         }
       }
     },

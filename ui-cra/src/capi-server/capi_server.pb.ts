@@ -175,6 +175,7 @@ export type ProfileValues = {
   name?: string
   version?: string
   values?: string
+  layer?: string
 }
 
 export type GetConfigRequest = {
