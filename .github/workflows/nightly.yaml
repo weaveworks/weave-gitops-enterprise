@@ -151,8 +151,7 @@ jobs:
         kubectl config rename-context $(kubectl config current-context) test-eks-${{ matrix.os_name }}
         ls -la $HOME/.kube
         kubectl get nodes -A
-        kubectl get all --all-namespaces -o wide 
-        
+        kubectl get all --all-namespaces -o wide   
     - name: Install wego enterprise componenets on EKS management cluster
       run: |
         export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
@@ -331,7 +330,7 @@ jobs:
         kubectl config rename-context $(kubectl config current-context) test-gke-${{ matrix.os_name }}
         ls -la $HOME/.kube
         kubectl get nodes -A
-        kubectl get all --all-namespaces -o wide        
+        kubectl get all --all-namespaces -o wide
     - name: Install wego enterprise componenets on GKE management cluster
       run: |
         export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)

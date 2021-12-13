@@ -777,16 +777,16 @@ func getEnv(key, fallback string) string {
 	return value
 }
 
-// showItems displays the current set of a specified object type in tabular format
-func showItems(itemType string) error {
+// ShowItems displays the current set of a specified object type in tabular format
+func ShowItems(itemType string) error {
 	if itemType != "" {
 		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
 	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
-func dumpClusterInfo(namespaces, testName string) error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", namespaces, testName, CLUSTER_INFO_DIR)
+func DumpClusterInfo(testName string) error {
+	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, CLUSTER_INFO_DIR)
 }
 
 // This function generates multiple capitemplate files from a single capitemplate to be used as test data
@@ -1004,7 +1004,7 @@ func verifyWegoAddCommand(appName string, namespace string) {
 
 func InstallAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 	By("And I run 'gitops install' command with namespace "+gitopsNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --app-config-url %s --namespace=%s", GetGitopsBinPath(), manifestRepoURL, gitopsNamespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --config-repo %s --namespace=%s", GetGitopsBinPath(), manifestRepoURL, gitopsNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())

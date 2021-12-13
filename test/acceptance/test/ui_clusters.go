@@ -107,8 +107,7 @@ func deleteClusterEntry(webDriver *agouti.Page, clusterNames []string) {
 }
 
 func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.ClustersPage, *pages.ClusterConnectionPage) {
-
-	//To check if page is loaded in its entirety
+	pages.NavigateToPage(webDriver, "Cluster")
 	clustersPage := pages.GetClustersPage(webDriver)
 	clusterConnectionPage := pages.GetClusterConnectionPage(webDriver)
 
@@ -171,7 +170,6 @@ func getCommandEnv(leaf LeafSpec) []string {
 }
 
 func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, leaf LeafSpec) (*pages.ClustersPage, string, string) {
-
 	tokenURLRegex := `https?:\/\/[-a-zA-Z0-9@:%._\+~#=]+\/gitops\/api\/agent\.yaml\?token=[0-9a-zA-Z]+`
 	var tokenURL []string
 
