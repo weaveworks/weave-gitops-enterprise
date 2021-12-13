@@ -19,23 +19,12 @@ const Profiles: FC<{
   setProfiles: Dispatch<React.SetStateAction<any>>;
 }> = ({ activeStep, setActiveStep, clickedStep, profiles, setProfiles }) => {
   const { updatedProfiles } = useProfiles();
-  const [selectedProfiles, setSelectedProfiles] =
-    useState<UpdatedProfile[]>(profiles);
-
-  console.log(profiles);
+  const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
+    [],
+  );
 
   const handleSelectProfiles = useCallback(
-    (selectProfiles: UpdatedProfile[]) => {
-      setSelectedProfiles(selectProfiles);
-      // setSelectedProfiles((prevState: any) => ({
-      //   ...prevState,
-      //   profiles: selectProfiles,
-      // }));
-      setProfiles((prevState: any) => ({
-        ...prevState,
-        profiles: selectProfiles,
-      }));
-    },
+    (selectProfiles: UpdatedProfile[]) => setProfiles(selectProfiles),
     [setProfiles],
   );
 

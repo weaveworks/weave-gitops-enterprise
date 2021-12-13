@@ -112,16 +112,12 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const { repositoryURL } = useVersions();
   const { updatedProfiles } = useProfiles();
-  const requiredProfiles = updatedProfiles.filter(
-    profile => profile.required === true,
-  );
 
   let initialFormData = {
     url: repositoryURL,
     provider: '',
   };
-
-  let initialProfiles = requiredProfiles;
+  let initialProfiles = [] as UpdatedProfile[];
 
   const callbackState = getCallbackState();
 
@@ -130,10 +126,7 @@ const AddCluster: FC = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
-    initialProfiles = {
-      ...initialProfiles,
-      ...callbackState.state.profiles,
-    };
+    initialProfiles = [...initialProfiles, ...callbackState.state.profiles];
   }
 
   const [formData, setFormData] = useState<any>(initialFormData);
@@ -265,10 +258,12 @@ const AddCluster: FC = () => {
 
   useEffect(() => {
     setFormData((prevState: any) => ({ ...prevState, url: repositoryURL }));
-  }, [repositoryURL]);
+    if (profiles.length === 0) {
+      setProfiles(updatedProfiles.filter(profile => profile.required === true));
+    }
+  }, [repositoryURL, profiles, updatedProfiles]);
 
   return useMemo(() => {
-    console.log(profiles);
     return (
       <PageTemplate documentTitle="WeGo · Create new cluster">
         <CallbackStateContextProvider
@@ -312,7 +307,7 @@ const AddCluster: FC = () => {
                   activeStep={activeStep}
                   setActiveStep={setActiveStep}
                   clickedStep={clickedStep}
-                  profiles={profiles.profiles}
+                  profiles={profiles}
                   setProfiles={setProfiles}
                 />
                 {openPreview && PRPreview ? (

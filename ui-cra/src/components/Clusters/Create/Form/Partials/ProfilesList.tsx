@@ -27,8 +27,6 @@ const ProfilesList: FC<{
     setEnrichedProfiles(selectedProfiles);
   }, [selectedProfiles]);
 
-  console.log(enrichedProfiles);
-
   return (
     <Box display="flex">
       <List>
