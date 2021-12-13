@@ -125,8 +125,6 @@ const AddCluster: FC = () => {
 
   const callbackState = getCallbackState();
 
-  console.log(callbackState);
-
   if (callbackState) {
     initialFormData = {
       ...initialFormData,
@@ -269,9 +267,8 @@ const AddCluster: FC = () => {
     setFormData((prevState: any) => ({ ...prevState, url: repositoryURL }));
   }, [repositoryURL]);
 
-  console.log(initialProfiles);
-
   return useMemo(() => {
+    console.log(profiles);
     return (
       <PageTemplate documentTitle="WeGo · Create new cluster">
         <CallbackStateContextProvider
@@ -315,7 +312,7 @@ const AddCluster: FC = () => {
                   activeStep={activeStep}
                   setActiveStep={setActiveStep}
                   clickedStep={clickedStep}
-                  profiles={profiles}
+                  profiles={profiles.profiles}
                   setProfiles={setProfiles}
                 />
                 {openPreview && PRPreview ? (
