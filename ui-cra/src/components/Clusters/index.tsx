@@ -91,12 +91,7 @@ const MCCP: FC = () => {
       ...initialFormData,
       ...callbackState.state,
     };
-
-    // console.log(callbackState);
-    // setOpenDeletePR(true);
   }
-
-  console.log(callbackState);
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
 
@@ -110,14 +105,6 @@ const MCCP: FC = () => {
     }
     history.push(`/clusters/templates/${activeTemplate.name}/create`);
   }, [activeTemplate, history]);
-
-  // const capiClusters = clusters.filter(cls => cls.capiCluster);
-
-  // const selectedCapiClusters = selectedClusters.filter(cls =>
-  //   capiClusters.find(c => c.name === cls),
-  // );
-
-  // const authRedirectPage = `/clusters`;
 
   useEffect(() => {
     if (callbackState) {
@@ -165,7 +152,6 @@ const MCCP: FC = () => {
                   onClick={() => {
                     setNotifications([]);
                     setOpenDeletePR(true);
-                    // history.push('/clusters/delete');
                   }}
                   text="CREATE A PR TO DELETE CLUSTERS"
                   disabled={selectedCapiClusters.length === 0}

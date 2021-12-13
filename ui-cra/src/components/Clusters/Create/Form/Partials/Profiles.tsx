@@ -1,11 +1,4 @@
-import React, {
-  Dispatch,
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { Dispatch, FC, useCallback, useEffect, useState } from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
 import useProfiles from '../../../../../contexts/Profiles';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';

@@ -23,17 +23,10 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../Action';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
-import {
-  CallbackStateContextProvider,
-  clearCallbackState,
-  getCallbackState,
-  getProviderToken,
-} from '@weaveworks/weave-gitops';
+import { clearCallbackState, getProviderToken } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { useHistory } from 'react-router-dom';
 
 interface Props {
   formData: any;
@@ -57,45 +50,9 @@ export const DeleteClusterDialog: FC<Props> = ({
   setOpenDeletePR,
 }) => {
   const classes = useStyles();
-  const random = Math.random().toString(36).substring(7);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
-  const history = useHistory();
-  const authRedirectPage = `/clusters`;
-
-  // interface FormData {
-  //   url: string;
-  //   provider: string;
-  //   branchName: string;
-  //   pullRequestTitle: string;
-  //   commitMessage: string;
-  //   pullRequestDescription: string;
-  // }
-
-  // let initialFormData = {
-  //   url: repositoryURL,
-  //   provider: '',
-  //   branchName: `delete-clusters-branch-${random}`,
-  //   pullRequestTitle: 'Deletes capi cluster(s)',
-  //   commitMessage: 'Deletes capi cluster(s)',
-  //   pullRequestDescription: `Delete clusters: ${selectedCapiClusters
-  //     .map(c => c)
-  //     .join(', ')}`,
-  // };
-
-  // const callbackState = getCallbackState();
-
-  // if (callbackState) {
-  //   initialFormData = {
-  //     ...initialFormData,
-  //     ...callbackState.state,
-  //   };
-  //   // console.log(callbackState);
-  //   // setOpenDeletePR(true);
-  // }
-
-  // const [formData, setFormData] = useState<FormData>(initialFormData);
 
   const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
     useClusters();
@@ -194,26 +151,10 @@ export const DeleteClusterDialog: FC<Props> = ({
       ...prevState,
       url: repositoryURL,
     }));
-
-    // console.log(callbackState.page);
-
-    // if (callbackState.page === (authRedirectPage as PageRoute)) {
-    //   setOpenDeletePR(true);
-    // }
-  }, [
-    repositoryURL,
-    setFormData,
-    // setOpenDeletePR, authRedirectPage, callbackState.page
-  ]);
+  }, [repositoryURL, setFormData]);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
-      {/* <CallbackStateContextProvider
-        callbackState={{
-          page: authRedirectPage as PageRoute,
-          state: formData,
-        }}
-      > */}
       <div id="delete-popup" className={classes.dialog}>
         <DialogTitle disableTypography>
           <Typography variant="h5">Create PR to remove clusters</Typography>
@@ -257,7 +198,7 @@ export const DeleteClusterDialog: FC<Props> = ({
                 onClick={handleClickRemove}
                 text="Remove clusters from the MCCP"
                 className="danger"
-                disabled={selectedCapiClusters.length === 0 || !enableCreatePR}
+                disabled={selectedCapiClusters.length === 0 && !enableCreatePR}
               />
             </>
           ) : (
@@ -265,7 +206,6 @@ export const DeleteClusterDialog: FC<Props> = ({
           )}
         </DialogContent>
       </div>
-      {/* </CallbackStateContextProvider> */}
     </Dialog>
   );
 };
