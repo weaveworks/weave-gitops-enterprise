@@ -43,7 +43,8 @@ const Profiles: FC<{
       <ProfilesDropdown>
         <span>Select profiles:&nbsp;</span>
         <MultiSelectDropdown
-          items={updatedProfiles}
+          allItems={updatedProfiles}
+          preSelectedItems={selectedProfiles}
           onSelectItems={handleSelectProfiles}
         />
       </ProfilesDropdown>
