@@ -115,6 +115,8 @@ const MCCP: FC = () => {
       setFormData((prevState: FormData) => ({
         ...prevState,
         branchName: `delete-clusters-branch-${random}`,
+        pullRequestTitle: 'Deletes capi cluster(s)',
+        commitMessage: 'Deletes capi cluster(s)',
         pullRequestDescription: `Delete clusters: ${selectedCapiClusters
           .map(c => c)
           .join(', ')}`,
@@ -124,8 +126,6 @@ const MCCP: FC = () => {
       setOpenDeletePR(true);
     }
   }, [callbackState, selectedCapiClusters, random]);
-
-  console.log(formData);
 
   return (
     <PageTemplate documentTitle="WeGo · Clusters">

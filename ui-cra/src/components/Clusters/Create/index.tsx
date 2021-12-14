@@ -119,6 +119,8 @@ const AddCluster: FC = () => {
   };
   let initialProfiles = [] as UpdatedProfile[];
 
+  let initialInfraCredential = {} as Credential;
+
   const callbackState = getCallbackState();
 
   if (callbackState) {
@@ -127,10 +129,17 @@ const AddCluster: FC = () => {
       ...callbackState.state.formData,
     };
     initialProfiles = [...initialProfiles, ...callbackState.state.profiles];
+    initialInfraCredential = {
+      ...initialInfraCredential,
+      ...callbackState.state.infraCredential,
+    };
   }
 
   const [formData, setFormData] = useState<any>(initialFormData);
-  const [profiles, setProfiles] = useState<any>(initialProfiles);
+  const [profiles, setProfiles] = useState<UpdatedProfile[]>(initialProfiles);
+  const [infraCredential, setInfraCredential] = useState<Credential>(
+    initialInfraCredential,
+  );
   const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -138,9 +147,6 @@ const AddCluster: FC = () => {
   const history = useHistory();
   const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
   const [clickedStep, setClickedStep] = useState<string>('');
-  const [infraCredential, setInfraCredential] = useState<Credential | null>(
-    null,
-  );
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
   const authRedirectPage = `/clusters/templates/${activeTemplate?.name}/create`;
@@ -261,7 +267,7 @@ const AddCluster: FC = () => {
     if (profiles.length === 0) {
       setProfiles(updatedProfiles.filter(profile => profile.required === true));
     }
-  }, [repositoryURL, profiles, updatedProfiles]);
+  }, [repositoryURL, profiles, updatedProfiles, infraCredential]);
 
   return useMemo(() => {
     return (
@@ -269,7 +275,7 @@ const AddCluster: FC = () => {
         <CallbackStateContextProvider
           callbackState={{
             page: authRedirectPage as PageRoute,
-            state: { formData, profiles },
+            state: { infraCredential, formData, profiles },
           }}
         >
           <SectionHeader
@@ -287,7 +293,10 @@ const AddCluster: FC = () => {
                   <div className="template-title">
                     Template: <span>{activeTemplate?.name}</span>
                   </div>
-                  <Credentials onSelect={setInfraCredential} />
+                  <Credentials
+                    infraCredential={infraCredential}
+                    setInfraCredential={setInfraCredential}
+                  />
                 </CredentialsWrapper>
                 <Divider
                   className={
@@ -350,6 +359,7 @@ const AddCluster: FC = () => {
     authRedirectPage,
     formData,
     profiles,
+    infraCredential,
     activeTemplate,
     clustersCount,
     classes,
