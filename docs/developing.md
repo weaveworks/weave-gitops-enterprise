@@ -143,7 +143,7 @@ go get github.com/weaveworks/weave-gitops@$WG_VERSION
 # 2. Update the frontend typescript/javascript code
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 
-# 3. Update the crds by copying all the files across to `./charts/mccp/templates/crds`
+# 3. Update the crds by copying all the files across to `./charts/mccp/crds`
 open "https://github.com/weaveworks/weave-gitops/tree/v${WG_VERSION}/manifests/crds"
 ```
 
