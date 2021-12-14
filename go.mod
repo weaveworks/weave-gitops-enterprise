@@ -29,7 +29,7 @@ require (
 	github.com/tebeka/selenium v0.9.9
 	github.com/weaveworks/cluster-api-provider-existinginfra v0.2.5
 	github.com/weaveworks/libgitops v0.0.3
-	github.com/weaveworks/weave-gitops v0.5.1
+	github.com/weaveworks/weave-gitops v0.5.1-rc3
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
@@ -136,7 +136,7 @@ require (
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
@@ -234,7 +234,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1 // indirect
+	google.golang.org/genproto v0.0.0-20211129164237-f09f9a12af12 // indirect
 	google.golang.org/grpc v1.42.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
