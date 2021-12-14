@@ -12,7 +12,7 @@ require (
 	github.com/go-logr/zapr v1.1.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/mkmik/multierror v0.3.0
 	github.com/sirupsen/logrus v1.8.1
@@ -20,13 +20,13 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/weave-gitops v0.5.1
+	github.com/weaveworks/weave-gitops v0.5.1-rc3
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
 	github.com/xanzy/go-gitlab v0.43.0
 	go.uber.org/zap v1.19.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
-	google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1
+	google.golang.org/genproto v0.0.0-20211129164237-f09f9a12af12
 	google.golang.org/grpc v1.42.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
@@ -93,7 +93,6 @@ require (
 	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-errors/errors v1.4.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
