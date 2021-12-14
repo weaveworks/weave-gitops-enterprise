@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { Cluster } from '../../types/kubernetes';
@@ -51,12 +51,18 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const random = Math.random().toString(36).substring(7);
+  const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { repositoryURL } = useVersions();
-  const capiClusters = clusters.filter(cls => cls.capiCluster);
-  const selectedCapiClusters = selectedClusters.filter(cls =>
-    capiClusters.find(c => c.name === cls),
+  const capiClusters = useMemo(
+    () => clusters.filter(cls => cls.capiCluster),
+    [clusters],
   );
+  const selectedCapiClusters = useMemo(
+    () =>
+      selectedClusters.filter(cls => capiClusters.find(c => c.name === cls)),
+    [capiClusters, selectedClusters],
+  );
+
   const authRedirectPage = `/clusters`;
 
   const NEW_CLUSTER = {
@@ -76,12 +82,10 @@ const MCCP: FC = () => {
   let initialFormData = {
     url: repositoryURL,
     provider: '',
-    branchName: `delete-clusters-branch-${random}`,
+    branchName: `delete-clusters-branch`,
     pullRequestTitle: 'Deletes capi cluster(s)',
     commitMessage: 'Deletes capi cluster(s)',
-    pullRequestDescription: `Delete clusters: ${selectedCapiClusters
-      .map(c => c)
-      .join(', ')}`,
+    pullRequestDescription: '',
   };
 
   const callbackState = getCallbackState();
@@ -89,7 +93,7 @@ const MCCP: FC = () => {
   if (callbackState) {
     initialFormData = {
       ...initialFormData,
-      ...callbackState.state,
+      ...callbackState.state.formData,
     };
   }
 
@@ -107,10 +111,21 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   useEffect(() => {
+    if (!callbackState) {
+      setFormData((prevState: FormData) => ({
+        ...prevState,
+        branchName: `delete-clusters-branch-${random}`,
+        pullRequestDescription: `Delete clusters: ${selectedCapiClusters
+          .map(c => c)
+          .join(', ')}`,
+      }));
+    }
     if (callbackState) {
       setOpenDeletePR(true);
     }
-  }, [callbackState]);
+  }, [callbackState, selectedCapiClusters, random]);
+
+  console.log(formData);
 
   return (
     <PageTemplate documentTitle="WeGo · Clusters">

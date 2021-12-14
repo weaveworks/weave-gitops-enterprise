@@ -8,7 +8,6 @@ const ProfilesList: FC<{
   selectedProfiles: UpdatedProfile[];
   onProfilesUpdate: (profiles: UpdatedProfile[]) => void;
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
-  console.log(selectedProfiles);
   const [enrichedProfiles, setEnrichedProfiles] =
     useState<UpdatedProfile[]>(selectedProfiles);
 
