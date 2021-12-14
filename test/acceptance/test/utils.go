@@ -1046,7 +1046,7 @@ func ListGitopsApplication(appName string, nameSpace string) string {
 }
 
 func DeleteGitopsApplication(appName string, nameSpace string) {
-	command := "delete app " + appName
+	command := fmt.Sprintf("delete app %s --auto-merge=true", appName)
 	By(fmt.Sprintf("And I run gitops delete app command '%s'", command), func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GetGitopsBinPath(), command))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
