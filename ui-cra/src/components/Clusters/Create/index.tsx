@@ -112,11 +112,17 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const { repositoryURL } = useVersions();
   const { updatedProfiles } = useProfiles();
+  const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   let initialFormData = {
     url: repositoryURL,
     provider: '',
+    branchName: `create-clusters-branch`,
+    pullRequestTitle: 'Creates capi cluster',
+    commitMessage: 'Creates capi cluster',
+    pullRequestDescription: 'This PR creates a new cluster',
   };
+
   let initialProfiles = [] as UpdatedProfile[];
 
   let initialInfraCredential = {} as Credential;
@@ -194,21 +200,19 @@ const AddCluster: FC = () => {
   );
 
   const handleAddCluster = useCallback(
-    (gitOps: {
-      head_branch: string;
-      title: string;
-      description: string;
-      commit_message: string;
-    }) =>
+    () =>
       addCluster(
         {
-          ...gitOps,
+          head_branch: formData.branchName,
+          title: formData.pullRequestTitle,
+          description: formData.pullRequestDescription,
+          commit_message: formData.commitMessage,
           credentials: infraCredential,
           template_name: activeTemplate?.name,
           parameter_values: {
             ...formData,
           },
-          values: encodedProfiles(formData.profiles),
+          values: encodedProfiles(profiles),
         },
         getProviderToken(formData.provider as GitProvider),
       )
@@ -224,6 +228,7 @@ const AddCluster: FC = () => {
           }
         }),
     [
+      profiles,
       addCluster,
       formData,
       activeTemplate?.name,
@@ -263,11 +268,24 @@ const AddCluster: FC = () => {
   ]);
 
   useEffect(() => {
-    setFormData((prevState: any) => ({ ...prevState, url: repositoryURL }));
+    if (!callbackState) {
+      setFormData((prevState: any) => ({
+        ...prevState,
+        branchName: `create-clusters-branch-${random}`,
+      }));
+    }
+
     if (profiles.length === 0) {
       setProfiles(updatedProfiles.filter(profile => profile.required === true));
     }
-  }, [repositoryURL, profiles, updatedProfiles, infraCredential]);
+  }, [
+    callbackState,
+    repositoryURL,
+    profiles,
+    updatedProfiles,
+    infraCredential,
+    random,
+  ]);
 
   return useMemo(() => {
     return (
