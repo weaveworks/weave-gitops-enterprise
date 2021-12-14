@@ -6,12 +6,13 @@ require (
 	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc
 	github.com/fluxcd/helm-controller/api v0.11.2
 	github.com/fluxcd/pkg/apis/meta v0.10.1
+	github.com/fluxcd/pkg/runtime v0.12.1
 	github.com/fluxcd/source-controller/api v0.15.4
 	github.com/go-logr/logr v1.1.0
 	github.com/go-logr/zapr v1.1.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/mkmik/multierror v0.3.0
 	github.com/sirupsen/logrus v1.8.1
@@ -19,14 +20,14 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/weave-gitops v0.5.0-rc2.0.20211123165841-1e77f2ae0aed
+	github.com/weaveworks/weave-gitops v0.5.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
 	github.com/xanzy/go-gitlab v0.43.0
 	go.uber.org/zap v1.19.0
-	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
-	google.golang.org/genproto v0.0.0-20210828152312-66f60bf46e71
-	google.golang.org/grpc v1.40.0
+	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	google.golang.org/genproto v0.0.0-20211118181313-81c1377c94b1
+	google.golang.org/grpc v1.42.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
@@ -88,7 +89,6 @@ require (
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fluxcd/kustomize-controller/api v0.16.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
-	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
 	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
 	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
@@ -104,7 +104,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
-	github.com/golang/glog v0.0.0-20210429001901-424d2337a529 // indirect
+	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/btree v1.0.1 // indirect

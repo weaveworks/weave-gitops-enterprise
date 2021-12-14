@@ -114,7 +114,7 @@ func GetAddApplicationForm(webDriver *agouti.Page) *AddApplication {
 		Name:            webDriver.Find(`input#name`),
 		K8sNamespace:    webDriver.Find(`input#namespace`),
 		SourceRepoUrl:   webDriver.Find(`input#url`),
-		ConfigRepoUrl:   webDriver.Find(`input#configUrl`),
+		ConfigRepoUrl:   webDriver.Find(`input#configRepo`),
 		Path:            webDriver.Find(`input#path`),
 		Branch:          webDriver.Find(`input#branch`),
 		AutoMerge:       webDriver.Find(`input[type=checkbox]`),
