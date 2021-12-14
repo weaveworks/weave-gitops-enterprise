@@ -114,8 +114,10 @@ const AddCluster: FC = () => {
   const { updatedProfiles } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
+  console.log(repositoryURL);
+
   let initialFormData = {
-    url: repositoryURL,
+    url: '',
     provider: '',
     branchName: `create-clusters-branch`,
     pullRequestTitle: 'Creates capi cluster',
@@ -271,20 +273,20 @@ const AddCluster: FC = () => {
     if (!callbackState) {
       setFormData((prevState: any) => ({
         ...prevState,
+        url: repositoryURL,
         branchName: `create-clusters-branch-${random}`,
       }));
     }
-
-    if (profiles.length === 0) {
+    if (updatedProfiles.length > 0 && profiles.length === 0) {
       setProfiles(updatedProfiles.filter(profile => profile.required === true));
     }
   }, [
     callbackState,
-    repositoryURL,
     profiles,
     updatedProfiles,
     infraCredential,
     random,
+    repositoryURL,
   ]);
 
   return useMemo(() => {
@@ -330,6 +332,7 @@ const AddCluster: FC = () => {
                   onFormDataUpdate={setFormData}
                   onPRPreview={handlePRPreview}
                 />
+
                 <Profiles
                   activeStep={activeStep}
                   setActiveStep={setActiveStep}

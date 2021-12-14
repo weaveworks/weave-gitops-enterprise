@@ -111,6 +111,10 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   useEffect(() => {
+    const selectedCapiClusters = selectedClusters.filter(cls =>
+      capiClusters.find(c => c.name === cls),
+    );
+
     if (!callbackState) {
       setFormData((prevState: FormData) => ({
         ...prevState,
@@ -125,7 +129,13 @@ const MCCP: FC = () => {
     if (callbackState) {
       setOpenDeletePR(true);
     }
-  }, [callbackState, selectedCapiClusters, random]);
+  }, [
+    callbackState,
+    selectedCapiClusters,
+    random,
+    capiClusters,
+    selectedClusters,
+  ]);
 
   return (
     <PageTemplate documentTitle="WeGo · Clusters">

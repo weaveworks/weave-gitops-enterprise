@@ -32,10 +32,9 @@ const VersionsProvider: FC = ({ children }) => {
       cache: 'no-store',
     })
       .then(res => setRepositoryURL(res.repositoryURL))
-      .catch(err => {
-        setRepositoryURL('https://gitlab.com/alina48/test-alina');
-        // setNotifications([{ message: err.message, variant: 'danger' }]);
-      });
+      .catch(err =>
+        setNotifications([{ message: err.message, variant: 'danger' }]),
+      );
   }, [setNotifications]);
 
   useEffect(() => {
