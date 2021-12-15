@@ -572,7 +572,6 @@ github.com/go-openapi/spec v0.18.0/go.mod h1:XkF/MOi14NmjsfZ8VtAKf8pIlbZzyoTvZsd
 github.com/go-openapi/spec v0.19.2/go.mod h1:sCxk3jxKgioEJikev4fgkNmwS+3kuYdJtcsZsD5zxMY=
 github.com/go-openapi/spec v0.19.3/go.mod h1:FpwSN1ksY1eteniUU7X0N/BgJ7a4WvBFVA8Lj9mJglo=
 github.com/go-openapi/spec v0.19.5/go.mod h1:Hm2Jr4jv8G1ciIAo+frC/Ft+rR2kQDh8JHKHb3gWUSk=
-github.com/go-openapi/spec v0.19.6/go.mod h1:Hm2Jr4jv8G1ciIAo+frC/Ft+rR2kQDh8JHKHb3gWUSk=
 github.com/go-openapi/strfmt v0.17.0/go.mod h1:P82hnJI0CXkErkXi8IKjPbNBM6lV6+5pLP5l494TcyU=
 github.com/go-openapi/strfmt v0.18.0/go.mod h1:P82hnJI0CXkErkXi8IKjPbNBM6lV6+5pLP5l494TcyU=
 github.com/go-openapi/strfmt v0.19.0/go.mod h1:+uW+93UVvGGq2qGaZxdDeJqSAqBqBdl+ZPMF/cC8nDY=
@@ -1422,8 +1421,6 @@ github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17
 github.com/vishvananda/netns v0.0.0-20200728191858-db3c7e526aae/go.mod h1:DD4vA1DwXk04H54A1oHXtwZmA0grkVMdPxx/VGLCah0=
 github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab h1:mW+hgchD9qUUBqnuaDBj7BkcpFPk/FxeFcUFI5lvvUw=
 github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab/go.mod h1:qkbvw5GPibQ/Nf7IZJL0UoLwmJ6858b4S/hUWRd+cH4=
-github.com/weaveworks/weave-gitops v0.5.1-rc3 h1:0lWDRQ/Rs+7RcEm+45AvsPxnQbJxrTNVFzCda2DAiKI=
-github.com/weaveworks/weave-gitops v0.5.1-rc3/go.mod h1:/gYodO6cD+5nRcahyT3zFAByY7DZ6SvwdSJ4Gi1UXLA=
 github.com/weaveworks/weave-gitops v0.5.1-rc3.0.20211215123257-ce606bbd221a h1:+blOs8oT5IdxzA1H7LRgeL+AN5JgNWc1a6yHIkxL73s=
 github.com/weaveworks/weave-gitops v0.5.1-rc3.0.20211215123257-ce606bbd221a/go.mod h1:KPBMFhnvuHHibS79kcx+FkN6VRGTMd8nY8fAZEnyXzs=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 h1:R5+xSXgaKiTGLMzpNmkf9W5PsX9mCtMTgWUbJ7MwO70=
@@ -2237,7 +2234,6 @@ k8s.io/apiserver v0.22.2 h1:TdIfZJc6YNhu2WxeAOWq1TvukHF0Sfx0+ln4XK9qnL4=
 k8s.io/apiserver v0.22.2/go.mod h1:vrpMmbyjWrgdyOvZTSpsusQq5iigKNWv9o9KlDAbBHI=
 k8s.io/cli-runtime v0.21.0/go.mod h1:XoaHP93mGPF37MkLbjGVYqg3S1MnsFdKtiA/RZzzxOo=
 k8s.io/cli-runtime v0.21.1/go.mod h1:TI9Bvl8lQWZB2KqE91QLCp9AZE4l29zNFnj/x4IX4Fw=
-k8s.io/cli-runtime v0.21.2/go.mod h1:8u/jFcM0QpoI28f6sfrAAIslLCXUYKD5SsPPMWiHYrI=
 k8s.io/cli-runtime v0.22.1 h1:WIueieKvT+IiSVSFosRLI6rkM0tyBGEGH1WUEztVjho=
 k8s.io/cli-runtime v0.22.1/go.mod h1:YqwGrlXeEk15Yn3em2xzr435UGwbrCw5x+COQoTYfoo=
 k8s.io/client-go v0.17.9/go.mod h1:3cM92qAd1XknA5IRkRfpJhl9OQjkYy97ZEUio70wVnI=
