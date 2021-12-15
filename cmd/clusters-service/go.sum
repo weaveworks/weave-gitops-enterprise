@@ -1424,6 +1424,8 @@ github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab h1:mW+hgc
 github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab/go.mod h1:qkbvw5GPibQ/Nf7IZJL0UoLwmJ6858b4S/hUWRd+cH4=
 github.com/weaveworks/weave-gitops v0.5.1-rc3 h1:0lWDRQ/Rs+7RcEm+45AvsPxnQbJxrTNVFzCda2DAiKI=
 github.com/weaveworks/weave-gitops v0.5.1-rc3/go.mod h1:/gYodO6cD+5nRcahyT3zFAByY7DZ6SvwdSJ4Gi1UXLA=
+github.com/weaveworks/weave-gitops v0.5.1-rc3.0.20211215123257-ce606bbd221a h1:+blOs8oT5IdxzA1H7LRgeL+AN5JgNWc1a6yHIkxL73s=
+github.com/weaveworks/weave-gitops v0.5.1-rc3.0.20211215123257-ce606bbd221a/go.mod h1:KPBMFhnvuHHibS79kcx+FkN6VRGTMd8nY8fAZEnyXzs=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 h1:R5+xSXgaKiTGLMzpNmkf9W5PsX9mCtMTgWUbJ7MwO70=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1/go.mod h1:xWxoy/Ff1R3VnKWacRlbmBnVSu066ykpZIkk+T/g1Vw=
 github.com/willf/bitset v1.1.11-0.20200630133818-d5bec3311243/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
