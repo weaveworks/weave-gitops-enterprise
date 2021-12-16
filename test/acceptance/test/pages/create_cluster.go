@@ -41,10 +41,10 @@ type GitOps struct {
 }
 
 // This function waits for previw and gitops to appear (become visible)
-func WaitForDynamicSecToAppear(webDriver *agouti.Page) {
-	Eventually(webDriver.FindByXPath(`//div[@name="Preview"]/following-sibling::textarea[1]`)).Should(BeFound())
-	Eventually(webDriver.FindByXPath(`//div[@name="GitOps"]`)).Should(BeFound())
-}
+// func WaitForDynamicSecToAppear(webDriver *agouti.Page) {
+// 	Eventually(webDriver.FindByXPath(`//div[@name="Preview"]/following-sibling::textarea[1]`)).Should(BeFound())
+// 	Eventually(webDriver.FindByXPath(`//div[@name="GitOps"]`)).Should(BeFound())
+// }
 
 //CreateCluster initialises the webDriver object
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {

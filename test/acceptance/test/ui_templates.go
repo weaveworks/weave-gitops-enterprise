@@ -381,19 +381,19 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-					preview := pages.GetPreview(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
+				// By("Then I should preview the PR", func() {
+				// 	Expect(createPage.PreviewPR.Click()).To(Succeed())
+				// 	preview := pages.GetPreview(webDriver)
+				// 	pages.WaitForDynamicSecToAppear(webDriver)
 
-					Eventually(preview.PreviewLabel).Should(BeFound())
-					pages.ScrollWindow(webDriver, 0, 500)
+				// 	Eventually(preview.PreviewLabel).Should(BeFound())
+				// 	pages.ScrollWindow(webDriver, 0, 500)
 
-					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
-					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
-					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: default\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: %[4]v`, clusterName, region, sshKey, k8Version))))
-					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-fargate-0`, clusterName))))
-				})
+				// 	Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
+				// 	Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
+				// 	Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: default\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: %[4]v`, clusterName, region, sshKey, k8Version))))
+				// 	Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-fargate-0`, clusterName))))
+				// })
 			})
 		})
 
@@ -482,7 +482,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
+					// pages.WaitForDynamicSecToAppear(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
 					pages.ScrollWindow(webDriver, 0, 4000)
@@ -607,7 +607,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				gitops := pages.GetGitOps(webDriver)
 				By("And set GitOps values for pull request", func() {
-					pages.WaitForDynamicSecToAppear(webDriver)
+					// pages.WaitForDynamicSecToAppear(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
 					pages.ScrollWindow(webDriver, 0, 4000)
@@ -777,16 +777,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("Then I should see PR preview containing identity reference added in the template", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-					preview := pages.GetPreview(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
+				// By("Then I should see PR preview containing identity reference added in the template", func() {
+				// 	Expect(createPage.PreviewPR.Click()).To(Succeed())
+				// 	preview := pages.GetPreview(webDriver)
+				// 	pages.WaitForDynamicSecToAppear(webDriver)
 
-					Eventually(preview.PreviewLabel).Should(BeFound())
-					pages.ScrollWindow(webDriver, 0, 500)
+				// 	Eventually(preview.PreviewLabel).Should(BeFound())
+				// 	pages.ScrollWindow(webDriver, 0, 500)
 
-					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
-				})
+				// 	Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
+				// })
 
 			})
 		})
@@ -887,16 +887,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("Then I should see PR preview without identity reference added to the template", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-					preview := pages.GetPreview(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
+				// By("Then I should see PR preview without identity reference added to the template", func() {
+				// 	Expect(createPage.PreviewPR.Click()).To(Succeed())
+				// 	preview := pages.GetPreview(webDriver)
+				// 	pages.WaitForDynamicSecToAppear(webDriver)
 
-					Eventually(preview.PreviewLabel).Should(BeFound())
-					pages.ScrollWindow(webDriver, 0, 500)
+				// 	Eventually(preview.PreviewLabel).Should(BeFound())
+				// 	pages.ScrollWindow(webDriver, 0, 500)
 
-					Eventually(preview.PreviewText).ShouldNot(MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
-				})
+				// 	Eventually(preview.PreviewText).ShouldNot(MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
+				// })
 
 			})
 		})
@@ -1027,7 +1027,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
+					// pages.WaitForDynamicSecToAppear(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
 					pages.ScrollWindow(webDriver, 0, 4000)
