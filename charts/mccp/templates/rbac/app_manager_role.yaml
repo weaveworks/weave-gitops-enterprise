@@ -28,6 +28,8 @@ rules:
       - watch
       - patch
       - create
+      - update
+      - delete
   - apiGroups:
       - wego.weave.works
     resources:
