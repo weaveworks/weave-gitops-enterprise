@@ -35,6 +35,7 @@ jobs:
       TOTP_TOKEN: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+      EXP_CLUSTER_RESOURCE_SET: true
       GITOPS_BIN_PATH: /tmp/gitops
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
@@ -224,6 +225,7 @@ jobs:
       TOTP_TOKEN: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }} 
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+      EXP_CLUSTER_RESOURCE_SET: true
       GITOPS_BIN_PATH: /tmp/gitops
       WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
