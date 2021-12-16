@@ -471,9 +471,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("And press the Preview PR button", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-				})
+				// By("And press the Preview PR button", func() {
+				// 	Expect(createPage.PreviewPR.Click()).To(Succeed())
+				// })
 
 				//Pull request values
 				prBranch := "feature-capd"
@@ -597,9 +597,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("And press the Preview PR button", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-				})
+				// By("And press the Preview PR button", func() {
+				// 	Expect(createPage.PreviewPR.Click()).To(Succeed())
+				// })
 
 				//Pull request values
 				prTitle := "My first pull request"
@@ -1016,9 +1016,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("And press the Preview PR button", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-				})
+				// By("And press the Preview PR button", func() {
+				// 	Expect(createPage.PreviewPR.Click()).To(Succeed())
+				// })
 
 				//Pull request values
 				prBranch := "ui-end-end-branch"
