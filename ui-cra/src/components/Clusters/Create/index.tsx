@@ -183,6 +183,7 @@ const AddCluster: FC = () => {
         .catch(error => {
           if (isUnauthenticated(error.code)) {
             setShowAuthDialog(true);
+            return error;
           } else {
             setNotifications([{ message: error.message, variant: 'danger' }]);
           }
