@@ -69,22 +69,6 @@ service ClustersService {
         get: "/v1/enterprise/version"
     };
   }
-  // GetProfiles returns a list of profiles
-  // from the cluster.
-  rpc GetProfiles(GetProfilesRequest)
-    returns (GetProfilesResponse){
-      option (google.api.http) = {
-        get: "/v1/profiles"
-      };
-    }
-  // GetProfileValues returns a list of values for 
-  // a given version of a profile from the cluster.
-  rpc GetProfileValues(GetProfileValuesRequest)
-  returns (google.api.HttpBody){
-    option (google.api.http) = {
-      get: "/v1/profiles/{profile_name}/{profile_version}/values"
-    };
-  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -224,36 +208,6 @@ message Maintainer {
 message HelmRepository {
   string name = 1;
   string namespace = 2;
-}
-
-message Profile {
-  string name = 1;
-  string home = 2;
-  repeated string sources = 3;
-  string description = 4;
-  repeated string keywords = 5;
-  repeated Maintainer maintainers = 6;
-  string icon = 7;
-  map<string, string> annotations = 8;
-  string kube_version = 9;
-  HelmRepository helm_repository = 10;
-  repeated string available_versions = 11;
-}
-
-message GetProfilesRequest {
-}
-
-message GetProfilesResponse {
-  repeated Profile profiles = 1;
-}
-
-message GetProfileValuesRequest {
-  string profile_name = 1;
-  string profile_version = 2;
-}
-message GetProfileValuesResponse{
-  // The base64 encoded values file of the profile.
-  string values = 1;
 }
 
 message ProfileValues {

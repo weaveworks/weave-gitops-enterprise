@@ -141,36 +141,6 @@ export type HelmRepository = {
   namespace?: string
 }
 
-export type Profile = {
-  name?: string
-  home?: string
-  sources?: string[]
-  description?: string
-  keywords?: string[]
-  maintainers?: Maintainer[]
-  icon?: string
-  annotations?: {[key: string]: string}
-  kubeVersion?: string
-  helmRepository?: HelmRepository
-  availableVersions?: string[]
-}
-
-export type GetProfilesRequest = {
-}
-
-export type GetProfilesResponse = {
-  profiles?: Profile[]
-}
-
-export type GetProfileValuesRequest = {
-  profileName?: string
-  profileVersion?: string
-}
-
-export type GetProfileValuesResponse = {
-  values?: string
-}
-
 export type ProfileValues = {
   name?: string
   version?: string
@@ -205,11 +175,5 @@ export class ClustersService {
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static GetProfiles(req: GetProfilesRequest, initReq?: fm.InitReq): Promise<GetProfilesResponse> {
-    return fm.fetchReq<GetProfilesRequest, GetProfilesResponse>(`/v1/profiles?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static GetProfileValues(req: GetProfileValuesRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
-    return fm.fetchReq<GetProfileValuesRequest, GoogleApiHttpbody.HttpBody>(`/v1/profiles/${req["profileName"]}/${req["profileVersion"]}/values?${fm.renderURLSearchParams(req, ["profileName", "profileVersion"])}`, {...initReq, method: "GET"})
   }
 }
