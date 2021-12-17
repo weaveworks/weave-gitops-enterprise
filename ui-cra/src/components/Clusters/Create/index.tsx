@@ -25,7 +25,6 @@ import {
   getProviderToken,
   GithubDeviceAuthModal,
 } from '@weaveworks/weave-gitops';
-import { isUnauthenticated } from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
 import Credentials from './Form/Partials/Credentials';
@@ -181,12 +180,7 @@ const AddCluster: FC = () => {
           history.push('/clusters');
         })
         .catch(error => {
-          if (isUnauthenticated(error.code)) {
-            setShowAuthDialog(true);
-            return error;
-          } else {
-            setNotifications([{ message: error.message, variant: 'danger' }]);
-          }
+          setNotifications([{ message: error.message, variant: 'danger' }]);
         }),
     [
       addCluster,
