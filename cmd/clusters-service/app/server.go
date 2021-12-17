@@ -15,14 +15,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	wego_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
@@ -36,6 +28,15 @@ import (
 	"k8s.io/klog/v2/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 )
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -180,11 +181,25 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository, args.HelmRepositoryCacheDirectory))
+	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(
+		args.Log,
+		args.TemplateLibrary,
+		args.GitProvider,
+		args.KubernetesClient,
+		args.DiscoveryClient,
+		args.Database,
+		args.CAPIClustersNamespace,
+		args.ProfileHelmRepository,
+		args.HelmRepositoryCacheDirectory,
+	)); err != nil {
+		return fmt.Errorf("failed to register clusters service handler server: %w", err)
+	}
 
 	//Add weave-gitops core handlers
 	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
-	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)
+	if err := wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer); err != nil {
+		return fmt.Errorf("failed to register application handler server: %w", err)
+	}
 
 	httpHandler := middleware.WithLogging(args.Log, mux)
 	httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)

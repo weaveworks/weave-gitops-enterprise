@@ -112,8 +112,6 @@ message CreatePullRequestRequest {
   string commit_message = 8;
   // Credentials
   Credential credentials = 9;
-  // The values for each profile that will be installed.
-  repeated ProfileValues values = 10;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
@@ -197,22 +195,4 @@ message GetEnterpriseVersionRequest {
 message GetEnterpriseVersionResponse {
   // The version of WeGO Enterprise
   string version = 1;
-}
-
-message Maintainer {
-  string name = 1;
-  string email = 2;
-  string url = 3;
-}
-
-message HelmRepository {
-  string name = 1;
-  string namespace = 2;
-}
-
-message ProfileValues {
-  string name = 1;
-  string version = 2;
-  string values = 3;
-  string layer = 4;
 }

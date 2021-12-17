@@ -13,13 +13,6 @@ import (
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
-	"github.com/stretchr/testify/assert"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
 	"gorm.io/gorm"
@@ -34,6 +27,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 func TestListTemplates(t *testing.T) {
@@ -1083,185 +1083,6 @@ func TestGetProvider(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.provider != getProvider(tt.template) {
 				t.Fatalf("expected %s but got %s", tt.provider, getProvider(tt.template))
-			}
-		})
-	}
-}
-
-func TestGenerateProfileFiles(t *testing.T) {
-	c := createClient(makeTestHelmRepository("base"))
-	file, err := generateProfileFiles(
-		context.TODO(),
-		"testing",
-		"test-ns",
-		"cluster-foo",
-		c,
-		[]*capiv1_protos.ProfileValues{
-			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
-			},
-		},
-	)
-	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: HelmRepository
-metadata:
-  creationTimestamp: null
-  name: testing
-  namespace: test-ns
-spec:
-  interval: 10m0s
-  url: base/charts
-status: {}
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  creationTimestamp: null
-  name: cluster-foo-foo
-  namespace: wego-system
-spec:
-  chart:
-    spec:
-      chart: foo
-      sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta1
-        kind: HelmRepository
-        name: testing
-        namespace: test-ns
-      version: 0.0.1
-  interval: 1m0s
-  values:
-    foo: bar
-status: {}
-`
-	assert.Equal(t, expected, *file.Content)
-}
-
-func TestGenerateProfileFilesWithLayers(t *testing.T) {
-	c := createClient(makeTestHelmRepository("base"))
-	file, err := generateProfileFiles(
-		context.TODO(),
-		"testing",
-		"test-ns",
-		"cluster-foo",
-		c,
-		[]*capiv1_protos.ProfileValues{
-			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
-			},
-			{
-				Name:    "bar",
-				Version: "0.0.1",
-				Layer:   "testing",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
-			},
-		},
-	)
-	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: HelmRepository
-metadata:
-  creationTimestamp: null
-  name: testing
-  namespace: test-ns
-spec:
-  interval: 10m0s
-  url: base/charts
-status: {}
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  creationTimestamp: null
-  labels:
-    weave.works/applied-layer: testing
-  name: cluster-foo-bar
-  namespace: wego-system
-spec:
-  chart:
-    spec:
-      chart: bar
-      sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta1
-        kind: HelmRepository
-        name: testing
-        namespace: test-ns
-      version: 0.0.1
-  interval: 1m0s
-  values:
-    foo: bar
-status: {}
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  creationTimestamp: null
-  name: cluster-foo-foo
-  namespace: wego-system
-spec:
-  chart:
-    spec:
-      chart: foo
-      sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta1
-        kind: HelmRepository
-        name: testing
-        namespace: test-ns
-      version: 0.0.1
-  dependsOn:
-  - name: cluster-foo-bar
-  interval: 1m0s
-  values:
-    foo: bar
-status: {}
-`
-	assert.Equal(t, expected, *file.Content)
-}
-
-func TestGetProfiles(t *testing.T) {
-	testCases := []struct {
-		name             string
-		clusterState     []runtime.Object
-		expected         []*capiv1_protos.Profile
-		err              error
-		expectedErrorStr string
-	}{
-		{
-			name: "with helm repo",
-			clusterState: []runtime.Object{
-				makeTestHelmRepository("base"),
-			},
-			expected: []*capiv1_protos.Profile{},
-		},
-		{
-			name:     "without helm repo",
-			expected: []*capiv1_protos.Profile{},
-		},
-	}
-
-	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
-
-			getProfilesRequest := new(capiv1_protos.GetProfilesRequest)
-
-			getProfilesResponse, err := s.GetProfiles(context.Background(), getProfilesRequest)
-			if err != nil {
-				if tt.err == nil {
-					t.Fatalf("failed to get the profiles:\n%s", err)
-				}
-				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
-					t.Fatalf("failed to get the profiles:\n%s", diff)
-				}
-			} else {
-				if diff := cmp.Diff(tt.expected, getProfilesResponse.Profiles, protocmp.Transform()); diff != "" {
-					t.Fatalf("profiles didn't match expected:\n%s", diff)
-				}
 			}
 		})
 	}

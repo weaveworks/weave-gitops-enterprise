@@ -389,13 +389,6 @@
         "credentials": {
           "$ref": "#/definitions/v1Credential",
           "title": "Credentials"
-        },
-        "values": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ProfileValues"
-          },
-          "description": "The values for each profile that will be installed."
         }
       }
     },
@@ -558,23 +551,6 @@
           "items": {
             "type": "string"
           }
-        }
-      }
-    },
-    "v1ProfileValues": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "values": {
-          "type": "string"
-        },
-        "layer": {
-          "type": "string"
         }
       }
     },
