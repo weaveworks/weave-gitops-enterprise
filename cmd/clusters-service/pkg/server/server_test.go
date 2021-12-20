@@ -1117,7 +1117,7 @@ func createServer(clusterState []runtime.Object, configMapName, namespace string
 			Client:        c,
 			ConfigMapName: configMapName,
 			Namespace:     namespace,
-		}, provider, c, dc, db, ns, "weaveworks-charts", "")
+		}, provider, c, dc, db, ns, "")
 
 	return s
 }

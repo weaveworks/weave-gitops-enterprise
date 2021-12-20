@@ -3,12 +3,13 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"gorm.io/gorm"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 // Options specifies the options that can be set
@@ -21,8 +22,8 @@ type Options struct {
 	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
 	ApplicationsConfig           *server.ApplicationsConfig
+	ProfilesConfig               server.ProfilesConfig
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
-	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	EntitlementSecretKey         client.ObjectKey
@@ -84,20 +85,19 @@ func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 	}
 }
 
+// WithProfilesConfig is used to set the configuration needed to work
+// with Weave GitOps Core profiles
+func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
+	return func(o *Options) {
+		o.ProfilesConfig = profilesConfig
+	}
+}
+
 // WithGrpcRuntimeOptions is used to set an array of ServeMuxOption that
 // will be used to configure the GRPC-Gateway.
 func WithGrpcRuntimeOptions(grpcRuntimeOptions []runtime.ServeMuxOption) Option {
 	return func(o *Options) {
 		o.GrpcRuntimeOptions = grpcRuntimeOptions
-	}
-}
-
-// WithProfileHelmRepository is used to set the name of the Flux
-// HelmRepository object that will be inspected for Helm charts
-// that include the profile annotation.
-func WithProfileHelmRepository(name string) Option {
-	return func(o *Options) {
-		o.ProfileHelmRepository = name
 	}
 }
 

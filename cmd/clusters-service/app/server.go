@@ -15,7 +15,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	wego_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	wego_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	wego_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -48,7 +49,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	var dbBusyTimeout string
 	var entitlementSecretName string
 	var entitlementSecretNamespace string
-	var profileHelmRepository string
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -67,7 +67,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 	cmd.Flags().StringVar(&entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
 	cmd.Flags().StringVar(&entitlementSecretNamespace, "entitlement-secret-namespace", ent.DefaultSecretNamespace, "The namespace of the entitlement secret")
-	cmd.Flags().StringVar(&profileHelmRepository, "profile-helm-repository", "weaveworks-charts", "The name of the Flux `HelmRepository` object in the current namespace that references the profiles")
 
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -120,6 +119,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
+	profilesConfig := wego_server.NewProfilesConfig(kubeClient, "", "")
 	// Override logger to ensure consistency
 	appsConfig.Logger = log
 
@@ -138,6 +138,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 		}),
 		WithApplicationsConfig(appsConfig),
+		WithProfilesConfig(profilesConfig),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -189,20 +190,27 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.DiscoveryClient,
 		args.Database,
 		args.CAPIClustersNamespace,
-		args.ProfileHelmRepository,
 		args.HelmRepositoryCacheDirectory,
 	)); err != nil {
 		return fmt.Errorf("failed to register clusters service handler server: %w", err)
 	}
 
 	//Add weave-gitops core handlers
-	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
-	if err := wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer); err != nil {
+	wegoApplicationServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
+	if err := wego_app_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 
+	wegoProfilesServer, err := wego_server.NewProfilesServer(args.ProfilesConfig)
+	if err != nil {
+		return fmt.Errorf("failed to get profiles server: %w", err)
+	}
+	if err := wego_profiles_proto.RegisterProfilesHandlerServer(ctx, mux, wegoProfilesServer); err != nil {
+		return fmt.Errorf("failed to register profiles handler server: %w", err)
+	}
+
 	httpHandler := middleware.WithLogging(args.Log, mux)
-	httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)
+	//httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)
 	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
 
 	s := &http.Server{
@@ -260,8 +268,7 @@ func TrackEvents(log logr.Logger) func(ctx context.Context, r *http.Request) met
 
 func defaultOptions() *Options {
 	return &Options{
-		Log:                   logr.Discard(),
-		ProfileHelmRepository: viper.GetString("profile-helm-repository"),
+		Log: logr.Discard(),
 		EntitlementSecretKey: client.ObjectKey{
 			Name:      viper.GetString("entitlement-secret-name"),
 			Namespace: viper.GetString("entitlement-secret-namespace"),
