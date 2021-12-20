@@ -105,8 +105,10 @@ const ASSERTION_3MINUTE_TIME_OUT time.Duration = 3 * time.Minute
 const ASSERTION_5MINUTE_TIME_OUT time.Duration = 5 * time.Minute
 const ASSERTION_6MINUTE_TIME_OUT time.Duration = 6 * time.Minute
 
-const POLL_INTERVAL_15SECONDS time.Duration = 15 * time.Second
+const POLL_INTERVAL_1SECONDS time.Duration = 1 * time.Second
 const POLL_INTERVAL_5SECONDS time.Duration = 5 * time.Second
+const POLL_INTERVAL_15SECONDS time.Duration = 15 * time.Second
+const POLL_INTERVAL_100MILLISECONDS time.Duration = 100 * time.Millisecond
 
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -1009,12 +1011,18 @@ func VerifyEnterpriseControllers(releaseName string, mccpPrefix, namespace strin
 	})
 }
 
+func RunWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {
+	log.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, namespace, repoAbsolutePath)
+	_, errOutput := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GetGitopsBinPath(), addCommand))
+	Expect(errOutput).Should(BeEmpty())
+}
+
 func verifyWegoAddCommand(appName string, namespace string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", namespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, ASSERTION_5MINUTE_TIME_OUT).Should(gexec.Exit())
-	Expect(waitForResource("GitRepositories", appName, namespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
+	Expect(waitForResource("GitRepositories", appName, namespace, "", ASSERTION_6MINUTE_TIME_OUT)).To(Succeed())
 }
 
 func InstallAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
