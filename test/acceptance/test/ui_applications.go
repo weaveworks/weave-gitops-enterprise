@@ -148,7 +148,21 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						Eventually(addApp.GitCredentials).Should(BeVisible())
 					}
 					addApp = pages.GetAddApplicationForm(webDriver)
-					Expect(addApp.Submit.Click()).To(Succeed())
+					// workaround when simple 'Submit' button click fails to trigger add application event
+					if pages.ElementExist(addApp.Submit) {
+						clickSubmit := func() bool {
+							err := addApp.Submit.Click()
+							if err == nil {
+								visible, _ := addApp.Submit.Visible()
+								return !visible
+							}
+							return false
+						}
+						Eventually(clickSubmit).Should(BeTrue(), "Failed to click application add Submit button")
+					} else {
+						Fail("Can't find the submit button on application page")
+					}
+
 					pages.WaitForAuthenticationAlert(webDriver, "Application added successfully!")
 					Expect(addApp.ViewApplication.Click()).To(Succeed())
 				})
@@ -163,8 +177,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should see workload is deployed to the cluster", func() {
-					Expect(waitForResource("deploy", appName, appNamespace, ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
-					Expect(waitForResource("pods", "", appNamespace, ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
+					Expect(waitForResource("deploy", appName, appNamespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
+					Expect(waitForResource("pods", "", appNamespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
 					command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods --selector='app!=wego-app'", appNamespace))
 					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())

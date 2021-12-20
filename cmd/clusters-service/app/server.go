@@ -115,7 +115,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 
-	appsConfig, err := wego_server.DefaultConfig()
+	appsConfig, err := wego_server.DefaultApplicationsConfig()
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
