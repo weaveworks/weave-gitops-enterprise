@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -37,13 +36,21 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 					if strings.Contains(val, parameters[i].Name) {
 						By("And set template parameter values", func() {
 							if parameters[i].Option != "" {
-								Expect(templateSection.Fields[j].ListBox.Click()).To(Succeed())
-								Expect(pages.GetParameterOption(webDriver, parameters[i].Option).Click()).To(Succeed())
+								if pages.ElementExist(templateSection.Fields[j].ListBox) {
+									selectOption := func() bool {
+										_ = templateSection.Fields[j].ListBox.Click()
+										visible, _ := pages.GetOption(webDriver, "parameter", parameters[i].Option).Visible()
+										return visible
+									}
+									Eventually(selectOption).Should(BeTrue(), fmt.Sprintf("Failed to select parameter option '%s' in section '%s' ", parameters[i].Name, section))
+									Expect(pages.GetOption(webDriver, "parameter", parameters[i].Option).Click()).To(Succeed())
+									paramSet = true
+								}
 							} else {
 								Expect(templateSection.Fields[j].Field.SendKeys(parameters[i].Value)).To(Succeed())
+								paramSet = true
 							}
 						})
-						paramSet = true
 					}
 				}
 				Expect(paramSet).Should(BeTrue(), fmt.Sprintf("Parameter '%s' isn't found in section '%s' ", parameters[i].Name, section))
@@ -116,7 +123,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}()
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "capi-server-v1-template-capd.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "capi-template-capd.yaml")...)
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(3, "capi-server-v1-template-azure.yaml")...)
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-aws.yaml")...)
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
@@ -423,7 +430,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -446,7 +453,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
-				k8Version := "1.19.7"
+				k8Version := "1.22.0"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.Cluster"] = []TemplateField{
@@ -464,8 +471,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "KUBERNETES_VERSION",
-						Value:  k8Version,
-						Option: "1.19.8",
+						Value:  "",
+						Option: k8Version,
 					},
 				}
 
@@ -549,7 +556,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -572,7 +579,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "quick-capd-cluster2"
 				namespace := "quick-capi"
-				k8Version := "1.19.7"
+				k8Version := "1.22.0"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.Cluster"] = []TemplateField{
@@ -590,8 +597,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "KUBERNETES_VERSION",
-						Value:  k8Version,
-						Option: "1.19.8",
+						Value:  "",
+						Option: k8Version,
 					},
 				}
 
@@ -631,7 +638,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
 			It("@integration Verify no credentials exists in management cluster", func() {
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -963,12 +970,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(string(session.Err.Contents())).Should(BeEmpty())
 				})
 
-				By("And I install Docker provider infrastructure", func() {
-					installInfrastructureProvider("docker")
-				})
-
 				By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd-observability.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -978,7 +981,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-observability-0")
 					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
 				})
 
@@ -991,7 +994,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := capdClusterName
 				namespace := "default"
-				k8Version := "1.19.7"
+				k8Version := "1.23.0"
+				controlPlaneMachineCount := "1"
+				workerMachineCount := "1"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.Cluster"] = []TemplateField{
@@ -1008,19 +1013,62 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "",
+						Option: controlPlaneMachineCount,
+					},
+					{
 						Name:   "KUBERNETES_VERSION",
-						Value:  k8Version,
-						Option: "1.19.8",
+						Value:  "",
+						Option: k8Version,
+					},
+				}
+				paramSection["7.MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  workerMachineCount,
+						Option: "",
 					},
 				}
 
 				setParameterValues(createPage, paramSection)
 
+				By("And select the podinfo profile to install", func() {
+					Expect(createPage.ProfileSelect.Click()).To(Succeed())
+					Expect(createPage.SelectProfile("podinfo").Click()).To(Succeed())
+					pages.DissmissProfilePopup(webDriver)
+				})
+
+				By("And verify selected podinfo profile values.yaml", func() {
+					profile := pages.GetProfile(webDriver, "podinfo")
+
+					Expect(profile.Version.Click()).To(Succeed())
+					Expect(pages.GetOption(webDriver, "profile", "6.0.0").Click()).To(Succeed())
+
+					Expect(profile.Values.Click()).To(Succeed())
+					valuesYaml := pages.GetValuesYaml(webDriver)
+
+					Expect(valuesYaml.Title.Text()).Should(MatchRegexp("podinfo"))
+					Expect(valuesYaml.TextArea.Text()).Should(MatchRegexp("tag: 6.0.0"))
+					Expect(valuesYaml.Cancel.Click()).To(Succeed())
+				})
+
+				By("And verify default observability profile values.yaml", func() {
+					profile := pages.GetProfile(webDriver, "observability")
+
+					Expect(profile.Values.Click()).To(Succeed())
+					valuesYaml := pages.GetValuesYaml(webDriver)
+
+					Expect(valuesYaml.Title.Text()).Should(MatchRegexp("observability"))
+					Expect(valuesYaml.TextArea.Text()).Should(MatchRegexp("kube-prometheus-stack:"))
+					Expect(valuesYaml.Cancel.Click()).To(Succeed())
+				})
+
 				By("And press the Preview PR button", func() {
 					Expect(createPage.PreviewPR.Click()).To(Succeed())
 				})
 
-				//Pull request values
+				// Pull request values
 				prBranch := "ui-end-end-branch"
 				prTitle := "CAPD pull request"
 				prCommit := "CAPD capi template"
@@ -1078,10 +1126,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(fileErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).ShouldNot(HaveOccurred())
 				})
 
-				By("And verify the kubeconfig is correct", func() {
-					contents, err := ioutil.ReadFile(kubeconfigPath)
-					Expect(err).ShouldNot(HaveOccurred())
-					Eventually(contents).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
+				By(fmt.Sprintf("And verify that %s capd cluster kubeconfig is correct", clusterName), func() {
+					VerifyCapiClusterKubeconfig(kubeconfigPath, clusterName)
+				})
+
+				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
+					VerifyCapiClusterHealth(kubeconfigPath, clusterName)
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
@@ -1133,7 +1183,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					clusterFound := func() error {
 						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
 					}
-					Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+					Eventually(clusterFound, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})
 			})
 		})
