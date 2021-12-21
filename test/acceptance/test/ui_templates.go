@@ -388,7 +388,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview 
+				//check PR Preview
 			})
 		})
 
@@ -466,7 +466,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview 
+				//check PR Preview
 
 				//Pull request values
 				prBranch := "feature-capd"
@@ -485,7 +485,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
-					
+
 					AuthenticateWithGitProvider(webDriver, "github")
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
@@ -591,7 +591,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview 
+				//check PR Preview
 
 				//Pull request values
 				prTitle := "My first pull request"
@@ -770,7 +770,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview 
+				//check PR Preview
 
 			})
 		})
@@ -871,7 +871,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview 
+				//check PR Preview
 
 			})
 		})
@@ -1001,7 +1001,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview 
+				//check PR Preview
 
 				By("And select the podinfo profile to install", func() {
 					Expect(createPage.ProfileSelect.Click()).To(Succeed())
@@ -1060,8 +1060,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
-
-
 
 				clustersPage := pages.GetClustersPage(webDriver)
 				By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
