@@ -476,12 +476,6 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
-				addCommand := fmt.Sprintf("add app . --path=%s  --name=%s  --auto-merge=true", appPath, appName)
-				By(fmt.Sprintf("And I run gitops add app command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
-					_, errOutput := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
-					Expect(errOutput).Should(BeEmpty())
-				})
-
 				By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd-observability.yaml")
 				})
@@ -528,12 +522,22 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
 					})
 
+					By("And I run gitops add app 'management' command", func() {
+						if ListGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE) == "" {
+							addCommand := fmt.Sprintf("add app . --path=%s  --name=%s  --auto-merge=true", appPath, appName)
+							RunWegoAddCommand(repoAbsolutePath, addCommand, GITOPS_DEFAULT_NAMESPACE)
+						} else {
+							log.Printf("Application '%s' alreaded exists", appName)
+						}
+					})
+
 					By("And I should see cluster status changes to 'clusterFound'", func() {
+						verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
 						clusterFound := func() string {
 							output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get clusters --endpoint %s`, GITOPS_BIN_PATH, CAPI_ENDPOINT_URL))
 							return output
 						}
-						Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
+						Eventually(clusterFound, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
 					})
 
 					By(fmt.Sprintf("Then I run '%s get cluster %s --kubeconfig --endpoint %s'", GITOPS_BIN_PATH, clusterName, CAPI_ENDPOINT_URL), func() {
@@ -561,70 +565,70 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					VerifyCapiClusterHealth(kubeconfigPath, clusterName)
 				})
 
-				// clusterName2 := capdClusterNames[1]
-				// createCluster(clusterName2, namespace, k8version)
+				clusterName2 := capdClusterNames[1]
+				createCluster(clusterName2, namespace, k8version)
 
-				// // Deleting first cluster
-				// prBranch := fmt.Sprintf("%s-delete", clusterName)
-				// prTitle := "CAPD delete pull request"
-				// prCommit := "CAPD capi template deletion"
-				// prDescription := "This PR deletes CAPD Kubernetes cluster"
+				// Deleting first cluster
+				prBranch := fmt.Sprintf("%s-delete", clusterName)
+				prTitle := "CAPD delete pull request"
+				prCommit := "CAPD capi template deletion"
+				prDescription := "This PR deletes CAPD Kubernetes cluster"
 
-				// By(fmt.Sprintf("Then I run '%s delete cluster %s --branch %s --title %s --url %s --commit-message %s --description %s --endpoint %s",
-				// 	GITOPS_BIN_PATH, clusterName, prBranch, prTitle, GIT_REPOSITORY_URL, prCommit, prDescription, CAPI_ENDPOINT_URL), func() {
-				// 	output, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`%s delete cluster %s --branch %s --title "%s" --url %s --commit-message "%s" --description "%s" --endpoint %s`,
-				// 		GITOPS_BIN_PATH, clusterName, prBranch, prTitle, GIT_REPOSITORY_URL, prCommit, prDescription, CAPI_ENDPOINT_URL))
-				// })
+				By(fmt.Sprintf("Then I run '%s delete cluster %s --branch %s --title %s --url %s --commit-message %s --description %s --endpoint %s",
+					GITOPS_BIN_PATH, clusterName, prBranch, prTitle, GIT_REPOSITORY_URL, prCommit, prDescription, CAPI_ENDPOINT_URL), func() {
+					output, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`%s delete cluster %s --branch %s --title "%s" --url %s --commit-message "%s" --description "%s" --endpoint %s`,
+						GITOPS_BIN_PATH, clusterName, prBranch, prTitle, GIT_REPOSITORY_URL, prCommit, prDescription, CAPI_ENDPOINT_URL))
+				})
 
-				// var prUrl string
-				// By("Then I should see delete pull request created to management cluster", func() {
-				// 	re := regexp.MustCompile(`Created pull request for clusters deletion:\s*(?P<url>https:.*\/\d+)`)
-				// 	match := re.FindSubmatch([]byte(output))
-				// 	Eventually(match).ShouldNot(BeNil(), "Failed to Create pull request for deleting cluster")
-				// 	prUrl = string(match[1])
-				// })
+				var prUrl string
+				By("Then I should see delete pull request created to management cluster", func() {
+					re := regexp.MustCompile(`Created pull request for clusters deletion:\s*(?P<url>https:.*\/\d+)`)
+					match := re.FindSubmatch([]byte(output))
+					Eventually(match).ShouldNot(BeNil(), "Failed to Create pull request for deleting cluster")
+					prUrl = string(match[1])
+				})
 
-				// By("And I should veriyfy the delete pull request in the cluster config repository", func() {
-				// 	pullRequest := gitopsTestRunner.ListPullRequest(repoAbsolutePath)
-				// 	Expect(pullRequest[0]).Should(Equal(prTitle))
-				// 	Expect(pullRequest[1]).Should(Equal(prBranch))
-				// 	Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
-				// })
+				By("And I should veriyfy the delete pull request in the cluster config repository", func() {
+					pullRequest := gitopsTestRunner.ListPullRequest(repoAbsolutePath)
+					Expect(pullRequest[0]).Should(Equal(prTitle))
+					Expect(pullRequest[1]).Should(Equal(prBranch))
+					Expect(strings.TrimSuffix(pullRequest[2], "\n")).Should(Equal(prUrl))
+				})
 
-				// By("And the delete pull request manifests are not present in the cluster config repository", func() {
-				// 	gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
-				// 	_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
-				// 	Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
-				// })
+				By("And the delete pull request manifests are not present in the cluster config repository", func() {
+					gitopsTestRunner.PullBranch(repoAbsolutePath, prBranch)
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
+				})
 
-				// By(fmt.Sprintf("Then I should see the '%s' cluster status changes to Deletion PR", clusterName), func() {
-				// 	clusterDelete := func() string {
-				// 		output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get cluster %s --endpoint %s`, GITOPS_BIN_PATH, clusterName, CAPI_ENDPOINT_URL))
-				// 		return output
+				By(fmt.Sprintf("Then I should see the '%s' cluster status changes to Deletion PR", clusterName), func() {
+					clusterDelete := func() string {
+						output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get cluster %s --endpoint %s`, GITOPS_BIN_PATH, clusterName, CAPI_ENDPOINT_URL))
+						return output
 
-				// 	}
-				// 	Eventually(clusterDelete, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+Deletion PR`, clusterName)))
-				// })
+					}
+					Eventually(clusterDelete, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+Deletion PR`, clusterName)))
+				})
 
-				// By(fmt.Sprintf("And I should see the '%s' cluster status remains unchanged as 'clusterFound'", clusterName2), func() {
-				// 	clusterFound := func() string {
-				// 		output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get cluster %s --endpoint %s`, GITOPS_BIN_PATH, clusterName2, CAPI_ENDPOINT_URL))
-				// 		return output
+				By(fmt.Sprintf("And I should see the '%s' cluster status remains unchanged as 'clusterFound'", clusterName2), func() {
+					clusterFound := func() string {
+						output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get cluster %s --endpoint %s`, GITOPS_BIN_PATH, clusterName2, CAPI_ENDPOINT_URL))
+						return output
 
-				// 	}
-				// 	Eventually(clusterFound).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName2)))
-				// })
+					}
+					Eventually(clusterFound).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName2)))
+				})
 
-				// By("Then I should merge the delete pull request to delete cluster", func() {
-				// 	gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
-				// })
+				By("Then I should merge the delete pull request to delete cluster", func() {
+					gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+				})
 
-				// By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
-				// 	clusterFound := func() error {
-				// 		return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
-				// 	}
-				// 	Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
-				// })
+				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
+					clusterFound := func() error {
+						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
+					}
+					Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+				})
 			})
 		})
 	})
