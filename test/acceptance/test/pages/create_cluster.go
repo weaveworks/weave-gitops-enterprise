@@ -81,6 +81,9 @@ func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
 	// Credentials dropdown takes a while to populate
 	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")][@disabled]`),
 		30*time.Second).ShouldNot(BeFound())
+	// With the introduction of profiles, UI takes long time to be fully rendered, UI refreshes once all the profiles valus are read and populated
+	// This delay refresh sometimes cause tests to fail select elements
+	time.Sleep(2 * time.Second)
 }
 
 func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {

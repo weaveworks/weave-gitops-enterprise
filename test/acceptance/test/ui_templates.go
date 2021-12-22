@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
@@ -39,10 +38,11 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 								if pages.ElementExist(templateSection.Fields[j].ListBox) {
 									selectOption := func() bool {
 										_ = templateSection.Fields[j].ListBox.Click()
+										time.Sleep(POLL_INTERVAL_100MILLISECONDS)
 										visible, _ := pages.GetOption(webDriver, "parameter", parameters[i].Option).Visible()
 										return visible
 									}
-									Eventually(selectOption).Should(BeTrue(), fmt.Sprintf("Failed to select parameter option '%s' in section '%s' ", parameters[i].Name, section))
+									Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(BeTrue(), fmt.Sprintf("Failed to select parameter option '%s' in section '%s' ", parameters[i].Name, section))
 									Expect(pages.GetOption(webDriver, "parameter", parameters[i].Option).Click()).To(Succeed())
 									paramSet = true
 								}
@@ -929,15 +929,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
-				addCommand := fmt.Sprintf("add app . --path=%s --name=%s --auto-merge=true", appPath, appName)
-				By(fmt.Sprintf("And I run gitops app add command '%s in namespace %s from dir %s'", addCommand, GITOPS_DEFAULT_NAMESPACE, repoAbsolutePath), func() {
-					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
-					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-					Eventually(session).Should(gexec.Exit())
-					Expect(string(session.Err.Contents())).Should(BeEmpty())
-				})
-
 				By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd-observability.yaml")
 				})
@@ -1078,7 +1069,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
 				})
 
+				By("And I run gitops add app 'management' command", func() {
+					addCommand := fmt.Sprintf("add app . --path=%s  --name=%s  --auto-merge=true", appPath, appName)
+					RunWegoAddCommand(repoAbsolutePath, addCommand, GITOPS_DEFAULT_NAMESPACE)
+				})
+
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
+					verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
 					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText("Cluster found"))
 				})
 
