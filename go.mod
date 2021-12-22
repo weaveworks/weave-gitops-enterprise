@@ -94,7 +94,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
-	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc // indirect
+	github.com/fluxcd/go-git-providers v0.4.1-0.20211222124517-0e29201eb4ac // indirect
 	github.com/fluxcd/helm-controller/api v0.11.2 // indirect
 	github.com/fluxcd/kustomize-controller/api v0.16.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
@@ -129,7 +129,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
-	github.com/google/go-github/v32 v32.1.0 // indirect
+	github.com/google/go-github/v35 v35.3.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
@@ -212,7 +212,7 @@ require (
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab // indirect
-	github.com/xanzy/go-gitlab v0.43.0 // indirect
+	github.com/xanzy/go-gitlab v0.51.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
