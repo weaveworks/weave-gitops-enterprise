@@ -55,7 +55,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) boo
 
 			// Device is connected, now move back to application window
 			Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
-
+			Eventually(authenticate.AuthroizeButton).ShouldNot(BeFound())
 			return true
 		}
 	}
@@ -122,6 +122,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
 				})
 
+				By("And I add the kustomization file for application deployment", func() {
+					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
+					GitUpdateCommitPush(repoAbsolutePath, kustomizationCommitMsg)
+				})
+
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationPage(webDriver)
 				addApp := pages.GetAddApplicationForm(webDriver)
@@ -148,14 +153,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						Eventually(addApp.GitCredentials).Should(BeVisible())
 					}
 					addApp = pages.GetAddApplicationForm(webDriver)
-					Expect(addApp.Submit.Click()).To(Succeed())
+					Expect(addApp.Submit.Click()).To(Succeed(), "Failed to click application add Submit button")
 					pages.WaitForAuthenticationAlert(webDriver, "Application added successfully!")
 					Expect(addApp.ViewApplication.Click()).To(Succeed())
-				})
-
-				By("And I add the kustomization file for application deployment", func() {
-					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
-					GitUpdateCommitPush(repoAbsolutePath, kustomizationCommitMsg)
 				})
 
 				By("Then I should see gitops add command linked the repo to the cluster", func() {
@@ -163,8 +163,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should see workload is deployed to the cluster", func() {
-					Expect(waitForResource("deploy", appName, appNamespace, ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
-					Expect(waitForResource("pods", "", appNamespace, ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
+					Expect(waitForResource("deploy", appName, appNamespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
+					Expect(waitForResource("pods", "", appNamespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
 					command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods --selector='app!=wego-app'", appNamespace))
 					session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())

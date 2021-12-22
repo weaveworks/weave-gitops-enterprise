@@ -66,10 +66,13 @@ spec:
           volumeMounts:
             - name: flux-cli-volume
               mountPath: /flux-cli
-          {{- if eq .Values.dbConfig.databaseType "sqlite" }}
+            {{- if eq .Values.dbConfig.databaseType "sqlite" }}
             - name: database-volume
               mountPath: /var/database
-          {{- end }}
+            {{- end }}
+            {{- if .Values.config.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
       volumes:
       - name: flux-cli-volume
         emptyDir: {}
@@ -79,4 +82,7 @@ spec:
         persistentVolumeClaim:
           claimName: {{ .Values.dbConfig.sqliteConfig.persistentVolumeClaim.existingClaimName | default "wge-volume" }}
         {{- end }}
+      {{- end }}
+      {{- if .Values.config.extraVolumes }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumes  "context" $) | nindent 6 }}
       {{- end }}

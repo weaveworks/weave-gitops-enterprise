@@ -13,9 +13,11 @@ import (
 type CreateCluster struct {
 	CreateHeader *agouti.Selection
 	// TemplateName   *agouti.Selection
-	Credentials     *agouti.Selection
-	TemplateSection *agouti.MultiSelection
-	PreviewPR       *agouti.Selection
+	Credentials        *agouti.Selection
+	TemplateSection    *agouti.MultiSelection
+	ProfileSelect      *agouti.Selection
+	ProfileSelectPopup *agouti.MultiSelection
+	PreviewPR          *agouti.Selection
 }
 
 type FormField struct {
@@ -26,6 +28,19 @@ type FormField struct {
 type TemplateSection struct {
 	Name   *agouti.Selection
 	Fields []FormField
+}
+
+type Profile struct {
+	Name    *agouti.Selection
+	Version *agouti.Selection
+	Values  *agouti.Selection
+}
+
+type ValuesYaml struct {
+	Title    *agouti.Selection
+	Cancel   *agouti.Selection
+	Save     *agouti.Selection
+	TextArea *agouti.Selection
 }
 
 type Preview struct {
@@ -51,9 +66,11 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
-		Credentials:     webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")]`),
-		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
-		PreviewPR:       webDriver.FindByButton("Preview PR"),
+		Credentials:        webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")]`),
+		TemplateSection:    webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
+		ProfileSelect:      webDriver.Find(`div.profiles-select > div`),
+		ProfileSelectPopup: webDriver.All(`ul[role="listbox"] li`),
+		PreviewPR:          webDriver.FindByButton("Preview PR"),
 	}
 
 	return &clusterPage
@@ -64,6 +81,9 @@ func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
 	// Credentials dropdown takes a while to populate
 	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")][@disabled]`),
 		30*time.Second).ShouldNot(BeFound())
+	// With the introduction of profiles, UI takes long time to be fully rendered, UI refreshes once all the profiles valus are read and populated
+	// This delay refresh sometimes cause tests to fail select elements
+	time.Sleep(2 * time.Second)
 }
 
 func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {
@@ -89,6 +109,50 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 		Fields: formFields,
 	}
 }
+
+func GetProfile(webDriver *agouti.Page, profileName string) Profile {
+	fields := webDriver.All("div.MuiBox-root ul li")
+	pCnt, _ := fields.Count()
+	for i := 0; i < pCnt; i++ {
+		pName, _ := fields.At(i).Find(`div.profile-name`).Text()
+		if profileName == pName {
+			return Profile{
+				Name:    fields.At(i).Find(`div.profile-name`),
+				Version: fields.At(i).Find(`div.profile-version`),
+				Values:  fields.At(i).Find(`button`),
+			}
+		}
+	}
+	return Profile{}
+}
+
+func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
+	Eventually(webDriver.Find(`div.MuiDialogTitle-root`)).Should(BeVisible())
+	return ValuesYaml{
+		Title:    webDriver.Find(`div.MuiDialogTitle-root > h5`),
+		Cancel:   webDriver.Find(`div.MuiDialogTitle-root > button`),
+		TextArea: webDriver.FindByXPath(`//div[@class="MuiDialogContent-root"]/textarea[1]`),
+		Save:     webDriver.Find(`button#edit-yaml`),
+	}
+}
+
+func (c CreateCluster) SelectProfile(profileName string) *agouti.Selection {
+	time.Sleep(2 * time.Second)
+	pCount, _ := c.ProfileSelectPopup.Count()
+
+	for i := 0; i < pCount; i++ {
+		pName, _ := c.ProfileSelectPopup.At(i).Text()
+		if profileName == pName {
+			return c.ProfileSelectPopup.At(i)
+		}
+	}
+	return nil
+}
+
+func DissmissProfilePopup(webDriver *agouti.Page) {
+	Expect(webDriver.Find(`div[name=Profiles]`).DoubleClick()).To(Succeed())
+}
+
 func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
 	return webDriver.All(`div.dropdown-item`)
 }
@@ -97,8 +161,12 @@ func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
 	return webDriver.Find(fmt.Sprintf(`div.dropdown-item[title*="%s"]`, value))
 }
 
-func GetParameterOption(webDriver *agouti.Page, value string) *agouti.Selection {
-	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
+func GetOption(webDriver *agouti.Page, sectionType string, value string) *agouti.Selection {
+	if sectionType == "profile" {
+		return webDriver.FindByXPath(fmt.Sprintf(`//div[.="%s"]`, value))
+	} else {
+		return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
+	}
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
