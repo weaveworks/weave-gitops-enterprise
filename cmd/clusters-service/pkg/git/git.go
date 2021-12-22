@@ -167,11 +167,6 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 		return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
 	}
 
-	// Fixing https:// again (ggp quirk)
-	if ref.Domain != "github.com" && ref.Domain != "gitlab.com" {
-		ref.Domain = "https://" + ref.Domain
-	}
-
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
 		func(err error) bool {
