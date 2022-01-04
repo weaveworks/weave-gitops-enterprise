@@ -41,7 +41,7 @@ const Profiles: FC<{
       setActiveStep={setActiveStep}
     >
       {updatedProfiles.length > 0 ? (
-        <ProfilesDropdown>
+        <ProfilesDropdown className="profiles-select">
           <span>Select profiles:&nbsp;</span>
 
           <MultiSelectDropdown
