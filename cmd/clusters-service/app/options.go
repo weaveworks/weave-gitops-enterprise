@@ -24,6 +24,7 @@ type Options struct {
 	ApplicationsConfig           *server.ApplicationsConfig
 	ProfilesConfig               server.ProfilesConfig
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
+	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	EntitlementSecretKey         client.ObjectKey
@@ -90,6 +91,15 @@ func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
 	return func(o *Options) {
 		o.ProfilesConfig = profilesConfig
+	}
+}
+
+// WithProfileHelmRepository is used to set the name of the Flux
+// HelmRepository object that will be inspected for Helm charts
+// that include the profile annotation.
+func WithProfileHelmRepository(name string) Option {
+	return func(o *Options) {
+		o.ProfileHelmRepository = name
 	}
 }
 

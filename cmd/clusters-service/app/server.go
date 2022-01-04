@@ -41,14 +41,17 @@ import (
 )
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
-	var dbURI string
-	var dbName string
-	var dbUser string
-	var dbPassword string
-	var dbType string
-	var dbBusyTimeout string
-	var entitlementSecretName string
-	var entitlementSecretNamespace string
+	var (
+		dbURI                      string
+		dbName                     string
+		dbUser                     string
+		dbPassword                 string
+		dbType                     string
+		dbBusyTimeout              string
+		entitlementSecretName      string
+		entitlementSecretNamespace string
+		profileHelmRepository      string
+	)
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -67,6 +70,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 	cmd.Flags().StringVar(&entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
 	cmd.Flags().StringVar(&entitlementSecretNamespace, "entitlement-secret-namespace", ent.DefaultSecretNamespace, "The namespace of the entitlement secret")
+	cmd.Flags().StringVar(&profileHelmRepository, "profile-helm-repository", "weaveworks-charts", "The name of the Flux `HelmRepository` object in the current namespace that references the profiles")
 
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -119,7 +123,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
-	profilesConfig := wego_server.NewProfilesConfig(kubeClient, "", "")
+	helmRepoName := viper.GetString("profile-helm-repository")
+	profilesConfig := wego_server.NewProfilesConfig(kubeClient, ns, helmRepoName)
 	// Override logger to ensure consistency
 	appsConfig.Logger = log
 
@@ -189,6 +194,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.KubernetesClient,
 		args.DiscoveryClient,
 		args.Database,
+		args.ProfileHelmRepository,
 		args.CAPIClustersNamespace,
 		args.HelmRepositoryCacheDirectory,
 	)); err != nil {
@@ -210,7 +216,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	httpHandler := middleware.WithLogging(args.Log, mux)
-	//httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)
+	httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)
 	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
 
 	s := &http.Server{
@@ -268,7 +274,8 @@ func TrackEvents(log logr.Logger) func(ctx context.Context, r *http.Request) met
 
 func defaultOptions() *Options {
 	return &Options{
-		Log: logr.Discard(),
+		Log:                   logr.Discard(),
+		ProfileHelmRepository: viper.GetString("profile-helm-repository"),
 		EntitlementSecretKey: client.ObjectKey{
 			Name:      viper.GetString("entitlement-secret-name"),
 			Namespace: viper.GetString("entitlement-secret-namespace"),

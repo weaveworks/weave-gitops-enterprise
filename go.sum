@@ -495,7 +495,6 @@ github.com/felixge/httpsnoop v1.0.1 h1:lvB5Jl89CsZtGIWuTcDM1E/vkVs49/Ml7JJe07l8S
 github.com/felixge/httpsnoop v1.0.1/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/fluxcd/go-git-providers v0.0.2/go.mod h1:2Fp9GDxIcllNR7pm5clXhInPyue4VggecaH83KhkpNw=
 github.com/fluxcd/go-git-providers v0.2.0/go.mod h1:nRgNpHZmZhrsyNSma1JcAhjUG9xrqMGJcIUr9K7M7vk=
-github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc h1:F6Y6toXg9vLhSMLvSmVrtiFxOD7p4004IvuY7HLYlQI=
 github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc/go.mod h1:sxSOWRgvvQQtZu/o946sln/hjZJg42Op9yQ374WaI+I=
 github.com/fluxcd/go-git-providers v0.4.1-0.20211222124517-0e29201eb4ac h1:xSwRE4BCgOMs2p7BkITDrV/P6Xu2g/tYT/F46PuP6Do=
 github.com/fluxcd/go-git-providers v0.4.1-0.20211222124517-0e29201eb4ac/go.mod h1:enIPrXnSOBxahS6rngohpG3d/QZ3yjjy/w+agbp97ZI=
