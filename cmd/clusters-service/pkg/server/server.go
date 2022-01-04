@@ -507,28 +507,29 @@ func getHash(inputs ...string) string {
 	return fmt.Sprintf("wego-%x", md5.Sum(final))
 }
 
-func getToken(ctx context.Context) (string, error) {
+func getToken(ctx context.Context) (string, string, error) {
 	token := os.Getenv("GIT_PROVIDER_TOKEN")
 
 	providerToken, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
 		// fallback to env token
-		return token, nil
+		return token, "", nil
 	}
 
-	return providerToken.AccessToken, nil
+	return providerToken.AccessToken, "oauth2", nil
 }
 
 func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
-	token, err := getToken(ctx)
+	token, tokenType, err := getToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	return &git.GitProvider{
-		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-		Token:    token,
-		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
+		Type:      os.Getenv("GIT_PROVIDER_TYPE"),
+		TokenType: tokenType,
+		Token:     token,
+		Hostname:  os.Getenv("GIT_PROVIDER_HOSTNAME"),
 	}, nil
 }
 
