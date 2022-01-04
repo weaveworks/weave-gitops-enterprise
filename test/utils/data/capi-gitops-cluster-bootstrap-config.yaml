@@ -22,7 +22,7 @@ spec:
             [
               "install",
               "--override-in-cluster",
-              "--config-repo",
+              "--config-url",
               "$(GITOPS_REPO)",
             ]
           env:
