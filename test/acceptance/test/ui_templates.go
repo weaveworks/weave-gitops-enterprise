@@ -914,7 +914,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
-			FIt("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
@@ -995,7 +995,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				//check PR Preview
 
 				By("And select the podinfo profile to install", func() {
-					Eventually(createPage.ProfileSelect.Click()).Should(Succeed())
+					Expect(createPage.ProfileSelect.Click()).To(Succeed())
 					Expect(createPage.SelectProfile("podinfo").Click()).To(Succeed())
 					pages.DissmissProfilePopup(webDriver)
 				})
