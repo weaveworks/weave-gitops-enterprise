@@ -105,7 +105,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 		sourcev1beta1.AddToScheme,
 	}
 	schemeBuilder.AddToScheme(scheme)
-	kubeClientConfig := config.GetConfigOrDie()
+	kubeClientConfig, err := config.GetConfig()
+	if err != nil {
+		return err
+	}
 	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
 	if err != nil {
 		return err
