@@ -40,14 +40,19 @@ const Profiles: FC<{
       clicked={clickedStep === 'Profiles'}
       setActiveStep={setActiveStep}
     >
-      <ProfilesDropdown>
-        <span>Select profiles:&nbsp;</span>
-        <MultiSelectDropdown
-          allItems={updatedProfiles}
-          preSelectedItems={selectedProfiles}
-          onSelectItems={handleSelectProfiles}
-        />
-      </ProfilesDropdown>
+      {updatedProfiles.length > 0 ? (
+        <ProfilesDropdown>
+          <span>Select profiles:&nbsp;</span>
+
+          <MultiSelectDropdown
+            allItems={updatedProfiles}
+            preSelectedItems={selectedProfiles}
+            onSelectItems={handleSelectProfiles}
+          />
+        </ProfilesDropdown>
+      ) : (
+        'No profiles available.'
+      )}
       <ProfilesList
         selectedProfiles={selectedProfiles}
         onProfilesUpdate={handleSelectProfiles}

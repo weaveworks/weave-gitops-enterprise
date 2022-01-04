@@ -123,7 +123,7 @@ const AddCluster: FC = () => {
     pullRequestDescription: 'This PR creates a new cluster',
   };
 
-  let initialProfiles = [] as UpdatedProfile[];
+  let initialProfiles = updatedProfiles;
 
   let initialInfraCredential = {} as Credential;
 
@@ -275,17 +275,7 @@ const AddCluster: FC = () => {
         branchName: `create-clusters-branch-${random}`,
       }));
     }
-    if (updatedProfiles.length > 0 && profiles.length === 0) {
-      setProfiles(updatedProfiles.filter(profile => profile.required === true));
-    }
-  }, [
-    callbackState,
-    profiles,
-    updatedProfiles,
-    infraCredential,
-    random,
-    repositoryURL,
-  ]);
+  }, [callbackState, infraCredential, random, repositoryURL]);
 
   return useMemo(() => {
     return (
@@ -330,7 +320,6 @@ const AddCluster: FC = () => {
                   onFormDataUpdate={setFormData}
                   onPRPreview={handlePRPreview}
                 />
-
                 <Profiles
                   activeStep={activeStep}
                   setActiveStep={setActiveStep}
