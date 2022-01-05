@@ -933,6 +933,7 @@ func VerifyCapiClusterHealth(kubeconfigPath string, capiCluster string) {
 
 	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", "kube-system", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("pods", "", "wego-system", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 }
 
 // gitops system helper functions
