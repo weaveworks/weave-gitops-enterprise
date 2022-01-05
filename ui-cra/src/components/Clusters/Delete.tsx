@@ -25,7 +25,7 @@ import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import { clearCallbackState, getProviderToken } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-import { isUnauthenticated } from '../../utils/request';
+import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
 
 interface Props {
@@ -116,8 +116,8 @@ export const DeleteClusterDialog: FC<Props> = ({
       )
       .catch(error => {
         setNotifications([{ message: error.message, variant: 'danger' }]);
-        if (isUnauthenticated(error.code) && formData.provider === 'Github') {
-          setShowAuthDialog(true);
+        if (isUnauthenticated(error.code)) {
+          removeToken(formData.provider);
         }
       });
 

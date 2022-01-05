@@ -29,7 +29,7 @@ import {
   getCallbackState,
   getProviderToken,
 } from '@weaveworks/weave-gitops';
-import { isUnauthenticated } from '../../../utils/request';
+import { isUnauthenticated, removeToken } from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
 import Credentials from './Form/Partials/Credentials';
@@ -222,9 +222,8 @@ const AddCluster: FC = () => {
         })
         .catch(error => {
           setNotifications([{ message: error.message, variant: 'danger' }]);
-
-          if (isUnauthenticated(error.code) && formData.provider === 'Github') {
-            setShowAuthDialog(true);
+          if (isUnauthenticated(error.code)) {
+            removeToken(formData.provider);
           }
         }),
     [
