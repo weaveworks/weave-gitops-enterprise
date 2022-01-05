@@ -52,6 +52,7 @@ export type CreatePullRequestRequest = {
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   credentials?: Credential
+  values?: ProfileValues[]
 }
 
 export type CreatePullRequestResponse = {
@@ -127,6 +128,38 @@ export type GetEnterpriseVersionRequest = {
 
 export type GetEnterpriseVersionResponse = {
   version?: string
+}
+
+export type Maintainer = {
+  name?: string
+  email?: string
+  url?: string
+}
+
+export type HelmRepository = {
+  name?: string
+  namespace?: string
+}
+
+export type Profile = {
+  name?: string
+  home?: string
+  sources?: string[]
+  description?: string
+  keywords?: string[]
+  maintainers?: Maintainer[]
+  icon?: string
+  annotations?: {[key: string]: string}
+  kubeVersion?: string
+  helmRepository?: HelmRepository
+  availableVersions?: string[]
+}
+
+export type ProfileValues = {
+  name?: string
+  version?: string
+  values?: string
+  layer?: string
 }
 
 export class ClustersService {

@@ -81,7 +81,7 @@
     },
     "/v1/clusters/{clusterName}/kubeconfig": {
       "get": {
-        "summary": "GetKubeconfig returns the Kubeconfig for the given \nworkload cluster.",
+        "summary": "GetKubeconfig returns the Kubeconfig for the given\nworkload cluster.",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -389,6 +389,13 @@
         "credentials": {
           "$ref": "#/definitions/v1Credential",
           "title": "Credentials"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ProfileValues"
+          },
+          "description": "The values for each profile that will be installed."
         }
       }
     },
@@ -551,6 +558,23 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v1ProfileValues": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "values": {
+          "type": "string"
+        },
+        "layer": {
+          "type": "string"
         }
       }
     },

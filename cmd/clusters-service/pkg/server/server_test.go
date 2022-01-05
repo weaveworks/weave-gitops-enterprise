@@ -13,6 +13,7 @@ import (
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
 	"gorm.io/gorm"
@@ -1086,6 +1087,141 @@ func TestGetProvider(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenerateProfileFiles(t *testing.T) {
+	c := createClient(makeTestHelmRepository("base"))
+	file, err := generateProfileFiles(
+		context.TODO(),
+		"testing",
+		"test-ns",
+		"cluster-foo",
+		c,
+		[]*capiv1_protos.ProfileValues{
+			{
+				Name:    "foo",
+				Version: "0.0.1",
+				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+			},
+		},
+	)
+	assert.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cluster-foo-foo
+  namespace: wego-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  interval: 1m0s
+  values:
+    foo: bar
+status: {}
+`
+	assert.Equal(t, expected, *file.Content)
+}
+
+func TestGenerateProfileFilesWithLayers(t *testing.T) {
+	c := createClient(makeTestHelmRepository("base"))
+	file, err := generateProfileFiles(
+		context.TODO(),
+		"testing",
+		"test-ns",
+		"cluster-foo",
+		c,
+		[]*capiv1_protos.ProfileValues{
+			{
+				Name:    "foo",
+				Version: "0.0.1",
+				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+			},
+			{
+				Name:    "bar",
+				Version: "0.0.1",
+				Layer:   "testing",
+				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+			},
+		},
+	)
+	assert.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  labels:
+    weave.works/applied-layer: testing
+  name: cluster-foo-bar
+  namespace: wego-system
+spec:
+  chart:
+    spec:
+      chart: bar
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  interval: 1m0s
+  values:
+    foo: bar
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cluster-foo-foo
+  namespace: wego-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  dependsOn:
+  - name: cluster-foo-bar
+  interval: 1m0s
+  values:
+    foo: bar
+status: {}
+`
+	assert.Equal(t, expected, *file.Content)
 }
 
 func createClient(clusterState ...runtime.Object) client.Client {

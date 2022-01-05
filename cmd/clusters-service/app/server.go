@@ -127,7 +127,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
 	helmRepoName := viper.GetString("profile-helm-repository")
-	profilesConfig := wego_server.NewProfilesConfig(kubeClient, ns, helmRepoName)
+	helmRepoNamespace := os.Getenv("RUNTIME_NAMESPACE")
+	profilesConfig := wego_server.NewProfilesConfig(kubeClient, helmRepoNamespace, helmRepoName)
 	// Override logger to ensure consistency
 	appsConfig.Logger = log
 
@@ -197,8 +198,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.KubernetesClient,
 		args.DiscoveryClient,
 		args.Database,
-		args.ProfileHelmRepository,
 		args.CAPIClustersNamespace,
+		args.ProfileHelmRepository,
 		args.HelmRepositoryCacheDirectory,
 	)); err != nil {
 		return fmt.Errorf("failed to register clusters service handler server: %w", err)

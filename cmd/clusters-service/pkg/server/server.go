@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/base64"
@@ -12,6 +13,8 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
 	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
@@ -20,13 +23,16 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	grpcStatus "google.golang.org/grpc/status"
+	"gopkg.in/yaml.v2"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -220,6 +226,21 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
+	}
+
+	if len(msg.Values) > 0 {
+		profilesFile, err := generateProfileFiles(
+			ctx,
+			s.profileHelmRepositoryName,
+			os.Getenv("RUNTIME_NAMESPACE"),
+			clusterName,
+			s.client,
+			msg.Values,
+		)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, *profilesFile)
 	}
 
 	var pullRequestURL string
@@ -517,6 +538,26 @@ func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.Get
 	}, nil
 }
 
+func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
+	out := [][]byte{}
+	// Add HelmRepository object
+	b, err := yaml.Marshal(helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
+	}
+	out = append(out, b)
+	// Add HelmRelease objects
+	for _, v := range helmReleases {
+		b, err := yaml.Marshal(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal HelmRelease object to YAML: %w", err)
+		}
+		out = append(out, b)
+	}
+
+	return bytes.Join(out, []byte("---\n")), nil
+}
+
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 	var err error
 
@@ -595,4 +636,78 @@ func isMissingVariableError(err error) (string, bool) {
 		return missing, true
 	}
 	return "", false
+}
+
+func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+	helmRepo := &sourcev1beta1.HelmRepository{}
+	err := kubeClient.Get(ctx, client.ObjectKey{
+		Name:      helmRepoName,
+		Namespace: helmRepoNamespace,
+	}, helmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+	}
+	helmRepoTemplate := &sourcev1beta1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1beta1.HelmRepositoryKind,
+			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      helmRepoName,
+			Namespace: helmRepoNamespace,
+		},
+		Spec: helmRepo.Spec,
+	}
+
+	var profileName string
+	var installs []charts.ChartInstall
+	for _, v := range profileValues {
+		parsed, err := parseValues(v.Values)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
+		}
+		installs = append(installs, charts.ChartInstall{
+			Ref: charts.ChartReference{
+				Chart:   v.Name,
+				Version: v.Version,
+				SourceRef: helmv2beta1.CrossNamespaceObjectReference{
+					Name:      helmRepo.GetName(),
+					Namespace: helmRepo.GetNamespace(),
+					Kind:      "HelmRepository",
+				},
+			},
+			Layer:  v.Layer,
+			Values: parsed,
+		})
+	}
+
+	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "wego-system", installs)
+	if err != nil {
+		return nil, fmt.Errorf("making helm releases for cluster %s: %w", clusterName, err)
+	}
+	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
+	if err != nil {
+		return nil, err
+	}
+	profilePath := fmt.Sprintf(".weave-gitops/clusters/%s/system/%s.yaml", clusterName, profileName)
+	profileContent := string(c)
+	file := &gitprovider.CommitFile{
+		Path:    &profilePath,
+		Content: &profileContent,
+	}
+
+	return file, nil
+}
+
+func parseValues(s string) (map[string]interface{}, error) {
+	decoded, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+	}
+
+	vals := map[string]interface{}{}
+	if err := yaml.Unmarshal(decoded, &vals); err != nil {
+		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
+	}
+	return vals, nil
 }

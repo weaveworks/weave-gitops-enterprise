@@ -54,7 +54,7 @@ service ClustersService {
       get : "/v1/credentials"
     };
   }
-  // GetKubeconfig returns the Kubeconfig for the given 
+  // GetKubeconfig returns the Kubeconfig for the given
   // workload cluster.
   rpc GetKubeconfig(GetKubeconfigRequest)
     returns (google.api.HttpBody) {
@@ -112,6 +112,8 @@ message CreatePullRequestRequest {
   string commit_message = 8;
   // Credentials
   Credential credentials = 9;
+  // The values for each profile that will be installed.
+  repeated ProfileValues values = 10;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
@@ -170,7 +172,7 @@ message Template {
   string provider = 3;
   repeated Parameter parameters = 4;
   repeated TemplateObject objects = 5;
-  string error = 6; 
+  string error = 6;
   map<string, string> annotations = 7;
 }
 
@@ -195,4 +197,36 @@ message GetEnterpriseVersionRequest {
 message GetEnterpriseVersionResponse {
   // The version of WeGO Enterprise
   string version = 1;
+}
+
+message Maintainer {
+  string name = 1;
+  string email = 2;
+  string url = 3;
+}
+
+message HelmRepository {
+  string name = 1;
+  string namespace = 2;
+}
+
+message Profile {
+  string name = 1;
+  string home = 2;
+  repeated string sources = 3;
+  string description = 4;
+  repeated string keywords = 5;
+  repeated Maintainer maintainers = 6;
+  string icon = 7;
+  map<string, string> annotations = 8;
+  string kube_version = 9;
+  HelmRepository helm_repository = 10;
+  repeated string available_versions = 11;
+}
+
+message ProfileValues {
+  string name = 1;
+  string version = 2;
+  string values = 3;
+  string layer = 4;
 }
