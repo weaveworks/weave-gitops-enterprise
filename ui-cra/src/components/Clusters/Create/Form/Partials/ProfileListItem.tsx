@@ -131,7 +131,7 @@ const ProfilesListItem: FC<{
   return (
     <>
       <ListItemWrapper>
-        <ListItem>
+        <ListItem data-profile-name={profile.name}>
           <ListItemText className="profile-name">{profile.name}</ListItemText>
           <div className="profile-version">
             <span>Version</span>
