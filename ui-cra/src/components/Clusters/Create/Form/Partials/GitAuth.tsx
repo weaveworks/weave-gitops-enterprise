@@ -7,6 +7,18 @@ import {
   RepoInputWithAuth,
 } from '@weaveworks/weave-gitops';
 import useNotifications from '../../../../../contexts/Notifications';
+import styled from 'styled-components';
+
+const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
+  margin-bottom: ${weaveTheme.spacing.base};
+  width: 100%;
+  & .auth-message {
+    width: 300px;
+    & .MuiButtonBase-root {
+      width: 100%;
+    }
+  }
+`;
 
 const GitAuth: FC<{
   formData: any;
@@ -43,11 +55,7 @@ const GitAuth: FC<{
 
   return (
     <>
-      <RepoInputWithAuth
-        style={{
-          marginBottom: weaveTheme.spacing.base,
-          width: '100%',
-        }}
+      <RepoInputWithAuthWrapper
         isAuthenticated={isAuthenticated}
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
