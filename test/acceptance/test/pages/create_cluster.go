@@ -105,19 +105,12 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 }
 
 func GetProfile(webDriver *agouti.Page, profileName string) Profile {
-	fields := webDriver.All("div.MuiBox-root ul li")
-	pCnt, _ := fields.Count()
-	for i := 0; i < pCnt; i++ {
-		pName, _ := fields.At(i).Find(`div.profile-name`).Text()
-		if profileName == pName {
-			return Profile{
-				Name:    fields.At(i).Find(`div.profile-name`),
-				Version: fields.At(i).Find(`div.profile-version`),
-				Values:  fields.At(i).Find(`button`),
-			}
-		}
+	p := webDriver.Find(fmt.Sprintf(`.profiles-select [data-profile-name="%s"]`, profileName))
+	return Profile{
+		Name:    p.Find(`.profile-name`),
+		Version: p.Find(`.profile-version`),
+		Values:  p.Find(`button`),
 	}
-	return Profile{}
 }
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
