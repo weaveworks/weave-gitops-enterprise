@@ -1003,26 +1003,25 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And verify selected podinfo profile values.yaml", func() {
 					profile := pages.GetProfile(webDriver, "podinfo")
 
-					Expect(profile.Version.Click()).To(Succeed())
-					Expect(pages.GetOption(webDriver, "profile", "6.0.0").Click()).To(Succeed())
+					Eventually(profile.Version.Click()).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "profile", "6.0.0").Click()).Should(Succeed())
 
-					Expect(profile.Values.Click()).To(Succeed())
+					Eventually(profile.Values.Click()).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Expect(valuesYaml.Title.Text()).Should(MatchRegexp("podinfo"))
-					Expect(valuesYaml.TextArea.Text()).Should(MatchRegexp("tag: 6.0.0"))
-					Expect(valuesYaml.Cancel.Click()).To(Succeed())
+					Eventually(valuesYaml.Title.Text()).Should(MatchRegexp("podinfo"))
+					Eventually(valuesYaml.TextArea.Text()).Should(MatchRegexp("tag: 6.0.0"))
+					Eventually(valuesYaml.Cancel.Click()).Should(Succeed())
 				})
 
 				By("And verify default observability profile values.yaml", func() {
 					profile := pages.GetProfile(webDriver, "observability")
-
-					Expect(profile.Values.Click()).To(Succeed())
+					Eventually(profile.Values.Click()).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Expect(valuesYaml.Title.Text()).Should(MatchRegexp("observability"))
-					Expect(valuesYaml.TextArea.Text()).Should(MatchRegexp("kube-prometheus-stack:"))
-					Expect(valuesYaml.Cancel.Click()).To(Succeed())
+					Eventually(valuesYaml.Title.Text()).Should(MatchRegexp("observability"))
+					Eventually(valuesYaml.TextArea.Text()).Should(MatchRegexp("kube-prometheus-stack:"))
+					Eventually(valuesYaml.Cancel.Click()).Should(Succeed())
 				})
 
 				By("And press the Preview PR button", func() {
