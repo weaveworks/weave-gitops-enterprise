@@ -36,6 +36,8 @@ const GitAuth: FC<{
   useEffect(() => {
     if (isAuthenticated) {
       setEnableCreatePR(true);
+    } else {
+      setEnableCreatePR(false);
     }
   }, [isAuthenticated, setEnableCreatePR]);
 

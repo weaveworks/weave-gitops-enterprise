@@ -221,10 +221,10 @@ const AddCluster: FC = () => {
           history.push('/clusters');
         })
         .catch(error => {
-          if (isUnauthenticated(error.code)) {
+          setNotifications([{ message: error.message, variant: 'danger' }]);
+
+          if (isUnauthenticated(error.code) && formData.provider === 'Github') {
             setShowAuthDialog(true);
-          } else {
-            setNotifications([{ message: error.message, variant: 'danger' }]);
           }
         }),
     [

@@ -115,10 +115,9 @@ export const DeleteClusterDialog: FC<Props> = ({
         ]),
       )
       .catch(error => {
-        if (isUnauthenticated(error.code)) {
+        setNotifications([{ message: error.message, variant: 'danger' }]);
+        if (isUnauthenticated(error.code) && formData.provider === 'Github') {
           setShowAuthDialog(true);
-        } else {
-          setNotifications([{ message: error.message, variant: 'danger' }]);
         }
       });
 
@@ -198,7 +197,7 @@ export const DeleteClusterDialog: FC<Props> = ({
                 onClick={handleClickRemove}
                 text="Remove clusters from the MCCP"
                 className="danger"
-                disabled={selectedCapiClusters.length === 0 && !enableCreatePR}
+                disabled={!enableCreatePR}
               />
             </>
           ) : (

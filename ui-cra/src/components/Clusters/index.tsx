@@ -79,6 +79,8 @@ const MCCP: FC = () => {
     pullRequestDescription: string;
   }
 
+  let initialSelectedCapiClusters = selectedCapiClusters;
+
   let initialFormData = {
     url: repositoryURL,
     provider: '',
@@ -95,6 +97,10 @@ const MCCP: FC = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
+    initialSelectedCapiClusters = [
+      ...initialSelectedCapiClusters,
+      ...callbackState.state.selectedCapiClusters,
+    ];
   }
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -111,17 +117,13 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   useEffect(() => {
-    const selectedCapiClusters = selectedClusters.filter(cls =>
-      capiClusters.find(c => c.name === cls),
-    );
-
     if (!callbackState) {
       setFormData((prevState: FormData) => ({
         ...prevState,
         branchName: `delete-clusters-branch-${random}`,
         pullRequestTitle: 'Deletes capi cluster(s)',
         commitMessage: 'Deletes capi cluster(s)',
-        pullRequestDescription: `Delete clusters: ${selectedCapiClusters
+        pullRequestDescription: `Delete clusters: ${initialSelectedCapiClusters
           .map(c => c)
           .join(', ')}`,
       }));
@@ -131,7 +133,7 @@ const MCCP: FC = () => {
     }
   }, [
     callbackState,
-    selectedCapiClusters,
+    initialSelectedCapiClusters,
     random,
     capiClusters,
     selectedClusters,
@@ -167,7 +169,7 @@ const MCCP: FC = () => {
             <Tooltip
               title="No CAPI clusters selected"
               placement="top"
-              disabled={selectedCapiClusters.length !== 0}
+              disabled={initialSelectedCapiClusters.length !== 0}
             >
               <div>
                 <OnClickAction
@@ -179,7 +181,7 @@ const MCCP: FC = () => {
                     setOpenDeletePR(true);
                   }}
                   text="CREATE A PR TO DELETE CLUSTERS"
-                  disabled={selectedCapiClusters.length === 0}
+                  disabled={initialSelectedCapiClusters.length === 0}
                 />
               </div>
             </Tooltip>
@@ -187,7 +189,7 @@ const MCCP: FC = () => {
               <DeleteClusterDialog
                 formData={formData}
                 setFormData={setFormData}
-                selectedCapiClusters={selectedCapiClusters}
+                selectedCapiClusters={initialSelectedCapiClusters}
                 setOpenDeletePR={setOpenDeletePR}
               />
             )}
