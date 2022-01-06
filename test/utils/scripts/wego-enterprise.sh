@@ -71,7 +71,7 @@ function setup {
   # Install weave gitops core controllers
   # Git repository doesn't exist at this point, therefore we just ignore the erros relataing to repository not found
   GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
-  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} 
+  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} --auto-merge
 
   # Install weave gitops enterprise controllers
   if [ "${MANAGEMENT_CLUSTER_KIND}" == "EKS" ] || [ "${MANAGEMENT_CLUSTER_KIND}" == "GKE" ]; then
