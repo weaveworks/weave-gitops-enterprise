@@ -208,6 +208,7 @@ jobs:
         retention-days: 7
 
   test-gke:
+    needs: [build]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
