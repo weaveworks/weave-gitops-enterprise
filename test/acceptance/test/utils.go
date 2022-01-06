@@ -1027,7 +1027,7 @@ func verifyWegoAddCommand(appName string, namespace string) {
 
 func InstallAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 	By("And I run 'gitops install' command with namespace "+gitopsNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --config-repo %s --namespace=%s", GetGitopsBinPath(), manifestRepoURL, gitopsNamespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", GetGitopsBinPath(), manifestRepoURL, gitopsNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
