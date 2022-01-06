@@ -105,7 +105,7 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 }
 
 func GetProfile(webDriver *agouti.Page, profileName string) Profile {
-	p := webDriver.Find(fmt.Sprintf(`.profiles-select [data-profile-name="%s"]`, profileName))
+	p := webDriver.Find(fmt.Sprintf(`.profiles-list [data-profile-name="%s"]`, profileName))
 	return Profile{
 		Name:    p.Find(`.profile-name`),
 		Version: p.Find(`.profile-version`),

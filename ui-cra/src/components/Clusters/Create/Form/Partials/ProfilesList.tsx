@@ -28,7 +28,7 @@ const ProfilesList: FC<{
 
   return (
     <Box display="flex">
-      <List>
+      <List className="profiles-list">
         {enrichedProfiles?.map((profile, index) => (
           <ProfileListItem
             key={index}
