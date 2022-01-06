@@ -1003,15 +1003,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And verify selected podinfo profile values.yaml", func() {
 					profile := pages.GetProfile(webDriver, "podinfo")
 
-					Eventually(profile.Version.Click()).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "profile", "6.0.0").Click()).Should(Succeed())
+					Eventually(profile.Version.Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "profile", "6.0.0").Click).Should(Succeed())
 
-					Eventually(profile.Values.Click()).Should(Succeed())
+					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text()).Should(MatchRegexp("podinfo"))
-					Eventually(valuesYaml.TextArea.Text()).Should(MatchRegexp("tag: 6.0.0"))
-					Eventually(valuesYaml.Cancel.Click()).Should(Succeed())
+					Eventually(valuesYaml.Title).Should(MatchRegexp("podinfo"))
+					Eventually(valuesYaml.TextArea).Should(MatchRegexp("tag: 6.0.0"))
+					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
 				By("And verify default observability profile values.yaml", func() {
