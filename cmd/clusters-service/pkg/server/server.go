@@ -784,17 +784,10 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	for _, v := range profileValues {
 		// Check the values and if empty use profile defaults. This should happen before parsing.
 		if v.Values == "" {
-			ref := &charts.ChartReference{Chart: v.Name, Version: v.Version, SourceRef: sourceRef}
-			cc := charts.NewHelmChartClient(kubeClient, os.Getenv("RUNTIME_NAMESPACE"), helmRepo, charts.WithCacheDir(helmRepositoryCacheDir))
-			if err := cc.UpdateCache(ctx); err != nil {
-				return nil, fmt.Errorf("failed to update Helm cache: %w", err)
-			}
-			bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, helmRepositoryCacheDir, sourceRef, helmRepo)
 			if err != nil {
-				return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
+				return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
 			}
-			// Base64 encode the content of values.yaml and assign it
-			v.Values = base64.StdEncoding.EncodeToString(bs)
 		}
 
 		// Check the version and if empty use thr latest version in profile defaults.
@@ -855,6 +848,23 @@ func getProfilesFromTemplate(annotations map[string]string) []*capiv1_proto.Temp
 	}
 
 	return profiles
+}
+
+// getProfileLatestVersion returns the default profile values if not given
+func getDefaultValues(ctx context.Context, kubeClient client.Client, name, version, helmRepositoryCacheDir string, sourceRef helmv2beta1.CrossNamespaceObjectReference, helmRepo *sourcev1beta1.HelmRepository) (string, error) {
+	ref := &charts.ChartReference{Chart: name, Version: version, SourceRef: sourceRef}
+	cc := charts.NewHelmChartClient(kubeClient, os.Getenv("RUNTIME_NAMESPACE"), helmRepo, charts.WithCacheDir(helmRepositoryCacheDir))
+	if err := cc.UpdateCache(ctx); err != nil {
+		return "", fmt.Errorf("failed to update Helm cache: %w", err)
+	}
+	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+	if err != nil {
+		return "", fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
+	}
+	// Base64 encode the content of values.yaml and assign it
+	values := base64.StdEncoding.EncodeToString(bs)
+
+	return values, nil
 }
 
 // getProfileLatestVersion returns the latest profile version if not given
