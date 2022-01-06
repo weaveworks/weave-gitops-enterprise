@@ -17,15 +17,11 @@ function setup {
     exit 1
   fi
 
-  GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
-
-  WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1)
-
   UI_NODEPORT=30080
   NATS_NODEPORT=31490
 
   if [ "$MANAGEMENT_CLUSTER_KIND" == "EKS" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "GKE" ]; then
-    WORKER_NAME=$(echo $WORKER_NODE | cut -d '/' -f2-)
+    WORKER_NAME=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
     WORKER_NODE_EXTERNAL_IP=$(kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='${WORKER_NAME}')].status.addresses[?(@.type=='ExternalIP')].address}")
 
     # Configure inbound NATS and UI node ports
@@ -70,12 +66,14 @@ function setup {
   else
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
   fi
-  helm repo update
-
-  # Install weave-gitops prior installing weave-gitops-enterprise to resemble end-user workflow
+  helm repo update  
+  
+  # Install weave gitops core controllers
   # Git repository doesn't exist at this point, therefore we just ignore the erros relataing to repository not found
+  GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
   $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} 
 
+  # Install weave gitops enterprise controllers
   if [ "${MANAGEMENT_CLUSTER_KIND}" == "EKS" ] || [ "${MANAGEMENT_CLUSTER_KIND}" == "GKE" ]; then
     # Create postgres DB
     kubectl apply -f test/utils/data/postgres-manifests.yaml
@@ -107,6 +105,21 @@ function setup {
       --set "config.cluster.name=$(kubectl config current-context)" \
       --set "config.capi.baseBranch=main"
   fi
+
+  # Install capi infrastructure provider
+  if [ "$MANAGEMENT_CLUSTER_KIND" == "EKS" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "GKE" ]; then
+    echo "Capi infrastructure provider support is not implemented"
+  else
+    clusterctl init --infrastructure docker
+  fi
+
+  # Install resources for bootstrapping and CNI
+  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
+  kubectl apply -f ${args[1]}/test/utils/data/calico-crs.yaml
+  kubectl apply -f ${args[1]}/test/utils/data/calico-crs-configmap.yaml
+  kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
+  GITOPS_REPO=ssh://git@github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
+	cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | sed s,{{GITOPS_REPO}},$GITOPS_REPO,g | kubectl apply -f -
 
   # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod --selector='app!=wego-app'

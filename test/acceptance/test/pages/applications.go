@@ -88,11 +88,11 @@ func (a ApplicationDetails) WaitForPageToLoad(webDriver *agouti.Page) {
 func (a ApplicationPage) WaitForPageToLoad(webDriver *agouti.Page, appCount int) {
 	count := func() int {
 		_ = webDriver.Refresh()
+		time.Sleep(time.Second)
 		applicationCount := webDriver.FindByXPath(`//*[@href="/applications"]/parent::div[@role="heading"]/following-sibling::div`)
 		Eventually(applicationCount).Should(BeVisible())
 		strCount, _ := applicationCount.Text()
 		c, _ := strconv.Atoi(strCount)
-		fmt.Println(c)
 		return c
 	}
 	Eventually(count, 30*time.Second, 5*time.Second).Should(BeNumerically(">=", appCount), "Application page failed to load/render as expected")

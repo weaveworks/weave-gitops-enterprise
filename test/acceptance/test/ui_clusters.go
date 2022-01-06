@@ -118,6 +118,7 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 		Eventually(clustersPage.SupportEmailLink).Should(BeVisible())
 		Eventually(clustersPage.ClusterCount).Should(MatchText(`[0-9]+`))
 		Eventually(clustersPage.ClustersListSection).Should(BeFound())
+		time.Sleep(POLL_INTERVAL_1SECONDS) // Sometimes UI took bit longer to update the cluster count
 		count, _ = clustersPage.ClusterCount.Text()
 		tmpCount, _ := strconv.Atoi(count)
 		expectedCount = strconv.Itoa(tmpCount + 1)
@@ -170,6 +171,10 @@ func getCommandEnv(leaf LeafSpec) []string {
 }
 
 func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, leaf LeafSpec) (*pages.ClustersPage, string, string) {
+	By("when I navigate to the cluster page..", func() {
+		Expect(webDriver.Navigate(GetWGEUrl() + "/clusters")).To(Succeed())
+	})
+
 	tokenURLRegex := `https?:\/\/[-a-zA-Z0-9@:%._\+~#=]+\/gitops\/api\/agent\.yaml\?token=[0-9a-zA-Z]+`
 	var tokenURL []string
 
