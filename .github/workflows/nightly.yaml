@@ -149,7 +149,7 @@ jobs:
           eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION
         fi
         eksctl utils write-kubeconfig --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
-        kubectl config rename-context $(kubectl config current-context) test-eks-${{ matrix.os_name }}
+        kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
         ls -la $HOME/.kube
         kubectl get nodes -A
         kubectl get all --all-namespaces -o wide   
@@ -323,13 +323,15 @@ jobs:
         export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ matrix.os_name }}
         export CLUSTER_VERSION=1.21
         export CLUSTER_REGION=us-central1-a
+
         export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
           gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
         fi
         gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
-        kubectl config rename-context $(kubectl config current-context) test-gke-${{ matrix.os_name }}
+        kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
+        
         ls -la $HOME/.kube
         kubectl get nodes -A
         kubectl get all --all-namespaces -o wide
