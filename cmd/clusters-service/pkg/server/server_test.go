@@ -5,7 +5,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,6 +19,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -24,6 +29,8 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"helm.sh/helm/v3/pkg/chart"
+	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -34,6 +41,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
+)
+
+const (
+	testNamespace = "testing"
 )
 
 func TestListTemplates(t *testing.T) {
@@ -138,7 +149,7 @@ func TestListTemplates(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
 			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
 
@@ -255,7 +266,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
 			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
 			listTemplatesRequest.Provider = tt.provider
@@ -322,7 +333,7 @@ func TestGetTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{TemplateName: "cluster-template-1"})
 			if err != nil && tt.err == nil {
 				t.Fatalf("failed to read the templates:\n%s", err)
@@ -367,7 +378,7 @@ func TestListTemplateParams(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
 			listTemplateParamsRequest := new(capiv1_protos.ListTemplateParamsRequest)
 			listTemplateParamsRequest.TemplateName = "cluster-template-1"
@@ -383,6 +394,60 @@ func TestListTemplateParams(t *testing.T) {
 			} else {
 				if diff := cmp.Diff(tt.expected, listTemplateParamsResponse.Parameters, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+func TestListTemplateProfiles(t *testing.T) {
+	testCases := []struct {
+		name             string
+		clusterState     []runtime.Object
+		expected         []*capiv1_protos.TemplateProfile
+		err              error
+		expectedErrorStr string
+	}{
+		{
+			name: "1 profile err",
+			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace"),
+		},
+		{
+			name: "1 profile",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t, func(c *capiv1.CAPITemplate) {
+					c.Annotations = map[string]string{
+						"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
+					}
+				})),
+			},
+			expected: []*capiv1_protos.TemplateProfile{
+				{
+					Name:    "profile-a",
+					Version: "v0.0.1",
+				},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
+
+			listTemplateProfilesRequest := new(capiv1_protos.ListTemplateProfilesRequest)
+			listTemplateProfilesRequest.TemplateName = "cluster-template-1"
+
+			listTemplateProfilesResponse, err := s.ListTemplateProfiles(context.Background(), listTemplateProfilesRequest)
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the profiles:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, listTemplateProfilesResponse.Profiles, protocmp.Transform()); diff != "" {
+					t.Fatalf("profiles didn't match expected:\n%s", diff)
 				}
 			}
 		})
@@ -488,7 +553,7 @@ func TestRenderTemplate(t *testing.T) {
 			os.Setenv("CAPI_CLUSTERS_NAMESPACE", tt.clusterNamespace)
 			defer os.Unsetenv("CAPI_CLUSTERS_NAMESPACE")
 
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
@@ -519,7 +584,7 @@ func TestRenderTemplate_MissingVariables(t *testing.T) {
 	clusterState := []runtime.Object{
 		makeTemplateConfigMap("template1", makeTemplate(t)),
 	}
-	s := createServer(clusterState, "capi-templates", "default", nil, nil, "")
+	s := createServer(t, clusterState, "capi-templates", "default", nil, nil, "", nil)
 
 	renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 		TemplateName: "cluster-template-1",
@@ -582,7 +647,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
@@ -610,14 +675,15 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 
 func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
-		name         string
-		clusterState []runtime.Object
-		provider     git.Provider
-		pruneEnvVar  string
-		req          *capiv1_protos.CreatePullRequestRequest
-		expected     string
-		err          error
-		dbRows       int
+		name           string
+		clusterState   []runtime.Object
+		provider       git.Provider
+		pruneEnvVar    string
+		req            *capiv1_protos.CreatePullRequestRequest
+		expected       string
+		committedFiles []CommittedFile
+		err            error
+		dbRows         int
 	}{
 		{
 			name:   "validation errors",
@@ -690,13 +756,98 @@ func TestCreatePullRequest(t *testing.T) {
 			dbRows:   1,
 			expected: "https://github.com/org/repo/pull/1",
 		},
+		{
+			name: "default profile values",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("template1", makeTemplate(t)),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+				Values: []*capiv1_protos.ProfileValues{
+					{
+						Name:    "demo-profile",
+						Version: "0.0.1",
+						Values:  base64.StdEncoding.EncodeToString([]byte(``)),
+					},
+				},
+			},
+			dbRows: 1,
+			committedFiles: []CommittedFile{
+				{
+					Path: ".weave-gitops/apps/capi/dev.yaml",
+					Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: dev
+`,
+				},
+				{
+					Path: ".weave-gitops/clusters/dev/system/demo-profile.yaml",
+					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: default
+spec:
+  interval: 10m0s
+  url: http://127.0.0.1:%s/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: dev-demo-profile
+  namespace: wego-system
+spec:
+  chart:
+    spec:
+      chart: demo-profile
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+      version: 0.0.1
+  interval: 1m0s
+  values:
+    favoriteDrink: coffee
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			_ = os.Setenv("RUNTIME_NAMESPACE", "default") // needs to match the helm repo namespace
+			defer os.Unsetenv("RUNTIME_NAMESPACE")
 			// setup
+			ts := httptest.NewServer(makeServeMux(t))
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
+				hr.Name = "weaveworks-charts"
+				hr.Namespace = "default"
+			})
+			tt.clusterState = append(tt.clusterState, hr)
 			db := createDatabase(t)
-			s := createServer(tt.clusterState, "capi-templates", "default", tt.provider, db, "")
+			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, db, "", hr)
 
 			// request
 			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
@@ -712,6 +863,12 @@ func TestCreatePullRequest(t *testing.T) {
 			} else {
 				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
+				}
+				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				if diff := cmp.Diff(tt.committedFiles, fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
+					if !strings.Contains(diff, "url") {
+						t.Fatalf("committed files do not match expected committed files:\n%s", diff)
+					}
 				}
 			}
 
@@ -786,7 +943,7 @@ func TestGetKubeconfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db := createDatabase(t)
 			gp := NewFakeGitProvider("", nil, nil)
-			s := createServer(tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace)
+			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace, nil)
 
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
 
@@ -859,7 +1016,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			db := createDatabase(t)
-			s := createServer([]runtime.Object{}, "capi-templates", "default", tt.provider, db, "")
+			s := createServer(t, []runtime.Object{}, "capi-templates", "default", tt.provider, db, "", nil)
 			for _, o := range tt.dbState {
 				db.Create(o)
 			}
@@ -1094,6 +1251,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 		context.TODO(),
 		"testing",
 		"test-ns",
+		"",
 		"cluster-foo",
 		c,
 		[]*capiv1_protos.ProfileValues{
@@ -1146,6 +1304,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		context.TODO(),
 		"testing",
 		"test-ns",
+		"",
 		"cluster-foo",
 		c,
 		[]*capiv1_protos.ProfileValues{
@@ -1246,7 +1405,7 @@ func TestGetProfiles(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(tt.clusterState, "capi-templates", "default", nil, nil, "")
+			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
 			getProfilesRequest := new(capiv1_protos.GetProfilesRequest)
 
@@ -1267,6 +1426,23 @@ func TestGetProfiles(t *testing.T) {
 	}
 }
 
+func TestGetProfilesFromTemplate(t *testing.T) {
+	annotations := map[string]string{
+		"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
+	}
+
+	expected := []*capiv1_protos.TemplateProfile{
+		{
+			Name:    "profile-a",
+			Version: "v0.0.1",
+		},
+	}
+
+	result := getProfilesFromTemplate(annotations)
+
+	assert.Equal(t, result, expected)
+}
+
 func createClient(clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
@@ -1284,11 +1460,16 @@ func createClient(clusterState ...runtime.Object) client.Client {
 	return c
 }
 
-func createServer(clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string) capiv1_protos.ClustersServiceServer {
+func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1beta1.HelmRepository) capiv1_protos.ClustersServiceServer {
 
 	c := createClient(clusterState...)
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
+
+	// var cc *charts.HelmChartClient
+	// if hr != nil {
+	// 	cc = makeChartClient(t, c, hr)
+	// }
 
 	s := NewClusterServer(logr.Discard(),
 		&templates.ConfigMapLibrary{
@@ -1456,15 +1637,17 @@ func NewFakeGitProvider(url string, repo *git.GitRepo, err error) git.Provider {
 }
 
 type FakeGitProvider struct {
-	url  string
-	repo *git.GitRepo
-	err  error
+	url            string
+	repo           *git.GitRepo
+	err            error
+	committedFiles []gitprovider.CommitFile
 }
 
 func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
 	if p.err != nil {
 		return nil, p.err
 	}
+	p.committedFiles = append(p.committedFiles, req.Files...)
 	return &git.WriteFilesToBranchAndCreatePullRequestResponse{WebURL: p.url}, nil
 }
 
@@ -1480,4 +1663,84 @@ func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider,
 		return nil, p.err
 	}
 	return nil, nil
+}
+
+func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
+	var committedFiles []CommittedFile
+	for _, f := range p.committedFiles {
+		committedFiles = append(committedFiles, CommittedFile{
+			Path:    *f.Path,
+			Content: *f.Content,
+		})
+	}
+	return committedFiles
+}
+
+func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepository) *charts.HelmChartClient {
+	t.Helper()
+	tempDir, err := ioutil.TempDir("", "prefix")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.RemoveAll(tempDir); err != nil {
+			t.Fatal(err)
+		}
+	})
+	cc := charts.NewHelmChartClient(cl, testNamespace, hr, charts.WithCacheDir(tempDir))
+	if err := cc.UpdateCache(context.TODO()); err != nil {
+		t.Fatal(err)
+	}
+	return cc
+}
+
+type CommittedFile struct {
+	Path    string
+	Content string
+}
+
+func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/charts/index.yaml", func(w http.ResponseWriter, req *http.Request) {
+		b, err := yaml.Marshal(makeTestChartIndex(opts...))
+		if err != nil {
+			t.Fatal(err)
+		}
+		w.Write(b)
+	})
+	mux.Handle("/", http.FileServer(http.Dir("../charts/testdata")))
+	return mux
+}
+
+func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
+	ri := &repo.IndexFile{
+		APIVersion: "v1",
+		Entries: map[string]repo.ChartVersions{
+			"demo-profile": {
+				{
+					Metadata: &chart.Metadata{
+						Annotations: map[string]string{
+							charts.ProfileAnnotation: "demo-profile",
+						},
+						Description: "Simple demo profile",
+						Home:        "https://example.com/testing",
+						Name:        "demo-profile",
+						Sources: []string{
+							"https://example.com/testing",
+						},
+						Version: "0.0.1",
+					},
+					Created: time.Now(),
+					Digest:  "aaff4545f79d8b2913a10cb400ebb6fa9c77fe813287afbacf1a0b897cdffffff",
+					URLs: []string{
+						"/charts/demo-profile-0.1.0.tgz",
+					},
+				},
+			},
+		},
+	}
+	for _, o := range opts {
+		o(ri)
+	}
+	return ri
 }

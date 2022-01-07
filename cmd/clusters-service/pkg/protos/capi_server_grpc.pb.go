@@ -22,6 +22,11 @@ type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
+	// Returns a list of profiles within that template
+	// `gitops get <template-name> --list-profiles`
+	// The template annotations appear in the following form
+	// capi.weave.works/profile-<n> where n is a number
+	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -72,6 +77,15 @@ func (c *clustersServiceClient) GetTemplate(ctx context.Context, in *GetTemplate
 func (c *clustersServiceClient) ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error) {
 	out := new(ListTemplateParamsResponse)
 	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListTemplateParams", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error) {
+	out := new(ListTemplateProfilesResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListTemplateProfiles", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +171,11 @@ type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
+	// Returns a list of profiles within that template
+	// `gitops get <template-name> --list-profiles`
+	// The template annotations appear in the following form
+	// capi.weave.works/profile-<n> where n is a number
+	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -191,6 +210,9 @@ func (UnimplementedClustersServiceServer) GetTemplate(context.Context, *GetTempl
 }
 func (UnimplementedClustersServiceServer) ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTemplateParams not implemented")
+}
+func (UnimplementedClustersServiceServer) ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTemplateProfiles not implemented")
 }
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
@@ -279,6 +301,24 @@ func _ClustersService_ListTemplateParams_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListTemplateParams(ctx, req.(*ListTemplateParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_ListTemplateProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTemplateProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListTemplateProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/ListTemplateProfiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListTemplateProfiles(ctx, req.(*ListTemplateProfilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -445,6 +485,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTemplateParams",
 			Handler:    _ClustersService_ListTemplateParams_Handler,
+		},
+		{
+			MethodName: "ListTemplateProfiles",
+			Handler:    _ClustersService_ListTemplateProfiles_Handler,
 		},
 		{
 			MethodName: "RenderTemplate",
