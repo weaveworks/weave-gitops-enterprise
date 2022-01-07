@@ -23,16 +23,15 @@ import {
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
 import { OnClickAction } from '../../../../Action';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import Button from '@material-ui/core/Button';
-import { GitOpsBlue } from '../../../../../muiTheme';
 
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
 
 const useStyles = makeStyles(() => ({
   dialog: {
-    backgroundColor: weaveTheme.colors.gray50,
+    backgroundColor: weaveTheme.colors.neutral20,
   },
   textarea: {
     width: '100%',
@@ -40,7 +39,7 @@ const useStyles = makeStyles(() => ({
     border: '1px solid #E5E5E5',
   },
   downloadBtn: {
-    color: GitOpsBlue,
+    color: weaveTheme.colors.primary,
     padding: '0px',
   },
 }));

@@ -1,19 +1,22 @@
 import styled, { css } from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { Button as _Button } from 'weaveworks-ui-components';
 import { darken } from 'polished';
-import { spacing } from 'weaveworks-ui-components/lib/theme/selectors';
+
+const BORDER_RADIUS_SOFT = '2px';
+const BOX_SHADOW_LIGHT =
+  '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)';
 
 export const ListView = styled.div`
   background: ${theme.colors.white};
-  border-radius: ${theme.borderRadius.soft};
+  border-radius: ${BORDER_RADIUS_SOFT};
   box-sizing: border-box;
-  color: ${theme.colors.gray600};
-  box-shadow: ${theme.boxShadow.light};
+  color: ${theme.colors.neutral40};
+  box-shadow: ${BOX_SHADOW_LIGHT}; ;
 `;
 
 export const ListViewHeader = styled.div`
-  margin: 0 ${spacing('base')} ${spacing('base')} 0;
+  margin: 0 ${theme.spacing.base} ${theme.spacing.base}} 0;
 
   display: flex;
   align-items: center;
@@ -28,18 +31,18 @@ export const ListViewHeader = styled.div`
   }
 
   a {
-    color: ${darken(0.1, theme.colors.gray600)};
+    color: ${darken(0.1, 'hsl(0, 0%, 10%)')};
     display: block;
     font-size: ${theme.fontSizes.normal};
   }
 
   a:hover {
-    color: ${theme.colors.blue700};
+    color: ${theme.colors.primary};
   }
 `;
 
 export const Button = styled(_Button)`
-  color: ${theme.colors.gray600};
+  color: ${theme.colors.neutral40};
   margin: ${theme.spacing.xxs};
   min-height: ${theme.spacing.large};
   padding: ${theme.spacing.xxs} ${theme.spacing.xs};
@@ -52,7 +55,7 @@ interface ListItemProps {
 export const ListItem = styled.div<ListItemProps>`
   min-height: 52px;
   padding: 0 10px;
-  border-bottom: 1px solid ${theme.colors.gray100};
+  border-bottom: 1px solid ${theme.colors.neutral30};
   display: flex;
   align-items: center;
   white-space: nowrap;
@@ -60,8 +63,8 @@ export const ListItem = styled.div<ListItemProps>`
   ${props =>
     props.disabled
       ? css`
-          color: ${theme.colors.gray200};
-          background-color: ${theme.colors.gray50};
+          color: ${theme.colors.neutral30};
+          background-color: ${theme.colors.neutral20};
         `
       : ''}
 `;
@@ -82,17 +85,17 @@ export const IconWrapper = styled.div<IconWrapperProps>`
   ${props =>
     props.invertColors
       ? css`
-          background-color: ${theme.colors.blue600};
+          background-color: ${theme.colors.primary};
           color: ${theme.colors.white};
         `
       : css`
-          background-color: ${theme.colors.gray50};
-          color: ${theme.colors.blue600};
+          background-color: ${theme.colors.neutral20};
+          color: ${theme.colors.primary};
         `}
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: ${theme.borderRadius.soft};
+  border-radius: ${BORDER_RADIUS_SOFT};
   margin-right: 10px;
   font-size: ${theme.fontSizes.large};
   width: 32px;

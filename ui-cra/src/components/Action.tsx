@@ -1,11 +1,10 @@
 import React, { FC, MouseEventHandler } from 'react';
 import styled, { css } from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faExternalLinkAlt } from '@fortawesome/free-solid-svg-icons';
 import { SafeAnchor } from './Shared';
-import { GitOpsBlue } from './../muiTheme';
 
 const actionStyle = css`
   display: flex;
@@ -14,11 +13,11 @@ const actionStyle = css`
   white-space: nowrap;
 
   &:enabled {
-    color: ${GitOpsBlue};
+    color: ${theme.colors.primary};
   }
 
   &:hover:enabled {
-    color: ${theme.colors.blue700};
+    color: ${theme.colors.primaryDark};
   }
 `;
 
@@ -36,15 +35,15 @@ const ActionButton = styled.button`
 
   &:enabled {
     color: ${props =>
-      props.className === 'danger' ? theme.colors.orange600 : GitOpsBlue};
+      props.className === 'danger' ? theme.colors.alert : theme.colors.primary};
   }
   &:hover:enabled {
     cursor: pointer;
-    background-color: ${theme.colors.gray50};
+    background-color: ${theme.colors.neutral20};
     color: ${props =>
       props.className === 'danger'
-        ? theme.colors.orange700
-        : theme.colors.blue700};
+        ? theme.colors.alert
+        : theme.colors.primaryDark};
   }
   &:hover:disabled {
     pointer-events: none;

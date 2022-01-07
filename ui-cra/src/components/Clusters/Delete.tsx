@@ -14,7 +14,7 @@ import {
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
@@ -37,7 +37,7 @@ interface Props {
 const useStyles = makeStyles(() =>
   createStyles({
     dialog: {
-      backgroundColor: theme.colors.gray50,
+      backgroundColor: theme.colors.neutral20,
     },
   }),
 );

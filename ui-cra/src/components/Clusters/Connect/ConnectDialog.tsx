@@ -9,7 +9,7 @@ import { ConnectClusterWizard } from './ConnectWizard';
 import { Cluster } from '../../../types/kubernetes';
 import { makeStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
 const useStyles = makeStyles(() =>
   createStyles({
     dialog: {
-      backgroundColor: theme.colors.gray50,
+      backgroundColor: theme.colors.neutral20,
     },
   }),
 );

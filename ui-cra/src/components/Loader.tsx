@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 
 const LoaderWrapper = styled.div`

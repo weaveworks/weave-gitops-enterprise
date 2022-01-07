@@ -171,5 +171,3 @@ export const popperArrow = (theme: Theme) => ({
   },
   zIndex: 1,
 });
-
-export const GitOpsBlue = '#00B3EC';

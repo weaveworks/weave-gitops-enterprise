@@ -11,9 +11,8 @@ import React, {
 } from 'react';
 import Divider from '@material-ui/core/Divider';
 import styled from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { Button } from 'weaveworks-ui-components';
-import { GitOpsBlue } from '../../../../muiTheme';
 import { ChildrenOccurences } from '../../../../types/custom';
 
 const Section = styled.div`
@@ -46,7 +45,7 @@ const Content = styled.div`
       overflow: hidden;
     }
     span {
-      color: ${GitOpsBlue};
+      color: ${theme.colors.primary};
       font-weight: 600;
     }
   }

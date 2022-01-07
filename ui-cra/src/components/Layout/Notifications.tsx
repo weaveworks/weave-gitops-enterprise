@@ -1,7 +1,7 @@
 import React, { FC, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error-icon.svg';
 import { ReactComponent as SuccessIcon } from '../../assets/img/success-icon.svg';
 import useNotifications from '../../contexts/Notifications';

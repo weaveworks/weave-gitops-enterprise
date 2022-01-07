@@ -5,7 +5,7 @@ import { Template } from '../../../types/custom';
 import { OnClickAction } from '../../Action';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useHistory } from 'react-router-dom';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -13,10 +13,10 @@ const useStyles = makeStyles(() =>
       color: '#ccc',
     },
     normalRow: {
-      borderBottom: '1px solid #d8d8d8',
+      borderBottom: `1px solid #d8d8d8`,
     },
     error: {
-      color: weaveTheme.colors.orange500,
+      color: weaveTheme.colors.alert,
     },
   }),
 );

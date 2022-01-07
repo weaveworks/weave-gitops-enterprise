@@ -1,5 +1,5 @@
 /* eslint-disable */
-import "styled-components";
+import 'styled-components';
 export namespace colors {
   const black: string;
   const white: string;
@@ -32,7 +32,7 @@ export namespace fontSizes {
   const tiny: string;
 }
 
-declare module "styled-components" {
+declare module 'styled-components' {
   export interface DefaultTheme {
     fontFamilies: { regular: string; monospace: string };
     fontSizes: typeof fontSizes;

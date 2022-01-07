@@ -2,12 +2,12 @@ import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
 import { Input } from '../../../../../utils/form';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button } from 'weaveworks-ui-components';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { FormStep } from '../Step';
 
 const base = weaveTheme.spacing.base;
 
-const useStyles = makeStyles(theme =>
+const useStyles = makeStyles(() =>
   createStyles({
     createCTA: {
       display: 'flex',

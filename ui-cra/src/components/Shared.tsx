@@ -1,6 +1,6 @@
 import React, { AnchorHTMLAttributes, FC, Key } from 'react';
 import styled from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { Skeleton } from '@material-ui/lab';
 import { random, sortBy } from 'lodash';
 import {
@@ -20,6 +20,8 @@ import { SparkTimeline } from './SparkTimeline';
 import { getClusterStatus, ReadyStatus } from './Clusters/Status';
 import { Loader } from './Loader';
 import Box from '@material-ui/core/Box';
+
+const BORDER_RADIUS_SOFT = '2px';
 
 export const SafeAnchor: FC<AnchorHTMLAttributes<HTMLAnchorElement>> = ({
   children,
@@ -45,9 +47,9 @@ export interface FinishMessage {
 
 export const NameLink = styled(SafeAnchor)`
   white-space: nowrap;
-  color: ${theme.colors.blue600};
+  color: ${theme.colors.primary};
   &:hover {
-    color: ${theme.colors.blue700};
+    color: ${theme.colors.primaryDark};
   }
 `;
 
@@ -65,7 +67,7 @@ export const ClusterNameLink: FC<{ cluster: Cluster }> = ({ cluster }) => {
 };
 
 export const NotAvailable = styled.span`
-  color: ${theme.colors.gray600};
+  color: ${theme.colors.neutral40};
   font-style: italic;
   font-family: ${theme.fontFamilies.regular};
 `;
@@ -120,8 +122,8 @@ export const Code = styled.div`
   padding: 16px;
   background-color: ${theme.colors.white};
   font-family: ${theme.fontFamilies.monospace};
-  border: 1px solid ${theme.colors.gray100};
-  border-radius: ${theme.borderRadius.soft};
+  border: 1px solid ${theme.colors.neutral30};
+  border-radius: ${BORDER_RADIUS_SOFT};
   overflow: auto;
   font-size: ${theme.fontSizes.small};
 `;

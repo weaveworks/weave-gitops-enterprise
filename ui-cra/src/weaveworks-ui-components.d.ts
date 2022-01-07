@@ -4,7 +4,9 @@
 
 /*
 see: https://github.com/weaveworks/ui-components/tree/master/src/theme
+
 This file and its typings only exist as of 2019-08-22 a temporary compatability layer since weaveworks/ui-components does not yet have types and types are required by this codebase.
+
 Any changes to the schema of the them in ui-componenets will have to be synced here until ui-components can provide a proper type file of its own.
 */
 

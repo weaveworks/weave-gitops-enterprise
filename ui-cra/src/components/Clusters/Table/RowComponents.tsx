@@ -2,7 +2,7 @@ import GitUrlParse from 'git-url-parse';
 import { groupBy, orderBy, sortBy } from 'lodash';
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { Cluster, Node } from '../../../types/kubernetes';
 import { intersperse } from '../../../utils/formatters';
 import { NameLink, NotAvailable, SafeAnchor, Tooltip } from '../../Shared';
@@ -16,9 +16,9 @@ const getGitRepoHTTPSURL = (repoUrl?: string, repoBranch?: string): string => {
 };
 
 const Link = styled(SafeAnchor)`
-  color: ${theme.colors.blue600};
+  color: ${theme.colors.primary};
   &:hover {
-    color: ${theme.colors.blue700};
+    color: ${theme.colors.primaryDark};
   }
 `;
 
@@ -28,7 +28,7 @@ export const RepoLink: FC<{ url: string; branch: string }> = ({
 }) => <Link href={getGitRepoHTTPSURL(url, branch)}>View git repo</Link>;
 
 const ClusterBit = styled.span`
-  color: ${theme.colors.gray600};
+  color: ${theme.colors.neutral40};
 `;
 
 const ClusterBitsContainer = styled.span`

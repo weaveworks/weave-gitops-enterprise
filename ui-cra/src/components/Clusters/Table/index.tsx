@@ -23,7 +23,7 @@ import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
 import { useHistory } from 'react-router-dom';
 import { Loader } from '../../Loader';
-import { GitOpsBlue } from './../../../muiTheme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -149,7 +149,7 @@ export const ClustersTable: FC<Props> = ({
                       onChange={handleSelectAllClick}
                       inputProps={{ 'aria-label': 'select all clusters' }}
                       style={{
-                        color: GitOpsBlue,
+                        color: weaveTheme.colors.primary,
                       }}
                     />
                   </TableCell>

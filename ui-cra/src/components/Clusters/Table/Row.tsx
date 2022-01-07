@@ -32,7 +32,7 @@ import {
   Workspaces,
   WorkspacesTooltip,
 } from './RowComponents';
-import { GitOpsBlue } from './../../../muiTheme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -128,7 +128,7 @@ const ClusterRow = ({
             checked={selected}
             inputProps={{ 'aria-labelledby': labelId }}
             style={{
-              color: GitOpsBlue,
+              color: weaveTheme.colors.primary,
             }}
             onClick={event => onCheckboxClick(event, name)}
           />

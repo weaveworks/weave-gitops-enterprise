@@ -4,8 +4,9 @@ import styled from 'styled-components';
 import { transparentize } from 'polished';
 import { ReactComponent as BreadcrumbDivider } from '../assets/img/breadcrumb-divider.svg';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
-import { GitOpsBlue } from './../muiTheme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+
+const BORDER_RADIUS_SOFT = '2px';
 
 interface Size {
   size?: 'small';
@@ -37,9 +38,9 @@ export const Count = styled.div<Size>`
   align-self: center;
   font-size: ${({ size }) =>
     size === 'small' ? weaveTheme.spacing.small : weaveTheme.fontSizes.normal};
-  color: ${GitOpsBlue};
+  color: ${weaveTheme.colors.primary};
   margin-left: ${weaveTheme.spacing.xxs};
-  border-radius: ${weaveTheme.borderRadius.soft};
+  border-radius: ${BORDER_RADIUS_SOFT};
 `;
 export interface Breadcrumb {
   label: string;

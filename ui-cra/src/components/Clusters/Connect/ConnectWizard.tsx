@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react';
 import styled from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { Button } from 'weaveworks-ui-components';
 import { ConnectClusterGeneralForm } from './ConnectForm';
 import { ConnectClusterConnectionInstructions } from './ConnectionInstructions';
@@ -24,7 +24,7 @@ export const ContentContainer = styled.div`
 const TitleBarContainer = styled.div`
   display: flex;
   margin-bottom: ${theme.spacing.base};
-  border-bottom: 1px solid ${theme.colors.gray200};
+  border-bottom: 1px solid ${theme.colors.neutral30};
 `;
 
 const Title = styled.div<{
@@ -32,10 +32,11 @@ const Title = styled.div<{
   active: boolean;
   onClick?: (ev: Event) => void;
 }>`
-  color: ${props => (props.locked ? theme.colors.gray200 : theme.colors.black)};
+  color: ${props =>
+    props.locked ? theme.colors.neutral30 : theme.colors.black};
   border-bottom: ${props =>
     props.active
-      ? `2px solid ${theme.colors.blue400}`
+      ? `2px solid ${theme.colors.primary}`
       : '2px solid transparent'};
   padding: ${theme.spacing.small} ${theme.spacing.base};
   cursor: ${props => (props.onClick ? 'pointer' : 'default')};
@@ -72,7 +73,7 @@ const TitleBar: FC<TitleBarProps> = ({
 
 const ButtonBar = styled.div`
   display: flex;
-  border-top: 1px solid ${theme.colors.gray200};
+  border-top: 1px solid ${theme.colors.neutral30};
   padding-top: ${theme.spacing.small};
 `;
 

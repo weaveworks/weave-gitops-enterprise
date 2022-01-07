@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
 import { chunk, get } from 'lodash';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { useLocalStorage } from 'react-use';
 import useAlerts from '../contexts/Alerts';
 import { makeStyles } from '@material-ui/core/styles';
@@ -11,7 +11,6 @@ import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import moment from 'moment';
-import { Theme } from 'weaveworks-ui-components';
 import { SectionHeader } from './Layout/SectionHeader';
 import { ClusterNameLink, NotAvailable } from './Shared';
 import { PageTemplate } from './Layout/PageTemplate';
@@ -21,20 +20,16 @@ import useClusters from '../contexts/Clusters';
 import { ContentWrapper, Title } from './Layout/ContentWrapper';
 import { Loader } from './Loader';
 
-const alertColor = ({
-  severity,
-  theme,
-}: {
-  severity: string;
-  theme: Theme;
-}) => {
+const WARNING_COLOR = 'hsl(46, 69%, 49%)';
+
+const alertColor = ({ severity }: { severity: string }) => {
   if (severity === 'warning') {
-    return theme.colors.yellow500;
+    return WARNING_COLOR;
   }
   if (severity === 'critical') {
-    return theme.colors.orange600;
+    return theme.colors.alert;
   }
-  return theme.colors.green500;
+  return theme.colors.success;
 };
 
 //

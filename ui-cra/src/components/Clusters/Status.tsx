@@ -4,7 +4,7 @@ import { ClusterStatus, PullRequest } from '../../types/kubernetes';
 import Box from '@material-ui/core/Box';
 import moment from 'moment';
 import { blinking } from '../../assets/effects/blinking';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { NameLink } from '../Shared';
 
 const StrikeThrough = styled.line`

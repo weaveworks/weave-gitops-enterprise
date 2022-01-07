@@ -1,18 +1,19 @@
 import { FC } from 'react';
 import styled, { css } from 'styled-components';
-import {
-  spacing,
-  fontSize,
-} from 'weaveworks-ui-components/lib/theme/selectors';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import useVersions from '../../contexts/Versions';
 import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 
+const xs = theme.spacing.xs;
+const small = theme.spacing.small;
+const medium = theme.spacing.medium;
+const large = theme.spacing.large;
+
 export const Title = styled.div`
-  font-size: ${fontSize('large')};
+  font-size: ${large}};
   font-weight: 600;
-  padding-bottom: ${spacing('medium')};
-  color: ${theme.colors.gray600};
+  padding-bottom: ${medium}};
+  color: ${theme.colors.neutral40};
 `;
 
 export const pageDimensionsCss = css`
@@ -24,15 +25,11 @@ export const PageWrapper = styled.div`
   margin: 0 auto;
 `;
 
-const small = spacing('small');
-const medium = spacing('medium');
-const large = spacing('large');
-
 export const contentCss = css`
   margin: ${medium} ${small} 0 ${small};
   padding: ${large} ${medium} ${medium} ${large};
   background-color: white;
-  border-radius: ${spacing('xs')};
+  border-radius: ${xs};
 `;
 
 export const Content = styled.div<{ backgroundColor?: string }>`
@@ -59,12 +56,10 @@ const WarningIconWrapper = styled(WarningIcon)`
 const HelpLinkWrapper = styled.div`
   ${contentCss};
   padding: ${small} ${medium};
-  // ex gray 600
-  color: ${({ theme }) => theme.colors.neutral20};
+  color: ${({ theme }) => theme.colors.neutral40};
   display: flex;
   justify-content: space-between;
   a {
-    // blue 600
     color: ${({ theme }) => theme.colors.primary};
   }
 `;
