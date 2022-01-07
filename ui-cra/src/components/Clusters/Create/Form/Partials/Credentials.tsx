@@ -4,7 +4,6 @@ import React, {
   useState,
   Dispatch,
   ChangeEvent,
-  ReactNode,
   useMemo,
 } from 'react';
 import useCredentials from './../../../../../contexts/Credentials';
@@ -26,12 +25,12 @@ const Credentials: FC<{
       ...credentials.map((credential: Credential, index: number) => {
         const { kind, namespace, name } = credential;
         return (
-          <MenuItem key={index} value={name || ''}>
+          <MenuItem key={name} value={name || ''}>
             {`${kind}/${namespace || 'default'}/${name}`}
           </MenuItem>
         );
       }),
-      <MenuItem value="None">
+      <MenuItem key="None" value="None">
         <em>None</em>
       </MenuItem>,
     ],
@@ -39,10 +38,7 @@ const Credentials: FC<{
   );
 
   const handleSelectCredentials = useCallback(
-    (
-      event: ChangeEvent<{ name?: string | undefined; value: unknown }>,
-      child: ReactNode,
-    ) => {
+    (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
       const credential = getCredential(event.target.value as string);
       setInfraCredential(credential);
       onSelect(credential);
@@ -56,7 +52,7 @@ const Credentials: FC<{
       <FormControl>
         <Select
           disabled={loading}
-          id="demo-simple-select-autowidth"
+          id="simple-select-autowidth"
           value={infraCredential?.name || 'None'}
           onChange={handleSelectCredentials}
           autoWidth

@@ -1,7 +1,6 @@
 import React, {
   ChangeEvent,
   FC,
-  FormEvent,
   useCallback,
   useEffect,
   useState,
@@ -17,6 +16,9 @@ import {
   DialogTitle,
   DialogActions,
   TextareaAutosize,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
@@ -24,7 +26,6 @@ import { OnClickAction } from '../../../../Action';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import Button from '@material-ui/core/Button';
 import { GitOpsBlue } from '../../../../../muiTheme';
-import { Dropdown } from 'weaveworks-ui-components';
 
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
@@ -57,9 +58,6 @@ const ListItemWrapper = styled.div`
       margin-right: ${xs};
     }
   }
-  & .dropdown-toggle {
-    border: 1px solid #e5e5e5;
-  }
 `;
 
 const ProfilesListItem: FC<{
@@ -72,17 +70,19 @@ const ProfilesListItem: FC<{
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
 
   const profileVersions = (profile: UpdatedProfile) => [
-    ...profile.values.map(value => {
+    ...profile.values.map((value, index) => {
       const { version } = value;
-      return {
-        label: version as string,
-        value: version as string,
-      };
+      return (
+        <MenuItem key={index} value={version}>
+          {version}
+        </MenuItem>
+      );
     }),
   ];
 
   const handleSelectVersion = useCallback(
-    (event: FormEvent<HTMLInputElement>, value: string) => {
+    (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
+      const value = event.target.value as string;
       setVersion(value);
 
       profile.values.forEach(item =>
@@ -138,12 +138,17 @@ const ProfilesListItem: FC<{
           <ListItemText className="profile-name">{profile.name}</ListItemText>
           <div className="profile-version">
             <span>Version</span>
-            <Dropdown
-              value={version}
-              items={profileVersions(profile)}
-              disabled={profile.required}
-              onChange={(event, value) => handleSelectVersion(event, value)}
-            />
+            <FormControl>
+              <Select
+                disabled={profile.required}
+                value={version}
+                onChange={handleSelectVersion}
+                autoWidth
+                label="Versions"
+              >
+                {profileVersions(profile)}
+              </Select>
+            </FormControl>
           </div>
           <Button className={classes.downloadBtn} onClick={handleYamlPreview}>
             Values.yaml
