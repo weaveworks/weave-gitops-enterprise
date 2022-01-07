@@ -17,7 +17,7 @@ import useTemplates from '../../contexts/Templates';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import { OnClickAction } from '../Action';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 
 interface Size {

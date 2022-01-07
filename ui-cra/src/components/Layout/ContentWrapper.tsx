@@ -59,37 +59,41 @@ const WarningIconWrapper = styled(WarningIcon)`
 const HelpLinkWrapper = styled.div`
   ${contentCss};
   padding: ${small} ${medium};
-  color: ${({ theme }) => theme.colors.gray600};
+  // ex gray 600
+  color: ${({ theme }) => theme.colors.neutral20};
   display: flex;
   justify-content: space-between;
   a {
-    color: ${({ theme }) => theme.colors.blue600};
+    // blue 600
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
-export const ContentWrapper: FC<{ type?: string; backgroundColor?: string }> =
-  ({ children, type, backgroundColor }) => {
-    const { versions, entitlement } = useVersions();
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        {entitlement && (
-          <EntitlementWrapper>
-            <WarningIconWrapper />
-            {entitlement}
-          </EntitlementWrapper>
-        )}
-        {type === 'WG' ? (
-          <WGContent>{children}</WGContent>
-        ) : (
-          <Content backgroundColor={backgroundColor}>{children}</Content>
-        )}
-        <HelpLinkWrapper>
-          <div>
-            Need help? Contact us at&nbsp;
-            <a href="mailto:support@weave.works">support@weave.works</a>
-          </div>
-          <div>Version {versions?.capiServer}</div>
-        </HelpLinkWrapper>
-      </div>
-    );
-  };
+export const ContentWrapper: FC<{
+  type?: string;
+  backgroundColor?: string;
+}> = ({ children, type, backgroundColor }) => {
+  const { versions, entitlement } = useVersions();
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      {entitlement && (
+        <EntitlementWrapper>
+          <WarningIconWrapper />
+          {entitlement}
+        </EntitlementWrapper>
+      )}
+      {type === 'WG' ? (
+        <WGContent>{children}</WGContent>
+      ) : (
+        <Content backgroundColor={backgroundColor}>{children}</Content>
+      )}
+      <HelpLinkWrapper>
+        <div>
+          Need help? Contact us at&nbsp;
+          <a href="mailto:support@weave.works">support@weave.works</a>
+        </div>
+        <div>Version {versions?.capiServer}</div>
+      </HelpLinkWrapper>
+    </div>
+  );
+};

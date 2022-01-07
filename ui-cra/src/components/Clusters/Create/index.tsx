@@ -7,7 +7,7 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useParams } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
@@ -113,8 +113,9 @@ const AddCluster: FC = () => {
   const history = useHistory();
   const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
   const [clickedStep, setClickedStep] = useState<string>('');
-  const [infraCredential, setInfraCredential] =
-    useState<Credential | null>(null);
+  const [infraCredential, setInfraCredential] = useState<Credential | null>(
+    null,
+  );
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
 

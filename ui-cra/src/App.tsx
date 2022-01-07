@@ -4,8 +4,7 @@ import { muiTheme } from './muiTheme';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import '@fortawesome/fontawesome-free/css/all.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
-import { Theme } from 'weaveworks-ui-components';
+import { theme } from '@weaveworks/weave-gitops';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import Background from './assets/img/background.svg';
@@ -42,7 +41,7 @@ const GlobalStyle = createGlobalStyle`
     background-color: #F5F5F5;
     background-position: right bottom;
     background-attachment:fixed;
-    color: ${theme.textColor};
+    color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
     /* Layout - grow to at least viewport height */
@@ -56,19 +55,10 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-const withWGColors = {
-  ...theme,
-  colors: {
-    ...theme.colors,
-    primary: theme.colors.blue600,
-    success: theme.colors.green500,
-  },
-};
-
 const App: FC = () => {
   return (
     <BrowserRouter basename={process.env.PUBLIC_URL}>
-      <ThemeProvider theme={withWGColors as Theme}>
+      <ThemeProvider theme={theme}>
         <MuiThemeProvider theme={muiTheme}>
           <GlobalStyle />
           <ResponsiveDrawer />
