@@ -1,4 +1,3 @@
-/* eslint-disable */
 import 'styled-components';
 export namespace colors {
   const black: string;
@@ -30,6 +29,18 @@ export namespace fontSizes {
   const normal: string;
   const small: string;
   const tiny: string;
+}
+
+export namespace BorderRadius {
+  const circle: string;
+  const none: string;
+  const soft: string;
+}
+
+export namespace BoxShadow {
+  const heavy: string;
+  const light: string;
+  const none: string;
 }
 
 declare module 'styled-components' {

@@ -9,11 +9,8 @@ const small = theme.spacing.small;
 const medium = theme.spacing.medium;
 const large = theme.spacing.large;
 
-export const Title = styled.div`
-  font-size: ${large}};
-  font-weight: 600;
-  padding-bottom: ${medium}};
-  color: ${theme.colors.neutral40};
+export const Title = styled.h2`
+  margin-top: 0px;
 `;
 
 export const pageDimensionsCss = css`
