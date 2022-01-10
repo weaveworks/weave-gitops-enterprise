@@ -1,6 +1,5 @@
-import React, { Dispatch, FC, useCallback, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useEffect, useState } from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
-import useProfiles from '../../../../../contexts/Profiles';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import { FormStep } from '../Step';
 import ProfilesList from './ProfilesList';
@@ -15,21 +14,18 @@ const Profiles: FC<{
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
-  profiles: any;
+  profiles: UpdatedProfile[];
   setProfiles: Dispatch<React.SetStateAction<any>>;
 }> = ({ activeStep, setActiveStep, clickedStep, profiles, setProfiles }) => {
-  const { updatedProfiles } = useProfiles();
   const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
     [],
   );
 
-  const handleSelectProfiles = useCallback(
-    (selectProfiles: UpdatedProfile[]) => setProfiles(selectProfiles),
-    [setProfiles],
-  );
+  const handleSelectProfiles = (selectProfiles: UpdatedProfile[]) =>
+    setSelectedProfiles(selectProfiles);
 
   useEffect(() => {
-    setSelectedProfiles(profiles);
+    setSelectedProfiles(profiles.filter(profile => profile.required));
   }, [profiles]);
 
   return (
@@ -40,12 +36,11 @@ const Profiles: FC<{
       clicked={clickedStep === 'Profiles'}
       setActiveStep={setActiveStep}
     >
-      {updatedProfiles.length > 0 ? (
+      {profiles.length > 0 ? (
         <ProfilesDropdown className="profiles-select">
           <span>Select profiles:&nbsp;</span>
-
           <MultiSelectDropdown
-            allItems={updatedProfiles}
+            allItems={profiles}
             preSelectedItems={selectedProfiles}
             onSelectItems={handleSelectProfiles}
           />

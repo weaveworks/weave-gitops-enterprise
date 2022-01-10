@@ -123,7 +123,7 @@ const AddCluster: FC = () => {
     pullRequestDescription: 'This PR creates a new cluster',
   };
 
-  let initialProfiles = updatedProfiles;
+  let initialProfiles = [] as UpdatedProfile[];
 
   let initialInfraCredential = {} as Credential;
 
@@ -268,13 +268,14 @@ const AddCluster: FC = () => {
 
   useEffect(() => {
     if (!callbackState) {
+      setProfiles(updatedProfiles);
       setFormData((prevState: any) => ({
         ...prevState,
         url: repositoryURL,
         branchName: `create-clusters-branch-${random}`,
       }));
     }
-  }, [callbackState, infraCredential, random, repositoryURL]);
+  }, [callbackState, infraCredential, random, repositoryURL, updatedProfiles]);
 
   return useMemo(() => {
     return (
