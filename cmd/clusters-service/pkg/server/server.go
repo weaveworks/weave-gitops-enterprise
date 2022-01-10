@@ -842,6 +842,7 @@ func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigReque
 	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
 
 	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
+}
 
 func getProfilesFromTemplate(annotations map[string]string) []*capiv1_proto.TemplateProfile {
 	profiles := []*capiv1_proto.TemplateProfile{}
