@@ -754,7 +754,7 @@ func RegisterClustersServiceHandlerFromEndpoint(ctx context.Context, mux *runtim
 
 // RegisterClustersServiceHandler registers the http handlers for service ClustersService to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterClustersServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+func RegisterClustersServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
 	return RegisterClustersServiceHandlerClient(ctx, mux, NewClustersServiceClient(conn))
 }
 
