@@ -4,9 +4,6 @@ go 1.17
 
 require (
 	github.com/fluxcd/go-git-providers v0.4.1-0.20211222124517-0e29201eb4ac
-	github.com/fluxcd/helm-controller/api v0.11.2
-	github.com/fluxcd/pkg/apis/meta v0.10.1
-	github.com/fluxcd/pkg/runtime v0.12.1
 	github.com/fluxcd/source-controller/api v0.15.4
 	github.com/go-logr/logr v1.1.0
 	github.com/go-logr/zapr v1.1.0
@@ -20,7 +17,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/weave-gitops v0.6.0-rc1
+	github.com/weaveworks/weave-gitops v0.6.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
 	github.com/xanzy/go-gitlab v0.51.1
@@ -32,9 +29,7 @@ require (
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gorm.io/gorm v1.21.11
-	helm.sh/helm/v3 v3.7.1
 	k8s.io/api v0.22.2
-	k8s.io/apiextensions-apiserver v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
 	k8s.io/klog/v2 v2.9.0
@@ -87,8 +82,11 @@ require (
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.9.0 // indirect
+	github.com/fluxcd/helm-controller/api v0.11.2 // indirect
 	github.com/fluxcd/kustomize-controller/api v0.16.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
+	github.com/fluxcd/pkg/apis/meta v0.10.1 // indirect
+	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
 	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
 	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
@@ -214,6 +212,8 @@ require (
 	gorm.io/datatypes v1.0.0 // indirect
 	gorm.io/driver/postgres v1.0.5 // indirect
 	gorm.io/driver/sqlite v1.1.4 // indirect
+	helm.sh/helm/v3 v3.7.1 // indirect
+	k8s.io/apiextensions-apiserver v0.22.2 // indirect
 	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/cli-runtime v0.22.1 // indirect
 	k8s.io/component-base v0.22.2 // indirect

@@ -18,13 +18,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
 	"gorm.io/gorm"
@@ -41,6 +34,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 const (
@@ -1380,50 +1381,6 @@ spec:
 status: {}
 `
 	assert.Equal(t, expected, *file.Content)
-}
-
-func TestGetProfiles(t *testing.T) {
-	testCases := []struct {
-		name             string
-		clusterState     []runtime.Object
-		expected         []*capiv1_protos.Profile
-		err              error
-		expectedErrorStr string
-	}{
-		{
-			name: "with helm repo",
-			clusterState: []runtime.Object{
-				makeTestHelmRepository("base"),
-			},
-			expected: []*capiv1_protos.Profile{},
-		},
-		{
-			name:     "without helm repo",
-			expected: []*capiv1_protos.Profile{},
-		},
-	}
-
-	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
-
-			getProfilesRequest := new(capiv1_protos.GetProfilesRequest)
-
-			getProfilesResponse, err := s.GetProfiles(context.Background(), getProfilesRequest)
-			if err != nil {
-				if tt.err == nil {
-					t.Fatalf("failed to get the profiles:\n%s", err)
-				}
-				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
-					t.Fatalf("failed to get the profiles:\n%s", diff)
-				}
-			} else {
-				if diff := cmp.Diff(tt.expected, getProfilesResponse.Profiles, protocmp.Transform()); diff != "" {
-					t.Fatalf("profiles didn't match expected:\n%s", diff)
-				}
-			}
-		})
-	}
 }
 
 func TestGetProfilesFromTemplate(t *testing.T) {
