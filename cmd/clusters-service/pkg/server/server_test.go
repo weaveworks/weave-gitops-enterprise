@@ -601,7 +601,7 @@ func TestGetConfig(t *testing.T) {
 			os.Setenv("CAPI_TEMPLATES_REPOSITORY_URL", tt.value)
 			defer os.Unsetenv("CAPI_TEMPLATES_REPOSITORY_URL")
 
-			s := createServer(nil, "", "", nil, nil, "")
+			s := createServer(t, nil, "", "", nil, nil, "", nil)
 
 			res, _ := s.GetConfig(context.Background(), &capiv1_proto.GetConfigRequest{})
 
