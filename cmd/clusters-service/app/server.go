@@ -15,12 +15,12 @@ import (
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	wego_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	wego_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
 	v1 "k8s.io/api/core/v1"
@@ -122,19 +122,18 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 
-	appsConfig, err := wego_server.DefaultApplicationsConfig()
+	appsConfig, err := core.DefaultApplicationsConfig()
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
-	helmRepoName := viper.GetString("profile-helm-repository")
-	helmRepoNamespace := os.Getenv("RUNTIME_NAMESPACE")
-	profilesConfig := wego_server.NewProfilesConfig(kubeClient, helmRepoNamespace, helmRepoName)
 	// Override logger to ensure consistency
 	appsConfig.Logger = log
 
 	// Setup the flux binary needed by some weave-gitops code endpoints like adding apps
 	flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
 
+	helmRepoName := viper.GetString("profile-helm-repository")
+	helmRepoNamespace := os.Getenv("RUNTIME_NAMESPACE")
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithDatabase(db),
@@ -147,7 +146,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 		}),
 		WithApplicationsConfig(appsConfig),
-		WithProfilesConfig(profilesConfig),
+		WithProfilesConfig(core.NewProfilesConfig(kubeClient, helmRepoNamespace, helmRepoName)),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -191,7 +190,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
-	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(
+	clusterServer := server.NewClusterServer(
 		args.Log,
 		args.TemplateLibrary,
 		args.GitProvider,
@@ -201,21 +200,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.CAPIClustersNamespace,
 		args.ProfileHelmRepository,
 		args.HelmRepositoryCacheDirectory,
-	)); err != nil {
+	)
+	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, clusterServer); err != nil {
 		return fmt.Errorf("failed to register clusters service handler server: %w", err)
 	}
 
 	//Add weave-gitops core handlers
-	wegoApplicationServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
-	if err := wego_app_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoApplicationServer); err != nil {
+	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig)
+	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 
-	wegoProfilesServer, err := wego_server.NewProfilesServer(args.ProfilesConfig)
+	wegoProfilesServer, err := core.NewProfilesServer(args.ProfilesConfig)
 	if err != nil {
 		return fmt.Errorf("failed to get profiles server: %w", err)
 	}
-	if err := wego_profiles_proto.RegisterProfilesHandlerServer(ctx, mux, wegoProfilesServer); err != nil {
+	if err := core_profiles_proto.RegisterProfilesHandlerServer(ctx, mux, wegoProfilesServer); err != nil {
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
