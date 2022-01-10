@@ -517,7 +517,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			FIt("@integration Verify pull request can not be created by using exiting repository branch", func() {
+			It("@integration Verify pull request can not be created by using exiting repository branch", func() {
 
 				defer gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
 				defer func() {
@@ -776,7 +776,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			FIt("@integration Verify user can not use wrong credentials for infrastructure provider", func() {
+			It("@integration Verify user can not use wrong credentials for infrastructure provider", func() {
 				defer gitopsTestRunner.DeleteIPCredentials("AWS")
 
 				By("Apply/Install CAPITemplates", func() {
