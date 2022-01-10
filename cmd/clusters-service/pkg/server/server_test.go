@@ -603,7 +603,7 @@ func TestGetConfig(t *testing.T) {
 
 			s := createServer(t, nil, "", "", nil, nil, "", nil)
 
-			res, _ := s.GetConfig(context.Background(), &capiv1_proto.GetConfigRequest{})
+			res, _ := s.GetConfig(context.Background(), &capiv1_protos.GetConfigRequest{})
 
 			if diff := cmp.Diff(tt.value, res.RepositoryURL, protocmp.Transform()); diff != "" {
 				t.Fatalf("repository URL didn't match expected:\n%s", diff)
