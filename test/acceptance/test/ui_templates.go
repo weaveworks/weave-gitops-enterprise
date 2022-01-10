@@ -1016,12 +1016,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And verify default observability profile values.yaml", func() {
 					profile := pages.GetProfile(webDriver, "observability")
-					Eventually(profile.Values.Click()).Should(Succeed())
+					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text()).Should(MatchRegexp("observability"))
-					Eventually(valuesYaml.TextArea.Text()).Should(MatchRegexp("kube-prometheus-stack:"))
-					Eventually(valuesYaml.Cancel.Click()).Should(Succeed())
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("observability"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("kube-prometheus-stack:"))
+					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
 				By("And press the Preview PR button", func() {
