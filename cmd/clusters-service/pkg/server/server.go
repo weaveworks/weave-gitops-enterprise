@@ -17,16 +17,6 @@ import (
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -40,6 +30,17 @@ import (
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 var providers = map[string]string{
@@ -562,89 +563,6 @@ func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
 func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.GetEnterpriseVersionRequest) (*capiv1_proto.GetEnterpriseVersionResponse, error) {
 	return &capiv1_proto.GetEnterpriseVersionResponse{
 		Version: version.Version,
-	}, nil
-}
-
-func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesRequest) (*capiv1_proto.GetProfilesResponse, error) {
-	// Look for helm repository object in the current namespace
-	namespace := os.Getenv("RUNTIME_NAMESPACE")
-	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.client.Get(ctx, client.ObjectKey{
-		Name:      s.profileHelmRepositoryName,
-		Namespace: namespace,
-	}, helmRepo)
-	if err != nil {
-		s.log.Error(err, "cannot find Helm repository")
-		return &capiv1_proto.GetProfilesResponse{
-			Profiles: []*capiv1_proto.Profile{},
-		}, nil
-	}
-
-	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
-	if err != nil {
-		return nil, fmt.Errorf("cannot scan for profiles: %w", err)
-	}
-
-	return &capiv1_proto.GetProfilesResponse{
-		Profiles: ps,
-	}, nil
-}
-
-func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProfileValuesRequest) (*httpbody.HttpBody, error) {
-	namespace := os.Getenv("RUNTIME_NAMESPACE")
-	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.client.Get(ctx, client.ObjectKey{
-		Name:      s.profileHelmRepositoryName,
-		Namespace: namespace,
-	}, helmRepo)
-	if err != nil {
-		s.log.Error(err, "cannot find Helm repository")
-		return &httpbody.HttpBody{
-			ContentType: "application/json",
-			Data:        []byte{},
-		}, nil
-	}
-
-	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
-	if err := cc.UpdateCache(ctx); err != nil {
-		return nil, fmt.Errorf("failed to update Helm cache: %w", err)
-	}
-	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
-		APIVersion: helmRepo.TypeMeta.APIVersion,
-		Kind:       helmRepo.TypeMeta.Kind,
-		Name:       helmRepo.ObjectMeta.Name,
-		Namespace:  helmRepo.ObjectMeta.Namespace,
-	}
-	ref := &charts.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
-	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
-	if err != nil {
-		return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
-	}
-
-	var acceptHeader string
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if accept, ok := md["accept"]; ok {
-			acceptHeader = strings.Join(accept, ",")
-		}
-	}
-
-	if strings.Contains(acceptHeader, "application/octet-stream") {
-		return &httpbody.HttpBody{
-			ContentType: "application/octet-stream",
-			Data:        bs,
-		}, nil
-	}
-
-	res, err := json.Marshal(&capiv1_proto.GetProfileValuesResponse{
-		Values: base64.StdEncoding.EncodeToString(bs),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal response to JSON: %w", err)
-	}
-
-	return &httpbody.HttpBody{
-		ContentType: "application/json",
-		Data:        res,
 	}, nil
 }
 

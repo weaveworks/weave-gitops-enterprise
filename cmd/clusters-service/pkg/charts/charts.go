@@ -9,11 +9,12 @@ import (
 	"sort"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/repo"
 	"sigs.k8s.io/yaml"
+
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
 // ProfileAnnotation is the annotation that Helm charts must have to indicate

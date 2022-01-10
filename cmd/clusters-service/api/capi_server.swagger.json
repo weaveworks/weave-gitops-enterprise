@@ -81,7 +81,7 @@
     },
     "/v1/clusters/{clusterName}/kubeconfig": {
       "get": {
-        "summary": "GetKubeconfig returns the Kubeconfig for the given \nworkload cluster.",
+        "summary": "GetKubeconfig returns the Kubeconfig for the given\nworkload cluster.",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -173,66 +173,6 @@
             }
           }
         },
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/profiles": {
-      "get": {
-        "summary": "GetProfiles returns a list of profiles\nfrom the cluster.",
-        "operationId": "ClustersService_GetProfiles",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetProfilesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/profiles/{profileName}/{profileVersion}/values": {
-      "get": {
-        "summary": "GetProfileValues returns a list of values for \na given version of a profile from the cluster.",
-        "operationId": "ClustersService_GetProfileValues",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiHttpBody"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "profileName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "profileVersion",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
         "tags": [
           "ClustersService"
         ]
@@ -607,33 +547,11 @@
         }
       }
     },
-    "v1GetProfilesResponse": {
-      "type": "object",
-      "properties": {
-        "profiles": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Profile"
-          }
-        }
-      }
-    },
     "v1GetTemplateResponse": {
       "type": "object",
       "properties": {
         "template": {
           "$ref": "#/definitions/v1Template"
-        }
-      }
-    },
-    "v1HelmRepository": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
         }
       }
     },
@@ -701,20 +619,6 @@
         }
       }
     },
-    "v1Maintainer": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        }
-      }
-    },
     "v1Parameter": {
       "type": "object",
       "properties": {
@@ -728,59 +632,6 @@
           "type": "boolean"
         },
         "options": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v1Profile": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "home": {
-          "type": "string"
-        },
-        "sources": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "description": {
-          "type": "string"
-        },
-        "keywords": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "maintainers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Maintainer"
-          }
-        },
-        "icon": {
-          "type": "string"
-        },
-        "annotations": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "kubeVersion": {
-          "type": "string"
-        },
-        "helmRepository": {
-          "$ref": "#/definitions/v1HelmRepository"
-        },
-        "availableVersions": {
           "type": "array",
           "items": {
             "type": "string"
