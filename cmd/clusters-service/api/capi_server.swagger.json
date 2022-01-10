@@ -328,6 +328,37 @@
         ]
       }
     },
+    "/v1/templates/{templateName}/profiles": {
+      "get": {
+        "summary": "Returns a list of profiles within that template\n`gitops get \u003ctemplate-name\u003e --list-profiles`\nThe template annotations appear in the following form\ncapi.weave.works/profile-\u003cn\u003e where n is a number",
+        "operationId": "ClustersService_ListTemplateProfiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplateProfilesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates/{templateName}/render": {
       "post": {
         "operationId": "ClustersService_RenderTemplate",
@@ -638,6 +669,23 @@
         }
       }
     },
+    "v1ListTemplateProfilesResponse": {
+      "type": "object",
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TemplateProfile"
+          }
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TemplateObject"
+          }
+        }
+      }
+    },
     "v1ListTemplatesResponse": {
       "type": "object",
       "properties": {
@@ -819,6 +867,17 @@
           "type": "string"
         },
         "displayName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TemplateProfile": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
           "type": "string"
         }
       }

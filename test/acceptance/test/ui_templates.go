@@ -1123,7 +1123,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						pullRequest = gitopsTestRunner.ListPullRequest(repoAbsolutePath)
 						return pullRequest
 					}
-					Eventually(pr).Should(HaveLen(3))
+					Eventually(pr).Should(ContainElements([]string{"Deletes capi cluster(s)"}))
 
 					deletePRbranch = pullRequest[1]
 					deletePRUrl = strings.TrimSuffix(pullRequest[2], "\n")
