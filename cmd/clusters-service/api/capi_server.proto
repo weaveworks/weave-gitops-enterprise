@@ -24,6 +24,16 @@ service ClustersService {
       get : "/v1/templates/{template_name}/params"
     };
   }
+  // Returns a list of profiles within that template
+  // `gitops get <template-name> --list-profiles`
+  // The template annotations appear in the following form
+  // capi.weave.works/profile-<n> where n is a number
+  rpc ListTemplateProfiles(ListTemplateProfilesRequest)
+      returns (ListTemplateProfilesResponse) {
+    option (google.api.http) = {
+      get : "/v1/templates/{template_name}/profiles"
+    };
+  }
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (google.api.http) = {
       post : "/v1/templates/{template_name}/render"
@@ -54,7 +64,7 @@ service ClustersService {
       get : "/v1/credentials"
     };
   }
-  // GetKubeconfig returns the Kubeconfig for the given 
+  // GetKubeconfig returns the Kubeconfig for the given
   // workload cluster.
   rpc GetKubeconfig(GetKubeconfigRequest)
     returns (google.api.HttpBody) {
@@ -69,20 +79,10 @@ service ClustersService {
         get: "/v1/enterprise/version"
     };
   }
-  // GetProfiles returns a list of profiles
-  // from the cluster.
-  rpc GetProfiles(GetProfilesRequest)
-    returns (GetProfilesResponse){
-      option (google.api.http) = {
-        get: "/v1/profiles"
-      };
-    }
-  // GetProfileValues returns a list of values for 
-  // a given version of a profile from the cluster.
-  rpc GetProfileValues(GetProfileValuesRequest)
-  returns (google.api.HttpBody){
+
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
     option (google.api.http) = {
-      get: "/v1/profiles/{profile_name}/{profile_version}/values"
+      get : "/v1/config"
     };
   }
 }
@@ -99,6 +99,12 @@ message GetTemplateResponse { Template template = 1; }
 message ListTemplateParamsRequest { string template_name = 1; }
 message ListTemplateParamsResponse {
   repeated Parameter parameters = 1;
+  repeated TemplateObject objects = 2;
+}
+
+message ListTemplateProfilesRequest { string template_name = 1; }
+message ListTemplateProfilesResponse {
+  repeated TemplateProfile profiles = 1;
   repeated TemplateObject objects = 2;
 }
 
@@ -188,7 +194,7 @@ message Template {
   string provider = 3;
   repeated Parameter parameters = 4;
   repeated TemplateObject objects = 5;
-  string error = 6; 
+  string error = 6;
   map<string, string> annotations = 7;
 }
 
@@ -197,6 +203,11 @@ message Parameter {
   string description = 2;
   bool required = 3;
   repeated string options = 4;
+}
+
+message TemplateProfile {
+  string name = 1;
+  string version = 2;
 }
 
 message TemplateObject {
@@ -240,25 +251,16 @@ message Profile {
   repeated string available_versions = 11;
 }
 
-message GetProfilesRequest {
-}
-
-message GetProfilesResponse {
-  repeated Profile profiles = 1;
-}
-
-message GetProfileValuesRequest {
-  string profile_name = 1;
-  string profile_version = 2;
-}
-message GetProfileValuesResponse{
-  // The base64 encoded values file of the profile.
-  string values = 1;
-}
-
 message ProfileValues {
   string name = 1;
   string version = 2;
   string values = 3;
   string layer = 4;
 }
+ 
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  string repositoryURL = 1;
+}
+

@@ -2,7 +2,11 @@ import React, { FC, Dispatch } from 'react';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
-import { FormStep } from '../Step';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
+import DialogContent from '@material-ui/core/DialogContent';
+import Typography from '@material-ui/core/Typography';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -17,29 +21,38 @@ const useStyles = makeStyles(() =>
 );
 
 const Preview: FC<{
+  openPreview: boolean;
+  setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
   PRPreview: string;
-}> = ({ activeStep, setActiveStep, clickedStep, PRPreview }) => {
+}> = ({ PRPreview, openPreview, setOpenPreview }) => {
   const classes = useStyles();
 
   return (
-    <FormStep
-      title="Preview"
-      active={activeStep === 'Preview'}
-      clicked={clickedStep === 'Preview'}
-      setActiveStep={setActiveStep}
+    <Dialog
+      open={openPreview}
+      maxWidth="md"
+      fullWidth
+      scroll="paper"
+      onClose={() => setOpenPreview(false)}
     >
-      <TextareaAutosize
-        className={classes.textarea}
-        value={PRPreview}
-        readOnly
-      />
-      <span>
-        You may edit these as part of the pull request with your git provider.
-      </span>
-    </FormStep>
+      <DialogTitle disableTypography>
+        <Typography variant="h5">PR Preview</Typography>
+        <CloseIconButton onClick={() => setOpenPreview(false)} />
+      </DialogTitle>
+      <DialogContent>
+        <TextareaAutosize
+          className={classes.textarea}
+          value={PRPreview}
+          readOnly
+        />
+        <span>
+          You may edit these as part of the pull request with your git provider.
+        </span>
+      </DialogContent>
+    </Dialog>
   );
 };
 

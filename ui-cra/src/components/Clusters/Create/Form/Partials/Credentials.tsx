@@ -1,21 +1,13 @@
-import React, {
-  FC,
-  FormEvent,
-  useCallback,
-  useMemo,
-  useState,
-  Dispatch,
-} from 'react';
+import React, { FC, FormEvent, useCallback, useMemo, Dispatch } from 'react';
 import useCredentials from './../../../../../contexts/Credentials';
 import { Credential } from '../../../../../types/custom';
 import { Dropdown, DropdownItem } from 'weaveworks-ui-components';
 
 const Credentials: FC<{
-  onSelect: Dispatch<React.SetStateAction<Credential | null>>;
-}> = ({ onSelect }) => {
+  infraCredential: Credential;
+  setInfraCredential: Dispatch<React.SetStateAction<Credential>>;
+}> = ({ infraCredential, setInfraCredential }) => {
   const { credentials, loading, getCredential } = useCredentials();
-  const [infraCredential, setInfraCredential] =
-    useState<Credential | null>(null);
 
   const credentialsItems: DropdownItem[] = useMemo(
     () => [
@@ -33,11 +25,10 @@ const Credentials: FC<{
 
   const handleSelectCredentials = useCallback(
     (event: FormEvent<HTMLInputElement>, value: string) => {
-      const credential = getCredential(value);
+      const credential = getCredential(value) || {};
       setInfraCredential(credential);
-      onSelect(credential);
     },
-    [getCredential, onSelect],
+    [getCredential, setInfraCredential],
   );
 
   return (

@@ -8,9 +8,8 @@ const ProfilesList: FC<{
   selectedProfiles: UpdatedProfile[];
   onProfilesUpdate: (profiles: UpdatedProfile[]) => void;
 }> = ({ selectedProfiles, onProfilesUpdate }) => {
-  const [enrichedProfiles, setEnrichedProfiles] = useState<UpdatedProfile[]>(
-    [],
-  );
+  const [enrichedProfiles, setEnrichedProfiles] =
+    useState<UpdatedProfile[]>(selectedProfiles);
 
   const handleUpdateProfile = useCallback(
     profile => {
@@ -29,8 +28,8 @@ const ProfilesList: FC<{
 
   return (
     <Box display="flex">
-      <List>
-        {enrichedProfiles.map((profile, index) => (
+      <List className="profiles-list">
+        {enrichedProfiles?.map((profile, index) => (
           <ProfileListItem
             key={index}
             profile={profile}
