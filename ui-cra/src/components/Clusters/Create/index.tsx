@@ -143,7 +143,7 @@ const AddCluster: FC = () => {
 
   const [formData, setFormData] = useState<any>(initialFormData);
   const [profiles, setProfiles] = useState<UpdatedProfile[]>(initialProfiles);
-  const [infraCredential, setInfraCredential] = useState<Credential>(
+  const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
   );
   const [steps, setSteps] = useState<string[]>([]);

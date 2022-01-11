@@ -6,7 +6,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
 const Credentials: FC<{
-  infraCredential: Credential;
+  infraCredential: Credential | null;
   setInfraCredential: Dispatch<React.SetStateAction<Credential | null>>;
 }> = ({ infraCredential, setInfraCredential }) => {
   const { credentials, loading, getCredential } = useCredentials();
