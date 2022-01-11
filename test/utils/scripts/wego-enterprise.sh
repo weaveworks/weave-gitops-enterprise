@@ -33,14 +33,14 @@ function setup {
       gcloud compute firewall-rules create nats-node-port --allow tcp:${NATS_NODEPORT}
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
     fi
-  else
+  elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
   # MANAGEMENT_CLUSTER_KIND is a KIND cluster
     if [ "$(uname -s)" == "Linux" ]; then
       WORKER_NODE_EXTERNAL_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
     elif [ "$(uname -s)" == "Darwin" ]; then
       WORKER_NODE_EXTERNAL_IP=$(ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
     fi
-  fi   
+  fi
 
   # Sets the UI and CAPI endpoint URL environment variables for acceptance tests
   echo "TEST_UI_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
@@ -59,7 +59,7 @@ function setup {
   kubectl create secret generic git-provider-credentials \
     --namespace=wego-system \
     --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
-  CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
+  CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
 
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
@@ -110,6 +110,8 @@ function setup {
   if [ "$MANAGEMENT_CLUSTER_KIND" == "EKS" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "GKE" ]; then
     echo "Capi infrastructure provider support is not implemented"
   else
+    # enable cluster resource sets
+    export EXP_CLUSTER_RESOURCE_SET=true
     clusterctl init --infrastructure docker
   fi
 
