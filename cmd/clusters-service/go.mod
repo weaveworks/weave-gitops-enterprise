@@ -228,6 +228,6 @@ require (
 
 replace github.com/weaveworks/weave-gitops-enterprise/common => ../../common
 
-replace github.com/go-logr/logr v1.1.0 => github.com/go-logr/logr v0.4.0
+replace github.com/go-logr/logr v1.2.2 => github.com/go-logr/logr v0.4.0
 
-replace github.com/go-logr/zapr v1.1.0 => github.com/go-logr/zapr v0.4.0
+replace github.com/go-logr/zapr v1.2.2 => github.com/go-logr/zapr v0.4.0

@@ -299,6 +299,6 @@ replace (
 	k8s.io/sample-controller => k8s.io/sample-controller v0.21.1
 )
 
-replace github.com/go-logr/logr v1.1.0 => github.com/go-logr/logr v0.4.0
+replace github.com/go-logr/logr v1.2.2 => github.com/go-logr/logr v0.4.0
 
-replace github.com/go-logr/zapr v1.1.0 => github.com/go-logr/zapr v0.4.0
+replace github.com/go-logr/zapr v1.2.2 => github.com/go-logr/zapr v0.4.0
