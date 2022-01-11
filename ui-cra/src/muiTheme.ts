@@ -1,11 +1,12 @@
-import { Theme } from '@material-ui/core';
 import { createTheme } from '@material-ui/core/styles';
+import { muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
 
 const boxShadow = '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)';
 
 const defaultTheme = createTheme();
 
 export const muiTheme = createTheme({
+  ...coreMuiTheme,
   overrides: {
     MuiButton: {
       contained: {
@@ -100,74 +101,15 @@ export const muiTheme = createTheme({
       },
     },
   },
-  palette: {
-    primary: {
-      '50': '#00A7CC',
-      '100': '#00A7CC',
-      '200': '#00A7CC',
-      '300': '#00A7CC',
-      '400': '#00A7CC',
-      '500': '#00A7CC',
-      '600': '#00A7CC',
-      '700': '#00A7CC',
-      '800': '#00A7CC',
-      '900': '#00A7CC',
-      A100: '#00A7CC',
-      A200: '#00A7CC',
-      A400: '#00A7CC',
-      A700: '#00A7CC',
-    },
-  },
+  // palette: {
+  //   primary: {
+  //     '500': '#00A7CC',
+  //   },
+  // },
   shape: {
     borderRadius: 2,
   },
-  typography: {
-    fontFamily: ['proxima-nova', 'Helvetica', 'Arial', 'sans-serif'].join(', '),
-  },
-});
-
-export const popperArrow = (theme: Theme) => ({
-  '&[x-placement*="bottom"] $arrow': {
-    '&::before': {
-      borderColor: `transparent transparent ${theme.palette.background.paper} transparent`,
-      borderWidth: '0 1em 1em 1em',
-    },
-    height: '1em',
-    left: 0,
-    marginTop: '-0.9em',
-    top: 0,
-    width: '3em',
-  },
-  '&[x-placement*="left"] $arrow': {
-    '&::before': {
-      borderColor: `transparent transparent transparent ${theme.palette.background.paper}`,
-      borderWidth: '1em 0 1em 1em',
-    },
-    height: '3em',
-    marginRight: '-0.9em',
-    right: 0,
-    width: '1em',
-  },
-  '&[x-placement*="right"] $arrow': {
-    '&::before': {
-      borderColor: `transparent ${theme.palette.background.paper} transparent transparent`,
-      borderWidth: '1em 1em 1em 0',
-    },
-    height: '3em',
-    left: 0,
-    marginLeft: '-0.9em',
-    width: '1em',
-  },
-  '&[x-placement*="top"] $arrow': {
-    '&::before': {
-      borderColor: `${theme.palette.background.paper} transparent transparent transparent`,
-      borderWidth: '1em 1em 0 1em',
-    },
-    bottom: 0,
-    height: '1em',
-    left: 0,
-    marginBottom: '-0.9em',
-    width: '3em',
-  },
-  zIndex: 1,
+  // typography: {
+  //   fontFamily: ['proxima-nova', 'Helvetica', 'Arial', 'sans-serif'].join(', '),
+  // },
 });

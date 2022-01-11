@@ -1,14 +1,15 @@
 import React, { FC } from 'react';
-import { IconButton, IconButtonProps, Theme } from '@material-ui/core';
+import { IconButton, IconButtonProps } from '@material-ui/core';
 import { withStyles } from '@material-ui/styles';
 import { Close } from '@material-ui/icons';
+import { theme } from '@weaveworks/weave-gitops';
 
-const StyledIconButton = withStyles((theme: Theme) => ({
+const StyledIconButton = withStyles(() => ({
   root: {
     position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
+    right: theme.spacing.xs,
+    top: theme.spacing.xs,
+    color: theme.colors.neutral20,
   },
 }))(IconButton);
 

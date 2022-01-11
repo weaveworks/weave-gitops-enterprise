@@ -11,8 +11,7 @@ import React, {
 } from 'react';
 import Divider from '@material-ui/core/Divider';
 import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
-import { Button } from 'weaveworks-ui-components';
+import { theme, Button } from '@weaveworks/weave-gitops';
 import { ChildrenOccurences } from '../../../../types/custom';
 
 const Section = styled.div`
@@ -41,12 +40,12 @@ const Content = styled.div`
     margin-right: ${theme.spacing.large};
     .step-child-btn {
       align-self: flex-end;
-      height: 40px;
+      height: 38px;
       overflow: hidden;
-    }
-    span {
-      color: ${theme.colors.primary};
-      font-weight: 600;
+      span {
+        color: ${theme.colors.primary};
+        font-weight: 600;
+      }
     }
   }
   @media (max-width: 768px) {
@@ -171,7 +170,7 @@ export const FormStep: FC<{
                     onClick={() => handleClick(child.props.name)}
                   >
                     {childOccurences?.groupVisible ? 'Hide' : 'Show'}&nbsp;
-                    <span>{childOccurences.count}</span> populated fields
+                    <span>{childOccurences.count}</span>&nbsp;populated fields
                   </Button>
                 ) : null}
               </div>

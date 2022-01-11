@@ -35,8 +35,14 @@ export const Content = styled.div<{ backgroundColor?: string }>`
 `;
 
 export const WGContent = styled.div`
-  ${contentCss};
-  padding: 0 ${medium} ${medium} 0;
+  border-radius: ${xs};
+  div[class*='Page__Content'] {
+    max-width: none;
+    width: auto;
+    padding-top: 0;
+    padding-bottom: ${medium};
+    margin: ${medium} ${small} ${small} ${small};
+  }
 `;
 
 const EntitlementWrapper = styled.div`
@@ -67,7 +73,13 @@ export const ContentWrapper: FC<{
 }> = ({ children, type, backgroundColor }) => {
   const { versions, entitlement } = useVersions();
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+      }}
+    >
       {entitlement && (
         <EntitlementWrapper>
           <WarningIconWrapper />

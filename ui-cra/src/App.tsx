@@ -69,3 +69,6 @@ const App: FC = () => {
 };
 
 export default App;
+
+// <MuiThemeProvider theme={muiTheme}>
+// <ThemeProvider theme={theme}>

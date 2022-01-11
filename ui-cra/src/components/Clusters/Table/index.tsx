@@ -8,7 +8,6 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Theme,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC, useEffect } from 'react';
@@ -30,10 +29,10 @@ const localMuiTheme = createTheme({
   shadows: Array(25).fill('none') as Shadows,
 });
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     nameHeaderCell: {
-      paddingLeft: theme.spacing(4),
+      paddingLeft: weaveTheme.spacing.medium,
     },
     paper: {
       marginBottom: 10,
@@ -51,7 +50,7 @@ const useStyles = makeStyles((theme: Theme) =>
       whiteSpace: 'nowrap',
     },
     tableHead: {
-      borderBottom: '1px solid #d8d8d8',
+      borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
     },
     noMaxWidth: {
       maxWidth: 'none',
