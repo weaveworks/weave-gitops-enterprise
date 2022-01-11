@@ -33,10 +33,14 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) boo
 			TakeScreenShot("github_authentication")
 
 			activate := pages.ActivateDeviceGithub(webDriver)
-			Eventually(activate.Username).Should(BeVisible())
-			Expect(activate.Username.SendKeys(GITHUB_USER)).To(Succeed())
-			Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
-			Expect(activate.Signin.Click()).To(Succeed())
+
+			if pages.ElementExist(activate.Username) {
+				TakeScreenShot("login_skipped")
+				Eventually(activate.Username).Should(BeVisible())
+				Expect(activate.Username.SendKeys(GITHUB_USER)).To(Succeed())
+				Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
+				Expect(activate.Signin.Click()).To(Succeed())
+			}
 
 			Eventually(activate.AuthCode).Should(BeVisible())
 			// Generate 6 digit authentication OTP for MFA
