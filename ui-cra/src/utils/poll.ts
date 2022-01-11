@@ -58,7 +58,7 @@ export class Poll<ResponsesById> extends PureComponent<
     return new Promise<ResponsesById>((resolve, reject) => {
       // Make requests for all the queries at the same time.
       Promise.all(
-        requestInfo.map(query => request('GET', query, requestOptions)),
+        requestInfo.map((query: any) => request('GET', query, requestOptions)),
       )
         .then(responses => {
           // If any the queries responds with an error, reject the whole promise ...

@@ -8,6 +8,7 @@ export interface VersionData {
 type VersionsContext = {
   versions: VersionData | null;
   entitlement: string | null;
+  repositoryURL: string;
 };
 
 export const Versions = createContext<VersionsContext | null>(null);

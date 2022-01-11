@@ -388,19 +388,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-					preview := pages.GetPreview(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
-
-					Eventually(preview.PreviewLabel).Should(BeFound())
-					pages.ScrollWindow(webDriver, 0, 500)
-
-					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
-					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
-					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: default\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: %[4]v`, clusterName, region, sshKey, k8Version))))
-					Eventually(preview.PreviewText).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-fargate-0`, clusterName))))
-				})
+				//check PR Preview
 			})
 		})
 
@@ -478,9 +466,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("And press the Preview PR button", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-				})
+				//check PR Preview
 
 				//Pull request values
 				prBranch := "feature-capd"
@@ -489,7 +475,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
 					pages.ScrollWindow(webDriver, 0, 4000)
@@ -500,6 +485,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+
+					AuthenticateWithGitProvider(webDriver, "github")
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
@@ -604,9 +591,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("And press the Preview PR button", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-				})
+				//check PR Preview
 
 				//Pull request values
 				prTitle := "My first pull request"
@@ -614,7 +599,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				gitops := pages.GetGitOps(webDriver)
 				By("And set GitOps values for pull request", func() {
-					pages.WaitForDynamicSecToAppear(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
 					pages.ScrollWindow(webDriver, 0, 4000)
@@ -625,6 +609,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+
+					AuthenticateWithGitProvider(webDriver, "github")
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
@@ -784,16 +770,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("Then I should see PR preview containing identity reference added in the template", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-					preview := pages.GetPreview(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
-
-					Eventually(preview.PreviewLabel).Should(BeFound())
-					pages.ScrollWindow(webDriver, 0, 500)
-
-					Eventually(preview.PreviewText).Should(MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
-				})
+				//check PR Preview
 
 			})
 		})
@@ -894,16 +871,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				By("Then I should see PR preview without identity reference added to the template", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-					preview := pages.GetPreview(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
-
-					Eventually(preview.PreviewLabel).Should(BeFound())
-					pages.ScrollWindow(webDriver, 0, 500)
-
-					Eventually(preview.PreviewText).ShouldNot(MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
-				})
+				//check PR Preview
 
 			})
 		})
@@ -1024,6 +992,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
+				//check PR Preview
+
 				By("And select the podinfo profile to install", func() {
 					Expect(createPage.ProfileSelect.Click()).To(Succeed())
 					Expect(createPage.SelectProfile("podinfo").Click()).To(Succeed())
@@ -1033,31 +1003,28 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And verify selected podinfo profile values.yaml", func() {
 					profile := pages.GetProfile(webDriver, "podinfo")
 
-					Expect(profile.Version.Click()).To(Succeed())
-					Expect(pages.GetOption(webDriver, "profile", "6.0.0").Click()).To(Succeed())
+					Eventually(profile.Version.Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "profile", "6.0.0").Click).Should(Succeed())
 
-					Expect(profile.Values.Click()).To(Succeed())
+					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Expect(valuesYaml.Title.Text()).Should(MatchRegexp("podinfo"))
-					Expect(valuesYaml.TextArea.Text()).Should(MatchRegexp("tag: 6.0.0"))
-					Expect(valuesYaml.Cancel.Click()).To(Succeed())
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
+					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
 				By("And verify default observability profile values.yaml", func() {
 					profile := pages.GetProfile(webDriver, "observability")
-
-					Expect(profile.Values.Click()).To(Succeed())
+					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Expect(valuesYaml.Title.Text()).Should(MatchRegexp("observability"))
-					Expect(valuesYaml.TextArea.Text()).Should(MatchRegexp("kube-prometheus-stack:"))
-					Expect(valuesYaml.Cancel.Click()).To(Succeed())
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("observability"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("kube-prometheus-stack:"))
+					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
-				By("And press the Preview PR button", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-				})
+				// check PR Preview
 
 				// Pull request values
 				prBranch := "ui-end-end-branch"
@@ -1066,7 +1033,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
-					pages.WaitForDynamicSecToAppear(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
 					pages.ScrollWindow(webDriver, 0, 4000)
@@ -1077,6 +1043,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+
+					AuthenticateWithGitProvider(webDriver, "github")
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})

@@ -7,6 +7,7 @@ export interface DeleteClusterPRRequest {
   title: string;
   commitMessage: string;
   description: string;
+  repositoryUrl?: string;
 }
 interface ClustersContext {
   clusters: Cluster[] | [];
