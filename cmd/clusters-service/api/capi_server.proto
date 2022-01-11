@@ -79,6 +79,12 @@ service ClustersService {
         get: "/v1/enterprise/version"
     };
   }
+
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
+    option (google.api.http) = {
+      get : "/v1/config"
+    };
+  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -251,3 +257,10 @@ message ProfileValues {
   string values = 3;
   string layer = 4;
 }
+ 
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  string repositoryURL = 1;
+}
+

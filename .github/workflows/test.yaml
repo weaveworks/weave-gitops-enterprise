@@ -230,6 +230,7 @@ jobs:
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       EXP_CLUSTER_RESOURCE_SET: true
+      TOTP_TOKEN: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       GITOPS_BIN_PATH: /tmp/gitops
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
@@ -278,6 +279,11 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "test-user"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    - name: Download totp-cli from GH
+      run: |
+        wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-linux-amd64.tar.gz
+        tar -xf totp-cli-v1.1.17-linux-amd64.tar.gz
+        mv ./totp-cli /usr/local/bin
     - name: Get a gitops-binary
       uses: ./.github/actions/gitops-binary
       with:
