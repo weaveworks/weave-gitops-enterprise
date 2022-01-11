@@ -64,7 +64,7 @@ service ClustersService {
       get : "/v1/credentials"
     };
   }
-  // GetKubeconfig returns the Kubeconfig for the given 
+  // GetKubeconfig returns the Kubeconfig for the given
   // workload cluster.
   rpc GetKubeconfig(GetKubeconfigRequest)
     returns (google.api.HttpBody) {
@@ -79,20 +79,10 @@ service ClustersService {
         get: "/v1/enterprise/version"
     };
   }
-  // GetProfiles returns a list of profiles
-  // from the cluster.
-  rpc GetProfiles(GetProfilesRequest)
-    returns (GetProfilesResponse){
-      option (google.api.http) = {
-        get: "/v1/profiles"
-      };
-    }
-  // GetProfileValues returns a list of values for 
-  // a given version of a profile from the cluster.
-  rpc GetProfileValues(GetProfileValuesRequest)
-  returns (google.api.HttpBody){
+
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
     option (google.api.http) = {
-      get: "/v1/profiles/{profile_name}/{profile_version}/values"
+      get : "/v1/config"
     };
   }
 }
@@ -204,7 +194,7 @@ message Template {
   string provider = 3;
   repeated Parameter parameters = 4;
   repeated TemplateObject objects = 5;
-  string error = 6; 
+  string error = 6;
   map<string, string> annotations = 7;
 }
 
@@ -261,25 +251,16 @@ message Profile {
   repeated string available_versions = 11;
 }
 
-message GetProfilesRequest {
-}
-
-message GetProfilesResponse {
-  repeated Profile profiles = 1;
-}
-
-message GetProfileValuesRequest {
-  string profile_name = 1;
-  string profile_version = 2;
-}
-message GetProfileValuesResponse{
-  // The base64 encoded values file of the profile.
-  string values = 1;
-}
-
 message ProfileValues {
   string name = 1;
   string version = 2;
   string values = 3;
   string layer = 4;
 }
+ 
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  string repositoryURL = 1;
+}
+

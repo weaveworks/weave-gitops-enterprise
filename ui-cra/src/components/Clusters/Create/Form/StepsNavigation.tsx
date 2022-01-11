@@ -45,9 +45,7 @@ const FormStepsNavigation: FC<{
     [setClickedStep],
   );
 
-  const sections = PRPreview
-    ? [...steps, 'Profiles', 'Preview', 'GitOps']
-    : steps && [...steps, 'Profiles'];
+  const sections = steps && [...steps, 'Profiles', 'GitOps'];
 
   return (
     <div className={classes.navWrapper}>

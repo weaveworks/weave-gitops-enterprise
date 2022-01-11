@@ -1,11 +1,4 @@
-import React, {
-  FC,
-  useCallback,
-  useState,
-  Dispatch,
-  ChangeEvent,
-  useMemo,
-} from 'react';
+import React, { FC, useCallback, useMemo, Dispatch, ChangeEvent } from 'react';
 import useCredentials from './../../../../../contexts/Credentials';
 import { Credential } from '../../../../../types/custom';
 import FormControl from '@material-ui/core/FormControl';
@@ -13,12 +6,10 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
 const Credentials: FC<{
-  onSelect: Dispatch<React.SetStateAction<Credential | null>>;
-}> = ({ onSelect }) => {
+  infraCredential: Credential;
+  setInfraCredential: Dispatch<React.SetStateAction<Credential | null>>;
+}> = ({ infraCredential, setInfraCredential }) => {
   const { credentials, loading, getCredential } = useCredentials();
-  const [infraCredential, setInfraCredential] = useState<Credential | null>(
-    null,
-  );
 
   const credentialsItems = useMemo(
     () => [
@@ -41,9 +32,8 @@ const Credentials: FC<{
     (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
       const credential = getCredential(event.target.value as string);
       setInfraCredential(credential);
-      onSelect(credential);
     },
-    [getCredential, onSelect],
+    [getCredential, setInfraCredential],
   );
 
   return (

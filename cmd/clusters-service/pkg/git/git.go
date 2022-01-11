@@ -42,9 +42,10 @@ func NewGitProviderService(log logr.Logger) *GitProviderService {
 }
 
 type GitProvider struct {
-	Token    string
-	Type     string
-	Hostname string
+	Token     string
+	TokenType string
+	Type      string
+	Hostname  string
 }
 
 type WriteFilesToBranchAndCreatePullRequestRequest struct {
@@ -280,9 +281,9 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		}
 	case "gitlab":
 		if gpi.Hostname != "gitlab.com" {
-			client, err = gitlab.NewClient(gpi.Token, "", gitprovider.WithDomain(gpi.Hostname), gitprovider.WithConditionalRequests(true))
+			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithDomain(gpi.Hostname), gitprovider.WithConditionalRequests(true))
 		} else {
-			client, err = gitlab.NewClient(gpi.Token, "", gitprovider.WithConditionalRequests(true))
+			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithConditionalRequests(true))
 		}
 		if err != nil {
 			return nil, err

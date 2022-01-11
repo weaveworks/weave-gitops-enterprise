@@ -62,3 +62,6 @@ export enum GrpcErrorCodes {
 export const isUnauthenticated = (code: number): boolean => {
   return code === GrpcErrorCodes.Unauthenticated;
 };
+
+export const removeToken = (provider: string) =>
+  localStorage.removeItem(`gitProviderToken_${provider}`);

@@ -8,22 +8,14 @@ import React, {
 } from 'react';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { Button } from 'weaveworks-ui-components';
-import {
-  Template,
-  TemplateObject,
-  UpdatedProfile,
-} from '../../../../../types/custom';
 import { ObjectFieldTemplateProps } from '@rjsf/core';
 import { JSONSchema7 } from 'json-schema';
 import Form from '@rjsf/material-ui';
 import * as UiTemplate from '../UITemplate';
 import FormSteps from '../Steps';
-import MultiSelectDropdown from '../../../../MultiSelectDropdown';
-import ProfilesList from './ProfilesList';
-import useProfiles from '../../../../../contexts/Profiles';
-import { FormStep } from '../Step';
 import styled from 'styled-components';
 import ObjectFieldTemplate from '../GroupedSchema';
+import { Template, TemplateObject } from '../../../../../types/custom';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -32,43 +24,30 @@ const FormWrapper = styled(Form)`
   .form-group {
     padding-top: ${base};
   }
-  .profiles {
-    .profiles-select {
-      display: flex;
-      align-items: center;
-    }
-    .previewCTA {
-      display: flex;
-      justify-content: flex-end;
-      padding-top: ${small};
-      padding-bottom: ${base};
-    }
+  .previewCTA {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: ${small};
+    padding-bottom: ${base};
   }
 `;
 
 const TemplateFields: FC<{
   activeTemplate: Template | null;
   onPRPreview: () => void;
-  activeStep: string | undefined;
-  setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
-  clickedStep: string;
-  onProfilesUpdate: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
   onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
   formData: any;
+  setFormData: Dispatch<React.SetStateAction<any>>;
+  setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
+  clickedStep: string;
 }> = ({
   activeTemplate,
   onPRPreview,
-  activeStep,
+  formData,
+  setFormData,
   setActiveStep,
   clickedStep,
-  onProfilesUpdate,
-  formData,
-  onFormDataUpdate,
 }) => {
-  const { updatedProfiles } = useProfiles();
-  const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
-    [],
-  );
   const [userSelectedFields, setUserSelectedFields] = useState<string[]>([]);
   const [formContextId, setFormContextId] = useState<number>(0);
   const [uiSchema, setuiSchema] = useState<any>({});
@@ -137,14 +116,6 @@ const TemplateFields: FC<{
     return [groups];
   }, [activeTemplate]);
 
-  const handleSelectProfiles = useCallback(
-    (profiles: UpdatedProfile[]) => {
-      setSelectedProfiles(profiles);
-      onProfilesUpdate(profiles);
-    },
-    [onProfilesUpdate],
-  );
-
   const addUserSelectedFields = useCallback(
     (name: string) => {
       if (userSelectedFields.includes(name)) {
@@ -169,24 +140,12 @@ const TemplateFields: FC<{
         />
       ),
     });
-
-    const requiredProfiles = updatedProfiles.filter(
-      profile => profile.required === true,
-    );
-    handleSelectProfiles(requiredProfiles);
-  }, [
-    updatedProfiles,
-    onProfilesUpdate,
-    handleSelectProfiles,
-    sections,
-    addUserSelectedFields,
-    userSelectedFields,
-  ]);
+  }, [sections, addUserSelectedFields, userSelectedFields]);
 
   return (
     <FormWrapper
       schema={schema as JSONSchema7}
-      onChange={({ formData }) => onFormDataUpdate(formData)}
+      onChange={({ formData }) => setFormData(formData)}
       formData={formData}
       onSubmit={onPRPreview}
       onError={() => console.log('errors')}
@@ -199,28 +158,9 @@ const TemplateFields: FC<{
       }}
       {...UiTemplate}
     >
-      <FormStep
-        className="profiles"
-        title="Profiles"
-        active={activeStep === 'Profiles'}
-        clicked={clickedStep === 'Profiles'}
-        setActiveStep={setActiveStep}
-      >
-        <div className="profiles-select">
-          <span>Select profiles:&nbsp;</span>
-          <MultiSelectDropdown
-            items={updatedProfiles}
-            onSelectItems={handleSelectProfiles}
-          />
-        </div>
-        <ProfilesList
-          selectedProfiles={selectedProfiles}
-          onProfilesUpdate={handleSelectProfiles}
-        />
-        <div className="previewCTA">
-          <Button>Preview PR</Button>
-        </div>
-      </FormStep>
+      <div className="previewCTA">
+        <Button>Preview PR</Button>
+      </div>
     </FormWrapper>
   );
 };

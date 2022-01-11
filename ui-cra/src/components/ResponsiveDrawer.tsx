@@ -181,6 +181,7 @@ const ResponsiveDrawer = () => {
         <main className={classes.content}>
           <Switch>
             <Route component={MCCP} exact path={['/', '/clusters']} />
+            <Route component={MCCP} exact path="/clusters/delete" />
             <Route
               component={AddClusterWithCredentials}
               exact

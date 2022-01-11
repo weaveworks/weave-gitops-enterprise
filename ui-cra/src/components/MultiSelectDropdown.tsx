@@ -23,26 +23,27 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const MultiSelectDropdown: FC<{
-  items: any[];
+  allItems: any[];
+  preSelectedItems: any[];
   onSelectItems: (items: any[]) => void;
-}> = ({ items, onSelectItems }) => {
+}> = ({ allItems, preSelectedItems, onSelectItems }) => {
   const classes = useStyles();
   const [selected, setSelected] = useState<any[]>([]);
-  const onlyRequiredProfiles =
-    items.filter(item => item.required === true).length === items.length;
+  const onlyRequiredItems =
+    allItems.filter(item => item.required === true).length === allItems.length;
   const isAllSelected =
-    items.length > 0 &&
-    (selected.length === items.length || onlyRequiredProfiles);
+    allItems.length > 0 &&
+    (selected.length === allItems.length || onlyRequiredItems);
 
   const getItemsFromNames = (names: string[]) =>
-    items.filter(item => names.find(name => item.name === name));
+    allItems.filter(item => names.find(name => item.name === name));
 
   const getNamesFromItems = (items: any[]) => items.map(item => item.name);
 
   const handleChange = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
     if (value[value.length - 1] === 'all') {
-      const selectedItems = selected.length === items.length ? [] : items;
+      const selectedItems = selected.length === allItems.length ? [] : allItems;
       setSelected(getNamesFromItems(selectedItems));
       onSelectItems(selectedItems);
       return;
@@ -52,12 +53,8 @@ const MultiSelectDropdown: FC<{
   };
 
   useEffect(
-    () =>
-      setSelected(
-        getNamesFromItems(items.filter(item => item.required === true)),
-      ),
-
-    [items],
+    () => setSelected(getNamesFromItems(preSelectedItems)),
+    [preSelectedItems],
   );
 
   return (
@@ -69,13 +66,13 @@ const MultiSelectDropdown: FC<{
         onChange={handleChange}
         renderValue={(selected: any) => selected.join(', ')}
       >
-        <MenuItem value="all" disabled={onlyRequiredProfiles}>
+        <MenuItem value="all" disabled={onlyRequiredItems}>
           <ListItemIcon>
             <Checkbox
               classes={{ indeterminate: classes.indeterminateColor }}
               checked={isAllSelected}
               indeterminate={
-                selected.length > 0 && selected.length < items.length
+                selected.length > 0 && selected.length < allItems.length
               }
               style={{
                 color: weaveTheme.colors.primary,
@@ -84,7 +81,7 @@ const MultiSelectDropdown: FC<{
           </ListItemIcon>
           <ListItemText primary="Select All" />
         </MenuItem>
-        {items.map(item => {
+        {allItems.map(item => {
           const itemName = item.name;
           return (
             <MenuItem key={itemName} value={itemName} disabled={item.required}>

@@ -169,27 +169,18 @@ export type Profile = {
   availableVersions?: string[]
 }
 
-export type GetProfilesRequest = {
-}
-
-export type GetProfilesResponse = {
-  profiles?: Profile[]
-}
-
-export type GetProfileValuesRequest = {
-  profileName?: string
-  profileVersion?: string
-}
-
-export type GetProfileValuesResponse = {
-  values?: string
-}
-
 export type ProfileValues = {
   name?: string
   version?: string
   values?: string
   layer?: string
+}
+
+export type GetConfigRequest = {
+}
+
+export type GetConfigResponse = {
+  repositoryURL?: string
 }
 
 export class ClustersService {
@@ -223,10 +214,7 @@ export class ClustersService {
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
-  static GetProfiles(req: GetProfilesRequest, initReq?: fm.InitReq): Promise<GetProfilesResponse> {
-    return fm.fetchReq<GetProfilesRequest, GetProfilesResponse>(`/v1/profiles?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static GetProfileValues(req: GetProfileValuesRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
-    return fm.fetchReq<GetProfileValuesRequest, GoogleApiHttpbody.HttpBody>(`/v1/profiles/${req["profileName"]}/${req["profileVersion"]}/values?${fm.renderURLSearchParams(req, ["profileName", "profileVersion"])}`, {...initReq, method: "GET"})
+  static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
+    return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

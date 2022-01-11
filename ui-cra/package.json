@@ -56,7 +56,8 @@
   },
   "resolutions": {
     "**/react": "^17.0.2",
-    "**/react-dom": "^17.0.2"
+    "**/react-dom": "^17.0.2",
+    "@weaveworks/weave-gitops/react-router-dom": "^5.2.0"
   },
   "scripts": {
     "start": "react-scripts start",

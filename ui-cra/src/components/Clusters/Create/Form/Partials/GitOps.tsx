@@ -4,6 +4,7 @@ import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button } from 'weaveworks-ui-components';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { FormStep } from '../Step';
+import GitAuth from './GitAuth';
 
 const base = weaveTheme.spacing.base;
 
@@ -18,73 +19,66 @@ const useStyles = makeStyles(() =>
 );
 
 const GitOps: FC<{
+  formData: any;
+  setFormData: Dispatch<React.SetStateAction<any>>;
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
   setClickedStep: Dispatch<React.SetStateAction<string>>;
-  onSubmit: (gitOps: {
-    head_branch: string;
-    title: string;
-    description: string;
-    commit_message: string;
-  }) => Promise<void>;
-}> = ({ activeStep, setActiveStep, clickedStep, setClickedStep, onSubmit }) => {
+  onSubmit: () => Promise<void>;
+  showAuthDialog: boolean;
+  setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
+}> = ({
+  formData,
+  setFormData,
+  activeStep,
+  setActiveStep,
+  clickedStep,
+  setClickedStep,
+  onSubmit,
+  showAuthDialog,
+  setShowAuthDialog,
+}) => {
   const classes = useStyles();
-
-  const random = Math.random().toString(36).substring(7);
-
-  const [branchName, setBranchName] = useState<string>(
-    `create-clusters-branch-${random}`,
-  );
-  const [pullRequestTitle, setPullRequestTitle] = useState<string>(
-    'Creates capi cluster',
-  );
-  const [commitMessage, setCommitMessage] = useState<string>(
-    'Creates capi cluster',
-  );
-  const [pullRequestDescription, setPullRequestDescription] = useState<string>(
-    'This PR creates a new cluster',
-  );
+  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const handleChangeBranchName = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => setBranchName(event.target.value),
-    [],
+    (event: ChangeEvent<HTMLInputElement>) =>
+      setFormData((prevState: any) => ({
+        ...prevState,
+        branchName: event.target.value,
+      })),
+    [setFormData],
   );
 
   const handleChangePullRequestTitle = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setPullRequestTitle(event.target.value),
-    [],
+      setFormData((prevState: any) => ({
+        ...prevState,
+        pullRequestTitle: event.target.value,
+      })),
+    [setFormData],
   );
 
   const handleChangeCommitMessage = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setCommitMessage(event.target.value),
-    [],
+      setFormData((prevState: any) => ({
+        ...prevState,
+        commitMessage: event.target.value,
+      })),
+    [setFormData],
   );
 
   const handleChangePRDescription = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setPullRequestDescription(event.target.value),
-    [],
+      setFormData((prevState: any) => ({
+        ...prevState,
+        pullRequestDescription: event.target.value,
+      })),
+    [setFormData],
   );
 
-  const handleGitOps = useCallback(
-    () =>
-      onSubmit({
-        head_branch: branchName,
-        title: pullRequestTitle,
-        description: pullRequestDescription,
-        commit_message: commitMessage,
-      }),
-    [
-      branchName,
-      pullRequestTitle,
-      pullRequestDescription,
-      commitMessage,
-      onSubmit,
-    ],
-  );
+  const handleGitOps = useCallback(() => onSubmit(), [onSubmit]);
 
   return (
     <FormStep
@@ -95,28 +89,38 @@ const GitOps: FC<{
     >
       <Input
         label="Create branch"
-        placeholder={branchName}
+        placeholder={formData.branchName}
         onChange={handleChangeBranchName}
       />
       <Input
         label="Pull request title"
-        placeholder={pullRequestTitle}
+        placeholder={formData.pullRequestTitle}
         onChange={handleChangePullRequestTitle}
       />
       <Input
         label="Commit message"
-        placeholder={commitMessage}
+        placeholder={formData.commitMessage}
         onChange={handleChangeCommitMessage}
       />
       <Input
         label="Pull request description"
-        placeholder={pullRequestDescription}
+        placeholder={formData.pullRequestDescription}
         onChange={handleChangePRDescription}
         multiline
         rows={4}
       />
+      <GitAuth
+        formData={formData}
+        setFormData={setFormData}
+        setEnableCreatePR={setEnableCreatePR}
+        showAuthDialog={showAuthDialog}
+        setShowAuthDialog={setShowAuthDialog}
+      />
       <div className={classes.createCTA} onClick={handleGitOps}>
-        <Button onClick={() => setClickedStep('GitOps')}>
+        <Button
+          onClick={() => setClickedStep('GitOps')}
+          disabled={!enableCreatePR}
+        >
           Create Pull Request
         </Button>
       </div>

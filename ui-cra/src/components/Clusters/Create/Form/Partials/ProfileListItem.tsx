@@ -30,9 +30,6 @@ const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
 
 const useStyles = makeStyles(() => ({
-  dialog: {
-    backgroundColor: weaveTheme.colors.neutral20,
-  },
   textarea: {
     width: '100%',
     padding: xs,
@@ -133,7 +130,7 @@ const ProfilesListItem: FC<{
   return (
     <>
       <ListItemWrapper>
-        <ListItem>
+        <ListItem data-profile-name={profile.name}>
           <ListItemText className="profile-name">{profile.name}</ListItemText>
           <div className="profile-version">
             <span>Version</span>
@@ -157,7 +154,6 @@ const ProfilesListItem: FC<{
 
       <Dialog
         open={openYamlPreview}
-        className={classes.dialog}
         maxWidth="md"
         fullWidth
         scroll="paper"

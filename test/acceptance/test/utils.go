@@ -221,6 +221,9 @@ func InitializeWebdriver(wgeURL string) {
 
 		err = webDriver.Size(WINDOW_SIZE_X, WINDOW_SIZE_Y)
 		Expect(err).NotTo(HaveOccurred())
+	} else {
+		// Clear localstorage, cookie etc
+		Expect(webDriver.Reset()).To(Succeed())
 	}
 
 	By("When I navigate to WGE UI Page", func() {

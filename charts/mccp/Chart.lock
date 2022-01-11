@@ -4,9 +4,9 @@ dependencies:
   version: 6.1.2
 - name: nginx-ingress-controller
   repository: https://charts.bitnami.com/bitnami
-  version: 7.4.7
+  version: 7.6.21
 - name: wkp-ui
   repository: file://../../ui/chart/wkp-ui
   version: 0.1.0
-digest: sha256:afb4d91b97d063f13157cd771234ad4457fce72a6bbf479961bbe19570b5d88e
-generated: "2021-10-01T17:11:35.07342+01:00"
+digest: sha256:6e5bf9e81d09538eec7358e3c6bc9cb28d164a603b924a120d3354e39d0e69b8
+generated: "2022-01-10T18:43:19.941657Z"
