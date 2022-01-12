@@ -7,7 +7,6 @@ import { ClusterDisconnectionInstructions } from './DisconnectionInstructions';
 import { FormState, SetFormState } from '../../../types/form';
 import { Cluster } from '../../../types/kubernetes';
 import { request } from '../../../utils/request';
-import { FlexSpacer } from '../../ListView';
 import useNotifications from './../../../contexts/Notifications';
 
 export const ButtonText = styled.span`
@@ -213,19 +212,19 @@ export const ConnectClusterWizard: FC<{
           {content(formState, setFormState, connecting, onFinish)}
         </ContentContainer>
         <ButtonBar>
-          <FlexSpacer />
+          <div style={{ flex: 1 }} />
           {formState.activeIndex === 0 && (
             <Button
               type="submit"
               startIcon={<i className="fas fa-chevron-right" />}
               disabled={!isValid || submitting}
             >
-              Save & next
+              SAVE & NEXT
             </Button>
           )}
           {formState.activeIndex > 0 && (
             <Button className="close-button" onClick={() => onFinish()}>
-              Close
+              CLOSE
             </Button>
           )}
         </ButtonBar>

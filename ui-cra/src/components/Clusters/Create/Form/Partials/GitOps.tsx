@@ -1,7 +1,7 @@
 import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
 import { Input } from '../../../../../utils/form';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { Button } from 'weaveworks-ui-components';
+import { Button } from '@weaveworks/weave-gitops';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { FormStep } from '../Step';
 import GitAuth from './GitAuth';
@@ -121,7 +121,7 @@ const GitOps: FC<{
           onClick={() => setClickedStep('GitOps')}
           disabled={!enableCreatePR}
         >
-          Create Pull Request
+          CREATE PULL REQUEST
         </Button>
       </div>
     </FormStep>

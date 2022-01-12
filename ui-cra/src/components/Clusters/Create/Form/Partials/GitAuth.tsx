@@ -1,5 +1,5 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import {
   getProviderToken,

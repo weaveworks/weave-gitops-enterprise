@@ -31,13 +31,13 @@ export namespace fontSizes {
   const tiny: string;
 }
 
-export namespace BorderRadius {
+export namespace borderRadius {
   const circle: string;
   const none: string;
   const soft: string;
 }
 
-export namespace BoxShadow {
+export namespace boxShadow {
   const heavy: string;
   const light: string;
   const none: string;
@@ -49,5 +49,7 @@ declare module 'styled-components' {
     fontSizes: typeof fontSizes;
     colors: typeof colors;
     spacing: typeof spacing;
+    borderRadius: typeof borderRadius;
+    boxShadow: typeof boxShadow;
   }
 }

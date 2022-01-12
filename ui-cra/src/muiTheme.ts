@@ -102,11 +102,6 @@ export const muiTheme = createTheme({
       },
     },
   },
-  // palette: {
-  //   primary: {
-  //     '500': '#00A7CC',
-  //   },
-  // },
   shape: {
     borderRadius: 2,
   },

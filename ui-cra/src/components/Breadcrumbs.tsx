@@ -6,8 +6,6 @@ import { ReactComponent as BreadcrumbDivider } from '../assets/img/breadcrumb-di
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
-const BORDER_RADIUS_SOFT = '2px';
-
 interface Size {
   size?: 'small';
 }
@@ -40,7 +38,7 @@ export const Count = styled.div<Size>`
     size === 'small' ? weaveTheme.spacing.small : weaveTheme.fontSizes.normal};
   color: ${weaveTheme.colors.primary};
   margin-left: ${weaveTheme.spacing.xxs};
-  border-radius: ${BORDER_RADIUS_SOFT};
+  border-radius: ${weaveTheme.borderRadius.soft};
 `;
 export interface Breadcrumb {
   label: string;

@@ -6,6 +6,7 @@ import moment from 'moment';
 import { blinking } from '../../assets/effects/blinking';
 import { theme } from '@weaveworks/weave-gitops';
 import { NameLink } from '../Shared';
+import { HexColor } from '../../types/global';
 
 const StrikeThrough = styled.line`
   ${blinking}
