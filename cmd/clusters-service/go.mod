@@ -3,10 +3,13 @@ module github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service
 go 1.17
 
 require (
-	github.com/fluxcd/go-git-providers v0.4.1-0.20211222124517-0e29201eb4ac
+	github.com/fluxcd/go-git-providers v0.5.2-0.20220111143741-04eef9791373
+	github.com/fluxcd/helm-controller/api v0.11.2
+	github.com/fluxcd/pkg/apis/meta v0.10.1
+	github.com/fluxcd/pkg/runtime v0.12.1
 	github.com/fluxcd/source-controller/api v0.15.4
-	github.com/go-logr/logr v1.1.0
-	github.com/go-logr/zapr v1.1.0
+	github.com/go-logr/logr v1.2.2
+	github.com/go-logr/zapr v1.2.2
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1
@@ -20,7 +23,7 @@ require (
 	github.com/weaveworks/weave-gitops v0.6.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
-	github.com/xanzy/go-gitlab v0.51.1
+	github.com/xanzy/go-gitlab v0.54.3
 	go.uber.org/zap v1.19.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	google.golang.org/genproto v0.0.0-20211129164237-f09f9a12af12
@@ -29,7 +32,9 @@ require (
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gorm.io/gorm v1.21.11
+	helm.sh/helm/v3 v3.7.1
 	k8s.io/api v0.22.2
+	k8s.io/apiextensions-apiserver v0.22.2
 	k8s.io/apimachinery v0.22.2
 	k8s.io/client-go v0.22.2
 	k8s.io/klog/v2 v2.9.0
@@ -82,11 +87,8 @@ require (
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/fluxcd/helm-controller/api v0.11.2 // indirect
 	github.com/fluxcd/kustomize-controller/api v0.16.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
-	github.com/fluxcd/pkg/apis/meta v0.10.1 // indirect
-	github.com/fluxcd/pkg/runtime v0.12.1 // indirect
 	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
 	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
@@ -105,8 +107,8 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/btree v1.0.1 // indirect
-	github.com/google/go-github/v35 v35.3.0 // indirect
-	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/go-github/v41 v41.0.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -192,12 +194,12 @@ require (
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
+	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
-	golang.org/x/text v0.3.6 // indirect
+	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -212,8 +214,6 @@ require (
 	gorm.io/datatypes v1.0.0 // indirect
 	gorm.io/driver/postgres v1.0.5 // indirect
 	gorm.io/driver/sqlite v1.1.4 // indirect
-	helm.sh/helm/v3 v3.7.1 // indirect
-	k8s.io/apiextensions-apiserver v0.22.2 // indirect
 	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/cli-runtime v0.22.1 // indirect
 	k8s.io/component-base v0.22.2 // indirect
@@ -228,6 +228,6 @@ require (
 
 replace github.com/weaveworks/weave-gitops-enterprise/common => ../../common
 
-replace github.com/go-logr/logr v1.1.0 => github.com/go-logr/logr v0.4.0
+replace github.com/go-logr/logr v1.2.2 => github.com/go-logr/logr v0.4.0
 
-replace github.com/go-logr/zapr v1.1.0 => github.com/go-logr/zapr v0.4.0
+replace github.com/go-logr/zapr v1.2.2 => github.com/go-logr/zapr v0.4.0
