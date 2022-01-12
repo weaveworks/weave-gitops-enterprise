@@ -43,11 +43,6 @@ var leaves = map[string]LeafSpec{
 		AlertManagerURL: "http://acmeprom-kube-prometheus-s-alertmanager.default:9093/api/v2",
 		KubeconfigPath:  os.Getenv("EKS_LEAF_KUBECONFIG"),
 	},
-	"kind-wkp": {
-		Status:         "Ready",
-		IsWKP:          true,
-		KubeconfigPath: os.Getenv("KIND_WKP_LEAF_KUBECONFIG"),
-	},
 }
 
 func ClusterStatusFromList(clustersPage *pages.ClustersPage, clusterName string) *agouti.Selection {
@@ -613,53 +608,12 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			deleteClusterEntry(webDriver, []string{clusterName})
 		})
 
-		XIt("@wkp Verify team workspaces variations", func() {
-			if getEnv("CONNECT_KIND_WKP_LEAF_TEST", "") == "" {
-				Skip("set CONNECT_KIND_WKP_LEAF_TEST env var to run this test")
-			}
-
-			clusterName := RandString(32)
-			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
-			leaf := leaves["kind-wkp"]
-			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaf)
-			cluster := pages.FindClusterInList(clustersPage, clusterName)
-			commandEnv := getCommandEnv(leaf)
-
-			By("And I add a new workspace to the cluster", func() {
-				// In acceptance test this has to be the host cluster.
-				_ = gitopsTestRunner.AddWorkspace(commandEnv, clusterName)
-			})
-
-			By("Then I found the new workspace added to the Team Workspaces column", func() {
-				Eventually(cluster.TeamWorkspaces, ASSERTION_1MINUTE_TIME_OUT).Should(MatchText("mccp-devs-workspace"))
-			})
-
-			By("And the workspaces should be a link", func() {
-				link := cluster.TeamWorkspaces.Find("a")
-				Expect(link).To(BeFound())
-				url, _ := link.Attribute("href")
-				Expect(url).To(Equal("https://google.com/workspaces"))
-			})
-
-			By("And when the ingress URL is cleared", func() {
-				ClearIngressURL(webDriver, clusterName)
-			})
-
-			By("Then the team workspaces should not be a link", func() {
-				Eventually(cluster.TeamWorkspaces.Find("a")).ShouldNot(BeFound())
-			})
-		})
-
 		It("@gce Verify user can connect a GCE cluster", func() {
 			connectACluster(webDriver, gitopsTestRunner, leaves["gce"])
 		})
 
 		It("@eks Verify user can connect an EKS cluster", func() {
 			connectACluster(webDriver, gitopsTestRunner, leaves["eks"])
-		})
-
-		XIt("@wkp Verify user can connect a kind cluster with cluster components installed", func() {
-			connectACluster(webDriver, gitopsTestRunner, leaves["kind-wkp"])
 		})
 	})
 }

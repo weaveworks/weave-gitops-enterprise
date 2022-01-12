@@ -46,20 +46,12 @@ func TestAcceptance(t *testing.T) {
 	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
 
-	defaultSuite := true
 	if os.Getenv("WGE_ACCEPTANCE") == "true" {
 
 		// Runs the UI tests
 		DescribeSpecsUi(RealGitopsTestRunner{})
 		// Runs the CLI tests
 		DescribeSpecsCli(RealGitopsTestRunner{})
-
-		defaultSuite = false
-	}
-
-	if os.Getenv("WKP_ACCEPTANCE") == "true" || defaultSuite {
-		DescribeWKPUIAcceptance()
-		DescribeWorkspacesAcceptance()
 	}
 
 	//JUnit style test report

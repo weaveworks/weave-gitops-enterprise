@@ -37,10 +37,8 @@ jobs:
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       EXP_CLUSTER_RESOURCE_SET: true
       GITOPS_BIN_PATH: /tmp/gitops
-      WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
       EKS_LEAF_KUBECONFIG: '/tmp/eks-leaf-kubeconfig'
-      KIND_WKP_LEAF_KUBECONFIG: '/tmp/wkp-kind-leaf-kubeconfig'
       ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
       MANAGEMENT_CLUSTER_KIND: EKS
       SELENIUM_DEBUG: true
@@ -124,13 +122,6 @@ jobs:
         os: ${{ matrix.os }}
         os_name: ${{ matrix.os_name }}
         path: ${{ env.GITOPS_BIN_PATH }}    
-    - name: Download wk binary from s3
-      run: |
-        mkdir -p cmd/wk/
-        curl -o $WKP_BIN_PATH https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-${{ matrix.os_name }}-amd64        
-    - name: Change bin permissions
-      run: |
-        sudo chmod +x ${{ env.WKP_BIN_PATH }}  
     - name: Setup selenium server
       if: ${{ runner.os == 'Linux' }}
       run: |
@@ -160,19 +151,6 @@ jobs:
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
 
         ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
-    - name: Setup wkp leaf cluster
-      if: ${{ runner.os == 'Linux' }}
-      run: |
-        kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $KIND_WKP_LEAF_KUBECONFIG
-        export KUBECONFIG=$KIND_WKP_LEAF_KUBECONFIG
-
-        export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}-${{ matrix.os }}
-        # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
-        echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
-        ./test/utils/scripts/wkp.sh setup $CLUSTER_NAME ${{ github.workspace }}
-
-        # Unset KUBECONFIG to let kubectl point back to the wego enterprise cluster under test
-        unset KUBECONFIG 
     - name: Setup eks leaf cluster 
       run: |
         # decode EKS kubeconfig and store at path set in EKS_LEAF_KUBECONFIG
@@ -181,7 +159,7 @@ jobs:
       run: |
         cd test/acceptance/test/
         if [ "$RUNNER_OS" == "macOS" ]; then
-          go test -ginkgo.skip=@gce -ginkgo.skip=@wkp -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
+          go test -ginkgo.skip=@gce -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
         else
           go test -ginkgo.skip=@gce -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
         fi
@@ -190,14 +168,6 @@ jobs:
       continue-on-error: true
       run: |
         ./test/utils/scripts/wego-enterprise.sh reset
-    - name: Delete WKP repository
-      if: ${{ always() }}
-      continue-on-error: true
-      run: |
-        # We are not running WKP leaf cluster connect tests for macOS, hence no WKP repository exists for macOS job
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
-        fi
     - name: Store acceptance test results
       if: ${{ always() }}
       continue-on-error: true
@@ -227,10 +197,8 @@ jobs:
       DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       EXP_CLUSTER_RESOURCE_SET: true
       GITOPS_BIN_PATH: /tmp/gitops
-      WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-${{ matrix.os_name }}-amd64
       WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
       GCE_LEAF_KUBECONFIG: '/tmp/gce-leaf-kubeconfig'
-      KIND_WKP_LEAF_KUBECONFIG: '/tmp/wkp-kind-leaf-kubeconfig'
       ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
       MANAGEMENT_CLUSTER_KIND: GKE
       SELENIUM_DEBUG: true
@@ -304,13 +272,6 @@ jobs:
         os: ${{ matrix.os }}
         os_name: ${{ matrix.os_name }}
         path: ${{ env.GITOPS_BIN_PATH }}
-    - name: Download wk binary from s3
-      run: |
-        mkdir -p cmd/wk/
-        curl -o $WKP_BIN_PATH https://s3.amazonaws.com/weaveworks-wkp/wk-v2.5.0-${{ matrix.os_name }}-amd64        
-    - name: Change bin permissions
-      run: |
-        sudo chmod +x ${{ env.WKP_BIN_PATH }}  
     - name: Setup selenium server
       if: ${{ runner.os == 'Linux' }}
       run: |
@@ -342,19 +303,6 @@ jobs:
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
 
         ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
-    - name: Setup wkp leaf cluster
-      if: ${{ runner.os == 'Linux' }}
-      run: |
-        kind create cluster --name my-wkp-leaf-cluster --image=kindest/node:v1.20.7 --config test/utils/data/kind-config.yaml --kubeconfig $KIND_WKP_LEAF_KUBECONFIG
-        export KUBECONFIG=$KIND_WKP_LEAF_KUBECONFIG
-
-        export CLUSTER_NAME=leaf-${{ github.run_id }}-${{ github.run_number}}-${{ matrix.os }}
-        # Set the WKP_CLUSTER_NAME as environment variable for subsequent steps
-        echo "WKP_CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
-        ./test/utils/scripts/wkp.sh setup $CLUSTER_NAME ${{ github.workspace }}
-
-        # Unset KUBECONFIG to let kubectl point back to the wego enterprise cluster under test
-        unset KUBECONFIG 
     - name: Setup gce leaf cluster 
       run: |
         # decode GCE kubeconfig and store at path set in GKE_LEAF_KUBECONFIG
@@ -363,7 +311,7 @@ jobs:
       run: |
         cd test/acceptance/test/
         if [ "$RUNNER_OS" == "macOS" ]; then
-          go test -ginkgo.skip=@eks -ginkgo.skip=@gce -ginkgo.skip=@wkp -ginkgo.skip=@capd -ginkgo.skip=@upgrade -ginkgo.v -v --timeout=99999s
+          go test -ginkgo.skip=@eks -ginkgo.skip=@gce -ginkgo.skip=@capd -ginkgo.skip=@upgrade -ginkgo.v -v --timeout=99999s
         else
           go test -ginkgo.skip=@eks -ginkgo.skip=@gce -ginkgo.skip=@capd -ginkgo.v -v --timeout=99999s
         fi
@@ -372,14 +320,6 @@ jobs:
       continue-on-error: true
       run: |
         ./test/utils/scripts/wego-enterprise.sh reset
-    - name: Delete WKP repository
-      if: ${{ always() }}
-      continue-on-error: true
-      run: |
-        # We are not running WKP leaf cluster connect tests for macOS, hence no WKP repository exists for macOS job
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          hub delete -y $GITHUB_ORG/$WKP_CLUSTER_NAME
-        fi
     - name: Store acceptance test results
       if: ${{ always() }}
       continue-on-error: true

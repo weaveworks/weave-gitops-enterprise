@@ -336,11 +336,9 @@ jobs:
       TOTP_TOKEN: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       EXP_CLUSTER_RESOURCE_SET: true
       GITOPS_BIN_PATH: /tmp/gitops
-      WKP_BIN_PATH: ${{ github.workspace }}/cmd/wk/wk-v2.5.0-linux-amd64
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
       WGE_ACCEPTANCE: true
-      CONNECT_KIND_WKP_LEAF_TEST: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
     steps:
     - id: go-cache-paths
@@ -420,7 +418,7 @@ jobs:
     - name: Run acceptance tests
       run: |
         cd test/acceptance/test/
-        go test -ginkgo.skip=@upgrade -ginkgo.skip=@smoke -ginkgo.skip=@wkp -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
+        go test -ginkgo.skip=@upgrade -ginkgo.skip=@smoke -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
     - name: Store acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
