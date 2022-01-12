@@ -1,7 +1,8 @@
 import { createTheme } from '@material-ui/core/styles';
-import { muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
-
-const boxShadow = '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)';
+import {
+  muiTheme as coreMuiTheme,
+  theme as weaveTheme,
+} from '@weaveworks/weave-gitops';
 
 const defaultTheme = createTheme();
 
@@ -12,11 +13,11 @@ export const muiTheme = createTheme({
       contained: {
         backgroundColor: 'hsl(0, 0%, 100%)',
         color: 'hsl(0, 0%, 45%)',
-        boxShadow,
+        boxShadow: weaveTheme.boxShadow.light,
         '&:hover': {
           backgroundColor: 'hsl(0, 0%, 96%)',
-          boxShadow,
-          color: 'hsl(240, 20%, 30%)',
+          boxShadow: weaveTheme.boxShadow.light,
+          color: weaveTheme.colors.primaryDark,
         },
       },
       root: {
@@ -30,7 +31,7 @@ export const muiTheme = createTheme({
       },
       paper: {
         padding: 0,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: weaveTheme.colors.white,
       },
     },
     MuiDialogActions: {
@@ -109,7 +110,4 @@ export const muiTheme = createTheme({
   shape: {
     borderRadius: 2,
   },
-  // typography: {
-  //   fontFamily: ['proxima-nova', 'Helvetica', 'Arial', 'sans-serif'].join(', '),
-  // },
 });

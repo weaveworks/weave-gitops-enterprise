@@ -21,8 +21,6 @@ import { getClusterStatus, ReadyStatus } from './Clusters/Status';
 import { Loader } from './Loader';
 import Box from '@material-ui/core/Box';
 
-const BORDER_RADIUS_SOFT = '2px';
-
 export const SafeAnchor: FC<AnchorHTMLAttributes<HTMLAnchorElement>> = ({
   children,
   className,
@@ -122,8 +120,8 @@ export const Code = styled.div`
   padding: 16px;
   background-color: ${theme.colors.white};
   font-family: ${theme.fontFamilies.monospace};
-  border: 1px solid ${theme.colors.neutral30};
-  border-radius: ${BORDER_RADIUS_SOFT};
+  border: 1px solid ${theme.colors.neutral20};
+  border-radius: ${theme.borderRadius.soft};
   overflow: auto;
   font-size: ${theme.fontSizes.small};
 `;

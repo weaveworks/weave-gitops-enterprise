@@ -1,18 +1,12 @@
 import React, { FC, useState } from 'react';
-import styled from 'styled-components';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import { Button as WButton } from 'weaveworks-ui-components';
-import Button from '@material-ui/core/Button';
+import { Button as WButton } from '@weaveworks/weave-gitops';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OnClickAction } from '../../Action';
-
-const ButtonText = styled.span`
-  margin: 0 4px;
-`;
 
 const ConfirmDeletion: FC<{
   clusters: number[] | string[];
@@ -57,12 +51,16 @@ const ConfirmDeletion: FC<{
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <WButton onClick={handleClickRemove} danger>
-            <ButtonText>Remove</ButtonText> <i className="fas fa-trash" />
+          <WButton
+            onClick={handleClickRemove}
+            color="secondary"
+            startIcon={<i className="fas fa-trash" />}
+          >
+            Remove
           </WButton>
-          <Button onClick={handleClose} color="primary" autoFocus>
+          <WButton variant="text" onClick={handleClose}>
             Cancel
-          </Button>
+          </WButton>
         </DialogActions>
       </Dialog>
     </div>

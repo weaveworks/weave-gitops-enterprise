@@ -1,7 +1,6 @@
 import React, { FC, useState } from 'react';
 import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
-import { Button } from 'weaveworks-ui-components';
+import { Button, theme } from '@weaveworks/weave-gitops';
 import { ConnectClusterGeneralForm } from './ConnectForm';
 import { ConnectClusterConnectionInstructions } from './ConnectionInstructions';
 import { ClusterDisconnectionInstructions } from './DisconnectionInstructions';
@@ -24,7 +23,7 @@ export const ContentContainer = styled.div`
 const TitleBarContainer = styled.div`
   display: flex;
   margin-bottom: ${theme.spacing.base};
-  border-bottom: 1px solid ${theme.colors.neutral30};
+  border-bottom: 1px solid ${theme.colors.neutral20};
 `;
 
 const Title = styled.div<{
@@ -73,7 +72,7 @@ const TitleBar: FC<TitleBarProps> = ({
 
 const ButtonBar = styled.div`
   display: flex;
-  border-top: 1px solid ${theme.colors.neutral30};
+  border-top: 1px solid ${theme.colors.neutral20};
   padding-top: ${theme.spacing.small};
 `;
 
@@ -216,9 +215,12 @@ export const ConnectClusterWizard: FC<{
         <ButtonBar>
           <FlexSpacer />
           {formState.activeIndex === 0 && (
-            <Button type="submit" disabled={!isValid || submitting}>
-              <ButtonText>Save & next</ButtonText>{' '}
-              <i className="fas fa-chevron-right" />
+            <Button
+              type="submit"
+              startIcon={<i className="fas fa-chevron-right" />}
+              disabled={!isValid || submitting}
+            >
+              Save & next
             </Button>
           )}
           {formState.activeIndex > 0 && (

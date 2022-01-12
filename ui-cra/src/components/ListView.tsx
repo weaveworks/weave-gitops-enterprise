@@ -3,16 +3,12 @@ import { theme } from '@weaveworks/weave-gitops';
 import { Button as _Button } from 'weaveworks-ui-components';
 import { darken } from 'polished';
 
-const BORDER_RADIUS_SOFT = '2px';
-const BOX_SHADOW_LIGHT =
-  '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)';
-
 export const ListView = styled.div`
   background: ${theme.colors.white};
-  border-radius: ${BORDER_RADIUS_SOFT};
+  border-radius: ${theme.borderRadius.soft};
   box-sizing: border-box;
   color: ${theme.colors.neutral40};
-  box-shadow: ${BOX_SHADOW_LIGHT}; ;
+  box-shadow: ${theme.boxShadow.light}; ;
 `;
 
 export const ListViewHeader = styled.div`
@@ -95,7 +91,7 @@ export const IconWrapper = styled.div<IconWrapperProps>`
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: ${BORDER_RADIUS_SOFT};
+  border-radius: ${theme.borderRadius.soft};
   margin-right: 10px;
   font-size: ${theme.fontSizes.large};
   width: 32px;

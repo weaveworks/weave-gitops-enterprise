@@ -7,29 +7,16 @@ import {
 } from '@material-ui/core';
 import { ConnectClusterWizard } from './ConnectWizard';
 import { Cluster } from '../../../types/kubernetes';
-import { makeStyles } from '@material-ui/core/styles';
-import { createStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
 
 interface Props {
   cluster: Cluster;
   onFinish: () => void;
 }
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    dialog: {
-      backgroundColor: theme.colors.neutral20,
-    },
-  }),
-);
-
 export const ConnectClusterDialog: FC<Props> = ({ cluster, onFinish }) => {
-  const classes = useStyles();
   return (
     <Dialog maxWidth="md" fullWidth onClose={() => onFinish()} open>
-      <div id="connection-popup" className={classes.dialog}>
+      <div id="connection-popup">
         <DialogTitle disableTypography>
           <Typography variant="h5">
             {cluster.id ? 'Configure cluster' : 'Connect a cluster'}
