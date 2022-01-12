@@ -4,10 +4,10 @@ go 1.17
 
 require (
 	github.com/fluxcd/go-git-providers v0.5.2-0.20220111143741-04eef9791373
-	github.com/fluxcd/helm-controller/api v0.11.2
+	github.com/fluxcd/helm-controller/api v0.14.1
 	github.com/fluxcd/pkg/apis/meta v0.10.1
-	github.com/fluxcd/pkg/runtime v0.12.1
-	github.com/fluxcd/source-controller/api v0.15.4
+	github.com/fluxcd/pkg/runtime v0.12.2
+	github.com/fluxcd/source-controller/api v0.19.2
 	github.com/go-logr/logr v1.2.2
 	github.com/go-logr/zapr v1.2.2
 	github.com/google/go-cmp v0.5.6
@@ -20,7 +20,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/weave-gitops v0.6.0
+	github.com/weaveworks/weave-gitops v0.6.1-0.20220111153827-022e932522cf
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
 	github.com/xanzy/go-gitlab v0.54.3
@@ -39,8 +39,8 @@ require (
 	k8s.io/client-go v0.22.2
 	k8s.io/klog/v2 v2.9.0
 	sigs.k8s.io/cluster-api v0.3.16
-	sigs.k8s.io/controller-runtime v0.10.1
-	sigs.k8s.io/kustomize/kyaml v0.12.0
+	sigs.k8s.io/controller-runtime v0.10.2
+	sigs.k8s.io/kustomize/kyaml v0.13.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -62,8 +62,8 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/Masterminds/squirrel v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.4.17 // indirect
-	github.com/Microsoft/hcsshim v0.8.21 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
+	github.com/Microsoft/hcsshim v0.8.23 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
@@ -73,6 +73,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/containerd/continuity v0.1.0 // indirect
+	github.com/coreos/go-oidc/v3 v3.1.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/cli v20.10.7+incompatible // indirect
@@ -87,10 +88,11 @@ require (
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/fluxcd/kustomize-controller/api v0.16.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v0.2.0 // indirect
-	github.com/fluxcd/pkg/ssa v0.2.0 // indirect
-	github.com/fluxcd/source-controller v0.15.4 // indirect
+	github.com/fluxcd/kustomize-controller/api v0.18.2 // indirect
+	github.com/fluxcd/pkg/apis/acl v0.0.1 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v0.3.0 // indirect
+	github.com/fluxcd/pkg/ssa v0.6.0 // indirect
+	github.com/fluxcd/source-controller v0.19.2 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-errors/errors v1.4.0 // indirect
@@ -117,7 +119,7 @@ require (
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
-	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/iancoleman/strcase v0.1.2 // indirect
@@ -138,7 +140,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
-	github.com/klauspost/compress v1.11.13 // indirect
+	github.com/klauspost/compress v1.13.5 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lib/pq v1.10.0 // indirect
@@ -207,6 +209,7 @@ require (
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -222,7 +225,7 @@ require (
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a // indirect
 	oras.land/oras-go v0.4.0 // indirect
 	sigs.k8s.io/cli-utils v0.26.0 // indirect
-	sigs.k8s.io/kustomize/api v0.10.0 // indirect
+	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
 )
 
