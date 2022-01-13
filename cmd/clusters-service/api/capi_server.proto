@@ -118,26 +118,26 @@ message RenderTemplateResponse { string rendered_template = 1; }
 message CreatePullRequestRequest {
   // The repository to use.
   string repository_url = 1;
-  // The repo api url.
-  string repository_api_url = 2;
   // The new branch that will be created.
-  string head_branch = 3;
+  string head_branch = 2;
   // The target branch.
-  string base_branch = 4;
+  string base_branch = 3;
   // The title of the pull request.
-  string title = 5;
+  string title = 4;
   // The description of the pull request
-  string description = 6;
+  string description = 5;
   // The name of the template to create a pull request for.
-  string template_name = 7;
+  string template_name = 6;
   // The values that populate the template's parameters.
-  map<string, string> parameter_values = 8;
+  map<string, string> parameter_values = 7;
   // The commit message
-  string commit_message = 9;
+  string commit_message = 8;
   // Credentials
-  Credential credentials = 10;
+  Credential credentials = 9;
   // The values for each profile that will be installed.
-  repeated ProfileValues values = 11;
+  repeated ProfileValues values = 10;
+  // The repo api url.
+  string repository_api_url = 11;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
@@ -147,22 +147,22 @@ message CreatePullRequestResponse {
 message DeleteClustersPullRequestRequest {
   // The repository to use.
   string repository_url = 1;
-  // The repo api url.
-  string repository_api_url = 2;
   // The new branch that will be created.
-  string head_branch = 3;
+  string head_branch = 2;
   // The target branch.
-  string base_branch = 4;
+  string base_branch = 3;
   // The title of the pull request.
-  string title = 5;
+  string title = 4;
   // The description of the pull request
-  string description = 6;
+  string description = 5;
   // The name of the clusters to be delete via a PR.
-  repeated string cluster_names = 7;
+  repeated string cluster_names = 6;
   // The commit message
-  string commit_message = 8;
+  string commit_message = 7;
   // Credentials
-  Credential credentials = 9;
+  Credential credentials = 8;
+  // The repo api url.
+  string repository_api_url = 9;
 }
 message DeleteClustersPullRequestResponse {
   // The url of the new pull request.

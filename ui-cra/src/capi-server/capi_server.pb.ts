@@ -53,7 +53,6 @@ export type RenderTemplateResponse = {
 
 export type CreatePullRequestRequest = {
   repositoryUrl?: string
-  repositoryApiUrl?: string
   headBranch?: string
   baseBranch?: string
   title?: string
@@ -63,6 +62,7 @@ export type CreatePullRequestRequest = {
   commitMessage?: string
   credentials?: Credential
   values?: ProfileValues[]
+  repositoryApiUrl?: string
 }
 
 export type CreatePullRequestResponse = {
@@ -71,7 +71,6 @@ export type CreatePullRequestResponse = {
 
 export type DeleteClustersPullRequestRequest = {
   repositoryUrl?: string
-  repositoryApiUrl?: string
   headBranch?: string
   baseBranch?: string
   title?: string
@@ -79,6 +78,7 @@ export type DeleteClustersPullRequestRequest = {
   clusterNames?: string[]
   commitMessage?: string
   credentials?: Credential
+  repositoryApiUrl?: string
 }
 
 export type DeleteClustersPullRequestResponse = {
