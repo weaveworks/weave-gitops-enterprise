@@ -44,16 +44,13 @@ func verifyUsageText(session *gexec.Session) {
 func DescribeCliHelp() {
 	var _ = Describe("Gitops Help Tests", func() {
 
-		GITOPS_BIN_PATH := GetGitopsBinPath()
-		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
-
 		var session *gexec.Session
 		var err error
 
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
 			})
 		})
 
