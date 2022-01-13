@@ -89,7 +89,7 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 		return nil, fmt.Errorf("unable to get api endpoint: %w", err)
 	}
 
-	repo, err := s.GetRepository(ctx, req.GitProvider, apiEndpoint)
+	repo, err := s.GetRepository(ctx, req.GitProvider, apiEndpoint.BaseURL.String())
 	if err != nil {
 		return nil, fmt.Errorf("unable to get repo: %w", err)
 	}
