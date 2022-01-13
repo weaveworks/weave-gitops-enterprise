@@ -53,6 +53,7 @@ export type RenderTemplateResponse = {
 
 export type CreatePullRequestRequest = {
   repositoryUrl?: string
+  repositoryApiUrl?: string
   headBranch?: string
   baseBranch?: string
   title?: string
@@ -70,6 +71,7 @@ export type CreatePullRequestResponse = {
 
 export type DeleteClustersPullRequestRequest = {
   repositoryUrl?: string
+  repositoryApiUrl?: string
   headBranch?: string
   baseBranch?: string
   title?: string

@@ -5,12 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
+	"github.com/jenkins-x/go-scm/scm"
+	scm_github "github.com/jenkins-x/go-scm/scm/driver/github"
+	scm_gitlab "github.com/jenkins-x/go-scm/scm/driver/gitlab"
 	go_git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
@@ -49,14 +53,15 @@ type GitProvider struct {
 }
 
 type WriteFilesToBranchAndCreatePullRequestRequest struct {
-	GitProvider   GitProvider
-	RepositoryURL string
-	HeadBranch    string
-	BaseBranch    string
-	Title         string
-	Description   string
-	CommitMessage string
-	Files         []gitprovider.CommitFile
+	GitProvider       GitProvider
+	RepositoryURL     string
+	ReposistoryAPIURL string
+	HeadBranch        string
+	BaseBranch        string
+	Title             string
+	Description       string
+	CommitMessage     string
+	Files             []gitprovider.CommitFile
 }
 
 type WriteFilesToBranchAndCreatePullRequestResponse struct {
@@ -79,7 +84,12 @@ type CloneRepoToTempDirResponse struct {
 // It returns the URL of the pull request.
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	repo, err := s.GetRepository(ctx, req.GitProvider, req.RepositoryURL)
+	apiEndpoint, err := getSCMClient(req.GitProvider, req.RepositoryURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get api endpoint: %w", err)
+	}
+
+	repo, err := s.GetRepository(ctx, req.GitProvider, apiEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get repo: %w", err)
 	}
@@ -292,4 +302,42 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		return nil, fmt.Errorf("the Git provider %q is not supported", gpi.Type)
 	}
 	return client, err
+}
+
+func getSCMClient(gp GitProvider, url string) (*scm.Client, error) {
+	var client *scm.Client
+	var err error
+
+	switch gp.Type {
+	case "github":
+		if url != "" {
+			client, err = scm_github.New(ensureGHEEndpoint(url))
+		} else {
+			client = scm_github.NewDefault()
+		}
+	case "gitlab":
+		if url != "" {
+			client, err = scm_gitlab.New(url)
+		} else {
+			client = scm_gitlab.NewDefault()
+		}
+	default:
+		return nil, fmt.Errorf("the Git provider %q is not supported", gp.Type)
+	}
+	if err != nil {
+		return client, err
+	}
+	return client, err
+}
+
+// ensureGHEEndpoint lets ensure we have the /api/v3 suffix on the URL
+func ensureGHEEndpoint(u string) string {
+	if strings.HasPrefix(u, "https://github.com") || strings.HasPrefix(u, "http://github.com") {
+		return "https://api.github.com"
+	}
+	// lets ensure we use the API endpoint to login
+	if !strings.Contains(u, "/api/") {
+		u = scm.URLJoin(u, "/api/v3")
+	}
+	return u
 }
