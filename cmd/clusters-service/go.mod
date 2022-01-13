@@ -134,6 +134,7 @@ require (
 	github.com/jackc/pgtype v1.5.0 // indirect
 	github.com/jackc/pgx/v4 v4.9.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
+	github.com/jenkins-x/go-scm v1.10.11 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/jmoiron/sqlx v1.3.1 // indirect
@@ -182,6 +183,8 @@ require (
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
+	github.com/shurcooL/githubv4 v0.0.0-20190718010115-4ba037080260 // indirect
+	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
