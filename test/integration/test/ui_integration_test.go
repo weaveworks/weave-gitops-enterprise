@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
@@ -778,8 +778,9 @@ func TestMccpUI(t *testing.T) {
 	// Screenshot on fail
 	RegisterFailHandler(gomegaFail)
 	// Screenshots
-	_ = os.RemoveAll(acceptancetest.ARTEFACTS_BASE_DIR)
-	_ = os.MkdirAll(acceptancetest.SCREENSHOTS_DIR, 0700)
+	ARTEFACTS_BASE_DIR := acceptancetest.GetEnv("ARTEFACTS_BASE_DIR", "/tmp/gitops-test/")
+	_ = os.RemoveAll(ARTEFACTS_BASE_DIR)
+	_ = os.MkdirAll(path.Join(ARTEFACTS_BASE_DIR, acceptancetest.SCREENSHOTS_DIR_NAME), 0700)
 	// WKP-UI can be a bit slow
 	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
 
@@ -808,8 +809,7 @@ func TestMccpUI(t *testing.T) {
 		wg.Wait()
 	})
 
-	// JUnit style test report
-	junitReporter := reporters.NewJUnitReporter(acceptancetest.JUNIT_TEST_REPORT_FILE)
 	// Run it!
-	RunSpecsWithDefaultAndCustomReporters(t, "WKP Integration Suite", []Reporter{junitReporter})
+	RunSpecs(t, "Weave GitOps Enterprise Integration UI Tests")
+
 }
