@@ -26,7 +26,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
-	github.com/tebeka/selenium v0.9.9
 	github.com/weaveworks/weave-gitops v0.6.1-0.20220111153827-022e932522cf
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
@@ -69,7 +68,6 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/coreos/go-oidc/v3 v3.1.0 // indirect
@@ -145,6 +143,7 @@ require (
 	github.com/jackc/pgtype v1.5.0 // indirect
 	github.com/jackc/pgx/v4 v4.9.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
+	github.com/jenkins-x/go-scm v1.10.11 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/jmoiron/sqlx v1.3.1 // indirect
@@ -197,6 +196,8 @@ require (
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
+	github.com/shurcooL/githubv4 v0.0.0-20190718010115-4ba037080260 // indirect
+	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
