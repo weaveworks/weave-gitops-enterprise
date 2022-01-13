@@ -105,7 +105,6 @@ jobs:
       GITOPS_BIN_PATH: /tmp/gitops
       SELENIUM_DEBUG: true
       ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
-      WGE_ACCEPTANCE: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
     steps:
     - id: go-cache-paths

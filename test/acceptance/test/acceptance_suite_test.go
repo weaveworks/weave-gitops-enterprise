@@ -46,13 +46,10 @@ func TestAcceptance(t *testing.T) {
 	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
 
-	if os.Getenv("WGE_ACCEPTANCE") == "true" {
-
-		// Runs the UI tests
-		DescribeSpecsUi(RealGitopsTestRunner{})
-		// Runs the CLI tests
-		DescribeSpecsCli(RealGitopsTestRunner{})
-	}
+	// Runs the UI tests
+	DescribeSpecsUi(RealGitopsTestRunner{})
+	// Runs the CLI tests
+	DescribeSpecsCli(RealGitopsTestRunner{})
 
 	//JUnit style test report
 	junitReporter := reporters.NewJUnitReporter(JUNIT_TEST_REPORT_FILE)

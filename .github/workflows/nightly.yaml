@@ -42,7 +42,6 @@ jobs:
       ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
       MANAGEMENT_CLUSTER_KIND: EKS
       SELENIUM_DEBUG: true
-      WGE_ACCEPTANCE: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
     steps:
     - id: go-cache-paths
@@ -202,7 +201,6 @@ jobs:
       ACCEPTANCE_TESTS_DATABASE_TYPE: postgres
       MANAGEMENT_CLUSTER_KIND: GKE
       SELENIUM_DEBUG: true
-      WGE_ACCEPTANCE: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
     steps:
     - id: go-cache-paths
