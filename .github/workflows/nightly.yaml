@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 90
     env:
       GO_CACHE_NAME: cache-go-modules
+      GIT_PROVIDER: github
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
@@ -43,6 +44,7 @@ jobs:
       MANAGEMENT_CLUSTER_KIND: EKS
       SELENIUM_DEBUG: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
+      CHECKPOINT_DISABLE: 1
     steps:
     - id: go-cache-paths
       run: |
@@ -187,6 +189,7 @@ jobs:
     timeout-minutes: 90
     env:
       GO_CACHE_NAME: cache-go-modules
+      GIT_PROVIDER: github
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
@@ -202,6 +205,7 @@ jobs:
       MANAGEMENT_CLUSTER_KIND: GKE
       SELENIUM_DEBUG: true
       ARTEFACTS_BASE_DIR: /tmp/workspace/test/
+      CHECKPOINT_DISABLE: 1
     steps:
     - id: go-cache-paths
       run: |
