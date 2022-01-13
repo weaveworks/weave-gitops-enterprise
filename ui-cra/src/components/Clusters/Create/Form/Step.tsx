@@ -43,7 +43,6 @@ const Content = styled.div`
       height: 38px;
       overflow: hidden;
       span {
-        color: ${theme.colors.primary};
         font-weight: 600;
       }
     }
@@ -165,7 +164,6 @@ export const FormStep: FC<{
                 {child}
                 {childOccurences?.count > 1 && child.props.firstOfAKind ? (
                   <Button
-                    type="button"
                     className="step-child-btn"
                     onClick={() => handleClick(child.props.name)}
                   >

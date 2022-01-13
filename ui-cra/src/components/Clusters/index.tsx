@@ -4,11 +4,6 @@ import useNotifications from '../../contexts/Notifications';
 import { Cluster } from '../../types/kubernetes';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import {
-  faArrowUp,
-  faPlus,
-  faTrashAlt,
-} from '@fortawesome/free-solid-svg-icons';
 import { ClustersTable } from './Table';
 import { Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './Connect/ConnectDialog';
@@ -16,13 +11,15 @@ import { useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
-import { OnClickAction } from '../Action';
-import { theme } from '@weaveworks/weave-gitops';
-import { DeleteClusterDialog } from './Delete';
 import {
+  Button,
+  theme,
   CallbackStateContextProvider,
   getCallbackState,
+  Icon,
+  IconType,
 } from '@weaveworks/weave-gitops';
+import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 
@@ -154,35 +151,38 @@ const MCCP: FC = () => {
         <ContentWrapper>
           <Title>Connected clusters dashboard</Title>
           <ActionsWrapper>
-            <OnClickAction
+            <Button
               id="create-cluster"
-              icon={faPlus}
+              startIcon={<Icon type={IconType.AddIcon} size="base" />}
               onClick={handleAddCluster}
-              text="CREATE A CLUSTER"
-            />
-            <OnClickAction
+            >
+              CREATE A CLUSTER
+            </Button>
+            <Button
               id="connect-cluster"
-              icon={faArrowUp}
+              startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
               onClick={() => setClusterToEdit(NEW_CLUSTER)}
-              text="CONNECT A CLUSTER"
-            />
+            >
+              CONNECT A CLUSTER
+            </Button>
             <Tooltip
               title="No CAPI clusters selected"
               placement="top"
               disabled={initialSelectedCapiClusters.length !== 0}
             >
               <div>
-                <OnClickAction
-                  className="danger"
+                <Button
                   id="delete-cluster"
-                  icon={faTrashAlt}
+                  startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
                   onClick={() => {
                     setNotifications([]);
                     setOpenDeletePR(true);
                   }}
-                  text="CREATE A PR TO DELETE CLUSTERS"
+                  color="secondary"
                   disabled={initialSelectedCapiClusters.length === 0}
-                />
+                >
+                  CREATE A PR TO DELETE CLUSTERS
+                </Button>
               </div>
             </Tooltip>
             {openDeletePR && (

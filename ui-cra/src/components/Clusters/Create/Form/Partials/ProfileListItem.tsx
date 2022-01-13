@@ -22,9 +22,12 @@ import {
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
-import { OnClickAction } from '../../../../Action';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import Button from '@material-ui/core/Button';
+import {
+  theme as weaveTheme,
+  Button,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
@@ -34,10 +37,6 @@ const useStyles = makeStyles(() => ({
     width: '100%',
     padding: xs,
     border: '1px solid #E5E5E5',
-  },
-  downloadBtn: {
-    color: weaveTheme.colors.primary,
-    padding: '0px',
   },
 }));
 
@@ -146,7 +145,7 @@ const ProfilesListItem: FC<{
               </Select>
             </FormControl>
           </div>
-          <Button className={classes.downloadBtn} onClick={handleYamlPreview}>
+          <Button variant="text" onClick={handleYamlPreview}>
             Values.yaml
           </Button>
         </ListItem>
@@ -171,12 +170,14 @@ const ProfilesListItem: FC<{
           />
         </DialogContent>
         <DialogActions>
-          <OnClickAction
+          <Button
             id="edit-yaml"
+            startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
             onClick={handleUpdateProfiles}
-            text="Save changes"
             disabled={profile.required}
-          />
+          >
+            SAVE CHANGES
+          </Button>
         </DialogActions>
       </Dialog>
     </>

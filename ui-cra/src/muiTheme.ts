@@ -10,16 +10,6 @@ export const muiTheme = createTheme({
   ...coreMuiTheme,
   overrides: {
     MuiButton: {
-      contained: {
-        backgroundColor: 'hsl(0, 0%, 100%)',
-        color: 'hsl(0, 0%, 45%)',
-        boxShadow: weaveTheme.boxShadow.light,
-        '&:hover': {
-          backgroundColor: 'hsl(0, 0%, 96%)',
-          boxShadow: weaveTheme.boxShadow.light,
-          color: weaveTheme.colors.primaryDark,
-        },
-      },
       root: {
         textTransform: 'none',
         minWidth: 52,
@@ -56,7 +46,7 @@ export const muiTheme = createTheme({
         flexGrow: 1,
       },
       input: {
-        border: '1px solid #E5E5E5',
+        border: `1px solid ${weaveTheme.colors.neutral20}`,
         borderRadius: 2,
         position: 'relative',
         backgroundColor: defaultTheme.palette.common.white,
@@ -64,7 +54,7 @@ export const muiTheme = createTheme({
         width: '100%',
         padding: '8px 12px',
         '&:focus': {
-          borderColor: '#00A7CC',
+          borderColor: weaveTheme.colors.primaryDark,
           borderRadius: 2,
         },
       },
@@ -76,7 +66,7 @@ export const muiTheme = createTheme({
     },
     MuiTableCell: {
       head: {
-        color: '#888888',
+        color: weaveTheme.colors.neutral30,
       },
       root: {
         borderBottom: 'none',

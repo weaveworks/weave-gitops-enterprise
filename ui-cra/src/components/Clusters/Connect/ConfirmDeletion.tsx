@@ -1,12 +1,10 @@
 import React, { FC, useState } from 'react';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import { Button as WButton } from '@weaveworks/weave-gitops';
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { OnClickAction } from '../../Action';
 
 const ConfirmDeletion: FC<{
   clusters: number[] | string[];
@@ -27,14 +25,15 @@ const ConfirmDeletion: FC<{
 
   return (
     <div>
-      <OnClickAction
+      <Button
         id="delete-cluster"
-        icon={faTrashAlt}
+        color="secondary"
+        startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
         onClick={handleClickOpen}
-        text={title}
-        className="danger"
         disabled={clusters.length === 0}
-      />
+      >
+        REMOVE CLUSTERS FROM THE MCCP
+      </Button>
       <Dialog
         open={open}
         onClose={handleClose}
@@ -51,16 +50,16 @@ const ConfirmDeletion: FC<{
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <WButton
+          <Button
             onClick={handleClickRemove}
             color="secondary"
-            startIcon={<i className="fas fa-trash" />}
+            startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
           >
-            Remove
-          </WButton>
-          <WButton variant="text" onClick={handleClose}>
-            Cancel
-          </WButton>
+            REMOVE
+          </Button>
+          <Button variant="text" onClick={handleClose}>
+            CANCEL
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

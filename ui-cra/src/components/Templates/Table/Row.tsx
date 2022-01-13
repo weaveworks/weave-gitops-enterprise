@@ -2,10 +2,13 @@ import React, { useCallback } from 'react';
 import { TableCell, TableRow } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Template } from '../../../types/custom';
-import { OnClickAction } from '../../Action';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useHistory } from 'react-router-dom';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import {
+  theme as weaveTheme,
+  Button,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -49,13 +52,14 @@ const TemplateRow = ({ index, template }: RowProps) => {
         <span className={classes.error}>{error}</span>
       </TableCell>
       <TableCell>
-        <OnClickAction
+        <Button
           id="create-cluster"
-          icon={faPlus}
+          startIcon={<Icon type={IconType.AddIcon} size="base" />}
           onClick={handleAddCluster}
-          text="CREATE CLUSTER WITH THIS TEMPLATE"
           disabled={Boolean(error)}
-        />
+        >
+          CREATE CLUSTER WITH THIS TEMPLATE
+        </Button>
       </TableCell>
     </TableRow>
   );
