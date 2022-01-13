@@ -1,10 +1,8 @@
 on:
-  push:
-    branches:
-      - thisisnotabranchdontrunplease
+  pull_request:
   workflow_dispatch:
 
-concurrency: 
+concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
 
