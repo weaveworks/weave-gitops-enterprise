@@ -75,21 +75,19 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) boo
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops application UI Tests", func() {
-
-		GITOPS_BIN_PATH := GetGitopsBinPath()
 		var repoAbsolutePath string
 
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
 			})
 
 			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
+				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			})
 
-			InitializeWebdriver(GetWGEUrl())
+			initializeWebdriver(DEFAULT_UI_URL)
 		})
 
 		AfterEach(func() {
@@ -103,39 +101,28 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			kustomizationFile := "../../utils/data/nginx.yaml"
 			kustomizationCommitMsg := "edit nginx kustomization repo file"
 
-			JustBeforeEach(func() {
-				By("And cluster repo does not already exist", func() {
-					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					_ = deleteDirectory([]string{path.Join("/tmp/", CLUSTER_REPOSITORY)})
-				})
-
-			})
-
 			JustAfterEach(func() {
-				SusspendGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
-				DeleteGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
-				DeleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
+				susspendGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
+				deleteGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
+				deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
-				gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				_ = deleteDirectory([]string{path.Join("/tmp/", CLUSTER_REPOSITORY)})
+				deleteRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, GITHUB_ORG)
 			})
 
 			It("@application Verify application's status and history can be monitored.", func() {
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
-					testFile := createTestFile("README.md", "# gitops-capi-template")
-
-					gitopsTestRunner.GitAddCommitPush(repoAbsolutePath, testFile)
+					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, true, GITHUB_ORG)
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
-					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
+					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 				})
 
 				By("And I add the kustomization file for application deployment", func() {
+					pullGitRepo(repoAbsolutePath)
 					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
-					GitUpdateCommitPush(repoAbsolutePath, kustomizationCommitMsg)
+					gitUpdateCommitPush(repoAbsolutePath, kustomizationCommitMsg)
 				})
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -153,8 +140,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					Eventually(addApp.Name).Should(BeVisible())
 					Expect(addApp.Name.SendKeys(appName)).To(Succeed())
-					Expect(addApp.SourceRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
-					Expect(addApp.ConfigRepoUrl.SendKeys(GetGitRepositoryURL(repoAbsolutePath))).To(Succeed())
+					Expect(addApp.SourceRepoUrl.SendKeys(getGitRepositoryURL(repoAbsolutePath))).To(Succeed())
+					Expect(addApp.ConfigRepoUrl.SendKeys(getGitRepositoryURL(repoAbsolutePath))).To(Succeed())
 					Expect(addApp.Path.SendKeys(appPath)).To(Succeed())
 					Expect(addApp.AutoMerge.Check()).To(Succeed())
 				})
