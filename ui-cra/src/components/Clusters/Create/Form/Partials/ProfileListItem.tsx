@@ -145,8 +145,7 @@ const ProfilesListItem: FC<{
           </div>
           <div className="profile-layer">
             <span>Layer</span>
-            <span>Example layer</span>
-            {/* {profile.layer} */}
+            <span>{profile.layer}</span>
           </div>
           <Button variant="text" onClick={handleYamlPreview}>
             Values.yaml
