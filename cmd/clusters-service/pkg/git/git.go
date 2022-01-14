@@ -83,12 +83,19 @@ type CloneRepoToTempDirResponse struct {
 // It returns the URL of the pull request.
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	apiEndpoint, err := getSCMClient(req.GitProvider, req.RepositoryURL)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get api endpoint: %w", err)
+	var repoURL string
+
+	if req.ReposistoryAPIURL != "" {
+		repoURL = req.ReposistoryAPIURL
+	} else {
+		scmClient, err := getSCMClient(req.GitProvider, req.RepositoryURL)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get scm client: %w", err)
+		}
+		repoURL = scmClient.BaseURL.String()
 	}
 
-	repo, err := s.GetRepository(ctx, req.GitProvider, apiEndpoint.BaseURL.String())
+	repo, err := s.GetRepository(ctx, req.GitProvider, repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get repo: %w", err)
 	}
