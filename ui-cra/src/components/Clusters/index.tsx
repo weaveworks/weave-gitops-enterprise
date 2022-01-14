@@ -17,7 +17,6 @@ import {
   CallbackStateContextProvider,
   getCallbackState,
   Icon,
-  IconType,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -153,14 +152,14 @@ const MCCP: FC = () => {
           <ActionsWrapper>
             <Button
               id="create-cluster"
-              startIcon={<Icon type={IconType.AddIcon} size="base" />}
+              startIcon={<Icon type="Add" size="base" />}
               onClick={handleAddCluster}
             >
               CREATE A CLUSTER
             </Button>
             <Button
               id="connect-cluster"
-              startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
+              startIcon={<Icon type="ArrowUpward" size="base" />}
               onClick={() => setClusterToEdit(NEW_CLUSTER)}
             >
               CONNECT A CLUSTER
@@ -173,7 +172,7 @@ const MCCP: FC = () => {
               <div>
                 <Button
                   id="delete-cluster"
-                  startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+                  startIcon={<Icon type="Delete" size="base" />}
                   onClick={() => {
                     setNotifications([]);
                     setOpenDeletePR(true);

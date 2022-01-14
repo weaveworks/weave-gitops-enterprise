@@ -23,7 +23,6 @@ import {
   clearCallbackState,
   getProviderToken,
   Icon,
-  IconType,
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
@@ -186,7 +185,7 @@ export const DeleteClusterDialog: FC<Props> = ({
               <Button
                 id="delete-cluster"
                 color="secondary"
-                startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+                startIcon={<Icon type="Delete" size="base" />}
                 onClick={handleClickRemove}
                 disabled={!enableCreatePR}
               >

@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Button, Icon } from '@weaveworks/weave-gitops';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -28,7 +28,7 @@ const ConfirmDeletion: FC<{
       <Button
         id="delete-cluster"
         color="secondary"
-        startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+        startIcon={<Icon type="Delete" size="base" />}
         onClick={handleClickOpen}
         disabled={clusters.length === 0}
       >
@@ -53,7 +53,7 @@ const ConfirmDeletion: FC<{
           <Button
             onClick={handleClickRemove}
             color="secondary"
-            startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+            startIcon={<Icon type="Delete" size="base" />}
           >
             REMOVE
           </Button>

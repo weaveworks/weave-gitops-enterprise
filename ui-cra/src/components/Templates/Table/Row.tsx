@@ -3,23 +3,18 @@ import { TableCell, TableRow } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Template } from '../../../types/custom';
 import { useHistory } from 'react-router-dom';
-import {
-  theme as weaveTheme,
-  Button,
-  Icon,
-  IconType,
-} from '@weaveworks/weave-gitops';
+import { theme, Button, Icon } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({
     icon: {
-      color: '#ccc',
+      color: theme.colors.neutral20,
     },
     normalRow: {
       borderBottom: `1px solid #d8d8d8`,
     },
     error: {
-      color: weaveTheme.colors.alert,
+      color: theme.colors.alert,
     },
   }),
 );
@@ -54,7 +49,7 @@ const TemplateRow = ({ index, template }: RowProps) => {
       <TableCell>
         <Button
           id="create-cluster"
-          startIcon={<Icon type={IconType.AddIcon} size="base" />}
+          startIcon={<Icon type="Add" size="base" />}
           onClick={handleAddCluster}
           disabled={Boolean(error)}
         >

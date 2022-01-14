@@ -14,6 +14,12 @@ export const muiTheme = createTheme({
         textTransform: 'none',
         minWidth: 52,
       },
+      outlinedPrimary: {
+        borderColor: weaveTheme.colors.neutral20,
+        '&:hover': {
+          borderColor: weaveTheme.colors.neutral20,
+        },
+      },
     },
     MuiDialog: {
       root: {
