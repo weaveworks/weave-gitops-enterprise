@@ -10,7 +10,7 @@ import { request } from '../../../utils/request';
 import useNotifications from './../../../contexts/Notifications';
 
 export const ButtonText = styled.span`
-  margin: 0 4px;
+  margin: 0 ${theme.spacing.xxs};
 `;
 
 export const ContentContainer = styled.div`

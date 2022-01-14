@@ -64,7 +64,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 		TemplateSection:    webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		ProfileSelect:      webDriver.Find(`div.profiles-select > div`),
 		ProfileSelectPopup: webDriver.All(`ul[role="listbox"] li`),
-		PreviewPR:          webDriver.FindByButton("Preview PR"),
+		PreviewPR:          webDriver.FindByButton("PREVIEW PR"),
 	}
 
 	return &clusterPage

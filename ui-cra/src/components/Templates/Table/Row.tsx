@@ -11,7 +11,7 @@ const useStyles = makeStyles(() =>
       color: theme.colors.neutral20,
     },
     normalRow: {
-      borderBottom: `1px solid #d8d8d8`,
+      borderBottom: `1px solid ${theme.colors.neutral20}`,
     },
     error: {
       color: theme.colors.alert,

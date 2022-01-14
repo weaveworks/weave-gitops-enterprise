@@ -31,7 +31,7 @@ const useStyles = makeStyles(() => ({
   textarea: {
     width: '100%',
     padding: xs,
-    border: '1px solid #E5E5E5',
+    border: `1px solid ${weaveTheme.colors.neutral10}`,
   },
 }));
 

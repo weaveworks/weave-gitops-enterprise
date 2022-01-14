@@ -32,7 +32,7 @@ export const Count = styled.div<Size>`
     size === 'small'
       ? transparentize(0.5, weaveTheme.colors.white)
       : weaveTheme.colors.white};
-  padding: 4px 8px;
+  padding: ${weaveTheme.spacing.xxs} ${weaveTheme.spacing.xs};
   align-self: center;
   font-size: ${({ size }) =>
     size === 'small' ? weaveTheme.spacing.small : weaveTheme.fontSizes.normal};

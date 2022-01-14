@@ -26,7 +26,7 @@ const Title = styled.div<{ name?: string }>`
   span.metadata {
     margin-left: ${theme.spacing.small};
     font-size: ${theme.fontSizes.tiny};
-    color: rgba(0, 0, 0, 0.54);
+    color: ${theme.colors.neutral30};
     font-weight: 400;
   }
 `;

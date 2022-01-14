@@ -38,7 +38,7 @@ const GlobalStyle = createGlobalStyle`
 
   body {
     background: url(${Background}) no-repeat;
-    background-color: #F5F5F5;
+    background-color: ${theme.colors.neutral10};
     background-position: right bottom;
     background-attachment:fixed;
     color: ${theme.colors.black};

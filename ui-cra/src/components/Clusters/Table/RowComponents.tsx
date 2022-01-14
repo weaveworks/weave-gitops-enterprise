@@ -28,11 +28,11 @@ export const RepoLink: FC<{ url: string; branch: string }> = ({
 }) => <Link href={getGitRepoHTTPSURL(url, branch)}>View git repo</Link>;
 
 const ClusterBit = styled.span`
-  color: ${theme.colors.neutral40};
+  color: ${theme.colors.neutral30};
 `;
 
 const ClusterBitsContainer = styled.span`
-  color: hsl(0, 0%, 60%);
+  color: ${theme.colors.neutral30};
 `;
 
 const ClusterNodesTooltipCell = styled.td`

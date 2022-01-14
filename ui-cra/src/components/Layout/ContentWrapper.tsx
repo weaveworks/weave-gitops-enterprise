@@ -25,7 +25,7 @@ export const PageWrapper = styled.div`
 export const contentCss = css`
   margin: ${medium} ${small} 0 ${small};
   padding: ${large} ${medium} ${medium} ${large};
-  background-color: white;
+  background-color: ${theme.colors.white};
   border-radius: ${xs};
 `;
 
@@ -39,15 +39,14 @@ export const WGContent = styled.div`
   div[class*='Page__Content'] {
     max-width: none;
     width: auto;
-    padding-top: 0;
-    padding-bottom: ${medium};
+    padding-top: ${medium} 0;
     margin: ${medium} ${small} ${small} ${small};
   }
 `;
 
 const EntitlementWrapper = styled.div`
   ${contentCss};
-  background-color: #f3e9c9;
+  background-color: ${theme.colors.feedbackLight};
   padding: ${small} ${medium};
   display: flex;
 `;

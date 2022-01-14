@@ -86,7 +86,7 @@ const useStyles = makeStyles((theme: Theme) =>
       overflowY: 'hidden',
       width: drawerWidth,
       border: 'none',
-      background: '#F5F5F5',
+      background: weaveTheme.colors.neutral10,
     },
     content: {
       flexGrow: 1,

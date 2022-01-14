@@ -17,7 +17,7 @@ import { ReactComponent as Docker } from '../../assets/img/templates/docker.svg'
 import { ReactComponent as OpenStack } from '../../assets/img/templates/openstack.svg';
 import { ReactComponent as Packet } from '../../assets/img/templates/packet.svg';
 import { ReactComponent as VSphere } from '../../assets/img/templates/vsphere.svg';
-import { theme, Button, Icon } from '@weaveworks/weave-gitops';
+import { Button, Icon } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({

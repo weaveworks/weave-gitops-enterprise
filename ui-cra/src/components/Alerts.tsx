@@ -20,11 +20,9 @@ import useClusters from '../contexts/Clusters';
 import { ContentWrapper, Title } from './Layout/ContentWrapper';
 import { Loader } from './Loader';
 
-const WARNING_COLOR = 'hsl(46, 69%, 49%)';
-
 const alertColor = ({ severity }: { severity: string }) => {
   if (severity === 'warning') {
-    return WARNING_COLOR;
+    return theme.colors.feedbackLight;
   }
   if (severity === 'critical') {
     return theme.colors.alert;

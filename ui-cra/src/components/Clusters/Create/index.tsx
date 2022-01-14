@@ -60,7 +60,7 @@ const CredentialsWrapper = styled.div`
     }
   }
   & .dropdown-toggle {
-    border: 1px solid #e5e5e5;
+    border: 1px solid ${weaveTheme.colors.neutral10};
   }
   & .dropdown-popover {
     width: auto;

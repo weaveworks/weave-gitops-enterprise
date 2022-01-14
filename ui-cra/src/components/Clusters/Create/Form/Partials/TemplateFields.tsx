@@ -158,7 +158,7 @@ const TemplateFields: FC<{
       {...UiTemplate}
     >
       <div className="previewCTA">
-        <Button type="submit">Preview PR</Button>
+        <Button type="submit">PREVIEW PR</Button>
       </div>
     </FormWrapper>
   );
