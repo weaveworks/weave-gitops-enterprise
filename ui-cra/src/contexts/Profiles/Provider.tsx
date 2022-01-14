@@ -41,12 +41,13 @@ const ProfilesProvider: FC = ({ children }) => {
         const defaultProfiles: UpdatedProfile[] = [];
         for (const [key, value] of annotations) {
           if (key.includes('capi.weave.works/profile')) {
-            const { name, version, values } = JSON.parse(value);
+            const { name, version, values, layer } = JSON.parse(value);
             if (values !== undefined) {
               defaultProfiles.push({
                 name,
                 values: [{ version, yaml: values, selected: false }],
                 required: true,
+                layer,
               });
             } else {
               defaultProfiles.push({
@@ -59,6 +60,7 @@ const ProfilesProvider: FC = ({ children }) => {
                   },
                 ],
                 required: true,
+                layer,
               });
             }
           }
@@ -84,8 +86,14 @@ const ProfilesProvider: FC = ({ children }) => {
       const profileRequests = profiles.flatMap(profile =>
         profile.availableVersions.map(async version => {
           const profileName = profile.name;
+          const profileLayer = profile.layer;
           const data = await getProfileYaml(profileName, version);
-          return { name: profileName, version: version, payload: data };
+          return {
+            name: profileName,
+            version: version,
+            payload: data,
+            layer: profileLayer,
+          };
         }),
       );
       Promise.all(profileRequests)
@@ -96,6 +104,7 @@ const ProfilesProvider: FC = ({ children }) => {
                 name: string;
                 values: { version: string; yaml: string }[];
                 required: boolean;
+                layer: string;
               }[],
               profile,
             ) => {
@@ -115,6 +124,7 @@ const ProfilesProvider: FC = ({ children }) => {
                   name: profile.name,
                   values: [value],
                   required: false,
+                  layer: profile.layer,
                 });
               }
               return profilesWithAddedValues;

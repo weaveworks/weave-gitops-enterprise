@@ -39,14 +39,17 @@ const ListItemWrapper = styled.div`
   & .profile-name {
     margin-right: ${medium};
   }
-  & .profile-version {
+  & .profile-version,
+  .profile-layer {
     display: flex;
     align-items: center;
     margin-right: ${medium};
-    width: 150px;
     span {
       margin-right: ${xs};
     }
+  }
+  & .profile-version {
+    width: 150px;
   }
 `;
 
@@ -139,6 +142,11 @@ const ProfilesListItem: FC<{
                 {profileVersions(profile)}
               </Select>
             </FormControl>
+          </div>
+          <div className="profile-layer">
+            <span>Layer</span>
+            <span>Example layer</span>
+            {/* {profile.layer} */}
           </div>
           <Button variant="text" onClick={handleYamlPreview}>
             Values.yaml
