@@ -16,9 +16,6 @@ import (
 func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops Get Tests", func() {
 
-		GITOPS_BIN_PATH := GetGitopsBinPath()
-		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
-
 		templateFiles := []string{}
 		var session *gexec.Session
 		var err error
@@ -26,11 +23,11 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
 			})
 
 			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
+				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			})
 		})
 
@@ -364,7 +361,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				By("And gitops state is reset", func() {
 					_ = gitopsTestRunner.ResetDatabase()
 					gitopsTestRunner.VerifyWegoPodsRunning()
-					gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
+					gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 				})
 
 				By(fmt.Sprintf("Then I run 'gitops get cluster --endpoint %s'", CAPI_ENDPOINT_URL), func() {

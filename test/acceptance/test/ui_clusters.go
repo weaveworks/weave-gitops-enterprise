@@ -43,11 +43,6 @@ var leaves = map[string]LeafSpec{
 		AlertManagerURL: "http://acmeprom-kube-prometheus-s-alertmanager.default:9093/api/v2",
 		KubeconfigPath:  os.Getenv("EKS_LEAF_KUBECONFIG"),
 	},
-	"kind-wkp": {
-		Status:         "Ready",
-		IsWKP:          true,
-		KubeconfigPath: os.Getenv("KIND_WKP_LEAF_KUBECONFIG"),
-	},
 }
 
 func ClusterStatusFromList(clustersPage *pages.ClustersPage, clusterName string) *agouti.Selection {
@@ -172,7 +167,7 @@ func getCommandEnv(leaf LeafSpec) []string {
 
 func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, leaf LeafSpec) (*pages.ClustersPage, string, string) {
 	By("when I navigate to the cluster page..", func() {
-		Expect(webDriver.Navigate(GetWGEUrl() + "/clusters")).To(Succeed())
+		pages.NavigateToPage(webDriver, "Cluster")
 	})
 
 	tokenURLRegex := `https?:\/\/[-a-zA-Z0-9@:%._\+~#=]+\/gitops\/api\/agent\.yaml\?token=[0-9a-zA-Z]+`
@@ -264,13 +259,13 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
-				//TODO - Verify that cluster is up and running using kubectl
+				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			})
-			InitializeWebdriver(GetWGEUrl())
+			initializeWebdriver(DEFAULT_UI_URL)
 		})
 
 		AfterEach(func() {
-			TakeNextScreenshot()
+			takeNextScreenshot()
 		})
 
 		It("Verify page structure first time with no cluster configured", func() {
@@ -281,7 +276,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			By("And wego enterprise state is reset", func() {
 				_ = gitopsTestRunner.ResetDatabase()
 				gitopsTestRunner.VerifyWegoPodsRunning()
-				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
+				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 			})
 
@@ -307,7 +302,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			By("And should have No alerts firing message", func() {
-				Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
+				Expect(webDriver.Navigate(DEFAULT_UI_URL + "/clusters/alerts")).To(Succeed())
 				Eventually(clustersPage.NoFiringAlertMessage).Should(HaveText("No alerts firing"))
 			})
 
@@ -450,14 +445,14 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			_ = gitopsTestRunner.ResetDatabase()
 			gitopsTestRunner.VerifyWegoPodsRunning()
-			gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
+			gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
-			Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
+			pages.NavigateToPage(webDriver, "Alerts")
 			Eventually(clustersPage.NoFiringAlertMessage).Should(BeFound())
 
-			Expect(webDriver.Navigate(GetWGEUrl())).To(Succeed())
+			Expect(webDriver.Navigate(DEFAULT_UI_URL)).To(Succeed())
 			Eventually(clustersPage.NoClusterConfigured).Should(HaveText("No clusters configured"))
 
 			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
@@ -467,7 +462,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			severity := [3]string{"critical", "warning", "critical"}
 
 			By("when I navigate to the alerts page..", func() {
-				Expect(webDriver.Navigate(GetWGEUrl() + "/clusters/alerts")).To(Succeed())
+				pages.NavigateToPage(webDriver, "Alerts")
 			})
 
 			By("And when a critical alert fires", func() {
@@ -561,7 +556,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			}
 			_ = gitopsTestRunner.ResetDatabase()
 			gitopsTestRunner.VerifyWegoPodsRunning()
-			gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
+			gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
@@ -569,7 +564,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			pages.NavigateToPage(webDriver, "Alerts")
 			Eventually(clustersPage.NoFiringAlertMessage).Should(BeFound())
 
-			Expect(webDriver.Navigate(GetWGEUrl())).To(Succeed())
+			Expect(webDriver.Navigate(DEFAULT_UI_URL)).To(Succeed())
 			Eventually(clustersPage.NoClusterConfigured).Should(HaveText("No clusters configured"))
 			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
@@ -613,53 +608,12 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			deleteClusterEntry(webDriver, []string{clusterName})
 		})
 
-		XIt("@wkp Verify team workspaces variations", func() {
-			if getEnv("CONNECT_KIND_WKP_LEAF_TEST", "") == "" {
-				Skip("set CONNECT_KIND_WKP_LEAF_TEST env var to run this test")
-			}
-
-			clusterName := RandString(32)
-			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
-			leaf := leaves["kind-wkp"]
-			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaf)
-			cluster := pages.FindClusterInList(clustersPage, clusterName)
-			commandEnv := getCommandEnv(leaf)
-
-			By("And I add a new workspace to the cluster", func() {
-				// In acceptance test this has to be the host cluster.
-				_ = gitopsTestRunner.AddWorkspace(commandEnv, clusterName)
-			})
-
-			By("Then I found the new workspace added to the Team Workspaces column", func() {
-				Eventually(cluster.TeamWorkspaces, ASSERTION_1MINUTE_TIME_OUT).Should(MatchText("mccp-devs-workspace"))
-			})
-
-			By("And the workspaces should be a link", func() {
-				link := cluster.TeamWorkspaces.Find("a")
-				Expect(link).To(BeFound())
-				url, _ := link.Attribute("href")
-				Expect(url).To(Equal("https://google.com/workspaces"))
-			})
-
-			By("And when the ingress URL is cleared", func() {
-				ClearIngressURL(webDriver, clusterName)
-			})
-
-			By("Then the team workspaces should not be a link", func() {
-				Eventually(cluster.TeamWorkspaces.Find("a")).ShouldNot(BeFound())
-			})
-		})
-
 		It("@gce Verify user can connect a GCE cluster", func() {
 			connectACluster(webDriver, gitopsTestRunner, leaves["gce"])
 		})
 
 		It("@eks Verify user can connect an EKS cluster", func() {
 			connectACluster(webDriver, gitopsTestRunner, leaves["eks"])
-		})
-
-		XIt("@wkp Verify user can connect a kind cluster with cluster components installed", func() {
-			connectACluster(webDriver, gitopsTestRunner, leaves["kind-wkp"])
 		})
 	})
 }

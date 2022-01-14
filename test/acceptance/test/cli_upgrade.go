@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"path"
 	"regexp"
-	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,7 +14,6 @@ import (
 func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops upgrade Tests", func() {
 
-		GITOPS_BIN_PATH := GetGitopsBinPath()
 		UI_NODEPORT := "30081"
 		NATS_NODEPORT := "31491"
 		var capi_endpoint_url string
@@ -29,12 +26,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
 			})
-		})
-
-		AfterEach(func() {
-
 		})
 
 		Context("[CLI] When Wego core is installed in the cluster", func() {
@@ -46,15 +39,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 			JustBeforeEach(func() {
 				current_context, _ = runCommandAndReturnStringOutput("kubectl config current-context")
-				current_context = strings.Trim(current_context, "\n")
 
 				// Create vanilla cluster for WGE upgrade
-				CreateCluster("kind", kind_upgrade_cluster_name, "upgrade-kind-config.yaml")
-
-				By("And cluster repo does not already exist", func() {
-					gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-					_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
-				})
+				createCluster("kind", kind_upgrade_cluster_name, "upgrade-kind-config.yaml")
 
 			})
 
@@ -63,8 +50,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 				templateFiles = []string{}
 
-				gitopsTestRunner.DeleteRepo(CLUSTER_REPOSITORY)
-				_ = deleteDirectory([]string{path.Join("/tmp", CLUSTER_REPOSITORY)})
+				deleteRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, GITHUB_ORG)
 
 				err := runCommandPassThrough([]string{}, "kubectl", "config", "use-context", current_context)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -76,11 +62,11 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 			It("@upgrade Verify wego core can be upgraded to wego enterprise", func() {
 
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = gitopsTestRunner.InitAndCreateEmptyRepo(CLUSTER_REPOSITORY, true)
+					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, true, GITHUB_ORG)
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
-					InstallAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, GetGitRepositoryURL(repoAbsolutePath))
+					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 				})
 
 				By("And I install the entitlement for cluster upgrade", func() {
@@ -94,11 +80,11 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should update/modify the default upgrade manifest ", func() {
-					public_ip = ClusterWorkloadNonePublicIP("KIND")
+					public_ip = clusterWorkloadNonePublicIP("KIND")
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.0.15"
+				version := "0.0.17"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := public_ip + ":" + NATS_NODEPORT
 					repositoryURL := fmt.Sprintf(`https://github.com/%s/%s`, GITHUB_ORG, CLUSTER_REPOSITORY)
@@ -119,16 +105,17 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should merge the pull request to start weave gitops enterprise upgrade", func() {
-					gitopsTestRunner.MergePullRequest(repoAbsolutePath, prBranch)
+					upgradePRUrl := verifyPRCreated(repoAbsolutePath, GIT_PROVIDER)
+					mergePullRequest(repoAbsolutePath, upgradePRUrl, GIT_PROVIDER)
 				})
 
 				By("And I should see cluster upgraded from 'wego core' to 'wego enterprise'", func() {
-					VerifyEnterpriseControllers("weave-gitops-enterprise", "mccp-", GITOPS_DEFAULT_NAMESPACE)
+					verifyEnterpriseControllers("weave-gitops-enterprise", "mccp-", GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
 					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service weave-gitops-enterprise-nginx-ingress-controller -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
-					if strings.Trim(serviceType, "\n") == "NodePort" {
+					if serviceType == "NodePort" {
 						capi_endpoint_url = "http://" + public_ip + ":" + UI_NODEPORT
 						test_ui_url = "http://" + public_ip + ":" + UI_NODEPORT
 					} else {
@@ -144,7 +131,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						test_ui_url = "http://localhost:8000"
 						capi_endpoint_url = "http://localhost:8000"
 					}
-					InitializeWebdriver(test_ui_url)
+					initializeWebdriver(test_ui_url)
 				})
 
 				By("And the Cluster service is healthy", func() {
