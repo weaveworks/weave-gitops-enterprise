@@ -1,7 +1,9 @@
 on:
-  schedule:
-    - cron: '10 0 * * *'
   workflow_dispatch:
+  pull_request: # MrE TODO REMOVE
+  # MRE TODO REMOVE
+  # schedule:
+  #   - cron: '10 0 * * *'
 
 name: nightly
 jobs:
@@ -20,6 +22,7 @@ jobs:
   test-eks:
     needs: [build]
     runs-on: ${{matrix.os}}
+    if: false # MrE TODO REMOVE
     strategy:
       matrix:
         include:
@@ -180,6 +183,7 @@ jobs:
 
   test-gke:
     needs: [build]
+    if: false # MrE TODO REMOVE
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
@@ -330,4 +334,42 @@ jobs:
         name: acceptance-test-artifacts-${{ matrix.os }}
         path: ${{ env.ARTEFACTS_BASE_DIR }}
         retention-days: 7  
-  
+  codeql:
+    name: CodeQL
+    needs: [build]
+    runs-on: ubuntu-latest
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      CHECKPOINT_DISABLE: 1
+    steps:
+    - id: go-cache-paths
+      run: |
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ steps.go-cache-paths.outputs.go-build }}
+          ${{ steps.go-cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: go, typescript
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
