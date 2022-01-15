@@ -342,6 +342,10 @@ jobs:
       GO_CACHE_NAME: cache-go-modules
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       CHECKPOINT_DISABLE: 1
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['go', 'typescript']
     steps:
     - id: go-cache-paths
       run: |
@@ -369,7 +373,5 @@ jobs:
           ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
-      with:
-        languages: go, typescript
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
