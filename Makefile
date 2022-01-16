@@ -1,4 +1,4 @@
-.PHONY: all install clean images lint unit-tests check ui-build-for-tests update-mccp-chart-values update-wkp-ui-chart-values
+.PHONY: all install clean images lint unit-tests check ui-build-for-tests update-mccp-chart-values update-wkp-ui-chart-values ui-audit
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -124,7 +124,7 @@ $(foreach image, $(IMAGE_NAMES), $(eval $(call imagetag_dep, $(image))))
 
 all: $(UPTODATE_FILES) binaries
 
-check: all lint unit-tests
+check: all lint unit-tests ui-audit
 
 BINARIES = \
 	cmd/gitops-repo-broker/gitops-repo-broker \
@@ -161,6 +161,10 @@ cmd/ui-server/ui-server:
 ui-cra/build:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile && REACT_APP_VERSION=$(VERSION) yarn build
+
+ui-audit:
+	# Check js packages for any high or critical vulnerabilities 
+	cd ui-cra && yarn audit --level high; if [ $$? -gt 7 ]; then echo "Failed yarn audit"; exit 1; fi
 
 lint:
 	bin/go-lint
