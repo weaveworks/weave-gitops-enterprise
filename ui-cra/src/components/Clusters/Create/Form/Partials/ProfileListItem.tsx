@@ -22,7 +22,12 @@ import {
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
-import { theme as weaveTheme, Button, Icon } from '@weaveworks/weave-gitops';
+import {
+  theme as weaveTheme,
+  Button,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
@@ -174,7 +179,7 @@ const ProfilesListItem: FC<{
         <DialogActions>
           <Button
             id="edit-yaml"
-            startIcon={<Icon type="SaveAlt" size="base" />}
+            startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
             onClick={handleUpdateProfiles}
             disabled={profile.required}
           >
