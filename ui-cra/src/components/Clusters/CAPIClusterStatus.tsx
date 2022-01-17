@@ -113,7 +113,8 @@ export const CAPIClusterStatus: FC<{
   const classes = useStyles();
   const { getKubeconfig } = useClusters();
 
-  const handleClick = () => getKubeconfig(clusterName, 'kubeconfig');
+  const handleClick = () =>
+    getKubeconfig(clusterName, `${clusterName} kubeconfig`);
 
   if (!status) {
     return null;
