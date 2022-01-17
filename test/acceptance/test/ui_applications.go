@@ -20,57 +20,70 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) boo
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
 		if pages.ElementExist(authenticate.AuthenticateGithub) {
-			log.Info("Found, authing...")
 			Expect(authenticate.AuthenticateGithub.Click()).To(Succeed())
-			Eventually(authenticate.AccessCode).Should(BeVisible())
-			accessCode, _ := authenticate.AccessCode.Text()
-			Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
-			accessCode = strings.Replace(accessCode, "-", "", 1)
+			AuthenticateWithGitHub(webDriver)
 
-			// Move to device activation window
-			TakeScreenShot("application_authentication")
-			Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to github authentication window")
-			TakeScreenShot("github_authentication")
-
-			activate := pages.ActivateDeviceGithub(webDriver)
-
-			if pages.ElementExist(activate.Username) {
-				Eventually(activate.Username).Should(BeVisible())
-				Expect(activate.Username.SendKeys(GITHUB_USER)).To(Succeed())
-				Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
-				Expect(activate.Signin.Click()).To(Succeed())
-			} else {
-				log.Info("Login not found, assuming already logged in")
-				TakeScreenShot("login_skipped")
+			// Sometimes authentication failed to get the github device code, it may require revalidation with new access code
+			if pages.ElementExist(authenticate.AuthorizationError) {
+				log.Info("Error getting github device code, revalidating...")
+				AuthenticateWithGitHub(webDriver)
 			}
 
-			if pages.ElementExist(activate.AuthCode) {
-				Eventually(activate.AuthCode).Should(BeVisible())
-				// Generate 6 digit authentication OTP for MFA
-				authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
-				Expect(activate.AuthCode.SendKeys(authCode)).To(Succeed())
-			} else {
-				log.Info("OTP not found, assuming already logged in")
-				TakeScreenShot("otp_skipped")
-			}
-
-			Eventually(activate.Continue).Should(BeVisible())
-			Expect(activate.UserCode.At(0).SendKeys(accessCode)).To(Succeed())
-			Expect(activate.Continue.Click()).To(Succeed())
-
-			Eventually(activate.AuthroizeWeaveworks).Should(BeEnabled())
-			Expect(activate.AuthroizeWeaveworks.Click()).To(Succeed())
-
-			Eventually(activate.ConnectedMessage).Should(BeVisible())
-			Expect(webDriver.CloseWindow()).ShouldNot(HaveOccurred())
-
-			// Device is connected, now move back to application window
-			Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
 			Eventually(authenticate.AuthroizeButton).ShouldNot(BeFound())
 			return true
 		}
 	}
 	return false
+}
+
+func AuthenticateWithGitHub(webDriver *agouti.Page) {
+
+	authenticate := pages.AuthenticateWithGithub(webDriver)
+
+	Eventually(authenticate.AccessCode).Should(BeVisible())
+	accessCode, _ := authenticate.AccessCode.Text()
+	Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
+	accessCode = strings.Replace(accessCode, "-", "", 1)
+
+	// Move to device activation window
+	TakeScreenShot("application_authentication")
+	Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to github authentication window")
+	TakeScreenShot("github_authentication")
+
+	activate := pages.ActivateDeviceGithub(webDriver)
+
+	if pages.ElementExist(activate.Username) {
+		Eventually(activate.Username).Should(BeVisible())
+		Expect(activate.Username.SendKeys(GITHUB_USER)).To(Succeed())
+		Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
+		Expect(activate.Signin.Click()).To(Succeed())
+	} else {
+		log.Info("Login not found, assuming already logged in")
+		TakeScreenShot("login_skipped")
+	}
+
+	if pages.ElementExist(activate.AuthCode) {
+		Eventually(activate.AuthCode).Should(BeVisible())
+		// Generate 6 digit authentication OTP for MFA
+		authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
+		Expect(activate.AuthCode.SendKeys(authCode)).To(Succeed())
+	} else {
+		log.Info("OTP not found, assuming already logged in")
+		TakeScreenShot("otp_skipped")
+	}
+
+	Eventually(activate.Continue).Should(BeVisible())
+	Expect(activate.UserCode.At(0).SendKeys(accessCode)).To(Succeed())
+	Expect(activate.Continue.Click()).To(Succeed())
+
+	Eventually(activate.AuthroizeWeaveworks).Should(BeEnabled())
+	Expect(activate.AuthroizeWeaveworks.Click()).To(Succeed())
+
+	Eventually(activate.ConnectedMessage).Should(BeVisible())
+	Expect(webDriver.CloseWindow()).ShouldNot(HaveOccurred())
+
+	// Device is connected, now move back to application window
+	Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
 }
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
