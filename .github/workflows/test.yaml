@@ -164,7 +164,7 @@ jobs:
       YARN_CACHE_NAME: cache-yarn
       GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       SELENIUM_DEBUG: true
-      ARTEFACTS_BASE_DIR: /tmp/ui-integration-test/
+      ARTIFACTS_BASE_DIR: /tmp/ui-integration-test/
     steps:
     - id: cache-paths
       run: |
@@ -210,13 +210,13 @@ jobs:
         make ui-build-for-tests
         
         cd test/integration/test
-        go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip='@integration|@gce|@eks|@application|@upgrade' -ginkgo.reportFile=${{ env.ARTEFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
+        go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip='@integration|@gce|@eks|@application|@upgrade' -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
     - name: Store integration test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
         name: ui-integration-test-artifacts
-        path: ${{ env.ARTEFACTS_BASE_DIR }}
+        path: ${{ env.ARTIFACTS_BASE_DIR }}
         retention-days: 1
 
   smoke-tests:
@@ -233,7 +233,7 @@ jobs:
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
-      artefacts-base-dir: "/tmp/smoke-test"   
+      artifacts-base-dir: "/tmp/smoke-test"   
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
@@ -258,7 +258,7 @@ jobs:
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
-      artefacts-base-dir: "/tmp/acceptance-test"
+      artifacts-base-dir: "/tmp/acceptance-test"
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}

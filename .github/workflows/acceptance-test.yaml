@@ -50,7 +50,7 @@ on:
         default: sqlite
         required: false
         type: string
-      artefacts-base-dir:
+      artifacts-base-dir:
         description: "Directory for test artifacts"
         required: true
         type: string
@@ -121,7 +121,7 @@ env:
   WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
   GCE_LEAF_KUBECONFIG: ${{ inputs.gce-leaf-kubeconfig }}
   WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
-  ARTEFACTS_BASE_DIR: ${{ inputs.artefacts-base-dir }}
+  ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
   EXP_CLUSTER_RESOURCE_SET: ${{ inputs.cluster_resource_set }}
   SELENIUM_DEBUG: true
   CHECKPOINT_DISABLE: 1  
@@ -303,17 +303,17 @@ jobs:
     - name: Run Acceptance tests
       run: |
         # Set the ACCEPTANCE_TEST_ARTIFACT_NAME as environment variable for subsequent steps
-        ACCEPTANCE_TEST_ARTIFACT_NAME=$(basename ${{ env.ARTEFACTS_BASE_DIR }})-artifacts
+        ACCEPTANCE_TEST_ARTIFACT_NAME=$(basename ${{ env.ARTIFACTS_BASE_DIR }})-artifacts
         echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV
 
         cd test/acceptance/test/
-        go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.reportFile=${{ env.ARTEFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s        
+        go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s        
     - name: Store test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.ACCEPTANCE_TEST_ARTIFACT_NAME }}
-        path: ${{ env.ARTEFACTS_BASE_DIR }}
+        path: ${{ env.ARTIFACTS_BASE_DIR }}
         retention-days: 7
     - name: Reset management cluster
       if: ${{ always() }}

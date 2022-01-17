@@ -95,7 +95,7 @@ jobs:
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
-      artefacts-base-dir: "/tmp/acceptance-test"
+      artifacts-base-dir: "/tmp/acceptance-test"
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}

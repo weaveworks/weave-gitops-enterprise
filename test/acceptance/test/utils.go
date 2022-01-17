@@ -34,7 +34,7 @@ var (
 	GITOPS_BIN_PATH      string
 	CAPI_ENDPOINT_URL    string
 	DEFAULT_UI_URL       string
-	ARTEFACTS_BASE_DIR   string
+	ARTIFACTS_BASE_DIR   string
 
 	webDriver    *agouti.Page
 	screenshotNo = 1
@@ -98,7 +98,7 @@ func SetSeleniumServiceUrl(url string) {
 
 func TakeScreenShot(name string) string {
 	if webDriver != nil {
-		filepath := path.Join(ARTEFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME, name+".png")
+		filepath := path.Join(ARTIFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME, name+".png")
 		_ = webDriver.Screenshot(filepath)
 		return filepath
 	}
@@ -114,7 +114,7 @@ func SetupTestEnvironment() {
 	DEFAULT_UI_URL = GetEnv("TEST_UI_URL", "http://localhost:8000")
 	CAPI_ENDPOINT_URL = GetEnv("TEST_CAPI_ENDPOINT_URL", "http://localhost:8000")
 	GITOPS_BIN_PATH = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
-	ARTEFACTS_BASE_DIR = GetEnv("ARTEFACTS_BASE_DIR", "/tmp/gitops-test/")
+	ARTIFACTS_BASE_DIR = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
 
 	GITHUB_USER = GetEnv("GITHUB_USER", "")
 	GITHUB_PASSWORD = GetEnv("GITHUB_PASSWORD", "")
@@ -129,9 +129,9 @@ func SetupTestEnvironment() {
 	DOCKER_IO_PASSWORD = GetEnv("DOCKER_IO_PASSWORD", "")
 
 	//Cleanup the workspace dir, it helps when running locally
-	err := os.RemoveAll(ARTEFACTS_BASE_DIR)
+	err := os.RemoveAll(ARTIFACTS_BASE_DIR)
 	Expect(err).ShouldNot(HaveOccurred())
-	err = os.MkdirAll(path.Join(ARTEFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME), 0700)
+	err = os.MkdirAll(path.Join(ARTIFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME), 0700)
 	Expect(err).ShouldNot(HaveOccurred())
 }
 
@@ -227,7 +227,7 @@ func showItems(itemType string) error {
 }
 
 func dumpClusterInfo(testName string) error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTEFACTS_BASE_DIR, "cluster-info"))
+	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
 }
 
 // utility functions

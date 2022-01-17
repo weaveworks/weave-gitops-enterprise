@@ -778,9 +778,9 @@ func TestMccpUI(t *testing.T) {
 	// Screenshot on fail
 	RegisterFailHandler(gomegaFail)
 	// Screenshots
-	ARTEFACTS_BASE_DIR := acceptancetest.GetEnv("ARTEFACTS_BASE_DIR", "/tmp/gitops-test/")
-	_ = os.RemoveAll(ARTEFACTS_BASE_DIR)
-	_ = os.MkdirAll(path.Join(ARTEFACTS_BASE_DIR, acceptancetest.SCREENSHOTS_DIR_NAME), 0700)
+	ARTIFACTS_BASE_DIR := acceptancetest.GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
+	_ = os.RemoveAll(ARTIFACTS_BASE_DIR)
+	_ = os.MkdirAll(path.Join(ARTIFACTS_BASE_DIR, acceptancetest.SCREENSHOTS_DIR_NAME), 0700)
 	// WKP-UI can be a bit slow
 	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
 

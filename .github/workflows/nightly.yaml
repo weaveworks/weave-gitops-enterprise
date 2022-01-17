@@ -32,7 +32,7 @@ jobs:
       gitops-bin-path: /usr/local/bin/gitops
       database-type: postgres      
       eks-leaf-kubeconfig: '/tmp/eks-leaf-kubeconfig'
-      artefacts-base-dir: "/tmp/acceptance-test-eks"
+      artifacts-base-dir: "/tmp/acceptance-test-eks"
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
@@ -61,7 +61,7 @@ jobs:
       gitops-bin-path: /usr/local/bin/gitops
       database-type: postgres      
       gce-leaf-kubeconfig: '/tmp/gce-leaf-kubeconfig'
-      artefacts-base-dir: "/tmp/acceptance-test-gke"
+      artifacts-base-dir: "/tmp/acceptance-test-gke"
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
