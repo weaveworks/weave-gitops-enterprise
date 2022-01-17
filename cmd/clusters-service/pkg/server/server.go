@@ -233,6 +233,10 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if msg.RepositoryUrl != "" {
 		repositoryURL = msg.RepositoryUrl
 	}
+	repositoryAPIURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+	if msg.RepositoryApiUrl != "" {
+		repositoryAPIURL = msg.RepositoryApiUrl
+	}
 	baseBranch := os.Getenv("CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH")
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
@@ -291,7 +295,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 			GitProvider:       *gp,
 			RepositoryURL:     repositoryURL,
-			ReposistoryAPIURL: msg.RepositoryApiUrl,
+			ReposistoryAPIURL: repositoryAPIURL,
 			HeadBranch:        msg.HeadBranch,
 			BaseBranch:        baseBranch,
 			Title:             msg.Title,
@@ -428,6 +432,10 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	if msg.RepositoryUrl != "" {
 		repositoryURL = msg.RepositoryUrl
 	}
+	repositoryAPIURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+	if msg.RepositoryApiUrl != "" {
+		repositoryAPIURL = msg.RepositoryApiUrl
+	}
 	baseBranch := os.Getenv("CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH")
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
@@ -466,7 +474,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
-		ReposistoryAPIURL: msg.RepositoryApiUrl,
+		ReposistoryAPIURL: repositoryAPIURL,
 		HeadBranch:        msg.HeadBranch,
 		BaseBranch:        baseBranch,
 		Title:             msg.Title,
