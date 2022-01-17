@@ -19,7 +19,7 @@ jobs:
 
   acceptance-tests-eks:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@unify-acceptance-test-jobs-action
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -48,7 +48,7 @@ jobs:
 
   acceptance-tests-gke:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@unify-acceptance-test-jobs-action
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
       runs-on: macOS-latest
       os-name: darwin
