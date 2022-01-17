@@ -167,8 +167,8 @@ export const FormStep: FC<{
                     className="step-child-btn"
                     onClick={() => handleClick(child.props.name)}
                   >
-                    {childOccurences?.groupVisible ? 'Hide' : 'Show'}&nbsp;
-                    <span>{childOccurences.count}</span>&nbsp;populated fields
+                    {childOccurences?.groupVisible ? 'HIDE' : 'SHOW'}&nbsp;
+                    <span>{childOccurences.count}</span>&nbsp;POPULATED FIELDS
                   </Button>
                 ) : null}
               </div>
