@@ -34,6 +34,13 @@ const ProfilesProvider: FC = ({ children }) => {
     [profilesWithValues],
   );
 
+  const getProfileLayer = useCallback(
+    (name: string) => {
+      return profilesWithValues.find(p => p.name === name)?.layer;
+    },
+    [profilesWithValues],
+  );
+
   const getDefaultProfiles = useCallback(
     (template: Template) => {
       if (template?.annotations) {
@@ -60,7 +67,7 @@ const ProfilesProvider: FC = ({ children }) => {
                   },
                 ],
                 required: true,
-                layer,
+                layer: getProfileLayer(name),
               });
             }
           }
@@ -69,7 +76,7 @@ const ProfilesProvider: FC = ({ children }) => {
       }
       return [];
     },
-    [getVersionValue],
+    [getVersionValue, getProfileLayer],
   );
 
   const getProfileYaml = useCallback((name: string, version: string) => {
@@ -104,7 +111,7 @@ const ProfilesProvider: FC = ({ children }) => {
                 name: string;
                 values: { version: string; yaml: string }[];
                 required: boolean;
-                layer: string;
+                layer?: string;
               }[],
               profile,
             ) => {
