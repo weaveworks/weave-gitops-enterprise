@@ -83,7 +83,7 @@ jobs:
   
   acceptance-tests:
     needs: [build, coverage]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@unify-acceptance-test-jobs-action
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
       runs-on: ubuntu-latest
       os-name: linux
