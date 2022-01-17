@@ -34,6 +34,7 @@ var (
 	GITOPS_BIN_PATH      string
 	CAPI_ENDPOINT_URL    string
 	DEFAULT_UI_URL       string
+	ARTIFACTS_BASE_DIR   string
 
 	webDriver    *agouti.Page
 	screenshotNo = 1
@@ -42,12 +43,9 @@ var (
 const (
 	WGE_WINDOW_NAME          string = "weave-gitops-enterprise"
 	GITOPS_DEFAULT_NAMESPACE string = "wego-system"
+	SCREENSHOTS_DIR_NAME     string = "screenshots"
 	WINDOW_SIZE_X            int    = 1800
 	WINDOW_SIZE_Y            int    = 2500
-	ARTEFACTS_BASE_DIR       string = "/tmp/workspace/test/"
-	SCREENSHOTS_DIR          string = ARTEFACTS_BASE_DIR + "screenshots/"
-	CLUSTER_INFO_DIR         string = ARTEFACTS_BASE_DIR + "cluster-info/"
-	JUNIT_TEST_REPORT_FILE   string = ARTEFACTS_BASE_DIR + "acceptance-test-results.xml"
 
 	ASSERTION_DEFAULT_TIME_OUT   time.Duration = 15 * time.Second
 	ASSERTION_1SECOND_TIME_OUT   time.Duration = 1 * time.Second
@@ -100,7 +98,7 @@ func SetSeleniumServiceUrl(url string) {
 
 func TakeScreenShot(name string) string {
 	if webDriver != nil {
-		filepath := path.Join(SCREENSHOTS_DIR, name+".png")
+		filepath := path.Join(ARTIFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME, name+".png")
 		_ = webDriver.Screenshot(filepath)
 		return filepath
 	}
@@ -113,24 +111,31 @@ func RandString(length int) string {
 
 func SetupTestEnvironment() {
 	SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
-	DEFAULT_UI_URL = getEnv("TEST_UI_URL", "http://localhost:8000")
-	CAPI_ENDPOINT_URL = getEnv("TEST_CAPI_ENDPOINT_URL", "http://localhost:8000")
-	GITOPS_BIN_PATH = getEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
+	DEFAULT_UI_URL = GetEnv("TEST_UI_URL", "http://localhost:8000")
+	CAPI_ENDPOINT_URL = GetEnv("TEST_CAPI_ENDPOINT_URL", "http://localhost:8000")
+	GITOPS_BIN_PATH = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
+	ARTIFACTS_BASE_DIR = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
 
-	GITHUB_USER = getEnv("GITHUB_USER", "")
-	GITHUB_PASSWORD = getEnv("GITHUB_PASSWORD", "")
-	GIT_PROVIDER = getEnv("GIT_PROVIDER", "")
-	GITHUB_ORG = getEnv("GITHUB_ORG", "")
-	GITHUB_TOKEN = getEnv("GITHUB_TOKEN", "")
-	GITLAB_TOKEN = getEnv("GITLAB_TOKEN", "")
-	CLUSTER_REPOSITORY = getEnv("CLUSTER_REPOSITORY", "")
+	GITHUB_USER = GetEnv("GITHUB_USER", "")
+	GITHUB_PASSWORD = GetEnv("GITHUB_PASSWORD", "")
+	GIT_PROVIDER = GetEnv("GIT_PROVIDER", "")
+	GITHUB_ORG = GetEnv("GITHUB_ORG", "")
+	GITHUB_TOKEN = GetEnv("GITHUB_TOKEN", "")
+	GITLAB_TOKEN = GetEnv("GITLAB_TOKEN", "")
+	CLUSTER_REPOSITORY = GetEnv("CLUSTER_REPOSITORY", "")
 	GIT_REPOSITORY_URL = "https://" + path.Join("github.com", GITHUB_ORG, CLUSTER_REPOSITORY)
 
-	DOCKER_IO_USER = getEnv("DOCKER_IO_USER", "")
-	DOCKER_IO_PASSWORD = getEnv("DOCKER_IO_PASSWORD", "")
+	DOCKER_IO_USER = GetEnv("DOCKER_IO_USER", "")
+	DOCKER_IO_PASSWORD = GetEnv("DOCKER_IO_PASSWORD", "")
+
+	//Cleanup the workspace dir, it helps when running locally
+	err := os.RemoveAll(ARTIFACTS_BASE_DIR)
+	Expect(err).ShouldNot(HaveOccurred())
+	err = os.MkdirAll(path.Join(ARTIFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME), 0700)
+	Expect(err).ShouldNot(HaveOccurred())
 }
 
-func getEnv(key, fallback string) string {
+func GetEnv(key, fallback string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {
 		value = fallback
@@ -222,7 +227,7 @@ func showItems(itemType string) error {
 }
 
 func dumpClusterInfo(testName string) error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, CLUSTER_INFO_DIR)
+	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
 }
 
 // utility functions
@@ -251,11 +256,18 @@ func fileExists(name string) bool {
 }
 
 // WaitUntil runs checkDone until a timeout is reached
-func waitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() error) error {
+func waitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() error, expectError ...bool) error {
 	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
 		err := checkDone()
-		if err == nil {
-			return nil
+
+		if len(expectError) > 0 && expectError[0] {
+			if err != nil {
+				return nil
+			}
+		} else {
+			if err == nil {
+				return nil
+			}
 		}
 		fmt.Fprintf(out, "error occurred %s, retrying in %s\n", err, poll.String())
 	}
