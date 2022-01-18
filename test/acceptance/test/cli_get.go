@@ -354,7 +354,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When no clusters are available in the management cluster", func() {
 			It("Verify gitops lists no clusters", func() {
-				if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+				if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 					Skip("This test case runs only with sqlite")
 				}
 
