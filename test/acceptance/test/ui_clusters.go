@@ -269,7 +269,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		It("Verify page structure first time with no cluster configured", func() {
-			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
 
@@ -439,7 +439,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		It("Verify alerts widget with firing alerts", func() {
-			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
 
@@ -551,7 +551,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		It("Verify clicking on alert name in alerts widget will take to the cluster page", func() {
-			if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
 			_ = gitopsTestRunner.ResetDatabase()
