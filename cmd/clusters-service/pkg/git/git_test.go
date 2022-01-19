@@ -232,6 +232,27 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 	assert.Equal(t, pr.Description, "Creates a cluster through a CAPI template")
 }
 
+func TestGetGitProviderUrl(t *testing.T) {
+	expected := "https://github.com/user/repo.git"
+
+	os.Setenv("CAPI_TEMPLATES_REPOSITORY_API_URL", "https://github.com/user/repo.git")
+	repoURL, err := git.GetGitProviderUrl(url)
+	require.NoError(t, err)
+	assert.Equal(t, expected, repoURL)
+
+	os.Unsetenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+
+	gitUrl := "git@github.com:user/repo.git"
+	repoURL, err = git.GetGitProviderUrl(url)
+	require.NoError(t, err)
+	assert.Equal(t, expected, repoURL)
+
+	httpsUrl := "https://github.com/user/repo.git"
+	repoURL, err = git.GetGitProviderUrl(url)
+	require.NoError(t, err)
+	assert.Equal(t, expected, repoURL)
+}
+
 func findGitHubRepo(repos []*github.Repository, name string) *github.Repository {
 	if name == "" {
 		return nil

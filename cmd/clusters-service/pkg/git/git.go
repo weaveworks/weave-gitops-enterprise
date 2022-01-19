@@ -82,7 +82,7 @@ type CloneRepoToTempDirResponse struct {
 // It returns the URL of the pull request.
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	repoURL, err := getGitProviderUrl(req.RepositoryURL)
+	repoURL, err := GetGitProviderUrl(req.RepositoryURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get git porivder url: %w", err)
 	}
@@ -302,7 +302,7 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 	return client, err
 }
 
-func getGitProviderUrl(giturl string) (string, error) {
+func GetGitProviderUrl(giturl string) (string, error) {
 	repositoryAPIURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
 	if repositoryAPIURL != "" {
 		return repositoryAPIURL, nil
