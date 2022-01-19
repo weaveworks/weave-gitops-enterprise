@@ -23,13 +23,14 @@
     "@types/jest": "^26.0.15",
     "@types/lodash": "^4.14.169",
     "@types/node": "^12.0.0",
+    "@types/query-string": "^6.3.0",
     "@types/randomcolor": "^0.5.5",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-jsonschema-form": "^1.7.5",
     "@types/react-router-dom": "^5.1.7",
     "@types/styled-components": "^5.1.9",
-    "@weaveworks/weave-gitops": "0.5.0-rc2",
+    "@weaveworks/weave-gitops": "0.6.0",
     "d3-scale": "3.2.1",
     "git-url-parse": "11.1.2",
     "http-proxy-middleware": "^2.0.0",
@@ -39,6 +40,7 @@
     "moment": "2.25.3",
     "polished": "3.6.3",
     "prettier": "^2.3.0",
+    "query-string": "^7.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-jsonschema-form": "^1.8.1",
@@ -54,7 +56,8 @@
   },
   "resolutions": {
     "**/react": "^17.0.2",
-    "**/react-dom": "^17.0.2"
+    "**/react-dom": "^17.0.2",
+    "@weaveworks/weave-gitops/react-router-dom": "^5.2.0"
   },
   "scripts": {
     "start": "react-scripts start",

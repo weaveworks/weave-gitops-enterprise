@@ -16,9 +16,6 @@ import (
 func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops Get Tests", func() {
 
-		GITOPS_BIN_PATH := GetGitopsBinPath()
-		CAPI_ENDPOINT_URL := GetCapiEndpointUrl()
-
 		templateFiles := []string{}
 		var session *gexec.Session
 		var err error
@@ -26,11 +23,11 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(FileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
 			})
 
 			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
+				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			})
 		})
 
@@ -195,7 +192,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				capdTemplateCount := 5
 				totalTemplateCount := awsTemplateCount + eksFargateTemplateCount + capdTemplateCount
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "capi-server-v1-template-capd.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "capi-template-capd.yaml")...)
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-aws.yaml")...)
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
 				})
@@ -279,7 +276,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 			It("Verify gitops can list template parameters of a template from template library", func() {
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				By(fmt.Sprintf("And I run gitops get templates cluster-template-development-0 --list-parameters --endpoint %s", CAPI_ENDPOINT_URL), func() {
@@ -294,8 +291,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I should see parameter rows", func() {
 					output := session.Wait().Out.Contents()
-					re := regexp.MustCompile(`CLUSTER_NAME+\s+true\s+This is used for the cluster naming.\s+KUBERNETES_VERSION\s+false\s+Kubernetes version to use for the cluster\s+1.19.7, 1.19.8\s+NAMESPACE\s+false\s+Namespace to create the cluster in`)
-					Eventually((re.Find(output))).ShouldNot(BeNil())
+					Eventually(string(output)).Should(MatchRegexp(`CLUSTER_NAME+\s+true\s+This is used for the cluster naming.\s+KUBERNETES_VERSION\s+false\s+Kubernetes version to use for the cluster\s+1.19.11, 1.21.1, 1.22.0, 1.23.0\s+NAMESPACE\s+false\s+Namespace to create the cluster in`))
 
 				})
 			})
@@ -358,14 +354,14 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When no clusters are available in the management cluster", func() {
 			It("Verify gitops lists no clusters", func() {
-				if getEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
+				if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 					Skip("This test case runs only with sqlite")
 				}
 
 				By("And gitops state is reset", func() {
 					_ = gitopsTestRunner.ResetDatabase()
 					gitopsTestRunner.VerifyWegoPodsRunning()
-					gitopsTestRunner.CheckClusterService(GetCapiEndpointUrl())
+					gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 				})
 
 				By(fmt.Sprintf("Then I run 'gitops get cluster --endpoint %s'", CAPI_ENDPOINT_URL), func() {

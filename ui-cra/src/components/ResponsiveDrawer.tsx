@@ -20,6 +20,7 @@ import {
 import {
   AppContextProvider,
   applicationsClient,
+  OAuthCallback,
 } from '@weaveworks/weave-gitops';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
@@ -36,10 +37,13 @@ import WGApplicationsDashboard from './Applications';
 import WGApplicationAdd from './Applications/Add';
 import WGApplicationDetail from './Applications/Detail';
 import { GitOpsBlue } from './../muiTheme';
+import qs from 'query-string';
+import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 const APPS_ROUTE = '/applications';
 const APP_DETAIL_ROUTE = '/application_detail';
 const APP_ADD_ROUTE = '/application_add';
+const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 
 const drawerWidth = 220;
 
@@ -177,6 +181,7 @@ const ResponsiveDrawer = () => {
         <main className={classes.content}>
           <Switch>
             <Route component={MCCP} exact path={['/', '/clusters']} />
+            <Route component={MCCP} exact path="/clusters/delete" />
             <Route
               component={AddClusterWithCredentials}
               exact
@@ -199,6 +204,19 @@ const ResponsiveDrawer = () => {
               component={WGApplicationDetail}
             />
             <Route exact path={APP_ADD_ROUTE} component={WGApplicationAdd} />
+            <Route
+              exact
+              path={GITLAB_OAUTH_CALLBACK}
+              component={({ location }: any) => {
+                const params = qs.parse(location.search);
+                return (
+                  <OAuthCallback
+                    provider={'GitLab' as GitProvider}
+                    code={params.code as string}
+                  />
+                );
+              }}
+            />
             <Route render={handle404} />
           </Switch>
         </main>

@@ -17,19 +17,15 @@ function setup {
     exit 1
   fi
 
-  GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
-
-  WORKER_NODE=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1)
-
   UI_NODEPORT=30080
   NATS_NODEPORT=31490
 
-  if [ "$MANAGEMENT_CLUSTER_KIND" == "EKS" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "GKE" ]; then
-    WORKER_NAME=$(echo $WORKER_NODE | cut -d '/' -f2-)
+  if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
+    WORKER_NAME=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
     WORKER_NODE_EXTERNAL_IP=$(kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='${WORKER_NAME}')].status.addresses[?(@.type=='ExternalIP')].address}")
 
     # Configure inbound NATS and UI node ports
-    if [ "$MANAGEMENT_CLUSTER_KIND" == "EKS" ]; then
+    if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ]; then
       INSTANCE_SECURITY_GROUP=$(aws ec2 describe-instances --filter "Name=ip-address,Values=${WORKER_NODE_EXTERNAL_IP}" --query 'Reservations[*].Instances[*].NetworkInterfaces[0].Groups[0].{sg:GroupId}' --output text)
       aws ec2 authorize-security-group-ingress --group-id ${INSTANCE_SECURITY_GROUP}  --ip-permissions FromPort=${NATS_NODEPORT},ToPort=${NATS_NODEPORT},IpProtocol=tcp,IpRanges='[{CidrIp=0.0.0.0/0}]',Ipv6Ranges='[{CidrIpv6=::/0}]'
       aws ec2 authorize-security-group-ingress --group-id ${INSTANCE_SECURITY_GROUP}  --ip-permissions FromPort=${UI_NODEPORT},ToPort=${UI_NODEPORT},IpProtocol=tcp,IpRanges='[{CidrIp=0.0.0.0/0}]',Ipv6Ranges='[{CidrIpv6=::/0}]'
@@ -37,14 +33,14 @@ function setup {
       gcloud compute firewall-rules create nats-node-port --allow tcp:${NATS_NODEPORT}
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
     fi
-  else
+  elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
   # MANAGEMENT_CLUSTER_KIND is a KIND cluster
     if [ "$(uname -s)" == "Linux" ]; then
       WORKER_NODE_EXTERNAL_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
     elif [ "$(uname -s)" == "Darwin" ]; then
       WORKER_NODE_EXTERNAL_IP=$(ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
     fi
-  fi   
+  fi
 
   # Sets the UI and CAPI endpoint URL environment variables for acceptance tests
   echo "TEST_UI_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
@@ -63,16 +59,22 @@ function setup {
   kubectl create secret generic git-provider-credentials \
     --namespace=wego-system \
     --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
-  CHART_VERSION=$(git describe --always | sed 's/^[^0-9]*//')
-
+  CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
+  
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
   else
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
   fi
-  helm repo update
+  helm repo update  
+  
+  # Install weave gitops core controllers
+  # Git repository doesn't exist at this point, therefore we just ignore the erros relataing to repository not found
+  GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
+  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} --auto-merge
 
-  if [ "${MANAGEMENT_CLUSTER_KIND}" == "EKS" ] || [ "${MANAGEMENT_CLUSTER_KIND}" == "GKE" ]; then
+  # Install weave gitops enterprise controllers
+  if [ "${ACCEPTANCE_TESTS_DATABASE_TYPE}" == "postgres" ]; then
     # Create postgres DB
     kubectl apply -f test/utils/data/postgres-manifests.yaml
     kubectl wait --for=condition=available --timeout=600s deployment/postgres
@@ -86,12 +88,12 @@ function setup {
       --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
       --set "config.capi.repositoryPath=./management" \
+      --set "config.cluster.name=$(kubectl config current-context)", \
       --set "config.capi.baseBranch=main" \
       --set "dbConfig.databaseType=postgres" \
       --set "postgresConfig.databaseName=postgres" \
       --set "dbConfig.databaseURI=${POSTGRES_CLUSTER_IP}" 
   else
-    # KIND cluster 
     helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system \
       --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
       --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
@@ -99,11 +101,32 @@ function setup {
       --set "nginx-ingress-controller.service.type=NodePort" \
       --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
       --set "config.capi.repositoryPath=./management" \
+      --set "config.cluster.name=$(kubectl config current-context)" \
       --set "config.capi.baseBranch=main"
   fi
 
+  # Install capi infrastructure provider
+  if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
+    echo "Capi infrastructure provider support is not implemented"
+  else
+    # enable cluster resource sets
+    export EXP_CLUSTER_RESOURCE_SET=true
+    clusterctl init --infrastructure docker    
+  fi
+
+  # Install resources for bootstrapping and CNI
+  if [ ${EXP_CLUSTER_RESOURCE_SET} = true ]; then
+    kubectl wait --for=condition=Ready --timeout=300s -n capi-system --all pod
+    kubectl apply -f ${args[1]}/test/utils/data/calico-crs.yaml
+    kubectl apply -f ${args[1]}/test/utils/data/calico-crs-configmap.yaml
+  fi  
+  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml  
+  kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
+  GITOPS_REPO=ssh://git@github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
+	cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | sed s,{{GITOPS_REPO}},$GITOPS_REPO,g | kubectl apply -f -
+
   # Wait for cluster to settle
-  kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod
+  kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod --selector='app!=wego-app'
   kubectl get pods -A
 
   exit 0
@@ -118,9 +141,12 @@ function reset {
   # Delete wego system from the management cluster
   $GITOPS_BIN_PATH flux uninstall --silent
   $GITOPS_BIN_PATH flux uninstall --namespace wego-system --silent
-  # Delete any orphan capitemplates
+  # Delete any orphan resources
   kubectl delete CAPITemplate --all
-  
+  kubectl delete ClusterBootstrapConfig --all
+  kubectl delete secret my-pat
+  kubectl delete ClusterResourceSet --all
+  kubectl delete configmap calico-crs-configmap
 }
 
 function reset_mccp {

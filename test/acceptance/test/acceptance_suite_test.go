@@ -2,17 +2,12 @@ package acceptance
 
 import (
 	"fmt"
-	"os"
-	"path"
-	"strings"
 	"testing"
 
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
 )
 
 var theT *testing.T
@@ -26,14 +21,7 @@ func GomegaFail(message string, callerSkip ...int) {
 
 	// Show management cluster pods etc.
 	_ = showItems("")
-	_ = dumpClusterInfo("wego-system", randID)
-
-	ginkgoTestDescription := CurrentGinkgoTestDescription()
-	if strings.Contains(ginkgoTestDescription.TestText, "@capd") {
-		_ = dumpClusterInfo("capd-system", randID)
-	} else if strings.Contains(ginkgoTestDescription.TestText, "@capa") {
-		_ = dumpClusterInfo("capa-system", randID)
-	}
+	_ = dumpClusterInfo(randID)
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
@@ -43,36 +31,17 @@ func TestAcceptance(t *testing.T) {
 
 	theT = t //Save the testing instance for later use
 
-	//Cleanup the workspace dir, it helps when running locally
-	err := os.RemoveAll(ARTEFACTS_BASE_DIR)
-	assert.NoError(t, err)
-	err = os.MkdirAll(SCREENSHOTS_DIR, 0700)
-	assert.NoError(t, err)
-
 	RegisterFailHandler(Fail)
 
 	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
 
-	defaultSuite := true
-	if os.Getenv("WGE_ACCEPTANCE") == "true" {
+	// Runs the UI tests
+	DescribeSpecsUi(RealGitopsTestRunner{})
+	// Runs the CLI tests
+	DescribeSpecsCli(RealGitopsTestRunner{})
 
-		// Runs the UI tests
-		DescribeSpecsUi(RealGitopsTestRunner{})
-		// Runs the CLI tests
-		DescribeSpecsCli(RealGitopsTestRunner{})
-
-		defaultSuite = false
-	}
-
-	if os.Getenv("WKP_ACCEPTANCE") == "true" || defaultSuite {
-		DescribeWKPUIAcceptance()
-		DescribeWorkspacesAcceptance()
-	}
-
-	//JUnit style test report
-	junitReporter := reporters.NewJUnitReporter(JUNIT_TEST_REPORT_FILE)
-	RunSpecsWithDefaultAndCustomReporters(t, "WGE Acceptance Suite", []Reporter{junitReporter})
+	RunSpecs(t, "Weave GitOps Enterprise Acceptance Tests")
 
 }
 
@@ -80,18 +49,7 @@ var _ = BeforeSuite(func() {
 	//Set the suite level defaults
 
 	SetDefaultEventuallyTimeout(ASSERTION_DEFAULT_TIME_OUT) //Things are slow on WKP UI
-
-	SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
-	GITHUB_USER = os.Getenv("GITHUB_USER")
-	GITHUB_PASSWORD = os.Getenv("GITHUB_PASSWORD")
-	GIT_PROVIDER = os.Getenv("GIT_PROVIDER")
-	GITHUB_ORG = os.Getenv("GITHUB_ORG")
-	GITHUB_TOKEN = os.Getenv("GITHUB_TOKEN")
-	CLUSTER_REPOSITORY = os.Getenv("CLUSTER_REPOSITORY")
-	GIT_REPOSITORY_URL = "https://" + path.Join("github.com", GITHUB_ORG, CLUSTER_REPOSITORY)
-
-	DOCKER_IO_USER = os.Getenv("DOCKER_IO_USER")
-	DOCKER_IO_PASSWORD = os.Getenv("DOCKER_IO_PASSWORD")
+	SetupTestEnvironment()                                  // Read OS environment variables and initialize the test environment
 })
 
 var _ = AfterSuite(func() {

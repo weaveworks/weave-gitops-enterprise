@@ -17,16 +17,6 @@ import (
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -40,6 +30,17 @@ import (
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
+	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 var providers = map[string]string{
@@ -72,7 +73,17 @@ type server struct {
 var DefaultRepositoryPath string = filepath.Join(wegogit.WegoRoot, wegogit.WegoAppDir, "capi")
 
 func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
-	return &server{log: log, library: library, provider: provider, client: client, discoveryClient: discoveryClient, db: db, ns: ns, profileHelmRepositoryName: profileHelmRepositoryName, helmRepositoryCacheDir: helmRepositoryCacheDir}
+	return &server{
+		log:                       log,
+		library:                   library,
+		provider:                  provider,
+		client:                    client,
+		discoveryClient:           discoveryClient,
+		db:                        db,
+		ns:                        ns,
+		profileHelmRepositoryName: profileHelmRepositoryName,
+		helmRepositoryCacheDir:    helmRepositoryCacheDir,
+	}
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -121,6 +132,21 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 	}
 
 	return &capiv1_proto.ListTemplateParamsResponse{Parameters: t.Parameters, Objects: t.Objects}, err
+}
+
+func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.ListTemplateProfilesRequest) (*capiv1_proto.ListTemplateProfilesResponse, error) {
+	tm, err := s.library.Get(ctx, msg.TemplateName)
+	if err != nil {
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+	}
+	t := ToTemplateResponse(tm)
+	if t.Error != "" {
+		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.TemplateName, t.Error)
+	}
+
+	profiles := getProfilesFromTemplate(t.Annotations)
+
+	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
@@ -233,6 +259,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			ctx,
 			s.profileHelmRepositoryName,
 			os.Getenv("RUNTIME_NAMESPACE"),
+			s.helmRepositoryCacheDir,
 			clusterName,
 			s.client,
 			msg.Values,
@@ -507,117 +534,35 @@ func getHash(inputs ...string) string {
 	return fmt.Sprintf("wego-%x", md5.Sum(final))
 }
 
-func getToken(ctx context.Context) (string, error) {
+func getToken(ctx context.Context) (string, string, error) {
 	token := os.Getenv("GIT_PROVIDER_TOKEN")
 
 	providerToken, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
 		// fallback to env token
-		return token, nil
+		return token, "", nil
 	}
 
-	return providerToken.AccessToken, nil
+	return providerToken.AccessToken, "oauth2", nil
 }
 
 func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
-	token, err := getToken(ctx)
+	token, tokenType, err := getToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	return &git.GitProvider{
-		Type:     os.Getenv("GIT_PROVIDER_TYPE"),
-		Token:    token,
-		Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
+		Type:      os.Getenv("GIT_PROVIDER_TYPE"),
+		TokenType: tokenType,
+		Token:     token,
+		Hostname:  os.Getenv("GIT_PROVIDER_HOSTNAME"),
 	}, nil
 }
 
 func (s *server) GetEnterpriseVersion(ctx context.Context, msg *capiv1_proto.GetEnterpriseVersionRequest) (*capiv1_proto.GetEnterpriseVersionResponse, error) {
 	return &capiv1_proto.GetEnterpriseVersionResponse{
 		Version: version.Version,
-	}, nil
-}
-
-func (s *server) GetProfiles(ctx context.Context, msg *capiv1_proto.GetProfilesRequest) (*capiv1_proto.GetProfilesResponse, error) {
-	// Look for helm repository object in the current namespace
-	namespace := os.Getenv("RUNTIME_NAMESPACE")
-	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.client.Get(ctx, client.ObjectKey{
-		Name:      s.profileHelmRepositoryName,
-		Namespace: namespace,
-	}, helmRepo)
-	if err != nil {
-		s.log.Error(err, "cannot find Helm repository")
-		return &capiv1_proto.GetProfilesResponse{
-			Profiles: []*capiv1_proto.Profile{},
-		}, nil
-	}
-
-	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
-	if err != nil {
-		return nil, fmt.Errorf("cannot scan for profiles: %w", err)
-	}
-
-	return &capiv1_proto.GetProfilesResponse{
-		Profiles: ps,
-	}, nil
-}
-
-func (s *server) GetProfileValues(ctx context.Context, msg *capiv1_proto.GetProfileValuesRequest) (*httpbody.HttpBody, error) {
-	namespace := os.Getenv("RUNTIME_NAMESPACE")
-	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.client.Get(ctx, client.ObjectKey{
-		Name:      s.profileHelmRepositoryName,
-		Namespace: namespace,
-	}, helmRepo)
-	if err != nil {
-		s.log.Error(err, "cannot find Helm repository")
-		return &httpbody.HttpBody{
-			ContentType: "application/json",
-			Data:        []byte{},
-		}, nil
-	}
-
-	cc := charts.NewHelmChartClient(s.client, namespace, helmRepo, charts.WithCacheDir(s.helmRepositoryCacheDir))
-	if err := cc.UpdateCache(ctx); err != nil {
-		return nil, fmt.Errorf("failed to update Helm cache: %w", err)
-	}
-	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
-		APIVersion: helmRepo.TypeMeta.APIVersion,
-		Kind:       helmRepo.TypeMeta.Kind,
-		Name:       helmRepo.ObjectMeta.Name,
-		Namespace:  helmRepo.ObjectMeta.Namespace,
-	}
-	ref := &charts.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
-	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
-	if err != nil {
-		return nil, fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
-	}
-
-	var acceptHeader string
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if accept, ok := md["accept"]; ok {
-			acceptHeader = strings.Join(accept, ",")
-		}
-	}
-
-	if strings.Contains(acceptHeader, "application/octet-stream") {
-		return &httpbody.HttpBody{
-			ContentType: "application/octet-stream",
-			Data:        bs,
-		}, nil
-	}
-
-	res, err := json.Marshal(&capiv1_proto.GetProfileValuesResponse{
-		Values: base64.StdEncoding.EncodeToString(bs),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal response to JSON: %w", err)
-	}
-
-	return &httpbody.HttpBody{
-		ContentType: "application/json",
-		Data:        res,
 	}, nil
 }
 
@@ -721,7 +666,11 @@ func isMissingVariableError(err error) (string, bool) {
 	return "", false
 }
 
-func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+// generateProfileFiles to create a HelmRelease object with the profile and values.
+// profileValues is what the client will provide to the API.
+// It may have > 1 and its values parameter may be empty.
+// Assumption: each profile should have a values.yaml that we can treat as the default.
+func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1beta1.HelmRepository{}
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Name:      helmRepoName,
@@ -742,9 +691,32 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 		Spec: helmRepo.Spec,
 	}
 
+	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
+		APIVersion: helmRepo.TypeMeta.APIVersion,
+		Kind:       helmRepo.TypeMeta.Kind,
+		Name:       helmRepo.ObjectMeta.Name,
+		Namespace:  helmRepo.ObjectMeta.Namespace,
+	}
+
 	var profileName string
 	var installs []charts.ChartInstall
 	for _, v := range profileValues {
+		// Check the values and if empty use profile defaults. This should happen before parsing.
+		if v.Values == "" {
+			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, helmRepositoryCacheDir, sourceRef, helmRepo)
+			if err != nil {
+				return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
+			}
+		}
+
+		// Check the version and if empty use thr latest version in profile defaults.
+		if v.Version == "" {
+			v.Version, err = getProfileLatestVersion(ctx, v.Name, helmRepo)
+			if err != nil {
+				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
+			}
+		}
+
 		parsed, err := parseValues(v.Values)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
@@ -762,6 +734,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			Layer:  v.Layer,
 			Values: parsed,
 		})
+
 	}
 
 	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "wego-system", installs)
@@ -780,6 +753,61 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	}
 
 	return file, nil
+}
+
+func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigRequest) (*capiv1_proto.GetConfigResponse, error) {
+
+	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
+
+	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
+}
+
+func getProfilesFromTemplate(annotations map[string]string) []*capiv1_proto.TemplateProfile {
+	profiles := []*capiv1_proto.TemplateProfile{}
+	profile := capiv1_proto.TemplateProfile{}
+
+	for k, v := range annotations {
+		if strings.Contains(k, "capi.weave.works/profile-") {
+			json.Unmarshal([]byte(v), &profile)
+			profiles = append(profiles, &profile)
+		}
+	}
+
+	return profiles
+}
+
+// getProfileLatestVersion returns the default profile values if not given
+func getDefaultValues(ctx context.Context, kubeClient client.Client, name, version, helmRepositoryCacheDir string, sourceRef helmv2beta1.CrossNamespaceObjectReference, helmRepo *sourcev1beta1.HelmRepository) (string, error) {
+	ref := &charts.ChartReference{Chart: name, Version: version, SourceRef: sourceRef}
+	cc := charts.NewHelmChartClient(kubeClient, os.Getenv("RUNTIME_NAMESPACE"), helmRepo, charts.WithCacheDir(helmRepositoryCacheDir))
+	if err := cc.UpdateCache(ctx); err != nil {
+		return "", fmt.Errorf("failed to update Helm cache: %w", err)
+	}
+	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+	if err != nil {
+		return "", fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
+	}
+	// Base64 encode the content of values.yaml and assign it
+	values := base64.StdEncoding.EncodeToString(bs)
+
+	return values, nil
+}
+
+// getProfileLatestVersion returns the latest profile version if not given
+func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev1beta1.HelmRepository) (string, error) {
+	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
+	version := ""
+	if err != nil {
+		return "", fmt.Errorf("cannot scan for profiles: %w", err)
+	}
+
+	for _, p := range ps {
+		if p.Name == name {
+			version = p.AvailableVersions[len(p.AvailableVersions)-1]
+		}
+	}
+
+	return version, nil
 }
 
 func parseValues(s string) (map[string]interface{}, error) {

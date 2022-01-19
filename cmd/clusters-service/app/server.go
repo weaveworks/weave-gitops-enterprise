@@ -15,19 +15,12 @@ import (
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
-	wego_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
 	v1 "k8s.io/api/core/v1"
@@ -36,18 +29,29 @@ import (
 	"k8s.io/klog/v2/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 )
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
-	var dbURI string
-	var dbName string
-	var dbUser string
-	var dbPassword string
-	var dbType string
-	var dbBusyTimeout string
-	var entitlementSecretName string
-	var entitlementSecretNamespace string
-	var profileHelmRepository string
+	var (
+		dbURI                      string
+		dbName                     string
+		dbUser                     string
+		dbPassword                 string
+		dbType                     string
+		dbBusyTimeout              string
+		entitlementSecretName      string
+		entitlementSecretNamespace string
+		profileHelmRepository      string
+	)
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -101,7 +105,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 		sourcev1beta1.AddToScheme,
 	}
 	schemeBuilder.AddToScheme(scheme)
-	kubeClientConfig := config.GetConfigOrDie()
+	kubeClientConfig, err := config.GetConfig()
+	if err != nil {
+		return err
+	}
 	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
 	if err != nil {
 		return err
@@ -115,7 +122,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 
-	appsConfig, err := wego_server.DefaultConfig()
+	appsConfig, err := core.DefaultApplicationsConfig()
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
@@ -125,6 +132,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 	// Setup the flux binary needed by some weave-gitops code endpoints like adding apps
 	flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
 
+	helmRepoName := viper.GetString("profile-helm-repository")
+	helmRepoNamespace := os.Getenv("RUNTIME_NAMESPACE")
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithDatabase(db),
@@ -137,6 +146,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 		}),
 		WithApplicationsConfig(appsConfig),
+		WithProfilesConfig(core.NewProfilesConfig(kubeClient, helmRepoNamespace, helmRepoName)),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -180,11 +190,34 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
-	capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, server.NewClusterServer(args.Log, args.TemplateLibrary, args.GitProvider, args.KubernetesClient, args.DiscoveryClient, args.Database, args.CAPIClustersNamespace, args.ProfileHelmRepository, args.HelmRepositoryCacheDirectory))
+	clusterServer := server.NewClusterServer(
+		args.Log,
+		args.TemplateLibrary,
+		args.GitProvider,
+		args.KubernetesClient,
+		args.DiscoveryClient,
+		args.Database,
+		args.CAPIClustersNamespace,
+		args.ProfileHelmRepository,
+		args.HelmRepositoryCacheDirectory,
+	)
+	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, clusterServer); err != nil {
+		return fmt.Errorf("failed to register clusters service handler server: %w", err)
+	}
 
 	//Add weave-gitops core handlers
-	wegoServer := wego_server.NewApplicationsServer(args.ApplicationsConfig)
-	wego_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoServer)
+	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig)
+	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoApplicationServer); err != nil {
+		return fmt.Errorf("failed to register application handler server: %w", err)
+	}
+
+	wegoProfilesServer, err := core.NewProfilesServer(args.ProfilesConfig)
+	if err != nil {
+		return fmt.Errorf("failed to get profiles server: %w", err)
+	}
+	if err := core_profiles_proto.RegisterProfilesHandlerServer(ctx, mux, wegoProfilesServer); err != nil {
+		return fmt.Errorf("failed to register profiles handler server: %w", err)
+	}
 
 	httpHandler := middleware.WithLogging(args.Log, mux)
 	httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)

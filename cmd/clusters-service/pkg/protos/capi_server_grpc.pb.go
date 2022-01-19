@@ -22,6 +22,11 @@ type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
+	// Returns a list of profiles within that template
+	// `gitops get <template-name> --list-profiles`
+	// The template annotations appear in the following form
+	// capi.weave.works/profile-<n> where n is a number
+	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -35,12 +40,7 @@ type ClustersServiceClient interface {
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	// GetEnterpriseVersion returns the WeGO Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
-	// GetProfiles returns a list of profiles
-	// from the cluster.
-	GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error)
-	// GetProfileValues returns a list of values for
-	// a given version of a profile from the cluster.
-	GetProfileValues(ctx context.Context, in *GetProfileValuesRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
+	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -72,6 +72,15 @@ func (c *clustersServiceClient) GetTemplate(ctx context.Context, in *GetTemplate
 func (c *clustersServiceClient) ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error) {
 	out := new(ListTemplateParamsResponse)
 	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListTemplateParams", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error) {
+	out := new(ListTemplateProfilesResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListTemplateProfiles", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -132,18 +141,9 @@ func (c *clustersServiceClient) GetEnterpriseVersion(ctx context.Context, in *Ge
 	return out, nil
 }
 
-func (c *clustersServiceClient) GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error) {
-	out := new(GetProfilesResponse)
-	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/GetProfiles", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *clustersServiceClient) GetProfileValues(ctx context.Context, in *GetProfileValuesRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
-	out := new(httpbody.HttpBody)
-	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/GetProfileValues", in, out, opts...)
+func (c *clustersServiceClient) GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
+	out := new(GetConfigResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/GetConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +157,11 @@ type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
+	// Returns a list of profiles within that template
+	// `gitops get <template-name> --list-profiles`
+	// The template annotations appear in the following form
+	// capi.weave.works/profile-<n> where n is a number
+	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -170,12 +175,7 @@ type ClustersServiceServer interface {
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
 	// GetEnterpriseVersion returns the WeGO Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
-	// GetProfiles returns a list of profiles
-	// from the cluster.
-	GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error)
-	// GetProfileValues returns a list of values for
-	// a given version of a profile from the cluster.
-	GetProfileValues(context.Context, *GetProfileValuesRequest) (*httpbody.HttpBody, error)
+	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -191,6 +191,9 @@ func (UnimplementedClustersServiceServer) GetTemplate(context.Context, *GetTempl
 }
 func (UnimplementedClustersServiceServer) ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTemplateParams not implemented")
+}
+func (UnimplementedClustersServiceServer) ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTemplateProfiles not implemented")
 }
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
@@ -210,11 +213,8 @@ func (UnimplementedClustersServiceServer) GetKubeconfig(context.Context, *GetKub
 func (UnimplementedClustersServiceServer) GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEnterpriseVersion not implemented")
 }
-func (UnimplementedClustersServiceServer) GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProfiles not implemented")
-}
-func (UnimplementedClustersServiceServer) GetProfileValues(context.Context, *GetProfileValuesRequest) (*httpbody.HttpBody, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProfileValues not implemented")
+func (UnimplementedClustersServiceServer) GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -279,6 +279,24 @@ func _ClustersService_ListTemplateParams_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListTemplateParams(ctx, req.(*ListTemplateParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_ListTemplateProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTemplateProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListTemplateProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/ListTemplateProfiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListTemplateProfiles(ctx, req.(*ListTemplateProfilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -391,38 +409,20 @@ func _ClustersService_GetEnterpriseVersion_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClustersService_GetProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProfilesRequest)
+func _ClustersService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClustersServiceServer).GetProfiles(ctx, in)
+		return srv.(ClustersServiceServer).GetConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/capi_server.v1.ClustersService/GetProfiles",
+		FullMethod: "/capi_server.v1.ClustersService/GetConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).GetProfiles(ctx, req.(*GetProfilesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ClustersService_GetProfileValues_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProfileValuesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).GetProfileValues(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/capi_server.v1.ClustersService/GetProfileValues",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).GetProfileValues(ctx, req.(*GetProfileValuesRequest))
+		return srv.(ClustersServiceServer).GetConfig(ctx, req.(*GetConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -445,6 +445,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTemplateParams",
 			Handler:    _ClustersService_ListTemplateParams_Handler,
+		},
+		{
+			MethodName: "ListTemplateProfiles",
+			Handler:    _ClustersService_ListTemplateProfiles_Handler,
 		},
 		{
 			MethodName: "RenderTemplate",
@@ -471,12 +475,8 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_GetEnterpriseVersion_Handler,
 		},
 		{
-			MethodName: "GetProfiles",
-			Handler:    _ClustersService_GetProfiles_Handler,
-		},
-		{
-			MethodName: "GetProfileValues",
-			Handler:    _ClustersService_GetProfileValues_Handler,
+			MethodName: "GetConfig",
+			Handler:    _ClustersService_GetConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
