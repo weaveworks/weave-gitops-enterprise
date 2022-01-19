@@ -35,12 +35,11 @@ export const Content = styled.div<{ backgroundColor?: string }>`
 `;
 
 export const WGContent = styled.div`
+  margin: ${medium} ${small} 0 ${small};
+  background-color: ${theme.colors.white};
   border-radius: ${xs};
-  div[class*='Page__Content'] {
-    max-width: none;
-    width: auto;
-    padding-top: ${medium} 0;
-    margin: ${medium} ${small} ${small} ${small};
+  > div > div {
+    border-radius: ${xs};
   }
 `;
 
