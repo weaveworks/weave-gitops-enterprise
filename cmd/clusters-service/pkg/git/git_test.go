@@ -236,14 +236,14 @@ func TestGetGitProviderUrl(t *testing.T) {
 	expected := "https://github.com/user/repo.git"
 
 	os.Setenv("CAPI_TEMPLATES_REPOSITORY_API_URL", "https://github.com/user/repo.git")
-	repoURL, err = getGitProviderUrl(url)
+	repoURL, err := getGitProviderUrl(url)
 	require.NoError(t, err)
 	assert.Equal(t, expected, repoURL)
 
 	os.Unsetenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
 
 	gitUrl := "git@github.com:user/repo.git"
-	repoURL, err := getGitProviderUrl(url)
+	repoURL, err = getGitProviderUrl(url)
 	require.NoError(t, err)
 	assert.Equal(t, expected, repoURL)
 
