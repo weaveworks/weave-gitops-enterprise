@@ -53,6 +53,7 @@ type AuthenticateGithub struct {
 	AuthenticateGithub *agouti.Selection
 	AccessCode         *agouti.Selection
 	AuthroizeButton    *agouti.Selection
+	AuthorizationError *agouti.Selection
 }
 
 type DeviceActivationGitHub struct {
@@ -163,8 +164,9 @@ func GetApplicationConditions(webDriver *agouti.Page, condition string) *Conditi
 func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
 	return &AuthenticateGithub{
 		AuthenticateGithub: webDriver.FindByButton(`Authenticate with GitHub`),
-		AccessCode:         webDriver.Find(`div[class*=GithubDeviceAuthModal__P]:first-child`),
-		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),
+		AccessCode:         webDriver.Find(`div[class*=GithubDeviceAuthModal__P]:first-child`), //#2
+		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),                  //#1
+		AuthorizationError: webDriver.FindByXPath(`//div[@role="alert"]//div[.="Error"]`),
 	}
 }
 
@@ -173,11 +175,11 @@ func ActivateDeviceGithub(webDriver *agouti.Page) *DeviceActivationGitHub {
 		Username:            webDriver.Find(`input[type=text][name=login]`),
 		Password:            webDriver.Find(`input[type=password][name*=password]`),
 		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
-		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
+		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`), //#3
 		AuthCode:            webDriver.Find(`input#otp`),
 		Verify:              webDriver.FindByButton(`Verify`),
 		Continue:            webDriver.Find(`[type=submit][name=commit]`),
-		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`),
+		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`), //#4
 		ConfirmPassword:     webDriver.FindByButton(`password`),
 		ConnectedMessage:    webDriver.FindByXPath(`//p[contains(text(), "device is now connected")]`),
 	}
