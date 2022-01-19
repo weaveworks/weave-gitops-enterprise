@@ -18,6 +18,8 @@ import (
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	core "github.com/weaveworks/weave-gitops/pkg/server"
@@ -40,37 +42,49 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 )
 
-func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
-	var (
-		dbURI                      string
-		dbName                     string
-		dbUser                     string
-		dbPassword                 string
-		dbType                     string
-		dbBusyTimeout              string
-		entitlementSecretName      string
-		entitlementSecretNamespace string
-		profileHelmRepository      string
-	)
+// Options contains all the options for the `ui run` command.
+type Params struct {
+	dbURI                      string
+	dbName                     string
+	dbUser                     string
+	dbPassword                 string
+	dbType                     string
+	dbBusyTimeout              string
+	entitlementSecretName      string
+	entitlementSecretNamespace string
+	helmRepoNamespace          string
+	helmRepoName               string
+	profileCacheLocation       string
+	watcherMetricsBindAddress  string
+	watcherHealthzBindAddress  string
+	watcherPort                int
+}
 
+func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
+	p := Params{}
 	cmd := &cobra.Command{
 		Use:          "capi-server",
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return StartServer(context.Background(), log, tempDir)
+			return StartServer(context.Background(), log, tempDir, p)
 		},
 	}
 
-	cmd.Flags().StringVar(&dbURI, "db-uri", "/tmp/mccp.db", "URI of the database")
-	cmd.Flags().StringVar(&dbType, "db-type", "sqlite", "database type, supported types [sqlite, postgres]")
-	cmd.Flags().StringVar(&dbName, "db-name", os.Getenv("DB_NAME"), "database name, applicable if type is postgres")
-	cmd.Flags().StringVar(&dbUser, "db-user", os.Getenv("DB_USER"), "database user")
-	cmd.Flags().StringVar(&dbPassword, "db-password", os.Getenv("DB_PASSWORD"), "database password")
-	cmd.Flags().StringVar(&dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
-	cmd.Flags().StringVar(&entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
-	cmd.Flags().StringVar(&entitlementSecretNamespace, "entitlement-secret-namespace", ent.DefaultSecretNamespace, "The namespace of the entitlement secret")
-	cmd.Flags().StringVar(&profileHelmRepository, "profile-helm-repository", "weaveworks-charts", "The name of the Flux `HelmRepository` object in the current namespace that references the profiles")
+	cmd.Flags().StringVar(&p.dbURI, "db-uri", "/tmp/mccp.db", "URI of the database")
+	cmd.Flags().StringVar(&p.dbType, "db-type", "sqlite", "database type, supported types [sqlite, postgres]")
+	cmd.Flags().StringVar(&p.dbName, "db-name", "", "database name, applicable if type is postgres")
+	cmd.Flags().StringVar(&p.dbUser, "db-user", "", "database user")
+	cmd.Flags().StringVar(&p.dbPassword, "db-password", "", "database password")
+	cmd.Flags().StringVar(&p.dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
+	cmd.Flags().StringVar(&p.entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
+	cmd.Flags().StringVar(&p.entitlementSecretNamespace, "entitlement-secret-namespace", ent.DefaultSecretNamespace, "The namespace of the entitlement secret")
+	cmd.Flags().StringVar(&p.helmRepoNamespace, "helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&p.helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&p.profileCacheLocation, "profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
+	cmd.Flags().StringVar(&p.watcherHealthzBindAddress, "watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
+	cmd.Flags().StringVar(&p.watcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
+	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -80,20 +94,16 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	return cmd
 }
 
-func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
-	dbUri := viper.GetString("db-uri")
-	dbType := viper.GetString("db-type")
-	if dbType == "sqlite" {
+func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+	dbUri := p.dbURI
+	if p.dbType == "sqlite" {
 		var err error
-		dbUri, err = utils.GetSqliteUri(dbUri, viper.GetString("db-busy-timeout"))
+		dbUri, err = utils.GetSqliteUri(dbUri, p.dbBusyTimeout)
 		if err != nil {
 			return err
 		}
 	}
-	dbName := viper.GetString("db-name")
-	dbUser := viper.GetString("db-user")
-	dbPassword := viper.GetString("db-password")
-	db, err := utils.Open(dbUri, dbType, dbName, dbUser, dbPassword)
+	db, err := utils.Open(dbUri, p.dbType, p.dbName, p.dbUser, p.dbPassword)
 	if err != nil {
 		return err
 	}
@@ -132,8 +142,29 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 	// Setup the flux binary needed by some weave-gitops code endpoints like adding apps
 	flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
 
-	helmRepoName := viper.GetString("profile-helm-repository")
-	helmRepoNamespace := os.Getenv("RUNTIME_NAMESPACE")
+	profileCache, err := cache.NewCache(p.profileCacheLocation)
+	if err != nil {
+		return fmt.Errorf("failed to create cacher: %w", err)
+	}
+
+	profileWatcher, err := watcher.NewWatcher(watcher.Options{
+		KubeClient:         kubeClient,
+		Cache:              profileCache,
+		MetricsBindAddress: p.watcherMetricsBindAddress,
+		HealthzBindAddress: p.watcherHealthzBindAddress,
+		WatcherPort:        p.watcherPort,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to start the watcher: %w", err)
+	}
+
+	go func() {
+		if err := profileWatcher.StartWatcher(); err != nil {
+			log.Error(err, "failed to start profile watcher")
+			os.Exit(1)
+		}
+	}()
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithDatabase(db),
@@ -146,7 +177,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string) error {
 			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 		}),
 		WithApplicationsConfig(appsConfig),
-		WithProfilesConfig(core.NewProfilesConfig(kubeClient, helmRepoNamespace, helmRepoName)),
+		WithProfilesConfig(core.NewProfilesConfig(kubeClient, profileCache, p.helmRepoNamespace, p.helmRepoName)),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -170,10 +201,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return errors.New("database is not set")
 	}
 	if args.KubernetesClient == nil {
-		return errors.New("Kubernetes client is not set")
+		return errors.New("kubernetes client is not set")
 	}
 	if args.DiscoveryClient == nil {
-		return errors.New("Kubernetes discovery client is not set")
+		return errors.New("kubernetes discovery client is not set")
 	}
 	if args.TemplateLibrary == nil {
 		return errors.New("template library is not set")
@@ -183,6 +214,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 	if args.ApplicationsConfig == nil {
 		return errors.New("applications config is not set")
+	}
+	if args.ApplicationsOptions == nil {
+		return errors.New("applications options is not set")
 	}
 	if args.CAPIClustersNamespace == "" {
 		return errors.New("CAPI clusters namespace is not set")
@@ -206,15 +240,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	//Add weave-gitops core handlers
-	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig)
+	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
 	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 
-	wegoProfilesServer, err := core.NewProfilesServer(args.ProfilesConfig)
-	if err != nil {
-		return fmt.Errorf("failed to get profiles server: %w", err)
-	}
+	wegoProfilesServer := core.NewProfilesServer(args.ProfilesConfig)
 	if err := core_profiles_proto.RegisterProfilesHandlerServer(ctx, mux, wegoProfilesServer); err != nil {
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}

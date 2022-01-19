@@ -3,7 +3,7 @@ module github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service
 go 1.17
 
 require (
-	github.com/fluxcd/go-git-providers v0.5.2-0.20220111143741-04eef9791373
+	github.com/fluxcd/go-git-providers v0.5.2
 	github.com/fluxcd/helm-controller/api v0.14.1
 	github.com/fluxcd/pkg/apis/meta v0.10.1
 	github.com/fluxcd/pkg/runtime v0.12.2
@@ -20,7 +20,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/weave-gitops v0.6.1-0.20220111153827-022e932522cf
+	github.com/weaveworks/weave-gitops v0.6.1-0.20220119123431-c9730c1f0ce5
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0-00010101000000-000000000000
 	github.com/xanzy/go-gitlab v0.54.3
@@ -95,6 +95,7 @@ require (
 	github.com/fluxcd/source-controller v0.19.2 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-errors/errors v1.4.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
@@ -103,6 +104,7 @@ require (
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
 	github.com/golang/glog v1.0.0 // indirect
@@ -121,6 +123,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/helm/helm v2.17.0+incompatible // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/iancoleman/strcase v0.1.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
@@ -220,6 +223,7 @@ require (
 	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/cli-runtime v0.22.1 // indirect
 	k8s.io/component-base v0.22.2 // indirect
+	k8s.io/helm v2.17.0+incompatible // indirect
 	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
 	k8s.io/kubectl v0.22.1 // indirect
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a // indirect
