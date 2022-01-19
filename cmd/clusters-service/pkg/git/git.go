@@ -5,17 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
-	"github.com/jenkins-x/go-scm/scm"
-	scm_github "github.com/jenkins-x/go-scm/scm/driver/github"
-	scm_gitlab "github.com/jenkins-x/go-scm/scm/driver/gitlab"
 	go_git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
@@ -83,16 +82,9 @@ type CloneRepoToTempDirResponse struct {
 // It returns the URL of the pull request.
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	var repoURL string
-
-	if req.ReposistoryAPIURL != "" {
-		repoURL = req.ReposistoryAPIURL
-	} else {
-		scmClient, err := getSCMClient(req.GitProvider, req.RepositoryURL)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get scm client: %w", err)
-		}
-		repoURL = scmClient.BaseURL.String()
+	repoURL, err := getGitProviderUrl(req.RepositoryURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get git porivder url: %w", err)
 	}
 
 	repo, err := s.GetRepository(ctx, req.GitProvider, repoURL)
@@ -310,28 +302,21 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 	return client, err
 }
 
-func getSCMClient(gp GitProvider, url string) (*scm.Client, error) {
-	var client *scm.Client
-	var err error
+func getGitProviderUrl(giturl string) (string, error) {
+	repositoryAPIURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+	if repositoryAPIURL != "" {
+		return repositoryAPIURL, nil
+	}
 
-	switch gp.Type {
-	case "github":
-		if url != "" {
-			client, err = scm_github.New(url)
-		} else {
-			client = scm_github.NewDefault()
-		}
-	case "gitlab":
-		if url != "" {
-			client, err = scm_gitlab.New(url)
-		} else {
-			client = scm_gitlab.NewDefault()
-		}
-	default:
-		return nil, fmt.Errorf("the Git provider %q is not supported", gp.Type)
-	}
+	ep, err := transport.NewEndpoint(giturl)
 	if err != nil {
-		return client, err
+		return "", err
 	}
-	return client, err
+	if ep.Protocol == "http" || ep.Protocol == "https" {
+		return giturl, nil
+	}
+
+	httpsEp := transport.Endpoint{Protocol: "https", Host: ep.Host, Path: ep.Path}
+
+	return httpsEp.String(), nil
 }
