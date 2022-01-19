@@ -198,6 +198,11 @@ func deleteRepo(repoName string, providerName string, org string) {
 		deleteErr := or.Delete(ctx)
 		Expect(deleteErr).ShouldNot(HaveOccurred())
 	}
+	repoErr = waitUntil(os.Stdout, POLL_INTERVAL_1SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
+		_, err := gitProvider.OrgRepositories().Get(ctx, orgRef)
+		return err
+	}, true)
+	Expect(repoErr).ShouldNot(HaveOccurred(), fmt.Sprintf("repo %s is accessible through the api ...\n", repoName))
 }
 
 func verifyPRCreated(repoAbsolutePath, providerName string) string {
