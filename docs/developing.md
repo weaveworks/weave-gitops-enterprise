@@ -202,7 +202,11 @@ yarn add ../../weave-gitops/dist
 export WG_VERSION=0.2.4
 
 # 1.update the backend golang code
+cd cmd/clusters-service
 go get github.com/weaveworks/weave-gitops@$WG_VERSION
+go mod tidy
+cd ../..
+go mod tidy
 
 # 2. Update the frontend typescript/javascript code
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
