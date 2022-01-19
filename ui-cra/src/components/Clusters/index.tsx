@@ -99,7 +99,7 @@ const MCCP: FC = () => {
     };
     initialSelectedCapiClusters = [
       ...initialSelectedCapiClusters,
-      ...callbackState.state.selectedCapiClusters,
+      ...(callbackState.state.selectedCapiClusters || []),
     ];
   }
 
@@ -128,7 +128,8 @@ const MCCP: FC = () => {
           .join(', ')}`,
       }));
     }
-    if (callbackState) {
+    if (callbackState?.state?.selectedCapiClusters?.length > 0) {
+      // this will pb open when you select a cluster? need to test once we have clusters on a cluster that has Gitlab Auth available
       setOpenDeletePR(true);
     }
   }, [
