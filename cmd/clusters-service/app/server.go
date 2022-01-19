@@ -215,9 +215,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.ApplicationsConfig == nil {
 		return errors.New("applications config is not set")
 	}
-	if args.ApplicationsOptions == nil {
-		return errors.New("applications options is not set")
-	}
 	if args.CAPIClustersNamespace == "" {
 		return errors.New("CAPI clusters namespace is not set")
 	}
