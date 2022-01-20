@@ -978,13 +978,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					profile := pages.GetProfile(webDriver, "podinfo")
 
 					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "profile", "6.0.0").Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "profile", "6.0.1").Click).Should(Succeed())
 
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
 					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.1"))
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
