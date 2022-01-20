@@ -176,7 +176,7 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 				Field: webDriver.FindByID(`Commit message-input`),
 			},
 		},
-		CreatePR: webDriver.FindByButton(`Create Pull Request`),
+		CreatePR: webDriver.FindByButton(`CREATE PULL REQUEST`),
 		ErrorBar: webDriver.Find(`.Toastify [role="alert"]`),
 	}
 }
