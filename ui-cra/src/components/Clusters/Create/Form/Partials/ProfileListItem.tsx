@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import styled from 'styled-components';
-import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { UpdatedProfile } from '../../../../../types/custom';
 import ListItem from '@material-ui/core/ListItem';
