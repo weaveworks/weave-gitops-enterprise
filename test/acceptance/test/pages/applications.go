@@ -103,7 +103,7 @@ func GetApplicationPage(webDriver *agouti.Page) *ApplicationPage {
 	applicationPage := ApplicationPage{
 		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
 		ApplicationCount:  webDriver.FindByXPath(`//*[@href="/applications"]/parent::div[@role="heading"]/following-sibling::div`),
-		AddApplication:    webDriver.FindByButton(`Add Application`),
+		AddApplication:    webDriver.FindByButton(`ADD APPLICATION`),
 		ApplicationTable:  webDriver.All(`tr.MuiTableRow-root a`),
 	}
 

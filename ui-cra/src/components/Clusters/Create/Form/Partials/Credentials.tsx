@@ -42,7 +42,6 @@ const Credentials: FC<{
       <FormControl>
         <Select
           disabled={loading}
-          id="simple-select-autowidth"
           value={infraCredential?.name || 'None'}
           onChange={handleSelectCredentials}
           autoWidth

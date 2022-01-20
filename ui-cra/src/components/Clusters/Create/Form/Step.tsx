@@ -42,6 +42,7 @@ const Content = styled.div`
       align-self: flex-end;
       height: 38px;
       overflow: hidden;
+      white-space: nowrap;
       span {
         font-weight: 600;
       }
