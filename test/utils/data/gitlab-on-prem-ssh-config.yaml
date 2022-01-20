@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  known_hosts: |
+    gitlab.git.dev.wkp.weave.works ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBB7Mqp5balgSUzdzgveNGarJatOw6elpMtKzawdtY+ugxWFNLskxoEydYqZFHDaS8D/bH1XvZYUemRZBd7vntbk=
+    gitlab.git.dev.wkp.weave.works ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBeP3Ucl8fV9dQK3cuN8A8z1t5ah9Xwq/oVGG/MOyiE4DyCP/m+XIBJ07dW7rl5cCpGivmzURslQuSQWLM7oSMVddzKMeMA+A2Xqf+c5jEpCDx08TarBInInqjgO3Yt9NmptQ0JsQgNYLugclQVcuk832/2Ge7M9kw8Dp9SeYsIG/8oBl8DeSXp7AR21zsnH0uKRil7a8I6Nmo8wC3s8iAj1KP/dYTn0S7M+8ZYM0ubrUyKULqAWMAH2KXG4fs2Z3yaK4yWugCre8KTSF2YJYsnNkfNy2NHyb/nGgIDLP3Or0ER5mRPqUgu1vgvXIk0nVKmYfGnWvByg5e2sn4QjE/
+    gitlab.git.dev.wkp.weave.works ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPUuEL+yd8UwVnrP2PLSNslqfOt7o6WGDdEcD2f8SwRB
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: ssh-config
+  namespace: wego-system

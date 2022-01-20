@@ -33,6 +33,7 @@ type DeletePullRequestPopup struct {
 	DeleteClusterButton *agouti.Selection
 	ConfirmDelete       *agouti.Selection
 	CancelDelete        *agouti.Selection
+	GitCredentials      *agouti.Selection
 }
 
 type AlertInformation struct {
@@ -113,6 +114,7 @@ func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 		DeleteClusterButton: webDriver.Find(`#delete-popup button#delete-cluster`),
 		ConfirmDelete:       webDriver.Find(`#confirm-disconnect-cluster-dialog button:first-child`),
 		CancelDelete:        webDriver.Find(`#confirm-disconnect-cluster-dialog button:last-child`),
+		GitCredentials:      webDriver.Find(`div.auth-message`),
 	}
 
 	return &deletePRPopup

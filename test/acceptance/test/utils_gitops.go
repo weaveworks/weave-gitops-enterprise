@@ -114,6 +114,15 @@ func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 	})
 }
 
+func installProfiles(chartName string, nameSpace string) {
+	err := runCommandPassThroughWithoutOutput([]string{}, "kubectl", "get", "HelmRepository", chartName, "-n", nameSpace)
+	if err != nil {
+		err = runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/profile-repo.yaml")
+		Expect(err).To(BeNil(), "Failed to install profiles (enhanced helm chart)")
+		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get HelmRepository %s -n %s", chartName, nameSpace))
+	}
+}
+
 func removeGitopsCapiClusters(appName string, clusternames []string, nameSpace string) {
 	susspendGitopsApplication(appName, nameSpace)
 

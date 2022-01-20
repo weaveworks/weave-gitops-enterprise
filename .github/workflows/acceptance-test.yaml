@@ -32,6 +32,10 @@ on:
         description: "Git provider for running tests either on github or gitlab"
         required: true
         type: string
+      git-provider_hostname:
+        description: "Git provider hostname of git instance e.g. github.com or gitlab.com"
+        required: true
+        type: string
       cluster_resource_set:
         description: "Enable support for ClusterResourceSet for automatically installing CNIs"
         required: false
@@ -69,24 +73,42 @@ on:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN:
         description: "Build obt personal access token"
         required: true
-      WGE_GITHUB_PRIVATE_KEY:
-        description: "Key for accessing GitHub"
-        required: true
+      WGE_GIT_PROVIDER_PRIVATE_KEY:
+        description: "Key for accessing git provider e.g. github or gitlab"
+        required: false
       WGE_GITHUB_TOKEN:
         description: "Token for accessing GitHub"
-        required: true
+        required: false
       WGE_GITHUB_ORG:
         description: "Github organization"
-        required: true
+        required: false      
       WGE_GITHUB_USER:
         description: "Github account user name"
-        required: true
+        required: false
       WGE_GITHUB_PASSWORD:
         description: "Github accout password"
-        required: true
+        required: false
       WGE_GITHUB_MFA_KEY:
         description: "MFA key for git authentication"
-        required: true
+        required: false    
+      WGE_GITLAB_ORG:
+        description: "Gitlab organization / group"
+        required: false
+      WGE_GITLAB_USER:
+        description: "Gitlab account user name"
+        required: false
+      WGE_GITLAB_PASSWORD:
+        description: "Gitlab accout password"
+        required: false
+      WGE_GITLAB_TOKEN:
+        description: "Token for accessing Gitlab"
+        required: false
+      WGE_GITLAB_CLIENT_ID:
+        description: "Gitlab oauth application ID"
+        required: false
+      WGE_GITLAB_CLIENT_SECRET:
+        description: "Gitlab oauth pplication secret"
+        required: false
       WGE_ACCEPTANCE_EKS_KUBECONFIG:
         description: "EKS kubeconfig (base64 encoded)"
         required: false
@@ -109,11 +131,18 @@ on:
 env:
   GO_CACHE_NAME: cache-go-modules  
   GIT_PROVIDER: ${{ inputs.git-provider }}
+  GIT_PROVIDER_HOSTNAME: ${{ inputs.git-provider_hostname }}
   GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
   GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
   GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
   GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
   TOTP_TOKEN: ${{ secrets.WGE_GITHUB_MFA_KEY }}
+  GITLAB_ORG: ${{ secrets.WGE_GITLAB_ORG }}
+  GITLAB_TOKEN: ${{ secrets.WGE_GITLAB_TOKEN }}
+  GITLAB_USER: ${{ secrets.WGE_GITLAB_USER }}
+  GITLAB_PASSWORD: ${{ secrets.WGE_GITLAB_PASSWORD }}
+  GITLAB_CLIENT_ID: ${{ secrets.WGE_GITLAB_CLIENT_ID }}
+  GITLAB_CLIENT_SECRET: ${{ secrets.WGE_GITLAB_CLIENT_SECRET }}
   MANAGEMENT_CLUSTER_KIND: ${{ inputs.management-cluster-kind }}
   GITOPS_BIN_PATH: ${{ inputs.gitops-bin-path }}
   ACCEPTANCE_TESTS_DATABASE_TYPE: ${{ inputs.database-type }}
@@ -219,11 +248,11 @@ jobs:
         curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
-        clusterctl version 
+        clusterctl version         
     - name: Set up ssh
       uses: ./.github/actions/setup-ssh
       with:
-        ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+        ssh-private-key: ${{ secrets.WGE_GIT_PROVIDER_PRIVATE_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -288,7 +317,17 @@ jobs:
       run: |        
         export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
-        echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
+        echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV        
+
+        if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER }} != "gitlab.com" ]; then
+          export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
+          echo "GITOPS_GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES" >> $GITHUB_ENV
+          echo "GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" >> $GITHUB_ENV
+        fi
+
+        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        echo $GITOPS_GIT_HOST_TYPES
+        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         
         ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
     - name: Setup connect leaf cluster
