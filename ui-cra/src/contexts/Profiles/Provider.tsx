@@ -48,13 +48,13 @@ const ProfilesProvider: FC = ({ children }) => {
         const defaultProfiles: UpdatedProfile[] = [];
         for (const [key, value] of annotations) {
           if (key.includes('capi.weave.works/profile')) {
-            const { name, version, values, layer } = JSON.parse(value);
+            const { name, version, values } = JSON.parse(value);
             if (values !== undefined) {
               defaultProfiles.push({
                 name,
                 values: [{ version, yaml: values, selected: false }],
                 required: true,
-                layer,
+                layer: getProfileLayer(name),
               });
             } else {
               defaultProfiles.push({
