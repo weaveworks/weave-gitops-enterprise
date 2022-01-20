@@ -875,6 +875,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					KubeconfigPath:  "",
 				}
 				connectACluster(webDriver, gitopsTestRunner, leaf)
+				TakeScreenShot("test-screenshot")
 			})
 
 			JustAfterEach(func() {

@@ -2,15 +2,12 @@ package acceptance
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/reporters"
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
 )
 
 var theT *testing.T
@@ -34,12 +31,6 @@ func TestAcceptance(t *testing.T) {
 
 	theT = t //Save the testing instance for later use
 
-	//Cleanup the workspace dir, it helps when running locally
-	err := os.RemoveAll(ARTEFACTS_BASE_DIR)
-	assert.NoError(t, err)
-	err = os.MkdirAll(SCREENSHOTS_DIR, 0700)
-	assert.NoError(t, err)
-
 	RegisterFailHandler(Fail)
 
 	//Intercept the assertiona Failure
@@ -50,9 +41,7 @@ func TestAcceptance(t *testing.T) {
 	// Runs the CLI tests
 	DescribeSpecsCli(RealGitopsTestRunner{})
 
-	//JUnit style test report
-	junitReporter := reporters.NewJUnitReporter(JUNIT_TEST_REPORT_FILE)
-	RunSpecsWithDefaultAndCustomReporters(t, "WGE Acceptance Suite", []Reporter{junitReporter})
+	RunSpecs(t, "Weave GitOps Enterprise Acceptance Tests")
 
 }
 
