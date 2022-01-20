@@ -40,6 +40,7 @@ export const WGContent = styled.div`
   border-radius: ${xs};
   > div > div {
     border-radius: ${xs};
+    max-width: none;
   }
 `;
 
