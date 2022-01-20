@@ -148,13 +148,8 @@ func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
 	return webDriver.Find(fmt.Sprintf(`li.MuiListItem-root[title*="%s"]`, value))
 }
 
-func GetOption(webDriver *agouti.Page, sectionType string, value string) *agouti.Selection {
-	if sectionType == "profile" {
-		// TO UPDATE: profile option is not being selected
-		return webDriver.FindByXPath(fmt.Sprintf(`//div[.="%s"]`, value))
-	} else {
-		return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
-	}
+func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
+	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
