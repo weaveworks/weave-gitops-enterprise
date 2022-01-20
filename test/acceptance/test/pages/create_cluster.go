@@ -60,7 +60,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
-		Credentials:        webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")]`),
+		Credentials:        webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection:    webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		ProfileSelect:      webDriver.Find(`div.profiles-select > div`),
 		ProfileSelectPopup: webDriver.All(`ul[role="listbox"] li`),
@@ -73,7 +73,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 // This function waits for Create emplate page to load completely
 func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
 	// Credentials dropdown takes a while to populate
-	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")][@disabled]`),
+	Eventually(webDriver.FindByXPath(`.credentials [role="button"][aria-disabled="true"]`),
 		30*time.Second).ShouldNot(BeFound())
 	// With the introduction of profiles, UI takes long time to be fully rendered, UI refreshes once all the profiles valus are read and populated
 	// This delay refresh sometimes cause tests to fail select elements
