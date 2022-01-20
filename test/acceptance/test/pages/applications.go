@@ -164,8 +164,8 @@ func GetApplicationConditions(webDriver *agouti.Page, condition string) *Conditi
 func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
 	return &AuthenticateGithub{
 		AuthenticateGithub: webDriver.FindByButton(`Authenticate with GitHub`),
-		AccessCode:         webDriver.Find(`div[class*=GithubDeviceAuthModal__P]:first-child`), //#2
-		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),                  //#1
+		AccessCode:         webDriver.Find(`div.GithubDeviceAuthModal span`),  //#2
+		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`), //#1
 		AuthorizationError: webDriver.FindByXPath(`//div[@role="alert"]//div[.="Error"]`),
 	}
 }

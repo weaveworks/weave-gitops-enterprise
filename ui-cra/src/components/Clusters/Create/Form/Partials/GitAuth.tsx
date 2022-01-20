@@ -80,6 +80,7 @@ const GitAuth: FC<{
         disabled={true}
       />
       <GithubDeviceAuthModal
+        bodyClassName="GithubDeviceAuthModal"
         onClose={() => setShowAuthDialog(false)}
         onSuccess={() => {
           setShowAuthDialog(false);
