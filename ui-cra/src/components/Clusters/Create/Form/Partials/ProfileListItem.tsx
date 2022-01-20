@@ -41,9 +41,6 @@ const useStyles = makeStyles(() => ({
 }));
 
 const ListItemWrapper = styled.div`
-  & .profile-name {
-    margin-right: ${medium};
-  }
   & .profile-version,
   .profile-layer {
     display: flex;
@@ -53,8 +50,15 @@ const ListItemWrapper = styled.div`
       margin-right: ${xs};
     }
   }
+  ,
+  & .profile-name,
+  .profile-layer {
+    min-width: 120px;
+  }
   & .profile-version {
-    width: 150px;
+    .MuiSelect-root {
+      min-width: 75px;
+    }
   }
 `;
 
@@ -133,7 +137,7 @@ const ProfilesListItem: FC<{
     <>
       <ListItemWrapper>
         <ListItem data-profile-name={profile.name}>
-          <ListItemText className="profile-name">{profile.name}</ListItemText>
+          <div className="profile-name">{profile.name}</div>
           <div className="profile-version">
             <span>Version</span>
             <FormControl>
