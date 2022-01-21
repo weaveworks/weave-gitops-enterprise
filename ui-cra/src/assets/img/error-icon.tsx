@@ -1,15 +1,14 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { fontSize } from 'weaveworks-ui-components/lib/theme/selectors';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-
 import { blinking } from '../effects/blinking';
+import { theme } from '@weaveworks/weave-gitops';
 
 const Icon = styled(FontAwesomeIcon)`
   ${blinking}
-  color: ${({ theme }) => theme.colors.orange600};
-  font-size: ${fontSize('normal')};
+  color: ${({ theme }) => theme.colors.alert};
+  font-size: ${theme.fontSizes.normal};
   display: inline-block;
   height: 16px;
 `;

@@ -36,8 +36,8 @@ import AddClusterWithCredentials from './Clusters/Create';
 import WGApplicationsDashboard from './Applications';
 import WGApplicationAdd from './Applications/Add';
 import WGApplicationDetail from './Applications/Detail';
-import { GitOpsBlue } from './../muiTheme';
 import qs from 'query-string';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 const APPS_ROUTE = '/applications';
@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme: Theme) =>
         width: `calc(100% - ${drawerWidth}px)`,
         marginLeft: drawerWidth,
       },
-      backgroundColor: GitOpsBlue,
+      backgroundColor: weaveTheme.colors.primary,
       boxShadow: 'none',
     },
     menuButton: {
@@ -74,7 +74,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     menuButtonBox: {
       height: '80px',
-      background: GitOpsBlue,
+      background: weaveTheme.colors.primary,
       display: 'flex',
       justifyContent: 'center',
       position: 'sticky',
@@ -86,7 +86,7 @@ const useStyles = makeStyles((theme: Theme) =>
       overflowY: 'hidden',
       width: drawerWidth,
       border: 'none',
-      background: '#F5F5F5',
+      background: weaveTheme.colors.neutral10,
     },
     content: {
       flexGrow: 1,

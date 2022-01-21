@@ -6,7 +6,7 @@ import { entries, groupBy, range } from 'lodash';
 import { scaleLinear } from 'd3-scale';
 import { useMeasure } from 'react-use';
 import moment from 'moment';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { utcHour } from 'd3-time';
 
 export const COMPACT_LOCALE_KEY = 'compact-time-ranges';
@@ -49,19 +49,19 @@ const Container = styled.div`
 `;
 
 const Tick = styled.line`
-  stroke: ${theme.colors.gray100};
+  stroke: ${theme.colors.neutral30};
 `;
 
 const MajorTick = styled.line`
-  stroke: ${theme.colors.gray100};
+  stroke: ${theme.colors.neutral30};
 `;
 
 const statusColor = (props: { status: string }) => {
   const colorIndex: { [key: string]: string } = {
-    success: theme.colors.green500,
-    fail: theme.colors.orange500,
+    success: theme.colors.success,
+    fail: theme.colors.alert,
   };
-  return colorIndex[props.status] || theme.colors.blue600;
+  return colorIndex[props.status] || theme.colors.primary;
 };
 
 const Point = styled.circle<{ status: string }>`
@@ -79,7 +79,7 @@ const PointLayer = styled.g<{ status: string }>`
 
 const HeadText = styled.text`
   && {
-    color: ${theme.colors.gray200};
+    color: ${theme.colors.neutral30};
     font-size: 9px;
   }
 `;
@@ -89,11 +89,11 @@ const SvgCanvas = styled.svg<{ axisOnHover: boolean }>`
     opacity: ${props => (props.axisOnHover ? 0 : 1)};
     cursor: default;
     transition: opacity 0.2s linear;
-    color: ${theme.colors.gray600};
+    color: ${theme.colors.neutral40};
   }
   &:hover {
     ${MajorTick} {
-      stroke: ${theme.colors.gray200};
+      stroke: ${theme.colors.neutral30};
       stroke-width: 2px;
     }
     text {

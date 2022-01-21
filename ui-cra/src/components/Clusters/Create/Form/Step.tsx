@@ -11,9 +11,7 @@ import React, {
 } from 'react';
 import Divider from '@material-ui/core/Divider';
 import styled from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
-import { Button } from 'weaveworks-ui-components';
-import { GitOpsBlue } from '../../../../muiTheme';
+import { theme, Button } from '@weaveworks/weave-gitops';
 import { ChildrenOccurences } from '../../../../types/custom';
 
 const Section = styled.div`
@@ -28,7 +26,7 @@ const Title = styled.div<{ name?: string }>`
   span.metadata {
     margin-left: ${theme.spacing.small};
     font-size: ${theme.fontSizes.tiny};
-    color: rgba(0, 0, 0, 0.54);
+    color: ${theme.colors.neutral30};
     font-weight: 400;
   }
 `;
@@ -42,12 +40,12 @@ const Content = styled.div`
     margin-right: ${theme.spacing.large};
     .step-child-btn {
       align-self: flex-end;
-      height: 40px;
+      height: 38px;
       overflow: hidden;
-    }
-    span {
-      color: ${GitOpsBlue};
-      font-weight: 600;
+      white-space: nowrap;
+      span {
+        font-weight: 600;
+      }
     }
   }
   @media (max-width: 768px) {
@@ -167,12 +165,11 @@ export const FormStep: FC<{
                 {child}
                 {childOccurences?.count > 1 && child.props.firstOfAKind ? (
                   <Button
-                    type="button"
                     className="step-child-btn"
                     onClick={() => handleClick(child.props.name)}
                   >
-                    {childOccurences?.groupVisible ? 'Hide' : 'Show'}&nbsp;
-                    <span>{childOccurences.count}</span> populated fields
+                    {childOccurences?.groupVisible ? 'HIDE' : 'SHOW'}&nbsp;
+                    <span>{childOccurences.count}</span>&nbsp;POPULATED FIELDS
                   </Button>
                 ) : null}
               </div>

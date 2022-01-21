@@ -1,18 +1,16 @@
 import React, { FC, useState } from 'react';
 import styled from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
-import { Button } from 'weaveworks-ui-components';
+import { Button, theme } from '@weaveworks/weave-gitops';
 import { ConnectClusterGeneralForm } from './ConnectForm';
 import { ConnectClusterConnectionInstructions } from './ConnectionInstructions';
 import { ClusterDisconnectionInstructions } from './DisconnectionInstructions';
 import { FormState, SetFormState } from '../../../types/form';
 import { Cluster } from '../../../types/kubernetes';
 import { request } from '../../../utils/request';
-import { FlexSpacer } from '../../ListView';
 import useNotifications from './../../../contexts/Notifications';
 
 export const ButtonText = styled.span`
-  margin: 0 4px;
+  margin: 0 ${theme.spacing.xxs};
 `;
 
 export const ContentContainer = styled.div`
@@ -24,7 +22,7 @@ export const ContentContainer = styled.div`
 const TitleBarContainer = styled.div`
   display: flex;
   margin-bottom: ${theme.spacing.base};
-  border-bottom: 1px solid ${theme.colors.gray200};
+  border-bottom: 1px solid ${theme.colors.neutral20};
 `;
 
 const Title = styled.div<{
@@ -32,10 +30,11 @@ const Title = styled.div<{
   active: boolean;
   onClick?: (ev: Event) => void;
 }>`
-  color: ${props => (props.locked ? theme.colors.gray200 : theme.colors.black)};
+  color: ${props =>
+    props.locked ? theme.colors.neutral30 : theme.colors.black};
   border-bottom: ${props =>
     props.active
-      ? `2px solid ${theme.colors.blue400}`
+      ? `2px solid ${theme.colors.primary}`
       : '2px solid transparent'};
   padding: ${theme.spacing.small} ${theme.spacing.base};
   cursor: ${props => (props.onClick ? 'pointer' : 'default')};
@@ -72,7 +71,7 @@ const TitleBar: FC<TitleBarProps> = ({
 
 const ButtonBar = styled.div`
   display: flex;
-  border-top: 1px solid ${theme.colors.gray200};
+  border-top: 1px solid ${theme.colors.neutral20};
   padding-top: ${theme.spacing.small};
 `;
 
@@ -213,16 +212,19 @@ export const ConnectClusterWizard: FC<{
           {content(formState, setFormState, connecting, onFinish)}
         </ContentContainer>
         <ButtonBar>
-          <FlexSpacer />
+          <div style={{ flex: 1 }} />
           {formState.activeIndex === 0 && (
-            <Button type="submit" disabled={!isValid || submitting}>
-              <ButtonText>Save & next</ButtonText>{' '}
-              <i className="fas fa-chevron-right" />
+            <Button
+              type="submit"
+              startIcon={<i className="fas fa-chevron-right" />}
+              disabled={!isValid || submitting}
+            >
+              SAVE & NEXT
             </Button>
           )}
           {formState.activeIndex > 0 && (
             <Button className="close-button" onClick={() => onFinish()}>
-              Close
+              CLOSE
             </Button>
           )}
         </ButtonBar>

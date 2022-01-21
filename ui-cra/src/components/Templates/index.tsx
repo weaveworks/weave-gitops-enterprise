@@ -11,7 +11,7 @@ import { TemplatesTable } from './Table';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
 import { ReactComponent as ListView } from '../../assets/img/list-view.svg';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
@@ -27,7 +27,7 @@ const ActionsWrapper = styled.div`
   }
 
   svg.inactive {
-    fill: ${theme.colors.gray600};
+    fill: ${theme.colors.neutral20};
   }
 `;
 
@@ -62,8 +62,9 @@ const TemplatesDashboard: FC = () => {
   const clustersCount = useClusters().count;
   const templatesCount = templates.length;
   const [view, setView] = useState<string>('grid');
-  const [selectedProvider, setSelectedProvider] =
-    useState<string | null | undefined>();
+  const [selectedProvider, setSelectedProvider] = useState<
+    string | null | undefined
+  >();
 
   const onProviderChange = (
     event: React.ChangeEvent<{}>,

@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../../../../muiTheme';
 import { FormStep } from './Step';
