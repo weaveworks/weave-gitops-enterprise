@@ -289,14 +289,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider:   *gp,
-			RepositoryURL: repositoryURL,
-			HeadBranch:    msg.HeadBranch,
-			BaseBranch:    baseBranch,
-			Title:         msg.Title,
-			Description:   msg.Description,
-			CommitMessage: msg.CommitMessage,
-			Files:         files,
+			GitProvider:       *gp,
+			RepositoryURL:     repositoryURL,
+			ReposistoryAPIURL: msg.RepositoryApiUrl,
+			HeadBranch:        msg.HeadBranch,
+			BaseBranch:        baseBranch,
+			Title:             msg.Title,
+			Description:       msg.Description,
+			CommitMessage:     msg.CommitMessage,
+			Files:             files,
 		})
 		if err != nil {
 			s.log.Error(err, "Failed to create pull request")
@@ -463,14 +464,15 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider:   *gp,
-		RepositoryURL: repositoryURL,
-		HeadBranch:    msg.HeadBranch,
-		BaseBranch:    baseBranch,
-		Title:         msg.Title,
-		Description:   msg.Description,
-		CommitMessage: msg.CommitMessage,
-		Files:         filesList,
+		GitProvider:       *gp,
+		RepositoryURL:     repositoryURL,
+		ReposistoryAPIURL: msg.RepositoryApiUrl,
+		HeadBranch:        msg.HeadBranch,
+		BaseBranch:        baseBranch,
+		Title:             msg.Title,
+		Description:       msg.Description,
+		CommitMessage:     msg.CommitMessage,
+		Files:             filesList,
 	})
 	if err != nil {
 		s.log.Error(err, "Failed to create pull request")

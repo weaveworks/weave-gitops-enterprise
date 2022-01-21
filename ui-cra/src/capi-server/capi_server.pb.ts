@@ -62,6 +62,7 @@ export type CreatePullRequestRequest = {
   commitMessage?: string
   credentials?: Credential
   values?: ProfileValues[]
+  repositoryApiUrl?: string
 }
 
 export type CreatePullRequestResponse = {
@@ -77,6 +78,7 @@ export type DeleteClustersPullRequestRequest = {
   clusterNames?: string[]
   commitMessage?: string
   credentials?: Credential
+  repositoryApiUrl?: string
 }
 
 export type DeleteClustersPullRequestResponse = {
