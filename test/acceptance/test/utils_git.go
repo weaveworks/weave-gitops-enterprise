@@ -47,7 +47,7 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 }
 
 func extractOrgAndRepo(url string) (string, string) {
-	normalized, normErr := gitproviders.NewRepoURL(url)
+	normalized, normErr := gitproviders.NewRepoURL(url, true)
 	Expect(normErr).ShouldNot(HaveOccurred())
 
 	re := regexp.MustCompile("^[^/]+//[^/]+/([^/]+)/([^/]+).*$")
