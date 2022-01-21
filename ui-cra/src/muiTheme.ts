@@ -1,26 +1,24 @@
-import { Theme } from '@material-ui/core';
 import { createTheme } from '@material-ui/core/styles';
-
-const boxShadow = '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)';
+import {
+  muiTheme as coreMuiTheme,
+  theme as weaveTheme,
+} from '@weaveworks/weave-gitops';
 
 const defaultTheme = createTheme();
 
 export const muiTheme = createTheme({
+  ...coreMuiTheme,
   overrides: {
     MuiButton: {
-      contained: {
-        backgroundColor: 'hsl(0, 0%, 100%)',
-        color: 'hsl(0, 0%, 45%)',
-        boxShadow,
-        '&:hover': {
-          backgroundColor: 'hsl(0, 0%, 96%)',
-          boxShadow,
-          color: 'hsl(240, 20%, 30%)',
-        },
-      },
       root: {
         textTransform: 'none',
         minWidth: 52,
+      },
+      outlinedPrimary: {
+        borderColor: weaveTheme.colors.neutral20,
+        '&:hover': {
+          borderColor: weaveTheme.colors.neutral20,
+        },
       },
     },
     MuiDialog: {
@@ -29,7 +27,7 @@ export const muiTheme = createTheme({
       },
       paper: {
         padding: 0,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: weaveTheme.colors.white,
       },
     },
     MuiDialogActions: {
@@ -54,7 +52,7 @@ export const muiTheme = createTheme({
         flexGrow: 1,
       },
       input: {
-        border: '1px solid #E5E5E5',
+        border: `1px solid ${weaveTheme.colors.neutral20}`,
         borderRadius: 2,
         position: 'relative',
         backgroundColor: defaultTheme.palette.common.white,
@@ -62,7 +60,7 @@ export const muiTheme = createTheme({
         width: '100%',
         padding: '8px 12px',
         '&:focus': {
-          borderColor: '#00A7CC',
+          borderColor: weaveTheme.colors.primaryDark,
           borderRadius: 2,
         },
       },
@@ -74,7 +72,7 @@ export const muiTheme = createTheme({
     },
     MuiTableCell: {
       head: {
-        color: '#888888',
+        color: weaveTheme.colors.neutral30,
       },
       root: {
         borderBottom: 'none',
@@ -100,76 +98,7 @@ export const muiTheme = createTheme({
       },
     },
   },
-  palette: {
-    primary: {
-      '50': '#00A7CC',
-      '100': '#00A7CC',
-      '200': '#00A7CC',
-      '300': '#00A7CC',
-      '400': '#00A7CC',
-      '500': '#00A7CC',
-      '600': '#00A7CC',
-      '700': '#00A7CC',
-      '800': '#00A7CC',
-      '900': '#00A7CC',
-      A100: '#00A7CC',
-      A200: '#00A7CC',
-      A400: '#00A7CC',
-      A700: '#00A7CC',
-    },
-  },
   shape: {
     borderRadius: 2,
   },
-  typography: {
-    fontFamily: ['proxima-nova', 'Helvetica', 'Arial', 'sans-serif'].join(', '),
-  },
 });
-
-export const popperArrow = (theme: Theme) => ({
-  '&[x-placement*="bottom"] $arrow': {
-    '&::before': {
-      borderColor: `transparent transparent ${theme.palette.background.paper} transparent`,
-      borderWidth: '0 1em 1em 1em',
-    },
-    height: '1em',
-    left: 0,
-    marginTop: '-0.9em',
-    top: 0,
-    width: '3em',
-  },
-  '&[x-placement*="left"] $arrow': {
-    '&::before': {
-      borderColor: `transparent transparent transparent ${theme.palette.background.paper}`,
-      borderWidth: '1em 0 1em 1em',
-    },
-    height: '3em',
-    marginRight: '-0.9em',
-    right: 0,
-    width: '1em',
-  },
-  '&[x-placement*="right"] $arrow': {
-    '&::before': {
-      borderColor: `transparent ${theme.palette.background.paper} transparent transparent`,
-      borderWidth: '1em 1em 1em 0',
-    },
-    height: '3em',
-    left: 0,
-    marginLeft: '-0.9em',
-    width: '1em',
-  },
-  '&[x-placement*="top"] $arrow': {
-    '&::before': {
-      borderColor: `${theme.palette.background.paper} transparent transparent transparent`,
-      borderWidth: '1em 1em 0 1em',
-    },
-    bottom: 0,
-    height: '1em',
-    left: 0,
-    marginBottom: '-0.9em',
-    width: '3em',
-  },
-  zIndex: 1,
-});
-
-export const GitOpsBlue = '#00B3EC';

@@ -1,18 +1,16 @@
 import { FC } from 'react';
 import styled, { css } from 'styled-components';
-import {
-  spacing,
-  fontSize,
-} from 'weaveworks-ui-components/lib/theme/selectors';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import useVersions from '../../contexts/Versions';
 import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 
-export const Title = styled.div`
-  font-size: ${fontSize('large')};
-  font-weight: 600;
-  padding-bottom: ${spacing('medium')};
-  color: ${theme.colors.gray600};
+const xs = theme.spacing.xs;
+const small = theme.spacing.small;
+const medium = theme.spacing.medium;
+const large = theme.spacing.large;
+
+export const Title = styled.h2`
+  margin-top: 0px;
 `;
 
 export const pageDimensionsCss = css`
@@ -24,15 +22,11 @@ export const PageWrapper = styled.div`
   margin: 0 auto;
 `;
 
-const small = spacing('small');
-const medium = spacing('medium');
-const large = spacing('large');
-
 export const contentCss = css`
   margin: ${medium} ${small} 0 ${small};
   padding: ${large} ${medium} ${medium} ${large};
-  background-color: white;
-  border-radius: ${spacing('xs')};
+  background-color: ${theme.colors.white};
+  border-radius: ${xs};
 `;
 
 export const Content = styled.div<{ backgroundColor?: string }>`
@@ -41,13 +35,18 @@ export const Content = styled.div<{ backgroundColor?: string }>`
 `;
 
 export const WGContent = styled.div`
-  ${contentCss};
-  padding: 0 ${medium} ${medium} 0;
+  margin: ${medium} ${small} 0 ${small};
+  background-color: ${theme.colors.white};
+  border-radius: ${xs};
+  > div > div {
+    border-radius: ${xs};
+    max-width: none;
+  }
 `;
 
 const EntitlementWrapper = styled.div`
   ${contentCss};
-  background-color: #f3e9c9;
+  background-color: ${theme.colors.feedbackLight};
   padding: ${small} ${medium};
   display: flex;
 `;
@@ -59,37 +58,45 @@ const WarningIconWrapper = styled(WarningIcon)`
 const HelpLinkWrapper = styled.div`
   ${contentCss};
   padding: ${small} ${medium};
-  color: ${({ theme }) => theme.colors.gray600};
+  color: ${({ theme }) => theme.colors.neutral40};
   display: flex;
   justify-content: space-between;
   a {
-    color: ${({ theme }) => theme.colors.blue600};
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
-export const ContentWrapper: FC<{ type?: string; backgroundColor?: string }> =
-  ({ children, type, backgroundColor }) => {
-    const { versions, entitlement } = useVersions();
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-        {entitlement && (
-          <EntitlementWrapper>
-            <WarningIconWrapper />
-            {entitlement}
-          </EntitlementWrapper>
-        )}
-        {type === 'WG' ? (
-          <WGContent>{children}</WGContent>
-        ) : (
-          <Content backgroundColor={backgroundColor}>{children}</Content>
-        )}
-        <HelpLinkWrapper>
-          <div>
-            Need help? Contact us at&nbsp;
-            <a href="mailto:support@weave.works">support@weave.works</a>
-          </div>
-          <div>Version {versions?.capiServer}</div>
-        </HelpLinkWrapper>
-      </div>
-    );
-  };
+export const ContentWrapper: FC<{
+  type?: string;
+  backgroundColor?: string;
+}> = ({ children, type, backgroundColor }) => {
+  const { versions, entitlement } = useVersions();
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+      }}
+    >
+      {entitlement && (
+        <EntitlementWrapper>
+          <WarningIconWrapper />
+          {entitlement}
+        </EntitlementWrapper>
+      )}
+      {type === 'WG' ? (
+        <WGContent>{children}</WGContent>
+      ) : (
+        <Content backgroundColor={backgroundColor}>{children}</Content>
+      )}
+      <HelpLinkWrapper>
+        <div>
+          Need help? Contact us at&nbsp;
+          <a href="mailto:support@weave.works">support@weave.works</a>
+        </div>
+        <div>Version {versions?.capiServer}</div>
+      </HelpLinkWrapper>
+    </div>
+  );
+};

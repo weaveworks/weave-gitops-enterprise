@@ -1,7 +1,7 @@
 import React, { Dispatch, FC, useCallback } from 'react';
 import Link from '@material-ui/core/Link';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import classNames from 'classnames';
 
 const useStyles = makeStyles(() =>
@@ -24,7 +24,7 @@ const useStyles = makeStyles(() =>
       cursor: 'pointer',
     },
     activeLink: {
-      borderRight: `4px solid ${weaveTheme.colors.blue400}`,
+      borderRight: `4px solid ${weaveTheme.colors.primary}`,
     },
   }),
 );

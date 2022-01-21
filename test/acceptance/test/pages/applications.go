@@ -103,7 +103,7 @@ func GetApplicationPage(webDriver *agouti.Page) *ApplicationPage {
 	applicationPage := ApplicationPage{
 		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
 		ApplicationCount:  webDriver.FindByXPath(`//*[@href="/applications"]/parent::div[@role="heading"]/following-sibling::div`),
-		AddApplication:    webDriver.FindByButton(`Add Application`),
+		AddApplication:    webDriver.FindByButton(`ADD APPLICATION`),
 		ApplicationTable:  webDriver.All(`tr.MuiTableRow-root a`),
 	}
 
@@ -164,8 +164,9 @@ func GetApplicationConditions(webDriver *agouti.Page, condition string) *Conditi
 func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
 	return &AuthenticateGithub{
 		AuthenticateGithub: webDriver.FindByButton(`Authenticate with GitHub`),
-		AccessCode:         webDriver.Find(`div[class*=GithubDeviceAuthModal__P]:first-child`), //#2
-		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),                  //#1
+		// FIXME: bit brittle
+		AccessCode:         webDriver.FindByXPath(`//button[contains(.,'Authorize Github Access')]/../../preceding-sibling::div/span`), //#2
+		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),                                                          //#1
 		AuthorizationError: webDriver.FindByXPath(`//div[@role="alert"]//div[.="Error"]`),
 	}
 }
