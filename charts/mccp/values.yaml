@@ -49,6 +49,7 @@ config:
     clusters:
       namespace: default
     repositoryURL: ''
+    repositoryApiURL: ''
     repositoryPath: ''
     baseBranch: main
   checkpoint:

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-logr/logr"
 	go_git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
@@ -49,14 +51,15 @@ type GitProvider struct {
 }
 
 type WriteFilesToBranchAndCreatePullRequestRequest struct {
-	GitProvider   GitProvider
-	RepositoryURL string
-	HeadBranch    string
-	BaseBranch    string
-	Title         string
-	Description   string
-	CommitMessage string
-	Files         []gitprovider.CommitFile
+	GitProvider       GitProvider
+	RepositoryURL     string
+	ReposistoryAPIURL string
+	HeadBranch        string
+	BaseBranch        string
+	Title             string
+	Description       string
+	CommitMessage     string
+	Files             []gitprovider.CommitFile
 }
 
 type WriteFilesToBranchAndCreatePullRequestResponse struct {
@@ -79,7 +82,12 @@ type CloneRepoToTempDirResponse struct {
 // It returns the URL of the pull request.
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	repo, err := s.GetRepository(ctx, req.GitProvider, req.RepositoryURL)
+	repoURL, err := GetGitProviderUrl(req.RepositoryURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get git porivder url: %w", err)
+	}
+
+	repo, err := s.GetRepository(ctx, req.GitProvider, repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get repo: %w", err)
 	}
@@ -292,4 +300,23 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		return nil, fmt.Errorf("the Git provider %q is not supported", gpi.Type)
 	}
 	return client, err
+}
+
+func GetGitProviderUrl(giturl string) (string, error) {
+	repositoryAPIURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+	if repositoryAPIURL != "" {
+		return repositoryAPIURL, nil
+	}
+
+	ep, err := transport.NewEndpoint(giturl)
+	if err != nil {
+		return "", err
+	}
+	if ep.Protocol == "http" || ep.Protocol == "https" {
+		return giturl, nil
+	}
+
+	httpsEp := transport.Endpoint{Protocol: "https", Host: ep.Host, Path: ep.Path}
+
+	return httpsEp.String(), nil
 }
