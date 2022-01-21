@@ -1,13 +1,11 @@
 import React, {
   ChangeEvent,
   FC,
-  FormEvent,
   useCallback,
   useEffect,
   useState,
 } from 'react';
 import styled from 'styled-components';
-import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import { UpdatedProfile } from '../../../../../types/custom';
 import ListItem from '@material-ui/core/ListItem';
@@ -17,14 +15,18 @@ import {
   DialogTitle,
   DialogActions,
   TextareaAutosize,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
-import { OnClickAction } from '../../../../Action';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
-import Button from '@material-ui/core/Button';
-import { GitOpsBlue } from '../../../../../muiTheme';
-import { Dropdown } from 'weaveworks-ui-components';
+import {
+  theme as weaveTheme,
+  Button,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
@@ -33,29 +35,29 @@ const useStyles = makeStyles(() => ({
   textarea: {
     width: '100%',
     padding: xs,
-    border: '1px solid #E5E5E5',
-  },
-  downloadBtn: {
-    color: GitOpsBlue,
-    padding: '0px',
+    border: `1px solid ${weaveTheme.colors.neutral10}`,
   },
 }));
 
 const ListItemWrapper = styled.div`
-  & .profile-name {
-    margin-right: ${medium};
-  }
-  & .profile-version {
+  & .profile-version,
+  .profile-layer {
     display: flex;
     align-items: center;
     margin-right: ${medium};
-    width: 150px;
     span {
       margin-right: ${xs};
     }
   }
-  & .dropdown-toggle {
-    border: 1px solid #e5e5e5;
+  ,
+  & .profile-name,
+  .profile-layer {
+    min-width: 120px;
+  }
+  & .profile-version {
+    .MuiSelect-root {
+      min-width: 75px;
+    }
   }
 `;
 
@@ -69,17 +71,19 @@ const ProfilesListItem: FC<{
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
 
   const profileVersions = (profile: UpdatedProfile) => [
-    ...profile.values.map(value => {
+    ...profile.values.map((value, index) => {
       const { version } = value;
-      return {
-        label: version as string,
-        value: version as string,
-      };
+      return (
+        <MenuItem key={index} value={version}>
+          {version}
+        </MenuItem>
+      );
     }),
   ];
 
   const handleSelectVersion = useCallback(
-    (event: FormEvent<HTMLInputElement>, value: string) => {
+    (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
+      const value = event.target.value as string;
       setVersion(value);
 
       profile.values.forEach(item =>
@@ -132,17 +136,26 @@ const ProfilesListItem: FC<{
     <>
       <ListItemWrapper>
         <ListItem data-profile-name={profile.name}>
-          <ListItemText className="profile-name">{profile.name}</ListItemText>
+          <div className="profile-name">{profile.name}</div>
           <div className="profile-version">
             <span>Version</span>
-            <Dropdown
-              value={version}
-              items={profileVersions(profile)}
-              disabled={profile.required}
-              onChange={(event, value) => handleSelectVersion(event, value)}
-            />
+            <FormControl>
+              <Select
+                disabled={profile.required}
+                value={version}
+                onChange={handleSelectVersion}
+                autoWidth
+                label="Versions"
+              >
+                {profileVersions(profile)}
+              </Select>
+            </FormControl>
           </div>
-          <Button className={classes.downloadBtn} onClick={handleYamlPreview}>
+          <div className="profile-layer">
+            <span>Layer</span>
+            <span>{profile.layer}</span>
+          </div>
+          <Button variant="text" onClick={handleYamlPreview}>
             Values.yaml
           </Button>
         </ListItem>
@@ -167,12 +180,14 @@ const ProfilesListItem: FC<{
           />
         </DialogContent>
         <DialogActions>
-          <OnClickAction
+          <Button
             id="edit-yaml"
+            startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
             onClick={handleUpdateProfiles}
-            text="Save changes"
             disabled={profile.required}
-          />
+          >
+            SAVE CHANGES
+          </Button>
         </DialogActions>
       </Dialog>
     </>

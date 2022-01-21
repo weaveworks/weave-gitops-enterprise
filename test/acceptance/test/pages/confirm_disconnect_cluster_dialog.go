@@ -19,8 +19,8 @@ func GetConfirmDisconnectClusterDialog(webDriver *agouti.Page) *ConfirmDisconnec
 		AlertPopup:             webDriver.Find(`#confirm-disconnect-cluster-dialog`),
 		AlertDialogTitle:       webDriver.FindByXPath(`//*[@id="confirm-disconnect-cluster-dialog"]/*[@id="alert-dialog-title"]/h2`),
 		AlertDialogDescription: webDriver.FindByXPath(`//*[@id="confirm-disconnect-cluster-dialog"]/*[@id="alert-dialog-description"]/p`),
-		ButtonRemove:           webDriver.FindByXPath(`//*[@id="confirm-disconnect-cluster-dialog"]/div[3]/div/div[3]/button[1]/span`),
-		ButtonCancel:           webDriver.FindByXPath(`//*[@id="confirm-disconnect-cluster-dialog"]/div[3]/div/div[3]/button[2]/span[1]`),
+		ButtonRemove:           webDriver.FindByXPath(`//*[@id="confirm-disconnect-cluster-dialog"]/div[3]/div/div[3]/button[1]`),
+		ButtonCancel:           webDriver.FindByXPath(`//*[@id="confirm-disconnect-cluster-dialog"]/div[3]/div/div[3]/button[2]`),
 	}
 
 	return &confirmDisconnectClusterDialog

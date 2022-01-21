@@ -18,6 +18,7 @@ import { Shadows } from '@material-ui/core/styles/shadows';
 import useTemplates from '../../../contexts/Templates';
 import { Loader } from '../../Loader';
 import { Template } from '../../../types/custom';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -43,7 +44,7 @@ const useStyles = makeStyles((theme: Theme) =>
       whiteSpace: 'nowrap',
     },
     tableHead: {
-      borderBottom: '1px solid #d8d8d8',
+      borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
     },
   }),
 );

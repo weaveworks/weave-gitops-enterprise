@@ -1,11 +1,10 @@
 import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { NavLink } from 'react-router-dom';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
-import { GitOpsBlue } from './../muiTheme';
 
 const navItemPadding = css`
   padding: 0 ${theme.spacing.small} ${theme.spacing.small} 0;
@@ -28,7 +27,7 @@ const itemCss = css`
 `;
 
 const itemActiveCss = css`
-  border-right: 4px solid ${theme.colors.blue400};
+  border-right: 4px solid ${theme.colors.primary};
 `;
 
 const Title = styled.div`
@@ -37,7 +36,7 @@ const Title = styled.div`
   color: ${theme.colors.white};
   font-size: ${20}px;
   padding-left: ${theme.spacing.medium};
-  background: ${GitOpsBlue};
+  background: ${theme.colors.primary};
   height: ${80}px;
   position: sticky;
   top: 0;
