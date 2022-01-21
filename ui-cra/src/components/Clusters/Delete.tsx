@@ -12,18 +12,19 @@ import {
   DialogTitle,
   Typography,
 } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import { createStyles } from '@material-ui/styles';
-import theme from 'weaveworks-ui-components/lib/theme';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import useVersions from '../../contexts/Versions';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { OnClickAction } from '../Action';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
-import { clearCallbackState, getProviderToken } from '@weaveworks/weave-gitops';
+import {
+  Button,
+  clearCallbackState,
+  getProviderToken,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
@@ -35,21 +36,12 @@ interface Props {
   setOpenDeletePR: Dispatch<React.SetStateAction<boolean>>;
 }
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    dialog: {
-      backgroundColor: theme.colors.gray50,
-    },
-  }),
-);
-
 export const DeleteClusterDialog: FC<Props> = ({
   formData,
   setFormData,
   selectedCapiClusters,
   setOpenDeletePR,
 }) => {
-  const classes = useStyles();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
@@ -154,7 +146,7 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
-      <div id="delete-popup" className={classes.dialog}>
+      <div id="delete-popup">
         <DialogTitle disableTypography>
           <Typography variant="h5">Create PR to remove clusters</Typography>
           <CloseIconButton onClick={cleanUp} />
@@ -191,14 +183,15 @@ export const DeleteClusterDialog: FC<Props> = ({
                 showAuthDialog={showAuthDialog}
                 setShowAuthDialog={setShowAuthDialog}
               />
-              <OnClickAction
+              <Button
                 id="delete-cluster"
-                icon={faTrashAlt}
+                color="secondary"
+                startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
                 onClick={handleClickRemove}
-                text="Remove clusters from the MCCP"
-                className="danger"
                 disabled={!enableCreatePR}
-              />
+              >
+                REMOVE CLUSTERS FROM THE MCCP
+              </Button>
             </>
           ) : (
             <Loader />

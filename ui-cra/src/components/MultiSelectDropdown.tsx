@@ -6,7 +6,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { GitOpsBlue } from './../muiTheme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -14,10 +14,10 @@ const useStyles = makeStyles(theme => ({
     width: 300,
   },
   indeterminateColor: {
-    color: GitOpsBlue,
+    color: weaveTheme.colors.primary,
   },
   downloadBtn: {
-    color: GitOpsBlue,
+    color: weaveTheme.colors.primary,
     padding: '0px',
   },
 }));
@@ -75,7 +75,7 @@ const MultiSelectDropdown: FC<{
                 selected.length > 0 && selected.length < allItems.length
               }
               style={{
-                color: GitOpsBlue,
+                color: weaveTheme.colors.primary,
               }}
             />
           </ListItemIcon>
@@ -91,7 +91,7 @@ const MultiSelectDropdown: FC<{
                     item.required === true || selected.indexOf(itemName) > -1
                   }
                   style={{
-                    color: GitOpsBlue,
+                    color: weaveTheme.colors.primary,
                   }}
                 />
               </ListItemIcon>

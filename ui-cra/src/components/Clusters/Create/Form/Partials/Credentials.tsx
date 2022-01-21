@@ -1,31 +1,36 @@
-import React, { FC, FormEvent, useCallback, useMemo, Dispatch } from 'react';
+import React, { FC, useCallback, useMemo, Dispatch, ChangeEvent } from 'react';
 import useCredentials from './../../../../../contexts/Credentials';
 import { Credential } from '../../../../../types/custom';
-import { Dropdown, DropdownItem } from 'weaveworks-ui-components';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 
 const Credentials: FC<{
-  infraCredential: Credential;
-  setInfraCredential: Dispatch<React.SetStateAction<Credential>>;
+  infraCredential: Credential | null;
+  setInfraCredential: Dispatch<React.SetStateAction<Credential | null>>;
 }> = ({ infraCredential, setInfraCredential }) => {
   const { credentials, loading, getCredential } = useCredentials();
 
-  const credentialsItems: DropdownItem[] = useMemo(
+  const credentialsItems = useMemo(
     () => [
-      ...credentials.map((credential: Credential) => {
+      ...credentials.map((credential: Credential, index: number) => {
         const { kind, namespace, name } = credential;
-        return {
-          label: `${kind}/${namespace || 'default'}/${name}`,
-          value: name || '',
-        };
+        return (
+          <MenuItem key={name} value={name || ''}>
+            {`${kind}/${namespace || 'default'}/${name}`}
+          </MenuItem>
+        );
       }),
-      { label: 'None', value: '' },
+      <MenuItem key="None" value="None">
+        <em>None</em>
+      </MenuItem>,
     ],
     [credentials],
   );
 
   const handleSelectCredentials = useCallback(
-    (event: FormEvent<HTMLInputElement>, value: string) => {
-      const credential = getCredential(value) || {};
+    (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
+      const credential = getCredential(event.target.value as string);
       setInfraCredential(credential);
     },
     [getCredential, setInfraCredential],
@@ -34,12 +39,17 @@ const Credentials: FC<{
   return (
     <div className="credentials">
       <span>Infrastructure provider credentials:</span>
-      <Dropdown
-        value={infraCredential?.name}
-        disabled={loading}
-        items={credentialsItems}
-        onChange={handleSelectCredentials}
-      />
+      <FormControl>
+        <Select
+          disabled={loading}
+          value={infraCredential?.name || 'None'}
+          onChange={handleSelectCredentials}
+          autoWidth
+          label="Credentials"
+        >
+          {credentialsItems}
+        </Select>
+      </FormControl>
     </div>
   );
 };

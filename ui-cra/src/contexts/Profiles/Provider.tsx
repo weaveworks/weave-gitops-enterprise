@@ -34,6 +34,13 @@ const ProfilesProvider: FC = ({ children }) => {
     [profilesWithValues],
   );
 
+  const getProfileLayer = useCallback(
+    (name: string) => {
+      return profilesWithValues.find(p => p.name === name)?.layer;
+    },
+    [profilesWithValues],
+  );
+
   const getDefaultProfiles = useCallback(
     (template: Template) => {
       if (template?.annotations) {
@@ -47,6 +54,7 @@ const ProfilesProvider: FC = ({ children }) => {
                 name,
                 values: [{ version, yaml: values, selected: false }],
                 required: true,
+                layer: getProfileLayer(name),
               });
             } else {
               defaultProfiles.push({
@@ -59,6 +67,7 @@ const ProfilesProvider: FC = ({ children }) => {
                   },
                 ],
                 required: true,
+                layer: getProfileLayer(name),
               });
             }
           }
@@ -67,7 +76,7 @@ const ProfilesProvider: FC = ({ children }) => {
       }
       return [];
     },
-    [getVersionValue],
+    [getVersionValue, getProfileLayer],
   );
 
   const getProfileYaml = useCallback((name: string, version: string) => {
@@ -84,8 +93,14 @@ const ProfilesProvider: FC = ({ children }) => {
       const profileRequests = profiles.flatMap(profile =>
         profile.availableVersions.map(async version => {
           const profileName = profile.name;
+          const profileLayer = profile.layer;
           const data = await getProfileYaml(profileName, version);
-          return { name: profileName, version: version, payload: data };
+          return {
+            name: profileName,
+            version: version,
+            payload: data,
+            layer: profileLayer,
+          };
         }),
       );
       Promise.all(profileRequests)
@@ -96,6 +111,7 @@ const ProfilesProvider: FC = ({ children }) => {
                 name: string;
                 values: { version: string; yaml: string }[];
                 required: boolean;
+                layer?: string;
               }[],
               profile,
             ) => {
@@ -115,6 +131,7 @@ const ProfilesProvider: FC = ({ children }) => {
                   name: profile.name,
                   values: [value],
                   required: false,
+                  layer: profile.layer,
                 });
               }
               return profilesWithAddedValues;

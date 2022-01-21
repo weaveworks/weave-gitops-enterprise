@@ -2,21 +2,19 @@ import React, { useCallback } from 'react';
 import { TableCell, TableRow } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Template } from '../../../types/custom';
-import { OnClickAction } from '../../Action';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useHistory } from 'react-router-dom';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme, Button, Icon, IconType } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({
     icon: {
-      color: '#ccc',
+      color: theme.colors.neutral20,
     },
     normalRow: {
-      borderBottom: '1px solid #d8d8d8',
+      borderBottom: `1px solid ${theme.colors.neutral20}`,
     },
     error: {
-      color: weaveTheme.colors.orange500,
+      color: theme.colors.alert,
     },
   }),
 );
@@ -49,13 +47,14 @@ const TemplateRow = ({ index, template }: RowProps) => {
         <span className={classes.error}>{error}</span>
       </TableCell>
       <TableCell>
-        <OnClickAction
+        <Button
           id="create-cluster"
-          icon={faPlus}
+          startIcon={<Icon type={IconType.AddIcon} size="base" />}
           onClick={handleAddCluster}
-          text="CREATE CLUSTER WITH THIS TEMPLATE"
           disabled={Boolean(error)}
-        />
+        >
+          CREATE CLUSTER WITH THIS TEMPLATE
+        </Button>
       </TableCell>
     </TableRow>
   );
