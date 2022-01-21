@@ -1415,8 +1415,8 @@ github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17
 github.com/vishvananda/netns v0.0.0-20200728191858-db3c7e526aae/go.mod h1:DD4vA1DwXk04H54A1oHXtwZmA0grkVMdPxx/VGLCah0=
 github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab h1:mW+hgchD9qUUBqnuaDBj7BkcpFPk/FxeFcUFI5lvvUw=
 github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab/go.mod h1:qkbvw5GPibQ/Nf7IZJL0UoLwmJ6858b4S/hUWRd+cH4=
-github.com/weaveworks/weave-gitops v0.6.1-0.20220119123431-c9730c1f0ce5 h1:nUOFqrWYD8FP4tFxVADYIGsM+RiO2UZI+Bimlc2t6zU=
-github.com/weaveworks/weave-gitops v0.6.1-0.20220119123431-c9730c1f0ce5/go.mod h1:fVxBh4uvxR3RWbhOzdlZaODuoQpHR0NXuhI/vGlhimI=
+github.com/weaveworks/weave-gitops v0.6.1 h1:2iJRT1NDWXNBP+C+2/gXY1sSIUdDZLXauG1nCd8Nbp0=
+github.com/weaveworks/weave-gitops v0.6.1/go.mod h1:fVxBh4uvxR3RWbhOzdlZaODuoQpHR0NXuhI/vGlhimI=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1 h1:R5+xSXgaKiTGLMzpNmkf9W5PsX9mCtMTgWUbJ7MwO70=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1/go.mod h1:xWxoy/Ff1R3VnKWacRlbmBnVSu066ykpZIkk+T/g1Vw=
 github.com/willf/bitset v1.1.11-0.20200630133818-d5bec3311243/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
