@@ -39,11 +39,11 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 									selectOption := func() bool {
 										_ = templateSection.Fields[j].ListBox.Click()
 										time.Sleep(POLL_INTERVAL_100MILLISECONDS)
-										visible, _ := pages.GetOption(webDriver, "parameter", parameters[i].Option).Visible()
+										visible, _ := pages.GetOption(webDriver, parameters[i].Option).Visible()
 										return visible
 									}
 									Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(BeTrue(), fmt.Sprintf("Failed to select parameter option '%s' in section '%s' ", parameters[i].Name, section))
-									Expect(pages.GetOption(webDriver, "parameter", parameters[i].Option).Click()).To(Succeed())
+									Expect(pages.GetOption(webDriver, parameters[i].Option).Click()).To(Succeed())
 									paramSet = true
 								}
 							} else {
@@ -978,7 +978,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					profile := pages.GetProfile(webDriver, "podinfo")
 
 					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "profile", "6.0.1").Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "6.0.1").Click).Should(Succeed())
 
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)

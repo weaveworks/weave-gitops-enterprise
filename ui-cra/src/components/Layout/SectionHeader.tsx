@@ -1,8 +1,7 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import theme from 'weaveworks-ui-components/lib/theme';
+import { theme } from '@weaveworks/weave-gitops';
 import { Breadcrumb, Breadcrumbs } from '../Breadcrumbs';
-import { GitOpsBlue } from './../../muiTheme';
 
 interface Size {
   size?: 'small';
@@ -11,9 +10,10 @@ interface Size {
 const Wrapper = styled.div<Size>`
   align-items: center;
   display: flex;
-  color: ${({ size }) => (size === 'small' ? theme.colors.gray600 : 'inherit')};
+  color: ${({ size }) =>
+    size === 'small' ? theme.colors.neutral40 : 'inherit'};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
-  background: ${GitOpsBlue};
+  background: ${theme.colors.primary};
   height: ${80}px;
   flex-grow: 1;
   padding-left: ${theme.spacing.large};

@@ -133,7 +133,7 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 		_ = clusterConnectionPage.ClusterIngressURL.SendKeys("https://google.com")
 	})
 
-	By("And I click Save & next button", func() {
+	By("And I click SAVE & NEXT button", func() {
 		Expect(clusterConnectionPage.ClusterSaveAndNext.Click()).To(Succeed())
 	})
 
@@ -330,8 +330,8 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Eventually(clusterConnectionPage.ClusterIngressURL).Should(BeFound())
 			})
 
-			By("And should have Save & next button", func() {
-				Eventually(clusterConnectionPage.ClusterSaveAndNext).Should(HaveText("Save & next"))
+			By("And should have SAVE & NEXT button", func() {
+				Eventually(clusterConnectionPage.ClusterSaveAndNext).Should(HaveText("SAVE & NEXT"))
 			})
 		})
 
@@ -363,7 +363,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Clear(clusterConnectionPage.ClusterName)
 			})
 
-			By("And I see Save & next button disabled", func() {
+			By("And I see SAVE & NEXT button disabled", func() {
 				Eventually(clusterConnectionPage.ButtonClusterSaveAndNext).ShouldNot(BeEnabled())
 			})
 
@@ -371,7 +371,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				_ = clusterConnectionPage.ClusterName.SendKeys("     ")
 			})
 
-			By("And I see Save & next button disabled", func() {
+			By("And I see SAVE & NEXT button disabled", func() {
 				Eventually(clusterConnectionPage.ButtonClusterSaveAndNext).ShouldNot(BeEnabled())
 			})
 

@@ -1,6 +1,6 @@
 import React, { FC, Dispatch } from 'react';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -15,7 +15,7 @@ const useStyles = makeStyles(() =>
     textarea: {
       width: '100%',
       padding: xs,
-      border: '1px solid #E5E5E5',
+      border: `1px solid ${weaveTheme.colors.neutral20}`,
     },
   }),
 );
