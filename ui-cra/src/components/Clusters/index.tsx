@@ -114,6 +114,9 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   useEffect(() => {
+    if (!callbackState && selectedClusters.length === 0) {
+      setOpenDeletePR(false);
+    }
     if (!callbackState) {
       setFormData((prevState: FormData) => ({
         ...prevState,
@@ -126,7 +129,6 @@ const MCCP: FC = () => {
       }));
     }
     if (callbackState?.state?.selectedCapiClusters?.length > 0) {
-      // this will pb open when you select a cluster? need to test once we have clusters on a cluster that has Gitlab Auth available
       setOpenDeletePR(true);
     }
   }, [
