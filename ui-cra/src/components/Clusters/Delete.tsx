@@ -114,7 +114,6 @@ export const DeleteClusterDialog: FC<Props> = ({
       });
 
   const cleanUp = useCallback(() => {
-    console.log('cleanup running');
     clearCallbackState();
     setOpenDeletePR(false);
     setShowAuthDialog(false);
