@@ -89,8 +89,7 @@ function setup {
 
   kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
   kubectl apply -f ${args[1]}/test/utils/data/gitlab-on-prem-ssh-config.yaml
-  # CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
-    CHART_VERSION=0.0.17-36-ga103c48
+  CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
 
   # Install weave gitops enterprise controllers
   helmArgs=()

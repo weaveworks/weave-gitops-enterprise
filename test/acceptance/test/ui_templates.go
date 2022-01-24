@@ -476,6 +476,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
+					if pages.ElementExist(gitops.ErrorBar) {
+						Expect(gitops.ErrorBar.Click()).To(Succeed())
+					}
+
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
 
@@ -592,6 +596,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+
+					if pages.ElementExist(gitops.ErrorBar) {
+						Expect(gitops.ErrorBar.Click()).To(Succeed())
+					}
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
@@ -906,7 +914,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I install profiles (enhanced helm chart)", func() {
-					// profiles chart name is hardcoded in test/utils/data/profile-repo.yaml
 					installProfiles("weaveworks-charts", GITOPS_DEFAULT_NAMESPACE)
 				})
 

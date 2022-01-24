@@ -438,7 +438,6 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I install profiles (enhanced helm chart)", func() {
-					// profiles chart name is hardcoded in test/utils/data/profile-repo.yaml
 					installProfiles("weaveworks-charts", GITOPS_DEFAULT_NAMESPACE)
 				})
 
