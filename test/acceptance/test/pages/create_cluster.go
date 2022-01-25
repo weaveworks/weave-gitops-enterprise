@@ -49,10 +49,11 @@ type Preview struct {
 }
 
 type GitOps struct {
-	GitOpsLabel  *agouti.Selection
-	GitOpsFields []FormField
-	CreatePR     *agouti.Selection
-	ErrorBar     *agouti.Selection
+	GitOpsLabel    *agouti.Selection
+	GitOpsFields   []FormField
+	GitCredentials *agouti.Selection
+	CreatePR       *agouti.Selection
+	ErrorBar       *agouti.Selection
 }
 
 //CreateCluster initialises the webDriver object
@@ -176,7 +177,8 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 				Field: webDriver.FindByID(`Commit message-input`),
 			},
 		},
-		CreatePR: webDriver.FindByButton(`CREATE PULL REQUEST`),
-		ErrorBar: webDriver.Find(`.Toastify [role="alert"]`),
+		GitCredentials: webDriver.Find(`div.auth-message`),
+		CreatePR:       webDriver.FindByButton(`CREATE PULL REQUEST`),
+		ErrorBar:       webDriver.Find(`.Toastify [role="alert"]`),
 	}
 }
