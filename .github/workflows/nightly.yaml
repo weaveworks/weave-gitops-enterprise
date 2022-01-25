@@ -27,6 +27,7 @@ jobs:
       focus-or-skip: "-ginkgo.skip='@gce|@capd'"
       kubectl-version: "v1.22.0"
       git-provider: github
+      git-provider_hostname: github.com
       cluster_resource_set: false
       management-cluster-kind: eks
       gitops-bin-path: /usr/local/bin/gitops
@@ -36,7 +37,7 @@ jobs:
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      WGE_GITHUB_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
@@ -56,6 +57,7 @@ jobs:
       focus-or-skip: "-ginkgo.skip='@gce|@eks|@capd|@upgrade'"
       kubectl-version: "v1.22.0"
       git-provider: github
+      git-provider_hostname: github.com
       cluster_resource_set: false
       management-cluster-kind: gke
       gitops-bin-path: /usr/local/bin/gitops
@@ -65,7 +67,7 @@ jobs:
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      WGE_GITHUB_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}

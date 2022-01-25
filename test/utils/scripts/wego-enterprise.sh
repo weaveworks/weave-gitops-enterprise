@@ -53,13 +53,6 @@ function setup {
     --namespace prom \
     --version 14.4.0 \
     --values test/utils/data/mccp-prometheus-values.yaml
-
-  kubectl create ns wego-system
-  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
-  kubectl create secret generic git-provider-credentials \
-    --namespace=wego-system \
-    --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
-  CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
   
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
@@ -67,43 +60,70 @@ function setup {
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
   fi
   helm repo update  
-  
-  # Install weave gitops core controllers
-  # Git repository doesn't exist at this point, therefore we just ignore the erros relataing to repository not found
-  GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
-  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} --auto-merge
+    
+  kubectl create ns wego-system
+  if [ ${GIT_PROVIDER} == "github" ]; then
+    GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
+    GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
+
+    kubectl create secret generic git-provider-credentials --namespace=wego-system \
+    --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
+  elif [ ${GIT_PROVIDER} == "gitlab" ]; then
+    GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY"
+    GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY.git
+
+    if [ -z ${GITOPS_GIT_HOST_TYPES} ]; then
+      kubectl create secret generic git-provider-credentials --namespace=wego-system \
+      --from-literal="GIT_PROVIDER_TOKEN=$GITLAB_TOKEN" \
+      --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
+      --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET"
+    else
+      kubectl create secret generic git-provider-credentials --namespace=wego-system \
+      --from-literal="GIT_PROVIDER_TOKEN=$GITLAB_TOKEN" \
+      --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
+      --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET" \
+      --from-literal="GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" \
+      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES" 
+    fi
+  fi
+
+  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
+  kubectl apply -f ${args[1]}/test/utils/data/gitlab-on-prem-ssh-config.yaml
+  CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
 
   # Install weave gitops enterprise controllers
-  if [ "${ACCEPTANCE_TESTS_DATABASE_TYPE}" == "postgres" ]; then
+  helmArgs=()
+  helmArgs+=( --set "nats.client.service.nodePort=${NATS_NODEPORT}" )
+  helmArgs+=( --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" )
+  helmArgs+=( --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" )
+  helmArgs+=( --set "nginx-ingress-controller.service.type=NodePort" )
+  helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
+  helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
+  helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
+  helmArgs+=( --set "config.capi.repositoryPath=./management" )
+  helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
+  helmArgs+=( --set "config.capi.baseBranch=main" )
+
+  if [ ${ACCEPTANCE_TESTS_DATABASE_TYPE} == "postgres" ]; then
     # Create postgres DB
     kubectl apply -f test/utils/data/postgres-manifests.yaml
     kubectl wait --for=condition=available --timeout=600s deployment/postgres
     POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
     kubectl create secret generic mccp-db-credentials --namespace wego-system --from-literal=username=postgres --from-literal=password=password
-
-    helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system \
-      --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-      --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
-      --set "nginx-ingress-controller.service.type=NodePort" \
-      --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
-      --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
-      --set "config.capi.repositoryPath=./management" \
-      --set "config.cluster.name=$(kubectl config current-context)", \
-      --set "config.capi.baseBranch=main" \
-      --set "dbConfig.databaseType=postgres" \
-      --set "postgresConfig.databaseName=postgres" \
-      --set "dbConfig.databaseURI=${POSTGRES_CLUSTER_IP}" 
-  else
-    helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system \
-      --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-      --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
-      --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
-      --set "nginx-ingress-controller.service.type=NodePort" \
-      --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
-      --set "config.capi.repositoryPath=./management" \
-      --set "config.cluster.name=$(kubectl config current-context)" \
-      --set "config.capi.baseBranch=main"
+    
+    helmArgs+=( --set "dbConfig.databaseType=postgres" )
+    helmArgs+=( --set "postgresConfig.databaseName=postgres" )
+    helmArgs+=( --set "dbConfig.databaseURI=${POSTGRES_CLUSTER_IP}" )
   fi
+
+  if [ ! -z $GITOPS_GIT_HOST_TYPES ]; then
+    helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
+    helmArgs+=( --set "config.extraVolumes[0].configMap.name=ssh-config" )
+    helmArgs+=( --set "config.extraVolumeMounts[0].name=ssh-config" )
+    helmArgs+=( --set "config.extraVolumeMounts[0].mountPath=/root/.ssh" )
+  fi
+
+  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system ${helmArgs[@]}
 
   # Install capi infrastructure provider
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
@@ -119,11 +139,15 @@ function setup {
     kubectl wait --for=condition=Ready --timeout=300s -n capi-system --all pod
     kubectl apply -f ${args[1]}/test/utils/data/calico-crs.yaml
     kubectl apply -f ${args[1]}/test/utils/data/calico-crs-configmap.yaml
-  fi  
-  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml  
-  kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
-  GITOPS_REPO=ssh://git@github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
-	cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | sed s,{{GITOPS_REPO}},$GITOPS_REPO,g | kubectl apply -f -
+  fi
+
+  if [ ${GIT_PROVIDER} == "github" ]; then
+    kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
+  	cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | sed s,{{GITOPS_REPO}},$GITOPS_REPO,g | sed s,{{GIT_PROVIDER_TOKEN}},GITHUB_TOKEN,g | kubectl apply -f -
+  elif [ ${GIT_PROVIDER} == "gitlab" ]; then
+    kubectl create secret generic my-pat --from-literal GITLAB_TOKEN=$GITLAB_TOKEN
+  	cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | sed s,{{GITOPS_REPO}},$GITOPS_REPO,g | sed s,{{GIT_PROVIDER_TOKEN}},GITLAB_TOKEN,g | kubectl apply -f -
+  fi
 
   # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod --selector='app!=wego-app'
