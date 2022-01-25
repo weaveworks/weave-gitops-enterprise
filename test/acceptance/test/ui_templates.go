@@ -869,7 +869,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
-			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads" )
+			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads")
 			appName := "management"
 			appPath := "./management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
