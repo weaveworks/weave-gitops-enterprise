@@ -68,11 +68,9 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			fmt.Println("ppr hi")
 			initializeConfig(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("rune hi")
 			return StartServer(context.Background(), log, tempDir, p)
 		},
 	}
@@ -96,26 +94,26 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 }
 
 func initializeConfig(cmd *cobra.Command) {
-	v := viper.New()
-
+	// Align flag and env var names
 	replacer := strings.NewReplacer("-", "_")
-	v.SetEnvKeyReplacer(replacer)
-	v.AutomaticEnv()
+	viper.SetEnvKeyReplacer(replacer)
 
-	v.BindPFlags(cmd.Flags())
-	v.Debug()
+	// Read all env var values into viper
+	viper.AutomaticEnv()
 
-	// Bind the current command's flags to viper
-	bindFlagValues(cmd, v)
+	// Read all flag values into viper
+	// So they can be read from `viper.Get`, (sometimes user by weave-gitops (core))
+	viper.BindPFlags(cmd.Flags())
+
+	// Set all unset flags values to their associated env vars value if env var is present
+	bindFlagValues(cmd)
 }
 
-// Bind each cobra flag to its associated viper configuration (environment variable)
-// Note: viper.BindPFlags only adds the pflags as another source for viper.Get.
-func bindFlagValues(cmd *cobra.Command, v *viper.Viper) {
+func bindFlagValues(cmd *cobra.Command) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
-		if !f.Changed && v.IsSet(f.Name) {
-			val := v.Get(f.Name)
+		if !f.Changed && viper.IsSet(f.Name) {
+			val := viper.Get(f.Name)
 			fmt.Printf("setting flag %s set to %s", f.Name, val)
 			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
 		}
