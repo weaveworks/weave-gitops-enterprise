@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"path"
 	"regexp"
 
 	. "github.com/onsi/ginkgo"
@@ -50,7 +51,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 				templateFiles = []string{}
 
-				deleteRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, GITHUB_ORG)
+				deleteRepo(gitProviderEnv)
 
 				err := runCommandPassThrough([]string{}, "kubectl", "config", "use-context", current_context)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -62,7 +63,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 			It("@upgrade Verify wego core can be upgraded to wego enterprise", func() {
 
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, true, GITHUB_ORG)
+					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
@@ -74,7 +75,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I install the git repository secret for cluster service", func() {
-					cmd := fmt.Sprintf(`kubectl create secret generic git-provider-credentials --namespace=%s --from-literal="GIT_PROVIDER_TOKEN=%s"`, GITOPS_DEFAULT_NAMESPACE, GITHUB_TOKEN)
+					cmd := fmt.Sprintf(`kubectl create secret generic git-provider-credentials --namespace=%s --from-literal="GIT_PROVIDER_TOKEN=%s"`, GITOPS_DEFAULT_NAMESPACE, gitProviderEnv.Token)
 					_, err := runCommandAndReturnStringOutput(cmd)
 					Expect(err).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
 				})
@@ -87,7 +88,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				version := "0.0.17"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := public_ip + ":" + NATS_NODEPORT
-					repositoryURL := fmt.Sprintf(`https://github.com/%s/%s`, GITHUB_ORG, CLUSTER_REPOSITORY)
+					repositoryURL := "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 					upgradeCommand := fmt.Sprintf("upgrade --version %s --config-repo %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s'", version, repositoryURL, prBranch, natsURL, NATS_NODEPORT)
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, upgradeCommand))
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -105,8 +106,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should merge the pull request to start weave gitops enterprise upgrade", func() {
-					upgradePRUrl := verifyPRCreated(repoAbsolutePath, GIT_PROVIDER)
-					mergePullRequest(repoAbsolutePath, upgradePRUrl, GIT_PROVIDER)
+					upgradePRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
+					mergePullRequest(gitProviderEnv, repoAbsolutePath, upgradePRUrl)
 				})
 
 				By("And I should see cluster upgraded from 'wego core' to 'wego enterprise'", func() {

@@ -30,16 +30,11 @@ spec:
               value: "/etc/gitops/value"
             - name: GITOPS_REPO
               value: "{{GITOPS_REPO}}"
-            - name: GITHUB_TOKEN
+            - name: {{GIT_PROVIDER_TOKEN}}
               valueFrom:
                 secretKeyRef:
                   name: my-pat
-                  key: GITHUB_TOKEN
-          # - name: GITLAB_TOKEN # If your GitOps reop is on GitLab, use this instead of GITHUB_TOKEN
-          #   valueFrom:
-          #     secretKeyRef:
-          #       name: pat
-          #       key: GITLAB_TOKEN
+                  key: {{GIT_PROVIDER_TOKEN}}          
       restartPolicy: Never
       volumes:
         - name: kubeconfig

@@ -20,15 +20,7 @@ import (
 )
 
 var (
-	DOCKER_IO_USER       string
-	DOCKER_IO_PASSWORD   string
-	GITHUB_USER          string
-	GITHUB_PASSWORD      string
-	GIT_PROVIDER         string
-	GITHUB_ORG           string
-	GITHUB_TOKEN         string
-	GITLAB_TOKEN         string
-	CLUSTER_REPOSITORY   string
+	gitProviderEnv       GitProviderEnv
 	GIT_REPOSITORY_URL   string
 	SELENIUM_SERVICE_URL string
 	GITOPS_BIN_PATH      string
@@ -116,17 +108,8 @@ func SetupTestEnvironment() {
 	GITOPS_BIN_PATH = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	ARTIFACTS_BASE_DIR = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
 
-	GITHUB_USER = GetEnv("GITHUB_USER", "")
-	GITHUB_PASSWORD = GetEnv("GITHUB_PASSWORD", "")
-	GIT_PROVIDER = GetEnv("GIT_PROVIDER", "")
-	GITHUB_ORG = GetEnv("GITHUB_ORG", "")
-	GITHUB_TOKEN = GetEnv("GITHUB_TOKEN", "")
-	GITLAB_TOKEN = GetEnv("GITLAB_TOKEN", "")
-	CLUSTER_REPOSITORY = GetEnv("CLUSTER_REPOSITORY", "")
-	GIT_REPOSITORY_URL = "https://" + path.Join("github.com", GITHUB_ORG, CLUSTER_REPOSITORY)
-
-	DOCKER_IO_USER = GetEnv("DOCKER_IO_USER", "")
-	DOCKER_IO_PASSWORD = GetEnv("DOCKER_IO_PASSWORD", "")
+	gitProviderEnv = initGitProviderData()
+	GIT_REPOSITORY_URL = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 
 	//Cleanup the workspace dir, it helps when running locally
 	err := os.RemoveAll(ARTIFACTS_BASE_DIR)
@@ -161,14 +144,15 @@ func initializeWebdriver(wgeURL string) {
 	if webDriver == nil {
 		switch runtime.GOOS {
 		case "darwin":
-			chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox"}))
+			chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"}), agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
+
 			err = chromeDriver.Start()
 			Expect(err).NotTo(HaveOccurred())
 			webDriver, err = chromeDriver.NewPage()
 			Expect(err).NotTo(HaveOccurred())
 		case "linux":
 			webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox"}, "w3c": false}}))
+				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"}, "w3c": false, "excludeSwitches": []string{"enable-automation"}}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
 
