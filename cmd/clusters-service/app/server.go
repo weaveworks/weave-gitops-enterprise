@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
@@ -66,7 +67,12 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		Use:          "capi-server",
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			fmt.Println("ppr hi")
+			initializeConfig(cmd)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("rune hi")
 			return StartServer(context.Background(), log, tempDir, p)
 		},
 	}
@@ -86,12 +92,34 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.watcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
-	replacer := strings.NewReplacer("-", "_")
-	viper.SetEnvKeyReplacer(replacer)
-	viper.AutomaticEnv()
-	viper.BindPFlags(cmd.Flags())
-
 	return cmd
+}
+
+func initializeConfig(cmd *cobra.Command) {
+	v := viper.New()
+
+	replacer := strings.NewReplacer("-", "_")
+	v.SetEnvKeyReplacer(replacer)
+	v.AutomaticEnv()
+
+	v.BindPFlags(cmd.Flags())
+	v.Debug()
+
+	// Bind the current command's flags to viper
+	bindFlagValues(cmd, v)
+}
+
+// Bind each cobra flag to its associated viper configuration (environment variable)
+// Note: viper.BindPFlags only adds the pflags as another source for viper.Get.
+func bindFlagValues(cmd *cobra.Command, v *viper.Viper) {
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		// Apply the viper config value to the flag when the flag is not set and viper has a value
+		if !f.Changed && v.IsSet(f.Name) {
+			val := v.Get(f.Name)
+			fmt.Printf("setting flag %s set to %s", f.Name, val)
+			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+		}
+	})
 }
 
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
@@ -167,6 +195,11 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
+		WithProfileHelmRepository(p.helmRepoName),
+		WithEntitlementSecretKey(client.ObjectKey{
+			Name:      p.entitlementSecretName,
+			Namespace: p.entitlementSecretNamespace,
+		}),
 		WithDatabase(db),
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
@@ -306,12 +339,7 @@ func TrackEvents(log logr.Logger) func(ctx context.Context, r *http.Request) met
 
 func defaultOptions() *Options {
 	return &Options{
-		Log:                   logr.Discard(),
-		ProfileHelmRepository: viper.GetString("profile-helm-repository"),
-		EntitlementSecretKey: client.ObjectKey{
-			Name:      viper.GetString("entitlement-secret-name"),
-			Namespace: viper.GetString("entitlement-secret-namespace"),
-		},
+		Log: logr.Discard(),
 	}
 }
 
