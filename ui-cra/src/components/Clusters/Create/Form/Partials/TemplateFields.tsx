@@ -6,8 +6,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
-import { Template, TemplateObject } from '../../../../../types/custom';
+import { theme as weaveTheme, Button } from '@weaveworks/weave-gitops';
 import { ObjectFieldTemplateProps } from '@rjsf/core';
 import { JSONSchema7 } from 'json-schema';
 import Form from '@rjsf/material-ui';
@@ -15,7 +14,7 @@ import * as UiTemplate from '../UITemplate';
 import FormSteps from '../Steps';
 import styled from 'styled-components';
 import ObjectFieldTemplate from '../GroupedSchema';
-import { Button } from 'weaveworks-ui-components';
+import { Template, TemplateObject } from '../../../../../types/custom';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -159,7 +158,7 @@ const TemplateFields: FC<{
       {...UiTemplate}
     >
       <div className="previewCTA">
-        <Button>Preview PR</Button>
+        <Button type="submit">PREVIEW PR</Button>
       </div>
     </FormWrapper>
   );

@@ -7,10 +7,11 @@ import { Poll } from '../../../utils/poll';
 import { Cluster } from '../../../types/kubernetes';
 import { asMilliseconds } from '../../../utils/time';
 import { Loader } from '../../Loader';
+import { theme } from '@weaveworks/weave-gitops';
 
 const Container = styled.div`
-  margin-right: 16px;
-  margin-left: 16px;
+  margin-right: ${theme.spacing.base};
+  margin-left: ${theme.spacing.base};
 `;
 
 interface ResponsesById {

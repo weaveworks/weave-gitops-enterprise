@@ -5,13 +5,14 @@ import { FormState, SetFormState } from '../../../types/form';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
+import { theme } from '@weaveworks/weave-gitops';
 
 import { Input } from '../../../utils/form';
 
 const Container = styled.div`
   max-width: 500px;
-  margin-right: 16px;
-  margin-left: 16px;
+  margin-right: ${theme.spacing.base};
+  margin-left: ${theme.spacing.base};
 `;
 
 export const ConnectClusterGeneralForm: FC<{

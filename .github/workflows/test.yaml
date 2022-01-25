@@ -164,7 +164,7 @@ jobs:
       YARN_CACHE_NAME: cache-yarn
       GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       SELENIUM_DEBUG: true
-      ARTEFACTS_BASE_DIR: /tmp/workspace/test/
+      ARTIFACTS_BASE_DIR: /tmp/ui-integration-test/
     steps:
     - id: cache-paths
       run: |
@@ -210,223 +210,63 @@ jobs:
         make ui-build-for-tests
         
         cd test/integration/test
-        go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip=@integration -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.skip=@application -ginkgo.skip=@upgrade --timeout=99999s
+        go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip='@integration|@gce|@eks|@application|@upgrade' -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
     - name: Store integration test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
         name: ui-integration-test-artifacts
-        path: ${{ env.ARTEFACTS_BASE_DIR }}
+        path: ${{ env.ARTIFACTS_BASE_DIR }}
         retention-days: 1
-       
+
   smoke-tests:
-    runs-on: ubuntu-latest
-    needs: build
-    timeout-minutes: 60
-    env:
-      GO_CACHE_NAME: cache-go-modules
-      GIT_PROVIDER: github
-      GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
-      GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
-      GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
-      EXP_CLUSTER_RESOURCE_SET: true
-      TOTP_TOKEN: ${{ secrets.WGE_GITHUB_MFA_KEY }}
-      GITOPS_BIN_PATH: /tmp/gitops
-      SELENIUM_DEBUG: true
-      ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
-      ARTEFACTS_BASE_DIR: /tmp/workspace/test/
-      CHECKPOINT_DISABLE: 1
-    steps:
-    - id: go-cache-paths
-      run: |
-        echo "::set-output name=go-build::$(go env GOCACHE)"
-        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
-    - name: Configure git for private modules
-      env:
-        GITHUB_BUILD_USERNAME: wge-build-bot
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
-    - name: Go Build Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ${{ steps.go-cache-paths.outputs.go-build }}
-          ${{ steps.go-cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-    - name: Install clusterctl
-      run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-linux-amd64 -o clusterctl
-        chmod +x ./clusterctl
-        sudo mv ./clusterctl /usr/local/bin/clusterctl
-        clusterctl version 
-    - name: Set up ssh
-      uses: ./.github/actions/setup-ssh
-      with:
-        ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
-    - name: Configure git settings
-      run: |
-        git config --global user.email "test-user@weave.works"
-        git config --global user.name "test-user"
-        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Download totp-cli from GH
-      run: |
-        wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-linux-amd64.tar.gz
-        tar -xf totp-cli-v1.1.17-linux-amd64.tar.gz
-        mv ./totp-cli /usr/local/bin
-    - name: Get a gitops-binary
-      uses: ./.github/actions/gitops-binary
-      with:
-        path: ${{ env.GITOPS_BIN_PATH }}
-    - name: Setup selenium server
-      run: |
-        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+    needs: [build]
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@gitlab_on_prem__acceptance_tests
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 60
+      focus-or-skip: "-ginkgo.focus='@smoke'"
+      kubectl-version: "v1.21.1"
+      git-provider: github
+      git-provider_hostname: github.com
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      gitops-bin-path: /usr/local/bin/gitops
+      database-type: sqlite
+      artifacts-base-dir: "/tmp/smoke-test-github"   
+    secrets:
+      BUILD_BOT_USER: wge-build-bot
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
+      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
 
-        # Start selenium server in standalone mode
-        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-    - name: Setup kind management cluster
-      uses: engineerd/setup-kind@v0.5.0
-      with:
-        name: management-${{ github.run_id }}-${{ github.run_number}}
-        version: "v0.11.0"
-        image: kindest/node:v1.21.1
-        config: "./test/utils/data/local-kind-config.yaml"
-    - name: Kind-check
-      run: |
-        kubectl get pods -A
-    - name: Install wego enterprise components on management cluster
-      run: |
-        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
-        # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
-        echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-        
-        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
-    - name: Run smoke tests
-      run: |
-        cd test/acceptance/test/
-        go test -ginkgo.focus=@smoke -ginkgo.v -v --timeout=99999s
-    - name: Store smoke test results
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v2
-      with:
-        name: smoke-test-artifacts
-        path: ${{ env.ARTEFACTS_BASE_DIR }}
-        retention-days: 5
-
-  acceptance-tests:
-    runs-on: ubuntu-latest
-    needs: [lint, build, unit-tests, integration-tests, ui-integration-tests]
-    timeout-minutes: 90
-    env:
-      GO_CACHE_NAME: cache-go-modules
-      GIT_PROVIDER: github
-      GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
-      GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
-      GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
-      TOTP_TOKEN: ${{ secrets.WGE_GITHUB_MFA_KEY }}
-      EXP_CLUSTER_RESOURCE_SET: true
-      GITOPS_BIN_PATH: /tmp/gitops
-      SELENIUM_DEBUG: true
-      ACCEPTANCE_TESTS_DATABASE_TYPE: sqlite
-      ARTEFACTS_BASE_DIR: /tmp/workspace/test/
-      CHECKPOINT_DISABLE: 1
-    steps:
-    - id: go-cache-paths
-      run: |
-        echo "::set-output name=go-build::$(go env GOCACHE)"
-        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
-    - name: Configure git for private modules
-      env:
-        GITHUB_BUILD_USERNAME: wge-build-bot
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0 
-        ref: ${{ github.event.pull_request.head.sha }}
-    - name: Go Build Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ${{ steps.go-cache-paths.outputs.go-build }}
-          ${{ steps.go-cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-acceptance-test-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-acceptance-test-${{ env.GO_CACHE_NAME }}-
-    - name: Install clusterctl
-      run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-linux-amd64 -o clusterctl
-        chmod +x ./clusterctl
-        sudo mv ./clusterctl /usr/local/bin/clusterctl
-        clusterctl version 
-    - name: Set up ssh
-      uses: ./.github/actions/setup-ssh
-      with:
-        ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
-    - name: Configure git settings
-      run: |
-        git config --global user.email "test-user@weave.works"
-        git config --global user.name "test-user"
-        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Download totp-cli from GH
-      run: |
-        wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-linux-amd64.tar.gz
-        tar -xf totp-cli-v1.1.17-linux-amd64.tar.gz
-        mv ./totp-cli /usr/local/bin
-    - name: Get a gitops-binary
-      uses: ./.github/actions/gitops-binary
-      with:
-        path: ${{ env.GITOPS_BIN_PATH }}
-    - name: Setup selenium server
-      run: |
-        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
-
-        # Start selenium server in standalone mode
-        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-    - name: Setup kind management cluster
-      uses: engineerd/setup-kind@v0.5.0
-      with:
-        name: management-${{ github.run_id }}-${{ github.run_number}}
-        version: "v0.11.0"
-        image: kindest/node:v1.21.1
-        config: "./test/utils/data/local-kind-config.yaml"
-    - name: Kind-check
-      run: |
-        kubectl get pods -A
-    - name: Install wego enterprise components on management cluster
-      run: |
-        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
-        # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
-        echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV
-
-        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
-    - name: Run acceptance tests
-      run: |
-        cd test/acceptance/test/
-        go test -ginkgo.skip=@upgrade -ginkgo.skip=@smoke -ginkgo.skip=@gce -ginkgo.skip=@eks -ginkgo.v -v --timeout=99999s
-    - name: Store acceptance test results
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v2
-      with:
-        name: acceptance-test-artifacts
-        path: ${{ env.ARTEFACTS_BASE_DIR }}
-        retention-days: 5
-        
-        
+  acceptance-tests-github:
+    needs: [build, lint, unit-tests, integration-tests, ui-integration-tests]
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@gitlab_on_prem__acceptance_tests
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 90
+      focus-or-skip: "-ginkgo.skip='@upgrade|@smoke|@gce|@eks'"
+      kubectl-version: "v1.21.1"
+      git-provider: github
+      git-provider_hostname: github.com
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      gitops-bin-path: /usr/local/bin/gitops
+      database-type: sqlite
+      artifacts-base-dir: "/tmp/acceptance-test-github"
+    secrets:
+      BUILD_BOT_USER: wge-build-bot
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
+      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}

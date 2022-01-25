@@ -7,8 +7,6 @@ import Typography from '@material-ui/core/Typography';
 import { useHistory } from 'react-router-dom';
 import { Template } from '../../types/custom';
 import useTemplates from '../../contexts/Templates';
-import { OnClickAction } from '../Action';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { createStyles, makeStyles } from '@material-ui/core';
 import { ReactComponent as EKS } from '../../assets/img/templates/eks.svg';
 import { ReactComponent as GKE } from '../../assets/img/templates/gke.svg';
@@ -19,6 +17,7 @@ import { ReactComponent as Docker } from '../../assets/img/templates/docker.svg'
 import { ReactComponent as OpenStack } from '../../assets/img/templates/openstack.svg';
 import { ReactComponent as Packet } from '../../assets/img/templates/packet.svg';
 import { ReactComponent as VSphere } from '../../assets/img/templates/vsphere.svg';
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -97,13 +96,14 @@ const TemplateCard: FC<{ template: Template }> = ({ template }) => {
         )}
       </CardContent>
       <CardActions>
-        <OnClickAction
+        <Button
           id="create-cluster"
-          disabled={disabled}
-          icon={faPlus}
+          startIcon={<Icon type={IconType.AddIcon} size="base" />}
           onClick={handleCreateClick}
-          text="CREATE A CLUSTER"
-        />
+          disabled={disabled}
+        >
+          CREATE A CLUSTER
+        </Button>
       </CardActions>
     </Card>
   );

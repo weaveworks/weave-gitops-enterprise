@@ -10,10 +10,11 @@ import { Code, statusBox } from '../../Shared';
 import ConfirmDeletion from './ConfirmDeletion';
 import useClusters from '../../../contexts/Clusters';
 import { Loader } from '../../Loader';
+import { theme } from '@weaveworks/weave-gitops';
 
 const Container = styled.div`
-  margin-right: 16px;
-  margin-left: 16px;
+  margin-right: ${theme.spacing.base};
+  margin-left: ${theme.spacing.base};
 `;
 
 interface ResponsesById {

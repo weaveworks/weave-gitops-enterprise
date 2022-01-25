@@ -1,10 +1,10 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import {
   getProviderToken,
   GithubDeviceAuthModal,
   RepoInputWithAuth,
+  theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
 import useNotifications from '../../../../../contexts/Notifications';
 import styled from 'styled-components';
@@ -80,6 +80,7 @@ const GitAuth: FC<{
         disabled={true}
       />
       <GithubDeviceAuthModal
+        bodyClassName="GithubDeviceAuthModal"
         onClose={() => setShowAuthDialog(false)}
         onSuccess={() => {
           setShowAuthDialog(false);

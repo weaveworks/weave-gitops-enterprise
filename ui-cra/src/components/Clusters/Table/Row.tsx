@@ -32,7 +32,7 @@ import {
   Workspaces,
   WorkspacesTooltip,
 } from './RowComponents';
-import { GitOpsBlue } from './../../../muiTheme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme: Theme) =>
       margin: `${theme.spacing(0.5)}px ${theme.spacing(1)}px`,
     },
     icon: {
-      color: '#ccc',
+      color: weaveTheme.colors.neutral20,
     },
     nameHeaderCell: {
       paddingLeft: theme.spacing(4),
@@ -60,7 +60,7 @@ const useStyles = makeStyles((theme: Theme) =>
       maxWidth: 'none',
     },
     normalRow: {
-      borderBottom: '1px solid #d8d8d8',
+      borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
     },
     collapsibleRow: {
       '& > *': {
@@ -128,7 +128,7 @@ const ClusterRow = ({
             checked={selected}
             inputProps={{ 'aria-labelledby': labelId }}
             style={{
-              color: GitOpsBlue,
+              color: weaveTheme.colors.primary,
             }}
             onClick={event => onCheckboxClick(event, name)}
           />

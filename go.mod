@@ -26,7 +26,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
-	github.com/tebeka/selenium v0.9.9
 	github.com/weaveworks/weave-gitops v0.6.1-0.20220111153827-022e932522cf
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
@@ -45,6 +44,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.10.2
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect
 )
+
+require github.com/fluxcd/go-git-providers v0.5.2-0.20220111143741-04eef9791373
 
 require (
 	cloud.google.com/go v0.93.3 // indirect
@@ -69,7 +70,6 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/coreos/go-oidc/v3 v3.1.0 // indirect
@@ -86,7 +86,6 @@ require (
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/fluxcd/go-git-providers v0.5.2-0.20220111143741-04eef9791373 // indirect
 	github.com/fluxcd/helm-controller/api v0.14.1 // indirect
 	github.com/fluxcd/kustomize-controller/api v0.18.2 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.0.1 // indirect

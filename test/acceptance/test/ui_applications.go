@@ -15,62 +15,112 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) bool {
-	if gitProvider == "github" {
+func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
+	if gitProvider == GitProviderGitHub {
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
 		if pages.ElementExist(authenticate.AuthenticateGithub) {
-			log.Info("Found, authing...")
 			Expect(authenticate.AuthenticateGithub.Click()).To(Succeed())
-			Eventually(authenticate.AccessCode).Should(BeVisible())
-			accessCode, _ := authenticate.AccessCode.Text()
-			Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
-			accessCode = strings.Replace(accessCode, "-", "", 1)
+			AuthenticateWithGitHub(webDriver)
 
-			// Move to device activation window
-			TakeScreenShot("application_authentication")
-			Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to github authentication window")
-			TakeScreenShot("github_authentication")
+			// Sometimes authentication failed to get the github device code, it may require revalidation with new access code
+			if pages.ElementExist(authenticate.AuthorizationError) {
+				log.Info("Error getting github device code, revalidating...")
+				AuthenticateWithGitHub(webDriver)
+			}
 
-			activate := pages.ActivateDeviceGithub(webDriver)
+			Eventually(authenticate.AuthroizeButton).ShouldNot(BeFound())
+		}
+	} else if gitProvider == GitProviderGitLab {
+		authenticate := pages.AuthenticateWithGitlab(webDriver)
 
-			if pages.ElementExist(activate.Username) {
-				Eventually(activate.Username).Should(BeVisible())
-				Expect(activate.Username.SendKeys(GITHUB_USER)).To(Succeed())
-				Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
-				Expect(activate.Signin.Click()).To(Succeed())
+		if pages.ElementExist(authenticate.AuthenticateGitlab) {
+			Expect(authenticate.AuthenticateGitlab.Click()).To(Succeed())
+
+			if !pages.ElementExist(authenticate.Username) {
+				if pages.ElementExist(authenticate.CheckBrowser) {
+					setGitlabBrowserCompatibility(webDriver)
+					Eventually(authenticate.CheckBrowser, ASSERTION_30SECONDS_TIME_OUT).ShouldNot(BeFound())
+					TakeScreenShot("gitlab_browser_compatibility")
+				}
+
+				if pages.ElementExist(authenticate.AcceptCookies, 10) {
+					Eventually(authenticate.AcceptCookies.Click).Should(Succeed())
+				}
+			}
+
+			TakeScreenShot("gitlab_cookies_accepted")
+			if pages.ElementExist(authenticate.Username) {
+				Eventually(authenticate.Username).Should(BeVisible())
+				Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
+				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
+				Expect(authenticate.Signin.Click()).To(Succeed())
 			} else {
 				log.Info("Login not found, assuming already logged in")
-				TakeScreenShot("login_skipped")
 			}
 
-			if pages.ElementExist(activate.AuthCode) {
-				Eventually(activate.AuthCode).Should(BeVisible())
-				// Generate 6 digit authentication OTP for MFA
-				authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
-				Expect(activate.AuthCode.SendKeys(authCode)).To(Succeed())
-			} else {
-				log.Info("OTP not found, assuming already logged in")
-				TakeScreenShot("otp_skipped")
+			if pages.ElementExist(authenticate.Authorize) {
+				Expect(authenticate.Authorize.Click()).To(Succeed())
 			}
-
-			Eventually(activate.Continue).Should(BeVisible())
-			Expect(activate.UserCode.At(0).SendKeys(accessCode)).To(Succeed())
-			Expect(activate.Continue.Click()).To(Succeed())
-
-			Eventually(activate.AuthroizeWeaveworks).Should(BeEnabled())
-			Expect(activate.AuthroizeWeaveworks.Click()).To(Succeed())
-
-			Eventually(activate.ConnectedMessage).Should(BeVisible())
-			Expect(webDriver.CloseWindow()).ShouldNot(HaveOccurred())
-
-			// Device is connected, now move back to application window
-			Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
-			Eventually(authenticate.AuthroizeButton).ShouldNot(BeFound())
-			return true
 		}
 	}
-	return false
+}
+
+func setGitlabBrowserCompatibility(webDriver *agouti.Page) {
+	// opening the gitlab in a separate window not controlled by webdriver seems to redirect gitlab to login
+	pages.OpenNewWindow(webDriver, `http://`+gitProviderEnv.Hostname+`/users/sign_in`, "gitlab")
+	// Make sure weave-gitops-enterprise application window is still active window
+	Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
+}
+
+func AuthenticateWithGitHub(webDriver *agouti.Page) {
+
+	authenticate := pages.AuthenticateWithGithub(webDriver)
+
+	Eventually(authenticate.AccessCode).Should(BeVisible())
+	accessCode, _ := authenticate.AccessCode.Text()
+	Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
+	accessCode = strings.Replace(accessCode, "-", "", 1)
+
+	// Move to device activation window
+	TakeScreenShot("application_authentication")
+	Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to github authentication window")
+	TakeScreenShot("github_authentication")
+
+	activate := pages.ActivateDeviceGithub(webDriver)
+
+	if pages.ElementExist(activate.Username) {
+		Eventually(activate.Username).Should(BeVisible())
+		Expect(activate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
+		Expect(activate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
+		Expect(activate.Signin.Click()).To(Succeed())
+	} else {
+		log.Info("Login not found, assuming already logged in")
+		TakeScreenShot("login_skipped")
+	}
+
+	if pages.ElementExist(activate.AuthCode) {
+		Eventually(activate.AuthCode).Should(BeVisible())
+		// Generate 6 digit authentication OTP for MFA
+		authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
+		Expect(activate.AuthCode.SendKeys(authCode)).To(Succeed())
+	} else {
+		log.Info("OTP not found, assuming already logged in")
+		TakeScreenShot("otp_skipped")
+	}
+
+	Eventually(activate.Continue).Should(BeVisible())
+	Expect(activate.UserCode.At(0).SendKeys(accessCode)).To(Succeed())
+	Expect(activate.Continue.Click()).To(Succeed())
+
+	Eventually(activate.AuthroizeWeaveworks).Should(BeEnabled())
+	Expect(activate.AuthroizeWeaveworks.Click()).To(Succeed())
+
+	Eventually(activate.ConnectedMessage).Should(BeVisible())
+	Expect(webDriver.CloseWindow()).ShouldNot(HaveOccurred())
+
+	// Device is connected, now move back to application window
+	Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
 }
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
@@ -107,12 +157,12 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
-				deleteRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, GITHUB_ORG)
+				deleteRepo(gitProviderEnv)
 			})
 
 			It("@application Verify application's status and history can be monitored.", func() {
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, true, GITHUB_ORG)
+					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
@@ -138,7 +188,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf("Then I add application '%s' to weave gitops cluster", appName), func() {
 					Expect(applicationsPage.AddApplication.Click()).To(Succeed())
 
-					Eventually(addApp.Name).Should(BeVisible())
+					Expect(pages.ElementExist(addApp.Name)).To(BeTrue(), "Application name field doesn't exist")
 					Expect(addApp.Name.SendKeys(appName)).To(Succeed())
 					Expect(addApp.SourceRepoUrl.SendKeys(getGitRepositoryURL(repoAbsolutePath))).To(Succeed())
 					Expect(addApp.ConfigRepoUrl.SendKeys(getGitRepositoryURL(repoAbsolutePath))).To(Succeed())
@@ -146,14 +196,14 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(addApp.AutoMerge.Check()).To(Succeed())
 				})
 
-				By(`And authenticate with Github`, func() {
-					if AuthenticateWithGitProvider(webDriver, "github") {
-						Eventually(addApp.GitCredentials).Should(BeVisible())
-					}
+				By(`And authenticate with Git provider`, func() {
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					Eventually(addApp.GitCredentials).Should(BeVisible())
+
 					addApp = pages.GetAddApplicationForm(webDriver)
 					Expect(addApp.Submit.Click()).To(Succeed(), "Failed to click application add Submit button")
 					pages.WaitForAuthenticationAlert(webDriver, "Application added successfully!")
-					Expect(addApp.ViewApplication.Click()).To(Succeed())
+					Eventually(addApp.ViewApplication.Click).Should(Succeed())
 				})
 
 				By("Then I should see gitops add command linked the repo to the cluster", func() {
@@ -187,7 +237,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					Eventually(appDetails.Name).Should(MatchText(appName))
 					Eventually(appDetails.DeploymentType).Should(MatchText("Kustomize"))
-					Eventually(appDetails.URL).Should(MatchText(fmt.Sprintf(`ssh://git.+%s/%s.+`, GITHUB_ORG, CLUSTER_REPOSITORY)))
+					Eventually(appDetails.URL).Should(MatchText(fmt.Sprintf(`ssh://git.+%s/%s.+`, gitProviderEnv.Org, gitProviderEnv.Repo)))
 					Eventually(appDetails.Path).Should(MatchText(appPath))
 				})
 
@@ -207,10 +257,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(sourceCondition.Message).Should(MatchText(`Applied revision: main/[\w\d].+`))
 				})
 
-				By(`Then authenticate with Github`, func() {
-					if AuthenticateWithGitProvider(webDriver, "github") {
-						pages.WaitForAuthenticationAlert(webDriver, "Authentication Successful")
-					}
+				By(`Then authenticate with Git provider`, func() {
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				})
 

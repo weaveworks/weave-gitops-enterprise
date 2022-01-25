@@ -449,6 +449,10 @@
             "$ref": "#/definitions/v1ProfileValues"
           },
           "description": "The values for each profile that will be installed."
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "The repo api url."
         }
       }
     },
@@ -518,6 +522,10 @@
         "credentials": {
           "$ref": "#/definitions/v1Credential",
           "title": "Credentials"
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "The repo api url."
         }
       }
     },
