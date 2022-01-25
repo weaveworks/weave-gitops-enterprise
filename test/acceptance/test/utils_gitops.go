@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/exec"
+	"path"
 	"runtime"
 	"strings"
 	"time"
@@ -227,8 +228,8 @@ func deleteClusters(clusterType string, clusters []string) {
 }
 
 func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
-	fileName := fmt.Sprintf("%s.%s", kubeconfigPath, capiCluster)
-	contents, err := ioutil.ReadFile(fileName)
+	fileName := fmt.Sprintf("%s.kubeconfig", capiCluster)
+	contents, err := ioutil.ReadFile(path.Join(kubeconfigPath,fileName))
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(contents).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, capiCluster)))
 
