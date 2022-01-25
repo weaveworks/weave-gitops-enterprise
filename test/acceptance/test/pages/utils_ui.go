@@ -24,6 +24,7 @@ func ElementExist(element *agouti.Selection, timeOutSec ...int) bool {
 	if len(timeOutSec) > 0 {
 		timeout = timeOutSec[0]
 	}
+	time.Sleep(500 * time.Millisecond) // Half secod delays to beign for stability
 	for i := 1; i < timeout; i++ {
 		if count, _ := element.Count(); count == 1 {
 			return true

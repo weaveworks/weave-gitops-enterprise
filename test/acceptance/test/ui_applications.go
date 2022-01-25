@@ -188,7 +188,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf("Then I add application '%s' to weave gitops cluster", appName), func() {
 					Expect(applicationsPage.AddApplication.Click()).To(Succeed())
 
-					Eventually(addApp.Name).Should(BeVisible())
+					Expect(pages.ElementExist(addApp.Name)).To(BeTrue(), "Application name field doesn't exist")
 					Expect(addApp.Name.SendKeys(appName)).To(Succeed())
 					Expect(addApp.SourceRepoUrl.SendKeys(getGitRepositoryURL(repoAbsolutePath))).To(Succeed())
 					Expect(addApp.ConfigRepoUrl.SendKeys(getGitRepositoryURL(repoAbsolutePath))).To(Succeed())
