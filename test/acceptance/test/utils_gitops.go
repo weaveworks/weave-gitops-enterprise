@@ -227,7 +227,8 @@ func deleteClusters(clusterType string, clusters []string) {
 }
 
 func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
-	contents, err := ioutil.ReadFile(kubeconfigPath)
+	fileName := fmt.Sprintf("%s.%s", kubeconfigPath, capiCluster)
+	contents, err := ioutil.ReadFile(fileName)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(contents).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, capiCluster)))
 
