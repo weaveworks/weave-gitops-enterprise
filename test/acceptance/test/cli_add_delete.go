@@ -41,7 +41,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			It("Verify gitops can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
+			It("@git Verify gitops can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
 				k8version := "1.19.7"
@@ -74,7 +74,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("Verify gitops can set template parameters by separate values with commas key1=val1,key2=val2", func() {
+			It("@git Verify gitops can set template parameters by separate values with commas key1=val1,key2=val2", func() {
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
 				k8version := "1.19.7"
@@ -108,7 +108,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("Verify gitops reports an error when trying to create pull request with missing --from-template argument", func() {
+			It("@git Verify gitops reports an error when trying to create pull request with missing --from-template argument", func() {
 				// Parameter values
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
@@ -137,7 +137,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("Verify gitops can create pull requests to management cluster", func() {
+			It("@smoke @git Verify gitops can create pull requests to management cluster", func() {
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
@@ -254,7 +254,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("Verify giops can not create pull request to management cluster using existing branch", func() {
+			It("@git Verify giops can not create pull request to management cluster using existing branch", func() {
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
@@ -294,7 +294,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[CLI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("Verify gitops can use the matching selected credential for cluster creation", func() {
+			It("@git Verify gitops can use the matching selected credential for cluster creation", func() {
 				defer gitopsTestRunner.DeleteIPCredentials("AWS")
 				defer gitopsTestRunner.DeleteIPCredentials("AZURE")
 
@@ -344,7 +344,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("Verify gitops restrict user from using wrong credentials for infrastructure provider", func() {
+			It("@git Verify gitops restrict user from using wrong credentials for infrastructure provider", func() {
 				defer gitopsTestRunner.DeleteIPCredentials("AZURE")
 
 				By("Apply/Install CAPITemplate", func() {
@@ -417,11 +417,11 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				log.Println("Deleting all the wkp agents")
 				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
-				_ = gitopsTestRunner.ResetDatabase()
+				_ = gitopsTestRunner.ResetControllers("all")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
-			It("@capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@git @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 
 				By("Check wge is all running", func() {
 					gitopsTestRunner.VerifyWegoPodsRunning()

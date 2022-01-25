@@ -274,7 +274,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			}
 
 			By("And wego enterprise state is reset", func() {
-				_ = gitopsTestRunner.ResetDatabase()
+				_ = gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -443,7 +443,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Skip("This test case runs only with sqlite")
 			}
 
-			_ = gitopsTestRunner.ResetDatabase()
+			_ = gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
 			gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -554,7 +554,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
-			_ = gitopsTestRunner.ResetDatabase()
+			_ = gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
 			gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())

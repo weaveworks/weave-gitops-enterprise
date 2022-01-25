@@ -25,7 +25,9 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
 
 			// Sometimes authentication failed to get the github device code, it may require revalidation with new access code
 			if pages.ElementExist(authenticate.AuthorizationError) {
-				log.Info("Error getting github device code, revalidating...")
+				log.Info("Error getting github device code, requires revalidating...")
+				Expect(authenticate.Close.Click()).To(Succeed())
+				Eventually(authenticate.AuthenticateGithub.Click).Should(Succeed())
 				AuthenticateWithGitHub(webDriver)
 			}
 
@@ -81,6 +83,7 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 	accessCode, _ := authenticate.AccessCode.Text()
 	Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
 	accessCode = strings.Replace(accessCode, "-", "", 1)
+	log.Info(accessCode)
 
 	// Move to device activation window
 	TakeScreenShot("application_authentication")
@@ -155,6 +158,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				susspendGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
 				deleteGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
 				deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
+				_ = gitopsTestRunner.ResetControllers("core")
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
 				deleteRepo(gitProviderEnv)
