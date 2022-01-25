@@ -1071,7 +1071,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					fileErr := func() error {
 						Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
-						_, err := os.Stat(kubeconfigPath)
+						_, err := os.Stat("/home/runner/Downloads/capdClusterName.kubeconfig")
 						return err
 
 					}
