@@ -988,6 +988,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				//check PR Preview
 
 				By("And select the podinfo profile to install", func() {
+					Expect(webDriver.Navigate(DEFAULT_UI_URL + "/v1/profiles")).To(Succeed())
+					takeNextScreenshot()
+				})
+
+				By("And select the podinfo profile to install", func() {
 					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
 					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
 					pages.DissmissProfilePopup(webDriver)
