@@ -869,13 +869,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
-			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
 			appName := "management"
 			appPath := "./management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
+			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
 
 			JustBeforeEach(func() {
-				_ = deleteFile([]string{kubeconfigPath})
+				_ = deleteFile([]string{downloadedKubeconfigPath})
 
 				log.Println("Connecting cluster to itself")
 				leaf := LeafSpec{
@@ -889,7 +889,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			JustAfterEach(func() {
-				_ = deleteFile([]string{kubeconfigPath})
+				_ = deleteFile([]string{downloadedKubeconfigPath})
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
 
@@ -1071,7 +1071,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					fileErr := func() error {
 						Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
-						_, err := os.Stat(kubeconfigPath)
+						_, err := os.Stat(downloadedKubeconfigPath)
 						return err
 
 					}
@@ -1079,11 +1079,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And verify that %s capd cluster kubeconfig is correct", clusterName), func() {
-					verifyCapiClusterKubeconfig(kubeconfigPath, clusterName)
+					verifyCapiClusterKubeconfig(downloadedKubeconfigPath, clusterName)
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(kubeconfigPath, clusterName)
+					verifyCapiClusterHealth(downloadedKubeconfigPath, clusterName)
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
