@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
 import { NavLink } from 'react-router-dom';
-import WeaveGitOps from '../assets/img/weave-logo.svg';
+import WeaveGitOps from 'url:../assets/img/weave-logo.svg';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 

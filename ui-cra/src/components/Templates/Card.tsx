@@ -8,15 +8,15 @@ import { useHistory } from 'react-router-dom';
 import { Template } from '../../types/custom';
 import useTemplates from '../../contexts/Templates';
 import { createStyles, makeStyles } from '@material-ui/core';
-import { ReactComponent as EKS } from '../../assets/img/templates/eks.svg';
-import { ReactComponent as GKE } from '../../assets/img/templates/gke.svg';
-import { ReactComponent as Generic } from '../../assets/img/templates/generic.svg';
-import { ReactComponent as Azure } from '../../assets/img/templates/azure.svg';
-import { ReactComponent as DigitalOcean } from '../../assets/img/templates/digitalocean.svg';
-import { ReactComponent as Docker } from '../../assets/img/templates/docker.svg';
-import { ReactComponent as OpenStack } from '../../assets/img/templates/openstack.svg';
-import { ReactComponent as Packet } from '../../assets/img/templates/packet.svg';
-import { ReactComponent as VSphere } from '../../assets/img/templates/vsphere.svg';
+import EKS from '../../assets/img/templates/eks.svg';
+import GKE from '../../assets/img/templates/gke.svg';
+import Generic from '../../assets/img/templates/generic.svg';
+import Azure from '../../assets/img/templates/azure.svg';
+import DigitalOcean from '../../assets/img/templates/digitalocean.svg';
+import Docker from '../../assets/img/templates/docker.svg';
+import OpenStack from '../../assets/img/templates/openstack.svg';
+import Packet from '../../assets/img/templates/packet.svg';
+import VSphere from '../../assets/img/templates/vsphere.svg';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>

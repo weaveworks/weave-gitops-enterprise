@@ -5,9 +5,9 @@ import { MuiThemeProvider } from '@material-ui/core/styles';
 import '@fortawesome/fontawesome-free/css/all.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
-import ProximaNova from './fonts/proximanova-regular.woff';
-import RobotoMono from './fonts/roboto-mono-regular.woff';
-import Background from './assets/img/background.svg';
+import ProximaNova from 'url:./fonts/proximanova-regular.woff';
+import RobotoMono from 'url:./fonts/roboto-mono-regular.woff';
+import Background from 'url:./assets/img/background.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
 
 const GlobalStyle = createGlobalStyle`

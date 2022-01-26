@@ -2,7 +2,7 @@ import { FC } from 'react';
 import styled, { css } from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
 import useVersions from '../../contexts/Versions';
-import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
+import WarningIcon from '../../assets/img/warning-icon.svg';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
