@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -27,6 +26,8 @@ type TemplateField struct {
 	Option string
 }
 
+// We basically ignore all these errors here as the service might be there
+// yet yadda yadda
 func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 	waitCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -37,14 +38,14 @@ func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 		}
 		resp, err := client.Get(DEFAULT_UI_URL + "/v1/profiles")
 		if err != nil {
-			return false, err
+			return false, nil
 		}
 		if resp.StatusCode != http.StatusOK {
-			return false, errors.New("not 200")
+			return false, nil
 		}
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return false, err
+			return false, nil
 		}
 		bodyString := string(bodyBytes)
 		return strings.Contains(bodyString, `"profiles":`), nil
