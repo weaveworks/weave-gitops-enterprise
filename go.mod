@@ -26,7 +26,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
-	github.com/weaveworks/weave-gitops v0.6.1
+	github.com/weaveworks/weave-gitops v0.6.2
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
@@ -45,7 +45,10 @@ require (
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect
 )
 
-require github.com/fluxcd/go-git-providers v0.5.2
+require (
+	github.com/fluxcd/go-git-providers v0.5.2
+	github.com/spf13/viper v1.9.0
+)
 
 require (
 	cloud.google.com/go v0.93.3 // indirect
@@ -69,7 +72,7 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/benbjohnson/clock v1.1.0 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
@@ -204,7 +207,6 @@ require (
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.9.0 // indirect
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab // indirect
