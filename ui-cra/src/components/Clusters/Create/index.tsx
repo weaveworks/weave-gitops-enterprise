@@ -243,6 +243,7 @@ const AddCluster: FC = () => {
 
   useEffect(() => {
     if (!activeTemplate) {
+      clearCallbackState();
       setActiveTemplate(getTemplate(templateName));
     }
 
@@ -256,7 +257,6 @@ const AddCluster: FC = () => {
       setActiveTemplate(null);
       setPRPreview(null);
       setError(null);
-      clearCallbackState();
     });
   }, [
     activeTemplate,

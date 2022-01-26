@@ -108,7 +108,7 @@ func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", GITOPS_BIN_PATH, manifestRepoURL, gitopsNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+		Eventually(session, ASSERTION_5MINUTE_TIME_OUT).Should(gexec.Exit())
 		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		verifyCoreControllers(gitopsNamespace)
 	})
