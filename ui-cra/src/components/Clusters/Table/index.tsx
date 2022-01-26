@@ -190,26 +190,6 @@ export const ClustersTable: FC<Props> = ({
                       </ColumnHeaderTooltip>
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell align="left">
-                    <ColumnHeaderTooltip title="Last commit to the cluster's git repository">
-                      <span>Latest git activity</span>
-                    </ColumnHeaderTooltip>
-                  </TableCell>
-                  <TableCell align="left">
-                    <ColumnHeaderTooltip
-                      classes={{ tooltip: classes.noMaxWidth }}
-                      title="Kubernetes version ( [control plane nodes] | worker nodes)"
-                    >
-                      <span>Version ( Nodes )</span>
-                    </ColumnHeaderTooltip>
-                  </TableCell>
-                  <TableCell align="left">
-                    <ColumnHeaderTooltip title="Team Workspaces in the cluster">
-                      <span>Team Workspaces</span>
-                    </ColumnHeaderTooltip>
-                  </TableCell>
-                  <TableCell />
-                  <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>

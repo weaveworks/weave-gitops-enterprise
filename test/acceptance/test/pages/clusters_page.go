@@ -14,10 +14,6 @@ type ClusterInformation struct {
 	Name           *agouti.Selection
 	Icon           *agouti.Selection
 	Status         *agouti.Selection
-	GitActivity    *agouti.Selection
-	NodesVersions  *agouti.Selection
-	TeamWorkspaces *agouti.Selection
-	GitRepoURL     *agouti.Selection
 	EditCluster    *agouti.Selection
 }
 
@@ -60,9 +56,6 @@ type ClustersPage struct {
 	HeaderName                                  *agouti.Selection
 	HeaderIcon                                  *agouti.Selection
 	HeaderStatus                                *agouti.Selection
-	HeaderGitActivity                           *agouti.Selection
-	HeaderWorkspaces                            *agouti.Selection
-	HeaderNodeVersion                           *agouti.Selection
 	NoClusterConfigured                         *agouti.Selection
 	ClustersList                                *agouti.Selection
 	Tooltip                                     *agouti.Selection
@@ -89,11 +82,7 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		Name:           cluster.FindByXPath(`td[2]`),
 		Icon:           cluster.FindByXPath(`td[3]`).Find(`svg`),
 		Status:         cluster.FindByXPath(`td[4]`),
-		GitActivity:    cluster.FindByXPath(`td[5]`),
-		NodesVersions:  cluster.FindByXPath(`td[6]`),
-		TeamWorkspaces: cluster.FindByXPath(`td[7]`),
-		GitRepoURL:     cluster.FindByXPath(`td[8]`),
-		EditCluster:    cluster.FindByXPath(`td[9]`).Find("button"),
+		EditCluster:    cluster.FindByXPath(`td[5]`).Find("button"),
 	}
 }
 
@@ -164,9 +153,6 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderName:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
 		HeaderIcon:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
 		HeaderStatus:                          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
-		HeaderGitActivity:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
-		HeaderNodeVersion:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[6]/span`),
-		HeaderWorkspaces:                      webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[7]/span`),
 		NoClusterConfigured:                   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
 		ClustersList:                          webDriver.Find(`#clusters-list > div > table > tbody`),
 		Tooltip:                               webDriver.Find(`div[role="tooltip"]`),
