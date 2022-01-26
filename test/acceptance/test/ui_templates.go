@@ -912,11 +912,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And I install gitops to my active cluster", func() {
 					Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
 					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I install profiles (enhanced helm chart)", func() {
 					installProfiles("weaveworks-charts", GITOPS_DEFAULT_NAMESPACE)
+				})
+
+				By("And I restart the cluster-service now that flux CRDs installed and profiles available to scan immediately", func() {
+					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
