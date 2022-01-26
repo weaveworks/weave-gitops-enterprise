@@ -951,6 +951,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
+				By("Wait for cluster-service to cache profiles", func() {
+					Expect(waitForProfiles(context.Background(), 30*time.Second)).To(Succeed())
+				})
+
 				By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd-observability.yaml")
 				})
@@ -1015,10 +1019,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, paramSection)
 				pages.ScrollWindow(webDriver, 0, 4000)
 				//check PR Preview
-
-				By("Wait for cluster-service to cache profiles", func() {
-					Expect(waitForProfiles(context.Background(), 30*time.Second)).To(Succeed())
-				})
 
 				By("And select the podinfo profile to install", func() {
 					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
