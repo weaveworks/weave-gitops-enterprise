@@ -1,8 +1,12 @@
 package acceptance
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"path"
 	"sort"
@@ -14,12 +18,37 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 type TemplateField struct {
 	Name   string
 	Value  string
 	Option string
+}
+
+func waitForProfiles(ctx context.Context, timeout time.Duration) error {
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	return wait.PollUntil(time.Second*1, func() (bool, error) {
+		client := http.Client{
+			Timeout: 5 * time.Second,
+		}
+		resp, err := client.Get(DEFAULT_UI_URL + "/v1/profiles")
+		if err != nil {
+			return false, err
+		}
+		if resp.StatusCode != http.StatusOK {
+			return false, errors.New("not 200")
+		}
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return false, err
+		}
+		bodyString := string(bodyBytes)
+		return strings.Contains(bodyString, `"profiles":`), nil
+	}, waitCtx.Done())
 }
 
 func setParameterValues(createPage *pages.CreateCluster, paramSection map[string][]TemplateField) {
@@ -987,9 +1016,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.ScrollWindow(webDriver, 0, 4000)
 				//check PR Preview
 
-				By("And select the podinfo profile to install", func() {
-					Expect(webDriver.Navigate(DEFAULT_UI_URL + "/v1/profiles")).To(Succeed())
-					takeNextScreenshot()
+				By("Wait for cluster-service to cache profiles", func() {
+					Expect(waitForProfiles(context.Background(), 30*time.Second)).To(Succeed())
 				})
 
 				By("And select the podinfo profile to install", func() {
