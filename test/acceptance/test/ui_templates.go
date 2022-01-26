@@ -983,8 +983,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				//check PR Preview
 
 				By("And select the podinfo profile to install", func() {
-					Expect(createPage.ProfileSelect.Click()).To(Succeed())
-					Expect(createPage.SelectProfile("podinfo").Click()).To(Succeed())
+					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
+					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
 					pages.DissmissProfilePopup(webDriver)
 				})
 
