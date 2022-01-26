@@ -210,6 +210,10 @@ func showItems(itemType string) error {
 	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
+func getDownloadedKubeconfigPath(clusterName string) string {
+	return path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", clusterName))
+}
+
 func dumpClusterInfo(testName string) error {
 	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
 }
