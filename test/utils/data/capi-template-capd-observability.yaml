@@ -1,12 +1,12 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: cluster-template-development-observability-0
+  name: cluster-template-development-observability-{{.Count}}
   namespace: default
   annotations:
     capi.weave.works/profile-0: '{"name": "observability", "version": "0.0.1" }'
 spec:
-  description: This is the std. CAPD template0
+  description: This is the std. CAPD template{{.Count}}
   params:
     - name: CLUSTER_NAME
       required: true
