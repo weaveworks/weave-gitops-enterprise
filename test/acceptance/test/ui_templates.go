@@ -902,6 +902,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+				DEPLOYMENT_APP := "my-mccp-cluster-service"
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
@@ -911,6 +912,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And I install gitops to my active cluster", func() {
 					Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
 					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I install profiles (enhanced helm chart)", func() {
