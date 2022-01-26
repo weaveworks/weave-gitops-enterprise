@@ -386,7 +386,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
-			kubeconfigPath := path.Join(os.Getenv("HOME"), "capi.kubeconfig")
+			kubeconfigPath := path.Join(os.Getenv("HOME"))
 			appName := "management"
 			appPath := "./management"
 			capdClusterNames := []string{"cli-end-to-end-capd-cluster-1", "cli-end-to-end-capd-cluster-2"}
