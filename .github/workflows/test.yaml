@@ -260,7 +260,7 @@ jobs:
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
-      artifacts-base-dir: "/tmp/acceptance-test-gitlab"
+      artifacts-base-dir: "/tmp/smoke-test-gitlab"
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
@@ -288,7 +288,7 @@ jobs:
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
-      artifacts-base-dir: "/tmp/acceptance-test-gitlab-on-prem"
+      artifacts-base-dir: "/tmp/smoke-test-gitlab-on-prem"
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
