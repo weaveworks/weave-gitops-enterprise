@@ -26,8 +26,8 @@ type TemplateField struct {
 	Option string
 }
 
-// We basically ignore all these errors here as the service might be there
-// yet yadda yadda
+// Wait until we get a good looking response from /v1/profiles
+// Ignore all errors (connection refused, 500s etc)
 func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 	waitCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
