@@ -69,7 +69,6 @@ const MCCP: FC = () => {
 
   interface FormData {
     url: string;
-    provider: string;
     branchName: string;
     pullRequestTitle: string;
     commitMessage: string;
@@ -80,7 +79,6 @@ const MCCP: FC = () => {
 
   let initialFormData = {
     url: repositoryURL,
-    provider: '',
     branchName: `delete-clusters-branch`,
     pullRequestTitle: 'Deletes capi cluster(s)',
     commitMessage: 'Deletes capi cluster(s)',
@@ -96,7 +94,7 @@ const MCCP: FC = () => {
     };
     initialSelectedCapiClusters = [
       ...initialSelectedCapiClusters,
-      ...callbackState.state.selectedCapiClusters,
+      ...(callbackState.state.selectedCapiClusters || []),
     ];
   }
 
@@ -114,6 +112,10 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   useEffect(() => {
+    if (!callbackState && selectedClusters.length === 0) {
+      setOpenDeletePR(false);
+    }
+
     if (!callbackState) {
       setFormData((prevState: FormData) => ({
         ...prevState,
@@ -125,7 +127,8 @@ const MCCP: FC = () => {
           .join(', ')}`,
       }));
     }
-    if (callbackState) {
+
+    if (callbackState?.state?.selectedCapiClusters?.length > 0) {
       setOpenDeletePR(true);
     }
   }, [
