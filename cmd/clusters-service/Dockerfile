@@ -24,9 +24,6 @@ RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOK
 # copy in other module dependencies
 COPY common/ /workspace/common/
 
-# cache modules
-RUN go mod download
-
 # copy source code
 COPY $CS_PATH/main.go main.go
 COPY $CS_PATH/api/ api/
