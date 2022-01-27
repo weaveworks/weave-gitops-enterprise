@@ -37,6 +37,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     nameCell: {
       paddingLeft: theme.spacing(0.5),
+      width: '300px',
     },
     iconTableCell: {
       width: 30,
