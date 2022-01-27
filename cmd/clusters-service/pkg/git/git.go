@@ -177,10 +177,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 		return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
 	}
 
-	// Fixing https:// again (ggp quirk)
-	if ref.Domain != "github.com" && ref.Domain != "gitlab.com" && !strings.HasPrefix(ref.Domain, "http://") && !strings.HasPrefix(ref.Domain, "https://") {
-		ref.Domain = "https://" + ref.Domain
-	}
+	ref.Domain = addSchemeToDomain(ref.Domain)
 
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
@@ -278,12 +275,15 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 	var client gitprovider.Client
 	var err error
 
+	// quirk of ggp
+	hostname := addSchemeToDomain(gpi.Hostname)
+
 	switch gpi.Type {
 	case "github":
 		if gpi.Hostname != "github.com" {
 			client, err = github.NewClient(
 				gitprovider.WithOAuth2Token(gpi.Token),
-				gitprovider.WithDomain(gpi.Hostname),
+				gitprovider.WithDomain(hostname),
 			)
 		} else {
 			client, err = github.NewClient(
@@ -295,7 +295,7 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		}
 	case "gitlab":
 		if gpi.Hostname != "gitlab.com" {
-			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithDomain(gpi.Hostname), gitprovider.WithConditionalRequests(true))
+			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithDomain(hostname), gitprovider.WithConditionalRequests(true))
 		} else {
 			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithConditionalRequests(true))
 		}
@@ -325,4 +325,12 @@ func GetGitProviderUrl(giturl string) (string, error) {
 	httpsEp := transport.Endpoint{Protocol: "https", Host: ep.Host, Path: ep.Path}
 
 	return httpsEp.String(), nil
+}
+
+func addSchemeToDomain(domain string) string {
+	// Fixing https:// again (ggp quirk)
+	if domain != "github.com" && domain != "gitlab.com" && !strings.HasPrefix(domain "http://") && !strings.HasPrefix(domain "https://") {
+		return "https://" + ref.Domain
+	}
+	return domain
 }
