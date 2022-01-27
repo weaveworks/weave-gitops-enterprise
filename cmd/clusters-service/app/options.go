@@ -22,6 +22,7 @@ type Options struct {
 	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
 	ApplicationsConfig           *server.ApplicationsConfig
+	ApplicationsOptions          []server.ApplicationsOption
 	ProfilesConfig               server.ProfilesConfig
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	ProfileHelmRepository        string
@@ -83,6 +84,14 @@ func WithGitProvider(gitProvider git.Provider) Option {
 func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 	return func(o *Options) {
 		o.ApplicationsConfig = appConfig
+	}
+}
+
+// WithApplicationsConfig is used to set the configuration needed to work
+// with Weave GitOps Core applications
+func WithApplicationsOptions(appOptions ...server.ApplicationsOption) Option {
+	return func(o *Options) {
+		o.ApplicationsOptions = appOptions
 	}
 }
 
