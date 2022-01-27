@@ -119,7 +119,7 @@ func installProfiles(chartName string, nameSpace string) {
 	if err != nil {
 		err = runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/profile-repo.yaml")
 		Expect(err).To(BeNil(), "Failed to install profiles (enhanced helm chart)")
-		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get HelmRepository %s -n %s", chartName, nameSpace))
+		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=180s HelmRepository %s -n %s", chartName, nameSpace))
 	}
 }
 
