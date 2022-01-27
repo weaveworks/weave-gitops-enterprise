@@ -181,12 +181,8 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
-		func(err error) bool {
-			if errors.Is(err, gitprovider.ErrNotFound) {
-				return true
-			}
-			return false
-		}, func() error {
+		func(err error) bool { return errors.Is(err, gitprovider.ErrNotFound) },
+		func() error {
 			var err error
 			repo, err = c.OrgRepositories().Get(ctx, *ref)
 			if err != nil {
@@ -329,8 +325,8 @@ func GetGitProviderUrl(giturl string) (string, error) {
 
 func addSchemeToDomain(domain string) string {
 	// Fixing https:// again (ggp quirk)
-	if domain != "github.com" && domain != "gitlab.com" && !strings.HasPrefix(domain "http://") && !strings.HasPrefix(domain "https://") {
-		return "https://" + ref.Domain
+	if domain != "github.com" && domain != "gitlab.com" && !strings.HasPrefix(domain, "http://") && !strings.HasPrefix(domain, "https://") {
+		return "https://" + domain
 	}
 	return domain
 }
