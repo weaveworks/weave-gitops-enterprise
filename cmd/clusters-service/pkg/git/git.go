@@ -199,7 +199,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 			return nil
 		})
 	if err != nil {
-		return nil, fmt.Errorf("unable to get repository %q: %w", url, err)
+		return nil, fmt.Errorf("unable to get repository %q: %w, (client domain: %s)", url, err, c.SupportedDomain())
 	}
 
 	return repo, nil
