@@ -1277,7 +1277,7 @@ func TestGetProvider(t *testing.T) {
 }
 
 func TestGenerateProfileFiles(t *testing.T) {
-	c := createClient(makeTestHelmRepository("base"))
+	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		"testing",
@@ -1330,7 +1330,7 @@ status: {}
 }
 
 func TestGenerateProfileFilesWithLayers(t *testing.T) {
-	c := createClient(makeTestHelmRepository("base"))
+	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		"testing",
@@ -1425,19 +1425,23 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		},
 	}
 
-	result := getProfilesFromTemplate(annotations)
+	result, err := getProfilesFromTemplate(annotations)
+	assert.NoError(t, err)
 
 	assert.Equal(t, result, expected)
 }
 
-func createClient(clusterState ...runtime.Object) client.Client {
+func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1beta1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).
@@ -1449,7 +1453,7 @@ func createClient(clusterState ...runtime.Object) client.Client {
 
 func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1beta1.HelmRepository) capiv1_protos.ClustersServiceServer {
 
-	c := createClient(clusterState...)
+	c := createClient(t, clusterState...)
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 

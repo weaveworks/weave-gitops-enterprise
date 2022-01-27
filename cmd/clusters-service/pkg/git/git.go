@@ -179,10 +179,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
 		func(err error) bool {
-			if errors.Is(err, gitprovider.ErrNotFound) {
-				return true
-			}
-			return false
+			return errors.Is(err, gitprovider.ErrNotFound)
 		}, func() error {
 			var err error
 			repo, err = c.OrgRepositories().Get(ctx, *ref)
