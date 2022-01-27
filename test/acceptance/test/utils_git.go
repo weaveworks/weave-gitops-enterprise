@@ -56,13 +56,15 @@ func initGitProviderData() GitProviderEnv {
 			Password:  GetEnv("GITHUB_PASSWORD", ""),
 		}
 	} else {
+		// `gitops` binary reads GITOPS_GIT_HOST_TYPES w/ a GITOPS_ prefix
+		// while EE just reads GIT_HOST_TYPES, reconcile them here.
 		hostTypes := GetEnv("GITOPS_GIT_HOST_TYPES", "")
 		if hostTypes != "" {
 			viper.Set("git-host-types", hostTypes)
 		}
 		return GitProviderEnv{
 			Type:      GitProviderGitLab,
-			Hostname:  GetEnv("GIT_PROVIDER_HOSTNAME", gitlab.DefaultDomain),
+			Hostname:  addSchemeToDomain(GetEnv("GIT_PROVIDER_HOSTNAME", gitlab.DefaultDomain)),
 			TokenType: tokenTypeOauth,
 			Token:     GetEnv("GITLAB_TOKEN", ""),
 			Org:       GetEnv("GITLAB_ORG", ""),
@@ -137,6 +139,13 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) string {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	return repoAbsolutePath
+}
+
+func addSchemeToDomain(domain string) string {
+	if domain != "github.com" && domain != "gitlab.com" && !strings.HasPrefix(domain, "http://") && !strings.HasPrefix(domain, "https://") {
+		return "https://" + domain
+	}
+	return domain
 }
 
 func createGitRepository(gp GitProviderEnv, branch string, private bool) error {
