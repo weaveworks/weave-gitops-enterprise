@@ -152,7 +152,13 @@ const ProfilesProvider: FC = ({ children }) => {
     request('GET', profilesUrl, {
       cache: 'no-store',
     })
-      .then(res => getProfileValues(res.profiles))
+      .then(res => {
+        if (res.code === 2) {
+          setUpdatedProfiles([]);
+          return;
+        }
+        getProfileValues(res.profiles);
+      })
       .catch(err =>
         setNotifications([{ message: err.message, variant: 'danger' }]),
       )
