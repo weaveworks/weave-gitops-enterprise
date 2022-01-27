@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
@@ -174,6 +175,11 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
+	}
+
+	// Fixing https:// again (ggp quirk)
+	if ref.Domain != "github.com" && ref.Domain != "gitlab.com" && !strings.HasPrefix(ref.Domain, "http://") && !strings.HasPrefix(ref.Domain, "https://") {
+		ref.Domain = "https://" + ref.Domain
 	}
 
 	var repo gitprovider.OrgRepository
