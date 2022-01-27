@@ -28,7 +28,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/weave-gitops v0.6.1-0.20220111153827-022e932522cf
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
-	github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service v0.0.0-00010101000000-000000000000
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	go.uber.org/zap v1.19.0
 	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
