@@ -10,11 +10,12 @@ import (
 )
 
 type ClusterInformation struct {
-	Checkbox    *agouti.Selection
-	Name        *agouti.Selection
-	Icon        *agouti.Selection
-	Status      *agouti.Selection
-	EditCluster *agouti.Selection
+	Checkbox         *agouti.Selection
+	ShowStatusDetail *agouti.Selection
+	Name             *agouti.Selection
+	Icon             *agouti.Selection
+	Status           *agouti.Selection
+	EditCluster      *agouti.Selection
 }
 
 type ClusterStatus struct {
@@ -78,11 +79,12 @@ func (c ClustersPage) WaitForClusterToAppear(webDriver *agouti.Page, clusterName
 func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterInformation {
 	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr.summary[data-cluster-name="%s"]`, clusterName))
 	return &ClusterInformation{
-		Checkbox:    cluster.FindByXPath(`td[1]`),
-		Name:        cluster.FindByXPath(`td[2]`),
-		Icon:        cluster.FindByXPath(`td[3]`).Find(`svg`),
-		Status:      cluster.FindByXPath(`td[4]`),
-		EditCluster: cluster.FindByXPath(`td[5]`).Find("button"),
+		Checkbox:         cluster.FindByXPath(`td[1]`),
+		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
+		Name:             cluster.FindByXPath(`td[2]`),
+		Icon:             cluster.FindByXPath(`td[3]`).Find(`svg`),
+		Status:           cluster.FindByXPath(`td[4]`),
+		EditCluster:      cluster.FindByXPath(`td[5]`).Find("button"),
 	}
 }
 
