@@ -114,10 +114,10 @@ export const DeleteClusterDialog: FC<Props> = ({
       });
 
   const cleanUp = useCallback(() => {
+    clearCallbackState();
     setOpenDeletePR(false);
     setShowAuthDialog(false);
     setSelectedClusters([]);
-    clearCallbackState();
   }, [setOpenDeletePR, setSelectedClusters]);
 
   useEffect(() => {
