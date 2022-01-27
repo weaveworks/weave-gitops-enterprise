@@ -54,6 +54,7 @@ type AuthenticateGithub struct {
 	AccessCode         *agouti.Selection
 	AuthroizeButton    *agouti.Selection
 	AuthorizationError *agouti.Selection
+	Close              *agouti.Selection
 }
 
 type DeviceActivationGitHub struct {
@@ -179,6 +180,7 @@ func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
 		AccessCode:         webDriver.FindByXPath(`//button[contains(.,'Authorize Github Access')]/../../preceding-sibling::div/span`),
 		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),
 		AuthorizationError: webDriver.FindByXPath(`//div[@role="alert"]//div[.="Error"]`),
+		Close:              webDriver.FindByButton(`Close`),
 	}
 }
 

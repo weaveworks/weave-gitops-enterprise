@@ -2,9 +2,9 @@
 
 args=("$@")
 
-if [ -z ${args[0]} ] || ([ ${args[0]} != 'setup' ] && [ ${args[0]} != 'reset' ] && [ ${args[0]} != 'reset_mccp' ])
+if [ -z ${args[0]} ] || ([ ${args[0]} != 'setup' ] && [ ${args[0]} != 'reset' ] && [ ${args[0]} != 'reset_controllers' ])
 then 
-    echo "Invalid option, valid values => [ setup, reset, reset_mccp ]"
+    echo "Invalid option, valid values => [ setup, reset, reset_controllers ]"
     exit 1
 fi
 
@@ -43,8 +43,12 @@ function setup {
   fi
 
   # Sets the UI and CAPI endpoint URL environment variables for acceptance tests
-  echo "TEST_UI_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
-  echo "TEST_CAPI_ENDPOINT_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
+  hostEntry=$(sudo cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
+  if [ -z $hostEntry ]; then
+    echo "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
+  fi
+  echo "TEST_UI_URL=http://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}" >> $GITHUB_ENV
+  echo "TEST_CAPI_ENDPOINT_URL=http://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}" >> $GITHUB_ENV
 
   kubectl create namespace prom
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -173,40 +177,52 @@ function reset {
   kubectl delete configmap calico-crs-configmap
 }
 
-function reset_mccp {
-    EVENT_WRITER_POD=$(kubectl get pods -n wego-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
-    GITOPS_BROKER_POD=$(kubectl get pods -n wego-system|grep gitops-repo-broker|tr -s ' '|cut -f1 -d ' ')    
+function reset_controllers {
+    if [ ${#args[@]} -ne 2 ]; then
+      echo "Cotroller's type is a required argument, valid values => [ enterprise, core, all ]"
+      exit 1
+    fi
 
-    # Sometime due to the test conditions the cluster service pod is in transition state i.e. one terminating and the new one is being created at the same time.
-    # Under such state we have two cluster srvice pods momentarily 
-    counter=10
-    while [ $counter -gt 0 ]
-    do
-        CLUSTER_SERVICE_POD=$(kubectl get pods -n wego-system|grep cluster-service|tr -s ' '|cut -f1 -d ' ')
-        pod_count=$(echo $CLUSTER_SERVICE_POD | wc -w |awk '{print $1}')
-        if [ $pod_count -gt 1 ]
-        then            
-            sleep 2
-            counter=$(( $counter - 1 ))
-        else
-            break
-        fi        
-    done    
+    
+    controllerNames=()
+    if [ ${args[1]} == "enterprise" ] || [ ${args[1]} == "all" ]; then
+      EVENT_WRITER_POD=$(kubectl get pods -n wego-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
+      GITOPS_BROKER_POD=$(kubectl get pods -n wego-system|grep gitops-repo-broker|tr -s ' '|cut -f1 -d ' ')    
 
-    echo $EVENT_WRITER_POD
-    echo $GITOPS_BROKER_POD
-    echo $CLUSTER_SERVICE_POD
-    kubectl exec -n wego-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
-    kubectl delete -n wego-system pod $EVENT_WRITER_POD
-    kubectl delete -n wego-system pod $GITOPS_BROKER_POD
-    kubectl delete -n wego-system pod $CLUSTER_SERVICE_POD
+      # Sometime due to the test conditions the cluster service pod is in transition state i.e. one terminating and the new one is being created at the same time.
+      # Under such state we have two cluster srvice pods momentarily 
+      counter=10
+      while [ $counter -gt 0 ]
+      do
+          CLUSTER_SERVICE_POD=$(kubectl get pods -n wego-system|grep cluster-service|tr -s ' '|cut -f1 -d ' ')
+          pod_count=$(echo $CLUSTER_SERVICE_POD | wc -w |awk '{print $1}')
+          if [ $pod_count -gt 1 ]
+          then            
+              sleep 2
+              counter=$(( $counter - 1 ))
+          else
+              break
+          fi        
+      done
+      controllerNames+=" ${EVENT_WRITER_POD}"
+      controllerNames+=" ${GITOPS_BROKER_POD}"
+      controllerNames+=" ${CLUSTER_SERVICE_POD}"
+      kubectl exec -n wego-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
+    fi
+
+    if [ ${args[1]} == "core" ] || [ ${args[1]} == "all" ]; then
+      KUSTOMIZE_POD=$(kubectl get pods -n wego-system|grep kustomize-controller|tr -s ' '|cut -f1 -d ' ')
+      controllerNames+=" ${KUSTOMIZE_POD}"
+    fi
+
+    kubectl delete -n wego-system pod $controllerNames
 }
 
 if [ ${args[0]} = 'setup' ]; then
     setup
 elif [ ${args[0]} = 'reset' ]; then
     reset
-elif [ ${args[0]} = 'reset_mccp' ]; then
-    reset_mccp
+elif [ ${args[0]} = 'reset_controllers' ]; then
+    reset_controllers
 fi
 
