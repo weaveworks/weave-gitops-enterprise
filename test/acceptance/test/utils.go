@@ -207,7 +207,11 @@ func showItems(itemType string) error {
 	if itemType != "" {
 		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
-	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	err := runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	if err != nil {
+		return fmt.Errorf("failed to get all resources %s", err)
+	}
+	return runCommandPassThrough([]string{}, "kubectl", "get", "crds", "-o", "wide")
 }
 
 func getDownloadedKubeconfigPath(clusterName string) string {

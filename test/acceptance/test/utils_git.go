@@ -56,6 +56,8 @@ func initGitProviderData() GitProviderEnv {
 			Password:  GetEnv("GITHUB_PASSWORD", ""),
 		}
 	} else {
+		// `gitops` binary reads GITOPS_GIT_HOST_TYPES w/ a GITOPS_ prefix
+		// while EE just reads GIT_HOST_TYPES, reconcile them here.
 		hostTypes := GetEnv("GITOPS_GIT_HOST_TYPES", "")
 		if hostTypes != "" {
 			viper.Set("git-host-types", hostTypes)
@@ -90,7 +92,7 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 }
 
 func extractOrgAndRepo(url string) (string, string) {
-	normalized, normErr := gitproviders.NewRepoURL(url)
+	normalized, normErr := gitproviders.NewRepoURL(url, true)
 	Expect(normErr).ShouldNot(HaveOccurred())
 
 	re := regexp.MustCompile("^[^/]+//[^/]+/([^/]+)/([^/]+).*$")
@@ -137,6 +139,13 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) string {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	return repoAbsolutePath
+}
+
+func addSchemeToDomain(domain string) string {
+	if domain != "github.com" && domain != "gitlab.com" && !strings.HasPrefix(domain, "http://") && !strings.HasPrefix(domain, "https://") {
+		return "https://" + domain
+	}
+	return domain
 }
 
 func createGitRepository(gp GitProviderEnv, branch string, private bool) error {
@@ -223,6 +232,7 @@ func getGitProvider(provider string, org string, repo string, token string, toke
 				gitprovider.WithDestructiveAPICalls(true),
 			)
 		} else {
+			hostName = addSchemeToDomain(hostName)
 			orgRef = gitproviders.NewOrgRepositoryRef(hostName, org, repo)
 			gitProvider, err = gitlab.NewClient(
 				token,

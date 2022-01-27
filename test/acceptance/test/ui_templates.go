@@ -1,8 +1,11 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"path"
 	"sort"
@@ -14,12 +17,39 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 type TemplateField struct {
 	Name   string
 	Value  string
 	Option string
+}
+
+// Wait until we get a good looking response from /v1/profiles
+// Ignore all errors (connection refused, 500s etc)
+func waitForProfiles(ctx context.Context, timeout time.Duration) error {
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	return wait.PollUntil(time.Second*1, func() (bool, error) {
+		client := http.Client{
+			Timeout: 5 * time.Second,
+		}
+		resp, err := client.Get(DEFAULT_UI_URL + "/v1/profiles")
+		if err != nil {
+			return false, nil
+		}
+		if resp.StatusCode != http.StatusOK {
+			return false, nil
+		}
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return false, nil
+		}
+		bodyString := string(bodyBytes)
+		return strings.Contains(bodyString, `"profiles":`), nil
+	}, waitCtx.Done())
 }
 
 func setParameterValues(createPage *pages.CreateCluster, paramSection map[string][]TemplateField) {
@@ -906,6 +936,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+				DEPLOYMENT_APP := "my-mccp-cluster-service"
 
 				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
@@ -919,6 +950,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I install profiles (enhanced helm chart)", func() {
 					installProfiles("weaveworks-charts", GITOPS_DEFAULT_NAMESPACE)
+				})
+
+				By("And I restart the cluster-service now that flux CRDs installed and profiles available to scan immediately", func() {
+					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("Wait for cluster-service to cache profiles", func() {
+					Expect(waitForProfiles(context.Background(), 30*time.Second)).To(Succeed())
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
@@ -988,7 +1027,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And select the podinfo profile to install", func() {
 					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
-					Expect(createPage.SelectProfile("podinfo").Click()).To(Succeed())
+					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
 					pages.DissmissProfilePopup(webDriver)
 				})
 
@@ -996,13 +1035,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					profile := pages.GetProfile(webDriver, "podinfo")
 
 					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "6.0.0").Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "6.0.1").Click).Should(Succeed())
 
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
 					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.1"))
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 

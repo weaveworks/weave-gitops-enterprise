@@ -16,7 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -61,6 +61,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 			app.WithDiscoveryClient(dc),
 			app.WithDatabase(db),
 			app.WithApplicationsConfig(appsConfig),
+			app.WithApplicationsOptions(wego_server.WithClientGetter(NewFakeClientGetter(c))),
 			app.WithTemplateLibrary(&templates.CRDLibrary{
 				Log:       logr.Discard(),
 				Client:    c,
@@ -91,6 +92,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 	appFactory := &servicesfakes.FakeFactory{}
 	kubeClient := &kubefakes.FakeKube{}
+	k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
 			return &auth.Claims{
@@ -101,13 +103,12 @@ func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 		return kubeClient, nil
 	}
-	fetcher := &applicationv2fakes.FakeFetcher{}
 	return &wego_server.ApplicationsConfig{
-		Factory:    appFactory,
-		KubeClient: c,
-		Logger:     logr.Discard(),
-		JwtClient:  jwtClient,
-		Fetcher:    fetcher,
+		Factory:        appFactory,
+		FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
+		Logger:         logr.Discard(),
+		JwtClient:      jwtClient,
+		ClusterConfig:  wego_server.ClusterConfig{},
 	}
 }
 
@@ -136,4 +137,34 @@ func createSecret(s string) *corev1.Secret {
 		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"entitlement": []byte(s)},
 	}
+}
+
+// FIXME: expose this in wego core
+
+type FakeFetcherFactory struct {
+	fake applicationv2.Fetcher
+}
+
+func NewFakeFetcherFactory(fake applicationv2.Fetcher) wego_server.FetcherFactory {
+	return &FakeFetcherFactory{
+		fake: fake,
+	}
+}
+
+func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
+	return f.fake
+}
+
+type FakeClientGetter struct {
+	client client.Client
+}
+
+func NewFakeClientGetter(client client.Client) wego_server.ClientGetter {
+	return &FakeClientGetter{
+		client: client,
+	}
+}
+
+func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
+	return g.client, nil
 }

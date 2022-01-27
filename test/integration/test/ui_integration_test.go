@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	gcontext "context"
 	"fmt"
 	"io/ioutil"
@@ -32,7 +33,7 @@ import (
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -553,14 +554,12 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		},
 	}
 
-	fetcher := &applicationv2fakes.FakeFetcher{}
-
 	fakeAppsConfig := &wego_server.ApplicationsConfig{
-		Factory:    &servicesfakes.FakeFactory{},
-		KubeClient: cl,
-		JwtClient:  jwtClient,
-		Logger:     logr.Discard(),
-		Fetcher:    fetcher,
+		Factory:        &servicesfakes.FakeFactory{},
+		JwtClient:      jwtClient,
+		Logger:         logr.Discard(),
+		FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(cl)),
+		ClusterConfig:  wego_server.ClusterConfig{},
 	}
 
 	os.Setenv("CAPI_CLUSTERS_NAMESPACE", "default")
@@ -573,6 +572,7 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithDatabase(db),
 		app.WithApplicationsConfig(fakeAppsConfig),
+		app.WithApplicationsOptions(wego_server.WithClientGetter(NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())))
 }
 
@@ -642,6 +642,36 @@ func gomegaFail(message string, callerSkip ...int) {
 	}
 	// Pass this down to the default handler for onward processing
 	Fail(message, callerSkip...)
+}
+
+// FIXME: expose this in wego core
+
+type FakeFetcherFactory struct {
+	fake applicationv2.Fetcher
+}
+
+func NewFakeFetcherFactory(fake applicationv2.Fetcher) wego_server.FetcherFactory {
+	return &FakeFetcherFactory{
+		fake: fake,
+	}
+}
+
+func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
+	return f.fake
+}
+
+type FakeClientGetter struct {
+	client client.Client
+}
+
+func NewFakeClientGetter(client client.Client) wego_server.ClientGetter {
+	return &FakeClientGetter{
+		client: client,
+	}
+}
+
+func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
+	return g.client, nil
 }
 
 //
