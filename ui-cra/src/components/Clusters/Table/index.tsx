@@ -84,8 +84,7 @@ export const ClustersTable: FC<Props> = ({
 }) => {
   const classes = useStyles();
   const history = useHistory();
-  const { selectedClusters, setSelectedClusters, creatingPR, loading } =
-    useClusters();
+  const { selectedClusters, setSelectedClusters, loading } = useClusters();
   const { notifications } = useNotifications();
   const numSelected = selectedClusters.length;
   const isSelected = (name: string) => selectedClusters.indexOf(name) !== -1;
@@ -132,7 +131,7 @@ export const ClustersTable: FC<Props> = ({
     >
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
-          {creatingPR || (loading && filteredClusters?.length === 0) ? (
+          {loading ? (
             <Loader />
           ) : (
             <Table className={classes.table} size="small">

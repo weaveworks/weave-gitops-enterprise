@@ -12,7 +12,6 @@ interface TemplatesContext {
   getTemplate: (templateName: string) => Template | null;
   PRPreview: string | null;
   setPRPreview: Dispatch<React.SetStateAction<string | null>>;
-  creatingPR: boolean;
   setError: Dispatch<React.SetStateAction<string | null>>;
 }
 
