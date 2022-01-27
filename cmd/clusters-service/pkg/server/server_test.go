@@ -43,9 +43,9 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
-const (
-	testNamespace = "testing"
-)
+// const (
+// 	testNamespace = "testing"
+// )
 
 func TestListTemplates(t *testing.T) {
 	testCases := []struct {
