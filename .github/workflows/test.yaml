@@ -251,7 +251,7 @@ jobs:
     with:
       runs-on: ubuntu-latest
       os-name: linux
-      timeout-minutes: 90
+      timeout-minutes: 60
       focus-or-skip: "-ginkgo.focus='@smoke'"
       kubectl-version: "v1.22.0"
       git-provider: gitlab
@@ -279,7 +279,7 @@ jobs:
     with:
       runs-on: ubuntu-latest
       os-name: linux
-      timeout-minutes: 90
+      timeout-minutes: 60
       focus-or-skip: "-ginkgo.focus='@smoke'"
       kubectl-version: "v1.22.0"
       git-provider: gitlab
