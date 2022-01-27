@@ -359,7 +359,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				By("And gitops state is reset", func() {
-					_ = gitopsTestRunner.ResetDatabase()
+					_ = gitopsTestRunner.ResetControllers("enterprise")
 					gitopsTestRunner.VerifyWegoPodsRunning()
 					gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 				})

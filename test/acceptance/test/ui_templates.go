@@ -427,7 +427,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			It("@integration Verify pull request can be created for capi template to the management cluster", func() {
+			It("@integration @git Verify pull request can be created for capi template to the management cluster", func() {
 
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
@@ -499,6 +499,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					pages.ScrollWindow(webDriver, 0, 4000)
 
+					if pages.ElementExist(gitops.ErrorBar) {
+						Expect(gitops.ErrorBar.Click()).To(Succeed())
+					}
+
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
@@ -506,12 +510,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					if pages.ElementExist(gitops.ErrorBar) {
-						Expect(gitops.ErrorBar.Click()).To(Succeed())
-					}
-
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
+					if gitProviderEnv.Type == GitProviderGitHub {
+						Eventually(gitops.SuccessBar).Should(MatchText(`Authentication completed successfully. Please proceed with creating the PR.`))
+						Expect(gitops.SuccessBar.Click()).To(Succeed())
+					}
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
@@ -549,7 +553,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			It("@integration Verify pull request can not be created by using exiting repository branch", func() {
+			It("@integration @git Verify pull request can not be created by using exiting repository branch", func() {
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
@@ -620,16 +624,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					pages.ScrollWindow(webDriver, 0, 4000)
 
+					if pages.ElementExist(gitops.ErrorBar) {
+						Expect(gitops.ErrorBar.Click()).To(Succeed())
+					}
+
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(branchName)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
-
-					if pages.ElementExist(gitops.ErrorBar) {
-						Expect(gitops.ErrorBar.Click()).To(Succeed())
-					}
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
@@ -644,7 +648,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration Verify no credentials exists in management cluster", func() {
+			It("@integration @git Verify no credentials exists in management cluster", func() {
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
@@ -678,7 +682,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration Verify matching selected credential can be used for cluster creation", func() {
+			It("@integration @git Verify matching selected credential can be used for cluster creation", func() {
 				defer gitopsTestRunner.DeleteIPCredentials("AWS")
 				defer gitopsTestRunner.DeleteIPCredentials("AZURE")
 
@@ -798,7 +802,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration Verify user can not use wrong credentials for infrastructure provider", func() {
+			It("@integration @git Verify user can not use wrong credentials for infrastructure provider", func() {
 				defer gitopsTestRunner.DeleteIPCredentials("AWS")
 
 				By("Apply/Install CAPITemplates", func() {
@@ -927,11 +931,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				log.Println("Deleting all the wkp agents")
 				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
-				_ = gitopsTestRunner.ResetDatabase()
+				_ = gitopsTestRunner.ResetControllers("all")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
-			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 				DEPLOYMENT_APP := "my-mccp-cluster-service"
 
 				var repoAbsolutePath string
@@ -1071,6 +1075,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
+					if gitProviderEnv.Type == GitProviderGitHub {
+						Eventually(gitops.SuccessBar).Should(MatchText(`Authentication completed successfully. Please proceed with creating the PR.`))
+						Expect(gitops.SuccessBar.Click()).To(Succeed())
+					}
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})

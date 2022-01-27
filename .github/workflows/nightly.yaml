@@ -17,7 +17,7 @@ jobs:
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
 
-  acceptance-tests-eks:
+  acceptance-tests-eks-github:
     needs: [build]
     uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
@@ -33,7 +33,7 @@ jobs:
       gitops-bin-path: /usr/local/bin/gitops
       database-type: postgres      
       eks-leaf-kubeconfig: '/tmp/eks-leaf-kubeconfig'
-      artifacts-base-dir: "/tmp/acceptance-test-eks"
+      artifacts-base-dir: "/tmp/acceptance-test-eks-github"
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
@@ -47,34 +47,37 @@ jobs:
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
 
-  acceptance-tests-gke:
+  acceptance-tests-gke-gitlab-on-prem:
     needs: [build]
     uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
       runs-on: macOS-latest
       os-name: darwin
       timeout-minutes: 90
-      focus-or-skip: "-ginkgo.skip='@gce|@eks|@capd|@upgrade'"
+      focus-or-skip: "-ginkgo.skip='@gce|@eks|@capd|@application'"
       kubectl-version: "v1.22.0"
-      git-provider: github
-      git-provider_hostname: github.com
+      git-provider: gitlab
+      git-provider_hostname: gitlab.git.dev.wkp.weave.works
       cluster_resource_set: false
       management-cluster-kind: gke
       gitops-bin-path: /usr/local/bin/gitops
       database-type: postgres      
       gce-leaf-kubeconfig: '/tmp/gce-leaf-kubeconfig'
-      artifacts-base-dir: "/tmp/acceptance-test-gke"
+      artifacts-base-dir: "/tmp/acceptance-test-gke-gitlab-on-prem"
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
-      WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
-      WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
-      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
+      WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
+      WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
+      WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
+      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
+      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
+      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
+
 
   

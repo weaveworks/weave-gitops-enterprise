@@ -53,6 +53,7 @@ type GitOps struct {
 	GitOpsFields   []FormField
 	GitCredentials *agouti.Selection
 	CreatePR       *agouti.Selection
+	SuccessBar     *agouti.Selection
 	ErrorBar       *agouti.Selection
 }
 
@@ -179,6 +180,7 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 		},
 		GitCredentials: webDriver.Find(`div.auth-message`),
 		CreatePR:       webDriver.FindByButton(`CREATE PULL REQUEST`),
-		ErrorBar:       webDriver.Find(`.Toastify [role="alert"]`),
+		SuccessBar:     webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Success")]/parent::div`),
+		ErrorBar:       webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Error")]/parent::div`),
 	}
 }
