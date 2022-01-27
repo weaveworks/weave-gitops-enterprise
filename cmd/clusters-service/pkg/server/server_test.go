@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -1667,23 +1666,23 @@ func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
 	return committedFiles
 }
 
-func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepository) *charts.HelmChartClient {
-	t.Helper()
-	tempDir, err := ioutil.TempDir("", "prefix")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if err := os.RemoveAll(tempDir); err != nil {
-			t.Fatal(err)
-		}
-	})
-	cc := charts.NewHelmChartClient(cl, testNamespace, hr, charts.WithCacheDir(tempDir))
-	if err := cc.UpdateCache(context.TODO()); err != nil {
-		t.Fatal(err)
-	}
-	return cc
-}
+// func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepository) *charts.HelmChartClient {
+// 	t.Helper()
+// 	tempDir, err := ioutil.TempDir("", "prefix")
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	t.Cleanup(func() {
+// 		if err := os.RemoveAll(tempDir); err != nil {
+// 			t.Fatal(err)
+// 		}
+// 	})
+// 	cc := charts.NewHelmChartClient(cl, testNamespace, hr, charts.WithCacheDir(tempDir))
+// 	if err := cc.UpdateCache(context.TODO()); err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	return cc
+// }
 
 type CommittedFile struct {
 	Path    string
@@ -1697,7 +1696,11 @@ func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
 		if err != nil {
 			t.Fatal(err)
 		}
-		w.Write(b)
+
+		_, err = w.Write(b)
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
 	mux.Handle("/", http.FileServer(http.Dir("../charts/testdata")))
 	return mux

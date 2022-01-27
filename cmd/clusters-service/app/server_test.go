@@ -35,7 +35,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	ctx := context.Background()
 	defer ctx.Done()
 
-	c := createFakeClient(createSecret(validEntitlement))
+	c := createFakeClient(t, createSecret(validEntitlement))
 	db, err := utils.Open("", "sqlite", "", "", "")
 	if err != nil {
 		t.Fatalf("expected no errors but got %v", err)
@@ -46,7 +46,11 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 		capiv1.AddToScheme,
 		sourcev1beta1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err = schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatalf("expected no errors but got %v", err)
+	}
+
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	if err != nil {
@@ -112,12 +116,15 @@ func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 	}
 }
 
-func createFakeClient(clusterState ...runtime.Object) client.Client {
+func createFakeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).

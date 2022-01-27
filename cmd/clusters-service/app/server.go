@@ -105,7 +105,7 @@ func initializeConfig(cmd *cobra.Command) {
 
 	// Read all flag values into viper
 	// So they can be read from `viper.Get`, (sometimes user by weave-gitops (core))
-	viper.BindPFlags(cmd.Flags())
+	_ = viper.BindPFlags(cmd.Flags())
 
 	// Set all unset flags values to their associated env vars value if env var is present
 	bindFlagValues(cmd)
@@ -141,7 +141,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		capiv1.AddToScheme,
 		sourcev1beta1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err = schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		return err
+	}
 	kubeClientConfig, err := config.GetConfig()
 	if err != nil {
 		return err
