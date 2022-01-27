@@ -109,7 +109,6 @@ const ClustersProvider: FC = ({ children }) => {
 
   const getKubeconfig = useCallback(
     (clusterName: string, filename: string) => {
-      setLoading(true);
       request('GET', `v1/clusters/${clusterName}/kubeconfig`, {
         headers: {
           Accept: 'application/octet-stream',
@@ -118,8 +117,7 @@ const ClustersProvider: FC = ({ children }) => {
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
           setNotifications([{ message: err.message, variant: 'danger' }]),
-        )
-        .finally(() => setLoading(false));
+        );
     },
     [setNotifications],
   );
