@@ -21,8 +21,15 @@ ENV GITHUB_BUILD_USERNAME=wge-build-bot
 ARG GITHUB_BUILD_TOKEN
 RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
 
+# copy modules manifests
+COPY go.mod go.mod
+COPY go.sum go.sum
+
 # copy in other module dependencies
 COPY common/ /workspace/common/
+
+# cache modules
+RUN go mod download
 
 # copy source code
 COPY $CS_PATH/main.go main.go
