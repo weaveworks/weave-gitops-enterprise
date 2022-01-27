@@ -64,7 +64,7 @@ func initGitProviderData() GitProviderEnv {
 		}
 		return GitProviderEnv{
 			Type:      GitProviderGitLab,
-			Hostname:  addSchemeToDomain(GetEnv("GIT_PROVIDER_HOSTNAME", gitlab.DefaultDomain)),
+			Hostname:  GetEnv("GIT_PROVIDER_HOSTNAME", gitlab.DefaultDomain),
 			TokenType: tokenTypeOauth,
 			Token:     GetEnv("GITLAB_TOKEN", ""),
 			Org:       GetEnv("GITLAB_ORG", ""),
@@ -232,6 +232,7 @@ func getGitProvider(provider string, org string, repo string, token string, toke
 				gitprovider.WithDestructiveAPICalls(true),
 			)
 		} else {
+			hostName = addSchemeToDomain(hostName)
 			orgRef = gitproviders.NewOrgRepositoryRef(hostName, org, repo)
 			gitProvider, err = gitlab.NewClient(
 				token,
