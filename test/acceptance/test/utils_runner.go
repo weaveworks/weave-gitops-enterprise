@@ -29,7 +29,7 @@ import (
 // - "Real" commands like "exec(kubectl...)"
 // - "Mock" commands like db.Create(cluster_info...)
 type GitopsTestRunner interface {
-	ResetDatabase() error
+	ResetControllers(controllers string) error
 	VerifyWegoPodsRunning()
 	FireAlert(name, severity, message string, fireFor time.Duration) error
 	KubectlApply(env []string, tokenURL string) error
@@ -64,7 +64,7 @@ func (b DatabaseGitopsTestRunner) TimeTravelToAlertsResolved() error {
 	return nil
 }
 
-func (b DatabaseGitopsTestRunner) ResetDatabase() error {
+func (b DatabaseGitopsTestRunner) ResetControllers(controllers string) error {
 	b.DB.Where("1 = 1").Delete(&models.Cluster{})
 	return nil
 }
@@ -211,8 +211,8 @@ func (b RealGitopsTestRunner) TimeTravelToAlertsResolved() error {
 	return nil
 }
 
-func (b RealGitopsTestRunner) ResetDatabase() error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/wego-enterprise.sh", "reset_mccp")
+func (b RealGitopsTestRunner) ResetControllers(controllers string) error {
+	return runCommandPassThrough([]string{}, "../../utils/scripts/wego-enterprise.sh", "reset_controllers", controllers)
 }
 
 func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {

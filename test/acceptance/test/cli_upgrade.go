@@ -60,7 +60,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			It("@upgrade Verify wego core can be upgraded to wego enterprise", func() {
+			It("@upgrade @git Verify wego core can be upgraded to wego enterprise", func() {
 
 				By("When I create a private repository for cluster configs", func() {
 					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)

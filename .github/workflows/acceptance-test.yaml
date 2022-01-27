@@ -90,7 +90,7 @@ on:
         required: false
       WGE_GITHUB_MFA_KEY:
         description: "MFA key for git authentication"
-        required: false    
+        required: false
       WGE_GITLAB_ORG:
         description: "Gitlab organization / group"
         required: false
@@ -143,6 +143,7 @@ env:
   GITLAB_PASSWORD: ${{ secrets.WGE_GITLAB_PASSWORD }}
   GITLAB_CLIENT_ID: ${{ secrets.WGE_GITLAB_CLIENT_ID }}
   GITLAB_CLIENT_SECRET: ${{ secrets.WGE_GITLAB_CLIENT_SECRET }}
+  MANAGEMENT_CLUSTER_CNAME: weave.gitops.enterprise.com
   MANAGEMENT_CLUSTER_KIND: ${{ inputs.management-cluster-kind }}
   GITOPS_BIN_PATH: ${{ inputs.gitops-bin-path }}
   ACCEPTANCE_TESTS_DATABASE_TYPE: ${{ inputs.database-type }}
@@ -255,10 +256,18 @@ jobs:
         ssh-private-key: ${{ secrets.WGE_GIT_PROVIDER_PRIVATE_KEY }}
     - name: Configure git settings
       run: |
+        if [ ${{ env.GIT_PROVIDER }} == "gitlab" ]; then
+          export USERNAME=${{ env.GITLAB_USER }}
+        else
+          export USERNAME=${{ env.GITHUB_USER }}
+        fi
+
         git config --global init.defaultBranch main
-        git config --global user.email "test-user@weave.works"
-        git config --global user.name "test-user"
+        git config --global user.email "team-pesto@weave.works"
+        git config --global user.name $USERNAME
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+        git config --global url.git@gitlab.com:.insteadOf https://gitlab.com/
+        git config --global url.git@gitlab.git.dev.wkp.weave.works:.insteadOf https://gitlab.git.dev.wkp.weave.works/
     - name: Download totp-cli from GH
       run: |
         wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
@@ -319,15 +328,11 @@ jobs:
         # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
         echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV        
 
-        if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER }} != "gitlab.com" ]; then
+        if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER_HOSTNAME }} != "gitlab.com" ]; then
           export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
           echo "GITOPS_GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES" >> $GITHUB_ENV
           echo "GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" >> $GITHUB_ENV
         fi
-
-        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        echo $GITOPS_GIT_HOST_TYPES
-        echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         
         ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
     - name: Setup connect leaf cluster
