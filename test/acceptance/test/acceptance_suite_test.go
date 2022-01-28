@@ -50,6 +50,7 @@ var _ = BeforeSuite(func() {
 
 	SetDefaultEventuallyTimeout(ASSERTION_DEFAULT_TIME_OUT) //Things are slow on WKP UI
 	SetupTestEnvironment()                                  // Read OS environment variables and initialize the test environment
+	InstallWeaveGitopsControllers()                         // Install weave gitops core and enterprise controllers
 })
 
 var _ = AfterSuite(func() {

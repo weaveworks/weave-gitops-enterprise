@@ -18,7 +18,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 		NATS_NODEPORT := "31491"
 		var capi_endpoint_url string
 		var test_ui_url string
-		var repoAbsolutePath string
 
 		var session *gexec.Session
 		var err error
@@ -52,7 +51,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				deleteRepo(gitProviderEnv)
 
-				err := runCommandPassThrough([]string{}, "kubectl", "config", "use-context", current_context)
+				err := runCommandPassThrough("kubectl", "config", "use-context", current_context)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				deleteClusters("kind", []string{kind_upgrade_cluster_name})
@@ -60,9 +59,10 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("@upgrade @git Verify wego core can be upgraded to wego enterprise", func() {
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
