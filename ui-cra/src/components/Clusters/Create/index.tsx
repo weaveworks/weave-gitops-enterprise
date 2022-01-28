@@ -117,7 +117,7 @@ const AddCluster: FC = () => {
   let initialFormData = {
     url: '',
     provider: '',
-    branchName: `create-clusters-branch`,
+    branchName: `create-clusters-branch-${random}`,
     pullRequestTitle: 'Creates capi cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
@@ -274,10 +274,9 @@ const AddCluster: FC = () => {
       setFormData((prevState: any) => ({
         ...prevState,
         url: repositoryURL,
-        branchName: `create-clusters-branch-${random}`,
       }));
     }
-  }, [callbackState, infraCredential, random, repositoryURL, updatedProfiles]);
+  }, [callbackState, infraCredential, repositoryURL, updatedProfiles]);
 
   return useMemo(() => {
     return (
