@@ -3,7 +3,6 @@ import { Alert } from '../../types/kubernetes';
 
 interface AlertsContext {
   alerts: Alert[] | [];
-  loading: boolean;
 }
 
 export const Alerts = createContext<AlertsContext | null>(null);

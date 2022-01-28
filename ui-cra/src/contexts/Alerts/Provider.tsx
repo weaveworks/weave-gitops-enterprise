@@ -8,7 +8,6 @@ import useNotifications from './../Notifications';
 const ALERTS_POLL_INTERVAL = 5000;
 
 const AlertsProvider: FC = ({ children }) => {
-  const [loading, setLoading] = useState<boolean>(true);
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -21,7 +20,6 @@ const AlertsProvider: FC = ({ children }) => {
 
     const newAbortController = new AbortController();
     setAbortController(newAbortController);
-    setLoading(true);
     request('GET', alertsUrl, {
       cache: 'no-store',
       signal: newAbortController.signal,
@@ -42,17 +40,12 @@ const AlertsProvider: FC = ({ children }) => {
           ]);
         }
       })
-      .finally(() => {
-        setLoading(false);
-        setAbortController(null);
-      });
+      .finally(() => setAbortController(null));
   }, [abortController, notifications, setNotifications]);
 
   useInterval(() => fetchAlerts(), ALERTS_POLL_INTERVAL, true, []);
 
-  return (
-    <Alerts.Provider value={{ alerts, loading }}>{children}</Alerts.Provider>
-  );
+  return <Alerts.Provider value={{ alerts }}>{children}</Alerts.Provider>;
 };
 
 export default AlertsProvider;

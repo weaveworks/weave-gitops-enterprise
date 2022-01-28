@@ -13,12 +13,7 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import Octicon, { Icon, Tools } from '@primer/octicons-react';
 import { Cluster } from '../../../types/kubernetes';
 import { EKS, ExistingInfra, GKE, Kind } from '../../../utils/icons';
-import {
-  ClusterNameLink,
-  CommitsOverview,
-  NotAvailable,
-  Tooltip,
-} from '../../Shared';
+import { ClusterNameLink, Tooltip } from '../../Shared';
 import { CAPIClusterStatus } from '../CAPIClusterStatus';
 import {
   getClusterStatus,
@@ -26,12 +21,6 @@ import {
   Status,
   statusSummary,
 } from '../Status';
-import {
-  ClusterNodeVersions,
-  RepoLink,
-  Workspaces,
-  WorkspacesTooltip,
-} from './RowComponents';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -48,10 +37,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     nameCell: {
       paddingLeft: theme.spacing(0.5),
-    },
-    commitsOverviewCell: {
-      width: 270,
-      padding: 0,
+      width: '300px',
     },
     iconTableCell: {
       width: 30,
@@ -100,21 +86,11 @@ const ClusterRow = ({
   onCheckboxClick,
 }: RowProps) => {
   const classes = useStyles();
-  const {
-    name,
-    status: clusterStatus,
-    type: clusterType,
-    updatedAt,
-    fluxInfo,
-    gitCommits,
-  } = cluster;
+  const { name, status: clusterStatus, type: clusterType, updatedAt } = cluster;
   const status = getClusterStatus(clusterStatus);
   const icon = getClusterTypeIcon(clusterType);
   const [open, setOpen] = React.useState<boolean>(false);
   const labelId = `enhanced-table-checkbox-${index}`;
-
-  const { repoUrl = '', repoBranch = '' } =
-    fluxInfo?.length === 1 ? fluxInfo[0] : {};
 
   return (
     <>
@@ -178,32 +154,6 @@ const ClusterRow = ({
               />
             </div>
           </Tooltip>
-        </TableCell>
-        <TableCell className={classes.commitsOverviewCell} align="left">
-          <CommitsOverview fluxInfo={fluxInfo?.[0]} commits={gitCommits} />
-        </TableCell>
-        <TableCell align="left">
-          <ClusterNodeVersions cluster={cluster} />
-        </TableCell>
-        <TableCell align="left">
-          <Tooltip
-            title={
-              <WorkspacesTooltip
-                workspaces={(cluster.workspaces ?? []).map(
-                  workspace => workspace.name,
-                )}
-              />
-            }
-          >
-            <Workspaces cluster={cluster} />
-          </Tooltip>
-        </TableCell>
-        <TableCell align="right">
-          {repoUrl && repoBranch ? (
-            <RepoLink url={repoUrl} branch={repoBranch} />
-          ) : (
-            <NotAvailable>Repo not available</NotAvailable>
-          )}
         </TableCell>
         <TableCell
           title="Edit cluster"

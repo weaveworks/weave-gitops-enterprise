@@ -18,7 +18,6 @@ import { Pagination } from './Pagination';
 import { TableFooter } from '@material-ui/core';
 import useClusters from '../contexts/Clusters';
 import { ContentWrapper, Title } from './Layout/ContentWrapper';
-import { Loader } from './Loader';
 
 const alertColor = ({ severity }: { severity: string }) => {
   if (severity === 'warning') {
@@ -88,7 +87,7 @@ const DescriptionCell = styled(TableCell)`
 export const AlertsDashboard: FC = () => {
   const classes = useStyles();
   const clustersCount = useClusters().count;
-  const { alerts, loading } = useAlerts();
+  const { alerts } = useAlerts();
   const [page, setPage] = React.useState<number>(0);
   const [perPage, setPerPage] = useLocalStorage<number>(
     'mccp.alerts.perPage',
@@ -116,56 +115,52 @@ export const AlertsDashboard: FC = () => {
       <ContentWrapper>
         <Title>Alerts dashboard</Title>
         <Paper id="firing-alerts">
-          {loading && pagedAlerts?.length === 0 ? (
-            <Loader />
-          ) : (
-            <Table
-              className={classes.table}
-              size="small"
-              aria-label="a dense table"
-            >
-              {alerts.length === 0 ? <caption>No alerts firing</caption> : null}
-              <TableBody>
-                {pagedAlerts?.map(alert => (
-                  <TableRow key={alert.id}>
-                    <SeverityCell severity={alert.severity}>
-                      {alert.severity ? (
-                        alert.severity
-                      ) : (
-                        <NotAvailable>No severity</NotAvailable>
-                      )}
-                    </SeverityCell>
-                    <DescriptionCell severity={alert.severity}>
-                      <div
-                        title={alert.annotations.description}
-                        className={classes.cellContent}
-                      >
-                        {alert.labels.alertname}{' '}
-                        {alert.annotations.description ||
-                          alert.annotations.message}
-                      </div>
-                    </DescriptionCell>
-                    <TableCell className={classes.clusterNameCell}>
-                      <ClusterNameLink cluster={alert.cluster} />
-                    </TableCell>
-                    <TableCell className={classes.createdCell}>
-                      {moment(alert.starts_at).fromNow()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              <TableFooter>
-                {alertsCount === 0 ? null : (
-                  <TableRow>
-                    <Pagination
-                      count={alertsCount}
-                      onSelectPageParams={handleSetPageParams}
-                    />
-                  </TableRow>
-                )}
-              </TableFooter>
-            </Table>
-          )}
+          <Table
+            className={classes.table}
+            size="small"
+            aria-label="a dense table"
+          >
+            {alerts.length === 0 ? <caption>No alerts firing</caption> : null}
+            <TableBody>
+              {pagedAlerts?.map(alert => (
+                <TableRow key={alert.id}>
+                  <SeverityCell severity={alert.severity}>
+                    {alert.severity ? (
+                      alert.severity
+                    ) : (
+                      <NotAvailable>No severity</NotAvailable>
+                    )}
+                  </SeverityCell>
+                  <DescriptionCell severity={alert.severity}>
+                    <div
+                      title={alert.annotations.description}
+                      className={classes.cellContent}
+                    >
+                      {alert.labels.alertname}{' '}
+                      {alert.annotations.description ||
+                        alert.annotations.message}
+                    </div>
+                  </DescriptionCell>
+                  <TableCell className={classes.clusterNameCell}>
+                    <ClusterNameLink cluster={alert.cluster} />
+                  </TableCell>
+                  <TableCell className={classes.createdCell}>
+                    {moment(alert.starts_at).fromNow()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              {alertsCount === 0 ? null : (
+                <TableRow>
+                  <Pagination
+                    count={alertsCount}
+                    onSelectPageParams={handleSetPageParams}
+                  />
+                </TableRow>
+              )}
+            </TableFooter>
+          </Table>
         </Paper>
       </ContentWrapper>
     </PageTemplate>

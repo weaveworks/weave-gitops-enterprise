@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"path"
 	"regexp"
 
 	. "github.com/onsi/ginkgo"
@@ -88,8 +87,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				version := "0.0.17"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := public_ip + ":" + NATS_NODEPORT
-					repositoryURL := "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
-					upgradeCommand := fmt.Sprintf("upgrade --version %s --config-repo %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s'", version, repositoryURL, prBranch, natsURL, NATS_NODEPORT)
+					upgradeCommand := fmt.Sprintf("upgrade --version %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s'", version, prBranch, natsURL, NATS_NODEPORT)
 					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, upgradeCommand))
 					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 					Expect(err).ShouldNot(HaveOccurred())
