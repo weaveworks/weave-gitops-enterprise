@@ -15,7 +15,6 @@ import {
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
-import useVersions from '../../contexts/Versions';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import {
@@ -28,6 +27,7 @@ import {
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
+import { useHistory } from 'react-router-dom';
 
 interface Props {
   formData: any;
@@ -44,11 +44,11 @@ export const DeleteClusterDialog: FC<Props> = ({
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-  const { repositoryURL } = useVersions();
 
   const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
     useClusters();
   const { notifications, setNotifications } = useNotifications();
+  const history = useHistory();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -94,18 +94,20 @@ export const DeleteClusterDialog: FC<Props> = ({
         title: formData.pullRequestTitle,
         commitMessage: formData.commitMessage,
         description: formData.pullRequestDescription,
-        repositoryUrl: repositoryURL,
+        repositoryUrl: formData.repositoryURL,
       },
       getProviderToken(formData.provider as GitProvider),
     )
-      .then(() =>
+      .then(() => {
         setNotifications([
           {
             message: `PR created successfully`,
             variant: 'success',
           },
-        ]),
-      )
+        ]);
+        // history.push('/clusters');
+        // clearCallbackState();
+      })
       .catch(error => {
         setNotifications([{ message: error.message, variant: 'danger' }]);
         if (isUnauthenticated(error.code)) {
@@ -129,20 +131,7 @@ export const DeleteClusterDialog: FC<Props> = ({
     ) {
       cleanUp();
     }
-  }, [
-    notifications,
-    setOpenDeletePR,
-    setSelectedClusters,
-    cleanUp,
-    repositoryURL,
-  ]);
-
-  useEffect(() => {
-    setFormData((prevState: FormData) => ({
-      ...prevState,
-      url: repositoryURL,
-    }));
-  }, [repositoryURL, setFormData]);
+  }, [notifications, setOpenDeletePR, setSelectedClusters, cleanUp]);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>

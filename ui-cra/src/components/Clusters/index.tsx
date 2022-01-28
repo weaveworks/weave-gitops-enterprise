@@ -54,11 +54,13 @@ const MCCP: FC = () => {
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
   );
-  const selectedCapiClusters = useMemo(
+  let selectedCapiClusters = useMemo(
     () =>
       selectedClusters.filter(cls => capiClusters.find(c => c.name === cls)),
     [capiClusters, selectedClusters],
   );
+
+  // console.log(selectedClusters, capiClusters, selectedCapiClusters);
 
   const authRedirectPage = `/clusters`;
 
@@ -75,14 +77,14 @@ const MCCP: FC = () => {
     pullRequestDescription: string;
   }
 
-  let initialSelectedCapiClusters = selectedCapiClusters;
-
   let initialFormData = {
-    url: repositoryURL,
-    branchName: `delete-clusters-branch`,
+    url: '',
+    branchName: `delete-clusters-branch-${random}`,
     pullRequestTitle: 'Deletes capi cluster(s)',
     commitMessage: 'Deletes capi cluster(s)',
-    pullRequestDescription: '',
+    pullRequestDescription: `Delete clusters: ${selectedCapiClusters
+      .map(c => c)
+      .join(', ')}`,
   };
 
   const callbackState = getCallbackState();
@@ -92,14 +94,13 @@ const MCCP: FC = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
-    initialSelectedCapiClusters = [
-      ...initialSelectedCapiClusters,
+    selectedCapiClusters = [
+      ...selectedCapiClusters,
       ...(callbackState.state.selectedCapiClusters || []),
     ];
   }
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
-
   const history = useHistory();
   const { activeTemplate } = useTemplates();
 
@@ -112,20 +113,18 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   useEffect(() => {
-    if (!callbackState && selectedClusters.length === 0) {
-      setOpenDeletePR(false);
-    }
-
     if (!callbackState) {
       setFormData((prevState: FormData) => ({
         ...prevState,
-        branchName: `delete-clusters-branch-${random}`,
-        pullRequestTitle: 'Deletes capi cluster(s)',
-        commitMessage: 'Deletes capi cluster(s)',
-        pullRequestDescription: `Delete clusters: ${initialSelectedCapiClusters
+        url: repositoryURL,
+        pullRequestDescription: `Delete clusters: ${selectedCapiClusters
           .map(c => c)
           .join(', ')}`,
       }));
+    }
+
+    if (!callbackState && selectedClusters.length === 0) {
+      setOpenDeletePR(false);
     }
 
     if (callbackState?.state?.selectedCapiClusters?.length > 0) {
@@ -133,11 +132,13 @@ const MCCP: FC = () => {
     }
   }, [
     callbackState,
-    initialSelectedCapiClusters,
-    random,
+    selectedCapiClusters,
     capiClusters,
     selectedClusters,
+    repositoryURL,
   ]);
+
+  // console.log(callbackState);
 
   return (
     <PageTemplate documentTitle="WeGo · Clusters">
@@ -171,7 +172,7 @@ const MCCP: FC = () => {
             <Tooltip
               title="No CAPI clusters selected"
               placement="top"
-              disabled={initialSelectedCapiClusters.length !== 0}
+              disabled={selectedCapiClusters.length !== 0}
             >
               <div>
                 <Button
@@ -182,7 +183,7 @@ const MCCP: FC = () => {
                     setOpenDeletePR(true);
                   }}
                   color="secondary"
-                  disabled={initialSelectedCapiClusters.length === 0}
+                  disabled={selectedCapiClusters.length === 0}
                 >
                   CREATE A PR TO DELETE CLUSTERS
                 </Button>
@@ -192,7 +193,7 @@ const MCCP: FC = () => {
               <DeleteClusterDialog
                 formData={formData}
                 setFormData={setFormData}
-                selectedCapiClusters={initialSelectedCapiClusters}
+                selectedCapiClusters={selectedCapiClusters}
                 setOpenDeletePR={setOpenDeletePR}
               />
             )}
