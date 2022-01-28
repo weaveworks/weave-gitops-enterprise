@@ -1177,7 +1177,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					clusterFound := func() error {
 						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
 					}
-					Eventually(clusterFound, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+					Eventually(clusterFound, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})
 			})
 		})

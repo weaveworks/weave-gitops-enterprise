@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: '10 0 * * *'
+    - cron: "10 0 * * *"
   workflow_dispatch:
 
 name: nightly
@@ -31,8 +31,8 @@ jobs:
       cluster_resource_set: false
       management-cluster-kind: eks
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: postgres      
-      eks-leaf-kubeconfig: '/tmp/eks-leaf-kubeconfig'
+      database-type: postgres
+      eks-leaf-kubeconfig: "/tmp/eks-leaf-kubeconfig"
       artifacts-base-dir: "/tmp/acceptance-test-eks-github"
     secrets:
       BUILD_BOT_USER: wge-build-bot
@@ -42,7 +42,7 @@ jobs:
       WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
-      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}      
+      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
@@ -54,15 +54,15 @@ jobs:
       runs-on: macOS-latest
       os-name: darwin
       timeout-minutes: 90
-      focus-or-skip: "-ginkgo.skip='@gce|@eks|@capd|@application'"
+      focus-or-skip: "-ginkgo.skip='@gce|@eks|@capd|@application|@upgrade'"
       kubectl-version: "v1.22.0"
       git-provider: gitlab
       git-provider_hostname: gitlab.git.dev.wkp.weave.works
       cluster_resource_set: false
       management-cluster-kind: gke
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: postgres      
-      gce-leaf-kubeconfig: '/tmp/gce-leaf-kubeconfig'
+      database-type: postgres
+      gce-leaf-kubeconfig: "/tmp/gce-leaf-kubeconfig"
       artifacts-base-dir: "/tmp/acceptance-test-gke-gitlab-on-prem"
     secrets:
       BUILD_BOT_USER: wge-build-bot
@@ -78,6 +78,3 @@ jobs:
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
-
-
-  
