@@ -1,14 +1,8 @@
 import React, { AnchorHTMLAttributes, FC, Key } from 'react';
 import styled from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
-import { Skeleton } from '@material-ui/lab';
-import { random, sortBy } from 'lodash';
-import {
-  TableCell,
-  TableRow,
-  Tooltip as Mtooltip,
-  TooltipProps,
-} from '@material-ui/core';
+import { sortBy } from 'lodash';
+import { Tooltip as Mtooltip, TooltipProps } from '@material-ui/core';
 import {
   Cluster,
   ClusterStatus,
@@ -249,100 +243,5 @@ export const CommitsOverview: FC<CommitsOverviewProps> = ({
       axisOnHover
       data={data}
     />
-  );
-};
-
-interface SkeletonRowProps {
-  index: number;
-}
-
-export const SkeletonRow: FC<SkeletonRowProps> = ({ index }) => {
-  const getWidth = (min: number, max: number) => {
-    if (index === 0) {
-      return max;
-    }
-    return random(min, max);
-  };
-  return (
-    <TableRow>
-      <TableCell align="left">
-        {/* Name */}
-        <Skeleton height={10} width={getWidth(60, 80)} />
-      </TableCell>
-
-      <TableCell align="left">
-        {/* Type */}
-        <Skeleton height={10} width={getWidth(10, 30)} />
-      </TableCell>
-
-      <TableCell align="left">
-        {/* Status */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-          }}
-        >
-          <Skeleton
-            height={13}
-            style={{ marginRight: '4px' }}
-            variant="circle"
-            width={13}
-          />
-          <Skeleton height={10} width={getWidth(33, 95)} />
-        </div>
-      </TableCell>
-
-      <TableCell align="left">
-        {/* Latest git activity */}
-        <Skeleton height={10} width={getWidth(200, 220)} />
-      </TableCell>
-
-      <TableCell align="left">
-        {/* Nodes */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <Skeleton height={10} width={getWidth(9, 13)} />
-          <Skeleton
-            height={22}
-            style={{ marginLeft: 16 }}
-            variant="rect"
-            width={54}
-          />
-        </div>
-      </TableCell>
-
-      <TableCell align="right">
-        {/* Workspaces */}
-        <Skeleton height={10} width={getWidth(33, 52)} />
-      </TableCell>
-
-      <TableCell align="right">
-        {/* Repository link */}
-        <Skeleton height={10} width={getWidth(33, 52)} />
-      </TableCell>
-
-      <TableCell align="right">
-        {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Skeleton
-            height={29.5}
-            style={{ margin: '4px 8px' }}
-            variant="rect"
-            width={100}
-          />
-          <Skeleton
-            height={29.5}
-            style={{ margin: '4px 8px' }}
-            variant="rect"
-            width={130}
-          />
-        </div>
-      </TableCell>
-    </TableRow>
   );
 };

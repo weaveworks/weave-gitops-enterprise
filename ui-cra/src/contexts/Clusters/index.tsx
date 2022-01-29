@@ -14,7 +14,6 @@ interface ClustersContext {
   count: number | null;
   disabled: boolean;
   loading: boolean;
-  creatingPR: boolean;
   handleRequestSort: (property: string) => void;
   handleSetPageParams: (page: number, perPage: number) => void;
   order: string;
