@@ -145,10 +145,6 @@ func InstallWeaveGitopsControllers() {
 		checkoutRepoPath := getCheckoutRepoPath()
 		err := runCommandPassThrough(path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh"), "setup", checkoutRepoPath)
 		Expect(err).ShouldNot(HaveOccurred())
-
-		// Delete deploy key secret for 'gitops install' to succeed for tests
-		deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
-
 	}
 }
 

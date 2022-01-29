@@ -109,6 +109,10 @@ func verifyWegoAddCommand(appName string, namespace string) {
 }
 
 func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
+
+	// Deploy key secret should not exist already
+	deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
+
 	By("And I run 'gitops install' command with namespace "+gitopsNamespace, func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", GITOPS_BIN_PATH, manifestRepoURL, gitopsNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -125,7 +129,6 @@ func removeGitopsCapiClusters(appName string, clusternames []string, nameSpace s
 	deleteClusters("capi", clusternames)
 
 	deleteGitopsApplication(appName, nameSpace)
-	deleteGitopsDeploySecret(nameSpace)
 }
 
 func susspendGitopsApplication(appName string, nameSpace string) {

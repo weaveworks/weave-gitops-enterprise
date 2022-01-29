@@ -51,7 +51,7 @@ function setup {
   helm install my-prom prometheus-community/kube-prometheus-stack \
     --namespace prom \
     --version 14.4.0 \
-    --values test/utils/data/mccp-prometheus-values.yaml
+    --values ${args[1]}/test/utils/data/mccp-prometheus-values.yaml
   
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
@@ -108,7 +108,7 @@ function setup {
 
   if [ ${ACCEPTANCE_TESTS_DATABASE_TYPE} == "postgres" ]; then
     # Create postgres DB
-    kubectl apply -f test/utils/data/postgres-manifests.yaml
+    kubectl apply -f ${args[1]}/test/utils/data/postgres-manifests.yaml
     kubectl wait --for=condition=available --timeout=600s deployment/postgres
     POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
     kubectl create secret generic mccp-db-credentials --namespace wego-system --from-literal=username=postgres --from-literal=password=password

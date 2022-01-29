@@ -420,12 +420,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-
-			JustAfterEach(func() {
-				deleteRepo(gitProviderEnv)
-
-			})
-
 			It("@integration @git Verify pull request can be created for capi template to the management cluster", func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
@@ -546,12 +540,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-
-			JustAfterEach(func() {
-				deleteRepo(gitProviderEnv)
-
-			})
-
 			It("@integration @git Verify pull request can not be created by using exiting repository branch", func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
@@ -930,15 +918,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
-				deleteRepo(gitProviderEnv)
 
 				log.Println("Deleting all the wkp agents")
 				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
-				_ = gitopsTestRunner.ResetControllers("all")
+				_ = gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
-			FIt("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("When I create a private repository for cluster configs", func() {

@@ -49,8 +49,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 				templateFiles = []string{}
 
-				deleteRepo(gitProviderEnv)
-
 				err := runCommandPassThrough("kubectl", "config", "use-context", current_context)
 				Expect(err).ShouldNot(HaveOccurred())
 

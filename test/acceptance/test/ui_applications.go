@@ -157,10 +157,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				susspendGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
 				deleteGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
 				deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
-				_ = gitopsTestRunner.ResetControllers("core")
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
-				deleteRepo(gitProviderEnv)
 			})
 
 			It("@application Verify application's status and history can be monitored.", func() {
