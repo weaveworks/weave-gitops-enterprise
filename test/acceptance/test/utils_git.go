@@ -144,7 +144,7 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
 }
 
 func addSchemeToDomain(domain string) string {
-	if domain != "github.com" && domain != "gitlab.com" && !strings.HasPrefix(domain, "http://") && !strings.HasPrefix(domain, "https://") {
+	if domain != github.DefaultDomain && domain != gitlab.DefaultDomain && !strings.HasPrefix(domain, "http://") && !strings.HasPrefix(domain, "https://") {
 		return "https://" + domain
 	}
 	return domain

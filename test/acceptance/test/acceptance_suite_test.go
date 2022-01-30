@@ -55,6 +55,8 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	//Tear down the suite level setup
+
+	deleteRepo(gitProviderEnv) // Delete the config repository to keep the org clean
 	if webDriver != nil {
 		Expect(webDriver.Destroy()).To(Succeed())
 	}
