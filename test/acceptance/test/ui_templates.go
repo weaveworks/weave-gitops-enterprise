@@ -894,7 +894,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				paramSection["6.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
-						Value:  "", 
+						Value:  "",
 						Option: azureNodeMAchineType,
 					},
 				}
