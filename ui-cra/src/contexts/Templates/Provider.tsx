@@ -11,7 +11,6 @@ const TemplatesProvider: FC = ({ children }) => {
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
-  const [creatingPR, setCreatingPR] = useState<boolean>(false);
   const { setNotifications } = useNotifications();
 
   const history = useHistory();
@@ -37,11 +36,11 @@ const TemplatesProvider: FC = ({ children }) => {
   );
 
   const addCluster = useCallback(({ ...data }, token: string) => {
-    setCreatingPR(true);
+    setLoading(true);
     return request('POST', '/v1/clusters', {
       body: JSON.stringify(data),
       headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-    }).finally(() => setCreatingPR(false));
+    }).finally(() => setLoading(false));
   }, []);
 
   const getTemplates = useCallback(() => {
@@ -75,7 +74,6 @@ const TemplatesProvider: FC = ({ children }) => {
         renderTemplate,
         PRPreview,
         setPRPreview,
-        creatingPR,
       }}
     >
       {children}

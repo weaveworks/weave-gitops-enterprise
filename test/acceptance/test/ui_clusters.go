@@ -219,16 +219,6 @@ func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, 
 			Should(HaveText(leaf.Status))
 	})
 
-	// If leaf is not a WKP cluster skip the git activity check
-	if leaf.IsWKP {
-		By("And it should be showing the git activity", func() {
-			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("svg"), ASSERTION_2MINUTE_TIME_OUT).
-				Should(BeFound())
-			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("circle")).
-				Should(BeFound())
-		})
-	}
-
 	return clustersPage, clusterName, tokenURL[1]
 }
 
@@ -388,14 +378,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			By("And with Status column", func() {
 				Eventually(clustersPage.HeaderStatus).Should(HaveText("Status"))
-			})
-
-			By("And with Latest git activity column", func() {
-				Eventually(clustersPage.HeaderGitActivity).Should(HaveText("Latest git activity"))
-			})
-
-			By("And with Version (Nodes) column", func() {
-				Eventually(clustersPage.HeaderNodeVersion).Should(HaveText("Version ( Nodes )"))
 			})
 		})
 

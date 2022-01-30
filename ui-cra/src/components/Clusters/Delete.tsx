@@ -45,8 +45,7 @@ export const DeleteClusterDialog: FC<Props> = ({
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
-  const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
-    useClusters();
+  const { deleteCreatedClusters, loading, setSelectedClusters } = useClusters();
   const { notifications, setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
@@ -139,7 +138,7 @@ export const DeleteClusterDialog: FC<Props> = ({
           <CloseIconButton onClick={cleanUp} />
         </DialogTitle>
         <DialogContent>
-          {!creatingPR ? (
+          {!loading ? (
             <>
               <Input
                 label="Create branch"

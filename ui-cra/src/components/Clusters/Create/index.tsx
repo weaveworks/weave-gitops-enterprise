@@ -105,7 +105,7 @@ const AddCluster: FC = () => {
     renderTemplate,
     PRPreview,
     setPRPreview,
-    creatingPR,
+    loading,
     addCluster,
     setError,
   } = useTemplates();
@@ -349,7 +349,7 @@ const AddCluster: FC = () => {
                   showAuthDialog={showAuthDialog}
                   setShowAuthDialog={setShowAuthDialog}
                 />
-                {creatingPR && <Loader />}
+                {loading && <Loader />}
               </Grid>
               <Grid className={classes.steps} item md={3}>
                 <FormStepsNavigation
@@ -374,7 +374,7 @@ const AddCluster: FC = () => {
     classes,
     openPreview,
     PRPreview,
-    creatingPR,
+    loading,
     steps,
     activeStep,
     clickedStep,
