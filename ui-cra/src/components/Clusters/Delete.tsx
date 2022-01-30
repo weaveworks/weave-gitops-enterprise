@@ -27,7 +27,7 @@ import {
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
-import { useHistory } from 'react-router-dom';
+import { PRdefaults } from '.';
 
 interface Props {
   formData: any;
@@ -48,7 +48,6 @@ export const DeleteClusterDialog: FC<Props> = ({
   const { deleteCreatedClusters, creatingPR, setSelectedClusters } =
     useClusters();
   const { notifications, setNotifications } = useNotifications();
-  const history = useHistory();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -98,16 +97,14 @@ export const DeleteClusterDialog: FC<Props> = ({
       },
       getProviderToken(formData.provider as GitProvider),
     )
-      .then(() => {
+      .then(() =>
         setNotifications([
           {
             message: `PR created successfully`,
             variant: 'success',
           },
-        ]);
-        // history.push('/clusters');
-        // clearCallbackState();
-      })
+        ]),
+      )
       .catch(error => {
         setNotifications([{ message: error.message, variant: 'danger' }]);
         if (isUnauthenticated(error.code)) {
@@ -117,10 +114,11 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   const cleanUp = useCallback(() => {
     clearCallbackState();
-    setOpenDeletePR(false);
     setShowAuthDialog(false);
     setSelectedClusters([]);
-  }, [setOpenDeletePR, setSelectedClusters]);
+    setFormData(PRdefaults);
+    setOpenDeletePR(false);
+  }, [setOpenDeletePR, setSelectedClusters, setFormData]);
 
   useEffect(() => {
     if (

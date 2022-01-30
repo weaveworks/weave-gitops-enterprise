@@ -34,6 +34,14 @@ const ActionsWrapper = styled.div<Size>`
   }
 `;
 
+const random = Math.random().toString(36).substring(7);
+
+export const PRdefaults = {
+  branchName: `delete-clusters-branch-${random}`,
+  pullRequestTitle: 'Deletes capi cluster(s)',
+  commitMessage: 'Deletes capi cluster(s)',
+};
+
 const MCCP: FC = () => {
   const {
     clusters,
@@ -48,7 +56,6 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { repositoryURL } = useVersions();
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
@@ -59,8 +66,6 @@ const MCCP: FC = () => {
       selectedClusters.filter(cls => capiClusters.find(c => c.name === cls)),
     [capiClusters, selectedClusters],
   );
-
-  // console.log(selectedClusters, capiClusters, selectedCapiClusters);
 
   const authRedirectPage = `/clusters`;
 
@@ -78,13 +83,9 @@ const MCCP: FC = () => {
   }
 
   let initialFormData = {
+    ...PRdefaults,
     url: '',
-    branchName: `delete-clusters-branch-${random}`,
-    pullRequestTitle: 'Deletes capi cluster(s)',
-    commitMessage: 'Deletes capi cluster(s)',
-    pullRequestDescription: `Delete clusters: ${selectedCapiClusters
-      .map(c => c)
-      .join(', ')}`,
+    pullRequestDescription: '',
   };
 
   const callbackState = getCallbackState();
@@ -137,8 +138,6 @@ const MCCP: FC = () => {
     selectedClusters,
     repositoryURL,
   ]);
-
-  // console.log(callbackState);
 
   return (
     <PageTemplate documentTitle="WeGo · Clusters">
