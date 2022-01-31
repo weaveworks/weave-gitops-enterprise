@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -33,11 +34,12 @@ var (
 )
 
 const (
-	WGE_WINDOW_NAME          string = "weave-gitops-enterprise"
-	GITOPS_DEFAULT_NAMESPACE string = "wego-system"
-	SCREENSHOTS_DIR_NAME     string = "screenshots"
-	WINDOW_SIZE_X            int    = 1800
-	WINDOW_SIZE_Y            int    = 2500
+	WGE_WINDOW_NAME                string = "weave-gitops-enterprise"
+	GITOPS_DEFAULT_NAMESPACE       string = "wego-system"
+	CLUSTER_SERVICE_DEPLOYMENT_APP        = "my-mccp-cluster-service"
+	SCREENSHOTS_DIR_NAME           string = "screenshots"
+	WINDOW_SIZE_X                  int    = 1800
+	WINDOW_SIZE_Y                  int    = 2500
 
 	ASSERTION_DEFAULT_TIME_OUT   time.Duration = 15 * time.Second
 	ASSERTION_1SECOND_TIME_OUT   time.Duration = 1 * time.Second
@@ -101,6 +103,17 @@ func RandString(length int) string {
 	return stringWithCharset(length, charset)
 }
 
+func getCheckoutRepoPath() string {
+	currDir, err := os.Getwd()
+	Expect(err).ShouldNot(HaveOccurred())
+
+	re := regexp.MustCompile(`^(.*/weave-gitops-enterprise)`)
+	repoDir := re.FindStringSubmatch(currDir)
+	Expect(len(repoDir)).Should(Equal(2))
+
+	return repoDir[1]
+}
+
 func SetupTestEnvironment() {
 	SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 	DEFAULT_UI_URL = GetEnv("TEST_UI_URL", "http://localhost:8000")
@@ -116,6 +129,23 @@ func SetupTestEnvironment() {
 	Expect(err).ShouldNot(HaveOccurred())
 	err = os.MkdirAll(path.Join(ARTIFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME), 0700)
 	Expect(err).ShouldNot(HaveOccurred())
+}
+
+func InstallWeaveGitopsControllers() {
+	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
+		log.Info("No need to install Weave gitops controllers, managemnt cluster is already configured and setup.")
+
+	} else {
+		log.Info("Installing Weave gitops controllers on to management cluster along with respective configurations and setting such as config repo creation ertc.")
+
+		// Config repo must exist first before installing gitops controller
+		initAndCreateEmptyRepo(gitProviderEnv, true)
+
+		//wego-enterprise.sh script install core and enterprise controller and setup the management cluster along with required resources, secrets and entitlements etc.
+		checkoutRepoPath := getCheckoutRepoPath()
+		err := runCommandPassThrough(path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh"), "setup", checkoutRepoPath)
+		Expect(err).ShouldNot(HaveOccurred())
+	}
 }
 
 func GetEnv(key, fallback string) string {
@@ -176,7 +206,15 @@ func initializeWebdriver(wgeURL string) {
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
-func runCommandPassThrough(env []string, name string, arg ...string) error {
+func runCommandPassThrough(name string, arg ...string) error {
+	return runCommandPassThroughWithEnv([]string{}, name, arg...)
+}
+
+func runCommandPassThroughWithoutOutput(name string, arg ...string) error {
+	return runCommandPassThroughWithoutOutputWithEnv([]string{}, name, arg...)
+}
+
+func runCommandPassThroughWithEnv(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	if len(env) > 0 {
 		cmd.Env = env
@@ -186,7 +224,7 @@ func runCommandPassThrough(env []string, name string, arg ...string) error {
 	return cmd.Run()
 }
 
-func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string) error {
+func runCommandPassThroughWithoutOutputWithEnv(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	if len(env) > 0 {
 		cmd.Env = env
@@ -205,13 +243,13 @@ func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr
 
 func showItems(itemType string) error {
 	if itemType != "" {
-		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+		return runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
-	err := runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	err := runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 	if err != nil {
 		return fmt.Errorf("failed to get all resources %s", err)
 	}
-	return runCommandPassThrough([]string{}, "kubectl", "get", "crds", "-o", "wide")
+	return runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
 }
 
 func getDownloadedKubeconfigPath(clusterName string) string {
@@ -219,7 +257,7 @@ func getDownloadedKubeconfigPath(clusterName string) string {
 }
 
 func dumpClusterInfo(testName string) error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
+	return runCommandPassThrough("../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
 }
 
 // utility functions
