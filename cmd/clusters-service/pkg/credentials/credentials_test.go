@@ -71,7 +71,7 @@ func TestCheckCredentialsExist(t *testing.T) {
 		Version: "v1alpha4",
 	})
 
-	c := createFakeClient()
+	c := createFakeClient(t)
 	_ = c.Create(context.Background(), u)
 
 	creds := &capiv1_protos.Credential{
@@ -168,13 +168,16 @@ func convertToStringArray(in [][]byte) []string {
 	return result
 }
 
-func createFakeClient() client.Client {
+func createFakeClient(t *testing.T) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
