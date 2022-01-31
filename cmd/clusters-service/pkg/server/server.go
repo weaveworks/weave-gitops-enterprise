@@ -379,7 +379,7 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 		Namespace: nsName,
 		Name:      name,
 	}
-	err = s.client.Get(ctx, key, &sec)
+	err := s.client.Get(ctx, key, &sec)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
 	}
