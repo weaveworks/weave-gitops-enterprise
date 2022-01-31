@@ -221,7 +221,7 @@ jobs:
 
   smoke-tests:
     needs: [build]
-    uses: ./.github/workflows/acceptance-test.yaml
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@nightly_failing_tests
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -247,7 +247,7 @@ jobs:
 
   smoke-tests-gitlab:
     needs: [build]
-    uses: ./.github/workflows/acceptance-test.yaml
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@nightly_failing_tests
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -275,7 +275,7 @@ jobs:
 
   smoke-tests-gitlab-on-prem:
     needs: [build]
-    uses: ./.github/workflows/acceptance-test.yaml
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@nightly_failing_tests
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -303,7 +303,7 @@ jobs:
 
   acceptance-tests-github:
     needs: [build, lint, unit-tests, integration-tests, ui-integration-tests]
-    uses: ./.github/workflows/acceptance-test.yaml
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@nightly_failing_tests
     with:
       runs-on: ubuntu-latest
       os-name: linux
