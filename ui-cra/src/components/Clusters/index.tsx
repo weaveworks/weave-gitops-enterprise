@@ -18,7 +18,6 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  clearCallbackState,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';

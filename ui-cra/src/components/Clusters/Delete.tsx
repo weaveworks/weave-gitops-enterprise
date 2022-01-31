@@ -39,7 +39,7 @@ export const DeleteClusterDialog: FC<Props> = ({
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const { deleteCreatedClusters, loading, setSelectedClusters } = useClusters();
-  const { notifications, setNotifications } = useNotifications();
+  const { setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
