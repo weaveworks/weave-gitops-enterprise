@@ -362,10 +362,7 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	var nsName string
 	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
 
-	err := s.client.List(ctx, secs)
-	if err != nil {
-		return nil, fmt.Errorf("unable to list secrets in cluster: %w", err)
-	}
+	_ = s.client.List(ctx, secs)
 
 	for _, item := range secs.Items {
 		if item.Name == name {
