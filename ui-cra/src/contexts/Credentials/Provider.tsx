@@ -2,14 +2,11 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 import { Credential } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Credentials } from './index';
-import { useHistory } from 'react-router-dom';
 
 const CredentialsProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [error, setError] = React.useState<string | null>(null);
-
-  const history = useHistory();
 
   const credentialsUrl = '/v1/credentials';
 
