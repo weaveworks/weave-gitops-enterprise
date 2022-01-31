@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/internal/handlers/api/database"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api/database"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
