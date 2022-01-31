@@ -43,10 +43,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
-// const (
-// 	testNamespace = "testing"
-// )
-
 func TestListTemplates(t *testing.T) {
 	testCases := []struct {
 		name             string
@@ -1459,11 +1455,6 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
-	// var cc *charts.HelmChartClient
-	// if hr != nil {
-	// 	cc = makeChartClient(t, c, hr)
-	// }
-
 	s := NewClusterServer(logr.Discard(),
 		&templates.ConfigMapLibrary{
 			Log:           logr.Discard(),
@@ -1668,24 +1659,6 @@ func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
 	}
 	return committedFiles
 }
-
-// func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepository) *charts.HelmChartClient {
-// 	t.Helper()
-// 	tempDir, err := ioutil.TempDir("", "prefix")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	t.Cleanup(func() {
-// 		if err := os.RemoveAll(tempDir); err != nil {
-// 			t.Fatal(err)
-// 		}
-// 	})
-// 	cc := charts.NewHelmChartClient(cl, testNamespace, hr, charts.WithCacheDir(tempDir))
-// 	if err := cc.UpdateCache(context.TODO()); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	return cc
-// }
 
 type CommittedFile struct {
 	Path    string

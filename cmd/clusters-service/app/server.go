@@ -69,8 +69,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		Use:          "capi-server",
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			initializeConfig(cmd)
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return initializeConfig(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return StartServer(context.Background(), log, tempDir, p)
@@ -95,7 +95,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	return cmd
 }
 
-func initializeConfig(cmd *cobra.Command) {
+func initializeConfig(cmd *cobra.Command) error {
 	// Align flag and env var names
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -105,10 +105,15 @@ func initializeConfig(cmd *cobra.Command) {
 
 	// Read all flag values into viper
 	// So they can be read from `viper.Get`, (sometimes user by weave-gitops (core))
-	_ = viper.BindPFlags(cmd.Flags())
+	err := viper.BindPFlags(cmd.Flags())
+	if err != nil {
+		return err
+	}
 
 	// Set all unset flags values to their associated env vars value if env var is present
 	bindFlagValues(cmd)
+
+	return nil
 }
 
 func bindFlagValues(cmd *cobra.Command) {
