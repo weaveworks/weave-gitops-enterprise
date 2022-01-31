@@ -1,11 +1,4 @@
-import React, {
-  ChangeEvent,
-  FC,
-  useCallback,
-  useEffect,
-  useState,
-  Dispatch,
-} from 'react';
+import React, { ChangeEvent, FC, useCallback, useState, Dispatch } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -96,14 +89,15 @@ export const DeleteClusterDialog: FC<Props> = ({
       },
       getProviderToken(formData.provider as GitProvider),
     )
-      .then(() =>
+      .then(() => {
+        cleanUp();
         setNotifications([
           {
             message: `PR created successfully`,
             variant: 'success',
           },
-        ]),
-      )
+        ]);
+      })
       .catch(error => {
         setNotifications([{ message: error.message, variant: 'danger' }]);
         if (isUnauthenticated(error.code)) {
@@ -117,18 +111,7 @@ export const DeleteClusterDialog: FC<Props> = ({
     setSelectedClusters([]);
     setFormData(PRdefaults);
     setOpenDeletePR(false);
-  }, [setOpenDeletePR, setSelectedClusters, setFormData]);
-
-  useEffect(() => {
-    if (
-      notifications.length > 0 &&
-      notifications[notifications.length - 1].variant !== 'danger' &&
-      notifications[notifications.length - 1].message !==
-        'Authentication completed successfully. Please proceed with creating the PR.'
-    ) {
-      cleanUp();
-    }
-  }, [notifications, setOpenDeletePR, setSelectedClusters, cleanUp]);
+  }, [setSelectedClusters, setFormData, setOpenDeletePR]);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
