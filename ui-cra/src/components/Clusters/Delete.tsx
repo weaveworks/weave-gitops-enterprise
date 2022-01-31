@@ -1,11 +1,4 @@
-import React, {
-  ChangeEvent,
-  FC,
-  useCallback,
-  useEffect,
-  useState,
-  Dispatch,
-} from 'react';
+import React, { ChangeEvent, FC, useCallback, useState, Dispatch } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +8,6 @@ import {
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
-import useVersions from '../../contexts/Versions';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import {
@@ -28,6 +20,7 @@ import {
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
+import { PRdefaults } from '.';
 
 interface Props {
   formData: any;
@@ -44,10 +37,9 @@ export const DeleteClusterDialog: FC<Props> = ({
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-  const { repositoryURL } = useVersions();
 
   const { deleteCreatedClusters, loading, setSelectedClusters } = useClusters();
-  const { notifications, setNotifications } = useNotifications();
+  const { setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -93,18 +85,19 @@ export const DeleteClusterDialog: FC<Props> = ({
         title: formData.pullRequestTitle,
         commitMessage: formData.commitMessage,
         description: formData.pullRequestDescription,
-        repositoryUrl: repositoryURL,
+        repositoryUrl: formData.repositoryURL,
       },
       getProviderToken(formData.provider as GitProvider),
     )
-      .then(() =>
+      .then(() => {
+        cleanUp();
         setNotifications([
           {
             message: `PR created successfully`,
             variant: 'success',
           },
-        ]),
-      )
+        ]);
+      })
       .catch(error => {
         setNotifications([{ message: error.message, variant: 'danger' }]);
         if (isUnauthenticated(error.code)) {
@@ -114,34 +107,11 @@ export const DeleteClusterDialog: FC<Props> = ({
 
   const cleanUp = useCallback(() => {
     clearCallbackState();
-    setOpenDeletePR(false);
     setShowAuthDialog(false);
     setSelectedClusters([]);
-  }, [setOpenDeletePR, setSelectedClusters]);
-
-  useEffect(() => {
-    if (
-      notifications.length > 0 &&
-      notifications[notifications.length - 1].variant !== 'danger' &&
-      notifications[notifications.length - 1].message !==
-        'Authentication completed successfully. Please proceed with creating the PR.'
-    ) {
-      cleanUp();
-    }
-  }, [
-    notifications,
-    setOpenDeletePR,
-    setSelectedClusters,
-    cleanUp,
-    repositoryURL,
-  ]);
-
-  useEffect(() => {
-    setFormData((prevState: FormData) => ({
-      ...prevState,
-      url: repositoryURL,
-    }));
-  }, [repositoryURL, setFormData]);
+    setFormData(PRdefaults);
+    setOpenDeletePR(false);
+  }, [setSelectedClusters, setFormData, setOpenDeletePR]);
 
   return (
     <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>

@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -42,10 +41,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-)
-
-const (
-	testNamespace = "testing"
 )
 
 func TestListTemplates(t *testing.T) {
@@ -972,6 +967,9 @@ func TestGetKubeconfig(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			os.Setenv("CAPI_CLUSTERS_NAMESPACE", tt.clusterObjectsNamespace)
+			defer os.Unsetenv("CAPI_CLUSTERS_NAMESPACE")
+
 			db := createDatabase(t)
 			gp := NewFakeGitProvider("", nil, nil)
 			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace, nil)
@@ -1277,7 +1275,7 @@ func TestGetProvider(t *testing.T) {
 }
 
 func TestGenerateProfileFiles(t *testing.T) {
-	c := createClient(makeTestHelmRepository("base"))
+	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		"testing",
@@ -1330,7 +1328,7 @@ status: {}
 }
 
 func TestGenerateProfileFilesWithLayers(t *testing.T) {
-	c := createClient(makeTestHelmRepository("base"))
+	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		"testing",
@@ -1425,19 +1423,23 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		},
 	}
 
-	result := getProfilesFromTemplate(annotations)
+	result, err := getProfilesFromTemplate(annotations)
+	assert.NoError(t, err)
 
 	assert.Equal(t, result, expected)
 }
 
-func createClient(clusterState ...runtime.Object) client.Client {
+func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1beta1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).
@@ -1449,14 +1451,9 @@ func createClient(clusterState ...runtime.Object) client.Client {
 
 func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1beta1.HelmRepository) capiv1_protos.ClustersServiceServer {
 
-	c := createClient(clusterState...)
+	c := createClient(t, clusterState...)
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
-
-	// var cc *charts.HelmChartClient
-	// if hr != nil {
-	// 	cc = makeChartClient(t, c, hr)
-	// }
 
 	s := NewClusterServer(logr.Discard(),
 		&templates.ConfigMapLibrary{
@@ -1663,24 +1660,6 @@ func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
 	return committedFiles
 }
 
-func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepository) *charts.HelmChartClient {
-	t.Helper()
-	tempDir, err := ioutil.TempDir("", "prefix")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if err := os.RemoveAll(tempDir); err != nil {
-			t.Fatal(err)
-		}
-	})
-	cc := charts.NewHelmChartClient(cl, testNamespace, hr, charts.WithCacheDir(tempDir))
-	if err := cc.UpdateCache(context.TODO()); err != nil {
-		t.Fatal(err)
-	}
-	return cc
-}
-
 type CommittedFile struct {
 	Path    string
 	Content string
@@ -1693,7 +1672,11 @@ func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
 		if err != nil {
 			t.Fatal(err)
 		}
-		w.Write(b)
+
+		_, err = w.Write(b)
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
 	mux.Handle("/", http.FileServer(http.Dir("../charts/testdata")))
 	return mux

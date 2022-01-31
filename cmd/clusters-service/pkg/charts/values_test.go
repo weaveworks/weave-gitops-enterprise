@@ -2,7 +2,6 @@ package charts
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -57,7 +56,7 @@ func TestValuesForChart(t *testing.T) {
 
 func TestValuesForChart_basic_auth_via_Secret(t *testing.T) {
 	fc := makeTestClient(t, makeTestSecret("test", "password"))
-	ts := httptest.NewServer(basicAuthHandler(makeServeMux(t), "test", "password"))
+	ts := httptest.NewServer(basicAuthHandler(t, makeServeMux(t), "test", "password"))
 	defer ts.Close()
 
 	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
@@ -91,7 +90,7 @@ func TestUpdateCache_with_bad_url(t *testing.T) {
 
 func TestUpdateCache_with_missing_missing_secret_for_auth(t *testing.T) {
 	fc := makeTestClient(t)
-	ts := httptest.NewServer(basicAuthHandler(makeServeMux(t), "test", "password"))
+	ts := httptest.NewServer(basicAuthHandler(t, makeServeMux(t), "test", "password"))
 	defer ts.Close()
 	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
 		hr.Spec.SecretRef = &fluxmeta.LocalObjectReference{
@@ -300,7 +299,11 @@ func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
 		if err != nil {
 			t.Fatal(err)
 		}
-		w.Write(b)
+		_, err = w.Write(b)
+		if err != nil {
+			t.Fatal(err)
+		}
+
 	})
 	mux.Handle("/", http.FileServer(http.Dir("testdata")))
 	return mux
@@ -319,7 +322,7 @@ func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
 	ri := &repo.IndexFile{
 		APIVersion: "v1",
 		Entries: map[string]repo.ChartVersions{
-			"demo-profile": repo.ChartVersions{
+			"demo-profile": {
 				{
 					Metadata: &chart.Metadata{
 						Annotations: map[string]string{
@@ -348,16 +351,19 @@ func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
 	return ri
 }
 
-func basicAuthHandler(next http.Handler, user, pass string) http.Handler {
+func basicAuthHandler(t *testing.T, next http.Handler, user, pass string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		u, p, ok := r.BasicAuth()
 		if ok && (u == user && p == pass) {
 			next.ServeHTTP(w, r)
 			return
 		}
-		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="test"`))
+		w.Header().Set("WWW-Authenticate", `Basic realm="test"`)
 		w.WriteHeader(401)
-		w.Write([]byte("401 Unauthorized\n"))
+		_, err := w.Write([]byte("401 Unauthorized\n"))
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
 }
 

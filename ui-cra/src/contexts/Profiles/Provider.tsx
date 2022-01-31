@@ -183,8 +183,7 @@ const ProfilesProvider: FC = ({ children }) => {
 
   useEffect(() => {
     getProfiles();
-    return history.listen(getProfiles);
-  }, [history, getProfiles, activeTemplate, getProfileValues]);
+  }, [getProfiles]);
 
   useEffect(() => {
     // get default / required profiles for the active template
