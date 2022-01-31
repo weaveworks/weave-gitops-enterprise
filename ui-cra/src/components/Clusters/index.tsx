@@ -34,6 +34,14 @@ const ActionsWrapper = styled.div<Size>`
   }
 `;
 
+const random = Math.random().toString(36).substring(7);
+
+export const PRdefaults = {
+  branchName: `delete-clusters-branch-${random}`,
+  pullRequestTitle: 'Deletes capi cluster(s)',
+  commitMessage: 'Deletes capi cluster(s)',
+};
+
 const MCCP: FC = () => {
   const {
     clusters,
@@ -48,13 +56,12 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { repositoryURL } = useVersions();
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
   );
-  const selectedCapiClusters = useMemo(
+  let selectedCapiClusters = useMemo(
     () =>
       selectedClusters.filter(cls => capiClusters.find(c => c.name === cls)),
     [capiClusters, selectedClusters],
@@ -75,13 +82,9 @@ const MCCP: FC = () => {
     pullRequestDescription: string;
   }
 
-  let initialSelectedCapiClusters = selectedCapiClusters;
-
   let initialFormData = {
-    url: repositoryURL,
-    branchName: `delete-clusters-branch`,
-    pullRequestTitle: 'Deletes capi cluster(s)',
-    commitMessage: 'Deletes capi cluster(s)',
+    ...PRdefaults,
+    url: '',
     pullRequestDescription: '',
   };
 
@@ -92,14 +95,13 @@ const MCCP: FC = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
-    initialSelectedCapiClusters = [
-      ...initialSelectedCapiClusters,
+    selectedCapiClusters = [
+      ...selectedCapiClusters,
       ...(callbackState.state.selectedCapiClusters || []),
     ];
   }
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
-
   const history = useHistory();
   const { activeTemplate } = useTemplates();
 
@@ -112,20 +114,18 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   useEffect(() => {
-    if (!callbackState && selectedClusters.length === 0) {
-      setOpenDeletePR(false);
-    }
-
     if (!callbackState) {
       setFormData((prevState: FormData) => ({
         ...prevState,
-        branchName: `delete-clusters-branch-${random}`,
-        pullRequestTitle: 'Deletes capi cluster(s)',
-        commitMessage: 'Deletes capi cluster(s)',
-        pullRequestDescription: `Delete clusters: ${initialSelectedCapiClusters
+        url: repositoryURL,
+        pullRequestDescription: `Delete clusters: ${selectedCapiClusters
           .map(c => c)
           .join(', ')}`,
       }));
+    }
+
+    if (!callbackState && selectedClusters.length === 0) {
+      setOpenDeletePR(false);
     }
 
     if (callbackState?.state?.selectedCapiClusters?.length > 0) {
@@ -133,10 +133,10 @@ const MCCP: FC = () => {
     }
   }, [
     callbackState,
-    initialSelectedCapiClusters,
-    random,
+    selectedCapiClusters,
     capiClusters,
     selectedClusters,
+    repositoryURL,
   ]);
 
   return (
@@ -171,7 +171,7 @@ const MCCP: FC = () => {
             <Tooltip
               title="No CAPI clusters selected"
               placement="top"
-              disabled={initialSelectedCapiClusters.length !== 0}
+              disabled={selectedCapiClusters.length !== 0}
             >
               <div>
                 <Button
@@ -182,7 +182,7 @@ const MCCP: FC = () => {
                     setOpenDeletePR(true);
                   }}
                   color="secondary"
-                  disabled={initialSelectedCapiClusters.length === 0}
+                  disabled={selectedCapiClusters.length === 0}
                 >
                   CREATE A PR TO DELETE CLUSTERS
                 </Button>
@@ -192,7 +192,7 @@ const MCCP: FC = () => {
               <DeleteClusterDialog
                 formData={formData}
                 setFormData={setFormData}
-                selectedCapiClusters={initialSelectedCapiClusters}
+                selectedCapiClusters={selectedCapiClusters}
                 setOpenDeletePR={setOpenDeletePR}
               />
             )}
