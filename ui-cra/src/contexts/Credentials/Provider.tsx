@@ -31,8 +31,7 @@ const CredentialsProvider: FC = ({ children }) => {
 
   useEffect(() => {
     getCredentials();
-    return history.listen(getCredentials);
-  }, [history, getCredentials]);
+  }, [getCredentials]);
 
   return (
     <Credentials.Provider
