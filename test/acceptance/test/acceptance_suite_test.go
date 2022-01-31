@@ -50,10 +50,13 @@ var _ = BeforeSuite(func() {
 
 	SetDefaultEventuallyTimeout(ASSERTION_DEFAULT_TIME_OUT) //Things are slow on WKP UI
 	SetupTestEnvironment()                                  // Read OS environment variables and initialize the test environment
+	InstallWeaveGitopsControllers()                         // Install weave gitops core and enterprise controllers
 })
 
 var _ = AfterSuite(func() {
 	//Tear down the suite level setup
+
+	deleteRepo(gitProviderEnv) // Delete the config repository to keep the org clean
 	if webDriver != nil {
 		Expect(webDriver.Destroy()).To(Succeed())
 	}

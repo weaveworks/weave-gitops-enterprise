@@ -17,9 +17,6 @@ function setup {
     exit 1
   fi
 
-  UI_NODEPORT=30080
-  NATS_NODEPORT=31490
-
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
     WORKER_NAME=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
     WORKER_NODE_EXTERNAL_IP=$(kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='${WORKER_NAME}')].status.addresses[?(@.type=='ExternalIP')].address}")
@@ -47,8 +44,6 @@ function setup {
   if [ -z $hostEntry ]; then
     echo "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
   fi
-  echo "TEST_UI_URL=http://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}" >> $GITHUB_ENV
-  echo "TEST_CAPI_ENDPOINT_URL=http://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}" >> $GITHUB_ENV
 
   kubectl create namespace prom
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -56,7 +51,7 @@ function setup {
   helm install my-prom prometheus-community/kube-prometheus-stack \
     --namespace prom \
     --version 14.4.0 \
-    --values test/utils/data/mccp-prometheus-values.yaml
+    --values ${args[1]}/test/utils/data/mccp-prometheus-values.yaml
   
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
@@ -64,7 +59,7 @@ function setup {
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
   fi
   helm repo update  
-    
+  
   kubectl create ns wego-system
   if [ ${GIT_PROVIDER} == "github" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
@@ -91,6 +86,9 @@ function setup {
     fi
   fi
 
+  # Install weave gitops core controllers
+  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} --auto-merge
+ 
   kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
   kubectl apply -f ${args[1]}/test/utils/data/gitlab-on-prem-ssh-config.yaml
   CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
@@ -110,7 +108,7 @@ function setup {
 
   if [ ${ACCEPTANCE_TESTS_DATABASE_TYPE} == "postgres" ]; then
     # Create postgres DB
-    kubectl apply -f test/utils/data/postgres-manifests.yaml
+    kubectl apply -f ${args[1]}/test/utils/data/postgres-manifests.yaml
     kubectl wait --for=condition=available --timeout=600s deployment/postgres
     POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
     kubectl create secret generic mccp-db-credentials --namespace wego-system --from-literal=username=postgres --from-literal=password=password
@@ -139,6 +137,8 @@ function setup {
   fi
 
   # Install resources for bootstrapping and CNI
+  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
+  
   if [ ${EXP_CLUSTER_RESOURCE_SET} = true ]; then
     kubectl wait --for=condition=Ready --timeout=300s -n capi-system --all pod
     kubectl apply -f ${args[1]}/test/utils/data/calico-crs.yaml
