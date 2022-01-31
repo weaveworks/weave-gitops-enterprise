@@ -420,17 +420,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			var repoAbsolutePath string
-
-			JustAfterEach(func() {
-				deleteRepo(gitProviderEnv)
-
-			})
-
 			It("@integration @git Verify pull request can be created for capi template to the management cluster", func() {
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("And repo created has private visibility", func() {
@@ -546,20 +540,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			var repoAbsolutePath string
-
-			JustAfterEach(func() {
-				deleteRepo(gitProviderEnv)
-
-			})
-
 			It("@integration @git Verify pull request can not be created by using exiting repository branch", func() {
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+
 				if gitProviderEnv.Type == GitProviderGitLab {
 					Skip("Temporary skipping because the Gitops section resets afer oauth redirecrtion")
 				}
 
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				branchName := "test-branch"
@@ -923,7 +912,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					KubeconfigPath:  "",
 				}
 				connectACluster(webDriver, gitopsTestRunner, leaf)
-				TakeScreenShot("test-screenshot")
 			})
 
 			JustAfterEach(func() {
@@ -931,20 +919,17 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
 
-				deleteRepo(gitProviderEnv)
-
 				log.Println("Deleting all the wkp agents")
 				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
-				_ = gitopsTestRunner.ResetControllers("all")
+				_ = gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
 			It("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
-				DEPLOYMENT_APP := "my-mccp-cluster-service"
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("And I install gitops to my active cluster", func() {
@@ -952,16 +937,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 				})
 
-				By("And I install profiles (enhanced helm chart)", func() {
-					installProfiles("weaveworks-charts", GITOPS_DEFAULT_NAMESPACE)
-				})
-
-				By("And I restart the cluster-service now that flux CRDs installed and profiles available to scan immediately", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
-				})
-
 				By("Wait for cluster-service to cache profiles", func() {
-					Expect(waitForProfiles(context.Background(), 30*time.Second)).To(Succeed())
+					Expect(waitForProfiles(context.Background(), ASSERTION_30SECONDS_TIME_OUT)).To(Succeed())
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
@@ -1100,7 +1077,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I add a test kustomization file to the management appliction (because flux doesn't reconcile empty folders on deletion)", func() {
 					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
 					gitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
@@ -1175,7 +1152,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
 					clusterFound := func() error {
-						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
+						return runCommandPassThrough("kubectl", "get", "cluster", clusterName)
 					}
 					Eventually(clusterFound, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})

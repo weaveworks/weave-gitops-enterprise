@@ -101,6 +101,10 @@ func extractOrgAndRepo(url string) (string, string) {
 	return matches[1], matches[2]
 }
 
+func configRepoAbsolutePath(gp GitProviderEnv) string {
+	return path.Join(os.Getenv("HOME"), gp.Repo)
+}
+
 func getRepoVisibility(gp GitProviderEnv) string {
 	gitProvider, orgRef, err := getGitProvider(gp.Type, gp.Org, gp.Repo, gp.Token, gp.TokenType, gp.Hostname)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -113,8 +117,8 @@ func getRepoVisibility(gp GitProviderEnv) string {
 	return visibility
 }
 
-func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) string {
-	repoAbsolutePath := path.Join("/tmp/", gp.Repo)
+func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
+	repoAbsolutePath := configRepoAbsolutePath(gp)
 
 	deleteRepo(gp)
 	err := deleteDirectory([]string{repoAbsolutePath})
@@ -137,12 +141,10 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) string {
 		return nil
 	})
 	Expect(err).ShouldNot(HaveOccurred())
-
-	return repoAbsolutePath
 }
 
 func addSchemeToDomain(domain string) string {
-	if domain != "github.com" && domain != "gitlab.com" && !strings.HasPrefix(domain, "http://") && !strings.HasPrefix(domain, "https://") {
+	if domain != github.DefaultDomain && domain != gitlab.DefaultDomain && !strings.HasPrefix(domain, "http://") && !strings.HasPrefix(domain, "https://") {
 		return "https://" + domain
 	}
 	return domain
@@ -319,7 +321,7 @@ func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 		commitMessage = "edit repo file"
 	}
 
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m '%s' && git pull --rebase && git push origin HEAD", repoAbsolutePath, commitMessage))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m '%s' && git pull --rebase && git push origin HEAD", repoAbsolutePath, commitMessage))
 }
 
 func getGitRepositoryURL(repoAbsolutePath string) string {

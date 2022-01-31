@@ -143,6 +143,8 @@ env:
   GITLAB_PASSWORD: ${{ secrets.WGE_GITLAB_PASSWORD }}
   GITLAB_CLIENT_ID: ${{ secrets.WGE_GITLAB_CLIENT_ID }}
   GITLAB_CLIENT_SECRET: ${{ secrets.WGE_GITLAB_CLIENT_SECRET }}
+  UI_NODEPORT: 30080
+  NATS_NODEPORT: 31490
   MANAGEMENT_CLUSTER_CNAME: weave.gitops.enterprise.com
   MANAGEMENT_CLUSTER_KIND: ${{ inputs.management-cluster-kind }}
   GITOPS_BIN_PATH: ${{ inputs.gitops-bin-path }}
@@ -321,20 +323,7 @@ jobs:
         elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
           kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.21.1 --config test/utils/data/local-kind-config.yaml
           kubectl get pods -A   
-        fi   
-    - name: Install wego enterprise components on management cluster
-      run: |        
-        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
-        # Set the CLUSTER_REPOSITORY as environment variable for subsequent steps
-        echo "CLUSTER_REPOSITORY=$CLUSTER_REPOSITORY" >> $GITHUB_ENV        
-
-        if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER_HOSTNAME }} != "gitlab.com" ]; then
-          export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
-          echo "GITOPS_GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES" >> $GITHUB_ENV
-          echo "GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" >> $GITHUB_ENV
         fi
-        
-        ./test/utils/scripts/wego-enterprise.sh setup ${{ github.workspace }}
     - name: Setup connect leaf cluster
       if: ${{ (inputs.management-cluster-kind == 'eks') || (inputs.management-cluster-kind == 'gke') }}
       run: |
@@ -346,9 +335,19 @@ jobs:
         fi
     - name: Run Acceptance tests
       run: |
+        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)        
+
+        if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER_HOSTNAME }} != "gitlab.com" ]; then
+          export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
+          export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
+        fi
+       
+        export TEST_UI_URL=http://${{ env.MANAGEMENT_CLUSTER_CNAME }}:${{ env.UI_NODEPORT }}
+        export TEST_CAPI_ENDPOINT_URL=http://${{ env.MANAGEMENT_CLUSTER_CNAME }}:${{ env.UI_NODEPORT }}
+
         # Set the ACCEPTANCE_TEST_ARTIFACT_NAME as environment variable for subsequent steps
         ACCEPTANCE_TEST_ARTIFACT_NAME=$(basename ${{ env.ARTIFACTS_BASE_DIR }})-artifacts
-        echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV
+        echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV     
 
         cd test/acceptance/test/
         go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s        

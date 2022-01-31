@@ -128,7 +128,6 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops application UI Tests", func() {
-		var repoAbsolutePath string
 
 		BeforeEach(func() {
 
@@ -158,15 +157,15 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				susspendGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
 				deleteGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE)
 				deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
-				_ = gitopsTestRunner.ResetControllers("core")
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
-				deleteRepo(gitProviderEnv)
 			})
 
 			It("@application Verify application's status and history can be monitored.", func() {
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
@@ -175,7 +174,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I add the kustomization file for application deployment", func() {
 					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
 					gitUpdateCommitPush(repoAbsolutePath, kustomizationCommitMsg)
 				})
 

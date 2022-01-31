@@ -27,7 +27,7 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 	timeoutInSeconds := int(timeout.Seconds())
 	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
 		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
-		err := runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace))
+		err := runCommandPassThroughWithoutOutput("sh", "-c", fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace))
 		if err == nil {
 			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -62,10 +62,7 @@ func verifyCoreControllers(namespace string) {
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "180s", namespace))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_3MINUTE_TIME_OUT).Should(gexec.Exit())
+		controllersStatuses("Ready", "180s", namespace)
 	})
 }
 
@@ -82,11 +79,19 @@ func verifyEnterpriseControllers(releaseName string, mccpPrefix, namespace strin
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops enterprise controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "180s", namespace))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_3MINUTE_TIME_OUT).Should(gexec.Exit())
+		controllersStatuses("Ready", "180s", namespace)
 	})
+}
+
+func controllersStatuses(status string, timeout string, namespace string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=%s --timeout=%s -n %s --all pod --selector='app!=wego-app'", status, timeout, namespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, ASSERTION_3MINUTE_TIME_OUT).Should(gexec.Exit())
+}
+
+func controllerStatus(controllerName, namespace string) error {
+	return runCommandPassThroughWithoutOutput("sh", "-c", fmt.Sprintf("kubectl rollout status deployment %s -n %s", controllerName, namespace))
 }
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {
@@ -104,6 +109,10 @@ func verifyWegoAddCommand(appName string, namespace string) {
 }
 
 func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
+
+	// Deploy key secret should not exist already
+	deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
+
 	By("And I run 'gitops install' command with namespace "+gitopsNamespace, func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", GITOPS_BIN_PATH, manifestRepoURL, gitopsNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -114,22 +123,12 @@ func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 	})
 }
 
-func installProfiles(chartName string, nameSpace string) {
-	err := runCommandPassThroughWithoutOutput([]string{}, "kubectl", "get", "HelmRepository", chartName, "-n", nameSpace)
-	if err != nil {
-		err = runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/profile-repo.yaml")
-		Expect(err).To(BeNil(), "Failed to install profiles (enhanced helm chart)")
-		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=180s HelmRepository %s -n %s", chartName, nameSpace))
-	}
-}
-
 func removeGitopsCapiClusters(appName string, clusternames []string, nameSpace string) {
 	susspendGitopsApplication(appName, nameSpace)
 
 	deleteClusters("capi", clusternames)
 
 	deleteGitopsApplication(appName, nameSpace)
-	deleteGitopsDeploySecret(nameSpace)
 }
 
 func susspendGitopsApplication(appName string, nameSpace string) {
@@ -200,7 +199,7 @@ func clusterWorkloadNonePublicIP(clusterKind string) string {
 
 func createCluster(clusterType string, clusterName string, configFile string) {
 	if clusterType == "kind" {
-		err := runCommandPassThrough([]string{}, "kind", "create", "cluster", "--name", clusterName, "--image=kindest/node:v1.20.7", "--config", "../../utils/data/"+configFile)
+		err := runCommandPassThrough("kind", "create", "cluster", "--name", clusterName, "--image=kindest/node:v1.20.7", "--config", "../../utils/data/"+configFile)
 		Expect(err).ShouldNot(HaveOccurred())
 	} else {
 		Fail(fmt.Sprintf("%s cluster type is not supported for test WGE upgrade", clusterType))
@@ -211,15 +210,15 @@ func deleteClusters(clusterType string, clusters []string) {
 	for _, cluster := range clusters {
 		if clusterType == "kind" {
 			log.Printf("Deleting cluster: %s", cluster)
-			err := runCommandPassThrough([]string{}, "kind", "delete", "cluster", "--name", cluster)
+			err := runCommandPassThrough("kind", "delete", "cluster", "--name", cluster)
 			Expect(err).ShouldNot(HaveOccurred())
 		} else {
-			err := runCommandPassThrough([]string{}, "kubectl", "get", "cluster", cluster)
+			err := runCommandPassThrough("kubectl", "get", "cluster", cluster)
 			if err == nil {
 				log.Printf("Deleting cluster: %s", cluster)
-				err := runCommandPassThrough([]string{}, "kubectl", "delete", "cluster", cluster)
+				err := runCommandPassThrough("kubectl", "delete", "cluster", cluster)
 				Expect(err).ShouldNot(HaveOccurred())
-				err = runCommandPassThrough([]string{}, "kubectl", "get", "cluster", cluster)
+				err = runCommandPassThrough("kubectl", "get", "cluster", cluster)
 				Expect(err).Should(HaveOccurred(), fmt.Sprintf("Failed to delete cluster %s", cluster))
 			}
 		}

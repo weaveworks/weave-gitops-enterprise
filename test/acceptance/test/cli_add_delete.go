@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -15,11 +16,13 @@ import (
 
 func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops add Tests", func() {
+		var repoAbsolutePath string
 		templateFiles := []string{}
 		var session *gexec.Session
 		var err error
 
 		BeforeEach(func() {
+			repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
 
 			By("Given I have a gitops binary installed on my local machine", func() {
 				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
@@ -36,11 +39,6 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[CLI] When Capi Templates are available in the cluster", func() {
-			JustAfterEach(func() {
-				deleteRepo(gitProviderEnv)
-
-			})
-
 			It("@git Verify gitops can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
@@ -138,9 +136,8 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("@smoke @git Verify gitops can create pull requests to management cluster", func() {
-				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				// CAPD Parameter values
@@ -255,9 +252,8 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("@git Verify giops can not create pull request to management cluster using existing branch", func() {
-				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				branchName := "test-branch"
@@ -413,11 +409,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters(appName, capdClusterNames, GITOPS_DEFAULT_NAMESPACE)
 
-				deleteRepo(gitProviderEnv)
-
 				log.Println("Deleting all the wkp agents")
 				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
-				_ = gitopsTestRunner.ResetControllers("all")
+				_ = gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
@@ -427,9 +421,8 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.VerifyWegoPodsRunning()
 				})
 
-				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(gitProviderEnv, true)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("And I install gitops to my active cluster", func() {
@@ -437,8 +430,8 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 				})
 
-				By("And I install profiles (enhanced helm chart)", func() {
-					installProfiles("weaveworks-charts", GITOPS_DEFAULT_NAMESPACE)
+				By("Wait for cluster-service to cache profiles", func() {
+					Expect(waitForProfiles(context.Background(), ASSERTION_30SECONDS_TIME_OUT)).To(Succeed())
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
@@ -483,7 +476,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 					By("And I add a test kustomization file to the management appliction (because flux doesn't reconcile empty folders on deletion)", func() {
 						pullGitRepo(repoAbsolutePath)
-						_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
+						_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
 						gitUpdateCommitPush(repoAbsolutePath, "")
 					})
 
@@ -586,7 +579,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
 					clusterFound := func() error {
-						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
+						return runCommandPassThrough("kubectl", "get", "cluster", clusterName)
 					}
 					Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})
