@@ -971,6 +971,9 @@ func TestGetKubeconfig(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			os.Setenv("CAPI_CLUSTERS_NAMESPACE", tt.clusterObjectsNamespace)
+			defer os.Unsetenv("CAPI_CLUSTERS_NAMESPACE")
+
 			db := createDatabase(t)
 			gp := NewFakeGitProvider("", nil, nil)
 			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace, nil)
