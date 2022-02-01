@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
@@ -70,12 +69,6 @@ type Params struct {
 	watcherPort                  int
 	AgentTemplateNatsURL         string
 	AgentTemplateAlertmanagerURL string
-	PrivKeyFile                  string
-	GitURL                       string
-	GitBranch                    string
-	GitPath                      string
-	HttpReadTimeout              time.Duration
-	HttpWriteTimeout             time.Duration
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -108,12 +101,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wkp-gitops-repo-broker:4222", "Value used to populate the nats URL in /api/agent.yaml")
-	cmd.Flags().StringVar(&p.PrivKeyFile, "git-private-key-file", "", "Path to a SSH private key that is authorized for pull/push from/to the git repo specified by --git-url")
-	cmd.Flags().StringVar(&p.GitURL, "git-url", "", "Remote URL of the GitOps repository. Only the SSH protocol is supported. No HTTP/HTTPS.")
-	cmd.Flags().StringVar(&p.GitBranch, "git-branch", "master", "Branch that will be used by GitOps")
-	cmd.Flags().StringVar(&p.GitPath, "git-path", "/", "Subdirectory of the GitOps repository where configuration as code can be found.")
-	cmd.Flags().DurationVar(&p.HttpReadTimeout, "http-read-timeout", 30*time.Second, "ReadTimeout is the maximum duration for reading the entire request, including the body.")
-	cmd.Flags().DurationVar(&p.HttpWriteTimeout, "http-write-timeout", 30*time.Second, "WriteTimeout is the maximum duration before timing out writes of the response.")
 
 	return cmd
 }
