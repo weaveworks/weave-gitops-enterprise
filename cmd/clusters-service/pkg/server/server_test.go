@@ -41,6 +41,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 )
 
 func TestListTemplates(t *testing.T) {
@@ -1461,7 +1462,7 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 			Client:        c,
 			ConfigMapName: configMapName,
 			Namespace:     namespace,
-		}, provider, c, dc, db, ns, "weaveworks-charts", "")
+		}, provider, kubefakes.NewFakeClientGetter(c), dc, db, ns, "weaveworks-charts", "")
 
 	return s
 }
