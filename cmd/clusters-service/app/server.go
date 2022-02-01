@@ -106,11 +106,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.watcherHealthzBindAddress, "watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
 	cmd.Flags().StringVar(&p.watcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
-
-	// WIP
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wkp-gitops-repo-broker:4222", "Value used to populate the nats URL in /api/agent.yaml")
-
 	cmd.Flags().StringVar(&p.PrivKeyFile, "git-private-key-file", "", "Path to a SSH private key that is authorized for pull/push from/to the git repo specified by --git-url")
 	cmd.Flags().StringVar(&p.GitURL, "git-url", "", "Remote URL of the GitOps repository. Only the SSH protocol is supported. No HTTP/HTTPS.")
 	cmd.Flags().StringVar(&p.GitBranch, "git-branch", "master", "Branch that will be used by GitOps")
@@ -338,8 +335,8 @@ func RunInProcessGateway(ctx context.Context, addr string, p Params, setters ...
 	httpHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
 
-	gitopsBrokerHttpHandler := getGitopsBrokerMux(p, args.Database)
-	mux.Handle("/gitops/", gitopsBrokerHttpHandler)
+	gitopsBrokerHandler := getGitopsBrokerMux(p, args.Database)
+	mux.Handle("/gitops/", gitopsBrokerHandler)
 
 	s := &http.Server{
 		Addr:    addr,
