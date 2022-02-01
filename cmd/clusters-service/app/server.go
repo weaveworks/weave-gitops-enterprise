@@ -227,7 +227,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}()
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
-		p,
 		WithLog(log),
 		WithProfileHelmRepository(p.helmRepoName),
 		WithEntitlementSecretKey(client.ObjectKey{
@@ -254,11 +253,12 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		),
 		WithCAPIClustersNamespace(ns),
 		WithHelmRepositoryCacheDirectory(tempDir),
+		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL),
 	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
-func RunInProcessGateway(ctx context.Context, addr string, p Params, setters ...Option) error {
+func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) error {
 
 	args := defaultOptions()
 	for _, setter := range setters {
@@ -322,7 +322,7 @@ func RunInProcessGateway(ctx context.Context, addr string, p Params, setters ...
 	httpHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
 
-	gitopsBrokerHandler := getGitopsBrokerMux(p, args.Database)
+	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 	mux.Handle("/gitops/", gitopsBrokerHandler)
 
 	s := &http.Server{
@@ -425,10 +425,10 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	}
 }
 
-func getGitopsBrokerMux(p Params, db *gorm.DB) *mux.Router {
+func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/agent.yaml", agent.NewGetHandler(db, p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL)).Methods("GET")
+	r.HandleFunc("/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
 	r.HandleFunc("/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
 	r.HandleFunc("/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
 	r.HandleFunc("/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")
