@@ -58,7 +58,8 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	}
 	go func(ctx context.Context) {
 		appsConfig := fakeAppsConfig(c)
-		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001",
+		p := app.Params{}
+		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001", p,
 			app.WithCAPIClustersNamespace("default"),
 			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
 			app.WithKubernetesClient(c),
