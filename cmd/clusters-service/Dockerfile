@@ -26,7 +26,7 @@ COPY go.sum /workspace/go.sum
 # copy in other module dependencies
 COPY common/ /workspace/common/
 COPY pkg/ /workspace/pkg/
-COPY pkg/ /dist
+COPY ui-cra/build /dist
 
 # cache modules
 RUN go mod download
