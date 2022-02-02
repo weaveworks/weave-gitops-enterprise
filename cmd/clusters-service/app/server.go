@@ -2,12 +2,15 @@ package app
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -16,6 +19,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -325,6 +329,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 	mux.Handle("/gitops/", gitopsBrokerHandler)
 
+	// UI
+	var log = logrus.New()
+	assetFS := getAssets()
+	assetHandler := http.FileServer(http.FS(assetFS))
+	redirector := createRedirector(assetFS, log)
+
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		extension := filepath.Ext(req.URL.Path)
+
+		if extension == "" {
+			redirector(w, req)
+			return
+		}
+		assetHandler.ServeHTTP(w, req)
+	}))
+
 	s := &http.Server{
 		Addr:    addr,
 		Handler: httpHandler,
@@ -437,4 +457,59 @@ func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL strin
 	r.HandleFunc("/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")
 
 	return r
+}
+
+//go:embed dist/*
+var static embed.FS
+
+func getAssets() fs.FS {
+	f, err := fs.Sub(static, "dist")
+
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}
+
+// A redirector ensures that index.html always gets served.
+// The JS router will take care of actual navigation once the index.html page lands.
+func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		indexPage, err := fsys.Open("index.html")
+
+		if err != nil {
+			log.Error(err, "could not open index.html page")
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		stat, err := indexPage.Stat()
+		if err != nil {
+			log.Error(err, "could not get index.html stat")
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		bt := make([]byte, stat.Size())
+		_, err = indexPage.Read(bt)
+
+		if err != nil {
+			log.Error(err, "could not read index.html")
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		_, err = w.Write(bt)
+
+		if err != nil {
+			log.Error(err, "error writing index.html")
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+	}
 }
