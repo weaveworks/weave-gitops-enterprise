@@ -6,7 +6,7 @@ on:
 name: nightly
 jobs:
   build:
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@main
+    uses: ./.github/workflows/build.yaml
     with:
       helmrepo: "nightly/charts-v3"
     secrets:
@@ -19,7 +19,7 @@ jobs:
 
   acceptance-tests-eks-github:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
+    uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -49,7 +49,7 @@ jobs:
 
   acceptance-tests-gke-gitlab-on-prem:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
+    uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: macOS-latest
       os-name: darwin

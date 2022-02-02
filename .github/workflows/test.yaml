@@ -1,5 +1,9 @@
 on:
-  pull_request:
+  push:
+    branches-ignore:
+      - "main"
+    tags-ignore:
+      - "*"
   workflow_dispatch:
 
 concurrency:
@@ -92,7 +96,7 @@ jobs:
     #     curl -k "https://coveralls.io/webhook?repo_token=$WGE_COVERALLS_TOKEN" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
 
   build:
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@main
+    uses: ./.github/workflows/build.yaml
     with:
       helmrepo: "charts-v3"
     secrets:
@@ -221,7 +225,7 @@ jobs:
 
   smoke-tests:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
+    uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -247,7 +251,7 @@ jobs:
 
   smoke-tests-gitlab:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
+    uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -275,7 +279,7 @@ jobs:
 
   smoke-tests-gitlab-on-prem:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
+    uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -303,7 +307,7 @@ jobs:
 
   acceptance-tests-github:
     needs: [build, lint, unit-tests, integration-tests, ui-integration-tests]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
+    uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
       os-name: linux
