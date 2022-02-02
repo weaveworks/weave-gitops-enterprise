@@ -22,12 +22,15 @@ type Options struct {
 	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
 	ApplicationsConfig           *server.ApplicationsConfig
+	ApplicationsOptions          []server.ApplicationsOption
 	ProfilesConfig               server.ProfilesConfig
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	EntitlementSecretKey         client.ObjectKey
+	AgentTemplateNatsURL         string
+	AgentTemplateAlertmanagerURL string
 }
 
 type Option func(*Options)
@@ -86,6 +89,14 @@ func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 	}
 }
 
+// WithApplicationsConfig is used to set the configuration needed to work
+// with Weave GitOps Core applications
+func WithApplicationsOptions(appOptions ...server.ApplicationsOption) Option {
+	return func(o *Options) {
+		o.ApplicationsOptions = appOptions
+	}
+}
+
 // WithProfilesConfig is used to set the configuration needed to work
 // with Weave GitOps Core profiles
 func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
@@ -132,5 +143,14 @@ func WithEntitlementSecretKey(key client.ObjectKey) Option {
 func WithHelmRepositoryCacheDirectory(cacheDir string) Option {
 	return func(o *Options) {
 		o.HelmRepositoryCacheDirectory = cacheDir
+	}
+}
+
+// WithAgentTemplate is used to set the url
+// for template nats and template alert manager
+func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL string) Option {
+	return func(o *Options) {
+		o.AgentTemplateNatsURL = agentTemplateNatsURL
+		o.AgentTemplateAlertmanagerURL = agentTemplateAlertmanagerURL
 	}
 }

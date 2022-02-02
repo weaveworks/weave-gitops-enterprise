@@ -133,7 +133,7 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 		_ = clusterConnectionPage.ClusterIngressURL.SendKeys("https://google.com")
 	})
 
-	By("And I click Save & next button", func() {
+	By("And I click SAVE & NEXT button", func() {
 		Expect(clusterConnectionPage.ClusterSaveAndNext.Click()).To(Succeed())
 	})
 
@@ -219,16 +219,6 @@ func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, 
 			Should(HaveText(leaf.Status))
 	})
 
-	// If leaf is not a WKP cluster skip the git activity check
-	if leaf.IsWKP {
-		By("And it should be showing the git activity", func() {
-			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("svg"), ASSERTION_2MINUTE_TIME_OUT).
-				Should(BeFound())
-			Eventually(pages.FindClusterInList(clustersPage, clusterName).GitActivity.Find("circle")).
-				Should(BeFound())
-		})
-	}
-
 	return clustersPage, clusterName, tokenURL[1]
 }
 
@@ -274,7 +264,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			}
 
 			By("And wego enterprise state is reset", func() {
-				_ = gitopsTestRunner.ResetDatabase()
+				_ = gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -330,8 +320,8 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Eventually(clusterConnectionPage.ClusterIngressURL).Should(BeFound())
 			})
 
-			By("And should have Save & next button", func() {
-				Eventually(clusterConnectionPage.ClusterSaveAndNext).Should(HaveText("Save & next"))
+			By("And should have SAVE & NEXT button", func() {
+				Eventually(clusterConnectionPage.ClusterSaveAndNext).Should(HaveText("SAVE & NEXT"))
 			})
 		})
 
@@ -363,7 +353,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Clear(clusterConnectionPage.ClusterName)
 			})
 
-			By("And I see Save & next button disabled", func() {
+			By("And I see SAVE & NEXT button disabled", func() {
 				Eventually(clusterConnectionPage.ButtonClusterSaveAndNext).ShouldNot(BeEnabled())
 			})
 
@@ -371,7 +361,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				_ = clusterConnectionPage.ClusterName.SendKeys("     ")
 			})
 
-			By("And I see Save & next button disabled", func() {
+			By("And I see SAVE & NEXT button disabled", func() {
 				Eventually(clusterConnectionPage.ButtonClusterSaveAndNext).ShouldNot(BeEnabled())
 			})
 
@@ -388,14 +378,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			By("And with Status column", func() {
 				Eventually(clustersPage.HeaderStatus).Should(HaveText("Status"))
-			})
-
-			By("And with Latest git activity column", func() {
-				Eventually(clustersPage.HeaderGitActivity).Should(HaveText("Latest git activity"))
-			})
-
-			By("And with Version (Nodes) column", func() {
-				Eventually(clustersPage.HeaderNodeVersion).Should(HaveText("Version ( Nodes )"))
 			})
 		})
 
@@ -443,7 +425,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Skip("This test case runs only with sqlite")
 			}
 
-			_ = gitopsTestRunner.ResetDatabase()
+			_ = gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
 			gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -554,7 +536,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
-			_ = gitopsTestRunner.ResetDatabase()
+			_ = gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
 			gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())

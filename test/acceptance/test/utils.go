@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -20,15 +21,7 @@ import (
 )
 
 var (
-	DOCKER_IO_USER       string
-	DOCKER_IO_PASSWORD   string
-	GITHUB_USER          string
-	GITHUB_PASSWORD      string
-	GIT_PROVIDER         string
-	GITHUB_ORG           string
-	GITHUB_TOKEN         string
-	GITLAB_TOKEN         string
-	CLUSTER_REPOSITORY   string
+	gitProviderEnv       GitProviderEnv
 	GIT_REPOSITORY_URL   string
 	SELENIUM_SERVICE_URL string
 	GITOPS_BIN_PATH      string
@@ -41,11 +34,12 @@ var (
 )
 
 const (
-	WGE_WINDOW_NAME          string = "weave-gitops-enterprise"
-	GITOPS_DEFAULT_NAMESPACE string = "wego-system"
-	SCREENSHOTS_DIR_NAME     string = "screenshots"
-	WINDOW_SIZE_X            int    = 1800
-	WINDOW_SIZE_Y            int    = 2500
+	WGE_WINDOW_NAME                string = "weave-gitops-enterprise"
+	GITOPS_DEFAULT_NAMESPACE       string = "wego-system"
+	CLUSTER_SERVICE_DEPLOYMENT_APP        = "my-mccp-cluster-service"
+	SCREENSHOTS_DIR_NAME           string = "screenshots"
+	WINDOW_SIZE_X                  int    = 1800
+	WINDOW_SIZE_Y                  int    = 2500
 
 	ASSERTION_DEFAULT_TIME_OUT   time.Duration = 15 * time.Second
 	ASSERTION_1SECOND_TIME_OUT   time.Duration = 1 * time.Second
@@ -109,6 +103,17 @@ func RandString(length int) string {
 	return stringWithCharset(length, charset)
 }
 
+func getCheckoutRepoPath() string {
+	currDir, err := os.Getwd()
+	Expect(err).ShouldNot(HaveOccurred())
+
+	re := regexp.MustCompile(`^(.*/weave-gitops-enterprise)`)
+	repoDir := re.FindStringSubmatch(currDir)
+	Expect(len(repoDir)).Should(Equal(2))
+
+	return repoDir[1]
+}
+
 func SetupTestEnvironment() {
 	SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 	DEFAULT_UI_URL = GetEnv("TEST_UI_URL", "http://localhost:8000")
@@ -116,23 +121,31 @@ func SetupTestEnvironment() {
 	GITOPS_BIN_PATH = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	ARTIFACTS_BASE_DIR = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
 
-	GITHUB_USER = GetEnv("GITHUB_USER", "")
-	GITHUB_PASSWORD = GetEnv("GITHUB_PASSWORD", "")
-	GIT_PROVIDER = GetEnv("GIT_PROVIDER", "")
-	GITHUB_ORG = GetEnv("GITHUB_ORG", "")
-	GITHUB_TOKEN = GetEnv("GITHUB_TOKEN", "")
-	GITLAB_TOKEN = GetEnv("GITLAB_TOKEN", "")
-	CLUSTER_REPOSITORY = GetEnv("CLUSTER_REPOSITORY", "")
-	GIT_REPOSITORY_URL = "https://" + path.Join("github.com", GITHUB_ORG, CLUSTER_REPOSITORY)
-
-	DOCKER_IO_USER = GetEnv("DOCKER_IO_USER", "")
-	DOCKER_IO_PASSWORD = GetEnv("DOCKER_IO_PASSWORD", "")
+	gitProviderEnv = initGitProviderData()
+	GIT_REPOSITORY_URL = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 
 	//Cleanup the workspace dir, it helps when running locally
 	err := os.RemoveAll(ARTIFACTS_BASE_DIR)
 	Expect(err).ShouldNot(HaveOccurred())
 	err = os.MkdirAll(path.Join(ARTIFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME), 0700)
 	Expect(err).ShouldNot(HaveOccurred())
+}
+
+func InstallWeaveGitopsControllers() {
+	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
+		log.Info("No need to install Weave gitops controllers, managemnt cluster is already configured and setup.")
+
+	} else {
+		log.Info("Installing Weave gitops controllers on to management cluster along with respective configurations and setting such as config repo creation ertc.")
+
+		// Config repo must exist first before installing gitops controller
+		initAndCreateEmptyRepo(gitProviderEnv, true)
+
+		//wego-enterprise.sh script install core and enterprise controller and setup the management cluster along with required resources, secrets and entitlements etc.
+		checkoutRepoPath := getCheckoutRepoPath()
+		err := runCommandPassThrough(path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh"), "setup", checkoutRepoPath)
+		Expect(err).ShouldNot(HaveOccurred())
+	}
 }
 
 func GetEnv(key, fallback string) string {
@@ -161,14 +174,15 @@ func initializeWebdriver(wgeURL string) {
 	if webDriver == nil {
 		switch runtime.GOOS {
 		case "darwin":
-			chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox"}))
+			chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"}), agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
+
 			err = chromeDriver.Start()
 			Expect(err).NotTo(HaveOccurred())
 			webDriver, err = chromeDriver.NewPage()
 			Expect(err).NotTo(HaveOccurred())
 		case "linux":
 			webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox"}, "w3c": false}}))
+				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"}, "w3c": false, "excludeSwitches": []string{"enable-automation"}}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
 
@@ -192,7 +206,15 @@ func initializeWebdriver(wgeURL string) {
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
-func runCommandPassThrough(env []string, name string, arg ...string) error {
+func runCommandPassThrough(name string, arg ...string) error {
+	return runCommandPassThroughWithEnv([]string{}, name, arg...)
+}
+
+func runCommandPassThroughWithoutOutput(name string, arg ...string) error {
+	return runCommandPassThroughWithoutOutputWithEnv([]string{}, name, arg...)
+}
+
+func runCommandPassThroughWithEnv(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	if len(env) > 0 {
 		cmd.Env = env
@@ -202,7 +224,7 @@ func runCommandPassThrough(env []string, name string, arg ...string) error {
 	return cmd.Run()
 }
 
-func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string) error {
+func runCommandPassThroughWithoutOutputWithEnv(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	if len(env) > 0 {
 		cmd.Env = env
@@ -221,13 +243,21 @@ func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr
 
 func showItems(itemType string) error {
 	if itemType != "" {
-		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+		return runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
-	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	err := runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	if err != nil {
+		return fmt.Errorf("failed to get all resources %s", err)
+	}
+	return runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
+}
+
+func getDownloadedKubeconfigPath(clusterName string) string {
+	return path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", clusterName))
 }
 
 func dumpClusterInfo(testName string) error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
+	return runCommandPassThrough("../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
 }
 
 // utility functions

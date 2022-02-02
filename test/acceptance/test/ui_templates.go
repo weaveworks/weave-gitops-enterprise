@@ -1,8 +1,11 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"path"
 	"sort"
@@ -14,12 +17,39 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 type TemplateField struct {
 	Name   string
 	Value  string
 	Option string
+}
+
+// Wait until we get a good looking response from /v1/profiles
+// Ignore all errors (connection refused, 500s etc)
+func waitForProfiles(ctx context.Context, timeout time.Duration) error {
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	return wait.PollUntil(time.Second*1, func() (bool, error) {
+		client := http.Client{
+			Timeout: 5 * time.Second,
+		}
+		resp, err := client.Get(DEFAULT_UI_URL + "/v1/profiles")
+		if err != nil {
+			return false, nil
+		}
+		if resp.StatusCode != http.StatusOK {
+			return false, nil
+		}
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return false, nil
+		}
+		bodyString := string(bodyBytes)
+		return strings.Contains(bodyString, `"profiles":`), nil
+	}, waitCtx.Done())
 }
 
 func setParameterValues(createPage *pages.CreateCluster, paramSection map[string][]TemplateField) {
@@ -39,11 +69,11 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 									selectOption := func() bool {
 										_ = templateSection.Fields[j].ListBox.Click()
 										time.Sleep(POLL_INTERVAL_100MILLISECONDS)
-										visible, _ := pages.GetOption(webDriver, "parameter", parameters[i].Option).Visible()
+										visible, _ := pages.GetOption(webDriver, parameters[i].Option).Visible()
 										return visible
 									}
 									Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(BeTrue(), fmt.Sprintf("Failed to select parameter option '%s' in section '%s' ", parameters[i].Name, section))
-									Expect(pages.GetOption(webDriver, "parameter", parameters[i].Option).Click()).To(Succeed())
+									Expect(pages.GetOption(webDriver, parameters[i].Option).Click()).To(Succeed())
 									paramSet = true
 								}
 							} else {
@@ -390,21 +420,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			var repoAbsolutePath string
-
-			JustAfterEach(func() {
-				deleteRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, GITHUB_ORG)
-
-			})
-
-			It("@integration Verify pull request can be created for capi template to the management cluster", func() {
+			It("@integration @git Verify pull request can be created for capi template to the management cluster", func() {
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, true, GITHUB_ORG)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("And repo created has private visibility", func() {
-					Expect(getRepoVisibility(GITHUB_ORG, CLUSTER_REPOSITORY, GIT_PROVIDER)).Should(MatchRegexp("private"))
+					Expect(getRepoVisibility(gitProviderEnv)).Should(MatchRegexp("private"))
 				})
 
 				By("Apply/Install CAPITemplate", func() {
@@ -476,7 +500,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, "github")
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					Eventually(gitops.GitCredentials).Should(BeVisible())
+					if gitProviderEnv.Type == GitProviderGitHub {
+						Eventually(gitops.SuccessBar).Should(MatchText(`Authentication completed successfully. Please proceed with creating the PR.`))
+						Expect(gitops.SuccessBar.Click()).To(Succeed())
+					}
+
+					if pages.ElementExist(gitops.ErrorBar) {
+						Expect(gitops.ErrorBar.Click()).To(Succeed())
+					}
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
@@ -493,12 +526,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				var createPRUrl string
 				By("And I should veriyfy the pull request in the cluster config repository", func() {
-					createPRUrl = verifyPRCreated(repoAbsolutePath, GIT_PROVIDER)
+					createPRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					Expect(createPRUrl).Should(Equal(prUrl))
 				})
 
 				By("And the manifests are present in the cluster config repository", func() {
-					mergePullRequest(repoAbsolutePath, createPRUrl, GIT_PROVIDER)
+					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
@@ -507,16 +540,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			var repoAbsolutePath string
+			It("@integration @git Verify pull request can not be created by using exiting repository branch", func() {
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-			JustAfterEach(func() {
-				deleteRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, GITHUB_ORG)
+				if gitProviderEnv.Type == GitProviderGitLab {
+					Skip("Temporary skipping because the Gitops section resets afer oauth redirecrtion")
+				}
 
-			})
-
-			It("@integration Verify pull request can not be created by using exiting repository branch", func() {
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, true, GITHUB_ORG)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				branchName := "test-branch"
@@ -592,7 +624,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, "github")
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					Eventually(gitops.GitCredentials).Should(BeVisible())
+
+					if pages.ElementExist(gitops.ErrorBar) {
+						Expect(gitops.ErrorBar.Click()).To(Succeed())
+					}
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
@@ -604,7 +641,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration Verify no credentials exists in management cluster", func() {
+			It("@integration @git Verify no credentials exists in management cluster", func() {
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
@@ -638,7 +675,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration Verify matching selected credential can be used for cluster creation", func() {
+			It("@integration @git Verify matching selected credential can be used for cluster creation", func() {
 				defer gitopsTestRunner.DeleteIPCredentials("AWS")
 				defer gitopsTestRunner.DeleteIPCredentials("AZURE")
 
@@ -758,7 +795,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration Verify user can not use wrong credentials for infrastructure provider", func() {
+			It("@integration @git Verify user can not use wrong credentials for infrastructure provider", func() {
 				defer gitopsTestRunner.DeleteIPCredentials("AWS")
 
 				By("Apply/Install CAPITemplates", func() {
@@ -859,13 +896,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
-			kubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", "kubeconfig")
 			appName := "management"
 			appPath := "./management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
+			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
 
 			JustBeforeEach(func() {
-				_ = deleteFile([]string{kubeconfigPath})
+				_ = deleteFile([]string{downloadedKubeconfigPath})
 
 				log.Println("Connecting cluster to itself")
 				leaf := LeafSpec{
@@ -875,32 +912,33 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					KubeconfigPath:  "",
 				}
 				connectACluster(webDriver, gitopsTestRunner, leaf)
-				TakeScreenShot("test-screenshot")
 			})
 
 			JustAfterEach(func() {
-				_ = deleteFile([]string{kubeconfigPath})
+				_ = deleteFile([]string{downloadedKubeconfigPath})
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
 
-				deleteRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, GITHUB_ORG)
-
 				log.Println("Deleting all the wkp agents")
 				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
-				_ = gitopsTestRunner.ResetDatabase()
+				_ = gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
-			It("@smoke @integration @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-				var repoAbsolutePath string
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, true, GITHUB_ORG)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("And I install gitops to my active cluster", func() {
 					Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
 					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+				})
+
+				By("Wait for cluster-service to cache profiles", func() {
+					Expect(waitForProfiles(context.Background(), ASSERTION_30SECONDS_TIME_OUT)).To(Succeed())
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
@@ -965,12 +1003,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				setParameterValues(createPage, paramSection)
-
+				pages.ScrollWindow(webDriver, 0, 4000)
 				//check PR Preview
 
 				By("And select the podinfo profile to install", func() {
-					Expect(createPage.ProfileSelect.Click()).To(Succeed())
-					Expect(createPage.SelectProfile("podinfo").Click()).To(Succeed())
+					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
+					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
 					pages.DissmissProfilePopup(webDriver)
 				})
 
@@ -978,13 +1016,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					profile := pages.GetProfile(webDriver, "podinfo")
 
 					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "profile", "6.0.0").Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "6.0.1").Click).Should(Succeed())
 
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
 					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.1"))
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
@@ -1009,8 +1047,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gitops := pages.GetGitOps(webDriver)
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
-					pages.ScrollWindow(webDriver, 0, 4000)
-
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
@@ -1018,7 +1054,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, "github")
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					Eventually(gitops.GitCredentials).Should(BeVisible())
+					if gitProviderEnv.Type == GitProviderGitHub {
+						Eventually(gitops.SuccessBar).Should(MatchText(`Authentication completed successfully. Please proceed with creating the PR.`))
+						Expect(gitops.SuccessBar.Click()).To(Succeed())
+					}
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
@@ -1030,13 +1071,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should merge the pull request to start cluster provisioning", func() {
-					createPRUrl := verifyPRCreated(repoAbsolutePath, GIT_PROVIDER)
-					mergePullRequest(repoAbsolutePath, createPRUrl, GIT_PROVIDER)
+					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
+					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
 				By("And I add a test kustomization file to the management appliction (because flux doesn't reconcile empty folders on deletion)", func() {
 					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
 					gitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
@@ -1052,13 +1093,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Expect(clusterInfo.Status.Click()).To(Succeed())
+					Expect(clusterInfo.ShowStatusDetail.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
 
 					fileErr := func() error {
 						Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
-						_, err := os.Stat(kubeconfigPath)
+						_, err := os.Stat(downloadedKubeconfigPath)
 						return err
 
 					}
@@ -1066,11 +1107,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And verify that %s capd cluster kubeconfig is correct", clusterName), func() {
-					verifyCapiClusterKubeconfig(kubeconfigPath, clusterName)
+					verifyCapiClusterKubeconfig(downloadedKubeconfigPath, clusterName)
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(kubeconfigPath, clusterName)
+					verifyCapiClusterHealth(downloadedKubeconfigPath, clusterName)
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
@@ -1082,21 +1123,25 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					deletePR := pages.GetDeletePRPopup(webDriver)
 					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster, it is not required any more")).To(Succeed())
+
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					Eventually(deletePR.GitCredentials).Should(BeVisible())
+
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
 				})
 
 				By(fmt.Sprintf("Then I should see the '%s' cluster status changes to Deletion PR", clusterName), func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status).Should(HaveText("Deletion PR"))
+					Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(HaveText("Deletion PR"))
 				})
 
 				var deletePRUrl string
 				By("And I should veriyfy the delete pull request in the cluster config repository", func() {
-					deletePRUrl = verifyPRCreated(repoAbsolutePath, GIT_PROVIDER)
+					deletePRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 				})
 
 				By("Then I should merge the delete pull request to delete cluster", func() {
-					mergePullRequest(repoAbsolutePath, deletePRUrl, GIT_PROVIDER)
+					mergePullRequest(gitProviderEnv, repoAbsolutePath, deletePRUrl)
 				})
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
@@ -1107,9 +1152,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
 					clusterFound := func() error {
-						return runCommandPassThrough([]string{}, "kubectl", "get", "cluster", clusterName)
+						return runCommandPassThrough("kubectl", "get", "cluster", clusterName)
 					}
-					Eventually(clusterFound, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+					Eventually(clusterFound, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})
 			})
 		})

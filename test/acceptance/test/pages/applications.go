@@ -54,6 +54,7 @@ type AuthenticateGithub struct {
 	AccessCode         *agouti.Selection
 	AuthroizeButton    *agouti.Selection
 	AuthorizationError *agouti.Selection
+	Close              *agouti.Selection
 }
 
 type DeviceActivationGitHub struct {
@@ -67,6 +68,17 @@ type DeviceActivationGitHub struct {
 	AuthroizeWeaveworks *agouti.Selection
 	ConfirmPassword     *agouti.Selection
 	ConnectedMessage    *agouti.Selection
+}
+
+type AuthenticateGitlab struct {
+	AuthenticateGitlab *agouti.Selection
+
+	Username      *agouti.Selection
+	Password      *agouti.Selection
+	Authorize     *agouti.Selection
+	Signin        *agouti.Selection
+	CheckBrowser  *agouti.Selection
+	AcceptCookies *agouti.Selection
 }
 
 type Commits struct {
@@ -103,7 +115,7 @@ func GetApplicationPage(webDriver *agouti.Page) *ApplicationPage {
 	applicationPage := ApplicationPage{
 		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
 		ApplicationCount:  webDriver.FindByXPath(`//*[@href="/applications"]/parent::div[@role="heading"]/following-sibling::div`),
-		AddApplication:    webDriver.FindByButton(`Add Application`),
+		AddApplication:    webDriver.FindByButton(`ADD APPLICATION`),
 		ApplicationTable:  webDriver.All(`tr.MuiTableRow-root a`),
 	}
 
@@ -164,9 +176,11 @@ func GetApplicationConditions(webDriver *agouti.Page, condition string) *Conditi
 func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
 	return &AuthenticateGithub{
 		AuthenticateGithub: webDriver.FindByButton(`Authenticate with GitHub`),
-		AccessCode:         webDriver.Find(`div[class*=GithubDeviceAuthModal__P]:first-child`), //#2
-		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),                  //#1
+		// FIXME: bit brittle
+		AccessCode:         webDriver.FindByXPath(`//button[contains(.,'Authorize Github Access')]/../../preceding-sibling::div/span`),
+		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),
 		AuthorizationError: webDriver.FindByXPath(`//div[@role="alert"]//div[.="Error"]`),
+		Close:              webDriver.FindByButton(`Close`),
 	}
 }
 
@@ -175,13 +189,25 @@ func ActivateDeviceGithub(webDriver *agouti.Page) *DeviceActivationGitHub {
 		Username:            webDriver.Find(`input[type=text][name=login]`),
 		Password:            webDriver.Find(`input[type=password][name*=password]`),
 		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
-		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`), //#3
+		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
 		AuthCode:            webDriver.Find(`input#otp`),
 		Verify:              webDriver.FindByButton(`Verify`),
 		Continue:            webDriver.Find(`[type=submit][name=commit]`),
-		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`), //#4
+		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`),
 		ConfirmPassword:     webDriver.FindByButton(`password`),
 		ConnectedMessage:    webDriver.FindByXPath(`//p[contains(text(), "device is now connected")]`),
+	}
+}
+
+func AuthenticateWithGitlab(webDriver *agouti.Page) *AuthenticateGitlab {
+	return &AuthenticateGitlab{
+		AuthenticateGitlab: webDriver.FindByButton(`Authenticate with GitLab`),
+		Authorize:          webDriver.Find(`input[name="commit"][value="Authorize"]`),
+		Username:           webDriver.Find(`#user_login`),
+		Password:           webDriver.Find(`#user_password`),
+		Signin:             webDriver.Find(`input[name=commit]`),
+		AcceptCookies:      webDriver.Find(`#onetrust-accept-btn-handler`),
+		CheckBrowser:       webDriver.Find(`span[data-translate=checking_browser]`),
 	}
 }
 

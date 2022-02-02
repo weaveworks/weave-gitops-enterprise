@@ -4,11 +4,6 @@ import useNotifications from '../../contexts/Notifications';
 import { Cluster } from '../../types/kubernetes';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import {
-  faArrowUp,
-  faPlus,
-  faTrashAlt,
-} from '@fortawesome/free-solid-svg-icons';
 import { ClustersTable } from './Table';
 import { Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './Connect/ConnectDialog';
@@ -16,13 +11,15 @@ import { useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
-import { OnClickAction } from '../Action';
-import theme from 'weaveworks-ui-components/lib/theme';
-import { DeleteClusterDialog } from './Delete';
 import {
+  Button,
+  theme,
   CallbackStateContextProvider,
   getCallbackState,
+  Icon,
+  IconType,
 } from '@weaveworks/weave-gitops';
+import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 
@@ -36,6 +33,14 @@ const ActionsWrapper = styled.div<Size>`
     margin-right: ${theme.spacing.medium};
   }
 `;
+
+const random = Math.random().toString(36).substring(7);
+
+export const PRdefaults = {
+  branchName: `delete-clusters-branch-${random}`,
+  pullRequestTitle: 'Deletes capi cluster(s)',
+  commitMessage: 'Deletes capi cluster(s)',
+};
 
 const MCCP: FC = () => {
   const {
@@ -51,13 +56,12 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { repositoryURL } = useVersions();
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
   );
-  const selectedCapiClusters = useMemo(
+  let selectedCapiClusters = useMemo(
     () =>
       selectedClusters.filter(cls => capiClusters.find(c => c.name === cls)),
     [capiClusters, selectedClusters],
@@ -72,21 +76,15 @@ const MCCP: FC = () => {
 
   interface FormData {
     url: string;
-    provider: string;
     branchName: string;
     pullRequestTitle: string;
     commitMessage: string;
     pullRequestDescription: string;
   }
 
-  let initialSelectedCapiClusters = selectedCapiClusters;
-
   let initialFormData = {
-    url: repositoryURL,
-    provider: '',
-    branchName: `delete-clusters-branch`,
-    pullRequestTitle: 'Deletes capi cluster(s)',
-    commitMessage: 'Deletes capi cluster(s)',
+    ...PRdefaults,
+    url: '',
     pullRequestDescription: '',
   };
 
@@ -97,14 +95,13 @@ const MCCP: FC = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
-    initialSelectedCapiClusters = [
-      ...initialSelectedCapiClusters,
-      ...callbackState.state.selectedCapiClusters,
+    selectedCapiClusters = [
+      ...selectedCapiClusters,
+      ...(callbackState.state.selectedCapiClusters || []),
     ];
   }
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
-
   const history = useHistory();
   const { activeTemplate } = useTemplates();
 
@@ -120,23 +117,26 @@ const MCCP: FC = () => {
     if (!callbackState) {
       setFormData((prevState: FormData) => ({
         ...prevState,
-        branchName: `delete-clusters-branch-${random}`,
-        pullRequestTitle: 'Deletes capi cluster(s)',
-        commitMessage: 'Deletes capi cluster(s)',
-        pullRequestDescription: `Delete clusters: ${initialSelectedCapiClusters
+        url: repositoryURL,
+        pullRequestDescription: `Delete clusters: ${selectedCapiClusters
           .map(c => c)
           .join(', ')}`,
       }));
     }
-    if (callbackState) {
+
+    if (!callbackState && selectedClusters.length === 0) {
+      setOpenDeletePR(false);
+    }
+
+    if (callbackState?.state?.selectedCapiClusters?.length > 0) {
       setOpenDeletePR(true);
     }
   }, [
     callbackState,
-    initialSelectedCapiClusters,
-    random,
+    selectedCapiClusters,
     capiClusters,
     selectedClusters,
+    repositoryURL,
   ]);
 
   return (
@@ -154,42 +154,45 @@ const MCCP: FC = () => {
         <ContentWrapper>
           <Title>Connected clusters dashboard</Title>
           <ActionsWrapper>
-            <OnClickAction
+            <Button
               id="create-cluster"
-              icon={faPlus}
+              startIcon={<Icon type={IconType.AddIcon} size="base" />}
               onClick={handleAddCluster}
-              text="CREATE A CLUSTER"
-            />
-            <OnClickAction
+            >
+              CREATE A CLUSTER
+            </Button>
+            <Button
               id="connect-cluster"
-              icon={faArrowUp}
+              startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
               onClick={() => setClusterToEdit(NEW_CLUSTER)}
-              text="CONNECT A CLUSTER"
-            />
+            >
+              CONNECT A CLUSTER
+            </Button>
             <Tooltip
               title="No CAPI clusters selected"
               placement="top"
-              disabled={initialSelectedCapiClusters.length !== 0}
+              disabled={selectedCapiClusters.length !== 0}
             >
               <div>
-                <OnClickAction
-                  className="danger"
+                <Button
                   id="delete-cluster"
-                  icon={faTrashAlt}
+                  startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
                   onClick={() => {
                     setNotifications([]);
                     setOpenDeletePR(true);
                   }}
-                  text="CREATE A PR TO DELETE CLUSTERS"
-                  disabled={initialSelectedCapiClusters.length === 0}
-                />
+                  color="secondary"
+                  disabled={selectedCapiClusters.length === 0}
+                >
+                  CREATE A PR TO DELETE CLUSTERS
+                </Button>
               </div>
             </Tooltip>
             {openDeletePR && (
               <DeleteClusterDialog
                 formData={formData}
                 setFormData={setFormData}
-                selectedCapiClusters={initialSelectedCapiClusters}
+                selectedCapiClusters={selectedCapiClusters}
                 setOpenDeletePR={setOpenDeletePR}
               />
             )}

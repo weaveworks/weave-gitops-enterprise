@@ -8,7 +8,6 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Theme,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC, useEffect } from 'react';
@@ -23,17 +22,17 @@ import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
 import { useHistory } from 'react-router-dom';
 import { Loader } from '../../Loader';
-import { GitOpsBlue } from './../../../muiTheme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
   shadows: Array(25).fill('none') as Shadows,
 });
 
-const useStyles = makeStyles((theme: Theme) =>
+const useStyles = makeStyles(() =>
   createStyles({
     nameHeaderCell: {
-      paddingLeft: theme.spacing(4),
+      paddingLeft: weaveTheme.spacing.medium,
     },
     paper: {
       marginBottom: 10,
@@ -51,7 +50,7 @@ const useStyles = makeStyles((theme: Theme) =>
       whiteSpace: 'nowrap',
     },
     tableHead: {
-      borderBottom: '1px solid #d8d8d8',
+      borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
     },
     noMaxWidth: {
       maxWidth: 'none',
@@ -85,8 +84,7 @@ export const ClustersTable: FC<Props> = ({
 }) => {
   const classes = useStyles();
   const history = useHistory();
-  const { selectedClusters, setSelectedClusters, creatingPR, loading } =
-    useClusters();
+  const { selectedClusters, setSelectedClusters, loading } = useClusters();
   const { notifications } = useNotifications();
   const numSelected = selectedClusters.length;
   const isSelected = (name: string) => selectedClusters.indexOf(name) !== -1;
@@ -133,7 +131,7 @@ export const ClustersTable: FC<Props> = ({
     >
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
-          {creatingPR || (loading && filteredClusters?.length === 0) ? (
+          {loading ? (
             <Loader />
           ) : (
             <Table className={classes.table} size="small">
@@ -149,7 +147,7 @@ export const ClustersTable: FC<Props> = ({
                       onChange={handleSelectAllClick}
                       inputProps={{ 'aria-label': 'select all clusters' }}
                       style={{
-                        color: GitOpsBlue,
+                        color: weaveTheme.colors.primary,
                       }}
                     />
                   </TableCell>
@@ -191,26 +189,6 @@ export const ClustersTable: FC<Props> = ({
                       </ColumnHeaderTooltip>
                     </TableSortLabel>
                   </TableCell>
-                  <TableCell align="left">
-                    <ColumnHeaderTooltip title="Last commit to the cluster's git repository">
-                      <span>Latest git activity</span>
-                    </ColumnHeaderTooltip>
-                  </TableCell>
-                  <TableCell align="left">
-                    <ColumnHeaderTooltip
-                      classes={{ tooltip: classes.noMaxWidth }}
-                      title="Kubernetes version ( [control plane nodes] | worker nodes)"
-                    >
-                      <span>Version ( Nodes )</span>
-                    </ColumnHeaderTooltip>
-                  </TableCell>
-                  <TableCell align="left">
-                    <ColumnHeaderTooltip title="Team Workspaces in the cluster">
-                      <span>Team Workspaces</span>
-                    </ColumnHeaderTooltip>
-                  </TableCell>
-                  <TableCell />
-                  <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>

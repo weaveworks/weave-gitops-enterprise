@@ -144,7 +144,10 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.TemplateName, t.Error)
 	}
 
-	profiles := getProfilesFromTemplate(t.Annotations)
+	profiles, err := getProfilesFromTemplate(t.Annotations)
+	if err != nil {
+		return nil, fmt.Errorf("error getting profiles from template %v, %v", msg.TemplateName, err)
+	}
 
 	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
@@ -289,14 +292,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider:   *gp,
-			RepositoryURL: repositoryURL,
-			HeadBranch:    msg.HeadBranch,
-			BaseBranch:    baseBranch,
-			Title:         msg.Title,
-			Description:   msg.Description,
-			CommitMessage: msg.CommitMessage,
-			Files:         files,
+			GitProvider:       *gp,
+			RepositoryURL:     repositoryURL,
+			ReposistoryAPIURL: msg.RepositoryApiUrl,
+			HeadBranch:        msg.HeadBranch,
+			BaseBranch:        baseBranch,
+			Title:             msg.Title,
+			Description:       msg.Description,
+			CommitMessage:     msg.CommitMessage,
+			Files:             files,
 		})
 		if err != nil {
 			s.log.Error(err, "Failed to create pull request")
@@ -354,25 +358,15 @@ func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCred
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
 	var sec corev1.Secret
-	secs := &corev1.SecretList{}
-	var nsName string
 	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
 
-	s.client.List(ctx, secs)
-
-	for _, item := range secs.Items {
-		if item.Name == name {
-			nsName = item.GetNamespace()
-			break
-		}
-	}
-
-	if nsName == "" {
-		nsName = "default"
+	ns := os.Getenv("CAPI_CLUSTERS_NAMESPACE")
+	if ns == "" {
+		return nil, fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 
 	key := client.ObjectKey{
-		Namespace: nsName,
+		Namespace: ns,
 		Name:      name,
 	}
 	err := s.client.Get(ctx, key, &sec)
@@ -463,14 +457,15 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider:   *gp,
-		RepositoryURL: repositoryURL,
-		HeadBranch:    msg.HeadBranch,
-		BaseBranch:    baseBranch,
-		Title:         msg.Title,
-		Description:   msg.Description,
-		CommitMessage: msg.CommitMessage,
-		Files:         filesList,
+		GitProvider:       *gp,
+		RepositoryURL:     repositoryURL,
+		ReposistoryAPIURL: msg.RepositoryApiUrl,
+		HeadBranch:        msg.HeadBranch,
+		BaseBranch:        baseBranch,
+		Title:             msg.Title,
+		Description:       msg.Description,
+		CommitMessage:     msg.CommitMessage,
+		Files:             filesList,
 	})
 	if err != nil {
 		s.log.Error(err, "Failed to create pull request")
@@ -762,18 +757,21 @@ func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigReque
 	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
 }
 
-func getProfilesFromTemplate(annotations map[string]string) []*capiv1_proto.TemplateProfile {
+func getProfilesFromTemplate(annotations map[string]string) ([]*capiv1_proto.TemplateProfile, error) {
 	profiles := []*capiv1_proto.TemplateProfile{}
 	profile := capiv1_proto.TemplateProfile{}
 
 	for k, v := range annotations {
 		if strings.Contains(k, "capi.weave.works/profile-") {
-			json.Unmarshal([]byte(v), &profile)
+			err := json.Unmarshal([]byte(v), &profile)
+			if err != nil {
+				return profiles, fmt.Errorf("failed to unmarshal profiles: %w", err)
+			}
 			profiles = append(profiles, &profile)
 		}
 	}
 
-	return profiles
+	return profiles, nil
 }
 
 // getProfileLatestVersion returns the default profile values if not given

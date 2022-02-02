@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
@@ -13,6 +15,7 @@ import (
 	"github.com/go-logr/logr"
 	go_git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
@@ -49,14 +52,15 @@ type GitProvider struct {
 }
 
 type WriteFilesToBranchAndCreatePullRequestRequest struct {
-	GitProvider   GitProvider
-	RepositoryURL string
-	HeadBranch    string
-	BaseBranch    string
-	Title         string
-	Description   string
-	CommitMessage string
-	Files         []gitprovider.CommitFile
+	GitProvider       GitProvider
+	RepositoryURL     string
+	ReposistoryAPIURL string
+	HeadBranch        string
+	BaseBranch        string
+	Title             string
+	Description       string
+	CommitMessage     string
+	Files             []gitprovider.CommitFile
 }
 
 type WriteFilesToBranchAndCreatePullRequestResponse struct {
@@ -79,7 +83,12 @@ type CloneRepoToTempDirResponse struct {
 // It returns the URL of the pull request.
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	repo, err := s.GetRepository(ctx, req.GitProvider, req.RepositoryURL)
+	repoURL, err := GetGitProviderUrl(req.RepositoryURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get git porivder url: %w", err)
+	}
+
+	repo, err := s.GetRepository(ctx, req.GitProvider, repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get repo: %w", err)
 	}
@@ -168,14 +177,12 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 		return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
 	}
 
+	ref.Domain = addSchemeToDomain(ref.Domain)
+
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
-		func(err error) bool {
-			if errors.Is(err, gitprovider.ErrNotFound) {
-				return true
-			}
-			return false
-		}, func() error {
+		func(err error) bool { return errors.Is(err, gitprovider.ErrNotFound) },
+		func() error {
 			var err error
 			repo, err = c.OrgRepositories().Get(ctx, *ref)
 			if err != nil {
@@ -185,7 +192,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 			return nil
 		})
 	if err != nil {
-		return nil, fmt.Errorf("unable to get repository %q: %w", url, err)
+		return nil, fmt.Errorf("unable to get repository %q: %w, (client domain: %s)", url, err, c.SupportedDomain())
 	}
 
 	return repo, nil
@@ -264,12 +271,15 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 	var client gitprovider.Client
 	var err error
 
+	// quirk of ggp
+	hostname := addSchemeToDomain(gpi.Hostname)
+
 	switch gpi.Type {
 	case "github":
 		if gpi.Hostname != "github.com" {
 			client, err = github.NewClient(
 				gitprovider.WithOAuth2Token(gpi.Token),
-				gitprovider.WithDomain(gpi.Hostname),
+				gitprovider.WithDomain(hostname),
 			)
 		} else {
 			client, err = github.NewClient(
@@ -281,7 +291,7 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		}
 	case "gitlab":
 		if gpi.Hostname != "gitlab.com" {
-			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithDomain(gpi.Hostname), gitprovider.WithConditionalRequests(true))
+			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithDomain(hostname), gitprovider.WithConditionalRequests(true))
 		} else {
 			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithConditionalRequests(true))
 		}
@@ -292,4 +302,31 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		return nil, fmt.Errorf("the Git provider %q is not supported", gpi.Type)
 	}
 	return client, err
+}
+
+func GetGitProviderUrl(giturl string) (string, error) {
+	repositoryAPIURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+	if repositoryAPIURL != "" {
+		return repositoryAPIURL, nil
+	}
+
+	ep, err := transport.NewEndpoint(giturl)
+	if err != nil {
+		return "", err
+	}
+	if ep.Protocol == "http" || ep.Protocol == "https" {
+		return giturl, nil
+	}
+
+	httpsEp := transport.Endpoint{Protocol: "https", Host: ep.Host, Path: ep.Path}
+
+	return httpsEp.String(), nil
+}
+
+func addSchemeToDomain(domain string) string {
+	// Fixing https:// again (ggp quirk)
+	if domain != "github.com" && domain != "gitlab.com" && !strings.HasPrefix(domain, "http://") && !strings.HasPrefix(domain, "https://") {
+		return "https://" + domain
+	}
+	return domain
 }

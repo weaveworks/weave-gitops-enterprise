@@ -13,37 +13,34 @@ LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.vendor="Weaveworks" \
       org.opencontainers.image.version="${version}"
 
-ENV CS_PATH=cmd/clusters-service
-
-WORKDIR /workspace/$CS_PATH
+WORKDIR /workspace/cmd/clusters-service
 
 ENV GITHUB_BUILD_USERNAME=wge-build-bot
 ARG GITHUB_BUILD_TOKEN
 RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
 
 # copy modules manifests
-COPY $CS_PATH/go.mod go.mod
-COPY $CS_PATH/go.sum go.sum
+COPY go.mod /workspace/go.mod
+COPY go.sum /workspace/go.sum
 
 # copy in other module dependencies
 COPY common/ /workspace/common/
+COPY pkg/ /workspace/pkg/
 
 # cache modules
 RUN go mod download
 
 # copy source code
-COPY $CS_PATH/main.go main.go
-COPY $CS_PATH/api/ api/
-COPY $CS_PATH/app/ app/
-COPY $CS_PATH/pkg/ pkg/
+COPY cmd/clusters-service/main.go main.go
+COPY cmd/clusters-service/api/ api/
+COPY cmd/clusters-service/app/ app/
+COPY cmd/clusters-service/pkg/ pkg/
 
 ARG version
 # build
 RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$version' -linkmode external -w -extldflags \"-static\"" -tags netgo -a -o clusters-service main.go
 
 FROM docker.io/governmentpaas/git-ssh
-
-ENV CS_PATH=cmd/clusters-service
 
 # # Add git provider hostnames to known hosts file so we can use
 # # StrickHostKeyChecking with git+ssh
@@ -52,7 +49,7 @@ RUN bash /tmp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /tmp/known_hosts.sh
 
 RUN apk add --no-cache ca-certificates tini
 
-COPY --from=builder /workspace/$CS_PATH/clusters-service /usr/local/bin/
+COPY --from=builder /workspace/cmd/clusters-service/clusters-service /usr/local/bin/
 
 RUN addgroup -S clusters-service && adduser -S clusters-service -G clusters-service
 

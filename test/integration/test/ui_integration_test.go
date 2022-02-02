@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	gcontext "context"
 	"fmt"
 	"io/ioutil"
@@ -32,7 +33,7 @@ import (
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -235,17 +236,8 @@ var _ = Describe("Integration suite", func() {
 			It("should show a tooltip containing 'name' on mouse over", func() {
 				AssertTooltipContains(page, page.HeaderName, "Name")
 			})
-			It("should show a tooltip containing 'version' on mouse over", func() {
-				AssertTooltipContains(page, page.HeaderNodeVersion, "version")
-			})
 			It("should show a tooltip containing 'status' on mouse over", func() {
 				AssertTooltipContains(page, page.HeaderStatus, "status")
-			})
-			It("should show a tooltip containing 'git' on mouse over", func() {
-				AssertTooltipContains(page, page.HeaderGitActivity, "git")
-			})
-			It("should show a tooltip containing 'workspaces' on mouse over", func() {
-				AssertTooltipContains(page, page.HeaderWorkspaces, "Workspaces")
 			})
 		})
 
@@ -270,12 +262,6 @@ var _ = Describe("Integration suite", func() {
 				cluster = pages.FindClusterInList(page, name)
 			})
 
-			It("should show a tooltip containing with cp/version on mouse over", func() {
-				AssertTooltipContains(page, cluster.NodesVersions, "1 Control plane nodes v1.19")
-			})
-			It("should show a tooltip containing app-dev on mouse over", func() {
-				AssertTooltipContains(page, cluster.TeamWorkspaces, "app-dev")
-			})
 			It("should show a tooltip on status column cluster w/ last seen", func() {
 				AssertTooltipContains(page, cluster.Status, "Last seen")
 			})
@@ -468,39 +454,6 @@ var _ = Describe("Integration suite", func() {
 			createNodeInfo(db, "cluster-5", "worker-2", "v1.19.7", false)
 			createNodeInfo(db, "cluster-5", "worker-3", "v1.19.4", false)
 		})
-
-		Describe("The column header", func() {
-			It("should have Version ( Nodes ) text", func() {
-				Eventually(page.HeaderNodeVersion).Should(HaveText("Version ( Nodes )"))
-			})
-		})
-
-		Describe("The variations of versions", func() {
-			It("should verify similar control planes and different worker nodes", func() {
-				cluster := pages.FindClusterInList(page, "cluster-1")
-				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2CP )v1.19.4 ( 2 )")
-			})
-
-			It("should verify Different control planes and similar worker nodes", func() {
-				cluster := pages.FindClusterInList(page, "cluster-2")
-				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 1CP )v1.19.4 ( 1CP | 2 )")
-			})
-
-			It("should verify similar control planes and similar worker nodes", func() {
-				cluster := pages.FindClusterInList(page, "cluster-3")
-				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 1CP | 2 )")
-			})
-
-			It("should verify similar worker nodes", func() {
-				cluster := pages.FindClusterInList(page, "cluster-4")
-				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2 )")
-			})
-
-			It("should verify different worker nodes", func() {
-				cluster := pages.FindClusterInList(page, "cluster-5")
-				AssertRowCellContains(cluster.NodesVersions, "v1.19.7 ( 2 )v1.19.4 ( 1 )")
-			})
-		})
 	})
 
 	Describe("View git repo", func() {
@@ -517,25 +470,6 @@ var _ = Describe("Integration suite", func() {
 			createCluster(db, "two-flux-cluster", "", "Last seen")
 			createFluxInfo(db, "two-flux-cluster", "flux-3", "wkp-flux", "git@github.com:weaveworks/fluxes-2.git", "main")
 			createFluxInfo(db, "two-flux-cluster", "flux-4", "kube-system", "git@github.com:weaveworks/fluxes-3.git", "dev")
-		})
-
-		It("should show no button when no flux instance is installed", func() {
-			cluster := pages.FindClusterInList(page, "no-flux-cluster")
-			Eventually(cluster.GitRepoURL).Should(BeFound())
-			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText("Repo not available"))
-		})
-
-		It("should show enabled button when one flux instance is installed", func() {
-			cluster := pages.FindClusterInList(page, "one-flux-cluster")
-			Eventually(cluster.GitRepoURL).Should(BeFound())
-			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(BeEnabled())
-			Eventually(cluster.GitRepoURL.Find("a"), acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(BeFound())
-		})
-
-		It("should show disabled button when more than one flux instance is installed", func() {
-			cluster := pages.FindClusterInList(page, "two-flux-cluster")
-			Eventually(cluster.GitRepoURL).Should(BeFound())
-			Eventually(cluster.GitRepoURL, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText("Repo not available"))
 		})
 	})
 
@@ -620,14 +554,12 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		},
 	}
 
-	fetcher := &applicationv2fakes.FakeFetcher{}
-
 	fakeAppsConfig := &wego_server.ApplicationsConfig{
-		Factory:    &servicesfakes.FakeFactory{},
-		KubeClient: cl,
-		JwtClient:  jwtClient,
-		Logger:     logr.Discard(),
-		Fetcher:    fetcher,
+		Factory:        &servicesfakes.FakeFactory{},
+		JwtClient:      jwtClient,
+		Logger:         logr.Discard(),
+		FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(cl)),
+		ClusterConfig:  wego_server.ClusterConfig{},
 	}
 
 	os.Setenv("CAPI_CLUSTERS_NAMESPACE", "default")
@@ -640,6 +572,7 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithDatabase(db),
 		app.WithApplicationsConfig(fakeAppsConfig),
+		app.WithApplicationsOptions(wego_server.WithClientGetter(NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())))
 }
 
@@ -709,6 +642,36 @@ func gomegaFail(message string, callerSkip ...int) {
 	}
 	// Pass this down to the default handler for onward processing
 	Fail(message, callerSkip...)
+}
+
+// FIXME: expose this in wego core
+
+type FakeFetcherFactory struct {
+	fake applicationv2.Fetcher
+}
+
+func NewFakeFetcherFactory(fake applicationv2.Fetcher) wego_server.FetcherFactory {
+	return &FakeFetcherFactory{
+		fake: fake,
+	}
+}
+
+func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
+	return f.fake
+}
+
+type FakeClientGetter struct {
+	client client.Client
+}
+
+func NewFakeClientGetter(client client.Client) wego_server.ClientGetter {
+	return &FakeClientGetter{
+		client: client,
+	}
+}
+
+func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
+	return g.client, nil
 }
 
 //

@@ -9,7 +9,7 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useParams } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
@@ -60,7 +60,7 @@ const CredentialsWrapper = styled.div`
     }
   }
   & .dropdown-toggle {
-    border: 1px solid #e5e5e5;
+    border: 1px solid ${weaveTheme.colors.neutral10};
   }
   & .dropdown-popover {
     width: auto;
@@ -105,7 +105,7 @@ const AddCluster: FC = () => {
     renderTemplate,
     PRPreview,
     setPRPreview,
-    creatingPR,
+    loading,
     addCluster,
     setError,
   } = useTemplates();
@@ -117,7 +117,7 @@ const AddCluster: FC = () => {
   let initialFormData = {
     url: '',
     provider: '',
-    branchName: `create-clusters-branch`,
+    branchName: `create-clusters-branch-${random}`,
     pullRequestTitle: 'Creates capi cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
@@ -143,7 +143,7 @@ const AddCluster: FC = () => {
 
   const [formData, setFormData] = useState<any>(initialFormData);
   const [profiles, setProfiles] = useState<UpdatedProfile[]>(initialProfiles);
-  const [infraCredential, setInfraCredential] = useState<Credential>(
+  const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
   );
   const [steps, setSteps] = useState<string[]>([]);
@@ -181,6 +181,7 @@ const AddCluster: FC = () => {
             name: string;
             version: string;
             values: string;
+            layer?: string;
           }[],
           profile,
         ) => {
@@ -190,6 +191,7 @@ const AddCluster: FC = () => {
                 name: profile.name,
                 version: value.version,
                 values: btoa(value.yaml),
+                layer: profile.layer,
               });
           });
           return accumulator;
@@ -241,6 +243,7 @@ const AddCluster: FC = () => {
 
   useEffect(() => {
     if (!activeTemplate) {
+      clearCallbackState();
       setActiveTemplate(getTemplate(templateName));
     }
 
@@ -254,7 +257,6 @@ const AddCluster: FC = () => {
       setActiveTemplate(null);
       setPRPreview(null);
       setError(null);
-      clearCallbackState();
     });
   }, [
     activeTemplate,
@@ -272,10 +274,9 @@ const AddCluster: FC = () => {
       setFormData((prevState: any) => ({
         ...prevState,
         url: repositoryURL,
-        branchName: `create-clusters-branch-${random}`,
       }));
     }
-  }, [callbackState, infraCredential, random, repositoryURL, updatedProfiles]);
+  }, [callbackState, infraCredential, repositoryURL, updatedProfiles]);
 
   return useMemo(() => {
     return (
@@ -348,7 +349,7 @@ const AddCluster: FC = () => {
                   showAuthDialog={showAuthDialog}
                   setShowAuthDialog={setShowAuthDialog}
                 />
-                {creatingPR && <Loader />}
+                {loading && <Loader />}
               </Grid>
               <Grid className={classes.steps} item md={3}>
                 <FormStepsNavigation
@@ -373,7 +374,7 @@ const AddCluster: FC = () => {
     classes,
     openPreview,
     PRPreview,
-    creatingPR,
+    loading,
     steps,
     activeStep,
     clickedStep,

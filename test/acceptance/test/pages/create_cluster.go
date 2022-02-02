@@ -49,10 +49,12 @@ type Preview struct {
 }
 
 type GitOps struct {
-	GitOpsLabel  *agouti.Selection
-	GitOpsFields []FormField
-	CreatePR     *agouti.Selection
-	ErrorBar     *agouti.Selection
+	GitOpsLabel    *agouti.Selection
+	GitOpsFields   []FormField
+	GitCredentials *agouti.Selection
+	CreatePR       *agouti.Selection
+	SuccessBar     *agouti.Selection
+	ErrorBar       *agouti.Selection
 }
 
 //CreateCluster initialises the webDriver object
@@ -60,11 +62,11 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
-		Credentials:        webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")]`),
+		Credentials:        webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection:    webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		ProfileSelect:      webDriver.Find(`div.profiles-select > div`),
 		ProfileSelectPopup: webDriver.All(`ul[role="listbox"] li`),
-		PreviewPR:          webDriver.FindByButton("Preview PR"),
+		PreviewPR:          webDriver.FindByButton("PREVIEW PR"),
 	}
 
 	return &clusterPage
@@ -73,7 +75,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 // This function waits for Create emplate page to load completely
 func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
 	// Credentials dropdown takes a while to populate
-	Eventually(webDriver.FindByXPath(`//div[@class="credentials"]//div[contains(@class, "dropdown-toggle")][@disabled]`),
+	Eventually(webDriver.Find(`.credentials [role="button"][aria-disabled="true"]`),
 		30*time.Second).ShouldNot(BeFound())
 	// With the introduction of profiles, UI takes long time to be fully rendered, UI refreshes once all the profiles valus are read and populated
 	// This delay refresh sometimes cause tests to fail select elements
@@ -141,19 +143,15 @@ func DissmissProfilePopup(webDriver *agouti.Page) {
 }
 
 func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
-	return webDriver.All(`div.dropdown-item`)
+	return webDriver.All(`li.MuiListItem-root`)
 }
 
 func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
-	return webDriver.Find(fmt.Sprintf(`div.dropdown-item[title*="%s"]`, value))
+	return webDriver.Find(fmt.Sprintf(`li.MuiListItem-root[data-value="%s"]`, value))
 }
 
-func GetOption(webDriver *agouti.Page, sectionType string, value string) *agouti.Selection {
-	if sectionType == "profile" {
-		return webDriver.FindByXPath(fmt.Sprintf(`//div[.="%s"]`, value))
-	} else {
-		return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
-	}
+func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
+	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
@@ -180,7 +178,9 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 				Field: webDriver.FindByID(`Commit message-input`),
 			},
 		},
-		CreatePR: webDriver.FindByButton(`Create Pull Request`),
-		ErrorBar: webDriver.Find(`.Toastify [role="alert"]`),
+		GitCredentials: webDriver.Find(`div.auth-message`),
+		CreatePR:       webDriver.FindByButton(`CREATE PULL REQUEST`),
+		SuccessBar:     webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Success")]/parent::div`),
+		ErrorBar:       webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Error")]/parent::div`),
 	}
 }

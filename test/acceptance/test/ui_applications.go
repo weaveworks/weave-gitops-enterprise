@@ -15,8 +15,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) bool {
-	if gitProvider == "github" {
+func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
+	if gitProvider == GitProviderGitHub {
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
 		if pages.ElementExist(authenticate.AuthenticateGithub) {
@@ -25,15 +25,54 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) boo
 
 			// Sometimes authentication failed to get the github device code, it may require revalidation with new access code
 			if pages.ElementExist(authenticate.AuthorizationError) {
-				log.Info("Error getting github device code, revalidating...")
+				log.Info("Error getting github device code, requires revalidating...")
+				Expect(authenticate.Close.Click()).To(Succeed())
+				Eventually(authenticate.AuthenticateGithub.Click).Should(Succeed())
 				AuthenticateWithGitHub(webDriver)
 			}
 
 			Eventually(authenticate.AuthroizeButton).ShouldNot(BeFound())
-			return true
+		}
+	} else if gitProvider == GitProviderGitLab {
+		authenticate := pages.AuthenticateWithGitlab(webDriver)
+
+		if pages.ElementExist(authenticate.AuthenticateGitlab) {
+			Expect(authenticate.AuthenticateGitlab.Click()).To(Succeed())
+
+			if !pages.ElementExist(authenticate.Username) {
+				if pages.ElementExist(authenticate.CheckBrowser) {
+					setGitlabBrowserCompatibility(webDriver)
+					Eventually(authenticate.CheckBrowser, ASSERTION_30SECONDS_TIME_OUT).ShouldNot(BeFound())
+					TakeScreenShot("gitlab_browser_compatibility")
+				}
+
+				if pages.ElementExist(authenticate.AcceptCookies, 10) {
+					Eventually(authenticate.AcceptCookies.Click).Should(Succeed())
+				}
+			}
+
+			TakeScreenShot("gitlab_cookies_accepted")
+			if pages.ElementExist(authenticate.Username) {
+				Eventually(authenticate.Username).Should(BeVisible())
+				Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
+				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
+				Expect(authenticate.Signin.Click()).To(Succeed())
+			} else {
+				log.Info("Login not found, assuming already logged in")
+			}
+
+			if pages.ElementExist(authenticate.Authorize) {
+				Expect(authenticate.Authorize.Click()).To(Succeed())
+			}
 		}
 	}
-	return false
+}
+
+func setGitlabBrowserCompatibility(webDriver *agouti.Page) {
+	// opening the gitlab in a separate window not controlled by webdriver seems to redirect gitlab to login
+	pages.OpenNewWindow(webDriver, `http://`+gitProviderEnv.Hostname+`/users/sign_in`, "gitlab")
+	// Make sure weave-gitops-enterprise application window is still active window
+	Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
 }
 
 func AuthenticateWithGitHub(webDriver *agouti.Page) {
@@ -44,6 +83,7 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 	accessCode, _ := authenticate.AccessCode.Text()
 	Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
 	accessCode = strings.Replace(accessCode, "-", "", 1)
+	log.Info(accessCode)
 
 	// Move to device activation window
 	TakeScreenShot("application_authentication")
@@ -54,8 +94,8 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 
 	if pages.ElementExist(activate.Username) {
 		Eventually(activate.Username).Should(BeVisible())
-		Expect(activate.Username.SendKeys(GITHUB_USER)).To(Succeed())
-		Expect(activate.Password.SendKeys(GITHUB_PASSWORD)).To(Succeed())
+		Expect(activate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
+		Expect(activate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
 		Expect(activate.Signin.Click()).To(Succeed())
 	} else {
 		log.Info("Login not found, assuming already logged in")
@@ -88,7 +128,6 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops application UI Tests", func() {
-		var repoAbsolutePath string
 
 		BeforeEach(func() {
 
@@ -120,12 +159,13 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
-				deleteRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, GITHUB_ORG)
 			})
 
 			It("@application Verify application's status and history can be monitored.", func() {
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+
 				By("When I create a private repository for cluster configs", func() {
-					repoAbsolutePath = initAndCreateEmptyRepo(CLUSTER_REPOSITORY, GIT_PROVIDER, true, GITHUB_ORG)
+					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
@@ -134,7 +174,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I add the kustomization file for application deployment", func() {
 					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[1]v && cp %[2]v %[1]v", path.Join(repoAbsolutePath, appPath), kustomizationFile))
 					gitUpdateCommitPush(repoAbsolutePath, kustomizationCommitMsg)
 				})
 
@@ -151,7 +191,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf("Then I add application '%s' to weave gitops cluster", appName), func() {
 					Expect(applicationsPage.AddApplication.Click()).To(Succeed())
 
-					Eventually(addApp.Name).Should(BeVisible())
+					Expect(pages.ElementExist(addApp.Name)).To(BeTrue(), "Application name field doesn't exist")
 					Expect(addApp.Name.SendKeys(appName)).To(Succeed())
 					Expect(addApp.SourceRepoUrl.SendKeys(getGitRepositoryURL(repoAbsolutePath))).To(Succeed())
 					Expect(addApp.ConfigRepoUrl.SendKeys(getGitRepositoryURL(repoAbsolutePath))).To(Succeed())
@@ -159,14 +199,14 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(addApp.AutoMerge.Check()).To(Succeed())
 				})
 
-				By(`And authenticate with Github`, func() {
-					if AuthenticateWithGitProvider(webDriver, "github") {
-						Eventually(addApp.GitCredentials).Should(BeVisible())
-					}
+				By(`And authenticate with Git provider`, func() {
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					Eventually(addApp.GitCredentials).Should(BeVisible())
+
 					addApp = pages.GetAddApplicationForm(webDriver)
 					Expect(addApp.Submit.Click()).To(Succeed(), "Failed to click application add Submit button")
 					pages.WaitForAuthenticationAlert(webDriver, "Application added successfully!")
-					Expect(addApp.ViewApplication.Click()).To(Succeed())
+					Eventually(addApp.ViewApplication.Click).Should(Succeed())
 				})
 
 				By("Then I should see gitops add command linked the repo to the cluster", func() {
@@ -200,7 +240,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					Eventually(appDetails.Name).Should(MatchText(appName))
 					Eventually(appDetails.DeploymentType).Should(MatchText("Kustomize"))
-					Eventually(appDetails.URL).Should(MatchText(fmt.Sprintf(`ssh://git.+%s/%s.+`, GITHUB_ORG, CLUSTER_REPOSITORY)))
+					Eventually(appDetails.URL).Should(MatchText(fmt.Sprintf(`ssh://git.+%s/%s.+`, gitProviderEnv.Org, gitProviderEnv.Repo)))
 					Eventually(appDetails.Path).Should(MatchText(appPath))
 				})
 
@@ -220,10 +260,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(sourceCondition.Message).Should(MatchText(`Applied revision: main/[\w\d].+`))
 				})
 
-				By(`Then authenticate with Github`, func() {
-					if AuthenticateWithGitProvider(webDriver, "github") {
-						pages.WaitForAuthenticationAlert(webDriver, "Authentication Successful")
-					}
+				By(`Then authenticate with Git provider`, func() {
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				})
 

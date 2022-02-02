@@ -15,9 +15,8 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC } from 'react';
 import styled from 'styled-components';
 import { CAPICluster } from '../../types/kubernetes';
-import weaveTheme from 'weaveworks-ui-components/lib/theme';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import useClusters from './../../contexts/Clusters';
-import { GitOpsBlue } from './../../muiTheme';
 
 // styles
 
@@ -30,7 +29,7 @@ const useStyles = makeStyles(() =>
       marginTop: `${weaveTheme.spacing.medium}`,
     },
     downloadBtn: {
-      color: GitOpsBlue,
+      color: weaveTheme.colors.primary,
       padding: '0px',
     },
   }),
@@ -113,7 +112,8 @@ export const CAPIClusterStatus: FC<{
   const classes = useStyles();
   const { getKubeconfig } = useClusters();
 
-  const handleClick = () => getKubeconfig(clusterName, 'kubeconfig');
+  const handleClick = () =>
+    getKubeconfig(clusterName, `${clusterName}.kubeconfig`);
 
   if (!status) {
     return null;

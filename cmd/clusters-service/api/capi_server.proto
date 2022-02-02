@@ -136,6 +136,8 @@ message CreatePullRequestRequest {
   Credential credentials = 9;
   // The values for each profile that will be installed.
   repeated ProfileValues values = 10;
+  // The repo api url.
+  string repository_api_url = 11;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
@@ -159,6 +161,8 @@ message DeleteClustersPullRequestRequest {
   string commit_message = 7;
   // Credentials
   Credential credentials = 8;
+  // The repo api url.
+  string repository_api_url = 9;
 }
 message DeleteClustersPullRequestResponse {
   // The url of the new pull request.

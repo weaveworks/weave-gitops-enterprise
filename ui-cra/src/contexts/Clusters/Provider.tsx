@@ -9,7 +9,7 @@ import fileDownload from 'js-file-download';
 const CLUSTERS_POLL_INTERVAL = 5000;
 
 const ClustersProvider: FC = ({ children }) => {
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(false);
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
@@ -26,7 +26,6 @@ const ClustersProvider: FC = ({ children }) => {
   const [count, setCount] = useState<number | null>(null);
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
   const { notifications, setNotifications } = useNotifications();
-  const [creatingPR, setCreatingPR] = useState<boolean>(false);
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -50,7 +49,6 @@ const ClustersProvider: FC = ({ children }) => {
 
     const newAbortController = new AbortController();
     setAbortController(newAbortController);
-    setLoading(true);
     requestWithCountHeader('GET', clustersBaseUrl + clustersParameters, {
       cache: 'no-store',
       signal: newAbortController.signal,
@@ -73,7 +71,6 @@ const ClustersProvider: FC = ({ children }) => {
         }
       })
       .finally(() => {
-        setLoading(false);
         setDisabled(false);
         setAbortController(null);
       });
@@ -81,11 +78,11 @@ const ClustersProvider: FC = ({ children }) => {
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
-      setCreatingPR(true);
+      setLoading(true);
       return request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),
         headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-      }).finally(() => setCreatingPR(false));
+      }).finally(() => setLoading(false));
     },
     [],
   );
@@ -112,7 +109,6 @@ const ClustersProvider: FC = ({ children }) => {
 
   const getKubeconfig = useCallback(
     (clusterName: string, filename: string) => {
-      setLoading(true);
       request('GET', `v1/clusters/${clusterName}/kubeconfig`, {
         headers: {
           Accept: 'application/octet-stream',
@@ -121,8 +117,7 @@ const ClustersProvider: FC = ({ children }) => {
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
           setNotifications([{ message: err.message, variant: 'danger' }]),
-        )
-        .finally(() => setLoading(false));
+        );
     },
     [setNotifications],
   );
@@ -141,7 +136,6 @@ const ClustersProvider: FC = ({ children }) => {
         disabled,
         count,
         loading,
-        creatingPR,
         handleRequestSort,
         handleSetPageParams,
         order,

@@ -64,6 +64,7 @@ export type Profile = {
   kubeVersion?: string;
   helmRepository?: HelmRepository;
   availableVersions: string[];
+  layer?: string;
 };
 
 export type ListProfilesResponse = {
@@ -74,6 +75,7 @@ export type UpdatedProfile = {
   name: Profile['name'];
   values: { version: string; yaml: string; selected?: boolean }[];
   required: boolean;
+  layer?: string;
 };
 
 export type ChildrenOccurences = {

@@ -32,13 +32,16 @@ spec:
   description: this is test template 2
 `
 
-func makeClient(clusterState ...runtime.Object) client.Client {
+func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
@@ -49,7 +52,7 @@ func makeClient(clusterState ...runtime.Object) client.Client {
 func TestGetTemplateFromCRDs(t *testing.T) {
 	t1 := mustParseTemplate(t, testdata1)
 	t2 := mustParseTemplate(t, testdata2)
-	lib := CRDLibrary{Log: logr.Discard(), Client: makeClient(t1, t2)}
+	lib := CRDLibrary{Log: logr.Discard(), Client: makeClient(t, t1, t2)}
 	result, err := lib.Get(context.Background(), "cluster-template2")
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
@@ -62,7 +65,7 @@ func TestGetTemplateFromCRDs(t *testing.T) {
 func TestListTemplateFromCRDs(t *testing.T) {
 	t1 := mustParseTemplate(t, testdata1)
 	t2 := mustParseTemplate(t, testdata2)
-	lib := CRDLibrary{Log: logr.Discard(), Client: makeClient(t1, t2)}
+	lib := CRDLibrary{Log: logr.Discard(), Client: makeClient(t, t1, t2)}
 	result, err := lib.List(context.Background())
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)

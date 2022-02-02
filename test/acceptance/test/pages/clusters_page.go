@@ -10,15 +10,12 @@ import (
 )
 
 type ClusterInformation struct {
-	Checkbox       *agouti.Selection
-	Name           *agouti.Selection
-	Icon           *agouti.Selection
-	Status         *agouti.Selection
-	GitActivity    *agouti.Selection
-	NodesVersions  *agouti.Selection
-	TeamWorkspaces *agouti.Selection
-	GitRepoURL     *agouti.Selection
-	EditCluster    *agouti.Selection
+	Checkbox         *agouti.Selection
+	ShowStatusDetail *agouti.Selection
+	Name             *agouti.Selection
+	Icon             *agouti.Selection
+	Status           *agouti.Selection
+	EditCluster      *agouti.Selection
 }
 
 type ClusterStatus struct {
@@ -33,6 +30,7 @@ type DeletePullRequestPopup struct {
 	DeleteClusterButton *agouti.Selection
 	ConfirmDelete       *agouti.Selection
 	CancelDelete        *agouti.Selection
+	GitCredentials      *agouti.Selection
 }
 
 type AlertInformation struct {
@@ -59,9 +57,6 @@ type ClustersPage struct {
 	HeaderName                                  *agouti.Selection
 	HeaderIcon                                  *agouti.Selection
 	HeaderStatus                                *agouti.Selection
-	HeaderGitActivity                           *agouti.Selection
-	HeaderWorkspaces                            *agouti.Selection
-	HeaderNodeVersion                           *agouti.Selection
 	NoClusterConfigured                         *agouti.Selection
 	ClustersList                                *agouti.Selection
 	Tooltip                                     *agouti.Selection
@@ -84,15 +79,12 @@ func (c ClustersPage) WaitForClusterToAppear(webDriver *agouti.Page, clusterName
 func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterInformation {
 	cluster := clustersPage.ClustersList.Find(fmt.Sprintf(`tr.summary[data-cluster-name="%s"]`, clusterName))
 	return &ClusterInformation{
-		Checkbox:       cluster.FindByXPath(`td[1]`),
-		Name:           cluster.FindByXPath(`td[2]`),
-		Icon:           cluster.FindByXPath(`td[3]`).Find(`svg`),
-		Status:         cluster.FindByXPath(`td[4]`),
-		GitActivity:    cluster.FindByXPath(`td[5]`),
-		NodesVersions:  cluster.FindByXPath(`td[6]`),
-		TeamWorkspaces: cluster.FindByXPath(`td[7]`),
-		GitRepoURL:     cluster.FindByXPath(`td[8]`),
-		EditCluster:    cluster.FindByXPath(`td[9]`).Find("button"),
+		Checkbox:         cluster.FindByXPath(`td[1]`),
+		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
+		Name:             cluster.FindByXPath(`td[2]`),
+		Icon:             cluster.FindByXPath(`td[3]`).Find(`svg`),
+		Status:           cluster.FindByXPath(`td[4]`),
+		EditCluster:      cluster.FindByXPath(`td[5]`).Find("button"),
 	}
 }
 
@@ -113,6 +105,7 @@ func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 		DeleteClusterButton: webDriver.Find(`#delete-popup button#delete-cluster`),
 		ConfirmDelete:       webDriver.Find(`#confirm-disconnect-cluster-dialog button:first-child`),
 		CancelDelete:        webDriver.Find(`#confirm-disconnect-cluster-dialog button:last-child`),
+		GitCredentials:      webDriver.Find(`div.auth-message`),
 	}
 
 	return &deletePRPopup
@@ -162,9 +155,6 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderName:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
 		HeaderIcon:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
 		HeaderStatus:                          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
-		HeaderGitActivity:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[5]/span`),
-		HeaderNodeVersion:                     webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[6]/span`),
-		HeaderWorkspaces:                      webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[7]/span`),
 		NoClusterConfigured:                   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
 		ClustersList:                          webDriver.Find(`#clusters-list > div > table > tbody`),
 		Tooltip:                               webDriver.Find(`div[role="tooltip"]`),

@@ -88,7 +88,11 @@ func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}, marsh
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(response)
+	_, err = w.Write(response)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), 500)
+	}
 }
 
 // WriteError writes the error into the request

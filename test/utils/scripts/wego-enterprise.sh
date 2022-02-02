@@ -2,9 +2,9 @@
 
 args=("$@")
 
-if [ -z ${args[0]} ] || ([ ${args[0]} != 'setup' ] && [ ${args[0]} != 'reset' ] && [ ${args[0]} != 'reset_mccp' ])
+if [ -z ${args[0]} ] || ([ ${args[0]} != 'setup' ] && [ ${args[0]} != 'reset' ] && [ ${args[0]} != 'reset_controllers' ])
 then 
-    echo "Invalid option, valid values => [ setup, reset, reset_mccp ]"
+    echo "Invalid option, valid values => [ setup, reset, reset_controllers ]"
     exit 1
 fi
 
@@ -16,9 +16,6 @@ function setup {
     echo "Workspace path is a required argument"
     exit 1
   fi
-
-  UI_NODEPORT=30080
-  NATS_NODEPORT=31490
 
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
     WORKER_NAME=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
@@ -43,8 +40,10 @@ function setup {
   fi
 
   # Sets the UI and CAPI endpoint URL environment variables for acceptance tests
-  echo "TEST_UI_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
-  echo "TEST_CAPI_ENDPOINT_URL=http://${WORKER_NODE_EXTERNAL_IP}:${UI_NODEPORT}" >> $GITHUB_ENV
+  hostEntry=$(sudo cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
+  if [ -z $hostEntry ]; then
+    echo "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
+  fi
 
   kubectl create namespace prom
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -52,14 +51,7 @@ function setup {
   helm install my-prom prometheus-community/kube-prometheus-stack \
     --namespace prom \
     --version 14.4.0 \
-    --values test/utils/data/mccp-prometheus-values.yaml
-
-  kubectl create ns wego-system
-  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
-  kubectl create secret generic git-provider-credentials \
-    --namespace=wego-system \
-    --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
-  CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
+    --values ${args[1]}/test/utils/data/mccp-prometheus-values.yaml
   
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
@@ -68,42 +60,72 @@ function setup {
   fi
   helm repo update  
   
+  kubectl create ns wego-system
+  if [ ${GIT_PROVIDER} == "github" ]; then
+    GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
+    GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
+
+    kubectl create secret generic git-provider-credentials --namespace=wego-system \
+    --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
+  elif [ ${GIT_PROVIDER} == "gitlab" ]; then
+    GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY"
+    GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY.git
+
+    if [ -z ${GITOPS_GIT_HOST_TYPES} ]; then
+      kubectl create secret generic git-provider-credentials --namespace=wego-system \
+      --from-literal="GIT_PROVIDER_TOKEN=$GITLAB_TOKEN" \
+      --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
+      --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET"
+    else
+      kubectl create secret generic git-provider-credentials --namespace=wego-system \
+      --from-literal="GIT_PROVIDER_TOKEN=$GITLAB_TOKEN" \
+      --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
+      --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET" \
+      --from-literal="GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" \
+      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES" 
+    fi
+  fi
+
   # Install weave gitops core controllers
-  # Git repository doesn't exist at this point, therefore we just ignore the erros relataing to repository not found
-  GIT_REPOSITORY_URL="https://github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY"
   $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} --auto-merge
+ 
+  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
+  kubectl apply -f ${args[1]}/test/utils/data/gitlab-on-prem-ssh-config.yaml
+  CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
 
   # Install weave gitops enterprise controllers
-  if [ "${ACCEPTANCE_TESTS_DATABASE_TYPE}" == "postgres" ]; then
+  helmArgs=()
+  helmArgs+=( --set "nats.client.service.nodePort=${NATS_NODEPORT}" )
+  helmArgs+=( --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" )
+  helmArgs+=( --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" )
+  helmArgs+=( --set "nginx-ingress-controller.service.type=NodePort" )
+  helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
+  helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
+  helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
+  helmArgs+=( --set "config.capi.repositoryPath=./management" )
+  helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
+  helmArgs+=( --set "config.capi.baseBranch=main" )
+
+  if [ ${ACCEPTANCE_TESTS_DATABASE_TYPE} == "postgres" ]; then
     # Create postgres DB
-    kubectl apply -f test/utils/data/postgres-manifests.yaml
+    kubectl apply -f ${args[1]}/test/utils/data/postgres-manifests.yaml
     kubectl wait --for=condition=available --timeout=600s deployment/postgres
     POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
     kubectl create secret generic mccp-db-credentials --namespace wego-system --from-literal=username=postgres --from-literal=password=password
-
-    helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system \
-      --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-      --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
-      --set "nginx-ingress-controller.service.type=NodePort" \
-      --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
-      --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
-      --set "config.capi.repositoryPath=./management" \
-      --set "config.cluster.name=$(kubectl config current-context)", \
-      --set "config.capi.baseBranch=main" \
-      --set "dbConfig.databaseType=postgres" \
-      --set "postgresConfig.databaseName=postgres" \
-      --set "dbConfig.databaseURI=${POSTGRES_CLUSTER_IP}" 
-  else
-    helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system \
-      --set "nats.client.service.nodePort=${NATS_NODEPORT}" \
-      --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" \
-      --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" \
-      --set "nginx-ingress-controller.service.type=NodePort" \
-      --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" \
-      --set "config.capi.repositoryPath=./management" \
-      --set "config.cluster.name=$(kubectl config current-context)" \
-      --set "config.capi.baseBranch=main"
+    
+    helmArgs+=( --set "dbConfig.databaseType=postgres" )
+    helmArgs+=( --set "postgresConfig.databaseName=postgres" )
+    helmArgs+=( --set "dbConfig.databaseURI=${POSTGRES_CLUSTER_IP}" )
   fi
+
+  if [ ! -z $GITOPS_GIT_HOST_TYPES ]; then
+    helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
+    helmArgs+=( --set "config.extraVolumes[0].configMap.name=ssh-config" )
+    helmArgs+=( --set "config.extraVolumeMounts[0].name=ssh-config" )
+    helmArgs+=( --set "config.extraVolumeMounts[0].mountPath=/root/.ssh" )
+  fi
+
+  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system ${helmArgs[@]}
 
   # Install capi infrastructure provider
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
@@ -115,15 +137,21 @@ function setup {
   fi
 
   # Install resources for bootstrapping and CNI
+  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
+  
   if [ ${EXP_CLUSTER_RESOURCE_SET} = true ]; then
     kubectl wait --for=condition=Ready --timeout=300s -n capi-system --all pod
     kubectl apply -f ${args[1]}/test/utils/data/calico-crs.yaml
     kubectl apply -f ${args[1]}/test/utils/data/calico-crs-configmap.yaml
-  fi  
-  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml  
-  kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
-  GITOPS_REPO=ssh://git@github.com/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
-	cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | sed s,{{GITOPS_REPO}},$GITOPS_REPO,g | kubectl apply -f -
+  fi
+
+  if [ ${GIT_PROVIDER} == "github" ]; then
+    kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
+  	cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | sed s,{{GITOPS_REPO}},$GITOPS_REPO,g | sed s,{{GIT_PROVIDER_TOKEN}},GITHUB_TOKEN,g | kubectl apply -f -
+  elif [ ${GIT_PROVIDER} == "gitlab" ]; then
+    kubectl create secret generic my-pat --from-literal GITLAB_TOKEN=$GITLAB_TOKEN
+  	cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | sed s,{{GITOPS_REPO}},$GITOPS_REPO,g | sed s,{{GIT_PROVIDER_TOKEN}},GITLAB_TOKEN,g | kubectl apply -f -
+  fi
 
   # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod --selector='app!=wego-app'
@@ -149,40 +177,52 @@ function reset {
   kubectl delete configmap calico-crs-configmap
 }
 
-function reset_mccp {
-    EVENT_WRITER_POD=$(kubectl get pods -n wego-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
-    GITOPS_BROKER_POD=$(kubectl get pods -n wego-system|grep gitops-repo-broker|tr -s ' '|cut -f1 -d ' ')    
+function reset_controllers {
+    if [ ${#args[@]} -ne 2 ]; then
+      echo "Cotroller's type is a required argument, valid values => [ enterprise, core, all ]"
+      exit 1
+    fi
 
-    # Sometime due to the test conditions the cluster service pod is in transition state i.e. one terminating and the new one is being created at the same time.
-    # Under such state we have two cluster srvice pods momentarily 
-    counter=10
-    while [ $counter -gt 0 ]
-    do
-        CLUSTER_SERVICE_POD=$(kubectl get pods -n wego-system|grep cluster-service|tr -s ' '|cut -f1 -d ' ')
-        pod_count=$(echo $CLUSTER_SERVICE_POD | wc -w |awk '{print $1}')
-        if [ $pod_count -gt 1 ]
-        then            
-            sleep 2
-            counter=$(( $counter - 1 ))
-        else
-            break
-        fi        
-    done    
+    
+    controllerNames=()
+    if [ ${args[1]} == "enterprise" ] || [ ${args[1]} == "all" ]; then
+      EVENT_WRITER_POD=$(kubectl get pods -n wego-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
+      GITOPS_BROKER_POD=$(kubectl get pods -n wego-system|grep gitops-repo-broker|tr -s ' '|cut -f1 -d ' ')    
 
-    echo $EVENT_WRITER_POD
-    echo $GITOPS_BROKER_POD
-    echo $CLUSTER_SERVICE_POD
-    kubectl exec -n wego-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
-    kubectl delete -n wego-system pod $EVENT_WRITER_POD
-    kubectl delete -n wego-system pod $GITOPS_BROKER_POD
-    kubectl delete -n wego-system pod $CLUSTER_SERVICE_POD
+      # Sometime due to the test conditions the cluster service pod is in transition state i.e. one terminating and the new one is being created at the same time.
+      # Under such state we have two cluster srvice pods momentarily 
+      counter=10
+      while [ $counter -gt 0 ]
+      do
+          CLUSTER_SERVICE_POD=$(kubectl get pods -n wego-system|grep cluster-service|tr -s ' '|cut -f1 -d ' ')
+          pod_count=$(echo $CLUSTER_SERVICE_POD | wc -w |awk '{print $1}')
+          if [ $pod_count -gt 1 ]
+          then            
+              sleep 2
+              counter=$(( $counter - 1 ))
+          else
+              break
+          fi        
+      done
+      controllerNames+=" ${EVENT_WRITER_POD}"
+      controllerNames+=" ${GITOPS_BROKER_POD}"
+      controllerNames+=" ${CLUSTER_SERVICE_POD}"
+      kubectl exec -n wego-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
+    fi
+
+    if [ ${args[1]} == "core" ] || [ ${args[1]} == "all" ]; then
+      KUSTOMIZE_POD=$(kubectl get pods -n wego-system|grep kustomize-controller|tr -s ' '|cut -f1 -d ' ')
+      controllerNames+=" ${KUSTOMIZE_POD}"
+    fi
+
+    kubectl delete -n wego-system pod $controllerNames
 }
 
 if [ ${args[0]} = 'setup' ]; then
     setup
 elif [ ${args[0]} = 'reset' ]; then
     reset
-elif [ ${args[0]} = 'reset_mccp' ]; then
-    reset_mccp
+elif [ ${args[0]} = 'reset_controllers' ]; then
+    reset_controllers
 fi
 

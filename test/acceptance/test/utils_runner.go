@@ -29,7 +29,7 @@ import (
 // - "Real" commands like "exec(kubectl...)"
 // - "Mock" commands like db.Create(cluster_info...)
 type GitopsTestRunner interface {
-	ResetDatabase() error
+	ResetControllers(controllers string) error
 	VerifyWegoPodsRunning()
 	FireAlert(name, severity, message string, fireFor time.Duration) error
 	KubectlApply(env []string, tokenURL string) error
@@ -64,7 +64,7 @@ func (b DatabaseGitopsTestRunner) TimeTravelToAlertsResolved() error {
 	return nil
 }
 
-func (b DatabaseGitopsTestRunner) ResetDatabase() error {
+func (b DatabaseGitopsTestRunner) ResetControllers(controllers string) error {
 	b.DB.Where("1 = 1").Delete(&models.Cluster{})
 	return nil
 }
@@ -211,8 +211,8 @@ func (b RealGitopsTestRunner) TimeTravelToAlertsResolved() error {
 	return nil
 }
 
-func (b RealGitopsTestRunner) ResetDatabase() error {
-	return runCommandPassThrough([]string{}, "../../utils/scripts/wego-enterprise.sh", "reset_mccp")
+func (b RealGitopsTestRunner) ResetControllers(controllers string) error {
+	return runCommandPassThrough("../../utils/scripts/wego-enterprise.sh", "reset_controllers", controllers)
 }
 
 func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
@@ -220,20 +220,20 @@ func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
 }
 
 func (b RealGitopsTestRunner) KubectlApply(env []string, tokenURL string) error {
-	err := runCommandPassThrough(env, "kubectl", "apply", "-f", tokenURL)
+	err := runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", tokenURL)
 	fmt.Println("Cluster pods after apply")
-	if err := runCommandPassThrough(env, "kubectl", "get", "pods", "-A"); err != nil {
+	if err := runCommandPassThroughWithEnv(env, "kubectl", "get", "pods", "-A"); err != nil {
 		fmt.Printf("Error getting cluster pods after apply: %v\n", err)
 	}
 	return err
 }
 
 func (b RealGitopsTestRunner) KubectlDelete(env []string, tokenURL string) error {
-	return runCommandPassThrough(env, "kubectl", "delete", "-f", tokenURL)
+	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-f", tokenURL)
 }
 
 func (b RealGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
-	return runCommandPassThrough(env, "kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
+	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
 }
 
 func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
@@ -298,7 +298,7 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 }
 
 func (b RealGitopsTestRunner) AddWorkspace(env []string, clusterName string) error {
-	return runCommandPassThrough(env, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
+	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
 }
 
 // This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability
@@ -308,7 +308,7 @@ func (b RealGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templa
 
 	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			err = runCommandPassThrough([]string{}, "kubectl", "apply", "-f", fileName)
+			err = runCommandPassThrough("kubectl", "apply", "-f", fileName)
 			Expect(err).To(BeNil(), "Failed to apply/install CAPITemplate template files")
 		}
 	})
@@ -342,10 +342,10 @@ func (b RealGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
 
 func (b RealGitopsTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
 	// Restart the deployment pods
-	err := runCommandPassThrough(env, "kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+	err := runCommandPassThroughWithEnv(env, "kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
 	if err == nil {
 		// Wait for all the deployments replicas to rolled out successfully
-		err = runCommandPassThrough(env, "kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+		err = runCommandPassThroughWithEnv(env, "kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
 	}
 	return err
 }
@@ -353,34 +353,34 @@ func (b RealGitopsTestRunner) RestartDeploymentPods(env []string, appName string
 func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string) {
 	if infrastructureProvider == "AWS" {
 		By("Install AWSClusterStaticIdentity CRD", func() {
-			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
+			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AWSClusterStaticIdentity CRD")
-			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io")
+			err = runCommandPassThrough("kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io")
 			Expect(err).To(BeNil(), "Failed to verify AWSClusterStaticIdentity CRD")
 		})
 
 		By("Install AWSClusterRoleIdentity CRD", func() {
-			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
+			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AWSClusterRoleIdentity CRD")
-			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io")
+			err = runCommandPassThrough("kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io")
 			Expect(err).To(BeNil(), "Failed to verify AWSClusterRoleIdentity CRD")
 		})
 
 		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
-			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/aws_cluster_credentials.yaml")
+			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/aws_cluster_credentials.yaml")
 			Expect(err).To(BeNil(), "Failed to create AWS credentials")
 		})
 
 	} else if infrastructureProvider == "AZURE" {
 		By("Install AzureClusterIdentity CRD", func() {
-			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
+			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
 			Expect(err).To(BeNil(), "Failed to install AzureClusterIdentity CRD")
-			err = runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/azureclusteridentities.infrastructure.cluster.x-k8s.io")
+			err = runCommandPassThrough("kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/azureclusteridentities.infrastructure.cluster.x-k8s.io")
 			Expect(err).To(BeNil(), "Failed to verify AzureClusterIdentity CRD")
 		})
 
 		By("Create Azure Secret and AzureClusterIdentity)", func() {
-			err := runCommandPassThrough([]string{}, "kubectl", "apply", "-f", "../../utils/data/azure_cluster_credentials.yaml")
+			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/azure_cluster_credentials.yaml")
 			Expect(err).To(BeNil(), "Failed to create Azure credentials")
 		})
 	}
@@ -389,13 +389,13 @@ func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string)
 
 func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 	if infrastructureProvider == "AWS" {
-		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/aws_cluster_credentials.yaml")
-		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
-		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
+		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/aws_cluster_credentials.yaml")
+		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
+		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
 
 	} else if infrastructureProvider == "AZURE" {
-		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/azure_cluster_credentials.yaml")
-		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
+		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/azure_cluster_credentials.yaml")
+		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
 	}
 }
 
