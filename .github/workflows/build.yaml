@@ -40,6 +40,8 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
     - name: build
+      env:
+        GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       run: |
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/clusters-service/.uptodate
     - name: Login to Docker Hub
