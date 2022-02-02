@@ -40,9 +40,9 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
     - name: Unshallow
-        run: |
-          git fetch --prune --unshallow
-          git fetch --tags -f
+      run: |
+        git fetch --prune --unshallow
+        git fetch --tags -f
     - name: build
       run: |
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/clusters-service/.uptodate
@@ -67,9 +67,9 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
     - name: Unshallow
-        run: |
-          git fetch --prune --unshallow
-          git fetch --tags -f
+      run: |
+        git fetch --prune --unshallow
+        git fetch --tags -f
     - name: build
       run: |
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/event-writer/.uptodate
@@ -103,9 +103,9 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
     - name: Unshallow
-        run: |
-          git fetch --prune --unshallow
-          git fetch --tags -f
+      run: |
+        git fetch --prune --unshallow
+        git fetch --tags -f
     - name: Go Build Cache
       uses: actions/cache@v2
       with:
@@ -157,9 +157,9 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
     - name: Unshallow
-        run: |
-          git fetch --prune --unshallow
-          git fetch --tags -f
+      run: |
+        git fetch --prune --unshallow
+        git fetch --tags -f
     - name: Go Build Cache
       uses: actions/cache@v2
       with:
