@@ -29,6 +29,8 @@ type Options struct {
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	EntitlementSecretKey         client.ObjectKey
+	AgentTemplateNatsURL         string
+	AgentTemplateAlertmanagerURL string
 }
 
 type Option func(*Options)
@@ -141,5 +143,14 @@ func WithEntitlementSecretKey(key client.ObjectKey) Option {
 func WithHelmRepositoryCacheDirectory(cacheDir string) Option {
 	return func(o *Options) {
 		o.HelmRepositoryCacheDirectory = cacheDir
+	}
+}
+
+// WithAgentTemplate is used to set the url
+// for template nats and template alert manager
+func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL string) Option {
+	return func(o *Options) {
+		o.AgentTemplateNatsURL = agentTemplateNatsURL
+		o.AgentTemplateAlertmanagerURL = agentTemplateAlertmanagerURL
 	}
 }
