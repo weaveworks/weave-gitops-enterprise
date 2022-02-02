@@ -246,12 +246,19 @@ jobs:
          elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install kind
         fi
+        kind version
     - name: Install clusterctl
       run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.0/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
+        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.3/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
         chmod +x ./clusterctl
         sudo mv ./clusterctl /usr/local/bin/clusterctl
-        clusterctl version         
+        clusterctl version
+
+        # Workarond to override dowloading the cert-manager.yaml because upstream cert-manager repository path is not valid
+        cat > $HOME/.cluster-api/clusterctl.yaml <<- EOM
+        cert-manager:
+          url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
+        EOM
     - name: Set up ssh
       uses: ./.github/actions/setup-ssh
       with:
