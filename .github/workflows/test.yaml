@@ -221,7 +221,7 @@ jobs:
 
   smoke-tests:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@cert-manager-version
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -247,7 +247,7 @@ jobs:
 
   smoke-tests-gitlab:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@cert-manager-version
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -275,7 +275,7 @@ jobs:
 
   smoke-tests-gitlab-on-prem:
     needs: [build]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@cert-manager-version
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -303,7 +303,7 @@ jobs:
 
   acceptance-tests-github:
     needs: [build, lint, unit-tests, integration-tests, ui-integration-tests]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@cert-manager-version
+    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
     with:
       runs-on: ubuntu-latest
       os-name: linux
