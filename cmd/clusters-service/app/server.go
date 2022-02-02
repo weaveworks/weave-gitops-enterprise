@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
+	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/mux"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -28,6 +31,7 @@ import (
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
+	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -43,24 +47,28 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
 )
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
-	dbURI                      string
-	dbName                     string
-	dbUser                     string
-	dbPassword                 string
-	dbType                     string
-	dbBusyTimeout              string
-	entitlementSecretName      string
-	entitlementSecretNamespace string
-	helmRepoNamespace          string
-	helmRepoName               string
-	profileCacheLocation       string
-	watcherMetricsBindAddress  string
-	watcherHealthzBindAddress  string
-	watcherPort                int
+	dbURI                        string
+	dbName                       string
+	dbUser                       string
+	dbPassword                   string
+	dbType                       string
+	dbBusyTimeout                string
+	entitlementSecretName        string
+	entitlementSecretNamespace   string
+	helmRepoNamespace            string
+	helmRepoName                 string
+	profileCacheLocation         string
+	watcherMetricsBindAddress    string
+	watcherHealthzBindAddress    string
+	watcherPort                  int
+	AgentTemplateNatsURL         string
+	AgentTemplateAlertmanagerURL string
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -91,6 +99,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.watcherHealthzBindAddress, "watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
 	cmd.Flags().StringVar(&p.watcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
+	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wkp-gitops-repo-broker:4222", "Value used to populate the nats URL in /api/agent.yaml")
 
 	return cmd
 }
@@ -243,6 +253,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		),
 		WithCAPIClustersNamespace(ns),
 		WithHelmRepositoryCacheDirectory(tempDir),
+		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL),
 	)
 }
 
@@ -275,7 +286,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return errors.New("CAPI clusters namespace is not set")
 	}
 
-	mux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
+	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
 	clusterServer := server.NewClusterServer(
 		args.Log,
@@ -288,24 +299,31 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.ProfileHelmRepository,
 		args.HelmRepositoryCacheDirectory,
 	)
-	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, mux, clusterServer); err != nil {
+	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
 		return fmt.Errorf("failed to register clusters service handler server: %w", err)
 	}
 
 	//Add weave-gitops core handlers
 	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
-	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, mux, wegoApplicationServer); err != nil {
+	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 
 	wegoProfilesServer := core.NewProfilesServer(args.ProfilesConfig)
-	if err := core_profiles_proto.RegisterProfilesHandlerServer(ctx, mux, wegoProfilesServer); err != nil {
+	if err := core_profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
-	httpHandler := middleware.WithLogging(args.Log, mux)
-	httpHandler = middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, httpHandler, args.Log)
+	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
+
+	mux := http.NewServeMux()
+	mux.Handle("/v1/", grpcHttpHandler)
+
+	httpHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
+
+	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
+	mux.Handle("/gitops/", gitopsBrokerHandler)
 
 	s := &http.Server{
 		Addr:    addr,
@@ -405,4 +423,18 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	} else {
 		log.Info("The current weave-gitops-enterprise version is up to date", "current", version.Version)
 	}
+}
+
+func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) *mux.Router {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
+	r.HandleFunc("/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
+	r.HandleFunc("/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
+	r.HandleFunc("/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")
+	r.HandleFunc("/clusters/{id:[0-9]+}", api.UpdateCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent)).Methods("PUT")
+	r.HandleFunc("/clusters/{id:[0-9]+}", api.UnregisterCluster(db)).Methods("DELETE")
+	r.HandleFunc("/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")
+
+	return r
 }
