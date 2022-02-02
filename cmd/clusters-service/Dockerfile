@@ -26,7 +26,6 @@ COPY go.sum /workspace/go.sum
 # copy in other module dependencies
 COPY common/ /workspace/common/
 COPY pkg/ /workspace/pkg/
-COPY ui-cra/build dist
 
 # cache modules
 RUN go mod download
@@ -36,6 +35,7 @@ COPY cmd/clusters-service/main.go main.go
 COPY cmd/clusters-service/api/ api/
 COPY cmd/clusters-service/app/ app/
 COPY cmd/clusters-service/pkg/ pkg/
+COPY ui-cra/build app/server/dist
 
 ARG version
 # build
