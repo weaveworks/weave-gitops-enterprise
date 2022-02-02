@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.head_ref }}
+  group: ${{ github.ref }}
   cancel-in-progress: true
 
 name: run tests
@@ -21,6 +21,9 @@ jobs:
         run: |
           echo "::set-output name=go-build::$(go env GOCACHE)"
           echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: echo ref
+        run: |
+          echo "${{ github.ref }}"
       - name: Install Go
         uses: actions/setup-go@v2
         with:
