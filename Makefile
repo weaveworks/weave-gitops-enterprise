@@ -54,6 +54,7 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 # Takes precedence over the more general rule above
 # The only difference is the build context
 cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/*
+	$(SUDO) yarn build
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
