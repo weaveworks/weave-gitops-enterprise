@@ -1,4 +1,74 @@
-FROM golang:1.17.1 as builder
+# --
+# -- node build env
+FROM node:14.19 as node_with_modules
+
+WORKDIR /workspace/
+
+# Copy package.json stuff and install modules
+COPY ui-cra/.npmrc ui-cra/package.json ui-cra/yarn.lock ui-cra/
+
+ARG GITHUB_BUILD_TOKEN
+RUN yarn config set network-timeout 300000 && cd ui-cra && GITHUB_TOKEN=$GITHUB_BUILD_TOKEN yarn install --frozen-lockfile
+
+# --
+# -- golang build env
+FROM golang:1.17.1 as go_with_modules
+
+WORKDIR /workspace/
+
+ENV GITHUB_BUILD_USERNAME=wge-build-bot
+ARG GITHUB_BUILD_TOKEN
+RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+
+# copy modules manifests
+COPY go.mod /workspace/go.mod
+COPY go.sum /workspace/go.sum
+
+# copy in other module dependencies
+COPY common/ /workspace/common/
+
+# cache modules
+RUN go mod download
+
+# --
+# -- build ui
+FROM node_with_modules as node_builder
+
+WORKDIR /workspace/ui-cra
+
+ARG version
+ARG GITHUB_BUILD_TOKEN
+
+# Copy source and supporting files and build
+COPY ui-cra/tsconfig.json .
+COPY ui-cra/src src
+COPY ui-cra/public public
+RUN GITHUB_TOKEN=$GITHUB_BUILD_TOKEN REACT_APP_VERSION=$version yarn build
+
+# --
+# -- build go
+FROM go_with_modules as go_builder
+
+WORKDIR /workspace/cmd/clusters-service
+
+# common code
+COPY pkg/ /workspace/pkg/
+
+# copy source code
+COPY cmd/clusters-service/main.go main.go
+COPY cmd/clusters-service/api/ api/
+COPY cmd/clusters-service/app/ app/
+COPY cmd/clusters-service/pkg/ pkg/
+COPY --from=node_builder /workspace/ui-cra/build app/dist
+
+ARG version
+ARG image_tag
+# build
+RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$version -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$image_tag' -linkmode external -w -extldflags \"-static\"" -tags netgo -a -o clusters-service main.go
+
+# --
+# -- runtime!
+FROM docker.io/governmentpaas/git-ssh
 
 ARG now
 ARG revision
@@ -13,36 +83,6 @@ LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.vendor="Weaveworks" \
       org.opencontainers.image.version="${version}"
 
-WORKDIR /workspace/cmd/clusters-service
-
-ENV GITHUB_BUILD_USERNAME=wge-build-bot
-ARG GITHUB_BUILD_TOKEN
-RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-
-# copy modules manifests
-COPY go.mod /workspace/go.mod
-COPY go.sum /workspace/go.sum
-
-# copy in other module dependencies
-COPY common/ /workspace/common/
-COPY pkg/ /workspace/pkg/
-
-# cache modules
-RUN go mod download
-
-# copy source code
-COPY cmd/clusters-service/main.go main.go
-COPY cmd/clusters-service/api/ api/
-COPY cmd/clusters-service/app/ app/
-COPY cmd/clusters-service/pkg/ pkg/
-COPY ui-cra/build app/dist
-
-ARG version
-ARG image_tag
-# build
-RUN CGO_ENABLED=1 go build -ldflags "-X 'github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$version -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$image_tag' -linkmode external -w -extldflags \"-static\"" -tags netgo -a -o clusters-service main.go
-
-FROM docker.io/governmentpaas/git-ssh
 
 # # Add git provider hostnames to known hosts file so we can use
 # # StrickHostKeyChecking with git+ssh
@@ -51,7 +91,7 @@ RUN bash /tmp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /tmp/known_hosts.sh
 
 RUN apk add --no-cache ca-certificates tini
 
-COPY --from=builder /workspace/cmd/clusters-service/clusters-service /usr/local/bin/
+COPY --from=go_builder /workspace/cmd/clusters-service/clusters-service /usr/local/bin/
 
 RUN addgroup -S clusters-service && adduser -S clusters-service -G clusters-service
 

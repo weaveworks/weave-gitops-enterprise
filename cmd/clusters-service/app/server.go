@@ -53,6 +53,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
+	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
 // Options contains all the options for the `ui run` command.
@@ -79,6 +80,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	p := Params{}
 	cmd := &cobra.Command{
 		Use:          "capi-server",
+		Version:      fmt.Sprintf("Version: %s, Image Tag: %s", version.Version, wge_version.ImageTag),
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

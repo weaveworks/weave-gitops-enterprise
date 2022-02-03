@@ -136,9 +136,12 @@ cmd/wkp-agent/.uptodate: cmd/wkp-agent/wkp-agent cmd/wkp-agent/Dockerfile
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
 
-ui-cra/build:
+ui-cra/node_modules:
+	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile
+
+ui-cra/build: ui-cra/node_modules
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
-	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile && REACT_APP_VERSION=$(VERSION) yarn build
+	REACT_APP_VERSION=$(VERSION) yarn build
 
 ui-audit:
 	# Check js packages for any high or critical vulnerabilities 
