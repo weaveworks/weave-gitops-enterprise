@@ -44,6 +44,8 @@ jobs:
         git fetch --prune --unshallow
         git fetch --tags -f
     - name: build
+      env:
+        GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       run: |
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/clusters-service/.uptodate
     - name: Login to Docker Hub
