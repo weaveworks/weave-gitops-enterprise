@@ -151,10 +151,12 @@ const ProfilesListItem: FC<{
               </Select>
             </FormControl>
           </div>
-          <div className="profile-layer">
-            <span>Layer</span>
-            <span>{profile.layer}</span>
-          </div>
+          {profile.layer ? (
+            <div className="profile-layer">
+              <span>Layer</span>
+              <span>{profile.layer}</span>
+            </div>
+          ) : null}
           <Button variant="text" onClick={handleYamlPreview}>
             Values.yaml
           </Button>
