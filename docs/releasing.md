@@ -4,6 +4,12 @@
 
 How to release a new version of weave-gitops-enterprise
 
+## Prerequisites
+
+Install [GnuPG](https://gnupg.org/) and [generate a GPG key and add it to your Github account](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key).
+
+If you aren't using the GPG suite, you will need to [add the GPG key to your .bashrc / .zshrc](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key).
+
 ## Create a tag
 
 _This may be possible by creating a tag via the releases system in the github UI, please test and update here._
@@ -16,11 +22,3 @@ git push origin v0.0.6
 ```
 
 CircleCI will build the new release based on the new tag.
-
-## Create a release in GitHub
-
-- Go to the **Releases page** for the weave-gitops repository
-- Click on **Draft a New Release**
-- Add the tag you just pushed
-- Add some release notes. It would be nice to automate this in the future. Its probably easiest to copy the last release as a template and then modify the list of _fixes_ and _new features_.
-- Click on **Publish Release**

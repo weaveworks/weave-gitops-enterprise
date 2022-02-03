@@ -19,7 +19,7 @@ make binaries
 If you encounter a build error for the containers which looks like this:
 
 ```log
- > [builder  7/15] RUN go mod download:                                                                                                
+ > [builder  7/15] RUN go mod download:
 #15 20.58 go mod download: github.com/weaveworks/weave-gitops-enterprise-credentials@v0.0.1: invalid version: git ls-remote -q origin in /go/pkg/mod/cache/vcs/2d85ed3446e0807d78000711febc8f5eeb93fa1a010e290025afb84defca1ae6: exit status 128:
 #15 20.58       remote: Invalid username or password.
 #15 20.58       fatal: Authentication failed for 'https://github.com/weaveworks/weave-gitops-enterprise-credentials/'
@@ -96,7 +96,7 @@ Run the server:
 export KUBECONFIG=test-server-kubeconfig
 
 # The weave-gitops core library uses an embedded Flux. That's not going to work when used as a library though
-# so we need to tell it to use a different Flux. This is also done by the cluster-service deployment.  
+# so we need to tell it to use a different Flux. This is also done by the cluster-service deployment.
 WEAVE_GITOPS_FLUX_BIN_PATH=`which flux`
 
 # Run the server configured using lots of env vars
@@ -226,7 +226,7 @@ The private ssh key to the server lives in the `pesto test cluster ssh key` secr
 
 2. Update the deployed version on the test cluster
 
-   1. As of writing the `HelmRelease` lives in [management/weave-gitops-enterprise/artifacts/mccp-chart/helm-chart/HelmRelease.yaml](https://github.com/wkp-example-org/capd-demo-simon/blob/main/management/weave-gitops-enterprise/artifacts/mccp-chart/helm-chart/HelmRelease.yaml), but may have moved, so look around for the helm-release file if this has gone missing.
+   1. As of writing the `HelmRelease` lives in [.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml](https://github.com/wkp-example-org/capd-demo-simon/blob/main/.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml), but may have moved, so look around for the helm-release file if this has gone missing.
    2. Find the `spec.chart.spec.version` field and change it to the desired value.
    3. If this is an official release (`0.0.9` etc) make sure the release repo is set:
       ```
