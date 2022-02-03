@@ -46,7 +46,8 @@ jobs:
         run: |
           echo "::set-output name=version::$(git describe --always --match "v*" | sed 's/^[^0-9]*//')"
           echo "::set-output name=revision::$(git rev-parse HEAD)"
-          echo "::set-output name=GITHUB_BUILD_TOKEN::${{ secrets.WGE_NPM_GITHUB_TOKEN }}"
+          echo "::set-output name=NPM_GITHUB_TOKEN::${{ secrets.WGE_NPM_GITHUB_TOKEN }}"
+          echo "::set-output name=GITHUB_BUILD_TOKEN::${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}"
           echo "::set-output name=now::$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           echo "::set-output name=image_tag::$(./tools/image-tag)"
       - name: Login to Docker Hub
@@ -68,6 +69,7 @@ jobs:
             "image_tag=${{ steps.lookup-vars.outputs.image_tag }}"
             "revision=${{ steps.lookup-vars.outputs.revision }}"
             "GITHUB_BUILD_TOKEN=${{ steps.lookup-vars.outputs.GITHUB_BUILD_TOKEN }}"
+            "NPM_GITHUB_TOKEN=${{ steps.lookup-vars.outputs.NPM_GITHUB_TOKEN }}"
             "now=${{ steps.lookup-vars.outputs.now }}"
           tags: weaveworks/weave-gitops-enterprise-clusters-service:${{ steps.lookup-vars.outputs.image_tag }}
           cache-from: type=gha

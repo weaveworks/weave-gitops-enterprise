@@ -7,8 +7,8 @@ WORKDIR /workspace/
 # Copy package.json stuff and install modules
 COPY ui-cra/.npmrc ui-cra/package.json ui-cra/yarn.lock ui-cra/
 
-ARG GITHUB_BUILD_TOKEN
-RUN yarn config set network-timeout 300000 && cd ui-cra && GITHUB_TOKEN=$GITHUB_BUILD_TOKEN yarn install --frozen-lockfile
+ARG NPM_GITHUB_TOKEN
+RUN yarn config set network-timeout 300000 && cd ui-cra && GITHUB_TOKEN=$NPM_GITHUB_TOKEN yarn install --frozen-lockfile
 
 # --
 # -- golang build env
@@ -37,13 +37,13 @@ FROM node_with_modules as node_builder
 WORKDIR /workspace/ui-cra
 
 ARG version
-ARG GITHUB_BUILD_TOKEN
+ARG NPM_GITHUB_TOKEN
 
 # Copy source and supporting files and build
 COPY ui-cra/tsconfig.json .
 COPY ui-cra/src src
 COPY ui-cra/public public
-RUN GITHUB_TOKEN=$GITHUB_BUILD_TOKEN REACT_APP_VERSION=$version yarn build
+RUN GITHUB_TOKEN=$NPM_GITHUB_TOKEN REACT_APP_VERSION=$version yarn build
 
 # --
 # -- build go
