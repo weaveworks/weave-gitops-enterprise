@@ -169,6 +169,10 @@ ui-audit:
 lint:
 	bin/go-lint
 
+cmd/clusters-service/clusters-service: ui-cra/build
+	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "$(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
+	cp -r ui-cra/build/* cmd/clusters-service/app/dist/
+
 # We select which directory we want to descend into to not execute integration
 # tests here.
 unit-tests-with-coverage: $(GENERATED)

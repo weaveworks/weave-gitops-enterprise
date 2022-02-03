@@ -327,7 +327,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
-	mux.Handle("/gitops/", gitopsBrokerHandler)
+	mux.Handle("/gitops/api/", gitopsBrokerHandler)
 
 	// UI
 	var log = logrus.New()
@@ -448,13 +448,13 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
-	r.HandleFunc("/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
-	r.HandleFunc("/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
-	r.HandleFunc("/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")
-	r.HandleFunc("/clusters/{id:[0-9]+}", api.UpdateCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent)).Methods("PUT")
-	r.HandleFunc("/clusters/{id:[0-9]+}", api.UnregisterCluster(db)).Methods("DELETE")
-	r.HandleFunc("/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")
+	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
+	r.HandleFunc("/gitops/api/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
+	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
+	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")
+	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UpdateCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent)).Methods("PUT")
+	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UnregisterCluster(db)).Methods("DELETE")
+	r.HandleFunc("/gitops/api/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")
 
 	return r
 }

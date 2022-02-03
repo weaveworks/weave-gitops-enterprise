@@ -35,7 +35,7 @@ COPY cmd/clusters-service/main.go main.go
 COPY cmd/clusters-service/api/ api/
 COPY cmd/clusters-service/app/ app/
 COPY cmd/clusters-service/pkg/ pkg/
-COPY ui-cra/build app/server/dist
+COPY ui-cra/build app/dist
 
 ARG version
 # build
