@@ -375,6 +375,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := http.NewServeMux()
 
+	var authServer *auth.AuthServer
 	if AuthEnabled() {
 		_, err := url.Parse(args.OIDC.IssuerURL)
 		if err != nil {
@@ -411,8 +412,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 		args.Log.Info("Registering callback route")
 		auth.RegisterAuthServer(mux, "/oauth2", srv)
+		authServer = srv
 
+		// Secure `/v1` and `/gitops/api` API routes
 		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv)
+		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv)
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
@@ -428,11 +432,17 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		extension := filepath.Ext(req.URL.Path)
 
 		if extension == "" {
-			redirector(w, req)
+			if AuthEnabled() {
+				auth.WithWebAuth(redirector, authServer).ServeHTTP(w, req)
+			} else {
+				redirector(w, req)
+			}
 			return
 		}
 		assetHandler.ServeHTTP(w, req)
 	}))
+	mux.Handle("/v1/", grpcHttpHandler)
+	mux.Handle("/gitops/api/", gitopsBrokerHandler)
 
 	httpHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
@@ -537,7 +547,7 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	}
 }
 
-func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) *mux.Router {
+func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
