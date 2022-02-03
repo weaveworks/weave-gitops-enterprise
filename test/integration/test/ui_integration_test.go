@@ -571,7 +571,7 @@ func RunUIServer(ctx gcontext.Context) {
 	cmd.Env = append(
 		os.Environ(),
 		[]string{
-			"CAPI_SERVER_HOST=http://localhost:" + capiServerPort,
+			"PROXY_HOST=http://localhost:" + capiServerPort,
 		}...,
 	)
 
