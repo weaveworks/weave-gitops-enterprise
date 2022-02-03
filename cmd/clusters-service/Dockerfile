@@ -10,7 +10,7 @@ COPY ui-cra/.npmrc ui-cra/package.json ui-cra/yarn.lock ui-cra/
 RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN \
   yarn config set network-timeout 300000 && \
   cd ui-cra && \
-  GITHUB_TOKEN=$$(cat /run/secrets/GITHUB_BUILD_TOKEN) yarn install --frozen-lockfile
+  GITHUB_TOKEN=$(cat /run/secrets/GITHUB_BUILD_TOKEN) yarn install --frozen-lockfile
 
 # --
 # -- golang build env
