@@ -7,7 +7,7 @@ on:
 name: deploy
 jobs:
   build:
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/build.yaml@main
+    uses: ./.github/workflows/build.yaml
     with:
       helmrepo: "charts-v3"
     secrets:
@@ -82,7 +82,7 @@ jobs:
      
   acceptance-tests-gitlab:
     needs: [build, coverage]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
+    uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
       os-name: linux
@@ -110,7 +110,7 @@ jobs:
 
   acceptance-tests-gitlab-on-prem:
     needs: [build, coverage]
-    uses: weaveworks/weave-gitops-enterprise/.github/workflows/acceptance-test.yaml@main
+    uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
       os-name: linux
