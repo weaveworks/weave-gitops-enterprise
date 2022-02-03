@@ -6,14 +6,14 @@ import { ApplicationAdd, theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
 import styled from 'styled-components';
 
+const ApplicationAddWrapper = styled(ApplicationAdd)`
+  & .auth-message {
+    margin-bottom: ${weaveTheme.spacing.xs};
+  }
+`;
+
 const WGApplicationDetail: FC = () => {
   const applicationsCount = useApplicationsCount();
-
-  const ApplicationAddWrapper = styled(ApplicationAdd)`
-    & .auth-message {
-      margin-bottom: ${weaveTheme.spacing.xs};
-    }
-  `;
 
   return (
     <PageTemplate documentTitle="WeGO · Application Detail">
