@@ -7,7 +7,7 @@ WORKDIR /workspace/
 # Copy package.json stuff and install modules
 COPY ui-cra/.npmrc ui-cra/package.json ui-cra/yarn.lock ui-cra/
 
-RUN cat .npmrc
+RUN cat ui-cra/.npmrc
 RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN cat /run/secrets/GITHUB_BUILD_TOKEN
 RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN \
   yarn config set network-timeout 300000 && \
