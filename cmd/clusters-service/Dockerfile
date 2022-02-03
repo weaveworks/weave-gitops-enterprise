@@ -5,14 +5,14 @@ FROM node:14.19 as node_with_modules
 WORKDIR /workspace/
 
 # Copy package.json stuff and install modules
-COPY ui-cra/.npmrc ui-cra/package.json ui-cra/yarn.lock ui-cra/
+COPY ui-cra/package.json ui-cra/yarn.lock ui-cra/
 
-RUN cat ui-cra/.npmrc
-RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN cat /run/secrets/GITHUB_BUILD_TOKEN
-RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN \
-  yarn config set network-timeout 300000 && \
+RUN echo "@weaveworks:registry=https://npm.pkg.github.com" >> ui-cra/.npmrc
+RUN echo --mount=type=secret,id=GITHUB_BUILD_TOKEN "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/GITHUB_BUILD_TOKEN)" >> ui-cra/.npmrc
+
+RUN yarn config set network-timeout 300000 && \
   cd ui-cra && \
-  GITHUB_TOKEN=$(cat /run/secrets/GITHUB_BUILD_TOKEN) yarn install --frozen-lockfile
+  yarn install --frozen-lockfile
 
 # --
 # -- golang build env
@@ -46,8 +46,7 @@ ARG version
 COPY ui-cra/tsconfig.json .
 COPY ui-cra/src src
 COPY ui-cra/public public
-RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN \
-  GITHUB_TOKEN=$(cat /run/secrets/GITHUB_BUILD_TOKEN) REACT_APP_VERSION=$version yarn build
+RUN REACT_APP_VERSION=$version yarn build
 
 # --
 # -- build go
