@@ -7,8 +7,10 @@ WORKDIR /workspace/
 # Copy package.json stuff and install modules
 COPY ui-cra/.npmrc ui-cra/package.json ui-cra/yarn.lock ui-cra/
 
-ARG GITHUB_BUILD_TOKEN
-RUN yarn config set network-timeout 300000 && cd ui-cra && GITHUB_TOKEN=$GITHUB_BUILD_TOKEN yarn install --frozen-lockfile
+RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN \
+  yarn config set network-timeout 300000 && \
+  cd ui-cra && \
+  GITHUB_TOKEN=$$(cat /run/secrets/GITHUB_BUILD_TOKEN) yarn install --frozen-lockfile
 
 # --
 # -- golang build env
@@ -17,8 +19,8 @@ FROM golang:1.17.1 as go_with_modules
 WORKDIR /workspace/
 
 ENV GITHUB_BUILD_USERNAME=wge-build-bot
-ARG GITHUB_BUILD_TOKEN
-RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN \
+  git config --global url."https://${GITHUB_BUILD_USERNAME}:$(cat /run/secrets/GITHUB_BUILD_TOKEN)@github.com".insteadOf "https://github.com"
 
 # copy modules manifests
 COPY go.mod /workspace/go.mod
@@ -37,13 +39,13 @@ FROM node_with_modules as node_builder
 WORKDIR /workspace/ui-cra
 
 ARG version
-ARG GITHUB_BUILD_TOKEN
 
 # Copy source and supporting files and build
 COPY ui-cra/tsconfig.json .
 COPY ui-cra/src src
 COPY ui-cra/public public
-RUN GITHUB_TOKEN=$GITHUB_BUILD_TOKEN REACT_APP_VERSION=$version yarn build
+RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN \
+  GITHUB_TOKEN=$(cat /run/secrets/GITHUB_BUILD_TOKEN) REACT_APP_VERSION=$version yarn build
 
 # --
 # -- build go
