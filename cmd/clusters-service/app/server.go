@@ -322,14 +322,16 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	mux := http.NewServeMux()
-	mux.Handle("/v1/", grpcHttpHandler)
+	commonMiddlware := func(mux http.Handler) http.Handler {
+		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
+		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
+	}
 
-	httpHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
-	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
+	mux := http.NewServeMux()
+	mux.Handle("/v1/", commonMiddlware(grpcHttpHandler))
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
-	mux.Handle("/gitops/api/", gitopsBrokerHandler)
+	mux.Handle("/gitops/api/", commonMiddlware(gitopsBrokerHandler))
 
 	// UI
 	var log = logrus.New()
@@ -349,7 +351,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: httpHandler,
+		Handler: mux,
 	}
 
 	go func() {
