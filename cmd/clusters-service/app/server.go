@@ -276,9 +276,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
 		WithTemplateLibrary(&templates.CRDLibrary{
-			Log:       log,
-			Client:    kubeClient,
-			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
+			Log:          log,
+			ClientGetter: clientGetter,
+			Namespace:    os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{

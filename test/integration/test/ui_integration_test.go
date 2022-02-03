@@ -528,9 +528,9 @@ func ListenAndServe(ctx context.Context, srv *http.Server) error {
 
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
 	library := &templates.CRDLibrary{
-		Log:       logr.Discard(),
-		Client:    cl,
-		Namespace: "default",
+		Log:          logr.Discard(),
+		ClientGetter: kubefakes.NewFakeClientGetter(cl),
+		Namespace:    "default",
 	}
 
 	jwtClient := &authfakes.FakeJWTClient{

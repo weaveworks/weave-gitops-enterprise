@@ -68,9 +68,9 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 			app.WithApplicationsConfig(appsConfig),
 			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(c))),
 			app.WithTemplateLibrary(&templates.CRDLibrary{
-				Log:       logr.Discard(),
-				Client:    c,
-				Namespace: "default",
+				Log:          logr.Discard(),
+				ClientGetter: kubefakes.NewFakeClientGetter(c),
+				Namespace:    "default",
 			}),
 			app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
