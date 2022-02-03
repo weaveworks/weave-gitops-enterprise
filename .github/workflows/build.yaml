@@ -38,7 +38,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
     - name: build
       env:
         GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
@@ -63,7 +62,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
     - name: build
       run: |
         make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/event-writer/.uptodate
@@ -95,7 +93,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
     - name: Go Build Cache
       uses: actions/cache@v2
       with:
@@ -145,7 +142,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
     - name: Go Build Cache
       uses: actions/cache@v2
       with:
