@@ -7,10 +7,7 @@ WORKDIR /workspace/
 # Copy package.json stuff and install modules
 COPY ui-cra/package.json ui-cra/yarn.lock ui-cra/
 
-RUN echo "@weaveworks:registry=https://npm.pkg.github.com" >> ~/.npmrc
-RUN --mount=type=secret,id=GITHUB_BUILD_TOKEN echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/GITHUB_BUILD_TOKEN)" >> ~/.npmrc
-
-RUN yarn config set network-timeout 300000 && \
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc yarn config set network-timeout 300000 && \
   cd ui-cra && \
   yarn install --frozen-lockfile
 
