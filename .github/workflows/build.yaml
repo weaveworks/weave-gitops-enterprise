@@ -38,9 +38,8 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Unshallow
+    - name: Grab all tags from git
       run: |
-        git fetch --prune --unshallow
         git fetch --tags -f
     - name: build
       env:
@@ -66,9 +65,8 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Unshallow
+    - name: Grab all tags from git
       run: |
-        git fetch --prune --unshallow
         git fetch --tags -f
     - name: build
       run: |
@@ -101,9 +99,8 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Unshallow
+    - name: Grab all tags from git
       run: |
-        git fetch --prune --unshallow
         git fetch --tags -f
     - name: Go Build Cache
       uses: actions/cache@v2
@@ -154,9 +151,8 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Unshallow
+    - name: Grab all tags from git
       run: |
-        git fetch --prune --unshallow
         git fetch --tags -f
     - name: Go Build Cache
       uses: actions/cache@v2
