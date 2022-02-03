@@ -41,7 +41,8 @@ jobs:
       - name: Grab all tags from git
         run: |
           git fetch --tags -f
-      - name: lookup-vars
+      - name: set those vars
+        id: lookup-vars
         run: |
           echo "::set-output name=version::$(git describe --always --match "v*" | sed 's/^[^0-9]*//')"
           echo "::set-output name=revision::$(git rev-parse HEAD)"
