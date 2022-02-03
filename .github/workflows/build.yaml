@@ -72,8 +72,8 @@ jobs:
             "NPM_GITHUB_TOKEN=${{ steps.lookup-vars.outputs.NPM_GITHUB_TOKEN }}"
             "now=${{ steps.lookup-vars.outputs.now }}"
           tags: weaveworks/weave-gitops-enterprise-clusters-service:${{ steps.lookup-vars.outputs.image_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=ghcr.io/weaveworks/weave-gitops-enterprise:build-cache
+          cache-to: type=registry,ref=ghcr.io/weaveworks/weave-gitops-enterprise:build-cache,mode=max
 
   event-writer:
     runs-on: ubuntu-latest
