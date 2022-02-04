@@ -26,7 +26,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
-	github.com/weaveworks/weave-gitops v0.6.3-0.20220201164332-6a50f77509e5
+	github.com/weaveworks/weave-gitops v0.6.3-0.20220204152316-fd973c3792ea
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	go.uber.org/zap v1.19.0
@@ -42,7 +42,7 @@ require (
 )
 
 require (
-	github.com/fluxcd/go-git-providers v0.5.2
+	github.com/fluxcd/go-git-providers v0.5.3
 	github.com/fluxcd/helm-controller/api v0.14.1
 	github.com/fluxcd/pkg/apis/meta v0.10.1
 	github.com/fluxcd/pkg/runtime v0.12.2

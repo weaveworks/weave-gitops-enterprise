@@ -262,7 +262,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}()
 
 	configGetter := core.NewImpersonatingConfigGetter(kubeClientConfig, false)
-	clientGetter := kube.NewDefaultClientGetter(configGetter, "")
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
@@ -441,11 +441,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}
 		assetHandler.ServeHTTP(w, req)
 	}))
-	mux.Handle("/v1/", grpcHttpHandler)
-	mux.Handle("/gitops/api/", gitopsBrokerHandler)
-
-	httpHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
-	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
 
 	s := &http.Server{
 		Addr:    addr,
