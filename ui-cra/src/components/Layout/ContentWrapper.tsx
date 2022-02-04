@@ -95,7 +95,7 @@ export const ContentWrapper: FC<{
           Need help? Contact us at&nbsp;
           <a href="mailto:support@weave.works">support@weave.works</a>
         </div>
-        <div>Version {versions?.capiServer}</div>
+        <div>Weave GitOps Enterprise {versions?.capiServer}</div>
       </HelpLinkWrapper>
     </div>
   );
