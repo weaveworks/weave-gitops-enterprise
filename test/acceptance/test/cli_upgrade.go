@@ -2,11 +2,11 @@ package acceptance
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
+	"path"
 	"regexp"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
@@ -18,9 +18,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 		NATS_NODEPORT := "31491"
 		var capi_endpoint_url string
 		var test_ui_url string
-
-		var session *gexec.Session
-		var err error
+		var stdOut string
+		var stdErr string
 
 		BeforeEach(func() {
 
@@ -68,13 +67,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I install the entitlement for cluster upgrade", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
 				By("And I install the git repository secret for cluster service", func() {
 					cmd := fmt.Sprintf(`kubectl create secret generic git-provider-credentials --namespace=%s --from-literal="GIT_PROVIDER_TOKEN=%s"`, GITOPS_DEFAULT_NAMESPACE, gitProviderEnv.Token)
-					_, err := runCommandAndReturnStringOutput(cmd)
-					Expect(err).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
+					Expect(stdErr).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
 				})
 
 				By("And I should update/modify the default upgrade manifest ", func() {
@@ -82,22 +81,18 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.0.17"
+				version := "0.0.19"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := public_ip + ":" + NATS_NODEPORT
-					upgradeCommand := fmt.Sprintf("upgrade --version %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s'", version, prBranch, natsURL, NATS_NODEPORT)
-					command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, upgradeCommand))
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-					Eventually(session).Should(gexec.Exit())
-					Expect(string(session.Err.Contents())).Should(BeEmpty())
+					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s'", GITOPS_BIN_PATH, version, prBranch, natsURL, NATS_NODEPORT)
+					logger.Infof("Upgrade command: '%s'", upgradeCommand)
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s", repoAbsolutePath, upgradeCommand))
+					Expect(stdErr).Should(BeEmpty())
 				})
 
 				By("Then I should see pull request created to management cluster", func() {
-					output := session.Wait().Out.Contents()
-
 					re := regexp.MustCompile(`Pull Request created.*:[\s\w\d]+(?P<URL>https.*\/\d+)`)
-					match := re.FindSubmatch([]byte(output))
+					match := re.FindSubmatch([]byte(stdOut))
 					Eventually(match[1]).ShouldNot(BeNil(), "Failed to Create pull request")
 				})
 
@@ -137,14 +132,12 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("Then I should run enterprise CLI commands", func() {
 					testGetCommand := func(subCommand string) {
-						log.Printf("Running 'gitops get %s --endpoint %s'", subCommand, capi_endpoint_url)
+						logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, capi_endpoint_url)
 
-						command := exec.Command(GITOPS_BIN_PATH, "get", subCommand, "--endpoint", capi_endpoint_url)
-						session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-						Expect(err).ShouldNot(HaveOccurred())
-						Eventually(session).Should(gexec.Exit())
-						Expect(string(session.Err.Contents())).Should(BeEmpty(), fmt.Sprintf("'%s get %s' command failed", GITOPS_BIN_PATH, subCommand))
-						Expect(string(session.Out.Contents())).Should(MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", GITOPS_BIN_PATH, subCommand))
+						cmd := fmt.Sprintf(`%s get %s --endpoint %s`, GITOPS_BIN_PATH, subCommand, capi_endpoint_url)
+						stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
+						Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("'%s get %s' command failed", GITOPS_BIN_PATH, subCommand))
+						Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", GITOPS_BIN_PATH, subCommand))
 					}
 
 					testGetCommand("templates")

@@ -356,7 +356,7 @@ jobs:
         echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV     
 
         cd test/acceptance/test/
-        go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s        
+        go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s        
     - name: Store test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2

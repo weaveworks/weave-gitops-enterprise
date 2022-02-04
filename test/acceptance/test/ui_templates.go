@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -13,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
@@ -553,7 +552,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				branchName := "test-branch"
 				By("And create new git repository branch", func() {
-					createGitRepoBranch(repoAbsolutePath, branchName)
+					_ = createGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
 				By("Apply/Install CAPITemplate", func() {
@@ -675,10 +674,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration @git Verify matching selected credential can be used for cluster creation", func() {
-				defer gitopsTestRunner.DeleteIPCredentials("AWS")
-				defer gitopsTestRunner.DeleteIPCredentials("AZURE")
 
+			JustAfterEach(func() {
+				gitopsTestRunner.DeleteIPCredentials("AWS")
+				gitopsTestRunner.DeleteIPCredentials("AZURE")
+			})
+
+			It("@integration @git Verify matching selected credential can be used for cluster creation", func() {
 				By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
@@ -795,9 +797,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration @git Verify user can not use wrong credentials for infrastructure provider", func() {
-				defer gitopsTestRunner.DeleteIPCredentials("AWS")
 
+			JustAfterEach(func() {
+				gitopsTestRunner.DeleteIPCredentials("AWS")
+			})
+
+			It("@integration @git Verify user can not use wrong credentials for infrastructure provider", func() {
 				By("Apply/Install CAPITemplates", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 				})
@@ -900,11 +905,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			appPath := "./management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
+			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
 
 			JustBeforeEach(func() {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 
-				log.Println("Connecting cluster to itself")
+				logger.Info("Connecting cluster to itself")
 				leaf := LeafSpec{
 					Status:          "Ready",
 					IsWKP:           false,
@@ -919,9 +925,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
 
-				log.Println("Deleting all the wkp agents")
+				logger.Info("Deleting all the wkp agents")
 				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
-				_ = gitopsTestRunner.ResetControllers("enterprise")
+				gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 			})
 
@@ -1077,7 +1083,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I add a test kustomization file to the management appliction (because flux doesn't reconcile empty folders on deletion)", func() {
 					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f ../../utils/data/test_kustomization.yaml %s", path.Join(repoAbsolutePath, appPath)))
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f %s %s", kustomizationFile, path.Join(repoAbsolutePath, appPath)))
 					gitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
@@ -1181,7 +1187,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			JustAfterEach(func() {
 				By("When I apply the valid entitlement", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
 				By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
@@ -1197,7 +1203,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			It("@integration Verify cluster service acknowledges the entitlement presences", func() {
 
 				By("When I delete the entitlement", func() {
-					Expect(gitopsTestRunner.KubectlDelete([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to delete entitlement secret")
+					Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to delete entitlement secret")
 				})
 
 				By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
@@ -1209,7 +1215,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("When I apply the expired entitlement", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
 				})
 
 				By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
@@ -1221,7 +1227,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("When I apply the invalid entitlement", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
 				})
 
 				By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
