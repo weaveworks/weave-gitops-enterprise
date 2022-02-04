@@ -30,9 +30,8 @@ spec:
           name: flux-cli-volume
       - name: mount-ui-server
         image: {{ .Values.images.uiServer }}
-        command: ["cp", "-r", "/html/*", "/ui-server-common/"]
         volumeMounts:
-        - mountPath: /ui-server-common
+        - mountPath: /html
           name: ui-server-volume
       containers:
         - name: clusters-service

@@ -86,7 +86,6 @@ ui-cra/.uptodate: ui-cra/build
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
-		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(UI_SERVER) \
 		--file ui-cra/Dockerfile \
