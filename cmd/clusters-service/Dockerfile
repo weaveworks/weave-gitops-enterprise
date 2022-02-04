@@ -1,45 +1,3 @@
-# --
-# -- golang build env
-FROM golang:1.17.1 as go_with_modules
-
-WORKDIR /workspace/
-
-ENV GITHUB_BUILD_USERNAME=wge-build-bot
-ARG GITHUB_BUILD_TOKEN
-RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-
-# copy modules manifests
-COPY go.mod /workspace/go.mod
-COPY go.sum /workspace/go.sum
-
-# copy in other module dependencies
-COPY common/ /workspace/common/
-
-# cache modules
-RUN go mod download
-
-# --
-# -- build go
-FROM go_with_modules as go_builder
-
-WORKDIR /workspace/cmd/clusters-service
-
-# common code
-COPY pkg/ /workspace/pkg/
-
-# copy source code
-COPY cmd/clusters-service/main.go main.go
-COPY cmd/clusters-service/api/ api/
-COPY cmd/clusters-service/app/ app/
-COPY cmd/clusters-service/pkg/ pkg/
-
-ARG version
-ARG image_tag
-# build
-RUN CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$version -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$image_tag -linkmode external -w -extldflags \"-static\"" -tags netgo -a -o clusters-service main.go
-
-# --
-# -- runtime!
 FROM docker.io/governmentpaas/git-ssh
 
 ARG now
@@ -63,7 +21,7 @@ RUN bash /tmp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /tmp/known_hosts.sh
 
 RUN apk add --no-cache ca-certificates tini
 
-COPY --from=go_builder /workspace/cmd/clusters-service/clusters-service /usr/local/bin/
+COPY cmd/clusters-service/clusters-service /usr/local/bin
 
 RUN addgroup -S clusters-service && adduser -S clusters-service -G clusters-service
 

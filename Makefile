@@ -53,7 +53,7 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 
 # Takes precedence over the more general rule above
 # The only difference is the build context
-cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/* ui-cra/build
+cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/clusters-service
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
@@ -161,9 +161,8 @@ ui-audit:
 lint:
 	bin/go-lint
 
-cmd/clusters-service/clusters-service: ui-cra/build
-	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "$(cgo_ldflags)" -o $@ ./cmd/clusters-service
-	cp -r ui-cra/build/* cmd/clusters-service/app/dist/
+cmd/clusters-service/clusters-service:
+	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -o $@ ./cmd/clusters-service
 
 # We select which directory we want to descend into to not execute integration
 # tests here.

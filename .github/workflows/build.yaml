@@ -57,6 +57,15 @@ jobs:
   clusters-service:
     runs-on: ubuntu-latest
     steps:
+      - id: cache-paths
+        run: |
+          echo "::set-output name=dir::$(yarn cache dir)"
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
       - name: Configure git for private modules
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
@@ -66,52 +75,26 @@ jobs:
       - name: Grab all tags from git
         run: |
           git fetch --tags -f
-      - name: set those vars
-        id: lookup-vars
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.cache-paths.outputs.go-build }}
+            ${{ steps.cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+      - name: build
         run: |
-          echo "::set-output name=version::$(git describe --always --match "v*" | sed 's/^[^0-9]*//')"
-          echo "::set-output name=revision::$(git rev-parse HEAD)"
-          echo "::set-output name=GITHUB_BUILD_TOKEN::${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}"
-          echo "::set-output name=now::$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          echo "::set-output name=image_tag::$(./tools/image-tag)"
+          make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/clusters-service/.uptodate
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           registry: docker.io
           username: ${{ secrets.WGE_DOCKER_IO_USER }}
           password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-ghcache-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-ghcache-
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./cmd/clusters-service/Dockerfile
-          push: true
-          build-args: |
-            "version=${{ steps.lookup-vars.outputs.version }}"
-            "image_tag=${{ steps.lookup-vars.outputs.image_tag }}"
-            "revision=${{ steps.lookup-vars.outputs.revision }}"
-            "GITHUB_BUILD_TOKEN=${{ steps.lookup-vars.outputs.GITHUB_BUILD_TOKEN }}"
-            "now=${{ steps.lookup-vars.outputs.now }}"
-          tags: weaveworks/weave-gitops-enterprise-clusters-service:${{ steps.lookup-vars.outputs.image_tag }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-      - # Temp fix
-        # https://github.com/docker/build-push-action/issues/252
-        # https://github.com/moby/buildkit/issues/1896
-        name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      - name: Push image
+        run: docker push docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(./tools/image-tag)
 
   event-writer:
     runs-on: ubuntu-latest
@@ -220,4 +203,5 @@ jobs:
           username: ${{ secrets.WGE_DOCKER_IO_USER }}
           password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       - name: Push images to docker registry
-        run: make push
+        run: docker push docker.io/weaveworks/wkp-agent:$(./tools/image-tag)
+
