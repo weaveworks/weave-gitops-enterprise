@@ -18,6 +18,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/mkmik/multierror"
 	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -61,7 +62,7 @@ type server struct {
 	log             logr.Logger
 	library         templates.Library
 	provider        git.Provider
-	client          client.Client
+	clientGetter    kube.ClientGetter
 	discoveryClient discovery.DiscoveryInterface
 	capiv1_proto.UnimplementedClustersServiceServer
 	db                        *gorm.DB
@@ -72,12 +73,12 @@ type server struct {
 
 var DefaultRepositoryPath string = filepath.Join(wegogit.WegoRoot, wegogit.WegoAppDir, "capi")
 
-func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, client client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
+func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, clientGetter kube.ClientGetter, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
 	return &server{
 		log:                       log,
 		library:                   library,
 		provider:                  provider,
-		client:                    client,
+		clientGetter:              clientGetter,
 		discoveryClient:           discoveryClient,
 		db:                        db,
 		ns:                        ns,
@@ -169,7 +170,12 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, s.client, templateBits, msg.Credentials, msg.TemplateName)
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, templateBits, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +211,12 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, s.client, tmplWithValues, msg.Credentials, msg.TemplateName)
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +275,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			os.Getenv("RUNTIME_NAMESPACE"),
 			s.helmRepositoryCacheDir,
 			clusterName,
-			s.client,
+			client,
 			msg.Values,
 		)
 		if err != nil {
@@ -336,8 +347,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 // ListCredentials searches the management cluster and lists any objects that match specific given types
 func (s *server) ListCredentials(ctx context.Context, msg *capiv1_proto.ListCredentialsRequest) (*capiv1_proto.ListCredentialsResponse, error) {
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	creds := []*capiv1_proto.Credential{}
-	foundCredentials, err := credentials.FindCredentials(ctx, s.client, s.discoveryClient)
+	foundCredentials, err := credentials.FindCredentials(ctx, client, s.discoveryClient)
 	if err != nil {
 		return nil, err
 	}
@@ -365,11 +381,16 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 		return nil, fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	key := client.ObjectKey{
 		Namespace: ns,
 		Name:      name,
 	}
-	err := s.client.Get(ctx, key, &sec)
+	err = cl.Get(ctx, key, &sec)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
 	}

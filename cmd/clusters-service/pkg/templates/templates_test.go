@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -52,7 +53,7 @@ func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 func TestGetTemplateFromCRDs(t *testing.T) {
 	t1 := mustParseTemplate(t, testdata1)
 	t2 := mustParseTemplate(t, testdata2)
-	lib := CRDLibrary{Log: logr.Discard(), Client: makeClient(t, t1, t2)}
+	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, t1, t2))}
 	result, err := lib.Get(context.Background(), "cluster-template2")
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
@@ -65,7 +66,7 @@ func TestGetTemplateFromCRDs(t *testing.T) {
 func TestListTemplateFromCRDs(t *testing.T) {
 	t1 := mustParseTemplate(t, testdata1)
 	t2 := mustParseTemplate(t, testdata2)
-	lib := CRDLibrary{Log: logr.Discard(), Client: makeClient(t, t1, t2)}
+	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, t1, t2))}
 	result, err := lib.List(context.Background())
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)

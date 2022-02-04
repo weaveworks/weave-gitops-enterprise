@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
@@ -26,9 +28,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	core "github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
@@ -52,6 +56,14 @@ import (
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
+const (
+	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
+)
+
+func AuthEnabled() bool {
+	return os.Getenv(AuthEnabledFeatureFlag) == "true"
+}
+
 // Options contains all the options for the `ui run` command.
 type Params struct {
 	dbURI                        string
@@ -71,6 +83,15 @@ type Params struct {
 	AgentTemplateNatsURL         string
 	AgentTemplateAlertmanagerURL string
 	htmlRootPath                 string
+	OIDC                         OIDCAuthenticationOptions
+}
+
+type OIDCAuthenticationOptions struct {
+	IssuerURL      string
+	ClientID       string
+	ClientSecret   string
+	RedirectURL    string
+	CookieDuration time.Duration
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -105,6 +126,14 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wego-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
+
+	if AuthEnabled() {
+		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+		cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
+		cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+		cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
+		cmd.Flags().DurationVar(&p.OIDC.CookieDuration, "oidc-cookie-duration", time.Hour, "The duration of the ID token cookie. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	}
 
 	return cmd
 }
@@ -230,6 +259,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}
 	}()
 
+	configGetter := core.NewImpersonatingConfigGetter(kubeClientConfig, false)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme)
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithProfileHelmRepository(p.helmRepoName),
@@ -242,12 +274,15 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
 		WithTemplateLibrary(&templates.CRDLibrary{
-			Log:       log,
-			Client:    kubeClient,
-			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
+			Log:          log,
+			ClientGetter: clientGetter,
+			Namespace:    os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
 		}),
 		WithApplicationsConfig(appsConfig),
-		WithProfilesConfig(core.NewProfilesConfig(kubeClient, profileCache, p.helmRepoNamespace, p.helmRepoName)),
+		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
+			DefaultConfig: kubeClientConfig,
+			ClusterName:   "",
+		}, profileCache, p.helmRepoNamespace, p.helmRepoName)),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -259,12 +294,13 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithHelmRepositoryCacheDirectory(tempDir),
 		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL),
 		WithHtmlRootPath(p.htmlRootPath),
+		WithClientGetter(clientGetter),
+		WithOIDCConfig(p.OIDC),
 	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
 func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) error {
-
 	args := defaultOptions()
 	for _, setter := range setters {
 		setter(args)
@@ -290,14 +326,21 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.CAPIClustersNamespace == "" {
 		return errors.New("CAPI clusters namespace is not set")
 	}
+	if args.ClientGetter == nil {
+		return errors.New("kubernetes client getter is not set")
+	}
+	if (AuthEnabled() && args.OIDC == OIDCAuthenticationOptions{}) {
+		return errors.New("OIDC configuration is not set")
+	}
 
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
+	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		args.Log,
 		args.TemplateLibrary,
 		args.GitProvider,
-		args.KubernetesClient,
+		args.ClientGetter,
 		args.DiscoveryClient,
 		args.Database,
 		args.CAPIClustersNamespace,
@@ -319,23 +362,80 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
+	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	commonMiddlware := func(mux http.Handler) http.Handler {
+	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
+
+	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/v1/", commonMiddlware(grpcHttpHandler))
 
-	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
-	mux.Handle("/gitops/api/", commonMiddlware(gitopsBrokerHandler))
+	var authServer *auth.AuthServer
+	if AuthEnabled() {
+		_, err := url.Parse(args.OIDC.IssuerURL)
+		if err != nil {
+			return fmt.Errorf("invalid issuer URL: %w", err)
+		}
+
+		redirectURL, err := url.Parse(args.OIDC.RedirectURL)
+		if err != nil {
+			return fmt.Errorf("invalid redirect URL: %w", err)
+		}
+
+		var oidcIssueSecureCookies bool
+		if redirectURL.Scheme == "https" {
+			oidcIssueSecureCookies = true
+		}
+
+		srv, err := auth.NewAuthServer(ctx, args.Log, http.DefaultClient,
+			auth.AuthConfig{
+				OIDCConfig: auth.OIDCConfig{
+					IssuerURL:    args.OIDC.IssuerURL,
+					ClientID:     args.OIDC.ClientID,
+					ClientSecret: args.OIDC.ClientSecret,
+					RedirectURL:  args.OIDC.RedirectURL,
+				},
+				CookieConfig: auth.CookieConfig{
+					CookieDuration:     args.OIDC.CookieDuration,
+					IssueSecureCookies: oidcIssueSecureCookies,
+				},
+			},
+		)
+		if err != nil {
+			return fmt.Errorf("could not create auth server: %w", err)
+		}
+
+		args.Log.Info("Registering callback route")
+		auth.RegisterAuthServer(mux, "/oauth2", srv)
+		authServer = srv
+
+		// Secure `/v1` and `/gitops/api` API routes
+		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv)
+		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv)
+	}
+
+	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
+	mux.Handle("/gitops/api/", commonMiddleware(gitopsBrokerHandler))
 
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
 	fs := http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)})
 	mux.Handle("/", http.StripPrefix("/", fs))
+
+		if extension == "" {
+			if AuthEnabled() {
+				auth.WithWebAuth(redirector, authServer).ServeHTTP(w, req)
+			} else {
+				redirector(w, req)
+			}
+			return
+		}
+		assetHandler.ServeHTTP(w, req)
+	}))
 
 	s := &http.Server{
 		Addr:    addr,
@@ -437,7 +537,7 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	}
 }
 
-func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) *mux.Router {
+func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
