@@ -1,9 +1,3 @@
-#
-# WARNING: only changing this file will not work!
-#
-# You must update the calling site (uses:) with the reference to the branch you are working on
-#
-
 name: "Build and push docker images and charts"
 
 on:
