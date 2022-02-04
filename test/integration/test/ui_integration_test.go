@@ -27,7 +27,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	broker "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
@@ -56,7 +55,6 @@ import (
 //
 
 const capiServerPort = "8000"
-const brokerPort = "8090"
 const uiURL = "http://localhost:5000"
 const seleniumURL = "http://localhost:4444/wd/hub"
 
@@ -526,19 +524,6 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 	return listenError
 }
 
-func RunBroker(ctx gcontext.Context, c client.Client, dbURI string) error {
-	srv, err := broker.NewServer(ctx, c, client.ObjectKey{Name: "entitlement", Namespace: "default"}, logr.Discard(), broker.ParamSet{
-		Port:        brokerPort,
-		DbURI:       dbURI,
-		DbType:      "sqlite",
-		PrivKeyFile: dbURI,
-	})
-	if err != nil {
-		return err
-	}
-	return ListenAndServe(ctx, srv)
-}
-
 func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
 	library := &templates.CRDLibrary{
 		Log:       logr.Discard(),
@@ -579,7 +564,6 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 func RunUIServer(ctx gcontext.Context) {
 	// is configured to proxy to
 	// - 8000 for clusters-service
-	// - 8090 for gitops-broker
 	cmd := exec.CommandContext(ctx, "node", "server.js")
 	cmd.Dir = getLocalPath("ui-cra")
 	cmd.Stdout = os.Stdout
@@ -587,8 +571,7 @@ func RunUIServer(ctx gcontext.Context) {
 	cmd.Env = append(
 		os.Environ(),
 		[]string{
-			"GITOPS_HOST=http://localhost:" + brokerPort,
-			"CAPI_SERVER_HOST=http://localhost:" + capiServerPort,
+			"PROXY_HOST=http://localhost:" + capiServerPort,
 		}...,
 	)
 
@@ -714,12 +697,6 @@ func TestMccpUI(t *testing.T) {
 	// racing with the goroutine starting.
 	wg.Add(1)
 	go func() {
-		err := RunBroker(ctx, cl, dbURI)
-		assert.NoError(t, err)
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func() {
 		RunUIServer(ctx)
 		wg.Done()
 	}()
@@ -730,7 +707,7 @@ func TestMccpUI(t *testing.T) {
 		wg.Done()
 	}()
 
-	// Test ui is proxying through to broker
+	// Test ui is proxying through to cluster-service
 	err = waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
 	require.NoError(t, err)
 
@@ -768,7 +745,7 @@ func TestMccpUI(t *testing.T) {
 		if intWebDriver != nil {
 			Expect(intWebDriver.Destroy()).To(Succeed())
 		}
-		// Clean up ui-server and broker
+		// Clean up ui-server
 		cancel()
 		// Wait for the child goroutine to finish, which will only occur when
 		// the child process has stopped and the call to cmd.Wait has returned.

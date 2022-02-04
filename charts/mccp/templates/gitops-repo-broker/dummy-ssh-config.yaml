@@ -1,8 +1,0 @@
-{{- if eq .Values.gitopsRepoBroker.sshConfigMapName "" }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: gitops-broker-ssh-config
-data:
-  dummy: "true"
-{{- end }}

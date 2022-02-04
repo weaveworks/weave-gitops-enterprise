@@ -117,23 +117,6 @@ cd ui-cra
 CAPI_SERVER_HOST=http://localhost:8000 yarn start
 ```
 
-### The `gitops-broker` service
-
-```bash
-go run cmd/gitops-repo-broker/main.go --db-uri /tmp/mccp.db --db-type sqlite --port 8090
-```
-
-You can query the local gitops-broker:
-
-```bash
-# via curl
-curl http://localhost:8090/api/clusters
-
-# via the ui
-cd ui-cra
-GITOPS_HOST=http://localhost:8090 yarn start
-```
-
 ## Developing the UI
 
 We usually develop the UI against the test server and by default the UI dev server will use that.
