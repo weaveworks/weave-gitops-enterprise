@@ -31,6 +31,7 @@ type Options struct {
 	EntitlementSecretKey         client.ObjectKey
 	AgentTemplateNatsURL         string
 	AgentTemplateAlertmanagerURL string
+	HtmlRootPath                 string
 }
 
 type Option func(*Options)
@@ -152,5 +153,13 @@ func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL string
 	return func(o *Options) {
 		o.AgentTemplateNatsURL = agentTemplateNatsURL
 		o.AgentTemplateAlertmanagerURL = agentTemplateAlertmanagerURL
+	}
+}
+
+// WithAgentTemplate is used to set the url
+// for template nats and template alert manager
+func WithHtmlRootPath(path string) Option {
+	return func(o *Options) {
+		o.HtmlRootPath = path
 	}
 }
