@@ -100,6 +100,20 @@ jobs:
         run: |
           docker push docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(./tools/image-tag)
 
+  gitops-broker-and-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stub
+        run: |
+          echo "Stub until we update corp to not require this task"
+
+  ui-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stub
+        run: |
+          echo "Stub until we update corp to not require this task"
+
   gitops-agent:
     runs-on: ubuntu-latest
     steps:
