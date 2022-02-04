@@ -1,4 +1,4 @@
-.PHONY: all install clean images lint unit-tests check ui-build-for-tests update-mccp-chart-values update-wkp-ui-chart-values ui-audit
+.PHONY: all install clean images lint unit-tests check ui-build-for-tests update-mccp-chart-values ui-audit
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -81,13 +81,9 @@ cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/*
 	$(SUDO) docker tag $(WKP_AGENT) $(WKP_AGENT):$(IMAGE_TAG)
 	touch $@
 
-update-mccp-chart-values: update-wkp-ui-chart-values
-	sed -i "s|gitopsRepoBroker: docker.io/weaveworks/weave-gitops-enterprise-gitops-repo-broker.*|gitopsRepoBroker: docker.io/weaveworks/weave-gitops-enterprise-gitops-repo-broker:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
+update-mccp-chart-values:
 	sed -i "s|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer.*|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 	sed -i "s|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service.*|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
-
-update-wkp-ui-chart-values:
-	sed -i "s|tag: .*|tag: $(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 
 # Get a list of directories containing Dockerfiles
 DOCKERFILES := $(shell find . \
@@ -128,8 +124,6 @@ all: $(UPTODATE_FILES) binaries
 check: all lint unit-tests ui-audit
 
 BINARIES = \
-	cmd/gitops-repo-broker/gitops-repo-broker \
-	cmd/ui-server/ui-server \
 	cmd/wkp-agent/wkp-agent \
 	$(NULL)
 
@@ -138,28 +132,15 @@ binaries: $(BINARIES)
 godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $1)
 
 # .uptodate files are for Docker builds, which should happen outside of the container
-cmd/gitops-repo-broker/.uptodate: cmd/gitops-repo-broker/gitops-repo-broker cmd/gitops-repo-broker/Dockerfile
-cmd/ui-server/.uptodate: cmd/ui-server/ui-server cmd/ui-server/Dockerfile cmd/ui-server/html
 cmd/wkp-agent/.uptodate: cmd/wkp-agent/wkp-agent cmd/wkp-agent/Dockerfile
-
-cmd/gitops-repo-broker/gitops-repo-broker: $(call godeps,./cmd/gitops-repo-broker)
-cmd/ui-server/ui-server: cmd/ui-server/*.go
-
-cmd/ui-server/html: ui-cra/build
-	mkdir -p $@
-	cp -r ui-cra/build $@/mccp
-
-cmd/gitops-repo-broker/gitops-repo-broker:
-	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
 
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
 
-# UI
-cmd/ui-server/ui-server:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o $@ cmd/ui-server/*.go
+ui-cra/node_modules:
+	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile
 
-ui-cra/build:
+ui-cra/build: ui-cra/node_modules
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile && REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
 
@@ -171,7 +152,7 @@ lint:
 	bin/go-lint
 
 cmd/clusters-service/clusters-service: ui-cra/build
-	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "$(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
+	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "$(cgo_ldflags)" -o $@ ./cmd/clusters-service
 	cp -r ui-cra/build/* cmd/clusters-service/app/dist/
 
 # We select which directory we want to descend into to not execute integration
@@ -199,7 +180,6 @@ clean:
 	rm -f $(BINARIES)
 	rm -f $(GENERATED)
 	rm -rf ui-cra/build
-	rm -rf cmd/ui-server/html
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \

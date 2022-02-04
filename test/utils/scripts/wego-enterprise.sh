@@ -187,7 +187,6 @@ function reset_controllers {
     controllerNames=()
     if [ ${args[1]} == "enterprise" ] || [ ${args[1]} == "all" ]; then
       EVENT_WRITER_POD=$(kubectl get pods -n wego-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
-      GITOPS_BROKER_POD=$(kubectl get pods -n wego-system|grep gitops-repo-broker|tr -s ' '|cut -f1 -d ' ')    
 
       # Sometime due to the test conditions the cluster service pod is in transition state i.e. one terminating and the new one is being created at the same time.
       # Under such state we have two cluster srvice pods momentarily 
@@ -205,7 +204,6 @@ function reset_controllers {
           fi        
       done
       controllerNames+=" ${EVENT_WRITER_POD}"
-      controllerNames+=" ${GITOPS_BROKER_POD}"
       controllerNames+=" ${CLUSTER_SERVICE_POD}"
       kubectl exec -n wego-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
     fi

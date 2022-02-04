@@ -32,12 +32,17 @@ spec:
         - name: clusters-service
           image: {{ .Values.images.clustersService }}
           imagePullPolicy: IfNotPresent
+          args:
+          # NATS_AUTH_TOKEN comes from nats-env-vars-secret
+          - --agent-template-nats-url={{ .Values.agentTemplate.natsScheme }}://$(NATS_AUTH_TOKEN)@{{ .Values.agentTemplate.natsURL }}
           envFrom:
           - configMapRef:
               name: {{ include "mccp.fullname" . }}-cluster-service
           - secretRef:
               name: git-provider-credentials
               optional: true
+          - secretRef:
+              name: nats-env-vars-secret
           env:
             - name: WEAVE_GITOPS_FLUX_BIN_PATH
               value: /flux-cli/flux
