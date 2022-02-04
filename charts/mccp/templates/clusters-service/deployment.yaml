@@ -31,7 +31,7 @@ spec:
       - name: mount-ui-server
         image: {{ .Values.images.uiServer }}
         volumeMounts:
-        command: ["cp", "-r" "/html/*", "/ui-server-common/"]
+        command: ["cp", "-r", "/html/*", "/ui-server-common/"]
         - mountPath: /ui-server-common
           name: ui-server-volume
       containers:
