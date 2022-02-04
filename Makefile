@@ -80,6 +80,20 @@ cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/*
 	$(SUDO) docker tag $(WKP_AGENT) $(WKP_AGENT):$(IMAGE_TAG)
 	touch $@
 
+UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
+ui-cra/.uptodate: ui-cra/build
+	$(SUDO) docker build \
+		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
+		--build-arg=image_tag=$(IMAGE_TAG) \
+		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
+		--build-arg=now=$(TIME_NOW) \
+		--tag $(UI_SERVER) \
+		--file ui-cra/Dockerfile \
+		$(@D)/
+	$(SUDO) docker tag $(UI_SERVER) $(UI_SERVER):$(IMAGE_TAG)
+	touch $@
+
 update-mccp-chart-values:
 	sed -i "s|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer.*|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 	sed -i "s|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service.*|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
@@ -130,18 +144,15 @@ binaries: $(BINARIES)
 
 godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $1)
 
-# .uptodate files are for Docker builds, which should happen outside of the container
-cmd/wkp-agent/.uptodate: cmd/wkp-agent/wkp-agent cmd/wkp-agent/Dockerfile
-
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
-
-ui-cra/node_modules:
-	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile
 
 ui-cra/build: ui-cra/node_modules
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
 	REACT_APP_VERSION=$(VERSION) yarn build
+
+ui-cra/node_modules:
+	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile
 
 ui-audit:
 	# Check js packages for any high or critical vulnerabilities 

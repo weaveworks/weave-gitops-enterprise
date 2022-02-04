@@ -1,16 +1,4 @@
 # --
-# -- node build env
-FROM node:14.19 as node_with_modules
-
-WORKDIR /workspace/
-
-# Copy package.json stuff and install modules
-COPY ui-cra/.npmrc ui-cra/package.json ui-cra/yarn.lock ui-cra/
-
-ARG NPM_GITHUB_TOKEN
-RUN yarn config set network-timeout 300000 && cd ui-cra && GITHUB_TOKEN=$NPM_GITHUB_TOKEN yarn install --prod --frozen-lockfile
-
-# --
 # -- golang build env
 FROM golang:1.17.1 as go_with_modules
 
@@ -31,21 +19,6 @@ COPY common/ /workspace/common/
 RUN go mod download
 
 # --
-# -- build ui
-FROM node_with_modules as node_builder
-
-WORKDIR /workspace/ui-cra
-
-ARG version
-ARG NPM_GITHUB_TOKEN
-
-# Copy source and supporting files and build
-COPY ui-cra/tsconfig.json .
-COPY ui-cra/src src
-COPY ui-cra/public public
-RUN GITHUB_TOKEN=$NPM_GITHUB_TOKEN REACT_APP_VERSION=$version yarn build
-
-# --
 # -- build go
 FROM go_with_modules as go_builder
 
@@ -59,7 +32,6 @@ COPY cmd/clusters-service/main.go main.go
 COPY cmd/clusters-service/api/ api/
 COPY cmd/clusters-service/app/ app/
 COPY cmd/clusters-service/pkg/ pkg/
-COPY --from=node_builder /workspace/ui-cra/build app/dist
 
 ARG version
 ARG image_tag
