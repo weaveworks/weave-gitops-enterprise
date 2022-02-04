@@ -58,7 +58,6 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
-		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		--file cmd/clusters-service/Dockerfile \
@@ -72,7 +71,6 @@ cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/wkp-agent
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
-		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(WKP_AGENT) \
 		--file cmd/wkp-agent/Dockerfile \
