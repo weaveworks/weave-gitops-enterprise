@@ -53,6 +53,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
+	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
 // Options contains all the options for the `ui run` command.
@@ -79,6 +80,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	p := Params{}
 	cmd := &cobra.Command{
 		Use:          "capi-server",
+		Version:      fmt.Sprintf("Version: %s, Image Tag: %s", version.Version, wge_version.ImageTag),
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -104,7 +106,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.watcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
-	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wkp-gitops-repo-broker:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wego-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
 
 	return cmd
 }
@@ -320,14 +322,16 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	mux := http.NewServeMux()
-	mux.Handle("/v1/", grpcHttpHandler)
+	commonMiddlware := func(mux http.Handler) http.Handler {
+		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
+		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
+	}
 
-	httpHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
-	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
+	mux := http.NewServeMux()
+	mux.Handle("/v1/", commonMiddlware(grpcHttpHandler))
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
-	mux.Handle("/gitops/api/", gitopsBrokerHandler)
+	mux.Handle("/gitops/api/", commonMiddlware(gitopsBrokerHandler))
 
 	// UI
 	var log = logrus.New()
@@ -347,7 +351,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: httpHandler,
+		Handler: mux,
 	}
 
 	go func() {

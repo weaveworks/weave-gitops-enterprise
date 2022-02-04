@@ -17,7 +17,6 @@
 /cmd/mock-authz-server/server
 /cmd/mock-https-authz-server/server
 /cmd/policy/policy
-/cmd/ui-server/ui-server
 /cmd/update-manifest/update-manifest
 /cmd/wk/wk
 /cmd/wks-ci/checks/policy/policy
@@ -25,9 +24,6 @@
 /cmd/wks-controller/controller
 /cmd/wks-entitle/wks-entitle
 /cmd/wkp-agent/wkp-agent
-
-# build step for the ui server
-/cmd/ui-server/html
 
 node_modules
 
