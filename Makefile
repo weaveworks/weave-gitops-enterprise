@@ -150,7 +150,7 @@ cmd/wkp-agent/wkp-agent:
 
 ui-cra/build: ui-cra/node_modules
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
-	REACT_APP_VERSION=$(VERSION) yarn build
+	cd ui-cra && REACT_APP_VERSION=$(VERSION) yarn build
 
 ui-cra/node_modules:
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile
