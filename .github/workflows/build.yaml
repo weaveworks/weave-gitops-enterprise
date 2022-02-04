@@ -49,7 +49,7 @@ jobs:
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
 
-  cluster-service:
+  clusters-service:
     runs-on: ubuntu-latest
     steps:
       - name: Configure git for private modules
