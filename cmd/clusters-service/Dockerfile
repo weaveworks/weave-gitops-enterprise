@@ -8,7 +8,7 @@ WORKDIR /workspace/
 COPY ui-cra/.npmrc ui-cra/package.json ui-cra/yarn.lock ui-cra/
 
 ARG NPM_GITHUB_TOKEN
-RUN yarn config set network-timeout 300000 && cd ui-cra && GITHUB_TOKEN=$NPM_GITHUB_TOKEN yarn install --frozen-lockfile
+RUN yarn config set network-timeout 300000 && cd ui-cra && GITHUB_TOKEN=$NPM_GITHUB_TOKEN yarn install --prod --frozen-lockfile
 
 # --
 # -- golang build env
