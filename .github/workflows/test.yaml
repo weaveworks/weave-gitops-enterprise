@@ -23,3 +23,29 @@ jobs:
       WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+
+  smoke-tests:
+    needs: [build]
+    uses: ./.github/workflows/acceptance-test.yaml
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 60
+      focus-or-skip: "-ginkgo.focus='@smoke'"
+      kubectl-version: "v1.21.1"
+      git-provider: github
+      git-provider_hostname: github.com
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      gitops-bin-path: /usr/local/bin/gitops
+      database-type: sqlite
+      artifacts-base-dir: "/tmp/smoke-test-github"
+    secrets:
+      BUILD_BOT_USER: wge-build-bot
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
+      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
