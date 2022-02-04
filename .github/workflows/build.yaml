@@ -19,7 +19,7 @@ env:
   GITHUB_BUILD_USERNAME: wge-build-bot
   GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
   GO_CACHE_NAME: cache-go-modules
-  YARN_CACHE_NAME: cache-yarn
+  NODE_MODULES_CACHE_NAME: cache-node-modules
   HELM_REPO: ${{ inputs.helmrepo }}
 
 jobs:
@@ -59,7 +59,6 @@ jobs:
     steps:
       - id: cache-paths
         run: |
-          echo "::set-output name=dir::$(yarn cache dir)"
           echo "::set-output name=go-build::$(go env GOCACHE)"
           echo "::set-output name=go-mod::$(go env GOMODCACHE)"
       - name: Install Go
@@ -124,9 +123,6 @@ jobs:
   ui-server:
     runs-on: ubuntu-latest
     steps:
-    - id: cache-paths
-      run: |
-        echo "::set-output name=dir::$(yarn cache dir)"
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -137,10 +133,10 @@ jobs:
     - name: Yarn Cache
       uses: actions/cache@v2
       with:
-        path: ${{ steps.cache-paths.outputs.dir }}
-        key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+        path: ui-cra/node_modules
+        key: ${{ runner.os }}-${{ env.NODE_MODULES_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+          ${{ runner.os }}-${{ env.NODE_MODULES_CACHE_NAME }}-
     - name: build
       env:
         GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}

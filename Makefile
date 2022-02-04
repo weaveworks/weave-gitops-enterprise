@@ -153,7 +153,7 @@ ui-cra/node_modules:
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile
 
 ui-audit:
-	# Check js packages for any high or critical vulnerabilities 
+	# Check js packages for any high or critical vulnerabilities
 	cd ui-cra && yarn audit --level high; if [ $$? -gt 7 ]; then echo "Failed yarn audit"; exit 1; fi
 
 lint:

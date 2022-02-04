@@ -2,7 +2,7 @@ FROM alpine:3.9
 RUN apk add --no-cache bash openssh-client
 
 WORKDIR /
-COPY build /html
+COPY --chmod=755 build /html
 
 ARG now
 ARG revision
