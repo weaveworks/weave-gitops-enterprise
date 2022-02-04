@@ -43,4 +43,3 @@ jobs:
         name: ${{ github.ref }} + ${{ steps.current-time.outputs.formattedTime }}
         prerelease: true
         body: ${{steps.github_release.outputs.changelog}}
-        
