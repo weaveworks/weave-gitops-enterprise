@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
@@ -730,6 +730,10 @@ func TestMccpUI(t *testing.T) {
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
 	acceptancetest.SetDefaultUIURL(uiURL)
 	acceptancetest.DescribeSpecsUi(mccpRunner)
+
+	BeforeSuite(func() {
+		acceptancetest.InitializeLogger("ui-integration-tests.log") // Initilaize the global logger and tee Ginkgowriter
+	})
 
 	AfterSuite(func() {
 		webDriver := acceptancetest.GetWebDriver()

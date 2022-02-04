@@ -2,14 +2,13 @@ package acceptance
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
@@ -55,7 +54,7 @@ func deleteClusterEntry(webDriver *agouti.Page, clusterNames []string) {
 		clusterConnectionPage := pages.GetClusterConnectionPage(webDriver)
 		confirmDisconnectClusterDialog := pages.GetConfirmDisconnectClusterDialog(webDriver)
 
-		log.Printf("Deleting cluster entry: %s", clusterName)
+		logger.Tracef("Deleting cluster entry: %s", clusterName)
 		Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 
 		By("And wait for the page to be fully loaded", func() {
@@ -174,7 +173,7 @@ func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, 
 	var tokenURL []string
 
 	clusterName := RandString(32)
-	fmt.Printf("Generated a new cluster name! %s\n", clusterName)
+	logger.Tracef("Generated a new cluster name! %s", clusterName)
 	clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 	commandEnv := getCommandEnv(leaf)
 
@@ -182,21 +181,21 @@ func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, 
 		// Refresh the wkp-agent state
 		err := gitopsTestRunner.KubectlDeleteAllAgents(commandEnv)
 		if err != nil {
-			fmt.Println("Failed to delete the wkp-agent")
+			logger.Tracef("Failed to delete the wkp-agent")
 		}
 
 		Eventually(clusterConnectionPage.ConnectionInstructions).Should(MatchText(`kubectl apply -f "` + tokenURLRegex + `"`))
 		command, err := clusterConnectionPage.ConnectionInstructions.Text()
 		if err == nil {
-			log.Printf("Command :%s", command)
+			logger.Tracef("Command :%s", command)
 		}
 
 		var rgx = regexp.MustCompile(`kubectl apply -f "(` + tokenURLRegex + `)"`)
 		tokenURL = rgx.FindStringSubmatch(command)
 
-		fmt.Printf("Connecting up %s with token %s\n", clusterName, tokenURL[1])
-		fmt.Printf("Leaf is WKP cluster? %v\n", leaf.IsWKP)
-		fmt.Printf("Leaf has alertmanager url? %v\n", leaf.AlertManagerURL)
+		logger.Tracef("Connecting up %s with token %s", clusterName, tokenURL[1])
+		logger.Tracef("Leaf is WKP cluster? %v", leaf.IsWKP)
+		logger.Tracef("Leaf has alertmanager url? %v", leaf.AlertManagerURL)
 		manifestURL := tokenURL[1]
 		if leaf.AlertManagerURL != "" {
 			manifestURL = fmt.Sprintf("%s&alertmanagerURL=%s", manifestURL, leaf.AlertManagerURL)
@@ -204,7 +203,7 @@ func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, 
 
 		err = gitopsTestRunner.KubectlApply(commandEnv, manifestURL)
 		if err != nil {
-			fmt.Printf(`Failed to install the wkp-agent by applying given command: %s`, command)
+			logger.Errorf(`Failed to install the wkp-agent by applying given command: %s`, command)
 		}
 	})
 
@@ -254,17 +253,13 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			initializeWebdriver(DEFAULT_UI_URL)
 		})
 
-		AfterEach(func() {
-			takeNextScreenshot()
-		})
-
 		It("Verify page structure first time with no cluster configured", func() {
 			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
 
 			By("And wego enterprise state is reset", func() {
-				_ = gitopsTestRunner.ResetControllers("enterprise")
+				gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
 				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -327,7 +322,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 		It("Verify connect a cluster input field validation", func() {
 			clusterNameMax := RandString(300)
-			fmt.Printf("Generated a new cluster name! %s\n", clusterNameMax)
+			logger.Tracef("Generated a new cluster name! %s", clusterNameMax)
 			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterNameMax)
 
 			By("And the cluster connection popup is closed", func() {
@@ -384,7 +379,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 		It("Verify Not connected cluster status", func() {
 
 			clusterName := RandString(32)
-			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
+			logger.Tracef("Generated a new cluster name! %s", clusterName)
 			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 
 			By("And I close the connection dialog", func() {
@@ -425,7 +420,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Skip("This test case runs only with sqlite")
 			}
 
-			_ = gitopsTestRunner.ResetControllers("enterprise")
+			gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
 			gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -508,7 +503,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 		It("Verify that the ingress URL can be added and removed", func() {
 			clusterName := RandString(32)
-			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
+			logger.Tracef("Generated a new cluster name! %s", clusterName)
 			clustersPage, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 
 			By("And the cluster connection popup is closed", func() {
@@ -536,7 +531,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
-			_ = gitopsTestRunner.ResetControllers("enterprise")
+			gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
 			gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
 			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
@@ -579,7 +574,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 		It("Verify disconnect cluster", func() {
 			clusterName := RandString(32)
-			fmt.Printf("Generated a new cluster name! %s\n", clusterName)
+			logger.Tracef("Generated a new cluster name! %s", clusterName)
 			_, clusterConnectionPage := createClusterEntry(webDriver, clusterName)
 
 			By("And the cluster connection popup is closed", func() {
