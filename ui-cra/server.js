@@ -18,6 +18,7 @@ app.use(
     '/application_add',
     '/application_detail',
     '/alerts',
+    '/oauth',
   ],
   (req, res, next) => {
     const writeIndexResponse = (err, result) => {

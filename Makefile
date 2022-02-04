@@ -54,7 +54,7 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 
 # Takes precedence over the more general rule above
 # The only difference is the build context
-cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/*
+cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/* ui-cra/build
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
@@ -169,6 +169,10 @@ ui-audit:
 
 lint:
 	bin/go-lint
+
+cmd/clusters-service/clusters-service: ui-cra/build
+	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "$(cgo_ldflags)" -o $@ ./cmd/gitops-repo-broker
+	cp -r ui-cra/build/* cmd/clusters-service/app/dist/
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
