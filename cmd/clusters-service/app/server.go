@@ -333,8 +333,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	mux.Handle("/gitops/api/", commonMiddlware(gitopsBrokerHandler))
 
 	// UI
+	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
 	fs := http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)})
-	http.Handle("/", http.StripPrefix("/", fs))
+	mux.Handle("/", http.StripPrefix("/", fs))
 
 	s := &http.Server{
 		Addr:    addr,
