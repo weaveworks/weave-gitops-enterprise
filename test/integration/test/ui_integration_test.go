@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	gcontext "context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -31,8 +30,11 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -506,8 +508,8 @@ func getLocalPath(localPath string) string {
 	return path
 }
 
-func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
-	listenContext, listenCancel := gcontext.WithCancel(ctx)
+func ListenAndServe(ctx context.Context, srv *http.Server) error {
+	listenContext, listenCancel := context.WithCancel(ctx)
 	var listenError error
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
@@ -516,7 +518,7 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 		listenCancel()
 	}()
 	defer func() {
-		_ = srv.Shutdown(gcontext.Background())
+		_ = srv.Shutdown(context.Background())
 	}()
 
 	<-listenContext.Done()
@@ -524,11 +526,11 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 	return listenError
 }
 
-func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
+func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
 	library := &templates.CRDLibrary{
-		Log:       logr.Discard(),
-		Client:    cl,
-		Namespace: "default",
+		Log:          logr.Discard(),
+		ClientGetter: kubefakes.NewFakeClientGetter(cl),
+		Namespace:    "default",
 	}
 
 	jwtClient := &authfakes.FakeJWTClient{
@@ -543,8 +545,8 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		Factory:        &servicesfakes.FakeFactory{},
 		JwtClient:      jwtClient,
 		Logger:         logr.Discard(),
-		FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(cl)),
-		ClusterConfig:  wego_server.ClusterConfig{},
+		FetcherFactory: applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(cl)),
+		ClusterConfig:  kube.ClusterConfig{},
 	}
 
 	os.Setenv("CAPI_CLUSTERS_NAMESPACE", "default")
@@ -557,11 +559,12 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithDatabase(db),
 		app.WithApplicationsConfig(fakeAppsConfig),
-		app.WithApplicationsOptions(wego_server.WithClientGetter(NewFakeClientGetter(cl))),
-		app.WithGitProvider(git.NewGitProviderService(logr.Discard())))
+		app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
+		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
+		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)))
 }
 
-func RunUIServer(ctx gcontext.Context) {
+func RunUIServer(ctx context.Context) {
 	// is configured to proxy to
 	// - 8000 for clusters-service
 	cmd := exec.CommandContext(ctx, "node", "server.js")
@@ -598,9 +601,9 @@ func GetDB(t *testing.T) (*gorm.DB, string) {
 	return db, dbURI
 }
 
-func waitFor200(ctx gcontext.Context, url string, timeout time.Duration) error {
+func waitFor200(ctx context.Context, url string, timeout time.Duration) error {
 	log.Infof("Waiting for 200 from %v for %v", url, timeout)
-	waitCtx, cancel := gcontext.WithTimeout(ctx, timeout)
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
@@ -625,36 +628,6 @@ func gomegaFail(message string, callerSkip ...int) {
 	}
 	// Pass this down to the default handler for onward processing
 	Fail(message, callerSkip...)
-}
-
-// FIXME: expose this in wego core
-
-type FakeFetcherFactory struct {
-	fake applicationv2.Fetcher
-}
-
-func NewFakeFetcherFactory(fake applicationv2.Fetcher) wego_server.FetcherFactory {
-	return &FakeFetcherFactory{
-		fake: fake,
-	}
-}
-
-func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
-	return f.fake
-}
-
-type FakeClientGetter struct {
-	client client.Client
-}
-
-func NewFakeClientGetter(client client.Client) wego_server.ClientGetter {
-	return &FakeClientGetter{
-		client: client,
-	}
-}
-
-func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
-	return g.client, nil
 }
 
 //
@@ -691,7 +664,7 @@ func TestMccpUI(t *testing.T) {
 	discoveryClient := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	var wg sync.WaitGroup
-	ctx, cancel := gcontext.WithCancel(gcontext.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Increment the WaitGroup synchronously in the main method, to avoid
 	// racing with the goroutine starting.
@@ -703,7 +676,7 @@ func TestMccpUI(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		err := RunCAPIServer(t, ctx, cl, discoveryClient, db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		wg.Done()
 	}()
 
