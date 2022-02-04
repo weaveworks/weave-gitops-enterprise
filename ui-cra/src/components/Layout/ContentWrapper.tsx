@@ -1,8 +1,9 @@
-import { FC } from 'react';
+import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
 import useVersions from '../../contexts/Versions';
 import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
+import { Tooltip } from '../Shared';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
@@ -95,7 +96,12 @@ export const ContentWrapper: FC<{
           Need help? Contact us at&nbsp;
           <a href="mailto:support@weave.works">support@weave.works</a>
         </div>
-        <div>Weave GitOps Enterprise {versions?.capiServer}</div>
+        <Tooltip
+          title={`Server Version ${versions?.capiServer}`}
+          placement="top"
+        >
+          <div>Weave GitOps Enterprise {process.env.REACT_VERSION}</div>
+        </Tooltip>
       </HelpLinkWrapper>
     </div>
   );

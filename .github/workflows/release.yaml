@@ -31,15 +31,9 @@ jobs:
         configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Get current time
-      uses: josStorer/get-current-time@v2
-      id: current-time
-      with:
-        format: YYYY.MM
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        name: ${{ github.ref }} + ${{ steps.current-time.outputs.formattedTime }}
         prerelease: true
         body: ${{steps.github_release.outputs.changelog}}
