@@ -23,6 +23,32 @@ env:
   HELM_REPO: ${{ inputs.helmrepo }}
 
 jobs:
+  helm-chart:
+    needs:
+      - clusters-service
+      - event-writer
+      - ui-server
+      - gitops-agent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Grab all tags from git
+        run: |
+          git fetch --tags -f
+      - name: Publish helm chart to s3
+        run: |
+          TAG=$(git describe --always --match "v*")
+
+          CHART_VALUES_PATH=./charts/mccp/values.yaml
+          # Update the MCCP chart values.yaml file with the current image tag
+          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+          # Publish the MCCP Helm v3 chart
+          ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
+
   cluster-service:
     runs-on: ubuntu-latest
     steps:
