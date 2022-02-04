@@ -12,15 +12,22 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
+type customFormatter struct {
+	log.TextFormatter
+}
+
 var (
+	logger               *logrus.Logger
+	logFile              *os.File
 	gitProviderEnv       GitProviderEnv
 	GIT_REPOSITORY_URL   string
 	SELENIUM_SERVICE_URL string
@@ -29,8 +36,7 @@ var (
 	DEFAULT_UI_URL       string
 	ARTIFACTS_BASE_DIR   string
 
-	webDriver    *agouti.Page
-	screenshotNo = 1
+	webDriver *agouti.Page
 )
 
 const (
@@ -133,18 +139,19 @@ func SetupTestEnvironment() {
 
 func InstallWeaveGitopsControllers() {
 	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
-		log.Info("No need to install Weave gitops controllers, managemnt cluster is already configured and setup.")
+		logger.Info("No need to install Weave gitops controllers, managemnt cluster is already configured and setup.")
 
 	} else {
-		log.Info("Installing Weave gitops controllers on to management cluster along with respective configurations and setting such as config repo creation ertc.")
+		logger.Info("Installing Weave gitops controllers on to management cluster along with respective configurations and setting such as config repo creation etc.")
 
 		// Config repo must exist first before installing gitops controller
 		initAndCreateEmptyRepo(gitProviderEnv, true)
 
+		logger.Info("Starting weave-gitops-enterprise installation...")
 		//wego-enterprise.sh script install core and enterprise controller and setup the management cluster along with required resources, secrets and entitlements etc.
 		checkoutRepoPath := getCheckoutRepoPath()
-		err := runCommandPassThrough(path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh"), "setup", checkoutRepoPath)
-		Expect(err).ShouldNot(HaveOccurred())
+		setupScriptPath := path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh")
+		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`%s setup %s`, setupScriptPath, checkoutRepoPath), ASSERTION_5MINUTE_TIME_OUT)
 	}
 }
 
@@ -162,11 +169,6 @@ func stringWithCharset(length int, charset string) string {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
 	return string(b)
-}
-
-func takeNextScreenshot() {
-	TakeScreenShot(fmt.Sprintf("test-%v", screenshotNo))
-	screenshotNo += 1
 }
 
 func initializeWebdriver(wgeURL string) {
@@ -205,6 +207,47 @@ func initializeWebdriver(wgeURL string) {
 	})
 }
 
+func (f *customFormatter) Format(entry *log.Entry) ([]byte, error) {
+	// ansi color codes are required for the colored output otherwise console output would have no lose colors for the log levels
+	var levelColor int
+	switch entry.Level {
+	case log.DebugLevel:
+		levelColor = 31 // gray
+	case log.InfoLevel:
+		levelColor = 36 // cyan
+	case log.WarnLevel:
+		levelColor = 33 // orange
+	case log.ErrorLevel, log.FatalLevel, log.PanicLevel:
+		levelColor = 31 // red
+	default:
+		return []byte(fmt.Sprintf("\t%s\n", entry.Message)), nil
+	}
+	return []byte(fmt.Sprintf("\x1b[%dm%s\x1b[0m: %s \x1b[38;5;243m%s\x1b[0m\n", levelColor, strings.ToUpper(entry.Level.String()), entry.Message, entry.Time.Format(f.TimestampFormat))), nil
+}
+
+func InitializeLogger(logFileName string) {
+	logger = &logrus.Logger{
+		Out:   os.Stdout,
+		Level: logrus.TraceLevel,
+		Formatter: &customFormatter{log.TextFormatter{
+			FullTimestamp:          true,
+			TimestampFormat:        "01/02/06 15:04:05.000",
+			ForceColors:            true,
+			DisableLevelTruncation: true,
+		},
+		},
+	}
+
+	file_name := path.Join(ARTIFACTS_BASE_DIR, logFileName)
+	logFile, err := os.OpenFile(file_name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+	if err == nil {
+		GinkgoWriter.TeeTo(logFile)
+		logger.SetOutput(io.MultiWriter(logFile, os.Stdout))
+	} else {
+		logger.Warnf("Failed to create log file: '%s', Error: %d", file_name, err)
+	}
+}
+
 // Run a command, passing through stdout/stderr to the OS standard streams
 func runCommandPassThrough(name string, arg ...string) error {
 	return runCommandPassThroughWithEnv([]string{}, name, arg...)
@@ -219,8 +262,8 @@ func runCommandPassThroughWithEnv(env []string, name string, arg ...string) erro
 	if len(env) > 0 {
 		cmd.Env = env
 	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = logger.WriterLevel(logrus.TraceLevel)
+	cmd.Stderr = logger.WriterLevel(logrus.TraceLevel)
 	return cmd.Run()
 }
 
@@ -232,16 +275,21 @@ func runCommandPassThroughWithoutOutputWithEnv(env []string, name string, arg ..
 	return cmd.Run()
 }
 
-func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr string) {
+func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Duration) (stdOut string, stdErr string) {
+	assert_timeout := ASSERTION_DEFAULT_TIME_OUT
+	if len(timeout) > 0 {
+		assert_timeout = timeout[0]
+	}
+
 	command := exec.Command("sh", "-c", commandToRun)
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	session, err := gexec.Start(command, logger.WriterLevel(logrus.TraceLevel), logger.WriterLevel(logrus.TraceLevel))
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, ASSERTION_2MINUTE_TIME_OUT).Should(gexec.Exit())
+	Eventually(session, assert_timeout).Should(gexec.Exit())
 
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")
 }
 
-func showItems(itemType string) error {
+func ShowItems(itemType string) error {
 	if itemType != "" {
 		return runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
@@ -252,18 +300,19 @@ func showItems(itemType string) error {
 	return runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
 }
 
-func getDownloadedKubeconfigPath(clusterName string) string {
-	return path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", clusterName))
+func DumpClusterInfo(testName string) error {
+	scriptPath := path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "dump-cluster-info.sh")
+	return runCommandPassThrough(scriptPath, testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
 }
 
-func dumpClusterInfo(testName string) error {
-	return runCommandPassThrough("../../utils/scripts/dump-cluster-info.sh", testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
+func getDownloadedKubeconfigPath(clusterName string) string {
+	return path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", clusterName))
 }
 
 // utility functions
 func deleteFile(name []string) error {
 	for _, name := range name {
-		log.Printf("Deleting: %s", name)
+		logger.Tracef("Deleting: %s", name)
 		err := os.RemoveAll(name)
 		if err != nil {
 			return err
@@ -283,23 +332,4 @@ func fileExists(name string) bool {
 		}
 	}
 	return true
-}
-
-// WaitUntil runs checkDone until a timeout is reached
-func waitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() error, expectError ...bool) error {
-	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
-		err := checkDone()
-
-		if len(expectError) > 0 && expectError[0] {
-			if err != nil {
-				return nil
-			}
-		} else {
-			if err == nil {
-				return nil
-			}
-		}
-		fmt.Fprintf(out, "error occurred %s, retrying in %s\n", err, poll.String())
-	}
-	return fmt.Errorf("timeout reached %s", timeout.String())
 }
