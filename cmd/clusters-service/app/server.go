@@ -367,14 +367,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
-	commonMiddleware := func(mux http.Handler) http.Handler {
-		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
-		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
-	}
+	// UI
+	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
+	staticAssets := http.StripPrefix("/", http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)}))
 
 	mux := http.NewServeMux()
 
-	var authServer *auth.AuthServer
 	if AuthEnabled() {
 		_, err := url.Parse(args.OIDC.IssuerURL)
 		if err != nil {
@@ -411,31 +409,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 		args.Log.Info("Registering callback route")
 		auth.RegisterAuthServer(mux, "/oauth2", srv)
-		authServer = srv
 
 		// Secure `/v1` and `/gitops/api` API routes
 		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv)
 		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv)
+		staticAssets = auth.WithAPIAuth(staticAssets, srv)
+	}
+
+	commonMiddleware := func(mux http.Handler) http.Handler {
+		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
+		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
 	mux.Handle("/gitops/api/", commonMiddleware(gitopsBrokerHandler))
 
-	// UI
-	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
-	fs := http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)})
-	mux.Handle("/", http.StripPrefix("/", fs))
-
-		if extension == "" {
-			if AuthEnabled() {
-				auth.WithWebAuth(redirector, authServer).ServeHTTP(w, req)
-			} else {
-				redirector(w, req)
-			}
-			return
-		}
-		assetHandler.ServeHTTP(w, req)
-	}))
+	mux.Handle("/", staticAssets)
 
 	s := &http.Server{
 		Addr:    addr,
