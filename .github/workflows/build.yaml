@@ -137,10 +137,6 @@ jobs:
         key: ${{ runner.os }}-${{ env.NODE_MODULES_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.NODE_MODULES_CACHE_NAME }}-
-    - name: go go buildx
-      uses: docker/setup-buildx-action@v1
-      with:
-        install: true
     - name: build
       env:
         GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}

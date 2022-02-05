@@ -18,3 +18,4 @@ LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.url="https://docs.gitops.weave.works/" \
       org.opencontainers.image.version="${version}"
 
+CMD ["sh", "-c", "mv -v /html/* /target/"]
