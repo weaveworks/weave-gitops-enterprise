@@ -145,8 +145,9 @@ godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFi
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
 
-ui-cra/build: ui-cra/node_modules
+ui-cra/build:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
+	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile
 	cd ui-cra && REACT_APP_VERSION=$(VERSION) yarn build
 
 ui-cra/node_modules:
