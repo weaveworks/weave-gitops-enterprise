@@ -20,6 +20,7 @@ env:
   GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
   GO_CACHE_NAME: cache-go-modules
   NODE_MODULES_CACHE_NAME: cache-node-modules
+  NODE_VERSION: '14'
   HELM_REPO: ${{ inputs.helmrepo }}
 
 jobs:
@@ -130,13 +131,20 @@ jobs:
     - name: Grab all tags from git
       run: |
         git fetch --tags -f
+    - uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+        cache-dependency-path: |
+          ui-cra/yarn.lock
     - name: Yarn Cache
       uses: actions/cache@v2
       with:
         path: ${{ github.workspace }}/ui-cra/node_modules
-        key: ${{ runner.os }}-${{ env.NODE_MODULES_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+        # node_modules is not compat w/ multiple versions of node, invalidate if it changes
+        key: ${{ runner.os }}-${{ env.NODE_VERSION }}-${{ env.NODE_MODULES_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-${{ env.NODE_MODULES_CACHE_NAME }}-
+          ${{ runner.os }}-${{ env.NODE_VERSION }}-${{ env.NODE_MODULES_CACHE_NAME }}-
     - name: build
       env:
         GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
