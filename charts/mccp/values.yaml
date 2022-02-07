@@ -53,6 +53,13 @@ config:
     baseBranch: main
   checkpoint:
     enabled: true
+  oidc:
+    enabled: false
+    issuerURL: ""
+    redirectURL: ""
+    cookieDuration: 1h
+    # Name of secret in wego-system namespace that contains a clientId and clientSecret
+    clientCredentialsSecret: ""
 
 agentTemplate:
   natsScheme: nats
