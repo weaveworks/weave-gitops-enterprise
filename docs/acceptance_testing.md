@@ -1,5 +1,5 @@
 
-# Running acceptance locally
+# Running acceptance tests locally
 
 This is a guide to quickly setup the environment to run and debug acceptance locally running on a kind cluster. The test host can be either macOS or linux e.g. Ubuntu machine.
 
@@ -25,7 +25,7 @@ Run the following script to override downloading of cert-manager.yaml during cap
 
     cat > $HOME/.cluster-api/clusterctl.yaml <<- EOM
     cert-manager:
-    	url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
+      url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
     EOM
 
 ## Environment Setup
@@ -47,23 +47,13 @@ Configure git with the following global settings. It will elevates the manual in
 Add git providers i.e. (GitHub, gitlab and gitlab-on-prm) key fingerprints to the known_hosts file.  
 
 ```
-cat > ~/.ssh/known_hosts <<- EOM
-# github.com:22 SSH-2.0-babeld-a73e1397
-github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
-# github.com:22 SSH-2.0-babeld-a73e1397
-github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
-# github.com:22 SSH-2.0-babeld-a73e1397
-github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
-# gitlab.com:22 SSH-2.0-OpenSSH_7.9p1 Debian-10+deb10u2
-gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9
-# gitlab.com:22 SSH-2.0-OpenSSH_7.9p1 Debian-10+deb10u2
-gitlab.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFSMqzJeV9rUzU4kWitGjeR4PWSa29SPqJ1fVkhtj3Hw9xjLVXVYrU9QlYWrOLXBpQ6KWjbjTDTdDkoohFzgbEY=
-# gitlab.com:22 SSH-2.0-OpenSSH_7.9p1 Debian-10+deb10u2
-gitlab.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf
-gitlab.git.dev.wkp.weave.works ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBeP3Ucl8fV9dQK3cuN8A8z1t5ah9Xwq/oVGG/MOyiE4DyCP/m+XIBJ07dW7rl5cCpGivmzURslQuSQWLM7oSMVddzKMeMA+A2Xqf+c5jEpCDx08TarBInInqjgO3Yt9NmptQ0JsQgNYLugclQVcuk832/2Ge7M9kw8Dp9SeYsIG/8oBl8DeSXp7AR21zsnH0uKRil7a8I6Nmo8wC3s8iAj1KP/dYTn0S7M+8ZYM0ubrUyKULqAWMAH2KXG4fs2Z3yaK4yWugCre8KTSF2YJYsnNkfNy2NHyb/nGgIDLP3Or0ER5mRPqUgu1vgvXIk0nVKmYfGnWvByg5e2sn4QjE/
-gitlab.git.dev.wkp.weave.works ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBB7Mqp5balgSUzdzgveNGarJatOw6elpMtKzawdtY+ugxWFNLskxoEydYqZFHDaS8D/bH1XvZYUemRZBd7vntbk=
-gitlab.git.dev.wkp.weave.works ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPUuEL+yd8UwVnrP2PLSNslqfOt7o6WGDdEcD2f8SwRB
-EOM
+# Clean up potentially old keys
+ssh-keygen -R github.com
+ssh-keygen -R gitlab.com
+ssh-keygen -R gitlab.git.dev.wkp.weave.works
+
+# Append fresh new keys
+ssh-keyscan gitlab.git.dev.wkp.weave.works github.com gitlab.com >> ~/.ssh/known_hosts
 ```
 
 <font size="5">**Environment variables**</font>
@@ -78,7 +68,7 @@ export ACCEPTANCE_TESTS_DATABASE_TYPE=sqlite
 export EXP_CLUSTER_RESOURCE_SET=true
 export UI_NODEPORT=30080
 export NATS_NODEPORT=31490
-export MANAGEMENT_CLUSTER_CNAME: weave.gitops.enterprise.com
+export MANAGEMENT_CLUSTER_CNAME=weave.gitops.enterprise.com
 export CLUSTER_REPOSITORY=gitops-testing
 ```
 
@@ -116,7 +106,7 @@ export GITHUB_ORG=<gitlab group name>
 export GITHUB_TOKEN=<gitlab account token>
 export GITHUB_USER=<gitlab account user name>
 export GITHUB_PASSWORD=<gitlab account password>
-export export GITLAB_CLIENT_ID=<gitlab oath app id>
+export GITLAB_CLIENT_ID=<gitlab oath app id>
 export GITLAB_CLIENT_SECRET=<gitlab oath app secret>
 export GITOPS_GIT_HOST_TYPES="gitlab.git.dev.wkp.weave.works=gitlab"
 export GITLAB_HOSTNAME=“gitlab.git.dev.wkp.weave.works"
@@ -145,7 +135,7 @@ You must configure the gitlab oath application with redirect url as below. It is
 
 - ***Automatic installation:*** Test frame work automatically installs the  core and enterprise controllers and setup the management cluster along with required repository, resources, secrets and entitlements etc. Any subsequent test runs will skip the management cluster setup and starts the test execution straight away. You need to recreate the kind cluster in case you want to install new enterprise version/release for testing.
 
-- ***Manual installation:*** You can manually install and setup core and enterprise controllers without running acceptance test. You must create the config repository i.e. `CLUSTER_REPOSITORY` prior to running the following command. The core controllers can not be installed if `CLUSTER_REPOSITORY` doesn't exists. Manuall creation of cluster repository is only required for manual installation. 
+- ***Manual installation:*** You can manually install and setup core and enterprise controllers without running acceptance test. You must create the config repository i.e. `CLUSTER_REPOSITORY` prior to running the following command. The core controllers can not be installed if `CLUSTER_REPOSITORY` doesn't exists. Manual creation of cluster repository is only required for manual installation. 
 
 	You may be be prompted for administrator password while running the below script. It is needed to add a `MANAGEMENT_CLUSTER_CNAME` entry to `/etc/hosts` file e.g. `192.168.0.5 weave.gitops.enterprise.com` (where `192.168.0.5` is test host's ip address).
 
@@ -159,7 +149,15 @@ You must configure the gitlab oath application with redirect url as below. It is
 	If you make any changes to UI or backend, you need to rebuild the cluster. The easiest and fastest way is to push to origin (your remote branch). It will build the image corresponding to your local branch commit hash and push it to *S3*.
 	You can also manually build and push the release to *S3*.
 
+## Troubleshooting
 
+Please refer to the Cluster API troubleshooting guide for issues related to `capd`. You may encounter following issues:
+- Failed clusterctl init - ‘failed to get cert-manager object'
+
+	`https://cluster-api.sigs.k8s.io/user/troubleshooting.html#failed-clusterctl-init---failed-to-get-cert-manager-object`
+- Cluster API with Docker Desktop - “too many open files”
+
+	`https://cluster-api.sigs.k8s.io/user/troubleshooting.html#cluster-api-with-docker-desktop---too-many-open-files`
 
 ## Command Line run
 
