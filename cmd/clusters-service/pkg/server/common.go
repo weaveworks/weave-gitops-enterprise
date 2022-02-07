@@ -12,6 +12,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
@@ -20,6 +22,26 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 )
+
+func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		corev1.AddToScheme,
+		capiv1.AddToScheme,
+		sourcev1beta1.AddToScheme,
+	}
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(clusterState...).
+		Build()
+
+	return c
+}
 
 func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1beta1.HelmRepository) capiv1_protos.ClustersServiceServer {
 

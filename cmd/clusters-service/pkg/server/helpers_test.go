@@ -5,12 +5,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -362,24 +357,4 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, result, expected)
-}
-
-func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		corev1.AddToScheme,
-		capiv1.AddToScheme,
-		sourcev1beta1.AddToScheme,
-	}
-	err := schemeBuilder.AddToScheme(scheme)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	c := fake.NewClientBuilder().
-		WithScheme(scheme).
-		WithRuntimeObjects(clusterState...).
-		Build()
-
-	return c
 }
