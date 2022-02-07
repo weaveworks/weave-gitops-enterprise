@@ -55,7 +55,7 @@ jobs:
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
 
-  clusters-service:
+  cluster-service:
     runs-on: ubuntu-latest
     steps:
       - id: cache-paths
