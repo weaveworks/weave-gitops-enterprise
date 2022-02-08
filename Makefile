@@ -7,6 +7,7 @@ IMAGE_PREFIX := docker.io/weaveworks/weave-gitops-enterprise-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe --always --match "v*")
+CALENDAR_VERSION=$(shell date +"%Y-%d")
 WEAVE_GITOPS_VERSION=$(shell git describe --always --match "v*" | sed 's/^[^0-9]*//')
 TIME_NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 CURRENT_DIR := $(shell pwd)
@@ -141,7 +142,7 @@ ui-cra/node_modules:
 
 ui-cra/build: ui-cra/node_modules
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
-	REACT_APP_VERSION=$(VERSION) yarn build
+	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile && REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
 
 ui-audit:
 	# Check js packages for any high or critical vulnerabilities 

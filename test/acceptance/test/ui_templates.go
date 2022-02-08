@@ -501,11 +501,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
-					if gitProviderEnv.Type == GitProviderGitHub {
-						Eventually(gitops.SuccessBar).Should(MatchText(`Authentication completed successfully. Please proceed with creating the PR.`))
-						Expect(gitops.SuccessBar.Click()).To(Succeed())
-					}
-
 					if pages.ElementExist(gitops.ErrorBar) {
 						Expect(gitops.ErrorBar.Click()).To(Succeed())
 					}
@@ -1062,11 +1057,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
-					if gitProviderEnv.Type == GitProviderGitHub {
-						Eventually(gitops.SuccessBar).Should(MatchText(`Authentication completed successfully. Please proceed with creating the PR.`))
-						Expect(gitops.SuccessBar.Click()).To(Succeed())
-					}
-
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
 
