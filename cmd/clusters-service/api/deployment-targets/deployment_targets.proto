@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package deployment_targets.v1
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/deployment_targets";
+
+
+service DeploymentTargetsService {
+    rpc ListGitRepositories() returns (){
+        option(google.api.http) = {
+            get: "/v1/gitRepositories"
+        };
+    };
+    rpc ListGitRepositoryPaths() returns (){
+        option(google.api.http) = {
+            get: "/v1/gitRepositories/{git_repository_name}/paths"
+        };
+    };
+    rpc ListNamespaces() returns (){
+        option(google.api.http) = {
+            get: "/v1/namespaces"
+        };
+    };
+    rpc CreateKustomization() returns (){
+        option(google.api.http) = {
+            post: "/v1/kustomizations"
+            body: ""
+        };
+    };
+}
+
+message NamespacedName {
+    string namespace = 1;
+    string name = 2;
+}
+
+message GitRepository {
+    string ref = 1;
+    NamespacedName object = 2;
+}
+
+message GitRepositoryPath {
+
+}
+
+message Kustomization {
+    
+}
+
+message ListGitRepositoriesRequest {
+    string page_token = 1;
+    int32 page_size = 2;
+}
+
+message ListGitRepositoriesResponse {
+    string next_page_token = 1;
+}
+
+message ListGitRepositoryPathsRequest {
+    
+}
+
+message ListNamespacesRequest {
+    string page_token = 1;
+    int32 page_size = 2;
+}
+
+message ListNamespacesResponse {
+    string next_page_token = 1;
+}
