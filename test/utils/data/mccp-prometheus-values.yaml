@@ -16,3 +16,23 @@ kubeProxy:
 # -------------
 grafana:
   enabled: false
+alertmanager:
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "mccp-nginx"
+      nginx.ingress.kubernetes.io/rewrite-target: "/$1"
+    hosts: ['']
+    paths:
+    - '/alertmanager/?(.*)'
+prometheus:
+  prometheusSpec:
+    externalUrl: '/prometheus/'
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "mccp-nginx"
+      nginx.ingress.kubernetes.io/rewrite-target: "/$1"
+    hosts: ['']
+    paths:
+    - '/prometheus/?(.*)'

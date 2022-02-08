@@ -1,6 +1,9 @@
 dependencies:
-- name: nats
-  repository: https://charts.bitnami.com/bitnami
-  version: 6.1.2
-digest: sha256:523f2fb20c8d7572f5f3335e8f8e3c6263c84a7c67c331b9c24e919de76e4cad
-generated: "2022-02-08T13:47:05.402552+01:00"
+  - name: nats
+    repository: https://charts.bitnami.com/bitnami
+    version: 6.1.2
+  - name: nginx-ingress-controller
+    repository: https://charts.bitnami.com/bitnami
+    version: 7.6.21
+digest: sha256:6e5bf9e81d09538eec7358e3c6bc9cb28d164a603b924a120d3354e39d0e69b8
+generated: "2022-01-10T18:43:19.941657Z"

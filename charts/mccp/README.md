@@ -6,7 +6,7 @@ Helm chart to install the MCCP (Multi-cluster control plane) component.
 
 This chart uses images from private Docker repositories so you will need to supply valid docker credentials in order to use them. You can find instructions on how to create a secret based on existing Docker credentials [here](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
-In addition to these images, the chart also installs [NATS](https://github.com/bitnami/charts/tree/master/bitnami/nats). Since NATS is exposed directly as a NodePort service in the Kubernetes cluster (in the default configuration), it is often convenient to specify which port to use as well as the address that NATS is accessible from.
+In addition to these images, the chart also installs [NATS](https://github.com/bitnami/charts/tree/master/bitnami/nats) and [NGINX Ingress Controller](https://github.com/bitnami/charts/tree/master/bitnami/nginx-ingress-controller). Since NATS is exposed directly as a NodePort service in the Kubernetes cluster (in the default configuration), it is often convenient to specify which port to use as well as the address that NATS is accessible from.
 
 ```bash
 $ helm repo add wkp s3://weaveworks-wkp/charts-v3

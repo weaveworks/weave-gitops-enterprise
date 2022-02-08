@@ -36,16 +36,6 @@ fluxCli:
   image: ghcr.io/fluxcd/flux-cli:v0.19.1
   binPath: /usr/local/bin/flux
 
-service:
-  type: ClusterIP
-  ports:
-    http: 8000
-  targetPorts:
-    http: 8000
-  nodePorts:
-    http: ""
-    https: ""
-
 config:
   cluster:
     name: default
@@ -78,3 +68,8 @@ nats:
     service:
       type: NodePort
   extraEnvVarsSecret: nats-env-vars-secret
+
+nginx-ingress-controller:
+  ingressClass: mccp-nginx
+  config:
+    ssl-redirect: "false"
