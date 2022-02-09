@@ -54,12 +54,11 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 
 # Takes precedence over the more general rule above
 # The only difference is the build context
-cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/* ui-cra/build
+cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/clusters-service
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
-		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		--file cmd/clusters-service/Dockerfile \
@@ -68,12 +67,11 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 	touch $@
 
 WKP_AGENT := docker.io/weaveworks/wkp-agent
-cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/*
+cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/wkp-agent
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
-		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(WKP_AGENT) \
 		--file cmd/wkp-agent/Dockerfile \
@@ -81,9 +79,23 @@ cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/*
 	$(SUDO) docker tag $(WKP_AGENT) $(WKP_AGENT):$(IMAGE_TAG)
 	touch $@
 
+UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
+ui-cra/.uptodate: ui-cra/build
+	$(SUDO) docker build \
+		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
+		--build-arg=image_tag=$(IMAGE_TAG) \
+		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=now=$(TIME_NOW) \
+		--tag $(UI_SERVER) \
+		--file ui-cra/Dockerfile \
+		$(@D)/
+	$(SUDO) docker tag $(UI_SERVER) $(UI_SERVER):$(IMAGE_TAG)
+	touch $@
+
 update-mccp-chart-values:
 	sed -i "s|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer.*|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 	sed -i "s|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service.*|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
+	sed -i "s|uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server.*|uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 
 # Get a list of directories containing Dockerfiles
 DOCKERFILES := $(shell find . \
@@ -131,29 +143,22 @@ binaries: $(BINARIES)
 
 godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $1)
 
-# .uptodate files are for Docker builds, which should happen outside of the container
-cmd/wkp-agent/.uptodate: cmd/wkp-agent/wkp-agent cmd/wkp-agent/Dockerfile
-
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
 
-ui-cra/node_modules:
-	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile
-
-ui-cra/build: ui-cra/node_modules
+ui-cra/build:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
-	yarn config set network-timeout 300000 && cd ui-cra && yarn install --frozen-lockfile && REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
+	yarn config set network-timeout 300000 && cd ui-cra && yarn install --prod --frozen-lockfile && REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
 
 ui-audit:
-	# Check js packages for any high or critical vulnerabilities 
+	# Check js packages for any high or critical vulnerabilities
 	cd ui-cra && yarn audit --level high; if [ $$? -gt 7 ]; then echo "Failed yarn audit"; exit 1; fi
 
 lint:
 	bin/go-lint
 
-cmd/clusters-service/clusters-service: ui-cra/build
-	CGO_ENABLED=1 GOARCH=amd64 go build -ldflags "$(cgo_ldflags)" -o $@ ./cmd/clusters-service
-	cp -r ui-cra/build/* cmd/clusters-service/app/dist/
+cmd/clusters-service/clusters-service:
+	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -a -o $@ ./cmd/clusters-service
 
 # We select which directory we want to descend into to not execute integration
 # tests here.

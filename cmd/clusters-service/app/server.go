@@ -2,16 +2,13 @@ package app
 
 import (
 	"context"
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -21,7 +18,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -86,6 +82,7 @@ type Params struct {
 	watcherPort                  int
 	AgentTemplateNatsURL         string
 	AgentTemplateAlertmanagerURL string
+	htmlRootPath                 string
 	OIDC                         OIDCAuthenticationOptions
 }
 
@@ -131,6 +128,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wego-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 
 	if AuthEnabled() {
 		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -320,6 +318,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithCAPIClustersNamespace(ns),
 		WithHelmRepositoryCacheDirectory(tempDir),
 		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL),
+		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
 		WithOIDCConfig(p.OIDC),
 	)
@@ -393,14 +392,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
-	commonMiddleware := func(mux http.Handler) http.Handler {
-		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
-		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
-	}
+	// UI
+	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
+	staticAssets := http.StripPrefix("/", http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)}))
 
 	mux := http.NewServeMux()
 
-	var authServer *auth.AuthServer
 	if AuthEnabled() {
 		_, err := url.Parse(args.OIDC.IssuerURL)
 		if err != nil {
@@ -437,35 +434,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 		args.Log.Info("Registering callback route")
 		auth.RegisterAuthServer(mux, "/oauth2", srv)
-		authServer = srv
 
 		// Secure `/v1` and `/gitops/api` API routes
 		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv)
 		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv)
+		staticAssets = auth.WithAPIAuth(staticAssets, srv)
+	}
+
+	commonMiddleware := func(mux http.Handler) http.Handler {
+		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
+		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
 	mux.Handle("/gitops/api/", commonMiddleware(gitopsBrokerHandler))
 
-	// UI
-	var log = logrus.New()
-	assetFS := getAssets()
-	assetHandler := http.FileServer(http.FS(assetFS))
-	redirector := createRedirector(assetFS, log)
-
-	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		extension := filepath.Ext(req.URL.Path)
-
-		if extension == "" {
-			if AuthEnabled() {
-				auth.WithWebAuth(redirector, authServer).ServeHTTP(w, req)
-			} else {
-				redirector(w, req)
-			}
-			return
-		}
-		assetHandler.ServeHTTP(w, req)
-	}))
+	mux.Handle("/", staticAssets)
 
 	s := &http.Server{
 		Addr:    addr,
@@ -581,57 +565,14 @@ func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL strin
 	return r
 }
 
-//go:embed dist/*
-var static embed.FS
-
-func getAssets() fs.FS {
-	f, err := fs.Sub(static, "dist")
-
-	if err != nil {
-		panic(err)
-	}
-
-	return f
+type spaFileSystem struct {
+	root http.FileSystem
 }
 
-// A redirector ensures that index.html always gets served.
-// The JS router will take care of actual navigation once the index.html page lands.
-func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		indexPage, err := fsys.Open("index.html")
-
-		if err != nil {
-			log.Error(err, "could not open index.html page")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		stat, err := indexPage.Stat()
-		if err != nil {
-			log.Error(err, "could not get index.html stat")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		bt := make([]byte, stat.Size())
-		_, err = indexPage.Read(bt)
-
-		if err != nil {
-			log.Error(err, "could not read index.html")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		_, err = w.Write(bt)
-
-		if err != nil {
-			log.Error(err, "error writing index.html")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
+func (fs *spaFileSystem) Open(name string) (http.File, error) {
+	f, err := fs.root.Open(name)
+	if os.IsNotExist(err) {
+		return fs.root.Open("index.html")
 	}
+	return f, err
 }
