@@ -40,7 +40,7 @@ function setup {
   fi
 
   # Sets enterprise CNAME host entry in the hosts file
-  hostEntry=$(sudo cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
+  hostEntry=$(cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
   if [ -z $hostEntry ]; then
     echo "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
   fi
