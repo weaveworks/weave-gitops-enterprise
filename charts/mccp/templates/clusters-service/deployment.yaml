@@ -73,6 +73,18 @@ spec:
                   name: mccp-db-credentials
                   key: password
             {{- end }}
+            {{- if .Values.config.oidc.enabled }}
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.oidc.clientCredentialsSecret }}
+                  key: clientId
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.oidc.clientCredentialsSecret }}
+                  key: clientSecret
+            {{- end }}
           volumeMounts:
             - name: flux-cli-volume
               mountPath: /flux-cli

@@ -23,6 +23,18 @@ import (
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
+	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -42,18 +54,6 @@ import (
 	"k8s.io/klog/v2/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
-	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
 const (
@@ -104,6 +104,9 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return initializeConfig(cmd)
 		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return checkParams(p)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return StartServer(context.Background(), log, tempDir, p)
 		},
@@ -136,6 +139,28 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	}
 
 	return cmd
+}
+
+func checkParams(params Params) error {
+	if AuthEnabled() {
+		if params.OIDC.IssuerURL == "" {
+			return cmderrors.ErrNoIssuerURL
+		}
+
+		if params.OIDC.ClientID == "" {
+			return cmderrors.ErrNoClientID
+		}
+
+		if params.OIDC.ClientSecret == "" {
+			return cmderrors.ErrNoClientSecret
+		}
+
+		if params.OIDC.RedirectURL == "" {
+			return cmderrors.ErrNoRedirectURL
+		}
+	}
+
+	return nil
 }
 
 func initializeConfig(cmd *cobra.Command) error {

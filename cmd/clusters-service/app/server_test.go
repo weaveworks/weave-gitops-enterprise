@@ -3,16 +3,20 @@ package app_test
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
@@ -142,4 +146,71 @@ func createSecret(s string) *corev1.Secret {
 		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{"entitlement": []byte(s)},
 	}
+}
+
+func TestNoIssuerURL(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+
+	tempDir, err := os.MkdirTemp("", "*")
+	require.NoError(t, err)
+	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd.SetArgs([]string{
+		"ui", "run",
+	})
+
+	err = cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoIssuerURL)
+}
+
+func TestNoClientID(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+
+	tempDir, err := os.MkdirTemp("", "*")
+	require.NoError(t, err)
+	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd.SetArgs([]string{
+		"ui", "run",
+		"--oidc-issuer-url=http://weave.works",
+	})
+
+	err = cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoClientID)
+}
+
+func TestNoClientSecret(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+
+	tempDir, err := os.MkdirTemp("", "*")
+	require.NoError(t, err)
+	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd.SetArgs([]string{
+		"ui", "run",
+		"--oidc-issuer-url=http://weave.works",
+		"--oidc-client-id=client-id",
+	})
+
+	err = cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoClientSecret)
+}
+
+func TestNoRedirectURL(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+
+	tempDir, err := os.MkdirTemp("", "*")
+	require.NoError(t, err)
+	defer os.Remove(tempDir)
+	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd.SetArgs([]string{
+		"ui", "run",
+		"--oidc-issuer-url=http://weave.works",
+		"--oidc-client-id=client-id",
+		"--oidc-client-secret=client-secret",
+	})
+
+	err = cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoRedirectURL)
 }
