@@ -31,6 +31,7 @@ type Options struct {
 	EntitlementSecretKey         client.ObjectKey
 	AgentTemplateNatsURL         string
 	AgentTemplateAlertmanagerURL string
+	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
 	OIDC                         OIDCAuthenticationOptions
 }
@@ -154,6 +155,14 @@ func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL string
 	return func(o *Options) {
 		o.AgentTemplateNatsURL = agentTemplateNatsURL
 		o.AgentTemplateAlertmanagerURL = agentTemplateAlertmanagerURL
+	}
+}
+
+// WithHtmlRootPath sets the directory on the filesystem to
+// serve static assets like the frontend from.
+func WithHtmlRootPath(path string) Option {
+	return func(o *Options) {
+		o.HtmlRootPath = path
 	}
 }
 

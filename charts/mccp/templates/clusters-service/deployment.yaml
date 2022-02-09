@@ -28,6 +28,11 @@ spec:
         volumeMounts:
         - mountPath: /flux-cli
           name: flux-cli-volume
+      - name: mount-ui-server
+        image: {{ .Values.images.uiServer }}
+        volumeMounts:
+        - mountPath: /target
+          name: ui-server-volume
       containers:
         - name: clusters-service
           image: {{ .Values.images.clustersService }}
@@ -71,6 +76,8 @@ spec:
           volumeMounts:
             - name: flux-cli-volume
               mountPath: /flux-cli
+            - name: ui-server-volume
+              mountPath: /html
             {{- if eq .Values.dbConfig.databaseType "sqlite" }}
             - name: database-volume
               mountPath: /var/database
@@ -80,6 +87,8 @@ spec:
             {{- end }}
       volumes:
       - name: flux-cli-volume
+        emptyDir: {}
+      - name: ui-server-volume
         emptyDir: {}
       {{- if eq .Values.dbConfig.databaseType "sqlite" }}
       - name: database-volume
