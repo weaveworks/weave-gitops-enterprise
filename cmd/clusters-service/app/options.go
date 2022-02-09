@@ -158,8 +158,8 @@ func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL string
 	}
 }
 
-// WithAgentTemplate is used to set the url
-// for template nats and template alert manager
+// WithHtmlRootPath sets the directory on the filesystem to
+// serve static assets like the frontend from.
 func WithHtmlRootPath(path string) Option {
 	return func(o *Options) {
 		o.HtmlRootPath = path
