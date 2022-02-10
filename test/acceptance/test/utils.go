@@ -29,12 +29,12 @@ var (
 	logger               *logrus.Logger
 	logFile              *os.File
 	gitProviderEnv       GitProviderEnv
-	GIT_REPOSITORY_URL   string
-	SELENIUM_SERVICE_URL string
-	GITOPS_BIN_PATH      string
-	CAPI_ENDPOINT_URL    string
-	DEFAULT_UI_URL       string
-	ARTIFACTS_BASE_DIR   string
+	git_repository_url   string
+	selenium_service_url string
+	gitops_bin_path      string
+	capi_endpoint_url    string
+	test_ui_url          string
+	artifacts_base_dir   string
 
 	webDriver *agouti.Page
 )
@@ -42,7 +42,7 @@ var (
 const (
 	WGE_WINDOW_NAME                string = "weave-gitops-enterprise"
 	GITOPS_DEFAULT_NAMESPACE       string = "wego-system"
-	CLUSTER_SERVICE_DEPLOYMENT_APP        = "my-mccp-cluster-service"
+	CLUSTER_SERVICE_DEPLOYMENT_APP string = "my-mccp-cluster-service"
 	SCREENSHOTS_DIR_NAME           string = "screenshots"
 	WINDOW_SIZE_X                  int    = 1800
 	WINDOW_SIZE_Y                  int    = 2500
@@ -56,6 +56,7 @@ const (
 	ASSERTION_3MINUTE_TIME_OUT   time.Duration = 3 * time.Minute
 	ASSERTION_5MINUTE_TIME_OUT   time.Duration = 5 * time.Minute
 	ASSERTION_6MINUTE_TIME_OUT   time.Duration = 6 * time.Minute
+	ASSERTION_15MINUTE_TIME_OUT  time.Duration = 15 * time.Minute
 
 	POLL_INTERVAL_1SECONDS        time.Duration = 1 * time.Second
 	POLL_INTERVAL_5SECONDS        time.Duration = 5 * time.Second
@@ -89,16 +90,16 @@ func GetWebDriver() *agouti.Page {
 }
 
 func SetDefaultUIURL(url string) {
-	DEFAULT_UI_URL = url
+	test_ui_url = url
 }
 
 func SetSeleniumServiceUrl(url string) {
-	SELENIUM_SERVICE_URL = url
+	selenium_service_url = url
 }
 
 func TakeScreenShot(name string) string {
 	if webDriver != nil {
-		filepath := path.Join(ARTIFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME, name+".png")
+		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".png")
 		_ = webDriver.Screenshot(filepath)
 		return filepath
 	}
@@ -121,19 +122,19 @@ func getCheckoutRepoPath() string {
 }
 
 func SetupTestEnvironment() {
-	SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
-	DEFAULT_UI_URL = GetEnv("TEST_UI_URL", "http://localhost:8000")
-	CAPI_ENDPOINT_URL = GetEnv("TEST_CAPI_ENDPOINT_URL", "http://localhost:8000")
-	GITOPS_BIN_PATH = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
-	ARTIFACTS_BASE_DIR = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
+	selenium_service_url = "http://localhost:4444/wd/hub"
+	test_ui_url = fmt.Sprintf(`http://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
+	capi_endpoint_url = fmt.Sprintf(`http://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
+	gitops_bin_path = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
+	artifacts_base_dir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
 
 	gitProviderEnv = initGitProviderData()
-	GIT_REPOSITORY_URL = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
+	git_repository_url = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 
 	//Cleanup the workspace dir, it helps when running locally
-	err := os.RemoveAll(ARTIFACTS_BASE_DIR)
+	err := os.RemoveAll(artifacts_base_dir)
 	Expect(err).ShouldNot(HaveOccurred())
-	err = os.MkdirAll(path.Join(ARTIFACTS_BASE_DIR, SCREENSHOTS_DIR_NAME), 0700)
+	err = os.MkdirAll(path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME), 0700)
 	Expect(err).ShouldNot(HaveOccurred())
 }
 
@@ -151,7 +152,7 @@ func InstallWeaveGitopsControllers() {
 		//wego-enterprise.sh script install core and enterprise controller and setup the management cluster along with required resources, secrets and entitlements etc.
 		checkoutRepoPath := getCheckoutRepoPath()
 		setupScriptPath := path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh")
-		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`%s setup %s`, setupScriptPath, checkoutRepoPath), ASSERTION_5MINUTE_TIME_OUT)
+		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`%s setup %s`, setupScriptPath, checkoutRepoPath), ASSERTION_15MINUTE_TIME_OUT)
 	}
 }
 
@@ -183,7 +184,7 @@ func initializeWebdriver(wgeURL string) {
 			webDriver, err = chromeDriver.NewPage()
 			Expect(err).NotTo(HaveOccurred())
 		case "linux":
-			webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Debug, agouti.Desired(agouti.Capabilities{
+			webDriver, err = agouti.NewPage(selenium_service_url, agouti.Debug, agouti.Desired(agouti.Capabilities{
 				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"}, "w3c": false, "excludeSwitches": []string{"enable-automation"}}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
@@ -238,7 +239,7 @@ func InitializeLogger(logFileName string) {
 		},
 	}
 
-	file_name := path.Join(ARTIFACTS_BASE_DIR, logFileName)
+	file_name := path.Join(artifacts_base_dir, logFileName)
 	logFile, err := os.OpenFile(file_name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err == nil {
 		GinkgoWriter.TeeTo(logFile)
@@ -302,7 +303,7 @@ func ShowItems(itemType string) error {
 
 func DumpClusterInfo(testName string) error {
 	scriptPath := path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "dump-cluster-info.sh")
-	return runCommandPassThrough(scriptPath, testName, path.Join(ARTIFACTS_BASE_DIR, "cluster-info"))
+	return runCommandPassThrough(scriptPath, testName, path.Join(artifacts_base_dir, "cluster-info"))
 }
 
 func getDownloadedKubeconfigPath(clusterName string) string {

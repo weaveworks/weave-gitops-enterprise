@@ -39,8 +39,8 @@ function setup {
     fi
   fi
 
-  # Sets the UI and CAPI endpoint URL environment variables for acceptance tests
-  hostEntry=$(sudo cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
+  # Sets enterprise CNAME host entry in the hosts file
+  hostEntry=$(cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
   if [ -z $hostEntry ]; then
     echo "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
   fi
@@ -91,7 +91,13 @@ function setup {
  
   kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
   kubectl apply -f ${args[1]}/test/utils/data/gitlab-on-prem-ssh-config.yaml
-  CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
+
+  # Choosing weave-gitops-enterprise chart version to install
+  if [ -z ${ENTERPRISE_CHART_VERSION} ]; then
+    CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')
+  else
+    CHART_VERSION=${ENTERPRISE_CHART_VERSION}
+  fi
 
   # Install weave gitops enterprise controllers
   helmArgs=()

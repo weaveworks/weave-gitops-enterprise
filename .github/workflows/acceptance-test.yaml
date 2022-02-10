@@ -348,9 +348,6 @@ jobs:
           export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
         fi
 
-        export TEST_UI_URL=http://${{ env.MANAGEMENT_CLUSTER_CNAME }}:${{ env.UI_NODEPORT }}
-        export TEST_CAPI_ENDPOINT_URL=http://${{ env.MANAGEMENT_CLUSTER_CNAME }}:${{ env.UI_NODEPORT }}
-
         # Set the ACCEPTANCE_TEST_ARTIFACT_NAME as environment variable for subsequent steps
         ACCEPTANCE_TEST_ARTIFACT_NAME=$(basename ${{ env.ARTIFACTS_BASE_DIR }})-artifacts
         echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV
