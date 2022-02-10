@@ -15,7 +15,7 @@ on:
       os-name:
         description: "`linux` or `darwin`"
         required: true
-        type: string  
+        type: string
       timeout-minutes:
         description: "The maximum number of minutes to let a job run before GitHub automatically cancels it"
         required: true
@@ -43,7 +43,7 @@ on:
       management-cluster-kind:
         description: "Type of management cluster e.g. kind, eks or gke"
         required: true
-        type: string  
+        type: string
       gitops-bin-path:
         description: "Path to gitops binary"
         default: "/usr/local/bin/gitops"
@@ -81,7 +81,7 @@ on:
         required: false
       WGE_GITHUB_ORG:
         description: "Github organization"
-        required: false      
+        required: false
       WGE_GITHUB_USER:
         description: "Github account user name"
         required: false
@@ -129,7 +129,7 @@ on:
         required: false
 
 env:
-  GO_CACHE_NAME: cache-go-modules  
+  GO_CACHE_NAME: cache-go-modules
   GIT_PROVIDER: ${{ inputs.git-provider }}
   GIT_PROVIDER_HOSTNAME: ${{ inputs.git-provider_hostname }}
   GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
@@ -322,13 +322,13 @@ jobs:
           fi
           gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
           kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
-          
+
           ls -la $HOME/.kube
           kubectl get nodes -A
           kubectl get all --all-namespaces -o wide
         elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
           kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.21.1 --config test/utils/data/local-kind-config.yaml
-          kubectl get pods -A   
+          kubectl get pods -A
         fi
     - name: Setup connect leaf cluster
       if: ${{ (inputs.management-cluster-kind == 'eks') || (inputs.management-cluster-kind == 'gke') }}
@@ -341,22 +341,19 @@ jobs:
         fi
     - name: Run Acceptance tests
       run: |
-        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)        
+        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
 
         if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER_HOSTNAME }} != "gitlab.com" ]; then
           export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
           export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
         fi
-       
-        export TEST_UI_URL=http://${{ env.MANAGEMENT_CLUSTER_CNAME }}:${{ env.UI_NODEPORT }}
-        export TEST_CAPI_ENDPOINT_URL=http://${{ env.MANAGEMENT_CLUSTER_CNAME }}:${{ env.UI_NODEPORT }}
 
         # Set the ACCEPTANCE_TEST_ARTIFACT_NAME as environment variable for subsequent steps
         ACCEPTANCE_TEST_ARTIFACT_NAME=$(basename ${{ env.ARTIFACTS_BASE_DIR }})-artifacts
-        echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV     
+        echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV
 
         cd test/acceptance/test/
-        go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s        
+        go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
     - name: Store test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2

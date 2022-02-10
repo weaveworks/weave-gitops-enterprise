@@ -80,7 +80,7 @@ func controllerStatus(controllerName, namespace string) error {
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {
 	logger.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, namespace, repoAbsolutePath)
-	_, errOutput := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
+	_, errOutput := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, gitops_bin_path, addCommand))
 	Expect(errOutput).Should(BeEmpty())
 }
 
@@ -95,7 +95,7 @@ func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 	// Deploy key secret should not exist already
 	deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
 
-	cmd := fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", GITOPS_BIN_PATH, manifestRepoURL, gitopsNamespace)
+	cmd := fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", gitops_bin_path, manifestRepoURL, gitopsNamespace)
 	By(fmt.Sprintf("And I run '%s'", cmd), func() {
 		_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_5MINUTE_TIME_OUT)
 		Expect(stdErr).Should(BeEmpty())
@@ -113,7 +113,7 @@ func removeGitopsCapiClusters(appName string, clusternames []string, nameSpace s
 }
 
 func susspendGitopsApplication(appName string, nameSpace string) {
-	cmd := fmt.Sprintf("%s suspend app %s", GITOPS_BIN_PATH, appName)
+	cmd := fmt.Sprintf("%s suspend app %s", gitops_bin_path, appName)
 	By(fmt.Sprintf("And I run '%s'", cmd), func() {
 		_, _ = runCommandAndReturnStringOutput(cmd)
 	})
@@ -121,7 +121,7 @@ func susspendGitopsApplication(appName string, nameSpace string) {
 
 func listGitopsApplication(appName string, nameSpace string) string {
 	var stdOut string
-	cmd := fmt.Sprintf("%s get app %s", GITOPS_BIN_PATH, appName)
+	cmd := fmt.Sprintf("%s get app %s", gitops_bin_path, appName)
 	By(fmt.Sprintf("And I run '%s'", cmd), func() {
 		stdOut, _ = runCommandAndReturnStringOutput(cmd)
 	})
@@ -129,7 +129,7 @@ func listGitopsApplication(appName string, nameSpace string) string {
 }
 
 func deleteGitopsApplication(appName string, nameSpace string) {
-	cmd := fmt.Sprintf("%s delete app %s --auto-merge=true", GITOPS_BIN_PATH, appName)
+	cmd := fmt.Sprintf("%s delete app %s --auto-merge=true", gitops_bin_path, appName)
 	By(fmt.Sprintf("And I run '%s'", cmd), func() {
 		_, _ = runCommandAndReturnStringOutput(cmd)
 

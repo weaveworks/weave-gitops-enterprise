@@ -269,7 +269,7 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 	}
 
 	fmt.Print(populated.String())
-	req, err := http.NewRequest("POST", DEFAULT_UI_URL+"/alertmanager/api/v2/alerts", &populated)
+	req, err := http.NewRequest("POST", test_ui_url+"/alertmanager/api/v2/alerts", &populated)
 	if err != nil {
 		return err
 	}

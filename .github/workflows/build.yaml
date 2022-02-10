@@ -1,9 +1,3 @@
-#
-# WARNING: only changing this file will not work!
-#
-# You must update the calling site (uses:) with the reference to the branch you are working on
-#
-
 name: "Build and push docker images and charts"
 
 on:
@@ -25,13 +19,53 @@ env:
   GITHUB_BUILD_USERNAME: wge-build-bot
   GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
   GO_CACHE_NAME: cache-go-modules
-  YARN_CACHE_NAME: cache-yarn
+  NODE_MODULES_CACHE_NAME: cache-node-modules
+  NODE_VERSION: '14'
   HELM_REPO: ${{ inputs.helmrepo }}
 
 jobs:
+  helm-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Grab all tags from git
+        run: |
+          git fetch --tags -f
+      - name: Install Helm v3
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.5.4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: Publish helm chart to s3
+        run: |
+          TAG=$(git describe --always --match "v*")
+
+          CHART_VALUES_PATH=./charts/mccp/values.yaml
+          # Update the MCCP chart values.yaml file with the current image tag
+          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+          # Publish the MCCP Helm v3 chart
+          ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
+
   cluster-service:
     runs-on: ubuntu-latest
     steps:
+      - id: cache-paths
+        run: |
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
       - name: Configure git for private modules
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
@@ -41,39 +75,26 @@ jobs:
       - name: Grab all tags from git
         run: |
           git fetch --tags -f
-      - name: set those vars
-        id: lookup-vars
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.cache-paths.outputs.go-build }}
+            ${{ steps.cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+      - name: build
         run: |
-          echo "::set-output name=version::$(git describe --always --match "v*" | sed 's/^[^0-9]*//')"
-          echo "::set-output name=revision::$(git rev-parse HEAD)"
-          echo "::set-output name=NPM_GITHUB_TOKEN::${{ secrets.WGE_NPM_GITHUB_TOKEN }}"
-          echo "::set-output name=GITHUB_BUILD_TOKEN::${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}"
-          echo "::set-output name=now::$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          echo "::set-output name=image_tag::$(./tools/image-tag)"
+          make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/clusters-service/.uptodate
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           registry: docker.io
           username: ${{ secrets.WGE_DOCKER_IO_USER }}
           password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./cmd/clusters-service/Dockerfile
-          push: true
-          build-args: |
-            "version=${{ steps.lookup-vars.outputs.version }}"
-            "image_tag=${{ steps.lookup-vars.outputs.image_tag }}"
-            "revision=${{ steps.lookup-vars.outputs.revision }}"
-            "GITHUB_BUILD_TOKEN=${{ steps.lookup-vars.outputs.GITHUB_BUILD_TOKEN }}"
-            "NPM_GITHUB_TOKEN=${{ steps.lookup-vars.outputs.NPM_GITHUB_TOKEN }}"
-            "now=${{ steps.lookup-vars.outputs.now }}"
-          tags: weaveworks/weave-gitops-enterprise-clusters-service:${{ steps.lookup-vars.outputs.image_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Push image
+        run: docker push docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(./tools/image-tag)
 
   event-writer:
     runs-on: ubuntu-latest
@@ -100,14 +121,46 @@ jobs:
         run: |
           docker push docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(./tools/image-tag)
 
-  gitops-broker-and-agent:
+  ui-server:
     runs-on: ubuntu-latest
     steps:
-      - name: Stub
-        run: |
-          echo "Stub until we update corp to not require this task"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Grab all tags from git
+      run: |
+        git fetch --tags -f
+    - uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+        cache-dependency-path: |
+          ui-cra/yarn.lock
+    - name: Yarn Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ github.workspace }}/ui-cra/node_modules
+        # node_modules is not compat w/ multiple versions of node, invalidate if it changes
+        key: ${{ runner.os }}-${{ env.NODE_VERSION }}-${{ env.NODE_MODULES_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.NODE_VERSION }}-${{ env.NODE_MODULES_CACHE_NAME }}-
+    - name: build
+      env:
+        GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+      run: |
+        make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} ui-cra/.uptodate
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        registry: docker.io
+        username: ${{ secrets.WGE_DOCKER_IO_USER }}
+        password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+    - name: Push images to docker registry
+      run: |
+        docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
 
-  ui-server:
+  gitops-broker-and-agent:
     runs-on: ubuntu-latest
     steps:
       - name: Stub
@@ -147,27 +200,6 @@ jobs:
       - name: Build the agent
         run: |
           make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/wkp-agent/.uptodate
-      - name: Install Helm v3
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.5.4
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-      - name: Publish helm chart to s3
-        run: |
-          git fetch --tags --force
-          TAG=$(git describe --always --match "v*")
-
-          CHART_VALUES_PATH=./charts/mccp/values.yaml
-          # Update the MCCP chart values.yaml file with the current image tag
-          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
-
-          # Publish the MCCP Helm v3 chart
-          ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -175,4 +207,5 @@ jobs:
           username: ${{ secrets.WGE_DOCKER_IO_USER }}
           password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       - name: Push images to docker registry
-        run: make push
+        run: docker push docker.io/weaveworks/wkp-agent:$(./tools/image-tag)
+

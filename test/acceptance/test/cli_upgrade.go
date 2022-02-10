@@ -24,7 +24,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
 			})
 		})
 
@@ -84,7 +84,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				version := "0.0.19"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := public_ip + ":" + NATS_NODEPORT
-					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s'", GITOPS_BIN_PATH, version, prBranch, natsURL, NATS_NODEPORT)
+					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s'", gitops_bin_path, version, prBranch, natsURL, NATS_NODEPORT)
 					logger.Infof("Upgrade command: '%s'", upgradeCommand)
 					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s", repoAbsolutePath, upgradeCommand))
 					Expect(stdErr).Should(BeEmpty())
@@ -134,10 +134,10 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					testGetCommand := func(subCommand string) {
 						logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, capi_endpoint_url)
 
-						cmd := fmt.Sprintf(`%s get %s --endpoint %s`, GITOPS_BIN_PATH, subCommand, capi_endpoint_url)
+						cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, subCommand, capi_endpoint_url)
 						stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-						Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("'%s get %s' command failed", GITOPS_BIN_PATH, subCommand))
-						Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", GITOPS_BIN_PATH, subCommand))
+						Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
+						Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
 					}
 
 					testGetCommand("templates")

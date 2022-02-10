@@ -35,7 +35,7 @@ func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 		client := http.Client{
 			Timeout: 5 * time.Second,
 		}
-		resp, err := client.Get(DEFAULT_UI_URL + "/v1/profiles")
+		resp, err := client.Get(test_ui_url + "/v1/profiles")
 		if err != nil {
 			return false, nil
 		}
@@ -95,9 +95,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
+				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
 			})
-			initializeWebdriver(DEFAULT_UI_URL)
+			initializeWebdriver(test_ui_url)
 		})
 
 		AfterEach(func() {
@@ -501,11 +501,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
-					if gitProviderEnv.Type == GitProviderGitHub {
-						Eventually(gitops.SuccessBar).Should(MatchText(`Authentication completed successfully. Please proceed with creating the PR.`))
-						Expect(gitops.SuccessBar.Click()).To(Succeed())
-					}
-
 					if pages.ElementExist(gitops.ErrorBar) {
 						Expect(gitops.ErrorBar.Click()).To(Succeed())
 					}
@@ -939,7 +934,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I install gitops to my active cluster", func() {
-					Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+					Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
 					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 				})
 
@@ -1062,11 +1057,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
-					if gitProviderEnv.Type == GitProviderGitHub {
-						Eventually(gitops.SuccessBar).Should(MatchText(`Authentication completed successfully. Please proceed with creating the PR.`))
-						Expect(gitops.SuccessBar.Click()).To(Succeed())
-					}
-
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
 

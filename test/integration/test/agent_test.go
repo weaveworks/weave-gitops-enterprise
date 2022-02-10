@@ -193,8 +193,8 @@ func TestAgent(t *testing.T) {
 
 		go poller.Run(ctx.Done())
 
-		// Stop poller after 50 sec
-		time.Sleep(50 * time.Millisecond)
+		// Stop poller after 1s
+		time.Sleep(1 * time.Second)
 		cancel()
 
 		var actual payload.ClusterInfo
@@ -202,7 +202,7 @@ func TestAgent(t *testing.T) {
 		case e := <-events:
 			err := e.DataAs(&actual)
 			require.NoError(t, err)
-		case <-time.After(2 * time.Second):
+		case <-time.After(10 * time.Second):
 			t.Logf("Time out waiting for event to arrive")
 		}
 

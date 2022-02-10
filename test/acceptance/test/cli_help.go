@@ -46,7 +46,7 @@ func DescribeCliHelp() {
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
 			})
 		})
 
@@ -54,7 +54,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops displays help text when provided with the wrong flag", func() {
 
 				By("When I run 'gitops foo'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s foo", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s foo", gitops_bin_path))
 				})
 
 				By("Then I should see gitops error message", func() {
@@ -66,7 +66,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops help flag prints the help text", func() {
 
 				By("When I run the command 'gitops --help' ", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s --help", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s --help", gitops_bin_path))
 				})
 
 				verifyUsageText(stdOut)
@@ -75,7 +75,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the help text", func() {
 
 				By("When I run the command 'gitops'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(GITOPS_BIN_PATH)
+					stdOut, stdErr = runCommandAndReturnStringOutput(gitops_bin_path)
 				})
 
 				verifyUsageText(stdOut)
@@ -85,7 +85,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the help text for get command", func() {
 
 				By("When I run the command 'gitops get --help' ", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get --help", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get --help", gitops_bin_path))
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -123,7 +123,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the sub help text for the get templates command", func() {
 
 				By("When I run the command 'gitops get templates --help'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --help", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --help", gitops_bin_path))
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -155,7 +155,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the sub help text for the get credentials command", func() {
 
 				By("When I run the command 'gitops get credentials --help'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get credentials --help", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get credentials --help", gitops_bin_path))
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -187,7 +187,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the sub help text for the get clusters command", func() {
 
 				By("When I run the command 'gitops get clusters --help'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get clusters --help", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get clusters --help", gitops_bin_path))
 
 				})
 
@@ -219,7 +219,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the help text for add command", func() {
 
 				By("When I run the command 'gitops add --help' ", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add --help", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add --help", gitops_bin_path))
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -255,7 +255,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the sub help text for the add cluster command", func() {
 
 				By("When I run the command 'gitops add cluster --help'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add cluster --help", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add cluster --help", gitops_bin_path))
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -299,7 +299,7 @@ func DescribeCliHelp() {
 
 		Context("[CLI] When gitops command required parameters are missing", func() {
 			It("Verify that gitops displays error text when listing parameters without specifying a template", func() {
-				stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --list-parameters  --endpoint %s", GITOPS_BIN_PATH, CAPI_ENDPOINT_URL))
+				stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --list-parameters  --endpoint %s", gitops_bin_path, capi_endpoint_url))
 
 				By("Then I should see gitops error message", func() {
 					Eventually(stdErr).Should(MatchRegexp("Error: template name is required"))
@@ -308,8 +308,8 @@ func DescribeCliHelp() {
 
 			It("Verify that gitops displays error text when listing templates without specifying a provider name", func() {
 
-				By(fmt.Sprintf("When I run 'gitops get templates --provider --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --provider  --endpoint %s", GITOPS_BIN_PATH, CAPI_ENDPOINT_URL))
+				By(fmt.Sprintf("When I run 'gitops get templates --provider --endpoint %s'", capi_endpoint_url), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --provider  --endpoint %s", gitops_bin_path, capi_endpoint_url))
 				})
 
 				By("Then I should see gitops error message", func() {
@@ -320,7 +320,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops displays error text when performing actions on resources without specifying api endpoint", func() {
 
 				By("When I run 'gitops get templates'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --provider", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --provider", gitops_bin_path))
 				})
 
 				By("Then I should see gitops error message", func() {
@@ -328,7 +328,7 @@ func DescribeCliHelp() {
 				})
 
 				By("When I run 'gitops add cluster'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add cluster", GITOPS_BIN_PATH))
+					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add cluster", gitops_bin_path))
 				})
 
 				By("Then I should see gitops error message", func() {
