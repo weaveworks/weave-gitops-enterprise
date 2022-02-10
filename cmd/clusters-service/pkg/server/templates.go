@@ -2,9 +2,10 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"os"
 	"sort"
+	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
@@ -109,9 +110,40 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr}, err
 }
 
-func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigRequest) (*capiv1_proto.GetConfigResponse, error) {
+func isProviderRecognised(provider string) bool {
+	for _, p := range providers {
+		if strings.EqualFold(provider, p) {
+			return true
+		}
+	}
+	return false
+}
 
-	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
+func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*capiv1_proto.Template {
+	templates := []*capiv1_proto.Template{}
 
-	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
+	for _, t := range tl {
+		if strings.EqualFold(t.Provider, provider) {
+			templates = append(templates, t)
+		}
+	}
+
+	return templates
+}
+
+func getProfilesFromTemplate(annotations map[string]string) ([]*capiv1_proto.TemplateProfile, error) {
+	profiles := []*capiv1_proto.TemplateProfile{}
+	profile := capiv1_proto.TemplateProfile{}
+
+	for k, v := range annotations {
+		if strings.Contains(k, "capi.weave.works/profile-") {
+			err := json.Unmarshal([]byte(v), &profile)
+			if err != nil {
+				return profiles, fmt.Errorf("failed to unmarshal profiles: %w", err)
+			}
+			profiles = append(profiles, &profile)
+		}
+	}
+
+	return profiles, nil
 }

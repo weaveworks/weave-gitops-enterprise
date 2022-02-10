@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/testing/protocmp"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -550,37 +551,6 @@ func TestRenderTemplate(t *testing.T) {
 	}
 }
 
-func TestGetConfig(t *testing.T) {
-	testCases := []struct {
-		name  string
-		value string
-	}{
-		{
-			name:  "value set",
-			value: "https://github.com/user/blog",
-		},
-		{
-			name:  "value not set",
-			value: "",
-		},
-	}
-
-	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("CAPI_TEMPLATES_REPOSITORY_URL", tt.value)
-			defer os.Unsetenv("CAPI_TEMPLATES_REPOSITORY_URL")
-
-			s := createServer(t, nil, "", "", nil, nil, "", nil)
-
-			res, _ := s.GetConfig(context.Background(), &capiv1_protos.GetConfigRequest{})
-
-			if diff := cmp.Diff(tt.value, res.RepositoryURL, protocmp.Transform()); diff != "" {
-				t.Fatalf("repository URL didn't match expected:\n%s", diff)
-			}
-		})
-	}
-}
-
 func TestRenderTemplate_MissingVariables(t *testing.T) {
 	clusterState := []runtime.Object{
 		makeTemplateConfigMap("template1", makeTemplate(t)),
@@ -672,6 +642,24 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetProfilesFromTemplate(t *testing.T) {
+	annotations := map[string]string{
+		"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
+	}
+
+	expected := []*capiv1_protos.TemplateProfile{
+		{
+			Name:    "profile-a",
+			Version: "v0.0.1",
+		},
+	}
+
+	result, err := getProfilesFromTemplate(annotations)
+	assert.NoError(t, err)
+
+	assert.Equal(t, result, expected)
 }
 
 func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*capiv1.CAPITemplate)) string {
