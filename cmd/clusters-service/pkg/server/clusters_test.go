@@ -302,8 +302,7 @@ func TestGetKubeconfig(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("CAPI_CLUSTERS_NAMESPACE", tt.clusterObjectsNamespace)
-			defer os.Unsetenv("CAPI_CLUSTERS_NAMESPACE")
+			viper.SetDefault("capi-clusters-namespace", tt.clusterObjectsNamespace)
 
 			db := createDatabase(t)
 			gp := NewFakeGitProvider("", nil, nil)

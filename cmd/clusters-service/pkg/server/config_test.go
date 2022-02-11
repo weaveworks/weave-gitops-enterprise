@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/spf13/viper"
 	"google.golang.org/protobuf/testing/protocmp"
 
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -28,8 +28,7 @@ func TestGetConfig(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("CAPI_TEMPLATES_REPOSITORY_URL", tt.value)
-			defer os.Unsetenv("CAPI_TEMPLATES_REPOSITORY_URL")
+			viper.SetDefault("capi-templates-repository-url", tt.value)
 
 			s := createServer(t, nil, "", "", nil, nil, "", nil)
 
