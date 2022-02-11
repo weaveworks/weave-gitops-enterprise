@@ -242,7 +242,7 @@ func TestGetGitProviderUrl(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expected, repoURL)
 
-	os.Unsetenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+	viper.Reset()
 
 	gitUrl := "git@github.com:user/repo.git"
 	repoURL, err = git.GetGitProviderUrl(gitUrl)
