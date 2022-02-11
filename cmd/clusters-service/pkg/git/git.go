@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
+	"github.com/spf13/viper"
 	go_git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
@@ -305,7 +305,7 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 }
 
 func GetGitProviderUrl(giturl string) (string, error) {
-	repositoryAPIURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+	repositoryAPIURL := viper.GetString("capi-templates-repository-api-url")
 	if repositoryAPIURL != "" {
 		return repositoryAPIURL, nil
 	}

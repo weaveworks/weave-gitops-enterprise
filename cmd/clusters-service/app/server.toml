@@ -1,3 +1,5 @@
+runtime-namespace = "default"
+helm-repo-namespace = "default"
 cluster-name = "default"
 git-provider-type = "github"
 git-provider-hostname = "github.com"

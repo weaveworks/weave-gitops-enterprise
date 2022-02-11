@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -15,6 +14,7 @@ import (
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/mkmik/multierror"
+	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
@@ -93,11 +93,11 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		},
 	}
 
-	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
+	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
 		repositoryURL = msg.RepositoryUrl
 	}
-	baseBranch := os.Getenv("CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH")
+	baseBranch := viper.GetString("capi-templates-repository-base-branch")
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
 	}
@@ -122,7 +122,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		profilesFile, err := generateProfileFiles(
 			ctx,
 			s.profileHelmRepositoryName,
-			os.Getenv("RUNTIME_NAMESPACE"),
+			viper.GetString("runtime-namespace"),
 			s.helmRepositoryCacheDir,
 			clusterName,
 			client,
@@ -206,11 +206,11 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, err
 	}
 
-	repositoryURL := os.Getenv("CAPI_TEMPLATES_REPOSITORY_URL")
+	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
 		repositoryURL = msg.RepositoryUrl
 	}
-	baseBranch := os.Getenv("CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH")
+	baseBranch := viper.GetString("capi-templates-repository-base-branch")
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
 	}
@@ -299,7 +299,7 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	var sec corev1.Secret
 	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
 
-	ns := os.Getenv("CAPI_CLUSTERS_NAMESPACE")
+	ns := viper.GetString("capi-clusters-namespace")
 	if ns == "" {
 		return nil, fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
@@ -356,7 +356,7 @@ func getHash(inputs ...string) string {
 }
 
 func getToken(ctx context.Context) (string, string, error) {
-	token := os.Getenv("GIT_PROVIDER_TOKEN")
+	token := viper.GetString("git-provider-token")
 
 	providerToken, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
@@ -374,10 +374,10 @@ func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
 	}
 
 	return &git.GitProvider{
-		Type:      os.Getenv("GIT_PROVIDER_TYPE"),
+		Type:      viper.GetString("git-provider-type"),
 		TokenType: tokenType,
 		Token:     token,
-		Hostname:  os.Getenv("GIT_PROVIDER_HOSTNAME"),
+		Hostname:  viper.GetString("git-provider-hostname"),
 	}, nil
 }
 
@@ -515,7 +515,7 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 }
 
 func getClusterPathInRepo(clusterName string) string {
-	repositoryPath := os.Getenv("CAPI_REPOSITORY_PATH")
+	repositoryPath := viper.GetString("capi-repository-path")
 	if repositoryPath == "" {
 		repositoryPath = DefaultRepositoryPath
 	}
@@ -525,7 +525,7 @@ func getClusterPathInRepo(clusterName string) string {
 // getProfileLatestVersion returns the default profile values if not given
 func getDefaultValues(ctx context.Context, kubeClient client.Client, name, version, helmRepositoryCacheDir string, sourceRef helmv2beta1.CrossNamespaceObjectReference, helmRepo *sourcev1beta1.HelmRepository) (string, error) {
 	ref := &charts.ChartReference{Chart: name, Version: version, SourceRef: sourceRef}
-	cc := charts.NewHelmChartClient(kubeClient, os.Getenv("RUNTIME_NAMESPACE"), helmRepo, charts.WithCacheDir(helmRepositoryCacheDir))
+	cc := charts.NewHelmChartClient(kubeClient, viper.GetString("runtime-namespace"), helmRepo, charts.WithCacheDir(helmRepositoryCacheDir))
 	if err := cc.UpdateCache(ctx); err != nil {
 		return "", fmt.Errorf("failed to update Helm cache: %w", err)
 	}

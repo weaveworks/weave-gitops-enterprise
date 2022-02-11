@@ -97,6 +97,8 @@ type Params struct {
 	capiTemplatesRepositoryApiUrl     string
 	capiTemplatesRepositoryBaseBranch string
 	checkpointDisable                 int
+	runtimeNamespace                  string
+	gitProviderToken                  string
 }
 
 type OIDCAuthenticationOptions struct {
@@ -153,6 +155,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryApiUrl, "capi-templates-repository-api-url", "", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "main", "")
 	cmd.Flags().IntVar(&p.checkpointDisable, "checkpoint-disable", 1, "")
+	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "default", "")
+	cmd.Flags().StringVar(&p.gitProviderToken, "git-provider-token", "", "")
 
 	if AuthEnabled() {
 		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -267,7 +271,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return err
 	}
-	ns := os.Getenv("CAPI_CLUSTERS_NAMESPACE")
+	ns := p.capiClustersNamespace
 	if ns == "" {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
@@ -338,7 +342,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithTemplateLibrary(&templates.CRDLibrary{
 			Log:          log,
 			ClientGetter: clientGetter,
-			Namespace:    os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
+			Namespace:    p.capiTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
