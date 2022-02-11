@@ -235,7 +235,7 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 func TestGetGitProviderUrl(t *testing.T) {
 	expected := "https://github.com/user/repo.git"
 
-	os.Setenv("CAPI_TEMPLATES_REPOSITORY_API_URL", "https://github.com/user/repo.git")
+	viper.SetDefault("capi-templates-repository-api-url", "https://github.com/user/repo.git")
 	dummyUrl := "example.com"
 	repoURL, err := git.GetGitProviderUrl(dummyUrl)
 	require.NoError(t, err)
