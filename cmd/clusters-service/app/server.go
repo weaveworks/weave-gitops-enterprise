@@ -192,14 +192,12 @@ func checkParams(params Params) error {
 }
 
 func initializeConfig(cmd *cobra.Command) error {
-	v := viper.New()
-
 	// Set the base name of the config file, without the file extension.
-	v.SetConfigName(defaultConfigFilename)
+	viper.SetConfigName(defaultConfigFilename)
 
-	v.AddConfigPath(".")
+	viper.AddConfigPath(".")
 
-	if err := v.ReadInConfig(); err != nil {
+	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return err
 		}
@@ -207,29 +205,29 @@ func initializeConfig(cmd *cobra.Command) error {
 
 	// Align flag and env var names
 	replacer := strings.NewReplacer("-", "_")
-	v.SetEnvKeyReplacer(replacer)
+	viper.SetEnvKeyReplacer(replacer)
 
 	// Read all env var values into viper
-	v.AutomaticEnv()
+	viper.AutomaticEnv()
 
 	// Read all flag values into viper
 	// So they can be read from `viper.Get`, (sometimes user by weave-gitops (core))
-	err := v.BindPFlags(cmd.Flags())
+	err := viper.BindPFlags(cmd.Flags())
 	if err != nil {
 		return err
 	}
 
 	// Set all unset flags values to their associated env vars value if env var is present
-	bindFlagValues(cmd, v)
+	bindFlagValues(cmd)
 
 	return nil
 }
 
-func bindFlagValues(cmd *cobra.Command, v *viper.Viper) {
+func bindFlagValues(cmd *cobra.Command) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
-		if !f.Changed && v.IsSet(f.Name) {
-			val := v.Get(f.Name)
+		if !f.Changed && viper.IsSet(f.Name) {
+			val := viper.Get(f.Name)
 			_ = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
 		}
 	})

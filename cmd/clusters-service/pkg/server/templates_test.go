@@ -519,6 +519,7 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			viper.Reset()
 			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
 			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
 
@@ -616,6 +617,8 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
+			viper.Reset()
+
 			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
