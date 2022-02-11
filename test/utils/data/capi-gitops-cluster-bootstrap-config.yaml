@@ -11,8 +11,8 @@ spec:
     generateName: "run-gitops-{{ .ObjectMeta.Name }}"
     spec:
       containers:
-        - image: ghcr.io/weaveworks/wego-app:v0.6.2
-          name: gitops-install
+        - image: ghcr.io/fluxcd/flux-cli:v0.26.3
+          name: flux-bootstrap
           resources: {}
           volumeMounts:
             - name: kubeconfig
@@ -20,21 +20,28 @@ spec:
               readOnly: true
           args:
             [
-              "install",
-              "--override-in-cluster",
-              "--config-repo",
-              "$(GITOPS_REPO)",
+              "bootstrap",
+              "$(GIT_PROVIDER)",
+              "--hostname=$(GIT_PROVIDER_HOSTNAME)",
+              "--owner=$(GITOPS_REPO_OWNER)",
+              "--repository=$(GITOPS_REPO_NAME)",
+              "--path=.weave-gitops/clusters/{{ .ObjectMeta.Name }}/system",
             ]
+          envFrom:
+            - secretRef:
+                name: my-pat
           env:
             - name: KUBECONFIG
               value: "/etc/gitops/value"
-            - name: GITOPS_REPO
-              value: "{{GITOPS_REPO}}"
-            - name: {{GIT_PROVIDER_TOKEN}}
-              valueFrom:
-                secretKeyRef:
-                  name: my-pat
-                  key: {{GIT_PROVIDER_TOKEN}}          
+            # Templated by the test suite depending if its github/gitlab
+            - name: GIT_PROVIDER
+              value: "{{GIT_PROVIDER}}"
+            - name: GIT_PROVIDER_HOSTNAME
+              value: "{{GIT_PROVIDER_HOSTNAME}}"
+            - name: GITOPS_REPO_OWNER
+              value: "{{GITOPS_REPO_OWNER}}"
+            - name: GITOPS_REPO_NAME
+              value: "{{GITOPS_REPO_NAME}}"
       restartPolicy: Never
       volumes:
         - name: kubeconfig
