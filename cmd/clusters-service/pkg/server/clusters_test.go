@@ -1,15 +1,17 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
-	"strings"
 	"testing"
+	"text/template"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -157,7 +159,7 @@ metadata:
 `,
 				},
 				{
-					Path: ".weave-gitops/clusters/dev/system/demo-profile.yaml",
+					Path: ".weave-gitops/clusters/dev/system/profiles.yaml",
 					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
@@ -166,7 +168,7 @@ metadata:
   namespace: default
 spec:
   interval: 10m0s
-  url: http://127.0.0.1:%s/charts
+  url: http://127.0.0.1:{{ .Port }}/charts
 status: {}
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -226,10 +228,8 @@ status: {}
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
-				if diff := cmp.Diff(tt.committedFiles, fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
-					if !strings.Contains(diff, "url") {
-						t.Fatalf("committed files do not match expected committed files:\n%s", diff)
-					}
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
+					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
 			}
 
@@ -244,6 +244,30 @@ status: {}
 			}
 		})
 	}
+}
+
+func prepCommitedFiles(t *testing.T, serverUrl string, files []CommittedFile) []CommittedFile {
+	parsedURL, err := url.Parse(serverUrl)
+	if err != nil {
+		t.Fatalf("failed to parse URL %s", err)
+	}
+	newFiles := []CommittedFile{}
+	for _, f := range files {
+		newFiles = append(newFiles, CommittedFile{
+			Path:    f.Path,
+			Content: simpleTemplate(t, f.Content, struct{ Port string }{Port: parsedURL.Port()}),
+		})
+	}
+	return newFiles
+}
+
+func simpleTemplate(t *testing.T, templateString string, data interface{}) string {
+	tm := template.Must(template.New("its-a-template").Parse(templateString))
+	var tpl bytes.Buffer
+	if err := tm.Execute(&tpl, data); err != nil {
+		t.Fatalf("failed to template %s", err)
+	}
+	return tpl.String()
 }
 
 func TestGetKubeconfig(t *testing.T) {
