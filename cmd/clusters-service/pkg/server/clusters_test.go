@@ -15,6 +15,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/google/go-cmp/cmp"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -198,8 +199,7 @@ status: {}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			_ = os.Setenv("RUNTIME_NAMESPACE", "default") // needs to match the helm repo namespace
-			defer os.Unsetenv("RUNTIME_NAMESPACE")
+			viper.SetDefault("runtime-namespace", "default")
 			// setup
 			ts := httptest.NewServer(makeServeMux(t))
 			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {

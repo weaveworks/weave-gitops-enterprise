@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/testing/protocmp"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -519,10 +519,8 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Setenv("INJECT_PRUNE_ANNOTATION", tt.pruneEnvVar)
-			defer os.Unsetenv("INJECT_PRUNE_ANNOTATION")
-			os.Setenv("CAPI_CLUSTERS_NAMESPACE", tt.clusterNamespace)
-			defer os.Unsetenv("CAPI_CLUSTERS_NAMESPACE")
+			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
+			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
 
 			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
