@@ -160,7 +160,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
 			})
 
-			It("@application Verify application's status and history can be monitored.", func() {
+			It("@application @git Verify application's status and history can be monitored.", func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("When I create a private repository for cluster configs", func() {

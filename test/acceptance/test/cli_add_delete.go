@@ -394,16 +394,15 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					prCommit := "CAPD capi template"
 					prDescription := "This PR creates a new CAPD Kubernetes cluster"
 
-					cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-observability-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s" --endpoint %s`,
-						gitops_bin_path, clusterName, namespace, k8version, prBranch, prTitle, git_repository_url, prCommit, prDescription, capi_endpoint_url)
+					cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-observability-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 `, gitops_bin_path, clusterName, namespace, k8version) +
+						fmt.Sprintf(`--profile 'name=podinfo,version=6.0.1' --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s" --endpoint %s`, prBranch, prTitle, git_repository_url, prCommit, prDescription, capi_endpoint_url)
 					By(fmt.Sprintf("And I run '%s'", cmd), func() {
 						stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 					})
 
 					By("Then I should see pull request created to management cluster", func() {
-						re := regexp.MustCompile(`Created pull request:\s*(?P<url>https:.*\/\d+)`)
-						match := re.FindSubmatch([]byte(stdOut))
-						Eventually(match).ShouldNot(BeNil(), "Failed to Create pull request")
+						Expect(stdOut).Should(MatchRegexp(`name=podinfo[\s\w\d./:-]*version=6.0.1`))
+						Expect(stdOut).Should(MatchRegexp(`Created pull request:\s*(?P<url>https:.*\/\d+)`))
 					})
 
 					By(fmt.Sprintf("Then I run 'gitops get clusters --endpoint %s'", capi_endpoint_url), func() {
@@ -411,10 +410,8 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					})
 
 					By("And I should see cluster status as 'Creation PR'", func() {
-						Eventually(string(stdOut)).Should(MatchRegexp(`NAME\s+STATUS`))
-
-						re := regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, clusterName))
-						Eventually((re.Find([]byte(stdOut)))).ShouldNot(BeNil())
+						Expect(stdOut).Should(MatchRegexp(`NAME\s+STATUS`))
+						Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`%s\s+Creation PR`, clusterName)))
 					})
 
 					By("Then I should merge the pull request to start cluster provisioning", func() {
@@ -469,7 +466,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(kubeconfigPath, clusterName)
+					verifyCapiClusterHealth(kubeconfigPath, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				clusterName2 := capdClusterNames[1]
