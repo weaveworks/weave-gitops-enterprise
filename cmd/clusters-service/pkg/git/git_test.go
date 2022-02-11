@@ -14,6 +14,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
 	"github.com/google/go-github/v32/github"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
