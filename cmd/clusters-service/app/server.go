@@ -58,6 +58,8 @@ import (
 
 const (
 	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
+
+	defaultConfigFilename = "app"
 )
 
 func AuthEnabled() bool {
@@ -66,24 +68,35 @@ func AuthEnabled() bool {
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
-	dbURI                        string
-	dbName                       string
-	dbUser                       string
-	dbPassword                   string
-	dbType                       string
-	dbBusyTimeout                string
-	entitlementSecretName        string
-	entitlementSecretNamespace   string
-	helmRepoNamespace            string
-	helmRepoName                 string
-	profileCacheLocation         string
-	watcherMetricsBindAddress    string
-	watcherHealthzBindAddress    string
-	watcherPort                  int
-	AgentTemplateNatsURL         string
-	AgentTemplateAlertmanagerURL string
-	htmlRootPath                 string
-	OIDC                         OIDCAuthenticationOptions
+	dbURI                             string
+	dbName                            string
+	dbUser                            string
+	dbPassword                        string
+	dbType                            string
+	dbBusyTimeout                     string
+	entitlementSecretName             string
+	entitlementSecretNamespace        string
+	helmRepoNamespace                 string
+	helmRepoName                      string
+	profileCacheLocation              string
+	watcherMetricsBindAddress         string
+	watcherHealthzBindAddress         string
+	watcherPort                       int
+	AgentTemplateNatsURL              string
+	AgentTemplateAlertmanagerURL      string
+	htmlRootPath                      string
+	OIDC                              OIDCAuthenticationOptions
+	clusterName                       string
+	gitProviderType                   string
+	gitProviderHostname               string
+	capiClustersNamespace             string
+	capiTemplatesNamespace            string
+	injectPruneAnnotation             string
+	capiTemplatesRepositoryUrl        string
+	capiRepositoryPath                string
+	capiTemplatesRepositoryApiUrl     string
+	capiTemplatesRepositoryBaseBranch string
+	checkpointDisable                 int
 }
 
 type OIDCAuthenticationOptions struct {
@@ -129,6 +142,17 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wego-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
+	cmd.Flags().StringVar(&p.clusterName, "cluster-name", "default", "")
+	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "github", "")
+	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "github.com", "")
+	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "default", "")
+	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "default", "")
+	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "enabled", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
+	cmd.Flags().StringVar(&p.capiRepositoryPath, "capi-repository-path", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryApiUrl, "capi-templates-repository-api-url", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "main", "")
+	cmd.Flags().IntVar(&p.checkpointDisable, "checkpoint-disable", 1, "")
 
 	if AuthEnabled() {
 		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -164,31 +188,44 @@ func checkParams(params Params) error {
 }
 
 func initializeConfig(cmd *cobra.Command) error {
+	v := viper.New()
+
+	// Set the base name of the config file, without the file extension.
+	v.SetConfigName(defaultConfigFilename)
+
+	v.AddConfigPath(".")
+
+	if err := v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
+		}
+	}
+
 	// Align flag and env var names
 	replacer := strings.NewReplacer("-", "_")
-	viper.SetEnvKeyReplacer(replacer)
+	v.SetEnvKeyReplacer(replacer)
 
 	// Read all env var values into viper
-	viper.AutomaticEnv()
+	v.AutomaticEnv()
 
 	// Read all flag values into viper
 	// So they can be read from `viper.Get`, (sometimes user by weave-gitops (core))
-	err := viper.BindPFlags(cmd.Flags())
+	err := v.BindPFlags(cmd.Flags())
 	if err != nil {
 		return err
 	}
 
 	// Set all unset flags values to their associated env vars value if env var is present
-	bindFlagValues(cmd)
+	bindFlagValues(cmd, v)
 
 	return nil
 }
 
-func bindFlagValues(cmd *cobra.Command) {
+func bindFlagValues(cmd *cobra.Command, v *viper.Viper) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
-		if !f.Changed && viper.IsSet(f.Name) {
-			val := viper.Get(f.Name)
+		if !f.Changed && v.IsSet(f.Name) {
+			val := v.Get(f.Name)
 			_ = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
 		}
 	})

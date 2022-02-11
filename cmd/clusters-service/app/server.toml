@@ -1,0 +1,12 @@
+cluster-name = "default"
+git-provider-type = "github"
+git-provider-hostname = "github.com"
+capi-clusters-namespace = "default"
+capi-templates-namespace = "default"
+inject-prune-annotation = "enabled"
+capi-templates-repository-url = ""
+capi-repository-path = ""
+capi-templates-repository-api-url = ""
+capi-templates-repository-base-branch = "main"
+checkpoint-disable = 1
+weave-gitops-auth-enabled = "false"
