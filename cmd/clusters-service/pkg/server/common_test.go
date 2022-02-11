@@ -44,20 +44,23 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 }
 
 func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1beta1.HelmRepository) capiv1_protos.ClustersServiceServer {
-
 	c := createClient(t, clusterState...)
-
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
-	s := NewClusterServer(logr.Discard(),
+	return NewClusterServer(
+		logr.Discard(),
 		&templates.ConfigMapLibrary{
 			Log:           logr.Discard(),
 			Client:        c,
 			ConfigMapName: configMapName,
 			Namespace:     namespace,
-		}, provider, kubefakes.NewFakeClientGetter(c), dc, db, ns, "weaveworks-charts", "")
-
-	return s
+		},
+		provider,
+		kubefakes.NewFakeClientGetter(c),
+		dc,
+		db,
+		ns,
+		"weaveworks-charts", t.TempDir())
 }
 
 func makeTestHelmRepository(base string, opts ...func(*sourcev1beta1.HelmRepository)) *sourcev1beta1.HelmRepository {
