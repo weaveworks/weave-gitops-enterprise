@@ -96,7 +96,6 @@ type Params struct {
 	capiRepositoryPath                string
 	capiTemplatesRepositoryApiUrl     string
 	capiTemplatesRepositoryBaseBranch string
-	checkpointDisable                 int
 	runtimeNamespace                  string
 	gitProviderToken                  string
 }
@@ -144,7 +143,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wego-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
-	cmd.Flags().StringVar(&p.clusterName, "cluster-name", "default", "")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "", "")
