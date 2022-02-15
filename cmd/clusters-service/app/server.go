@@ -86,7 +86,6 @@ type Params struct {
 	AgentTemplateAlertmanagerURL      string
 	htmlRootPath                      string
 	OIDC                              OIDCAuthenticationOptions
-	clusterName                       string
 	gitProviderType                   string
 	gitProviderHostname               string
 	capiClustersNamespace             string

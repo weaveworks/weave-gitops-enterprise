@@ -20,6 +20,7 @@ import (
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
@@ -549,7 +550,7 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		ClusterConfig:  kube.ClusterConfig{},
 	}
 
-	os.Setenv("CAPI_CLUSTERS_NAMESPACE", "default")
+	viper.SetDefault("capi-clusters-namespace", "default")
 
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
 		app.WithCAPIClustersNamespace("default"),
