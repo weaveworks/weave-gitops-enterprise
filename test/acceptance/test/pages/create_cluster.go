@@ -33,6 +33,7 @@ type TemplateSection struct {
 type Profile struct {
 	Name    *agouti.Selection
 	Version *agouti.Selection
+	Layer   *agouti.Selection
 	Values  *agouti.Selection
 }
 
@@ -44,8 +45,9 @@ type ValuesYaml struct {
 }
 
 type Preview struct {
-	PreviewLabel *agouti.Selection
-	PreviewText  *agouti.Selection
+	Title *agouti.Selection
+	Text  *agouti.Selection
+	Close *agouti.Selection
 }
 
 type GitOps struct {
@@ -111,6 +113,7 @@ func GetProfile(webDriver *agouti.Page, profileName string) Profile {
 	return Profile{
 		Name:    p.Find(`.profile-name`),
 		Version: p.Find(`.profile-version`),
+		Layer:   p.Find(`.profile-layer > span + span`),
 		Values:  p.Find(`button`),
 	}
 }
@@ -155,9 +158,11 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
+	Eventually(webDriver.Find(`.MuiDialog-paper[role=dialog]`)).Should(BeVisible())
 	return Preview{
-		PreviewLabel: webDriver.FindByName("Preview"),
-		PreviewText:  webDriver.FindByXPath(`//div[@name="Preview"]/following-sibling::textarea[1]`),
+		Title: webDriver.Find(`.MuiDialog-paper[role=dialog]  h5`),
+		Text:  webDriver.Find(`.MuiDialog-paper[role=dialog]  textarea:first-child`),
+		Close: webDriver.Find(`.MuiDialog-paper[role=dialog]  button`),
 	}
 }
 

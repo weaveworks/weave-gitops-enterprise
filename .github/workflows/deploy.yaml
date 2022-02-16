@@ -86,7 +86,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      focus-or-skip: "-ginkgo.skip='@gce|@eks|@application'"
+      focus-or-skip: "-ginkgo.skip='@gce|@eks'"
       kubectl-version: "v1.22.0"
       git-provider: gitlab
       git-provider_hostname: gitlab.com

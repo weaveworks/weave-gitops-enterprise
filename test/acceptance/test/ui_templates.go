@@ -414,7 +414,19 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview
+				By("Then I should preview the PR", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					preview := pages.GetPreview(webDriver)
+
+					Eventually(preview.Title).Should(MatchText("PR Preview"))
+
+					Eventually(preview.Text).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
+					Eventually(preview.Text).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
+					Eventually(preview.Text).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: default\s+spec:\s+region: %[2]v\s+sshKeyName: %[3]v\s+version: %[4]v`, clusterName, region, sshKey, k8Version))))
+					Eventually(preview.Text).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-fargate-0`, clusterName))))
+
+					Eventually(preview.Close.Click).Should(Succeed())
+				})
 			})
 		})
 
@@ -479,7 +491,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview
+				By("Then I should preview the PR", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					preview := pages.GetPreview(webDriver)
+					Eventually(preview.Close.Click).Should(Succeed())
+				})
 
 				//Pull request values
 				prBranch := "feature-capd"
@@ -512,7 +528,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				clustersPage := pages.GetClustersPage(webDriver)
 				By("Then I should see cluster appears in the cluster dashboard with the expected status", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status).Should(HaveText("Creation PR"))
+					Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(HaveText("Creation PR"))
 					anchor := clusterInfo.Status.Find("a")
 					Eventually(anchor).Should(BeFound())
 					prUrl, _ = anchor.Attribute("href")
@@ -536,10 +552,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		Context("[UI] When Capi Template is available in the cluster", func() {
 			It("@integration @git Verify pull request can not be created by using exiting repository branch", func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-
-				if gitProviderEnv.Type == GitProviderGitLab {
-					Skip("Temporary skipping because the Gitops section resets afer oauth redirecrtion")
-				}
 
 				By("When I create a private repository for cluster configs", func() {
 					initAndCreateEmptyRepo(gitProviderEnv, true)
@@ -598,8 +610,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				setParameterValues(createPage, paramSection)
-
-				//check PR Preview
 
 				//Pull request values
 				prTitle := "My first pull request"
@@ -786,7 +796,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview
+				By("Then I should see PR preview containing identity reference added in the template", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					preview := pages.GetPreview(webDriver)
+
+					Eventually(preview.Title).Should(MatchText("PR Preview"))
+
+					Eventually(preview.Text).Should(MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
+					Eventually(preview.Close.Click).Should(Succeed())
+				})
 
 			})
 		})
@@ -890,7 +908,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 
-				//check PR Preview
+				By("Then I should see PR preview without identity reference added to the template", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					preview := pages.GetPreview(webDriver)
+
+					Eventually(preview.Title).Should(MatchText("PR Preview"))
+
+					Eventually(preview.Text).ShouldNot(MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
+					Eventually(preview.Close.Click).Should(Succeed())
+				})
 
 			})
 		})
@@ -966,7 +992,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := capdClusterName
 				namespace := "default"
-				k8Version := "1.23.0"
+				k8Version := "1.23.3"
 				controlPlaneMachineCount := "1"
 				workerMachineCount := "1"
 
@@ -1005,7 +1031,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, paramSection)
 				pages.ScrollWindow(webDriver, 0, 4000)
-				//check PR Preview
 
 				By("And select the podinfo profile to install", func() {
 					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
@@ -1019,6 +1044,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(profile.Version.Click).Should(Succeed())
 					Eventually(pages.GetOption(webDriver, "6.0.1").Click).Should(Succeed())
 
+					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
+
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
@@ -1029,6 +1056,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And verify default observability profile values.yaml", func() {
 					profile := pages.GetProfile(webDriver, "observability")
+					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-0"))
+
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
@@ -1037,7 +1066,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
-				// check PR Preview
+				By("Then I should preview the PR", func() {
+					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					preview := pages.GetPreview(webDriver)
+
+					Eventually(preview.Title).Should(MatchText("PR Preview"))
+
+					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico[\s\w\d./:-]*weave.works/capi: bootstrap`))
+
+					Eventually(preview.Close.Click).Should(Succeed())
+				})
 
 				// Pull request values
 				prBranch := "ui-end-end-branch"
@@ -1063,7 +1101,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				clustersPage := pages.GetClustersPage(webDriver)
 				By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status).Should(HaveText("Creation PR"))
+					Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(HaveText("Creation PR"))
 				})
 
 				By("Then I should merge the pull request to start cluster provisioning", func() {
@@ -1107,7 +1145,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(downloadedKubeconfigPath, clusterName)
+					verifyCapiClusterHealth(downloadedKubeconfigPath, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
