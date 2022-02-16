@@ -473,7 +473,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		// Secure `/v1` and `/gitops/api` API routes
 		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv)
 		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv)
-		staticAssets = auth.WithAPIAuth(staticAssets, srv)
+		staticAssets = auth.WithWebAuth(staticAssets, srv)
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
