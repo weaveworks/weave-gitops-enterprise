@@ -56,7 +56,7 @@ func waitForResourceState(state string, resourceName string, nameSpace string, s
 
 	logger.Tracef("Waiting for %s '%s' state in namespace: %s", resourceName, state, nameSpace)
 
-	cmd := fmt.Sprintf(" kubectl wait --for=condition=%s --timeout=180s %s -n %s --all %s %s", state, resourceName, nameSpace, selector, kubeconfig)
+	cmd := fmt.Sprintf(" kubectl wait --for=condition=%s --timeout=170s %s -n %s --all %s %s", state, resourceName, nameSpace, selector, kubeconfig)
 	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_3MINUTE_TIME_OUT)
 	Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("%s resource has failed to become %s.", resourceName, state))
 }
