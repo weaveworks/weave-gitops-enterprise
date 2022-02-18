@@ -22,6 +22,8 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
+	wegomodels "github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -433,7 +435,6 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 		Namespace:  helmRepo.ObjectMeta.Namespace,
 	}
 
-	var profileName string
 	var installs []charts.ChartInstall
 	for _, v := range profileValues {
 		// Check the values and if empty use profile defaults. This should happen before parsing.
@@ -480,7 +481,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	if err != nil {
 		return nil, err
 	}
-	profilePath := fmt.Sprintf(".weave-gitops/clusters/%s/system/%s.yaml", clusterName, profileName)
+	profilePath := wegogit.GetSystemQualifiedPath(clusterName, wegomodels.WegoProfilesPath)
 	profileContent := string(c)
 	file := &gitprovider.CommitFile{
 		Path:    &profilePath,
