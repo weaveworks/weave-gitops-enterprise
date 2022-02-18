@@ -59,7 +59,7 @@ import (
 const (
 	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
 
-	defaultConfigFilename = "app"
+	defaultConfigFilename = "config"
 )
 
 func AuthEnabled() bool {
