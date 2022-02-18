@@ -14,6 +14,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
 	"github.com/google/go-github/v32/github"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -235,13 +236,13 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 func TestGetGitProviderUrl(t *testing.T) {
 	expected := "https://github.com/user/repo.git"
 
-	os.Setenv("CAPI_TEMPLATES_REPOSITORY_API_URL", "https://github.com/user/repo.git")
+	viper.SetDefault("capi-templates-repository-api-url", "https://github.com/user/repo.git")
 	dummyUrl := "example.com"
 	repoURL, err := git.GetGitProviderUrl(dummyUrl)
 	require.NoError(t, err)
 	assert.Equal(t, expected, repoURL)
 
-	os.Unsetenv("CAPI_TEMPLATES_REPOSITORY_API_URL")
+	viper.Reset()
 
 	gitUrl := "git@github.com:user/repo.git"
 	repoURL, err = git.GetGitProviderUrl(gitUrl)

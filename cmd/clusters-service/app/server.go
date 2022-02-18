@@ -58,6 +58,8 @@ import (
 
 const (
 	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
+
+	defaultConfigFilename = "config"
 )
 
 func AuthEnabled() bool {
@@ -66,24 +68,35 @@ func AuthEnabled() bool {
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
-	dbURI                        string
-	dbName                       string
-	dbUser                       string
-	dbPassword                   string
-	dbType                       string
-	dbBusyTimeout                string
-	entitlementSecretName        string
-	entitlementSecretNamespace   string
-	helmRepoNamespace            string
-	helmRepoName                 string
-	profileCacheLocation         string
-	watcherMetricsBindAddress    string
-	watcherHealthzBindAddress    string
-	watcherPort                  int
-	AgentTemplateNatsURL         string
-	AgentTemplateAlertmanagerURL string
-	htmlRootPath                 string
-	OIDC                         OIDCAuthenticationOptions
+	dbURI                             string
+	dbName                            string
+	dbUser                            string
+	dbPassword                        string
+	dbType                            string
+	dbBusyTimeout                     string
+	entitlementSecretName             string
+	entitlementSecretNamespace        string
+	helmRepoNamespace                 string
+	helmRepoName                      string
+	profileCacheLocation              string
+	watcherMetricsBindAddress         string
+	watcherHealthzBindAddress         string
+	watcherPort                       int
+	AgentTemplateNatsURL              string
+	AgentTemplateAlertmanagerURL      string
+	htmlRootPath                      string
+	OIDC                              OIDCAuthenticationOptions
+	gitProviderType                   string
+	gitProviderHostname               string
+	capiClustersNamespace             string
+	capiTemplatesNamespace            string
+	injectPruneAnnotation             string
+	capiTemplatesRepositoryUrl        string
+	capiRepositoryPath                string
+	capiTemplatesRepositoryApiUrl     string
+	capiTemplatesRepositoryBaseBranch string
+	runtimeNamespace                  string
+	gitProviderToken                  string
 }
 
 type OIDCAuthenticationOptions struct {
@@ -129,6 +142,17 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wego-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
+	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
+	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
+	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "")
+	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
+	cmd.Flags().StringVar(&p.capiRepositoryPath, "capi-repository-path", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryApiUrl, "capi-templates-repository-api-url", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
+	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")
+	cmd.Flags().StringVar(&p.gitProviderToken, "git-provider-token", "", "")
 
 	if AuthEnabled() {
 		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -164,6 +188,17 @@ func checkParams(params Params) error {
 }
 
 func initializeConfig(cmd *cobra.Command) error {
+	// Set the base name of the config file, without the file extension.
+	viper.SetConfigName(defaultConfigFilename)
+
+	viper.AddConfigPath(".")
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
+		}
+	}
+
 	// Align flag and env var names
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -230,7 +265,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return err
 	}
-	ns := os.Getenv("CAPI_CLUSTERS_NAMESPACE")
+	ns := p.capiClustersNamespace
 	if ns == "" {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
@@ -301,7 +336,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithTemplateLibrary(&templates.CRDLibrary{
 			Log:          log,
 			ClientGetter: clientGetter,
-			Namespace:    os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
+			Namespace:    p.capiTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{

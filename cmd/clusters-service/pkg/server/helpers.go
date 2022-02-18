@@ -2,18 +2,18 @@ package server
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
+	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 )
 
 func renderTemplateWithValues(t *capiv1.CAPITemplate, name string, values map[string]string) ([][]byte, error) {
 	opts := []capi.RenderOptFunc{
-		capi.InNamespace(os.Getenv("CAPI_CLUSTERS_NAMESPACE")),
+		capi.InNamespace(viper.GetString("capi-clusters-namespace")),
 	}
-	if os.Getenv("INJECT_PRUNE_ANNOTATION") != "disabled" {
+	if viper.GetString("inject-prune-annotation") != "disabled" {
 		opts = append(opts, capi.InjectPruneAnnotation)
 	}
 
