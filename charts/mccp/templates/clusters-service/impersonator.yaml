@@ -17,5 +17,5 @@ roleRef:
   name: impersonator
 subjects:
   - kind: ServiceAccount
-    name: weave-gitops-enterprise-mccp
-    namespace: wego-system
+    name: {{ include "mccp.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace | quote }}
