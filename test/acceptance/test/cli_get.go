@@ -2,32 +2,28 @@ package acceptance
 
 import (
 	"fmt"
-	"log"
-	"os/exec"
 	"regexp"
 	"sort"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
 )
 
 func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops Get Tests", func() {
 
 		templateFiles := []string{}
-		var session *gexec.Session
-		var err error
+		var stdOut string
+		var stdErr string
 
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
 			})
 
 			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
+				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
 			})
 		})
 
@@ -38,15 +34,13 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When no Capi Templates are available in the cluster", func() {
 			It("Verify gitops lists no templates", func() {
-
-				By(fmt.Sprintf(`And I run 'gitops get templates --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
 				By("Then gitops lists no templates", func() {
-					Eventually(session).Should(gbytes.Say("No templates were found"))
+					Eventually(stdOut).Should(MatchRegexp("No templates were found"))
 				})
 			})
 		})
@@ -59,20 +53,18 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
-				By(fmt.Sprintf(`And I run 'gitops get templates --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
 				By("Then I should see template table header", func() {
-					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
+					Eventually(stdOut).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
 				})
 
 				By("And I should see template rows", func() {
-					output := string(session.Wait().Out.Contents())
 					re := regexp.MustCompile(`cluster-invalid-template-[\d]+\s+.+Couldn't load template body.+`)
-					matched_list := re.FindAllString(output, 1)
+					matched_list := re.FindAllString(stdOut, 1)
 					Eventually(len(matched_list)).Should(Equal(noOfTemplates), "The number of listed templates should be equal to number of templates created")
 				})
 			})
@@ -92,27 +84,24 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = append(templateFiles, invalid_captemplate...)
 				})
 
-				By(fmt.Sprintf(`And I run 'gitops get templates --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
 				By("Then I should see template table header", func() {
-					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
+					Eventually(stdOut).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
 				})
 
 				By("And I should see template rows for invalid template", func() {
-					output := string(session.Wait().Out.Contents())
 					re := regexp.MustCompile(`cluster-invalid-template-[\d]+\s+.+Couldn't load template body.+`)
-					matched_list := re.FindAllString(output, noOfInvalidTemplates)
+					matched_list := re.FindAllString(stdOut, noOfInvalidTemplates)
 					Eventually(len(matched_list)).Should(Equal(noOfInvalidTemplates), "The number of listed invalid templates should be equal to number of templates created")
 				})
 
 				By("And I should see template rows for valid template", func() {
-					output := string(session.Wait().Out.Contents())
 					re := regexp.MustCompile(`eks-fargate-template-[\d]+\s+aws\s+This is eks fargate template-[\d]+`)
-					matched_list := re.FindAllString(output, noOfTemplates)
+					matched_list := re.FindAllString(stdOut, noOfTemplates)
 					Eventually(len(matched_list)).Should(Equal(noOfTemplates), "The number of listed valid templates should be equal to number of templates created")
 				})
 			})
@@ -124,18 +113,17 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
-				By(fmt.Sprintf(`And I run 'gitops get template cluster-invalid-template-0 --list-parameters --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "template", "cluster-invalid-template-0", "--list-parameters", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get templates cluster-invalid-template-0 --list-parameters --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
 				By("Then I should not see template parameter table header", func() {
-					Eventually(string(session.Wait().Out.Contents())).ShouldNot(MatchRegexp(`NAME\s+REQUIRED\s+DESCRIPTION\s+OPTIONS`))
+					Eventually(stdOut).ShouldNot(MatchRegexp(`NAME\s+REQUIRED\s+DESCRIPTION\s+OPTIONS`))
 				})
 
 				By("And I should see error message related to invalid template", func() {
-					Eventually(string(session.Wait().Err.Contents())).Should(MatchRegexp(`Error: unable to retrieve parameters.+`))
+					Eventually(stdErr).Should(MatchRegexp(`Error: unable to retrieve parameters.+`))
 				})
 			})
 		})
@@ -146,20 +134,18 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				noOfTemplates := 5
 				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-azure.yaml")
 
-				By(fmt.Sprintf(`And I run 'gitops get templates --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
 				By("Then I should see template table header", func() {
-					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
+					Eventually(stdOut).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
 				})
 
 				By("And I should see template rows", func() {
-					output := string(session.Wait().Out.Contents())
 					re := regexp.MustCompile(`azure-capi-quickstart-template-[\d]+\s+azure\s+This is Azure capi quick start template-[\d]+`)
-					matched_list := re.FindAllString(output, noOfTemplates)
+					matched_list := re.FindAllString(stdOut, noOfTemplates)
 					Eventually(len(matched_list)).Should(Equal(noOfTemplates), "The number of listed templates should be equal to number of templates created")
 
 					// Testing templates are ordered
@@ -174,15 +160,13 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					}
 				})
 
-				By(fmt.Sprintf(`When I run 'gitops get templates --namespace foo --endpoint %s'`, CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "--namespace", "foo", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd = fmt.Sprintf(`%s get templates --namespace foo --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf(`When I run '%s'`, cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
-				// FIXME: issue 209
 				// By("Then I should see an error message", func() {
-				// 	Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
+				// 	Eventually(stdErr).Should(MatchRegexp(`No templates were found`))
 				// })
 			})
 
@@ -197,20 +181,18 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
 				})
 
-				By(fmt.Sprintf("Then I run 'gitops get templates --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
 				By("And I should see template list table header", func() {
-					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
+					Eventually(stdOut).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
 				})
 
 				By("And I should see template rows", func() {
-					output := string(session.Wait().Out.Contents())
 					re := regexp.MustCompile(`eks-fargate-template-[\d]+\s+aws\s+This is eks fargate template-[\d]+.+`)
-					matched_list := re.FindAllString(output, eksFargateTemplateCount)
+					matched_list := re.FindAllString(stdOut, eksFargateTemplateCount)
 					Eventually(len(matched_list)).Should(Equal(eksFargateTemplateCount), "The number of listed templates should be equal to number of templates created")
 				})
 
@@ -228,15 +210,14 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					sort.Strings(expected_list)
 
 					for i := 0; i < totalTemplateCount; i++ {
-						Eventually(session).Should(gbytes.Say(fmt.Sprintf(`%s\s+.*`, expected_list[i])))
+						Eventually(stdOut).Should(MatchRegexp(fmt.Sprintf(`%s\s+.*`, expected_list[i])))
 					}
 
 				})
 
-				By(fmt.Sprintf("Then I run 'gitops get templates --provider aws --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "--provider", "aws", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd = fmt.Sprintf(`%s get templates --provider aws --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
 				By("And I should see templates list filtered by provider", func() {
@@ -249,27 +230,25 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					}
 					sort.Strings(awsCluster_list)
 					for i := 0; i < awsTemplateCount+eksFargateTemplateCount; i++ {
-						Eventually(session).Should(gbytes.Say(fmt.Sprintf(`%s\s+.*`, awsCluster_list[i])))
+						Eventually(stdOut).Should(MatchRegexp(fmt.Sprintf(`%s\s+.*`, awsCluster_list[i])))
 					}
 
-					output := session.Wait().Out.Contents()
 					for i := 0; i < 5; i++ {
 						capd_template := fmt.Sprintf("cluster-template-development-%d", i)
 						re := regexp.MustCompile(fmt.Sprintf(`%s\s+.*`, capd_template))
-						Eventually((re.Find(output))).Should(BeNil())
+						Eventually((re.Find([]byte(stdOut)))).Should(BeNil())
 					}
 
 				})
 
-				By(fmt.Sprintf("Then I run 'gitops get templates --provider foobar --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "--provider", "foobar", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd = fmt.Sprintf(`%s get templates --provider foobar --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf("Then I run '%s'", capi_endpoint_url), func() {
+					_, stdErr = runCommandAndReturnStringOutput(cmd)
+
 				})
 
 				By("And I should see error message for invalid provider", func() {
-					output := session.Wait().Err.Contents()
-					Eventually(output).Should(MatchRegexp(`Error:\s+provider "foobar" is not valid.*`))
+					Eventually(stdErr).Should(MatchRegexp(`Error:\s+provider "foobar" is not valid.*`))
 				})
 			})
 
@@ -279,19 +258,17 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				By(fmt.Sprintf("And I run gitops get templates cluster-template-development-0 --list-parameters --endpoint %s", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "templates", "cluster-template-development-0", "--list-parameters", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get templates cluster-template-development-0 --list-parameters --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf("And I run '%s'", cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
 
 				By("Then I should see template parameter table header", func() {
-					Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`NAME\s+REQUIRED\s+DESCRIPTION\s+OPTIONS`))
+					Eventually(stdOut).Should(MatchRegexp(`NAME\s+REQUIRED\s+DESCRIPTION\s+OPTIONS`))
 				})
 
 				By("And I should see parameter rows", func() {
-					output := session.Wait().Out.Contents()
-					Eventually(string(output)).Should(MatchRegexp(`CLUSTER_NAME+\s+true\s+This is used for the cluster naming.\s+KUBERNETES_VERSION\s+false\s+Kubernetes version to use for the cluster\s+1.19.11, 1.21.1, 1.22.0, 1.23.0\s+NAMESPACE\s+false\s+Namespace to create the cluster in`))
+					Eventually(stdOut).Should(MatchRegexp(`CLUSTER_NAME+\s+true\s+This is used for the cluster naming.\s+KUBERNETES_VERSION\s+false\s+Kubernetes version to use for the cluster\s+1.19.11, 1.21.1, 1.22.0, 1.23.0\s+NAMESPACE\s+false\s+Namespace to create the cluster in`))
 
 				})
 			})
@@ -299,15 +276,13 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When no infrastructure provider credentials are available in the management cluster", func() {
 			It("Verify gitops lists no credentials", func() {
-				By(fmt.Sprintf("And I run 'gitops get credentials --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "credentials", "--endpoint", CAPI_ENDPOINT_URL)
-
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get credentials --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf("And I run '%s'", capi_endpoint_url), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 				})
 
 				By("Then gitops lists no credentials", func() {
-					Eventually(session).Should(gbytes.Say("No credentials were found"))
+					Eventually(stdOut).Should(MatchRegexp("No credentials were found"))
 				})
 			})
 		})
@@ -321,33 +296,27 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.CreateIPCredentials("AWS")
 				})
 
-				By(fmt.Sprintf("And I run 'gitops get credentials --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "credentials", "--endpoint", CAPI_ENDPOINT_URL)
-
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get credentials --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf("And I run '%s'", cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 				})
 
 				By("Then gitops lists AWS credentials", func() {
-					output := session.Wait().Out.Contents()
-					Eventually(string(output)).Should(MatchRegexp(`aws-test-identity`))
-					Eventually(string(output)).Should(MatchRegexp(`test-role-identity`))
+					Eventually(stdOut).Should(MatchRegexp(`aws-test-identity`))
+					Eventually(stdOut).Should(MatchRegexp(`test-role-identity`))
 				})
 
 				By("And create AZURE credentials)", func() {
 					gitopsTestRunner.CreateIPCredentials("AZURE")
 				})
 
-				By(fmt.Sprintf("And I run 'gitops get credential --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "credential", "--endpoint", CAPI_ENDPOINT_URL)
-
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd = fmt.Sprintf(`%s get credentials --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf("And I run '%s'", cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 				})
 
 				By("Then gitops lists AZURE credentials", func() {
-					output := session.Wait().Out.Contents()
-					Eventually(string(output)).Should(MatchRegexp(`azure-cluster-identity`))
+					Eventually(stdOut).Should(MatchRegexp(`azure-cluster-identity`))
 				})
 			})
 		})
@@ -359,19 +328,18 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				By("And gitops state is reset", func() {
-					_ = gitopsTestRunner.ResetControllers("enterprise")
+					gitopsTestRunner.ResetControllers("enterprise")
 					gitopsTestRunner.VerifyWegoPodsRunning()
-					gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
+					gitopsTestRunner.CheckClusterService(capi_endpoint_url)
 				})
 
-				By(fmt.Sprintf("Then I run 'gitops get cluster --endpoint %s'", CAPI_ENDPOINT_URL), func() {
-					command := exec.Command(GITOPS_BIN_PATH, "get", "cluster", "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
+				cmd := fmt.Sprintf(`%s get cluster --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 				})
 
 				By("Then gitops lists no clusters", func() {
-					Eventually(session).Should(gbytes.Say("No clusters found"))
+					Eventually(stdOut).Should(MatchRegexp("No clusters found"))
 				})
 			})
 		})
@@ -382,10 +350,10 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 			checkEntitlement := func(typeEntitelment string, beFound bool) {
 				checkOutput := func() bool {
-					command := exec.Command(GITOPS_BIN_PATH, "get", resourceName, "--endpoint", CAPI_ENDPOINT_URL)
-					session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-					Expect(err).ShouldNot(HaveOccurred())
-					msg := string(session.Wait().Err.Contents()) + " " + string(session.Wait().Out.Contents())
+					cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, resourceName, capi_endpoint_url)
+					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
+
+					msg := stdErr + " " + stdOut
 
 					if typeEntitelment == "expired" {
 						re := regexp.MustCompile(`Your entitlement for Weave GitOps Enterprise has expired`)
@@ -402,13 +370,13 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				resourceName = "templates"
-				log.Printf("Running 'gitops get %s --endpoint %s'", resourceName, CAPI_ENDPOINT_URL)
+				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
 				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 				resourceName = "credentials"
-				log.Printf("Running 'gitops get %s --endpoint %s'", resourceName, CAPI_ENDPOINT_URL)
+				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
 				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 				resourceName = "clusters"
-				log.Printf("Running 'gitops get %s --endpoint %s'", resourceName, CAPI_ENDPOINT_URL)
+				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
 				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 			}
 

@@ -6,7 +6,6 @@ import {
   RepoInputWithAuth,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
-import useNotifications from '../../../../../contexts/Notifications';
 import styled from 'styled-components';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
@@ -33,8 +32,6 @@ const GitAuth: FC<{
   setShowAuthDialog,
   setEnableCreatePR,
 }) => {
-  const { setNotifications } = useNotifications();
-
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
@@ -85,13 +82,6 @@ const GitAuth: FC<{
         onSuccess={() => {
           setShowAuthDialog(false);
           setAuthSuccess(true);
-          setNotifications([
-            {
-              message:
-                'Authentication completed successfully. Please proceed with creating the PR.',
-              variant: 'success',
-            },
-          ]);
         }}
         open={showAuthDialog}
         repoName="config"

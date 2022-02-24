@@ -3,20 +3,25 @@ package app_test
 import (
 	"context"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -65,13 +70,14 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 			app.WithDiscoveryClient(dc),
 			app.WithDatabase(db),
 			app.WithApplicationsConfig(appsConfig),
-			app.WithApplicationsOptions(wego_server.WithClientGetter(NewFakeClientGetter(c))),
+			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(c))),
 			app.WithTemplateLibrary(&templates.CRDLibrary{
-				Log:       logr.Discard(),
-				Client:    c,
-				Namespace: "default",
+				Log:          logr.Discard(),
+				ClientGetter: kubefakes.NewFakeClientGetter(c),
+				Namespace:    "default",
 			}),
 			app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
+			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
 		)
 		t.Logf("%v", err)
 	}(ctx)
@@ -95,7 +101,6 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 
 func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 	appFactory := &servicesfakes.FakeFactory{}
-	kubeClient := &kubefakes.FakeKube{}
 	k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
@@ -104,15 +109,12 @@ func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 			}, nil
 		},
 	}
-	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-		return kubeClient, nil
-	}
 	return &wego_server.ApplicationsConfig{
 		Factory:        appFactory,
-		FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
+		FetcherFactory: applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
 		Logger:         logr.Discard(),
 		JwtClient:      jwtClient,
-		ClusterConfig:  wego_server.ClusterConfig{},
+		ClusterConfig:  kube.ClusterConfig{},
 	}
 }
 
@@ -146,32 +148,69 @@ func createSecret(s string) *corev1.Secret {
 	}
 }
 
-// FIXME: expose this in wego core
+func TestNoIssuerURL(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
 
-type FakeFetcherFactory struct {
-	fake applicationv2.Fetcher
+	tempDir, err := os.MkdirTemp("", "*")
+	require.NoError(t, err)
+	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd.SetArgs([]string{
+		"ui", "run",
+	})
+
+	err = cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoIssuerURL)
 }
 
-func NewFakeFetcherFactory(fake applicationv2.Fetcher) wego_server.FetcherFactory {
-	return &FakeFetcherFactory{
-		fake: fake,
-	}
+func TestNoClientID(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+
+	tempDir, err := os.MkdirTemp("", "*")
+	require.NoError(t, err)
+	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd.SetArgs([]string{
+		"ui", "run",
+		"--oidc-issuer-url=http://weave.works",
+	})
+
+	err = cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoClientID)
 }
 
-func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
-	return f.fake
+func TestNoClientSecret(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+
+	tempDir, err := os.MkdirTemp("", "*")
+	require.NoError(t, err)
+	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd.SetArgs([]string{
+		"ui", "run",
+		"--oidc-issuer-url=http://weave.works",
+		"--oidc-client-id=client-id",
+	})
+
+	err = cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoClientSecret)
 }
 
-type FakeClientGetter struct {
-	client client.Client
-}
+func TestNoRedirectURL(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
 
-func NewFakeClientGetter(client client.Client) wego_server.ClientGetter {
-	return &FakeClientGetter{
-		client: client,
-	}
-}
+	tempDir, err := os.MkdirTemp("", "*")
+	require.NoError(t, err)
+	defer os.Remove(tempDir)
+	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd.SetArgs([]string{
+		"ui", "run",
+		"--oidc-issuer-url=http://weave.works",
+		"--oidc-client-id=client-id",
+		"--oidc-client-secret=client-secret",
+	})
 
-func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
-	return g.client, nil
+	err = cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoRedirectURL)
 }

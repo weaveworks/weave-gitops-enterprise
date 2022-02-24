@@ -5,18 +5,15 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
 	"path"
 	"text/template"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/datatypes"
@@ -29,11 +26,11 @@ import (
 // - "Real" commands like "exec(kubectl...)"
 // - "Mock" commands like db.Create(cluster_info...)
 type GitopsTestRunner interface {
-	ResetControllers(controllers string) error
+	ResetControllers(controllers string)
 	VerifyWegoPodsRunning()
 	FireAlert(name, severity, message string, fireFor time.Duration) error
-	KubectlApply(env []string, tokenURL string) error
-	KubectlDelete(env []string, tokenURL string) error
+	KubectlApply(env []string, manifest string) error
+	KubectlDelete(env []string, manifest string) error
 	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
@@ -64,17 +61,16 @@ func (b DatabaseGitopsTestRunner) TimeTravelToAlertsResolved() error {
 	return nil
 }
 
-func (b DatabaseGitopsTestRunner) ResetControllers(controllers string) error {
+func (b DatabaseGitopsTestRunner) ResetControllers(controllers string) {
 	b.DB.Where("1 = 1").Delete(&models.Cluster{})
-	return nil
 }
 
 func (b DatabaseGitopsTestRunner) VerifyWegoPodsRunning() {
 
 }
 
-func (b DatabaseGitopsTestRunner) KubectlApply(env []string, tokenURL string) error {
-	u, err := url.Parse(tokenURL)
+func (b DatabaseGitopsTestRunner) KubectlApply(env []string, manifest string) error {
+	u, err := url.Parse(manifest)
 	if err != nil {
 		return err
 	}
@@ -211,25 +207,21 @@ func (b RealGitopsTestRunner) TimeTravelToAlertsResolved() error {
 	return nil
 }
 
-func (b RealGitopsTestRunner) ResetControllers(controllers string) error {
-	return runCommandPassThrough("../../utils/scripts/wego-enterprise.sh", "reset_controllers", controllers)
+func (b RealGitopsTestRunner) ResetControllers(controllers string) {
+	scriptPath := path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "wego-enterprise.sh")
+	_ = runCommandPassThrough(scriptPath, "reset_controllers", controllers)
 }
 
 func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
 	verifyEnterpriseControllers("my-mccp", "", GITOPS_DEFAULT_NAMESPACE)
 }
 
-func (b RealGitopsTestRunner) KubectlApply(env []string, tokenURL string) error {
-	err := runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", tokenURL)
-	fmt.Println("Cluster pods after apply")
-	if err := runCommandPassThroughWithEnv(env, "kubectl", "get", "pods", "-A"); err != nil {
-		fmt.Printf("Error getting cluster pods after apply: %v\n", err)
-	}
-	return err
+func (b RealGitopsTestRunner) KubectlApply(env []string, manifest string) error {
+	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", manifest)
 }
 
-func (b RealGitopsTestRunner) KubectlDelete(env []string, tokenURL string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-f", tokenURL)
+func (b RealGitopsTestRunner) KubectlDelete(env []string, manifest string) error {
+	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-f", manifest)
 }
 
 func (b RealGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
@@ -277,7 +269,7 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 	}
 
 	fmt.Print(populated.String())
-	req, err := http.NewRequest("POST", DEFAULT_UI_URL+"/alertmanager/api/v2/alerts", &populated)
+	req, err := http.NewRequest("POST", test_ui_url+"/alertmanager/api/v2/alerts", &populated)
 	if err != nil {
 		return err
 	}
@@ -332,10 +324,8 @@ func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 
 func (b RealGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
 	output := func() string {
-		command := exec.Command("curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", capiEndpointURL+"/v1/templates")
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		return string(session.Wait(ASSERTION_30SECONDS_TIME_OUT).Out.Contents())
+		stdOut, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`curl -s -o /dev/null -w %%{http_code} %s/v1/templates`, capiEndpointURL), ASSERTION_30SECONDS_TIME_OUT)
+		return stdOut
 	}
 	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp("200"), "Cluster Service is not healthy")
 }
@@ -351,58 +341,56 @@ func (b RealGitopsTestRunner) RestartDeploymentPods(env []string, appName string
 }
 
 func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string) {
+	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
 		By("Install AWSClusterStaticIdentity CRD", func() {
-			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
-			Expect(err).To(BeNil(), "Failed to install AWSClusterStaticIdentity CRD")
-			err = runCommandPassThrough("kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io")
-			Expect(err).To(BeNil(), "Failed to verify AWSClusterStaticIdentity CRD")
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io")
 		})
 
 		By("Install AWSClusterRoleIdentity CRD", func() {
-			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
-			Expect(err).To(BeNil(), "Failed to install AWSClusterRoleIdentity CRD")
-			err = runCommandPassThrough("kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io")
-			Expect(err).To(BeNil(), "Failed to verify AWSClusterRoleIdentity CRD")
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io")
 		})
 
 		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
-			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/aws_cluster_credentials.yaml")
-			Expect(err).To(BeNil(), "Failed to create AWS credentials")
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath))
 		})
 
 	} else if infrastructureProvider == "AZURE" {
 		By("Install AzureClusterIdentity CRD", func() {
-			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
-			Expect(err).To(BeNil(), "Failed to install AzureClusterIdentity CRD")
-			err = runCommandPassThrough("kubectl", "wait", "--for=condition=established", "--timeout=90s", "crd/azureclusteridentities.infrastructure.cluster.x-k8s.io")
-			Expect(err).To(BeNil(), "Failed to verify AzureClusterIdentity CRD")
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io")
 		})
 
 		By("Create Azure Secret and AzureClusterIdentity)", func() {
-			err := runCommandPassThrough("kubectl", "apply", "-f", "../../utils/data/azure_cluster_credentials.yaml")
-			Expect(err).To(BeNil(), "Failed to create Azure credentials")
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/azure_cluster_credentials.yaml", testDataPath))
 		})
 	}
 
 }
 
 func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string) {
+	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
-		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/aws_cluster_credentials.yaml")
-		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml")
-		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml")
+		By("Delete AWS identities and CRD", func() {
+			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/aws_cluster_credentials.yaml", testDataPath))
+			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+		})
 
 	} else if infrastructureProvider == "AZURE" {
-		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/azure_cluster_credentials.yaml")
-		_ = runCommandPassThrough("kubectl", "delete", "-f", "../../utils/data/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml")
+		By("Delete Azure identities and CRD", func() {
+			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/azure_cluster_credentials.yaml", testDataPath))
+			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+		})
 	}
 }
 
 // This function generates multiple capitemplate files from a single capitemplate to be used as test data
 func generateTestCapiTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
 	// Read input capitemplate
-	contents, err := ioutil.ReadFile(fmt.Sprintf("../../utils/data/%s", templateFile))
+	contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test", "utils", "data", templateFile))
 
 	if err != nil {
 		return templateFiles, err
@@ -430,7 +418,7 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 
 		err = t.Execute(f, input)
 		if err != nil {
-			log.Println("executing template:", err)
+			logger.Infoln("Executing template:", err)
 		}
 
 		f.Close()

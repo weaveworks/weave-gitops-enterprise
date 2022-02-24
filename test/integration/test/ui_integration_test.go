@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	gcontext "context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,24 +15,27 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	broker "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops-repo-broker/server"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -56,7 +58,6 @@ import (
 //
 
 const capiServerPort = "8000"
-const brokerPort = "8090"
 const uiURL = "http://localhost:5000"
 const seleniumURL = "http://localhost:4444/wd/hub"
 
@@ -508,8 +509,8 @@ func getLocalPath(localPath string) string {
 	return path
 }
 
-func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
-	listenContext, listenCancel := gcontext.WithCancel(ctx)
+func ListenAndServe(ctx context.Context, srv *http.Server) error {
+	listenContext, listenCancel := context.WithCancel(ctx)
 	var listenError error
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
@@ -518,7 +519,7 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 		listenCancel()
 	}()
 	defer func() {
-		_ = srv.Shutdown(gcontext.Background())
+		_ = srv.Shutdown(context.Background())
 	}()
 
 	<-listenContext.Done()
@@ -526,24 +527,11 @@ func ListenAndServe(ctx gcontext.Context, srv *http.Server) error {
 	return listenError
 }
 
-func RunBroker(ctx gcontext.Context, c client.Client, dbURI string) error {
-	srv, err := broker.NewServer(ctx, c, client.ObjectKey{Name: "entitlement", Namespace: "default"}, logr.Discard(), broker.ParamSet{
-		Port:        brokerPort,
-		DbURI:       dbURI,
-		DbType:      "sqlite",
-		PrivKeyFile: dbURI,
-	})
-	if err != nil {
-		return err
-	}
-	return ListenAndServe(ctx, srv)
-}
-
-func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
+func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
 	library := &templates.CRDLibrary{
-		Log:       logr.Discard(),
-		Client:    cl,
-		Namespace: "default",
+		Log:          logr.Discard(),
+		ClientGetter: kubefakes.NewFakeClientGetter(cl),
+		Namespace:    "default",
 	}
 
 	jwtClient := &authfakes.FakeJWTClient{
@@ -558,11 +546,11 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		Factory:        &servicesfakes.FakeFactory{},
 		JwtClient:      jwtClient,
 		Logger:         logr.Discard(),
-		FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(cl)),
-		ClusterConfig:  wego_server.ClusterConfig{},
+		FetcherFactory: applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(cl)),
+		ClusterConfig:  kube.ClusterConfig{},
 	}
 
-	os.Setenv("CAPI_CLUSTERS_NAMESPACE", "default")
+	viper.SetDefault("capi-clusters-namespace", "default")
 
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
 		app.WithCAPIClustersNamespace("default"),
@@ -572,14 +560,14 @@ func RunCAPIServer(t *testing.T, ctx gcontext.Context, cl client.Client, discove
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithDatabase(db),
 		app.WithApplicationsConfig(fakeAppsConfig),
-		app.WithApplicationsOptions(wego_server.WithClientGetter(NewFakeClientGetter(cl))),
-		app.WithGitProvider(git.NewGitProviderService(logr.Discard())))
+		app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
+		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
+		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)))
 }
 
-func RunUIServer(ctx gcontext.Context) {
+func RunUIServer(ctx context.Context) {
 	// is configured to proxy to
 	// - 8000 for clusters-service
-	// - 8090 for gitops-broker
 	cmd := exec.CommandContext(ctx, "node", "server.js")
 	cmd.Dir = getLocalPath("ui-cra")
 	cmd.Stdout = os.Stdout
@@ -587,8 +575,7 @@ func RunUIServer(ctx gcontext.Context) {
 	cmd.Env = append(
 		os.Environ(),
 		[]string{
-			"GITOPS_HOST=http://localhost:" + brokerPort,
-			"CAPI_SERVER_HOST=http://localhost:" + capiServerPort,
+			"PROXY_HOST=http://localhost:" + capiServerPort,
 		}...,
 	)
 
@@ -615,9 +602,9 @@ func GetDB(t *testing.T) (*gorm.DB, string) {
 	return db, dbURI
 }
 
-func waitFor200(ctx gcontext.Context, url string, timeout time.Duration) error {
+func waitFor200(ctx context.Context, url string, timeout time.Duration) error {
 	log.Infof("Waiting for 200 from %v for %v", url, timeout)
-	waitCtx, cancel := gcontext.WithTimeout(ctx, timeout)
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
@@ -642,36 +629,6 @@ func gomegaFail(message string, callerSkip ...int) {
 	}
 	// Pass this down to the default handler for onward processing
 	Fail(message, callerSkip...)
-}
-
-// FIXME: expose this in wego core
-
-type FakeFetcherFactory struct {
-	fake applicationv2.Fetcher
-}
-
-func NewFakeFetcherFactory(fake applicationv2.Fetcher) wego_server.FetcherFactory {
-	return &FakeFetcherFactory{
-		fake: fake,
-	}
-}
-
-func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
-	return f.fake
-}
-
-type FakeClientGetter struct {
-	client client.Client
-}
-
-func NewFakeClientGetter(client client.Client) wego_server.ClientGetter {
-	return &FakeClientGetter{
-		client: client,
-	}
-}
-
-func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
-	return g.client, nil
 }
 
 //
@@ -708,16 +665,10 @@ func TestMccpUI(t *testing.T) {
 	discoveryClient := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	var wg sync.WaitGroup
-	ctx, cancel := gcontext.WithCancel(gcontext.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Increment the WaitGroup synchronously in the main method, to avoid
 	// racing with the goroutine starting.
-	wg.Add(1)
-	go func() {
-		err := RunBroker(ctx, cl, dbURI)
-		assert.NoError(t, err)
-		wg.Done()
-	}()
 	wg.Add(1)
 	go func() {
 		RunUIServer(ctx)
@@ -726,11 +677,11 @@ func TestMccpUI(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		err := RunCAPIServer(t, ctx, cl, discoveryClient, db)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		wg.Done()
 	}()
 
-	// Test ui is proxying through to broker
+	// Test ui is proxying through to cluster-service
 	err = waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
 	require.NoError(t, err)
 
@@ -754,6 +705,10 @@ func TestMccpUI(t *testing.T) {
 	acceptancetest.SetDefaultUIURL(uiURL)
 	acceptancetest.DescribeSpecsUi(mccpRunner)
 
+	BeforeSuite(func() {
+		acceptancetest.InitializeLogger("ui-integration-tests.log") // Initilaize the global logger and tee Ginkgowriter
+	})
+
 	AfterSuite(func() {
 		webDriver := acceptancetest.GetWebDriver()
 		//Tear down the suite level setup
@@ -764,7 +719,7 @@ func TestMccpUI(t *testing.T) {
 		if intWebDriver != nil {
 			Expect(intWebDriver.Destroy()).To(Succeed())
 		}
-		// Clean up ui-server and broker
+		// Clean up ui-server
 		cancel()
 		// Wait for the child goroutine to finish, which will only occur when
 		// the child process has stopped and the call to cmd.Wait has returned.

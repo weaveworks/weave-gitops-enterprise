@@ -3,15 +3,12 @@ package acceptance
 import (
 	"fmt"
 	"io/ioutil"
-	"os/exec"
 	"runtime"
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
-	log "github.com/sirupsen/logrus"
 )
 
 func waitForResource(resourceType string, resourceName string, namespace string, kubeconfig string, timeout time.Duration) error {
@@ -26,13 +23,10 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 
 	timeoutInSeconds := int(timeout.Seconds())
 	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
-		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
+		logger.Tracef("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
 		err := runCommandPassThroughWithoutOutput("sh", "-c", fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace))
 		if err == nil {
-			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace))
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(session).Should(gexec.Exit())
+			stdOut, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace))
 
 			noResourcesFoundMessage := ""
 			if namespace == "default" {
@@ -40,9 +34,8 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 			} else {
 				noResourcesFoundMessage = fmt.Sprintf("No resources found in %s namespace", namespace)
 			}
-			output := string(session.Wait().Out.Contents())
-			if len(output) == 0 || strings.Contains(output, noResourcesFoundMessage) {
-				log.Infof("Got message => {" + noResourcesFoundMessage + "} Continue looking for resource(s)")
+			if len(stdOut) == 0 || strings.Contains(stdOut, noResourcesFoundMessage) {
+				logger.Infof("Got message => {" + noResourcesFoundMessage + "} Continue looking for resource(s)")
 			} else {
 				return nil
 			}
@@ -50,6 +43,22 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
 	return fmt.Errorf("error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
+}
+
+func waitForResourceState(state string, resourceName string, nameSpace string, selector string, kubeconfig string) {
+	if kubeconfig != "" {
+		kubeconfig = "--kubeconfig=" + kubeconfig
+	}
+
+	if selector != "" {
+		selector = "--selector=" + selector
+	}
+
+	logger.Tracef("Waiting for %s '%s' state in namespace: %s", resourceName, state, nameSpace)
+
+	cmd := fmt.Sprintf(" kubectl wait --for=condition=%s --timeout=180s %s -n %s --all %s %s", state, resourceName, nameSpace, selector, kubeconfig)
+	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_3MINUTE_TIME_OUT)
+	Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("%s resource has failed to become %s.", resourceName, state))
 }
 
 func verifyCoreControllers(namespace string) {
@@ -62,32 +71,23 @@ func verifyCoreControllers(namespace string) {
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
-		controllersStatuses("Ready", "180s", namespace)
+		waitForResourceState("Ready", "pod", namespace, "app!=wego-app", "")
 	})
 }
 
 func verifyEnterpriseControllers(releaseName string, mccpPrefix, namespace string) {
 	// SOMETIMES (?) (with helm install ./local-path), the mccpPrefix is skipped
-	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"gitops-repo-broker", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"event-writer", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"cluster-service", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	// FIXME
 	// const maxDeploymentLength = 63
 	// Expect(waitForResource("deploy", (releaseName + "-nginx-ingress-controller-default-backend")[:maxDeploymentLength], namespace, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+"-wkp-ui-server", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops enterprise controllers to be ready", func() {
-		controllersStatuses("Ready", "180s", namespace)
+		waitForResourceState("Ready", "pod", namespace, "app!=wego-app", "")
 	})
-}
-
-func controllersStatuses(status string, timeout string, namespace string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=%s --timeout=%s -n %s --all pod --selector='app!=wego-app'", status, timeout, namespace))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, ASSERTION_3MINUTE_TIME_OUT).Should(gexec.Exit())
 }
 
 func controllerStatus(controllerName, namespace string) error {
@@ -95,31 +95,41 @@ func controllerStatus(controllerName, namespace string) error {
 }
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {
-	log.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, namespace, repoAbsolutePath)
-	_, errOutput := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, GITOPS_BIN_PATH, addCommand))
+	logger.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, namespace, repoAbsolutePath)
+	_, errOutput := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, gitops_bin_path, addCommand))
 	Expect(errOutput).Should(BeEmpty())
 }
 
 func verifyWegoAddCommand(appName string, namespace string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", namespace))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, ASSERTION_5MINUTE_TIME_OUT).Should(gexec.Exit())
-	Expect(waitForResource("GitRepositories", appName, namespace, "", ASSERTION_6MINUTE_TIME_OUT)).To(Succeed())
+	waitForResourceState("Ready", "GitRepositories", namespace, "", "")
+	Expect(waitForResource("GitRepositories", appName, namespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
 }
 
 func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 
 	// Deploy key secret should not exist already
-	deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
+	deleteGitopsDeploySecret(gitopsNamespace)
 
-	By("And I run 'gitops install' command with namespace "+gitopsNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", GITOPS_BIN_PATH, manifestRepoURL, gitopsNamespace))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, ASSERTION_5MINUTE_TIME_OUT).Should(gexec.Exit())
-		Expect(string(session.Err.Contents())).Should(BeEmpty())
+	cmdInstall := fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", gitops_bin_path, manifestRepoURL, gitopsNamespace)
+	By(fmt.Sprintf("And I run '%s'", cmdInstall), func() {
+		_, stdErr := runCommandAndReturnStringOutput(cmdInstall, ASSERTION_5MINUTE_TIME_OUT)
+		Expect(stdErr).Should(BeEmpty())
 		verifyCoreControllers(gitopsNamespace)
+
+		// Check if GitRepository resource is Ready
+		cmdGitRepository := fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=120s -n %s GitRepositories --all", gitopsNamespace)
+		_, stdErr = runCommandAndReturnStringOutput(cmdGitRepository, ASSERTION_3MINUTE_TIME_OUT)
+
+		if stdErr != "" {
+			// Here we will do one more try to make the GitRepository Ready; maybe gitops install needs to do more error checking
+			deleteGitopsDeploySecret(gitopsNamespace)
+			deleteGitopsGitRepository(gitopsNamespace)
+			_, stdErr := runCommandAndReturnStringOutput(cmdInstall, ASSERTION_5MINUTE_TIME_OUT)
+			Expect(stdErr).Should(BeEmpty())
+			verifyCoreControllers(gitopsNamespace)
+
+			waitForResourceState("Ready", "GitRepositories", gitopsNamespace, "", "")
+		}
 	})
 }
 
@@ -132,35 +142,25 @@ func removeGitopsCapiClusters(appName string, clusternames []string, nameSpace s
 }
 
 func susspendGitopsApplication(appName string, nameSpace string) {
-	command := fmt.Sprintf("suspend app %s", appName)
-	By(fmt.Sprintf("And I run gitops suspend app command '%s'", command), func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, command))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
+	cmd := fmt.Sprintf("%s suspend app %s", gitops_bin_path, appName)
+	By(fmt.Sprintf("And I run '%s'", cmd), func() {
+		_, _ = runCommandAndReturnStringOutput(cmd)
 	})
 }
 
 func listGitopsApplication(appName string, nameSpace string) string {
-	var session *gexec.Session
-	var err error
-
-	cmd := fmt.Sprintf("get app %s", appName)
-	command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, cmd))
-	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-
-	return string(session.Out.Contents())
+	var stdOut string
+	cmd := fmt.Sprintf("%s get app %s", gitops_bin_path, appName)
+	By(fmt.Sprintf("And I run '%s'", cmd), func() {
+		stdOut, _ = runCommandAndReturnStringOutput(cmd)
+	})
+	return stdOut
 }
 
 func deleteGitopsApplication(appName string, nameSpace string) {
-	command := fmt.Sprintf("delete app %s --auto-merge=true", appName)
-	By(fmt.Sprintf("And I run gitops delete app command '%s'", command), func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", GITOPS_BIN_PATH, command))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
+	cmd := fmt.Sprintf("%s delete app %s --auto-merge=true", gitops_bin_path, appName)
+	By(fmt.Sprintf("And I run '%s'", cmd), func() {
+		_, _ = runCommandAndReturnStringOutput(cmd)
 
 		appDeleted := func() bool {
 			status := listGitopsApplication(appName, nameSpace)
@@ -170,13 +170,17 @@ func deleteGitopsApplication(appName string, nameSpace string) {
 	})
 }
 
+func deleteGitopsGitRepository(nameSpace string) {
+	cmd := fmt.Sprintf(`kubectl get GitRepositories -n %[1]v | grep auto |grep %[2]v | cut -d' ' -f1 | xargs kubectl delete GitRepositories -n %[1]v`, nameSpace, gitProviderEnv.Repo)
+	By("And I delete GitRepository resource", func() {
+		_, _ = runCommandAndReturnStringOutput(cmd)
+	})
+}
+
 func deleteGitopsDeploySecret(nameSpace string) {
-	command := fmt.Sprintf(`kubectl get secrets -n %[1]v  | grep Opaque | grep wego- | cut -d' ' -f1 | xargs kubectl delete secrets -n %[1]v`, nameSpace)
+	cmd := fmt.Sprintf(`kubectl get secrets -n %[1]v  | grep Opaque | grep wego- | cut -d' ' -f1 | xargs kubectl delete secrets -n %[1]v`, nameSpace)
 	By("And I delete deploy key secret", func() {
-		command := exec.Command("sh", "-c", command)
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
+		_, _ = runCommandAndReturnStringOutput(cmd)
 	})
 }
 
@@ -209,13 +213,13 @@ func createCluster(clusterType string, clusterName string, configFile string) {
 func deleteClusters(clusterType string, clusters []string) {
 	for _, cluster := range clusters {
 		if clusterType == "kind" {
-			log.Printf("Deleting cluster: %s", cluster)
+			logger.Infof("Deleting cluster: %s", cluster)
 			err := runCommandPassThrough("kind", "delete", "cluster", "--name", cluster)
 			Expect(err).ShouldNot(HaveOccurred())
 		} else {
 			err := runCommandPassThrough("kubectl", "get", "cluster", cluster)
 			if err == nil {
-				log.Printf("Deleting cluster: %s", cluster)
+				logger.Infof("Deleting cluster: %s", cluster)
 				err := runCommandPassThrough("kubectl", "delete", "cluster", cluster)
 				Expect(err).ShouldNot(HaveOccurred())
 				err = runCommandPassThrough("kubectl", "get", "cluster", cluster)
@@ -232,14 +236,16 @@ func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
 
 	if runtime.GOOS == "darwin" {
 		// Point the kubeconfig to the exposed port of the load balancer, rather than the inaccessible container IP.
-		_, err := runCommandAndReturnStringOutput(fmt.Sprintf(`sed -i -e "s/server:.*/server: https:\/\/$(docker port %s-lb 6443/tcp | sed "s/0.0.0.0/127.0.0.1/")/g" %s`, capiCluster, kubeconfigPath))
-		Expect(err).Should(BeEmpty(), "Failed to delete ClusterBootstrapConfig secret")
+		_, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf(`sed -i -e "s/server:.*/server: https:\/\/$(docker port %s-lb 6443/tcp | sed "s/0.0.0.0/127.0.0.1/")/g" %s`, capiCluster, kubeconfigPath))
+		Expect(stdErr).Should(BeEmpty(), "Failed to delete ClusterBootstrapConfig secret")
 	}
 }
 
-func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string) {
+func verifyCapiClusterHealth(kubeconfigPath string, namespace string) {
 
 	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("pods", "", "kube-system", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("pods", "", "wego-system", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	waitForResourceState("Ready", "nodes", "default", "", kubeconfigPath)
+
+	Expect(waitForResource("pods", "", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	waitForResourceState("Ready", "pods", namespace, "", kubeconfigPath)
 }

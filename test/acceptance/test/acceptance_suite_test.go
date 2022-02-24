@@ -1,11 +1,10 @@
 package acceptance
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 )
@@ -16,12 +15,12 @@ func GomegaFail(message string, callerSkip ...int) {
 	randID := RandString(16)
 	if webDriver != nil {
 		filepath := TakeScreenShot(randID) //Save the screenshot of failure
-		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
+		logger.Errorf("Failure screenshot is saved in file %s", filepath)
 	}
 
 	// Show management cluster pods etc.
-	_ = showItems("")
-	_ = dumpClusterInfo(randID)
+	_ = ShowItems("")
+	_ = DumpClusterInfo(randID)
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
@@ -50,6 +49,7 @@ var _ = BeforeSuite(func() {
 
 	SetDefaultEventuallyTimeout(ASSERTION_DEFAULT_TIME_OUT) //Things are slow on WKP UI
 	SetupTestEnvironment()                                  // Read OS environment variables and initialize the test environment
+	InitializeLogger("acceptance-tests.log")                // Initilaize the global logger and tee Ginkgowriter
 	InstallWeaveGitopsControllers()                         // Install weave gitops core and enterprise controllers
 })
 
@@ -59,5 +59,9 @@ var _ = AfterSuite(func() {
 	deleteRepo(gitProviderEnv) // Delete the config repository to keep the org clean
 	if webDriver != nil {
 		Expect(webDriver.Destroy()).To(Succeed())
+	}
+
+	if _, err := logFile.Stat(); err == nil {
+		logFile.Close()
 	}
 })

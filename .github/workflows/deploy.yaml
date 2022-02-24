@@ -21,7 +21,6 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     env:
-      GO_CACHE_NAME: cache-go-modules
       WGE_COVERALLS_TOKEN: ${{ secrets.WGE_COVERALLS_TOKEN }}
       ARTEFACTS_BASE_DIR: /tmp/workspace/test
     steps:
@@ -46,12 +45,12 @@ jobs:
       env:
         GO111MODULE: off
       run: go get github.com/mattn/goveralls
-    
+
     - name: Run unit tests
-      run: | 
+      run: |
         go version
         mkdir -p ${{ env.ARTEFACTS_BASE_DIR }}
-        
+
         WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
         cd ${{ github.workspace }}/cmd/event-writer && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/event-writer-results.xml
         cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
@@ -79,7 +78,7 @@ jobs:
           path: |
             ${{ env.ARTEFACTS_BASE_DIR }}
           retention-days: 7
-     
+
   acceptance-tests-gitlab:
     needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
@@ -87,7 +86,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      focus-or-skip: "-ginkgo.skip='@gce|@eks|@application'"
+      focus-or-skip: "-ginkgo.skip='@gce|@eks'"
       kubectl-version: "v1.22.0"
       git-provider: gitlab
       git-provider_hostname: gitlab.com

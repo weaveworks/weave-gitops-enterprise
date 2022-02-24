@@ -14,7 +14,6 @@ $ helm install my-release wkp/mccp \
     --set "imagePullSecrets[0].name=<secret-containing-docker-config>" \
     --set "nats.client.service.nodePort=<exposed-port-for-nats>" \
     --set "agentTemplate.natsURL=<nats-address>:<exposed-port-for-nats>"
-    --set "wkp-ui.image.pullSecrets[0]=<secret-containing-docker-config>"
 ```
 
 > Note: When using `sqlite` as the backing store, you need to designate which worker node will be used to host the database file otherwise the pods will stay in `Pending` state. Run `kubectl label nodes <node-name> wkp-database-volume-node=true` to add the label to the designated node. Once the label has been added to a node the pods should transition into the `Running` state.

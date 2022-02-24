@@ -7,6 +7,7 @@ import (
 	"github.com/go-logr/logr"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -76,15 +77,21 @@ func (lib *ConfigMapLibrary) Get(ctx context.Context, name string) (*capiv1.CAPI
 }
 
 type CRDLibrary struct {
-	Log       logr.Logger
-	Client    client.Client
-	Namespace string
+	Log          logr.Logger
+	ClientGetter kube.ClientGetter
+	Namespace    string
 }
 
 func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITemplate, error) {
+	lib.Log.Info("Getting client from context")
+	cl, err := lib.ClientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	capiTemplate := capiv1.CAPITemplate{}
 	lib.Log.Info("Getting capitemplate", "template", name)
-	err := lib.Client.Get(ctx, client.ObjectKey{
+	err = cl.Get(ctx, client.ObjectKey{
 		Namespace: lib.Namespace,
 		Name:      name,
 	}, &capiTemplate)
@@ -98,9 +105,15 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITempla
 }
 
 func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error) {
+	lib.Log.Info("Getting client from context")
+	cl, err := lib.ClientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	lib.Log.Info("Querying namespace for CAPITemplate resources", "namespace", lib.Namespace)
 	capiTemplateList := capiv1.CAPITemplateList{}
-	err := lib.Client.List(ctx, &capiTemplateList, client.InNamespace(lib.Namespace))
+	err = cl.List(ctx, &capiTemplateList, client.InNamespace(lib.Namespace))
 	if err != nil {
 		return nil, fmt.Errorf("error getting capitemplates: %s", err)
 	}

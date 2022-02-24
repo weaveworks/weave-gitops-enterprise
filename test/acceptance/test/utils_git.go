@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -15,10 +14,7 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
@@ -75,6 +71,25 @@ func initGitProviderData() GitProviderEnv {
 	}
 }
 
+// WaitUntil runs checkDone until a timeout is reached
+func waitUntil(poll, timeout time.Duration, checkDone func() error, expectError ...bool) error {
+	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
+		err := checkDone()
+
+		if len(expectError) > 0 && expectError[0] {
+			if err != nil {
+				return nil
+			}
+		} else {
+			if err == nil {
+				return nil
+			}
+		}
+		logger.Tracef("error occurred %s, retrying in %s\n", err, poll.String())
+	}
+	return fmt.Errorf("timeout reached %s", timeout.String())
+}
+
 func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 	var re = regexp.MustCompile(`(?m)\[rate reset in (.*)\]`)
 	match := re.FindAllStringSubmatch(errOutput, -1)
@@ -92,7 +107,7 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 }
 
 func extractOrgAndRepo(url string) (string, string) {
-	normalized, normErr := gitproviders.NewRepoURL(url, true)
+	normalized, normErr := gitproviders.NewRepoURL(url)
 	Expect(normErr).ShouldNot(HaveOccurred())
 
 	re := regexp.MustCompile("^[^/]+//[^/]+/([^/]+)/([^/]+).*$")
@@ -127,13 +142,8 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
 	err = createGitRepository(gp, "main", isPrivateRepo)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = waitUntil(os.Stdout, POLL_INTERVAL_5SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
-
-		command := exec.Command("sh", "-c", fmt.Sprintf(`
-            git clone https://%s/%s/%s.git %s`, gp.Hostname, gp.Org, gp.Repo, repoAbsolutePath))
-		command.Stdout = os.Stdout
-		command.Stderr = os.Stderr
-		err := command.Run()
+	err = waitUntil(POLL_INTERVAL_5SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone https://%s/%s/%s.git %s`, gp.Hostname, gp.Org, gp.Repo, repoAbsolutePath))
 		if err != nil {
 			os.RemoveAll(repoAbsolutePath)
 			return err
@@ -175,16 +185,16 @@ func createGitRepository(gp GitProviderEnv, branch string, private bool) error {
 
 	ctx := context.Background()
 
-	fmt.Printf("creating repo %s ...\n", gp.Repo)
+	logger.Infof("creating repo %s ...", gp.Repo)
 
-	if err := waitUntil(os.Stdout, time.Second, ASSERTION_30SECONDS_TIME_OUT, func() error {
+	if err := waitUntil(time.Second, ASSERTION_30SECONDS_TIME_OUT, func() error {
 		_, err := gitProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
 		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
 			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Waiting for rate quota %s \n", waitForRateQuota.String())
+			logger.Infof("Waiting for rate quota %s \n", waitForRateQuota.String())
 			time.Sleep(waitForRateQuota)
 			return fmt.Errorf("retry after waiting for rate quota")
 		}
@@ -193,17 +203,17 @@ func createGitRepository(gp GitProviderEnv, branch string, private bool) error {
 		return fmt.Errorf("error creating repo %s", err)
 	}
 
-	fmt.Printf("repo %s created ...\n", gp.Repo)
-	fmt.Printf("validating access to the repo %s ...\n", gp.Repo)
+	logger.Infof("repo %s created ...", gp.Repo)
+	logger.Infof("validating access to the repo %s ...", gp.Repo)
 
-	err = waitUntil(os.Stdout, POLL_INTERVAL_1SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
+	err = waitUntil(POLL_INTERVAL_1SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
 		_, err := gitProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
 	})
 	if err != nil {
 		return fmt.Errorf("error validating access to the repository %w", err)
 	}
-	fmt.Printf("repo %s is accessible through the api ...\n", gp.Repo)
+	logger.Infof("repo %s is accessible through the api ...", gp.Repo)
 
 	return nil
 }
@@ -253,7 +263,7 @@ func getGitProvider(provider string, org string, repo string, token string, toke
 }
 
 func deleteRepo(gp GitProviderEnv) {
-	log.Printf("Delete application repo: %s", path.Join(gp.Org, gp.Repo))
+	logger.Infof("Delete application repo: %s", path.Join(gp.Org, gp.Repo))
 
 	gitProvider, orgRef, providerErr := getGitProvider(gp.Type, gp.Org, gp.Repo, gp.Token, gp.TokenType, gp.Hostname)
 	Expect(providerErr).ShouldNot(HaveOccurred())
@@ -266,7 +276,7 @@ func deleteRepo(gp GitProviderEnv) {
 		deleteErr := or.Delete(ctx)
 		Expect(deleteErr).ShouldNot(HaveOccurred())
 	}
-	repoErr = waitUntil(os.Stdout, POLL_INTERVAL_1SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
+	repoErr = waitUntil(POLL_INTERVAL_1SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
 		_, err := gitProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
 	}, true)
@@ -316,7 +326,7 @@ func mergePullRequest(gp GitProviderEnv, repoAbsolutePath string, prLink string)
 }
 
 func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
-	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
+	logger.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
 	if commitMessage == "" {
 		commitMessage = "edit repo file"
 	}
@@ -325,21 +335,15 @@ func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 }
 
 func getGitRepositoryURL(repoAbsolutePath string) string {
-	repoURL, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git config --get remote.origin.url`, repoAbsolutePath))
+	repoURL, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git config --get remote.origin.url`, repoAbsolutePath), ASSERTION_30SECONDS_TIME_OUT)
 	return repoURL
 }
 
 func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-	return string(session.Wait().Out.Contents())
+	stdOut, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git checkout -b %s && git push --set-upstream origin %s`, repoAbsolutePath, branchName, branchName), ASSERTION_30SECONDS_TIME_OUT)
+	return stdOut
 }
 
 func pullGitRepo(repoAbsolutePath string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git pull", repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+	_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git pull`, repoAbsolutePath), ASSERTION_30SECONDS_TIME_OUT)
 }

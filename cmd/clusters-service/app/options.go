@@ -3,13 +3,13 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"gorm.io/gorm"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 // Options specifies the options that can be set
@@ -31,6 +31,9 @@ type Options struct {
 	EntitlementSecretKey         client.ObjectKey
 	AgentTemplateNatsURL         string
 	AgentTemplateAlertmanagerURL string
+	HtmlRootPath                 string
+	ClientGetter                 kube.ClientGetter
+	OIDC                         OIDCAuthenticationOptions
 }
 
 type Option func(*Options)
@@ -152,5 +155,28 @@ func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL string
 	return func(o *Options) {
 		o.AgentTemplateNatsURL = agentTemplateNatsURL
 		o.AgentTemplateAlertmanagerURL = agentTemplateAlertmanagerURL
+	}
+}
+
+// WithHtmlRootPath sets the directory on the filesystem to
+// serve static assets like the frontend from.
+func WithHtmlRootPath(path string) Option {
+	return func(o *Options) {
+		o.HtmlRootPath = path
+	}
+}
+
+// WithClientGetter is used to set the client getter
+// to use when querying the Kubernetes API.
+func WithClientGetter(clientGetter kube.ClientGetter) Option {
+	return func(o *Options) {
+		o.ClientGetter = clientGetter
+	}
+}
+
+// WithOIDCConfig is used to set the OIDC configuration.
+func WithOIDCConfig(oidc OIDCAuthenticationOptions) Option {
+	return func(o *Options) {
+		o.OIDC = oidc
 	}
 }

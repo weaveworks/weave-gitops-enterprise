@@ -6,12 +6,11 @@ import (
 	"path"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
@@ -25,7 +24,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
 
 			// Sometimes authentication failed to get the github device code, it may require revalidation with new access code
 			if pages.ElementExist(authenticate.AuthorizationError) {
-				log.Info("Error getting github device code, requires revalidating...")
+				logger.Info("Error getting github device code, requires revalidating...")
 				Expect(authenticate.Close.Click()).To(Succeed())
 				Eventually(authenticate.AuthenticateGithub.Click).Should(Succeed())
 				AuthenticateWithGitHub(webDriver)
@@ -58,7 +57,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
 				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
 				Expect(authenticate.Signin.Click()).To(Succeed())
 			} else {
-				log.Info("Login not found, assuming already logged in")
+				logger.Info("Login not found, assuming already logged in")
 			}
 
 			if pages.ElementExist(authenticate.Authorize) {
@@ -83,7 +82,7 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 	accessCode, _ := authenticate.AccessCode.Text()
 	Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
 	accessCode = strings.Replace(accessCode, "-", "", 1)
-	log.Info(accessCode)
+	logger.Info(accessCode)
 
 	// Move to device activation window
 	TakeScreenShot("application_authentication")
@@ -98,7 +97,7 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 		Expect(activate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
 		Expect(activate.Signin.Click()).To(Succeed())
 	} else {
-		log.Info("Login not found, assuming already logged in")
+		logger.Info("Login not found, assuming already logged in")
 		TakeScreenShot("login_skipped")
 	}
 
@@ -108,7 +107,7 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 		authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
 		Expect(activate.AuthCode.SendKeys(authCode)).To(Succeed())
 	} else {
-		log.Info("OTP not found, assuming already logged in")
+		logger.Info("OTP not found, assuming already logged in")
 		TakeScreenShot("otp_skipped")
 	}
 
@@ -132,14 +131,14 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 		BeforeEach(func() {
 
 			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(GITOPS_BIN_PATH)).To(BeTrue(), fmt.Sprintf("%s can not be found.", GITOPS_BIN_PATH))
+				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
 			})
 
 			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService(CAPI_ENDPOINT_URL)
+				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
 			})
 
-			initializeWebdriver(DEFAULT_UI_URL)
+			initializeWebdriver(test_ui_url)
 		})
 
 		AfterEach(func() {
@@ -150,7 +149,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			appName := "nginx"
 			appNamespace := "my-nginx"
 			appPath := "nginx-app"
-			kustomizationFile := "../../utils/data/nginx.yaml"
+			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "nginx.yaml")
 			kustomizationCommitMsg := "edit nginx kustomization repo file"
 
 			JustAfterEach(func() {
@@ -161,7 +160,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
 			})
 
-			It("@application Verify application's status and history can be monitored.", func() {
+			It("@application @git Verify application's status and history can be monitored.", func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("When I create a private repository for cluster configs", func() {

@@ -37,4 +37,3 @@ jobs:
       with:
         prerelease: true
         body: ${{steps.github_release.outputs.changelog}}
-        

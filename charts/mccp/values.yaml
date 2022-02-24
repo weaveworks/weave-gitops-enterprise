@@ -3,13 +3,13 @@
 # Declare variables to be passed into your templates.
 
 imagePullSecrets: []
-nameOverride: ''
-fullnameOverride: ''
+nameOverride: ""
+fullnameOverride: ""
 
 images:
   eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:v2.5.0
-  gitopsRepoBroker: docker.io/weaveworks/weave-gitops-enterprise-gitops-repo-broker:v2.5.0
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
+  uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
   clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.0.3
 
 serviceAccount:
@@ -48,19 +48,19 @@ config:
       injectPruneAnnotation: enabled
     clusters:
       namespace: default
-    repositoryURL: ''
-    repositoryApiURL: ''
-    repositoryPath: ''
+    repositoryURL: ""
+    repositoryApiURL: ""
+    repositoryPath: ""
     baseBranch: main
   checkpoint:
     enabled: true
-
-gitopsRepoBroker:
-  gitRepo:
-    url: ''
-    branch: ''
-  gitDeployKeySecretName: ''
-  sshConfigMapName: ''
+  oidc:
+    enabled: false
+    issuerURL: ""
+    redirectURL: ""
+    cookieDuration: 1h
+    # Name of secret in wego-system namespace that contains a clientId and clientSecret
+    clientCredentialsSecret: ""
 
 agentTemplate:
   natsScheme: nats
@@ -69,7 +69,7 @@ agentTemplate:
 nats:
   auth:
     enabled: true
-    user: ''
+    user: ""
     token: $NATS_AUTH_TOKEN
   client:
     service:
@@ -79,22 +79,4 @@ nats:
 nginx-ingress-controller:
   ingressClass: mccp-nginx
   config:
-    ssl-redirect: 'false'
-
-wkp-ui:
-  server:
-    htmlRootPath: html/mccp
-  image:
-    tag: v2.5.0
-    pullSecrets: []
-  ingress:
-    annotations:
-      kubernetes.io/ingress.class: mccp-nginx
-  config:
-    featureGates:
-      # only enable the mccp
-      fleetManagement: true
-      dashboard: false
-      teamWorkspaces: false
-    clusterInfo:
-      name: 'MCCP'
+    ssl-redirect: "false"

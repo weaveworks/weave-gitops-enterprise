@@ -2,47 +2,27 @@ package app
 
 import (
 	"context"
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
-	core "github.com/weaveworks/weave-gitops/pkg/server"
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	"google.golang.org/grpc/metadata"
-	"gorm.io/gorm"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/discovery"
-	"k8s.io/klog/v2/klogr"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -53,36 +33,92 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
+	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	core "github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"google.golang.org/grpc/metadata"
+	"gorm.io/gorm"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/discovery"
+	"k8s.io/klog/v2/klogr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
+
+const (
+	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
+
+	defaultConfigFilename = "config"
+)
+
+func AuthEnabled() bool {
+	return os.Getenv(AuthEnabledFeatureFlag) == "true"
+}
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
-	dbURI                        string
-	dbName                       string
-	dbUser                       string
-	dbPassword                   string
-	dbType                       string
-	dbBusyTimeout                string
-	entitlementSecretName        string
-	entitlementSecretNamespace   string
-	helmRepoNamespace            string
-	helmRepoName                 string
-	profileCacheLocation         string
-	watcherMetricsBindAddress    string
-	watcherHealthzBindAddress    string
-	watcherPort                  int
-	AgentTemplateNatsURL         string
-	AgentTemplateAlertmanagerURL string
+	dbURI                             string
+	dbName                            string
+	dbUser                            string
+	dbPassword                        string
+	dbType                            string
+	dbBusyTimeout                     string
+	entitlementSecretName             string
+	entitlementSecretNamespace        string
+	helmRepoNamespace                 string
+	helmRepoName                      string
+	profileCacheLocation              string
+	watcherMetricsBindAddress         string
+	watcherHealthzBindAddress         string
+	watcherPort                       int
+	AgentTemplateNatsURL              string
+	AgentTemplateAlertmanagerURL      string
+	htmlRootPath                      string
+	OIDC                              OIDCAuthenticationOptions
+	gitProviderType                   string
+	gitProviderHostname               string
+	capiClustersNamespace             string
+	capiTemplatesNamespace            string
+	injectPruneAnnotation             string
+	capiTemplatesRepositoryUrl        string
+	capiRepositoryPath                string
+	capiTemplatesRepositoryApiUrl     string
+	capiTemplatesRepositoryBaseBranch string
+	runtimeNamespace                  string
+	gitProviderToken                  string
+}
+
+type OIDCAuthenticationOptions struct {
+	IssuerURL      string
+	ClientID       string
+	ClientSecret   string
+	RedirectURL    string
+	CookieDuration time.Duration
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	p := Params{}
 	cmd := &cobra.Command{
 		Use:          "capi-server",
+		Version:      fmt.Sprintf("Version: %s, Image Tag: %s", version.Version, wge_version.ImageTag),
 		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return initializeConfig(cmd)
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return checkParams(p)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return StartServer(context.Background(), log, tempDir, p)
@@ -104,12 +140,65 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.watcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
-	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wkp-gitops-repo-broker:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wego-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
+	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
+	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
+	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "")
+	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
+	cmd.Flags().StringVar(&p.capiRepositoryPath, "capi-repository-path", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryApiUrl, "capi-templates-repository-api-url", "", "")
+	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
+	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")
+	cmd.Flags().StringVar(&p.gitProviderToken, "git-provider-token", "", "")
+
+	if AuthEnabled() {
+		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+		cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
+		cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+		cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
+		cmd.Flags().DurationVar(&p.OIDC.CookieDuration, "oidc-cookie-duration", time.Hour, "The duration of the ID token cookie. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	}
 
 	return cmd
 }
 
+func checkParams(params Params) error {
+	if AuthEnabled() {
+		if params.OIDC.IssuerURL == "" {
+			return cmderrors.ErrNoIssuerURL
+		}
+
+		if params.OIDC.ClientID == "" {
+			return cmderrors.ErrNoClientID
+		}
+
+		if params.OIDC.ClientSecret == "" {
+			return cmderrors.ErrNoClientSecret
+		}
+
+		if params.OIDC.RedirectURL == "" {
+			return cmderrors.ErrNoRedirectURL
+		}
+	}
+
+	return nil
+}
+
 func initializeConfig(cmd *cobra.Command) error {
+	// Set the base name of the config file, without the file extension.
+	viper.SetConfigName(defaultConfigFilename)
+
+	viper.AddConfigPath(".")
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
+		}
+	}
+
 	// Align flag and env var names
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
@@ -176,7 +265,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return err
 	}
-	ns := os.Getenv("CAPI_CLUSTERS_NAMESPACE")
+	ns := p.capiClustersNamespace
 	if ns == "" {
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
@@ -230,6 +319,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}
 	}()
 
+	configGetter := core.NewImpersonatingConfigGetter(kubeClientConfig, false)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme)
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithProfileHelmRepository(p.helmRepoName),
@@ -242,12 +334,15 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
 		WithTemplateLibrary(&templates.CRDLibrary{
-			Log:       log,
-			Client:    kubeClient,
-			Namespace: os.Getenv("CAPI_TEMPLATES_NAMESPACE"),
+			Log:          log,
+			ClientGetter: clientGetter,
+			Namespace:    p.capiTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
-		WithProfilesConfig(core.NewProfilesConfig(kubeClient, profileCache, p.helmRepoNamespace, p.helmRepoName)),
+		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
+			DefaultConfig: kubeClientConfig,
+			ClusterName:   "",
+		}, profileCache, p.helmRepoNamespace, p.helmRepoName)),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -258,12 +353,14 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithCAPIClustersNamespace(ns),
 		WithHelmRepositoryCacheDirectory(tempDir),
 		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL),
+		WithHtmlRootPath(p.htmlRootPath),
+		WithClientGetter(clientGetter),
+		WithOIDCConfig(p.OIDC),
 	)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.
 func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) error {
-
 	args := defaultOptions()
 	for _, setter := range setters {
 		setter(args)
@@ -289,14 +386,21 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.CAPIClustersNamespace == "" {
 		return errors.New("CAPI clusters namespace is not set")
 	}
+	if args.ClientGetter == nil {
+		return errors.New("kubernetes client getter is not set")
+	}
+	if (AuthEnabled() && args.OIDC == OIDCAuthenticationOptions{}) {
+		return errors.New("OIDC configuration is not set")
+	}
 
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
+	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		args.Log,
 		args.TemplateLibrary,
 		args.GitProvider,
-		args.KubernetesClient,
+		args.ClientGetter,
 		args.DiscoveryClient,
 		args.Database,
 		args.CAPIClustersNamespace,
@@ -318,36 +422,73 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
+	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	mux := http.NewServeMux()
-	mux.Handle("/v1/", grpcHttpHandler)
-
-	httpHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
-	httpHandler = entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, httpHandler))
-
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
-	mux.Handle("/gitops/api/", gitopsBrokerHandler)
 
 	// UI
-	var log = logrus.New()
-	assetFS := getAssets()
-	assetHandler := http.FileServer(http.FS(assetFS))
-	redirector := createRedirector(assetFS, log)
+	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
+	staticAssets := http.StripPrefix("/", http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)}))
 
-	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		extension := filepath.Ext(req.URL.Path)
+	mux := http.NewServeMux()
 
-		if extension == "" {
-			redirector(w, req)
-			return
+	if AuthEnabled() {
+		_, err := url.Parse(args.OIDC.IssuerURL)
+		if err != nil {
+			return fmt.Errorf("invalid issuer URL: %w", err)
 		}
-		assetHandler.ServeHTTP(w, req)
-	}))
+
+		redirectURL, err := url.Parse(args.OIDC.RedirectURL)
+		if err != nil {
+			return fmt.Errorf("invalid redirect URL: %w", err)
+		}
+
+		var oidcIssueSecureCookies bool
+		if redirectURL.Scheme == "https" {
+			oidcIssueSecureCookies = true
+		}
+
+		srv, err := auth.NewAuthServer(ctx, args.Log, http.DefaultClient,
+			auth.AuthConfig{
+				OIDCConfig: auth.OIDCConfig{
+					IssuerURL:    args.OIDC.IssuerURL,
+					ClientID:     args.OIDC.ClientID,
+					ClientSecret: args.OIDC.ClientSecret,
+					RedirectURL:  args.OIDC.RedirectURL,
+				},
+				CookieConfig: auth.CookieConfig{
+					CookieDuration:     args.OIDC.CookieDuration,
+					IssueSecureCookies: oidcIssueSecureCookies,
+				},
+			},
+		)
+		if err != nil {
+			return fmt.Errorf("could not create auth server: %w", err)
+		}
+
+		args.Log.Info("Registering callback route")
+		auth.RegisterAuthServer(mux, "/oauth2", srv)
+
+		// Secure `/v1` and `/gitops/api` API routes
+		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv)
+		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv)
+		staticAssets = auth.WithWebAuth(staticAssets, srv)
+	}
+
+	commonMiddleware := func(mux http.Handler) http.Handler {
+		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
+		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
+	}
+
+	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
+	mux.Handle("/gitops/api/", commonMiddleware(gitopsBrokerHandler))
+
+	mux.Handle("/", staticAssets)
 
 	s := &http.Server{
 		Addr:    addr,
-		Handler: httpHandler,
+		Handler: mux,
 	}
 
 	go func() {
@@ -445,7 +586,7 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	}
 }
 
-func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) *mux.Router {
+func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
@@ -459,57 +600,14 @@ func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL strin
 	return r
 }
 
-//go:embed dist/*
-var static embed.FS
-
-func getAssets() fs.FS {
-	f, err := fs.Sub(static, "dist")
-
-	if err != nil {
-		panic(err)
-	}
-
-	return f
+type spaFileSystem struct {
+	root http.FileSystem
 }
 
-// A redirector ensures that index.html always gets served.
-// The JS router will take care of actual navigation once the index.html page lands.
-func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		indexPage, err := fsys.Open("index.html")
-
-		if err != nil {
-			log.Error(err, "could not open index.html page")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		stat, err := indexPage.Stat()
-		if err != nil {
-			log.Error(err, "could not get index.html stat")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		bt := make([]byte, stat.Size())
-		_, err = indexPage.Read(bt)
-
-		if err != nil {
-			log.Error(err, "could not read index.html")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		_, err = w.Write(bt)
-
-		if err != nil {
-			log.Error(err, "error writing index.html")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
+func (fs *spaFileSystem) Open(name string) (http.File, error) {
+	f, err := fs.root.Open(name)
+	if os.IsNotExist(err) {
+		return fs.root.Open("index.html")
 	}
+	return f, err
 }
