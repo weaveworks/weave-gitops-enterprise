@@ -100,11 +100,11 @@ type Params struct {
 }
 
 type OIDCAuthenticationOptions struct {
-	IssuerURL      string
-	ClientID       string
-	ClientSecret   string
-	RedirectURL    string
-	CookieDuration time.Duration
+	IssuerURL     string
+	ClientID      string
+	ClientSecret  string
+	RedirectURL   string
+	TokenDuration time.Duration
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -159,27 +159,32 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
 		cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 		cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
-		cmd.Flags().DurationVar(&p.OIDC.CookieDuration, "oidc-cookie-duration", time.Hour, "The duration of the ID token cookie. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+		cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 	}
 
 	return cmd
 }
 
 func checkParams(params Params) error {
-	if AuthEnabled() {
-		if params.OIDC.IssuerURL == "" {
+	issuerURL := params.OIDC.IssuerURL
+	clientID := params.OIDC.ClientID
+	clientSecret := params.OIDC.ClientSecret
+	redirectURL := params.OIDC.RedirectURL
+
+	if issuerURL != "" || clientID != "" || clientSecret != "" || redirectURL != "" {
+		if issuerURL == "" {
 			return cmderrors.ErrNoIssuerURL
 		}
 
-		if params.OIDC.ClientID == "" {
+		if clientID == "" {
 			return cmderrors.ErrNoClientID
 		}
 
-		if params.OIDC.ClientSecret == "" {
+		if clientSecret == "" {
 			return cmderrors.ErrNoClientSecret
 		}
 
-		if params.OIDC.RedirectURL == "" {
+		if redirectURL == "" {
 			return cmderrors.ErrNoRedirectURL
 		}
 	}
@@ -439,29 +444,26 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			return fmt.Errorf("invalid issuer URL: %w", err)
 		}
 
-		redirectURL, err := url.Parse(args.OIDC.RedirectURL)
+		_, err = url.Parse(args.OIDC.RedirectURL)
 		if err != nil {
 			return fmt.Errorf("invalid redirect URL: %w", err)
 		}
 
-		var oidcIssueSecureCookies bool
-		if redirectURL.Scheme == "https" {
-			oidcIssueSecureCookies = true
+		tsv, err := auth.NewHMACTokenSignerVerifier(args.OIDC.TokenDuration)
+		if err != nil {
+			return fmt.Errorf("could not create HMAC token signer: %w", err)
 		}
 
 		srv, err := auth.NewAuthServer(ctx, args.Log, http.DefaultClient,
 			auth.AuthConfig{
 				OIDCConfig: auth.OIDCConfig{
-					IssuerURL:    args.OIDC.IssuerURL,
-					ClientID:     args.OIDC.ClientID,
-					ClientSecret: args.OIDC.ClientSecret,
-					RedirectURL:  args.OIDC.RedirectURL,
+					IssuerURL:     args.OIDC.IssuerURL,
+					ClientID:      args.OIDC.ClientID,
+					ClientSecret:  args.OIDC.ClientSecret,
+					RedirectURL:   args.OIDC.RedirectURL,
+					TokenDuration: args.OIDC.TokenDuration,
 				},
-				CookieConfig: auth.CookieConfig{
-					CookieDuration:     args.OIDC.CookieDuration,
-					IssueSecureCookies: oidcIssueSecureCookies,
-				},
-			},
+			}, args.KubernetesClient, tsv,
 		)
 		if err != nil {
 			return fmt.Errorf("could not create auth server: %w", err)
@@ -471,9 +473,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		auth.RegisterAuthServer(mux, "/oauth2", srv)
 
 		// Secure `/v1` and `/gitops/api` API routes
-		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv)
-		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv)
-		staticAssets = auth.WithWebAuth(staticAssets, srv)
+		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, core.PublicRoutes)
+		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv, core.PublicRoutes)
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
