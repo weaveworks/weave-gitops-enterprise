@@ -232,7 +232,7 @@ const ResponsiveDrawer = () => {
       <Route component={SignIn} exact={true} path="/sign_in" />
       <Route path="*">
         {/* Check we've got a logged in user otherwise redirect back to signin */}
-        <AuthCheck>
+        <AuthCheck ContentWrapper={ContentWrapper}>
           <App />
         </AuthCheck>
       </Route>
