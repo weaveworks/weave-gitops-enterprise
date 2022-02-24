@@ -27,4 +27,11 @@ module.exports = function (app) {
       changeOrigin: true,
     }),
   );
+  app.use(
+    '/oauth2',
+    createProxyMiddleware({
+      target: capiServerHost,
+      changeOrigin: true,
+    }),
+  );
 };

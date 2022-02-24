@@ -20,7 +20,9 @@ import {
 import {
   AppContextProvider,
   applicationsClient,
+  AuthCheck,
   OAuthCallback,
+  SignIn,
 } from '@weaveworks/weave-gitops';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
@@ -121,7 +123,7 @@ const ResponsiveDrawer = () => {
     </PageTemplate>
   );
 
-  return (
+  const App = () => (
     <Compose
       components={[
         NotificationsProvider,
@@ -222,6 +224,19 @@ const ResponsiveDrawer = () => {
         </main>
       </div>
     </Compose>
+  );
+
+  return (
+    <Switch>
+      {/* <Signin> does not use the base page <Layout> so pull it up here */}
+      <Route component={SignIn} exact={true} path="/sign_in" />
+      <Route path="*">
+        {/* Check we've got a logged in user otherwise redirect back to signin */}
+        <AuthCheck>
+          <App />
+        </AuthCheck>
+      </Route>
+    </Switch>
   );
 };
 
