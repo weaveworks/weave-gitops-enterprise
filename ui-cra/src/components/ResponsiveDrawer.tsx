@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import AlertsProvider from '../contexts/Alerts/Provider';
@@ -53,6 +53,7 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
+      height: '100vh',
     },
     drawer: {
       [theme.breakpoints.up('sm')]: {
@@ -122,6 +123,14 @@ const ResponsiveDrawer = () => {
       </ContentWrapper>
     </PageTemplate>
   );
+
+  const SignInWrapper: FC = () => {
+    return (
+      <div style={{ height: '100vh' }}>
+        <SignIn />
+      </div>
+    );
+  };
 
   const App = () => (
     <Compose
@@ -228,11 +237,10 @@ const ResponsiveDrawer = () => {
 
   return (
     <Switch>
-      {/* <Signin> does not use the base page <Layout> so pull it up here */}
-      <Route component={SignIn} exact={true} path="/sign_in" />
+      <Route component={SignInWrapper} exact={true} path="/sign_in" />
       <Route path="*">
         {/* Check we've got a logged in user otherwise redirect back to signin */}
-        <AuthCheck ContentWrapper={ContentWrapper}>
+        <AuthCheck>
           <App />
         </AuthCheck>
       </Route>
