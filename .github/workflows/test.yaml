@@ -119,6 +119,7 @@ jobs:
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       GITLAB_TOKEN: ${{ secrets.WGE_GITLAB_TOKEN }}
+      SKIP_GITLAB_TESTS: 1
     steps:
       - id: cache-paths
         run: |
