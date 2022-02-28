@@ -17,6 +17,6 @@ interface ErrorIconProps {
   error: string;
 }
 
-export const ErrorIcon: FC<ErrorIconProps> = ({ error }) => (
-  <Icon icon={faExclamationTriangle} title={error} />
-);
+// export const ErrorIcon: FC<ErrorIconProps> = ({ error }) => (
+//   <Icon icon={faExclamationTriangle} title={error} />
+// );
