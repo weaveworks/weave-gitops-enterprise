@@ -56,7 +56,6 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
-      height: '100vh',
     },
     drawer: {
       [theme.breakpoints.up('sm')]: {
@@ -102,6 +101,9 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const SignInWrapper = styled.div`
   height: 100vh;
+  .MuiAlert-root {
+    width: 470px;
+  }
 `;
 
 const localMuiTheme = createTheme({
