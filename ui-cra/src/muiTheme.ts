@@ -51,20 +51,6 @@ export const muiTheme = createTheme({
       root: {
         flexGrow: 1,
       },
-      // test the create a cluster form and see if we can remove this
-      // input: {
-      //   border: `1px solid ${weaveTheme.colors.neutral20}`,
-      //   borderRadius: 2,
-      //   position: 'relative',
-      //   backgroundColor: defaultTheme.palette.common.white,
-      //   fontSize: 16,
-      //   width: '100%',
-      //   padding: '8px 12px',
-      //   '&:focus': {
-      //     borderColor: weaveTheme.colors.primaryDark,
-      //     borderRadius: 2,
-      //   },
-      // },
     },
     MuiSelect: {
       select: {
