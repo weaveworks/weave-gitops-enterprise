@@ -19,7 +19,6 @@ import {
 } from '@material-ui/core/styles';
 import {
   AppContextProvider,
-  ApplicationRemove,
   applicationsClient,
   AuthCheck,
   OAuthCallback,
@@ -45,6 +44,7 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../muiTheme';
+import WGApplicationRemove from './Applications/Remove';
 
 const APPS_ROUTE = '/applications';
 const APP_DETAIL_ROUTE = '/application_detail';
@@ -267,11 +267,7 @@ const ResponsiveDrawer = () => {
             <Route
               exact
               path={APP_DELETE_ROUTE}
-              component={({ location }: any) => {
-                const params = qs.parse(location.search);
-
-                return <ApplicationRemove name={params.name as string} />;
-              }}
+              component={WGApplicationRemove}
             />
             <Route
               exact
