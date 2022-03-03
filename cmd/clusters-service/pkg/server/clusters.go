@@ -37,6 +37,23 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+var labels = map[string]string{
+	"AWSCluster":             "aws",
+	"AWSManagedCluster":      "aws",
+	"AWSManagedControlPlane": "aws",
+	"AzureCluster":           "azure",
+	"AzureManagedCluster":    "azure",
+	"DOCluster":              "digitalocean",
+	"DockerCluster":          "docker",
+	"GCPCluster":             "gcp",
+	"OpenStackCluster":       "openstack",
+	"PacketCluster":          "packet",
+	"VSphereCluster":         "vsphere",
+}
+
+func (s *server) ListWeaveClusters(ctx context.Context, msg *capiv1_proto.ListWeaveClustersRequest) (*capiv1_proto.ListWeaveClustersResponse, error) {
+}
+
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
 	gp, err := getGitProvider(ctx)
 	if err != nil {
@@ -568,4 +585,25 @@ func parseValues(s string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
 	}
 	return vals, nil
+}
+
+func isLabelRecognised(label string) bool {
+	for _, l := range labels {
+		if strings.EqualFold(label, l) {
+			return true
+		}
+	}
+	return false
+}
+
+func filterClustersByLabel(cl []*capiv1_proto.Cluster, label string) []*capiv1_proto.Cluster {
+	clusters := []*capiv1_proto.Cluster{}
+
+	for _, c := range cl {
+		if strings.EqualFold(c.Label, label) {
+			clusters = append(clusters, c)
+		}
+	}
+
+	return clusters
 }

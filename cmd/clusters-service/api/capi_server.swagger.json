@@ -17,6 +17,34 @@
   ],
   "paths": {
     "/v1/clusters": {
+      "get": {
+        "operationId": "ClustersService_ListWeaveClusters",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListWeaveClustersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "label",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      },
       "delete": {
         "operationId": "ClustersService_DeleteClustersPullRequest",
         "responses": {
@@ -401,6 +429,26 @@
         }
       }
     },
+    "v1Cluster": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
     "v1CreatePullRequestRequest": {
       "type": "object",
       "properties": {
@@ -619,6 +667,21 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Template"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListWeaveClustersResponse": {
+      "type": "object",
+      "properties": {
+        "clusters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Cluster"
           }
         },
         "total": {

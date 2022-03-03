@@ -51,6 +51,15 @@ export type RenderTemplateResponse = {
   renderedTemplate?: string
 }
 
+export type ListWeaveClustersRequest = {
+  label?: string
+}
+
+export type ListWeaveClustersResponse = {
+  clusters?: Cluster[]
+  total?: number
+}
+
 export type CreatePullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
@@ -99,6 +108,14 @@ export type GetKubeconfigRequest = {
 
 export type GetKubeconfigResponse = {
   kubeconfig?: string
+}
+
+export type Cluster = {
+  id?: string
+  name?: string
+  type?: string
+  status?: string
+  label?: string
 }
 
 export type Credential = {
@@ -200,6 +217,9 @@ export class ClustersService {
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListWeaveClusters(req: ListWeaveClustersRequest, initReq?: fm.InitReq): Promise<ListWeaveClustersResponse> {
+    return fm.fetchReq<ListWeaveClustersRequest, ListWeaveClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
     return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/clusters`, {...initReq, method: "POST", body: JSON.stringify(req)})

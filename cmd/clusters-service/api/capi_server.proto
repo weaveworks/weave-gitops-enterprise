@@ -40,6 +40,12 @@ service ClustersService {
       body : "*"
     };
   }
+  rpc ListWeaveClusters(ListWeaveClustersRequest)
+      returns (ListWeaveClustersResponse) {
+    option (google.api.http) = {
+      get : "/v1/clusters"
+    };
+  }
   // Creates a pull request for a cluster template.
   // The template name and values will be used to
   // create a new branch for which a new pull request
@@ -115,6 +121,12 @@ message RenderTemplateRequest {
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
+message ListWeaveClustersRequest { string label = 1; }
+message ListWeaveClustersResponse {
+  repeated Cluster clusters = 1;
+  int32 total = 2;
+}
+
 message CreatePullRequestRequest {
   // The repository to use.
   string repository_url = 1;
@@ -182,6 +194,14 @@ message GetKubeconfigRequest{
 message GetKubeconfigResponse{
   // The Kubeconfig of the workload cluster.
   string kubeconfig = 1;
+}
+
+message Cluster {
+  string ID = 1;
+  string name = 2;
+  string type = 3;
+  string status = 4;
+  string label = 5;
 }
 
 message Credential {
