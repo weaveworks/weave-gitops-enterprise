@@ -37,19 +37,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-var labels = map[string]string{
-	"AWSCluster":             "aws",
-	"AWSManagedCluster":      "aws",
-	"AWSManagedControlPlane": "aws",
-	"AzureCluster":           "azure",
-	"AzureManagedCluster":    "azure",
-	"DOCluster":              "digitalocean",
-	"DockerCluster":          "docker",
-	"GCPCluster":             "gcp",
-	"OpenStackCluster":       "openstack",
-	"PacketCluster":          "packet",
-	"VSphereCluster":         "vsphere",
-}
+var labels = []string{}
 
 func (s *server) ListWeaveClusters(ctx context.Context, msg *capiv1_proto.ListWeaveClustersRequest) (*capiv1_proto.ListWeaveClustersResponse, error) {
 }
