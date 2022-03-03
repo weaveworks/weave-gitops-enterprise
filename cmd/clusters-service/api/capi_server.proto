@@ -197,11 +197,10 @@ message GetKubeconfigResponse{
 }
 
 message Cluster {
-  string ID = 1;
-  string name = 2;
-  string type = 3;
-  string status = 4;
-  string label = 5;
+  string name = 1;
+  string type = 2;
+  string status = 3;
+  string label = 4;
 }
 
 message Credential {

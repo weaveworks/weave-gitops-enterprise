@@ -432,9 +432,6 @@
     "v1Cluster": {
       "type": "object",
       "properties": {
-        "ID": {
-          "type": "string"
-        },
         "name": {
           "type": "string"
         },
