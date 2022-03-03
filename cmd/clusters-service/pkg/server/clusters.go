@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -40,6 +41,26 @@ import (
 var labels = []string{}
 
 func (s *server) ListWeaveClusters(ctx context.Context, msg *capiv1_proto.ListWeaveClustersRequest) (*capiv1_proto.ListWeaveClustersResponse, error) {
+	cl, err := s.library.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	clusters := []*capiv1_proto.Cluster{}
+
+	for _, c := range cl {
+		clusters = append(clusters, ToClusterResponse(c))
+	}
+
+	if msg.Label != "" {
+		if !isProviderRecognised(msg.Label) {
+			return nil, fmt.Errorf("label %q is not recognised", msg.Label)
+		}
+
+		clusters = filterClustersByLabel(clusters, msg.Label)
+	}
+
+	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
+	return &capiv1_proto.ListWeaveClustersResponse{Clusters: clusters, Total: int32(len(cl))}, err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
