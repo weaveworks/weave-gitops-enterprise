@@ -2,17 +2,14 @@ import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import {
-  ApplicationRemove,
-  theme as weaveTheme,
-} from '@weaveworks/weave-gitops';
+import { ApplicationRemove } from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
 import styled from 'styled-components';
 
 const ApplicationRemoveWrapper = styled(ApplicationRemove)`
-  // & .auth-message {
-  //   margin-bottom: ${weaveTheme.spacing.xs};
-  // }
+  div[role='alert'] {
+    width: 100%;
+  }
 `;
 
 const WGApplicationRemove: FC = () => {
