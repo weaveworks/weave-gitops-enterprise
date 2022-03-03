@@ -2254,8 +2254,10 @@
     "@typescript-eslint/types" "5.13.0"
     eslint-visitor-keys "^3.0.0"
 
-"@weaveworks/weave-gitops@/Users/alina/Desktop/projects/weave-gitops/dist/":
-  version "0.6.2"
+"@weaveworks/weave-gitops@0.6.2-patch2":
+  version "0.6.2-patch2"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.6.2-patch2/d5598f448c04fcb5e2e61ab0469ed95d31f818f36ca95425daff80d3430cdac1#0a592c40683ce466f55557a02d0aed7c8c7cb47d"
+  integrity sha512-x7HrfzqF3+rcoER/bZK4zJgNH9ie5eX7hpmKmaaM/SwLl+6GxQWov14RUspHeYBaDQP8NvvilFyjuEW5lVJu9w==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2265,27 +2267,7 @@
     dagre "^0.8.5"
     dagre-d3 "^0.6.4"
     history "^5.0.0"
-    lodash "^4.17.21"
-    luxon "^1.27.0"
-    postcss "^8.3.11"
-    query-string "^7.0.0"
-    react "^17.0.2"
-    react-dom "^17.0.2"
-    react-router-dom "^5.2.0"
-    react-toastify "^7.0.4"
-    styled-components "^5.3.0"
-
-"@weaveworks/weave-gitops@file:../../weave-gitops/dist":
-  version "0.6.2"
-  dependencies:
-    "@material-ui/core" "^4.12.3"
-    "@material-ui/icons" "^4.11.2"
-    "@material-ui/lab" "^4.0.0-alpha.58"
-    d3 "^6.6.0"
-    d3-selection "^2.0.0"
-    dagre "^0.8.5"
-    dagre-d3 "^0.6.4"
-    history "^5.0.0"
+    http-proxy-middleware "^2.0.3"
     lodash "^4.17.21"
     luxon "^1.27.0"
     postcss "^8.3.11"
@@ -5588,7 +5570,7 @@ http-proxy-agent@^4.0.1:
     agent-base "6"
     debug "4"
 
-http-proxy-middleware@^2.0.0:
+http-proxy-middleware@^2.0.0, http-proxy-middleware@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/http-proxy-middleware/-/http-proxy-middleware-2.0.3.tgz#5df04f69a89f530c2284cd71eeaa51ba52243289"
   integrity sha512-1bloEwnrHMnCoO/Gcwbz7eSVvW50KPES01PecpagI+YLNLci4AcuKJrujW4Mc3sBLpFxMSlsLNHS5Nl/lvrTPA==

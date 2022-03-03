@@ -19,6 +19,7 @@ import {
 } from '@material-ui/core/styles';
 import {
   AppContextProvider,
+  ApplicationRemove,
   applicationsClient,
   AuthCheck,
   OAuthCallback,
@@ -48,6 +49,7 @@ import { muiTheme } from '../muiTheme';
 const APPS_ROUTE = '/applications';
 const APP_DETAIL_ROUTE = '/application_detail';
 const APP_ADD_ROUTE = '/application_add';
+const APP_DELETE_ROUTE = '/application_remove';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 
 const drawerWidth = 220;
@@ -262,6 +264,15 @@ const ResponsiveDrawer = () => {
               component={WGApplicationDetail}
             />
             <Route exact path={APP_ADD_ROUTE} component={WGApplicationAdd} />
+            <Route
+              exact
+              path={APP_DELETE_ROUTE}
+              component={({ location }: any) => {
+                const params = qs.parse(location.search);
+
+                return <ApplicationRemove name={params.name as string} />;
+              }}
+            />
             <Route
               exact
               path={GITLAB_OAUTH_CALLBACK}

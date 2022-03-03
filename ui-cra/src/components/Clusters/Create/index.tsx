@@ -312,15 +312,19 @@ const AddCluster: FC = () => {
                     !isLargeScreen ? classes.divider : classes.largeDivider
                   }
                 />
-                <TemplateFields
-                  activeTemplate={activeTemplate}
-                  setActiveStep={setActiveStep}
-                  clickedStep={clickedStep}
-                  formData={formData}
-                  setFormData={setFormData}
-                  onFormDataUpdate={setFormData}
-                  onPRPreview={handlePRPreview}
-                />
+                {activeTemplate ? (
+                  <TemplateFields
+                    activeTemplate={activeTemplate}
+                    setActiveStep={setActiveStep}
+                    clickedStep={clickedStep}
+                    formData={formData}
+                    setFormData={setFormData}
+                    onFormDataUpdate={setFormData}
+                    onPRPreview={handlePRPreview}
+                  />
+                ) : (
+                  <Loader />
+                )}
                 <Profiles
                   activeStep={activeStep}
                   setActiveStep={setActiveStep}
