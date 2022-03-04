@@ -178,9 +178,6 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 }
 
 func TestCreatePullRequestInGitLab(t *testing.T) {
-	if os.Getenv("SKIP_GITLAB_TESTS") != "" {
-		t.Skip("Skipping GitLab test")
-	}
 
 	// Create a client
 	client, err := gitlab.NewClient(os.Getenv("GITLAB_TOKEN"))
