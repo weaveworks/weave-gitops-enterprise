@@ -181,7 +181,7 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 
 	// Create a client
 	gitlabHost := fmt.Sprintf("https://%s", os.Getenv("GIT_PROVIDER_HOSTNAME"))
-	client, err := gitlab.NewClient(os.Getenv("GITLAB_TOKEN"), WithBaseURL(gitlabHost))
+	client, err := gitlab.NewClient(os.Getenv("GITLAB_TOKEN"), gitlab.WithBaseURL(gitlabHost))
 	require.NoError(t, err)
 	// Create a repository using a name that doesn't exist already
 	repoName := fmt.Sprintf("%s-%03d", TestRepositoryNamePrefix, rand.Intn(1000))
