@@ -1,4 +1,5 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { ThemeProvider } from '@material-ui/core/styles';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { Cluster } from '../../types/kubernetes';
@@ -22,6 +23,7 @@ import {
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
+import { localEEMuiTheme } from '../../muiTheme';
 
 interface Size {
   size?: 'small';
@@ -140,82 +142,84 @@ const MCCP: FC = () => {
   ]);
 
   return (
-    <PageTemplate documentTitle="WeGo · Clusters">
-      <CallbackStateContextProvider
-        callbackState={{
-          page: authRedirectPage as PageRoute,
-          state: { formData, selectedCapiClusters },
-        }}
-      >
-        <SectionHeader
-          className="count-header"
-          path={[{ label: 'Clusters', url: 'clusters', count }]}
-        />
-        <ContentWrapper>
-          <Title>Connected clusters dashboard</Title>
-          <ActionsWrapper>
-            <Button
-              id="create-cluster"
-              startIcon={<Icon type={IconType.AddIcon} size="base" />}
-              onClick={handleAddCluster}
-            >
-              CREATE A CLUSTER
-            </Button>
-            <Button
-              id="connect-cluster"
-              startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
-              onClick={() => setClusterToEdit(NEW_CLUSTER)}
-            >
-              CONNECT A CLUSTER
-            </Button>
-            <Tooltip
-              title="No CAPI clusters selected"
-              placement="top"
-              disabled={selectedCapiClusters.length !== 0}
-            >
-              <div>
-                <Button
-                  id="delete-cluster"
-                  startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
-                  onClick={() => {
-                    setNotifications([]);
-                    setOpenDeletePR(true);
-                  }}
-                  color="secondary"
-                  disabled={selectedCapiClusters.length === 0}
-                >
-                  CREATE A PR TO DELETE CLUSTERS
-                </Button>
-              </div>
-            </Tooltip>
-            {openDeletePR && (
-              <DeleteClusterDialog
-                formData={formData}
-                setFormData={setFormData}
-                selectedCapiClusters={selectedCapiClusters}
-                setOpenDeletePR={setOpenDeletePR}
+    <ThemeProvider theme={localEEMuiTheme}>
+      <PageTemplate documentTitle="WeGo · Clusters">
+        <CallbackStateContextProvider
+          callbackState={{
+            page: authRedirectPage as PageRoute,
+            state: { formData, selectedCapiClusters },
+          }}
+        >
+          <SectionHeader
+            className="count-header"
+            path={[{ label: 'Clusters', url: 'clusters', count }]}
+          />
+          <ContentWrapper>
+            <Title>Connected clusters dashboard</Title>
+            <ActionsWrapper>
+              <Button
+                id="create-cluster"
+                startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                onClick={handleAddCluster}
+              >
+                CREATE A CLUSTER
+              </Button>
+              <Button
+                id="connect-cluster"
+                startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
+                onClick={() => setClusterToEdit(NEW_CLUSTER)}
+              >
+                CONNECT A CLUSTER
+              </Button>
+              <Tooltip
+                title="No CAPI clusters selected"
+                placement="top"
+                disabled={selectedCapiClusters.length !== 0}
+              >
+                <div>
+                  <Button
+                    id="delete-cluster"
+                    startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+                    onClick={() => {
+                      setNotifications([]);
+                      setOpenDeletePR(true);
+                    }}
+                    color="secondary"
+                    disabled={selectedCapiClusters.length === 0}
+                  >
+                    CREATE A PR TO DELETE CLUSTERS
+                  </Button>
+                </div>
+              </Tooltip>
+              {openDeletePR && (
+                <DeleteClusterDialog
+                  formData={formData}
+                  setFormData={setFormData}
+                  selectedCapiClusters={selectedCapiClusters}
+                  setOpenDeletePR={setOpenDeletePR}
+                />
+              )}
+            </ActionsWrapper>
+            {clusterToEdit && (
+              <ConnectClusterDialog
+                cluster={clusterToEdit}
+                onFinish={() => setClusterToEdit(null)}
               />
             )}
-          </ActionsWrapper>
-          {clusterToEdit && (
-            <ConnectClusterDialog
-              cluster={clusterToEdit}
-              onFinish={() => setClusterToEdit(null)}
+            <ClustersTable
+              onEdit={cluster => setClusterToEdit(cluster)}
+              order={order}
+              orderBy={orderBy}
+              onSortChange={handleRequestSort}
+              onSelectPageParams={handleSetPageParams}
+              filteredClusters={clusters}
+              count={count}
+              disabled={disabled}
             />
-          )}
-          <ClustersTable
-            onEdit={cluster => setClusterToEdit(cluster)}
-            order={order}
-            orderBy={orderBy}
-            onSortChange={handleRequestSort}
-            onSelectPageParams={handleSetPageParams}
-            filteredClusters={clusters}
-            count={count}
-            disabled={disabled}
-          />
-        </ContentWrapper>
-      </CallbackStateContextProvider>
-    </PageTemplate>
+          </ContentWrapper>
+        </CallbackStateContextProvider>
+      </PageTemplate>
+    </ThemeProvider>
   );
 };
 

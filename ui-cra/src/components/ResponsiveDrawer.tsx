@@ -42,8 +42,6 @@ import WGApplicationDetail from './Applications/Detail';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-import { ThemeProvider, createTheme } from '@material-ui/core/styles';
-import { muiTheme } from '../muiTheme';
 import WGApplicationRemove from './Applications/Remove';
 
 const APPS_ROUTE = '/applications';
@@ -107,52 +105,6 @@ const SignInWrapper = styled.div`
     width: 470px;
   }
 `;
-
-const localMuiTheme = createTheme({
-  ...muiTheme,
-  overrides: {
-    ...muiTheme.overrides,
-    MuiInputBase: {
-      ...muiTheme.overrides?.MuiInputBase,
-      root: {
-        ...muiTheme.overrides?.MuiInputBase?.root,
-        marginRight: `${weaveTheme.spacing.xs}`,
-      },
-      input: {
-        ...muiTheme.overrides?.MuiInputBase?.input,
-        minWidth: '155px',
-        border: `1px solid ${weaveTheme.colors.neutral20}`,
-        position: 'relative',
-        fontSize: 16,
-        width: '100%',
-        padding: '8px 12px',
-        '&:focus': {
-          borderColor: weaveTheme.colors.primaryDark,
-          borderRadius: 2,
-        },
-      },
-    },
-    MuiInputLabel: {
-      ...muiTheme.overrides?.MuiInputLabel,
-      formControl: {
-        ...muiTheme.overrides?.MuiInputLabel?.formControl,
-        fontSize: `${weaveTheme.fontSizes.tiny}`,
-      },
-      shrink: {
-        transform: 'none',
-      },
-      asterisk: {
-        display: 'none',
-      },
-    },
-    MuiSelect: {
-      select: {
-        ...muiTheme.overrides?.MuiSelect?.select,
-        minWidth: '155px',
-      },
-    },
-  },
-});
 
 export const WGAppProvider: React.FC = props => (
   <AppContextProvider applicationsClient={applicationsClient} {...props} />
@@ -303,9 +255,7 @@ const ResponsiveDrawer = () => {
       <Route path="*">
         {/* Check we've got a logged in user otherwise redirect back to signin */}
         <AuthCheck>
-          <ThemeProvider theme={localMuiTheme}>
-            <App />
-          </ThemeProvider>
+          <App />
         </AuthCheck>
       </Route>
     </Switch>
