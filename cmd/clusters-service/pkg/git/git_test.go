@@ -210,7 +210,7 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 		GitProvider: git.GitProvider{
 			Token:    os.Getenv("GITLAB_TOKEN"),
 			Type:     "gitlab",
-			Hostname: "gitlab.com",
+			Hostname: GetEnv("GIT_PROVIDER_HOSTNAME", gitlab.DefaultDomain),
 		},
 		RepositoryURL: repo.HTTPURLToRepo,
 		HeadBranch:    "feature-01",
