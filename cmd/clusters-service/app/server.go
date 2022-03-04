@@ -171,7 +171,7 @@ func checkParams(params Params) error {
 	clientSecret := params.OIDC.ClientSecret
 	redirectURL := params.OIDC.RedirectURL
 
-	if issuerURL != "" || clientID != "" || clientSecret != "" || redirectURL != "" {
+	if AuthEnabled() {
 		if issuerURL == "" {
 			return cmderrors.ErrNoIssuerURL
 		}
