@@ -118,8 +118,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
-      GITLAB_TOKEN: ${{ secrets.WGE_GITLAB_TOKEN }}
-      SKIP_GITLAB_TESTS: 1
+      GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
+      GIT_PROVIDER_HOSTNAME: gitlab.git.dev.wkp.weave.works
     steps:
       - id: cache-paths
         run: |
