@@ -119,11 +119,11 @@ func GetProfile(webDriver *agouti.Page, profileName string) Profile {
 }
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
-	Eventually(webDriver.Find(`div.MuiDialogTitle-root`)).Should(BeVisible())
+	Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(BeVisible())
 	return ValuesYaml{
-		Title:    webDriver.Find(`div.MuiDialogTitle-root > h5`),
-		Cancel:   webDriver.Find(`div.MuiDialogTitle-root > button`),
-		TextArea: webDriver.FindByXPath(`//div[@class="MuiDialogContent-root"]/textarea[1]`),
+		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] > h5`),
+		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] > button`),
+		TextArea: webDriver.FindByXPath(`//div[contains(@class, "MuiDialogContent-root")]/textarea[1]`),
 		Save:     webDriver.Find(`button#edit-yaml`),
 	}
 }
@@ -158,11 +158,11 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
-	Eventually(webDriver.Find(`.MuiDialog-paper[role=dialog]`)).Should(BeVisible())
+	Eventually(webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]`)).Should(BeVisible())
 	return Preview{
-		Title: webDriver.Find(`.MuiDialog-paper[role=dialog]  h5`),
-		Text:  webDriver.Find(`.MuiDialog-paper[role=dialog]  textarea:first-child`),
-		Close: webDriver.Find(`.MuiDialog-paper[role=dialog]  button`),
+		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
+		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  textarea:first-child`),
+		Close: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  button`),
 	}
 }
 
