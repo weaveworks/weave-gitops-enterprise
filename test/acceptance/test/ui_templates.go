@@ -416,7 +416,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("Then I should preview the PR", func() {
 					Expect(createPage.PreviewPR.Click()).To(Succeed())
-					time.Sleep(5 * time.Second)
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
