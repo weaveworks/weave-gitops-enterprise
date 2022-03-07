@@ -243,9 +243,9 @@ func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
 
 func verifyCapiClusterHealth(kubeconfigPath string, namespace string) {
 
-	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT))
 	waitForResourceState("Ready", "nodes", "default", "", kubeconfigPath)
 
-	Expect(waitForResource("pods", "", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("pods", "", namespace, kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT))
 	waitForResourceState("Ready", "pods", namespace, "", kubeconfigPath)
 }

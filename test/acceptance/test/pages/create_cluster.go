@@ -146,11 +146,11 @@ func DissmissProfilePopup(webDriver *agouti.Page) {
 }
 
 func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
-	return webDriver.All(`li.MuiListItem-root`)
+	return webDriver.All(`li[class*=MuiListItem-root]`)
 }
 
 func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
-	return webDriver.Find(fmt.Sprintf(`li.MuiListItem-root[data-value="%s"]`, value))
+	return webDriver.Find(fmt.Sprintf(`li[class*=MuiListItem-root][data-value="%s"]`, value))
 }
 
 func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
