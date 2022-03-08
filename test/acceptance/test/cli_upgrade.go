@@ -106,12 +106,12 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
-					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service weave-gitops-enterprise-nginx-ingress-controller -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
+					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					if serviceType == "NodePort" {
 						capi_endpoint_url = "http://" + public_ip + ":" + UI_NODEPORT
 						test_ui_url = "http://" + public_ip + ":" + UI_NODEPORT
 					} else {
-						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s deployments.apps/weave-gitops-enterprise-nginx-ingress-controller 8000:80", GITOPS_DEFAULT_NAMESPACE)
+						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s svc/clusters-service 8000:80", GITOPS_DEFAULT_NAMESPACE)
 
 						cmd := exec.Command("sh", "-c", commandToRun)
 						session, _ := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
