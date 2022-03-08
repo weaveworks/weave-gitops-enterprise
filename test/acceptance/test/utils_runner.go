@@ -324,9 +324,16 @@ func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 
 func (b RealGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
 	output := func() string {
-		stdOut, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf(`curl -s -o /dev/null -v -w %%{http_code} %s/v1/templates`, capiEndpointURL), ASSERTION_30SECONDS_TIME_OUT)
+		stdOut, stdErr := runCommandAndReturnStringOutput(
+			fmt.Sprintf(
+				// insecure for self-signed tls
+				`curl --insecure --silent --output /dev/null --write-out %%{http_code} %s/v1/templates`,
+				capiEndpointURL,
+			),
+			ASSERTION_30SECONDS_TIME_OUT,
+		)
 		if stdErr != "" {
-			logger.Warnf("Clusters service not ready yet: %q", stdErr)
+			logger.Infof("Clusters service curl test stderr: %q", stdErr)
 		}
 		return stdOut
 	}
