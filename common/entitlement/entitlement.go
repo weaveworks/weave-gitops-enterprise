@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -54,8 +55,12 @@ func EntitlementHandler(ctx context.Context, log logr.Logger, c client.Client, k
 // CheckEntitlementHandler looks for an entitlement in the request context and
 // returns a 500 if the entitlement is not found or appends an HTTP header with
 // an expired message.
-func CheckEntitlementHandler(log logr.Logger, next http.Handler) http.HandlerFunc {
+func CheckEntitlementHandler(log logr.Logger, next http.Handler, publicRoutes []string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if auth.IsPublicRoute(r.URL, publicRoutes) {
+			next.ServeHTTP(w, r)
+			return
+		}
 		ent, ok := entitlementFromContext(r.Context())
 		if ent == nil {
 			log.Info("Entitlement was not found.")

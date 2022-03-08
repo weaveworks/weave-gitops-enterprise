@@ -479,7 +479,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
-		return entitlement.EntitlementHandler(ctx, args.Log, args.KubernetesClient, args.EntitlementSecretKey, entitlement.CheckEntitlementHandler(args.Log, wrapperHandler))
+		return entitlement.EntitlementHandler(
+			ctx,
+			args.Log,
+			args.KubernetesClient,
+			args.EntitlementSecretKey,
+			entitlement.CheckEntitlementHandler(args.Log, wrapperHandler, core.PublicRoutes),
+		)
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))

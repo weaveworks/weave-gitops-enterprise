@@ -132,7 +132,7 @@ func TestCheckEntitlementHandler(t *testing.T) {
 			})
 
 			rec := httptest.NewRecorder()
-			handler := previous(CheckEntitlementHandler(logr.Discard(), next))
+			handler := previous(CheckEntitlementHandler(logr.Discard(), next, []string{}))
 			handler.ServeHTTP(rec, httptest.NewRequest("GET", "http://test", nil))
 
 			if rec.Code != tt.status {
