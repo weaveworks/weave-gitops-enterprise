@@ -178,12 +178,10 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 }
 
 func TestCreatePullRequestInGitLab(t *testing.T) {
-	if os.Getenv("SKIP_GITLAB_TESTS") != "" {
-		t.Skip("Skipping GitLab test")
-	}
 
 	// Create a client
-	client, err := gitlab.NewClient(os.Getenv("GITLAB_TOKEN"))
+	gitlabHost := fmt.Sprintf("https://%s", os.Getenv("GIT_PROVIDER_HOSTNAME"))
+	client, err := gitlab.NewClient(os.Getenv("GITLAB_TOKEN"), gitlab.WithBaseURL(gitlabHost))
 	require.NoError(t, err)
 	// Create a repository using a name that doesn't exist already
 	repoName := fmt.Sprintf("%s-%03d", TestRepositoryNamePrefix, rand.Intn(1000))
@@ -213,7 +211,7 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 		GitProvider: git.GitProvider{
 			Token:    os.Getenv("GITLAB_TOKEN"),
 			Type:     "gitlab",
-			Hostname: "gitlab.com",
+			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
 		},
 		RepositoryURL: repo.HTTPURLToRepo,
 		HeadBranch:    "feature-01",
