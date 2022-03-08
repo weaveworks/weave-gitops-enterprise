@@ -98,17 +98,17 @@ jobs:
   #   #     # We've finished submitting the coverage
   #   #     curl -k "https://coveralls.io/webhook?repo_token=$WGE_COVERALLS_TOKEN" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
 
-  # build:
-  #   uses: ./.github/workflows/build.yaml
-  #   with:
-  #     helmrepo: "charts-v3"
-  #   secrets:
-  #     BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-  #     WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
-  #     WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-  #     WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
-  #     WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
-  #     WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+  build:
+    uses: ./.github/workflows/build.yaml
+    with:
+      helmrepo: "charts-v3"
+    secrets:
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
+      WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+      WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+      WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+      WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
 
   # integration-tests:
   #   runs-on: ubuntu-latest
