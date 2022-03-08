@@ -61,6 +61,9 @@ const (
 	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
 
 	defaultConfigFilename = "config"
+
+	// Allowed login requests per second
+	loginRequestRateLimit = 20
 )
 
 func AuthEnabled() bool {
@@ -478,7 +481,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}
 
 		args.Log.Info("Registering callback route")
-		auth.RegisterAuthServer(mux, "/oauth2", srv, 1)
+		if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
+			return fmt.Errorf("failed to register auth routes: %w", err)
+		}
 
 		// Secure `/v1` and `/gitops/api` API routes
 		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, core.PublicRoutes)
