@@ -129,7 +129,6 @@ on:
         required: false
 
 env:
-  ENTERPRISE_CHART_VERSION: 0.0.19-34-g7dba9e8
   GO_CACHE_NAME: cache-go-modules
   GIT_PROVIDER: ${{ inputs.git-provider }}
   GIT_PROVIDER_HOSTNAME: ${{ inputs.git-provider_hostname }}
