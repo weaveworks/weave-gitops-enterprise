@@ -46,6 +46,7 @@ import (
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	coretls "github.com/weaveworks/weave-gitops/pkg/server/tls"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
@@ -97,6 +98,9 @@ type Params struct {
 	capiTemplatesRepositoryBaseBranch string
 	runtimeNamespace                  string
 	gitProviderToken                  string
+	TLSCert                           string
+	TLSKey                            string
+	NoTLS                             bool
 }
 
 type OIDCAuthenticationOptions struct {
@@ -153,6 +157,10 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
 	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")
 	cmd.Flags().StringVar(&p.gitProviderToken, "git-provider-token", "", "")
+
+	cmd.Flags().StringVar(&p.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
+	cmd.Flags().BoolVar(&p.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
 	if AuthEnabled() {
 		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -470,7 +478,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}
 
 		args.Log.Info("Registering callback route")
-		auth.RegisterAuthServer(mux, "/oauth2", srv)
+		auth.RegisterAuthServer(mux, "/oauth2", srv, 1)
 
 		// Secure `/v1` and `/gitops/api` API routes
 		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, core.PublicRoutes)
@@ -508,11 +516,40 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	args.Log.Info("Starting to listen and serve", "address", addr)
 
-	if err := s.ListenAndServe(); err != http.ErrServerClosed {
+	if err := ListenAndServe(s, args.NoTLS, args.TLSCert, args.TLSKey, args.Log); err != http.ErrServerClosed {
 		args.Log.Error(err, "Failed to listen and serve")
 		return err
 	}
 	return nil
+}
+
+func ListenAndServe(srv *http.Server, noTLS bool, tlsCert, tlsKey string, log logr.Logger) error {
+	if noTLS {
+		log.Info("TLS connections disabled")
+		return srv.ListenAndServe()
+	}
+
+	if tlsCert == "" && tlsKey == "" {
+		log.Info("TLS cert and key not specified, generating and using in-memory keys")
+
+		tlsConfig, err := coretls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
+		if err != nil {
+			return fmt.Errorf("failed to generate a TLSConfig: %w", err)
+		}
+
+		srv.TLSConfig = tlsConfig
+		// if TLSCert and TLSKey are both empty (""), ListenAndServeTLS will ignore
+		// and happily use the TLSConfig supplied above
+		return srv.ListenAndServeTLS("", "")
+	}
+
+	if tlsCert == "" || tlsKey == "" {
+		return cmderrors.ErrNoTLSCertOrKey
+	}
+
+	log.Info("Using TLS", "cert", tlsCert, "key", tlsKey)
+
+	return srv.ListenAndServeTLS(tlsCert, tlsKey)
 }
 
 // CustomIncomingHeaderMatcher allows the Accept header to be passed to the gRPC handlers.

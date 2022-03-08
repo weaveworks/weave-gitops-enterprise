@@ -34,6 +34,9 @@ type Options struct {
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
 	OIDC                         OIDCAuthenticationOptions
+	TLSCert                      string
+	TLSKey                       string
+	NoTLS                        bool
 }
 
 type Option func(*Options)
@@ -178,5 +181,13 @@ func WithClientGetter(clientGetter kube.ClientGetter) Option {
 func WithOIDCConfig(oidc OIDCAuthenticationOptions) Option {
 	return func(o *Options) {
 		o.OIDC = oidc
+	}
+}
+
+func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
+	return func(o *Options) {
+		o.TLSCert = tlsCert
+		o.TLSKey = tlsKey
+		o.NoTLS = noTLS
 	}
 }
