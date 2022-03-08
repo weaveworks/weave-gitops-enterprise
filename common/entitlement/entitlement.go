@@ -4,12 +4,12 @@ import (
 	"context"
 	_ "embed"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -57,7 +57,7 @@ func EntitlementHandler(ctx context.Context, log logr.Logger, c client.Client, k
 // an expired message.
 func CheckEntitlementHandler(log logr.Logger, next http.Handler, publicRoutes []string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if auth.IsPublicRoute(r.URL, publicRoutes) {
+		if IsPublicRoute(r.URL, publicRoutes) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -81,4 +81,14 @@ func CheckEntitlementHandler(log logr.Logger, next http.Handler, publicRoutes []
 func entitlementFromContext(ctx context.Context) (*entitlement.Entitlement, bool) {
 	ent, ok := ctx.Value(contextKeyEntitlement).(*entitlement.Entitlement)
 	return ent, ok
+}
+
+func IsPublicRoute(u *url.URL, publicRoutes []string) bool {
+	for _, pr := range publicRoutes {
+		if u.Path == pr {
+			return true
+		}
+	}
+
+	return false
 }
