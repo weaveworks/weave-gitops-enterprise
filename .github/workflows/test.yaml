@@ -12,91 +12,91 @@ concurrency:
 
 name: run tests
 jobs:
-  # lint:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     GO_CACHE_NAME: cache-go-modules
-  #   steps:
-  #     - id: go-cache-paths
-  #       run: |
-  #         echo "::set-output name=go-build::$(go env GOCACHE)"
-  #         echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-  #     - name: echo ref
-  #       run: |
-  #         echo "${{ github.ref }}"
-  #     - name: Install Go
-  #       uses: actions/setup-go@v2
-  #       with:
-  #         go-version: 1.17.x
-  #     - name: Configure git for private modules
-  #       env:
-  #         GITHUB_BUILD_USERNAME: wge-build-bot
-  #         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-  #       run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #     - name: Go Build Cache
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: |
-  #           ${{ steps.go-cache-paths.outputs.go-build }}
-  #           ${{ steps.go-cache-paths.outputs.go-mod }}
-  #         key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
-  #     - name: Lint
-  #       run: |
-  #         make lint
+  lint:
+    runs-on: ubuntu-latest
+    env:
+      GO_CACHE_NAME: cache-go-modules
+    steps:
+      - id: go-cache-paths
+        run: |
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: echo ref
+        run: |
+          echo "${{ github.ref }}"
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: wge-build-bot
+          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.go-cache-paths.outputs.go-build }}
+            ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+      - name: Lint
+        run: |
+          make lint
 
-  # unit-tests:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     GO_CACHE_NAME: cache-go-modules
-  #     WGE_COVERALLS_TOKEN: ${{ secrets.WGE_COVERALLS_TOKEN }}
-  #   steps:
-  #     - id: go-cache-paths
-  #       run: |
-  #         echo "::set-output name=go-build::$(go env GOCACHE)"
-  #         echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-  #     - name: Install Go
-  #       uses: actions/setup-go@v2
-  #       with:
-  #         go-version: 1.17.x
-  #     - name: Configure git for private modules
-  #       env:
-  #         GITHUB_BUILD_USERNAME: wge-build-bot
-  #         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-  #       run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #     - name: Go Build Cache
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: |
-  #           ${{ steps.go-cache-paths.outputs.go-build }}
-  #           ${{ steps.go-cache-paths.outputs.go-mod }}
-  #         key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
-  #     - name: Install goveralls
-  #       env:
-  #         GO111MODULE: off
-  #       run: go get github.com/mattn/goveralls
+  unit-tests:
+    runs-on: ubuntu-latest
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      WGE_COVERALLS_TOKEN: ${{ secrets.WGE_COVERALLS_TOKEN }}
+    steps:
+      - id: go-cache-paths
+        run: |
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: wge-build-bot
+          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.go-cache-paths.outputs.go-build }}
+            ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+      - name: Install goveralls
+        env:
+          GO111MODULE: off
+        run: go get github.com/mattn/goveralls
 
-  #     - name: Run unit tests
-  #       run: |
-  #         go version
-  #         make unit-tests-with-coverage
-  #   # - name: Send coverage
-  #   #   run: |
-  #   #     # submit the coverage 1 by 1, seems important that they have a -flagname
-  #   #     goveralls -parallel -coverprofile=.coverprofile -service="GitHub Action" -flagname wks -repotoken $WGE_COVERALLS_TOKEN
-  #   #     (cd cmd/event-writer; goveralls -coverprofile=.coverprofile -flagname event-writer -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
-  #   #     (cd common; goveralls -coverprofile=.coverprofile -flagname common -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
-  #   #     (cd cmd/capi-serve; goveralls -coverprofile=.coverprofile -flagname capi-server -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
+      - name: Run unit tests
+        run: |
+          go version
+          make unit-tests-with-coverage
+    # - name: Send coverage
+    #   run: |
+    #     # submit the coverage 1 by 1, seems important that they have a -flagname
+    #     goveralls -parallel -coverprofile=.coverprofile -service="GitHub Action" -flagname wks -repotoken $WGE_COVERALLS_TOKEN
+    #     (cd cmd/event-writer; goveralls -coverprofile=.coverprofile -flagname event-writer -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
+    #     (cd common; goveralls -coverprofile=.coverprofile -flagname common -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
+    #     (cd cmd/capi-serve; goveralls -coverprofile=.coverprofile -flagname capi-server -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
 
-  #   #     # We've finished submitting the coverage
-  #   #     curl -k "https://coveralls.io/webhook?repo_token=$WGE_COVERALLS_TOKEN" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
+    #     # We've finished submitting the coverage
+    #     curl -k "https://coveralls.io/webhook?repo_token=$WGE_COVERALLS_TOKEN" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
 
   build:
     uses: ./.github/workflows/build.yaml
@@ -110,122 +110,122 @@ jobs:
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
 
-  # integration-tests:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     GO_CACHE_NAME: cache-go-modules
-  #     YARN_CACHE_NAME: cache-yarn
-  #     GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-  #     GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
-  #     GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
-  #     GITLAB_TOKEN: ${{ secrets.WGE_GITLAB_TOKEN }}
-  #     SKIP_GITLAB_TESTS: 1
-  #   steps:
-  #     - id: cache-paths
-  #       run: |
-  #         echo "::set-output name=dir::$(yarn cache dir)"
-  #         echo "::set-output name=go-build::$(go env GOCACHE)"
-  #         echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-  #     - name: Install Go
-  #       uses: actions/setup-go@v2
-  #       with:
-  #         go-version: 1.17.x
-  #     - name: Configure git for private modules
-  #       env:
-  #         GITHUB_BUILD_USERNAME: wge-build-bot
-  #         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-  #       run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #     - name: Go Build Cache
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: |
-  #           ${{ steps.cache-paths.outputs.go-build }}
-  #           ${{ steps.cache-paths.outputs.go-mod }}
-  #         key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
-  #     - name: Yarn Cache
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: ${{ steps.cache-paths.outputs.dir }}
-  #         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
-  #     - name: Set up ssh
-  #       uses: ./.github/actions/setup-ssh
-  #       with:
-  #         ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
-  #     - name: Run integration tests
-  #       run: |
-  #         go version
-  #         go test -v ./test/integration/test -run TestAgent
+  integration-tests:
+    runs-on: ubuntu-latest
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      YARN_CACHE_NAME: cache-yarn
+      GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
+      GIT_PROVIDER_HOSTNAME: gitlab.git.dev.wkp.weave.works
+    steps:
+      - id: cache-paths
+        run: |
+          echo "::set-output name=dir::$(yarn cache dir)"
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: wge-build-bot
+          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.cache-paths.outputs.go-build }}
+            ${{ steps.cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+      - name: Yarn Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.cache-paths.outputs.dir }}
+          key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+      - name: Set up ssh
+        uses: ./.github/actions/setup-ssh
+        with:
+          ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      - name: Run integration tests
+        run: |
+          go version
+          go test -v ./test/integration/test -run TestAgent
 
-  #         cd cmd/clusters-service
-  #         go test -v ./... -tags=integration
+          cd cmd/clusters-service
+          go test -v ./... -tags=integration
 
-  # ui-integration-tests:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     GO_CACHE_NAME: cache-go-modules
-  #     YARN_CACHE_NAME: cache-yarn
-  #     GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
-  #     SELENIUM_DEBUG: true
-  #     ARTIFACTS_BASE_DIR: /tmp/ui-integration-test/
-  #   steps:
-  #     - id: cache-paths
-  #       run: |
-  #         echo "::set-output name=dir::$(yarn cache dir)"
-  #         echo "::set-output name=go-build::$(go env GOCACHE)"
-  #         echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-  #     - name: Install Go
-  #       uses: actions/setup-go@v2
-  #       with:
-  #         go-version: 1.17.x
-  #     - name: Configure git for private modules
-  #       env:
-  #         GITHUB_BUILD_USERNAME: wge-build-bot
-  #         GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-  #       run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #     - name: Go Build Cache
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: |
-  #           ${{ steps.cache-paths.outputs.go-build }}
-  #           ${{ steps.cache-paths.outputs.go-mod }}
-  #         key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
-  #     - name: Yarn Cache
-  #       uses: actions/cache@v2
-  #       with:
-  #         path: ${{ steps.cache-paths.outputs.dir }}
-  #         key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
-  #     - name: Setup selenium server
-  #       run: |
-  #         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+  ui-integration-tests:
+    runs-on: ubuntu-latest
+    env:
+      GO_CACHE_NAME: cache-go-modules
+      YARN_CACHE_NAME: cache-yarn
+      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+      SELENIUM_DEBUG: true
+      ARTIFACTS_BASE_DIR: /tmp/ui-integration-test/
+    steps:
+      - id: cache-paths
+        run: |
+          echo "::set-output name=dir::$(yarn cache dir)"
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: wge-build-bot
+          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.cache-paths.outputs.go-build }}
+            ${{ steps.cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+      - name: Yarn Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.cache-paths.outputs.dir }}
+          key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+      - name: Setup selenium server
+        run: |
+          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
-  #         # Start selenium server in standalone mode
-  #         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-  #     - name: Run integration tests
-  #       run: |
-  #         go version
-  #         make ui-build-for-tests
+          # Start selenium server in standalone mode
+          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+      - name: Run integration tests
+        run: |
+          go version
+          make ui-build-for-tests
 
-  #         cd test/integration/test
-  #         go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip='@integration|@gce|@eks|@application|@upgrade' -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
-  #     - name: Store integration test results
-  #       if: ${{ always() }}
-  #       uses: actions/upload-artifact@v2
-  #       with:
-  #         name: ui-integration-test-artifacts
-  #         path: ${{ env.ARTIFACTS_BASE_DIR }}
-  #         retention-days: 1
+          cd test/integration/test
+          go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip='@integration|@gce|@eks|@application|@upgrade' -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
+      - name: Store integration test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ui-integration-test-artifacts
+          path: ${{ env.ARTIFACTS_BASE_DIR }}
+          retention-days: 1
 
   smoke-tests:
     needs: [build]
@@ -310,7 +310,7 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
   acceptance-tests-github:
-    needs: [build]
+    needs: [build, lint, unit-tests, integration-tests, ui-integration-tests]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
