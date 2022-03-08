@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"os"
 	"testing"
@@ -82,15 +83,20 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 		t.Logf("%v", err)
 	}(ctx)
 
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	time.Sleep(1 * time.Second)
-	res, err := http.Get("http://localhost:8001/v1/applications")
+	res, err := client.Get("https://localhost:8001/v1/applications")
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
 	}
-	res, err = http.Get("http://localhost:8001/v1/pineapples")
+	res, err = client.Get("https://localhost:8001/v1/pineapples")
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
