@@ -20,8 +20,11 @@ import {
 import {
   AppContextProvider,
   applicationsClient,
+  AuthCheck,
   OAuthCallback,
+  SignIn,
 } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import VersionsProvider from '../contexts/Versions/Provider';
@@ -39,10 +42,12 @@ import WGApplicationDetail from './Applications/Detail';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import WGApplicationRemove from './Applications/Remove';
 
 const APPS_ROUTE = '/applications';
 const APP_DETAIL_ROUTE = '/application_detail';
 const APP_ADD_ROUTE = '/application_add';
+const APP_DELETE_ROUTE = '/application_remove';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 
 const drawerWidth = 220;
@@ -94,6 +99,13 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
+const SignInWrapper = styled.div`
+  height: 100vh;
+  .MuiAlert-root {
+    width: 470px;
+  }
+`;
+
 export const WGAppProvider: React.FC = props => (
   <AppContextProvider applicationsClient={applicationsClient} {...props} />
 );
@@ -121,7 +133,7 @@ const ResponsiveDrawer = () => {
     </PageTemplate>
   );
 
-  return (
+  const App = () => (
     <Compose
       components={[
         NotificationsProvider,
@@ -206,6 +218,11 @@ const ResponsiveDrawer = () => {
             <Route exact path={APP_ADD_ROUTE} component={WGApplicationAdd} />
             <Route
               exact
+              path={APP_DELETE_ROUTE}
+              component={WGApplicationRemove}
+            />
+            <Route
+              exact
               path={GITLAB_OAUTH_CALLBACK}
               component={({ location }: any) => {
                 const params = qs.parse(location.search);
@@ -222,6 +239,26 @@ const ResponsiveDrawer = () => {
         </main>
       </div>
     </Compose>
+  );
+
+  return (
+    <Switch>
+      <Route
+        component={() => (
+          <SignInWrapper>
+            <SignIn />
+          </SignInWrapper>
+        )}
+        exact={true}
+        path="/sign_in"
+      />
+      <Route path="*">
+        {/* Check we've got a logged in user otherwise redirect back to signin */}
+        <AuthCheck>
+          <App />
+        </AuthCheck>
+      </Route>
+    </Switch>
   );
 };
 

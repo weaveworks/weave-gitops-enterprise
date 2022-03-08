@@ -17,6 +17,8 @@ app.use(
     '/applications',
     '/application_add',
     '/application_detail',
+    '/application_remove',
+    '/sign_in',
     '/alerts',
     '/oauth',
   ],

@@ -187,11 +187,11 @@ The private ssh key to the server lives in the `pesto test cluster ssh key` secr
 1. Grab it and save it to `~/.ssh/cluster-key`
 2. Copy `kubeconfig` using this ssh key
    ```
-   scp -i ~/.ssh/cluster-key wks@$34.67.250.163:.kube/config demokubeconfig.txt
+   scp -i ~/.ssh/cluster-key wks@34.67.250.163:.kube/config demokubeconfig.txt
    ```
 3. Port forward the api-server port (6443) in another tab
    ```
-   ssh -i ~/.ssh/cluster-key wks@$34.67.250.163 -L 6443:localhost:6443
+   ssh -i ~/.ssh/cluster-key wks@34.67.250.163 -L 6443:localhost:6443
    ```
 4. Use the `kubeconfig`:
    ```

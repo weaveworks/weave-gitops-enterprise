@@ -157,6 +157,7 @@ func TestNoIssuerURL(t *testing.T) {
 	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
 	cmd.SetArgs([]string{
 		"ui", "run",
+		"--oidc-client-id=client-id",
 	})
 
 	err = cmd.Execute()
