@@ -4,7 +4,11 @@ import { muiTheme } from './muiTheme';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import '@fortawesome/fontawesome-free/css/all.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
+import {
+  AuthContextProvider,
+  FeatureFlagsContextProvider,
+  theme,
+} from '@weaveworks/weave-gitops';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import Background from './assets/img/background.svg';
@@ -57,14 +61,18 @@ const GlobalStyle = createGlobalStyle`
 
 const App: FC = () => {
   return (
-    <BrowserRouter basename={process.env.PUBLIC_URL}>
-      <ThemeProvider theme={theme}>
-        <MuiThemeProvider theme={muiTheme}>
-          <GlobalStyle />
-          <ResponsiveDrawer />
-        </MuiThemeProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <MuiThemeProvider theme={muiTheme}>
+        <BrowserRouter basename={process.env.PUBLIC_URL}>
+          <FeatureFlagsContextProvider>
+            <AuthContextProvider>
+              <GlobalStyle />
+              <ResponsiveDrawer />
+            </AuthContextProvider>
+          </FeatureFlagsContextProvider>
+        </BrowserRouter>
+      </MuiThemeProvider>
+    </ThemeProvider>
   );
 };
 

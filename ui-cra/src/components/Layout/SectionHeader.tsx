@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
+import { FeatureFlags, theme, UserSettings } from '@weaveworks/weave-gitops';
 import { Breadcrumb, Breadcrumbs } from '../Breadcrumbs';
 
 interface Size {
@@ -9,6 +9,7 @@ interface Size {
 
 const Wrapper = styled.div<Size>`
   align-items: center;
+  justify-content: space-between;
   display: flex;
   color: ${({ size }) =>
     size === 'small' ? theme.colors.neutral40 : 'inherit'};
@@ -33,9 +34,13 @@ export const SectionHeader: FC<Props> = ({
   size,
   className,
   path,
-}) => (
-  <Wrapper className={className} size={size}>
-    {path ? <Breadcrumbs path={path} /> : null}
-    {children}
-  </Wrapper>
-);
+}) => {
+  const { authFlag } = React.useContext(FeatureFlags);
+  return (
+    <Wrapper className={className} size={size}>
+      {path ? <Breadcrumbs path={path} /> : null}
+      {children}
+      {authFlag ? <UserSettings /> : null}
+    </Wrapper>
+  );
+};
