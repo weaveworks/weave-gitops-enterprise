@@ -185,7 +185,12 @@ func initializeWebdriver(wgeURL string) {
 			Expect(err).NotTo(HaveOccurred())
 		case "linux":
 			webDriver, err = agouti.NewPage(selenium_service_url, agouti.Debug, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string]interface{}{"args": []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"}, "w3c": false, "excludeSwitches": []string{"enable-automation"}}}))
+				"chromeOptions": map[string]interface{}{
+					"args":                []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
+					"w3c":                 false,
+					"acceptInsecureCerts": true,
+					"excludeSwitches":     []string{"enable-automation"},
+				}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
 
