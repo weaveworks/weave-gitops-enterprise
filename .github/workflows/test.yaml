@@ -310,7 +310,7 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
   acceptance-tests-github:
-    needs: [build, lint, unit-tests, integration-tests, ui-integration-tests]
+    needs: [build]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
