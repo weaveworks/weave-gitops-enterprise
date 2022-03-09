@@ -41,7 +41,7 @@ import (
 var labels = []string{}
 
 func (s *server) ListWeaveClusters(ctx context.Context, msg *capiv1_proto.ListWeaveClustersRequest) (*capiv1_proto.ListWeaveClustersResponse, error) {
-	cl, err := s.library.List(ctx)
+	cl, err := s.clustersLibrary.List(ctx)
 	if err != nil {
 		return nil, err
 	}

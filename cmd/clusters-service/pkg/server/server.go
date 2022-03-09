@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"k8s.io/client-go/discovery"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -31,6 +32,7 @@ var providers = map[string]string{
 type server struct {
 	log             logr.Logger
 	library         templates.Library
+	clustersLibrary clusters.Library
 	provider        git.Provider
 	clientGetter    kube.ClientGetter
 	discoveryClient discovery.DiscoveryInterface

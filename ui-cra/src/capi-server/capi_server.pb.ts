@@ -111,7 +111,6 @@ export type GetKubeconfigResponse = {
 }
 
 export type Cluster = {
-  id?: string
   name?: string
   type?: string
   status?: string
