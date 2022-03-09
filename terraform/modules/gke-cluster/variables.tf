@@ -21,3 +21,8 @@ variable "machine_type" {
   default = "n1-standard-1"
   description = "GCP machine type"
 }
+
+variable "cluster_labels" {
+  default = {}
+  description = "The set of labels to apply to the cluster"
+}

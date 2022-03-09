@@ -5,12 +5,20 @@ locals {
   zone_name ="wge.dev.weave.works"
 }
 
+resource "aws_route53_record" "demo_01_ingress" {
+  zone_id = local.zone_id
+  name    = "demo-01"
+  type    = "A"
+  ttl     = "300"
+  records = ["34.88.46.174"]
+}
+
 resource "aws_route53_record" "demo_02_ingress" {
   zone_id = local.zone_id
   name    = "demo-02"
   type    = "A"
   ttl     = "300"
-  records = ["35.228.235.99"]
+  records = ["35.228.213.125"]
 }
 
 resource "aws_route53_record" "dex_01_ingress" {
