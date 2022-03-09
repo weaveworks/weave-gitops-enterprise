@@ -51,19 +51,6 @@ export const muiTheme = createTheme({
       root: {
         flexGrow: 1,
       },
-      input: {
-        border: `1px solid ${weaveTheme.colors.neutral20}`,
-        borderRadius: 2,
-        position: 'relative',
-        backgroundColor: defaultTheme.palette.common.white,
-        fontSize: 16,
-        width: '100%',
-        padding: '8px 12px',
-        '&:focus': {
-          borderColor: weaveTheme.colors.primaryDark,
-          borderRadius: 2,
-        },
-      },
     },
     MuiSelect: {
       select: {
@@ -100,5 +87,51 @@ export const muiTheme = createTheme({
   },
   shape: {
     borderRadius: 2,
+  },
+});
+
+export const localEEMuiTheme = createTheme({
+  ...muiTheme,
+  overrides: {
+    ...muiTheme.overrides,
+    MuiInputBase: {
+      ...muiTheme.overrides?.MuiInputBase,
+      root: {
+        ...muiTheme.overrides?.MuiInputBase?.root,
+        marginRight: `${weaveTheme.spacing.xs}`,
+      },
+      input: {
+        ...muiTheme.overrides?.MuiInputBase?.input,
+        minWidth: '155px',
+        border: `1px solid ${weaveTheme.colors.neutral20}`,
+        position: 'relative',
+        fontSize: 16,
+        width: '100%',
+        padding: '8px 12px',
+        '&:focus': {
+          borderColor: weaveTheme.colors.primaryDark,
+          borderRadius: 2,
+        },
+      },
+    },
+    MuiInputLabel: {
+      ...muiTheme.overrides?.MuiInputLabel,
+      formControl: {
+        ...muiTheme.overrides?.MuiInputLabel?.formControl,
+        fontSize: `${weaveTheme.fontSizes.tiny}`,
+      },
+      shrink: {
+        transform: 'none',
+      },
+      asterisk: {
+        display: 'none',
+      },
+    },
+    MuiSelect: {
+      select: {
+        ...muiTheme.overrides?.MuiSelect?.select,
+        minWidth: '155px',
+      },
+    },
   },
 });

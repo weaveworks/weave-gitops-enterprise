@@ -5,50 +5,8 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { theme } from '@weaveworks/weave-gitops';
-import { ThemeProvider, createTheme } from '@material-ui/core/styles';
-import { muiTheme } from '../../../../muiTheme';
 import { FormStep } from './Step';
 import { ChildrenOccurences } from '../../../../types/custom';
-
-const localMuiTheme = createTheme({
-  ...muiTheme,
-  overrides: {
-    ...muiTheme.overrides,
-    MuiInputBase: {
-      ...muiTheme.overrides?.MuiInputBase,
-      root: {
-        ...muiTheme.overrides?.MuiInputBase?.root,
-        marginRight: `${theme.spacing.xs}`,
-      },
-      input: {
-        ...muiTheme.overrides?.MuiInputBase?.input,
-        minWidth: '155px',
-        '&:focus': {
-          border: 'none',
-        },
-      },
-    },
-    MuiInputLabel: {
-      formControl: {
-        ...muiTheme.overrides?.MuiInputLabel?.formControl,
-        fontSize: `${theme.fontSizes.tiny}`,
-      },
-      shrink: {
-        transform: 'none',
-      },
-      asterisk: {
-        display: 'none',
-      },
-    },
-    MuiSelect: {
-      select: {
-        ...muiTheme.overrides?.MuiSelect?.select,
-        minWidth: '155px',
-      },
-    },
-  },
-});
 
 interface Property {
   name: string;
@@ -100,7 +58,7 @@ const FormSteps = {
     }, [props.properties, getChildrenOccurences]);
 
     return (
-      <ThemeProvider theme={localMuiTheme}>
+      <>
         {properties?.map((p, index) => {
           return (
             <FormStep
@@ -114,7 +72,7 @@ const FormSteps = {
             />
           );
         })}
-      </ThemeProvider>
+      </>
     );
   },
 };

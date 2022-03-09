@@ -37,13 +37,13 @@ func NavigateToPage(webDriver *agouti.Page, page string) {
 	By(fmt.Sprintf("When I click %s from Navbar", page), func() {
 		switch page {
 		case "Cluster":
-			Expect(navbarPage.Clusters.Click()).To(Succeed())
+			Eventually(navbarPage.Clusters.Click).Should(Succeed())
 		case "Templates":
-			Expect(navbarPage.Templates.Click()).To(Succeed())
+			Eventually(navbarPage.Templates.Click).Should(Succeed())
 		case "Alerts":
-			Expect(navbarPage.Alerts.Click()).To(Succeed())
+			Eventually(navbarPage.Alerts.Click).Should(Succeed())
 		case "Applications":
-			Expect(navbarPage.Applications.Click()).To(Succeed())
+			Eventually(navbarPage.Applications.Click).Should(Succeed())
 		}
 	})
 }

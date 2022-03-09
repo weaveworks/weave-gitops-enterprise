@@ -50,7 +50,7 @@ const FormControl = withStyles((theme: Theme) => ({
 const InputLabel = withStyles(() => ({
   root: {
     width: 125,
-    fontSize: 20,
+    fontSize: 16,
     color: 'black',
   },
   formControl: {
@@ -59,6 +59,9 @@ const InputLabel = withStyles(() => ({
 }))(MuiInputLabel);
 
 const InputBase = withStyles(() => ({
+  input: {
+    marginLeft: '10px',
+  },
   inputMultiline: {
     padding: '10px',
   },

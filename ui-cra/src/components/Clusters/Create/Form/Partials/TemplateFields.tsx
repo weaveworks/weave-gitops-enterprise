@@ -23,6 +23,7 @@ const FormWrapper = styled(Form)`
   .form-group {
     padding-top: ${base};
   }
+
   .previewCTA {
     display: flex;
     justify-content: flex-end;

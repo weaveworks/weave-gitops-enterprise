@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -54,8 +55,12 @@ func EntitlementHandler(ctx context.Context, log logr.Logger, c client.Client, k
 // CheckEntitlementHandler looks for an entitlement in the request context and
 // returns a 500 if the entitlement is not found or appends an HTTP header with
 // an expired message.
-func CheckEntitlementHandler(log logr.Logger, next http.Handler) http.HandlerFunc {
+func CheckEntitlementHandler(log logr.Logger, next http.Handler, publicRoutes []string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if IsPublicRoute(r.URL, publicRoutes) {
+			next.ServeHTTP(w, r)
+			return
+		}
 		ent, ok := entitlementFromContext(r.Context())
 		if ent == nil {
 			log.Info("Entitlement was not found.")
@@ -76,4 +81,14 @@ func CheckEntitlementHandler(log logr.Logger, next http.Handler) http.HandlerFun
 func entitlementFromContext(ctx context.Context) (*entitlement.Entitlement, bool) {
 	ent, ok := ctx.Value(contextKeyEntitlement).(*entitlement.Entitlement)
 	return ent, ok
+}
+
+func IsPublicRoute(u *url.URL, publicRoutes []string) bool {
+	for _, pr := range publicRoutes {
+		if u.Path == pr {
+			return true
+		}
+	}
+
+	return false
 }
