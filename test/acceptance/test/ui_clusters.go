@@ -201,7 +201,7 @@ func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, 
 			manifestURL = fmt.Sprintf("%s&alertmanagerURL=%s", manifestURL, leaf.AlertManagerURL)
 		}
 
-		err = gitopsTestRunner.KubectlApply(commandEnv, manifestURL)
+		err = gitopsTestRunner.KubectlApplyInsecure(commandEnv, manifestURL)
 		if err != nil {
 			logger.Errorf(`Failed to install the wkp-agent by applying given command: %s`, command)
 		}

@@ -30,6 +30,7 @@ type GitopsTestRunner interface {
 	VerifyWegoPodsRunning()
 	FireAlert(name, severity, message string, fireFor time.Duration) error
 	KubectlApply(env []string, manifest string) error
+	KubectlApplyInsecure(env []string, manifest string) error
 	KubectlDelete(env []string, manifest string) error
 	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
@@ -97,6 +98,9 @@ func (b DatabaseGitopsTestRunner) KubectlApply(env []string, manifest string) er
 		RepoBranch:   "main",
 	})
 	return nil
+}
+func (b DatabaseGitopsTestRunner) KubectlApplyInsecure(env []string, manifest string) error {
+	return b.KubectlApply(env, manifest)
 }
 
 func (b DatabaseGitopsTestRunner) KubectlDelete(env []string, tokenURL string) error {
@@ -218,6 +222,10 @@ func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
 
 func (b RealGitopsTestRunner) KubectlApply(env []string, manifest string) error {
 	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", manifest)
+}
+
+func (b RealGitopsTestRunner) KubectlApplyInsecure(env []string, manifest string) error {
+	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "--insecure-skip-tls-verify", "-f", manifest)
 }
 
 func (b RealGitopsTestRunner) KubectlDelete(env []string, manifest string) error {

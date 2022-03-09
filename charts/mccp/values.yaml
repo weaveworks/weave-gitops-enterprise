@@ -76,6 +76,11 @@ nats:
       type: NodePort
   extraEnvVarsSecret: nats-env-vars-secret
 
+tls:
+  enabled: true
+  # if no tls secret is specified then we generate it in-mem in the server
+  secretName: ""
+
 service:
   type: ClusterIP
   ports:

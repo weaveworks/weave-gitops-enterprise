@@ -372,6 +372,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
 		WithOIDCConfig(p.OIDC),
+		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
 	)
 }
 
