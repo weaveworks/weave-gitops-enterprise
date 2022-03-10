@@ -292,6 +292,8 @@ jobs:
           sudo mv /tmp/gitops ${{ env.GITOPS_BIN_PATH }}
           ls -la ${{ env.GITOPS_BIN_PATH }}
           ls -laR /usr/local/bin
+          echo $PATH
+          gitops version
       - name: Setup selenium server
         if: ${{ runner.os == 'Linux' }}
         run: |
