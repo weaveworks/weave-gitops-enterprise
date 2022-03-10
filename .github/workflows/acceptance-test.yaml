@@ -284,7 +284,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: gitops
-          path: /tmp/gitops
+          path: /tmp
       - name: chmod
         run: |
           chmod +x /tmp/gitops
