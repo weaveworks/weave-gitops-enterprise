@@ -34,6 +34,7 @@ runs:
 
         # Print out Version
         ${{ inputs.path }} version
+
     - uses: actions/checkout@v2
       if: ${{ inputs.ref != '' }}
       with:
@@ -41,10 +42,24 @@ runs:
         token: ${{ github.token }}
         path: weave-gitops
         ref: ${{ inputs.ref }}
-    - name: "build from source"
-      shell: bash
+
+    - name: Cache gitops binary
       if: ${{ inputs.ref != '' }}
+      id: cache-gitops-binary
+      uses: actions/cache@v2
+      with:
+        path: weave-gitops/bin/gitops
+        key: gitops-binary-${{ inputs.ref }}
+
+    - name: build from source
+      shell: bash
+      if: ${{ inputs.ref != '' && steps.cache-gitops-binary.outputs.cache-hit != 'true' }}
       run: |
         cd weave-gitops
         make gitops
-        mv bin/gitops ${{ inputs.path }}
+
+    - name: copy bin
+      shell: bash
+      if: ${{ inputs.ref != '' }}
+      run: |
+        mv weave-gitops/bin/gitops ${{ inputs.path }}
