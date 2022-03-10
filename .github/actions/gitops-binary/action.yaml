@@ -38,7 +38,7 @@ runs:
       if: ${{ inputs.ref != '' }}
       with:
         repository: weaveworks/weave-gitops
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ github.token }}
         path: weave-gitops
         ref: ${{ inputs.ref }}
     - name: "build from source"
