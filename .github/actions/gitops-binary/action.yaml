@@ -1,10 +1,14 @@
-name: 'Get gitops binary'
-description: 'Get or build the gitops binary'
+name: "Get gitops binary"
+description: "Get or build the gitops binary"
 inputs:
   path:
-    description: 'where shall it go?'
+    description: "where shall it go?"
     required: true
     default: /tmp/gitops
+  ref:
+    description: "want a special git commit?"
+    required: false
+    default: ""
   runs-on:
     description: "`macOS-latest` or `ubuntu-latest`"
     required: false
@@ -16,8 +20,9 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - shell: bash
-      name: Download gitops binary from s3
+    - name: Download gitops binary from s3
+      shell: bash
+      if: ${{ inputs.ref == "" }}
       run: |
         wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ inputs.runs-on }}        
         mv gitops-${{ inputs.runs-on }} ${{ inputs.path }}
@@ -29,3 +34,16 @@ runs:
 
         # Print out Version
         ${{ inputs.path }} version
+    - uses: actions/checkout@v3
+      if: ${{ inputs.ref != "" }}
+      with:
+        repository: weaveworks/weave-gitops
+        path: /tmp/weave-gitops
+        ref: ${{ inputs.ref }}
+    - name: "build from source"
+      shell: bash
+      if: ${{ inputs.ref != "" }}
+      run: |
+        cd /tmp/weave-gitops
+        make gitops
+        mv bin/gitops ${{ inputs.path }}

@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"sort"
 
@@ -11,6 +12,9 @@ import (
 
 func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops Get Tests", func() {
+
+		// Using self signed certs, all `gitops get clusters` etc commands should use insecure tls connections
+		os.Setenv("GITOPS_INSECURE_SKIP_TLS_VERIFY", "true")
 
 		templateFiles := []string{}
 		var stdOut string

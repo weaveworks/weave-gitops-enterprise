@@ -18,6 +18,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		var repoAbsolutePath string
 		templateFiles := []string{}
 
+		// Using self signed certs, all `gitops get clusters` etc commands should use insecure tls connections
+		os.Setenv("GITOPS_INSECURE_SKIP_TLS_VERIFY", "true")
+
 		BeforeEach(func() {
 			repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
 
