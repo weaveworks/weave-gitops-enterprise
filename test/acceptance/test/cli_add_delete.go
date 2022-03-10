@@ -48,7 +48,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --endpoint %s`, gitops_bin_path, clusterName, namespace, k8version, capi_endpoint_url, insecureFlag)
+				cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --endpoint %s %s`, gitops_bin_path, clusterName, namespace, k8version, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("And I run '%s'", cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
