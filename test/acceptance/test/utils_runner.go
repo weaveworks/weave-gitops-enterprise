@@ -224,8 +224,12 @@ func (b RealGitopsTestRunner) KubectlApply(env []string, manifest string) error 
 	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", manifest)
 }
 
-func (b RealGitopsTestRunner) KubectlApplyInsecure(env []string, manifest string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "--insecure-skip-tls-verify", "apply", "-f", manifest)
+func (b RealGitopsTestRunner) KubectlApplyInsecure(env []string, url string) error {
+	err := runCommandPassThrough("curl", "--insecure", "-o", "/tmp/manifest.yaml", url)
+	if err != nil {
+		return fmt.Errorf("failed to curl manifest: %w", err)
+	}
+	return runCommandPassThroughWithEnv(env, "kubectl", "--insecure-skip-tls-verify", "apply", "-f", "/tmp/manifest.yaml")
 }
 
 func (b RealGitopsTestRunner) KubectlDelete(env []string, manifest string) error {
