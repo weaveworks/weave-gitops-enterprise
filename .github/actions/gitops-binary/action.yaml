@@ -34,7 +34,7 @@ runs:
 
         # Print out Version
         ${{ inputs.path }} version
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
       if: ${{ inputs.ref != '' }}
       with:
         repository: weaveworks/weave-gitops
