@@ -538,7 +538,7 @@ func ListenAndServe(srv *http.Server, noTLS bool, tlsCert, tlsKey string, log lo
 	if tlsCert == "" && tlsKey == "" {
 		log.Info("TLS cert and key not specified, generating and using in-memory keys")
 
-		tlsConfig, err := coretls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
+		tlsConfig, err := coretls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1", "weave.gitops.enterprise.com"})
 		if err != nil {
 			return fmt.Errorf("failed to generate a TLSConfig: %w", err)
 		}
