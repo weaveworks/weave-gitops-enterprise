@@ -40,7 +40,6 @@ jobs:
         with:
           repository: weaveworks/weave-gitops
           token: ${{ github.token }}
-          path: weave-gitops
           ref: ${{ inputs.ref }}
       - name: Clean
         run: make clean
