@@ -225,7 +225,7 @@ func (b RealGitopsTestRunner) KubectlApply(env []string, manifest string) error 
 }
 
 func (b RealGitopsTestRunner) KubectlApplyInsecure(env []string, manifest string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "--insecure-skip-tls-verify", "-f", manifest)
+	return runCommandPassThroughWithEnv(env, "kubectl", "--insecure-skip-tls-verify", "apply", "-f", manifest)
 }
 
 func (b RealGitopsTestRunner) KubectlDelete(env []string, manifest string) error {
