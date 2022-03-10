@@ -48,8 +48,8 @@ runs:
       id: cache-gitops-binary
       uses: actions/cache@v2
       with:
-        path: weave-gitops/bin/gitops
-        key: gitops-binary-${{ inputs.ref }}
+        path: /tmp/gitops
+        key: gitops-binary-${{ inputs.ref }}-2
 
     - name: build from source
       shell: bash
@@ -57,9 +57,10 @@ runs:
       run: |
         cd weave-gitops
         make gitops
+        mv bin/gitops /tmp/gitops
 
     - name: copy bin
       shell: bash
       if: ${{ inputs.ref != '' }}
       run: |
-        mv weave-gitops/bin/gitops ${{ inputs.path }}
+        mv /tmp/gitops ${{ inputs.path }}
