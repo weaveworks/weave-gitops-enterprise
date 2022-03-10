@@ -309,8 +309,19 @@ jobs:
       WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
+  gitops-binary:
+    uses: ./.github/workflows/gitops-binary.yaml
+    with:
+      ref: insecure-requests-from-the-cli
+
   acceptance-tests-github:
-    needs: [build, lint, unit-tests, integration-tests, ui-integration-tests]
+    needs:
+      - build
+      - lint
+      - unit-tests
+      - integration-tests
+      - ui-integration-tests
+      - gitops-binary
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
