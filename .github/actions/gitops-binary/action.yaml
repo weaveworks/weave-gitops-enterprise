@@ -43,21 +43,24 @@ runs:
         path: weave-gitops
         ref: ${{ inputs.ref }}
 
-    - name: Cache gitops binary
-      if: ${{ inputs.ref != '' }}
-      id: cache-gitops-binary
-      uses: actions/cache@v2
-      with:
-        path: /tmp/gitops
-        key: gitops-binary-${{ inputs.ref }}-2
+    # - name: Cache gitops binary
+    #   if: ${{ inputs.ref != '' }}
+    #   id: cache-gitops-binary
+    #   uses: actions/cache@v2
+    #   with:
+    #     path: /tmp/gitops
+    #     key: gitops-binary-${{ inputs.ref }}-2
 
     - name: build from source
       shell: bash
-      if: ${{ inputs.ref != '' && steps.cache-gitops-binary.outputs.cache-hit != 'true' }}
+      # if: ${{ inputs.ref != '' && steps.cache-gitops-binary.outputs.cache-hit != 'true' }}
+      if: ${{ inputs.ref != '' }}
       run: |
         cd weave-gitops
         make gitops
         mv bin/gitops /tmp/gitops
+        rm -rf $(go env GOCACHE)
+        rm -rf $(go env GOMODCACHE)
 
     - name: copy bin
       shell: bash
