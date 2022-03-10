@@ -38,12 +38,12 @@ runs:
       if: ${{ inputs.ref != '' }}
       with:
         repository: weaveworks/weave-gitops
-        path: /tmp/weave-gitops
+        path: weave-gitops
         ref: ${{ inputs.ref }}
     - name: "build from source"
       shell: bash
       if: ${{ inputs.ref != '' }}
       run: |
-        cd /tmp/weave-gitops
+        cd weave-gitops
         make gitops
         mv bin/gitops ${{ inputs.path }}
