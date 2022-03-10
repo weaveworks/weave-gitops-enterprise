@@ -75,13 +75,6 @@ jobs:
       - name: Grab all tags from git
         run: |
           git fetch --tags -f
-      - name: Get a gitops-binary
-        uses: ./.github/actions/gitops-binary
-        with:
-          ref: insecure-requests-from-the-cli
-          runs-on: ${{ inputs.runs-on }}
-          os-name: ${{ inputs.os-name }}
-          path: /tmp/gitops-blerp
       - name: Go Build Cache
         uses: actions/cache@v2
         with:
