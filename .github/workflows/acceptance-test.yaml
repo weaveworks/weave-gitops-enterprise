@@ -287,8 +287,11 @@ jobs:
           path: ${{ env.GITOPS_BIN_PATH }}
       - name: chmod
         run: |
-          sudo chmod 755 ${{ env.GITOPS_BIN_PATH }}
+          sudo chmod a+x ${{ env.GITOPS_BIN_PATH }}
           ls -la ${{ env.GITOPS_BIN_PATH }}
+          sudo ${{ env.GITOPS_BIN_PATH }} version
+          sudo gitops version
+          gitops version
       - name: Setup selenium server
         if: ${{ runner.os == 'Linux' }}
         run: |
