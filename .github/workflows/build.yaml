@@ -81,7 +81,7 @@ jobs:
           ref: insecure-requests-from-the-cli
           runs-on: ${{ inputs.runs-on }}
           os-name: ${{ inputs.os-name }}
-          path: /tmp/gitops
+          path: /tmp/gitops-blerp
       - name: Go Build Cache
         uses: actions/cache@v2
         with:
