@@ -203,7 +203,7 @@ func connectACluster(webDriver *agouti.Page, gitopsTestRunner GitopsTestRunner, 
 
 		err = gitopsTestRunner.KubectlApplyInsecure(commandEnv, manifestURL)
 		if err != nil {
-			logger.Errorf(`Failed to install the wkp-agent by applying given command: %s, %s`, command, err)
+			logger.Errorf(`Failed to install the wkp-agent by (tls insecurely) applying given url: %s, %s`, manifestURL, err)
 		}
 	})
 

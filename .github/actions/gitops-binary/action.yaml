@@ -22,7 +22,7 @@ runs:
   steps:
     - name: Download gitops binary from s3
       shell: bash
-      if: ${{ inputs.ref == "" }}
+      if: ${{ inputs.ref == '' }}
       run: |
         wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ inputs.runs-on }}        
         mv gitops-${{ inputs.runs-on }} ${{ inputs.path }}
@@ -35,14 +35,14 @@ runs:
         # Print out Version
         ${{ inputs.path }} version
     - uses: actions/checkout@v3
-      if: ${{ inputs.ref != "" }}
+      if: ${{ inputs.ref != '' }}
       with:
         repository: weaveworks/weave-gitops
         path: /tmp/weave-gitops
         ref: ${{ inputs.ref }}
     - name: "build from source"
       shell: bash
-      if: ${{ inputs.ref != "" }}
+      if: ${{ inputs.ref != '' }}
       run: |
         cd /tmp/weave-gitops
         make gitops
