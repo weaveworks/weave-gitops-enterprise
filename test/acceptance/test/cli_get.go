@@ -2,7 +2,6 @@ package acceptance
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"sort"
 
@@ -14,7 +13,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops Get Tests", func() {
 
 		// Using self signed certs, all `gitops get clusters` etc commands should use insecure tls connections
-		os.Setenv("GITOPS_INSECURE_SKIP_TLS_VERIFY", "true")
+		insecureFlag := "--insecure-skip-tls-verify"
 
 		templateFiles := []string{}
 		var stdOut string
@@ -38,7 +37,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When no Capi Templates are available in the cluster", func() {
 			It("Verify gitops lists no templates", func() {
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -57,7 +56,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -88,7 +87,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = append(templateFiles, invalid_captemplate...)
 				})
 
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -117,7 +116,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s get templates cluster-invalid-template-0 --list-parameters --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get templates cluster-invalid-template-0 --list-parameters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -138,7 +137,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				noOfTemplates := 5
 				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-azure.yaml")
 
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -164,7 +163,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					}
 				})
 
-				cmd = fmt.Sprintf(`%s get templates --namespace foo --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd = fmt.Sprintf(`%s get templates --namespace foo --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf(`When I run '%s'`, cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -185,7 +184,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
 				})
 
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -219,7 +218,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				})
 
-				cmd = fmt.Sprintf(`%s get templates --provider aws --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd = fmt.Sprintf(`%s get templates --provider aws --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -245,7 +244,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				})
 
-				cmd = fmt.Sprintf(`%s get templates --provider foobar --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd = fmt.Sprintf(`%s get templates --provider foobar --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("Then I run '%s'", capi_endpoint_url), func() {
 					_, stdErr = runCommandAndReturnStringOutput(cmd)
 
@@ -262,7 +261,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s get templates cluster-template-development-0 --list-parameters --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get templates cluster-template-development-0 --list-parameters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("And I run '%s'", cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				})
@@ -280,7 +279,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When no infrastructure provider credentials are available in the management cluster", func() {
 			It("Verify gitops lists no credentials", func() {
-				cmd := fmt.Sprintf(`%s get credentials --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get credentials --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("And I run '%s'", capi_endpoint_url), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 				})
@@ -300,7 +299,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.CreateIPCredentials("AWS")
 				})
 
-				cmd := fmt.Sprintf(`%s get credentials --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get credentials --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("And I run '%s'", cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 				})
@@ -314,7 +313,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.CreateIPCredentials("AZURE")
 				})
 
-				cmd = fmt.Sprintf(`%s get credentials --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd = fmt.Sprintf(`%s get credentials --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("And I run '%s'", cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 				})
@@ -337,7 +336,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.CheckClusterService(capi_endpoint_url)
 				})
 
-				cmd := fmt.Sprintf(`%s get cluster --endpoint %s`, gitops_bin_path, capi_endpoint_url)
+				cmd := fmt.Sprintf(`%s get cluster --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
 				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 				})
@@ -354,7 +353,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 			checkEntitlement := func(typeEntitelment string, beFound bool) {
 				checkOutput := func() bool {
-					cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, resourceName, capi_endpoint_url)
+					cmd := fmt.Sprintf(`%s get %s --endpoint %s %s`, gitops_bin_path, resourceName, capi_endpoint_url, insecureFlag)
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
 
 					msg := stdErr + " " + stdOut
