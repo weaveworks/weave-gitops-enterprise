@@ -228,7 +228,7 @@ jobs:
           retention-days: 1
 
   smoke-tests:
-    needs: [build]
+    needs: [build, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -254,7 +254,7 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
 
   smoke-tests-gitlab:
-    needs: [build]
+    needs: [build, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -282,7 +282,7 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_SAS_GITLAB_CLIENT_SECRET }}
 
   smoke-tests-gitlab-on-prem:
-    needs: [build]
+    needs: [build, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
