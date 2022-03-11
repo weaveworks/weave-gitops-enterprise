@@ -177,7 +177,10 @@ func initializeWebdriver(wgeURL string) {
 	if webDriver == nil {
 		switch runtime.GOOS {
 		case "darwin":
-			chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"}), agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
+			chromeDriver := agouti.ChromeDriver(
+				agouti.ChromeOptions("w3c", false),
+				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
+				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
 
 			err = chromeDriver.Start()
 			Expect(err).NotTo(HaveOccurred())
