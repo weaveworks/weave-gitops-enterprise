@@ -3,6 +3,7 @@ package acceptance
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -299,7 +300,12 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
