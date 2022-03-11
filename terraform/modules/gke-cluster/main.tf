@@ -14,6 +14,8 @@ resource "google_container_cluster" "cluster" {
     }
   }
 
+  resource_labels = var.cluster_labels
+
   network    = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet.name
 }
@@ -55,4 +57,21 @@ resource "google_compute_subnetwork" "subnet" {
   region        = var.region
   network       = google_compute_network.vpc.name
   ip_cidr_range = "10.10.0.0/24"
+}
+
+data "google_client_config" "provider" {}
+
+data "template_file" "kubeconfig" {
+  template = file("${path.module}/templates/kubeconfig.yaml.tpl")
+
+  vars = {
+    cluster_name            = google_container_cluster.cluster.name
+    user_name               = google_container_cluster.cluster.name
+    context                 = google_container_cluster.cluster.name
+    cluster_ca_certificate  = google_container_cluster.cluster.master_auth.0.cluster_ca_certificate
+    // The cluster's Kubernetes API endpoint
+    endpoint                = google_container_cluster.cluster.endpoint
+    // The OAuth2 access token used by the client to authenticate against the Google Cloud API.
+    token                   = data.google_client_config.provider.access_token
+  }
 }
