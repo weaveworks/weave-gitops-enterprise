@@ -312,7 +312,7 @@ jobs:
   gitops-binary:
     uses: ./.github/workflows/gitops-binary.yaml
     with:
-      ref: insecure-requests-from-the-cli
+      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
 
   acceptance-tests-github:
     needs:
