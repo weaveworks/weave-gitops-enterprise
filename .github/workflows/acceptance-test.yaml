@@ -4,7 +4,7 @@
 # You must update the calling site (uses:) with the reference to the branch you are working on
 #
 
-name: 'Acceptance Tests'
+name: "Acceptance Tests"
 on:
   workflow_call:
     inputs:
@@ -156,215 +156,222 @@ env:
   ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
   EXP_CLUSTER_RESOURCE_SET: ${{ inputs.cluster_resource_set }}
   SELENIUM_DEBUG: true
-  CHECKPOINT_DISABLE: 1  
+  CHECKPOINT_DISABLE: 1
 
 jobs:
   tests:
     runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-    - id: go-cache-paths
-      run: |
-        echo "::set-output name=go-build::$(go env GOCACHE)"
-        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17.x
-    - name: Configure git for private modules
-      env:
-        GITHUB_BUILD_USERNAME: ${{ secrets.BUILD_BOT_USER }}
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Go Build Cache
-      env:
-        GO_CACHE_NAME: cache-go-modules
-      uses: actions/cache@v2
-      with:
-        path: |
-          ${{ steps.go-cache-paths.outputs.go-build }}
-          ${{ steps.go-cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-    
-    - name: setup aws credentials
-      if: ${{ inputs.management-cluster-kind == 'eks' }}
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
-    - name: Install eksctl
-      if: ${{ inputs.management-cluster-kind == 'eks' }}
-      run: |
-        curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-        sudo mv /tmp/eksctl /usr/local/bin
-        eksctl get clusters
-    - name: Install aws-iam-authenticator
-      if: ${{ inputs.management-cluster-kind == 'eks' }}
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
-          chmod +x ./aws-iam-authenticator
-          sudo mv ./aws-iam-authenticator /usr/local/bin 
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install aws-iam-authenticator
-        fi
-    - name: Authenticate to Google Cloud
-      if: ${{ inputs.management-cluster-kind == 'gke' }}
-      uses: google-github-actions/auth@v0.4.4
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}   
-    - name: Set up gcloud SDK
-      if: ${{ inputs.management-cluster-kind == 'gke' }}
-      uses: google-github-actions/setup-gcloud@v0.3.0
-      with:
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-    - name: Use gcloud CLI
-      if: ${{ inputs.management-cluster-kind == 'gke' }}
-      run: |
-        gcloud info
-        gcloud container clusters list
-    - name: Install docker
-      if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
-      uses: docker-practice/actions-setup-docker@master
-    - name: Install kubectl
-      uses: Azure/setup-kubectl@v2.0
-      with:
+      - id: go-cache-paths
+        run: |
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: ${{ secrets.BUILD_BOT_USER }}
+          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Go Build Cache
+        env:
+          GO_CACHE_NAME: cache-go-modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.go-cache-paths.outputs.go-build }}
+            ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
+      - name: setup aws credentials
+        if: ${{ inputs.management-cluster-kind == 'eks' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Install eksctl
+        if: ${{ inputs.management-cluster-kind == 'eks' }}
+        run: |
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+          eksctl get clusters
+      - name: Install aws-iam-authenticator
+        if: ${{ inputs.management-cluster-kind == 'eks' }}
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
+            chmod +x ./aws-iam-authenticator
+            sudo mv ./aws-iam-authenticator /usr/local/bin 
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+              brew install aws-iam-authenticator
+          fi
+      - name: Authenticate to Google Cloud
+        if: ${{ inputs.management-cluster-kind == 'gke' }}
+        uses: google-github-actions/auth@v0.4.4
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Set up gcloud SDK
+        if: ${{ inputs.management-cluster-kind == 'gke' }}
+        uses: google-github-actions/setup-gcloud@v0.3.0
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Use gcloud CLI
+        if: ${{ inputs.management-cluster-kind == 'gke' }}
+        run: |
+          gcloud info
+          gcloud container clusters list
+      - name: Install docker
+        if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
+        uses: docker-practice/actions-setup-docker@master
+      - name: Install kubectl
+        uses: Azure/setup-kubectl@v2.0
+        with:
           version: ${{ inputs.kubectl-version }}
-    - name: Install kind
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
-          chmod +x ./kind
-          sudo mv ./kind /usr/local/bin/kind
-         elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install kind
-        fi
-        kind version
-    - name: Install clusterctl
-      run: |
-        curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.3/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
-        chmod +x ./clusterctl
-        sudo mv ./clusterctl /usr/local/bin/clusterctl
-        clusterctl version
-
-        # Workarond to override dowloading the cert-manager.yaml because upstream cert-manager repository path is not valid
-        cat > $HOME/.cluster-api/clusterctl.yaml <<- EOM
-        cert-manager:
-          url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
-        EOM
-    - name: Set up ssh
-      uses: ./.github/actions/setup-ssh
-      with:
-        ssh-private-key: ${{ secrets.WGE_GIT_PROVIDER_PRIVATE_KEY }}
-    - name: Configure git settings
-      run: |
-        if [ ${{ env.GIT_PROVIDER }} == "gitlab" ]; then
-          export USERNAME=${{ env.GITLAB_USER }}
-        else
-          export USERNAME=${{ env.GITHUB_USER }}
-        fi
-
-        git config --global init.defaultBranch main
-        git config --global user.email "team-pesto@weave.works"
-        git config --global user.name $USERNAME
-        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-        git config --global url.git@gitlab.com:.insteadOf https://gitlab.com/
-        git config --global url.git@gitlab.git.dev.wkp.weave.works:.insteadOf https://gitlab.git.dev.wkp.weave.works/
-    - name: Download totp-cli from GH
-      run: |
-        wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
-        tar -xf totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
-        mv ./totp-cli /usr/local/bin
-    - name: Get a gitops-binary
-      uses: ./.github/actions/gitops-binary
-      with:
-        runs-on: ${{ inputs.runs-on }}
-        os-name: ${{ inputs.os-name }}
-        path: ${{ env.GITOPS_BIN_PATH }}
-    - name: Setup selenium server
-      if: ${{ runner.os == 'Linux' }}
-      run: |
-        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
-
-        # Start selenium server in standalone mode
-        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-    - name: Setup management cluster
-      run: |
-        if [ ${{ inputs.management-cluster-kind }} = 'eks' ]; then
-          export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
-          export CLUSTER_VERSION=1.21
-
-          export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
-          if [ -z $CLUSTER_EXISTS ]
-          then
-            eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION
+      - name: Install kind
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
+            chmod +x ./kind
+            sudo mv ./kind /usr/local/bin/kind
+           elif [ "$RUNNER_OS" == "macOS" ]; then
+              brew install kind
           fi
-          eksctl utils write-kubeconfig --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
-          kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
-          ls -la $HOME/.kube
-          kubectl get nodes -A
-          kubectl get all --all-namespaces -o wide
-        elif [ ${{ inputs.management-cluster-kind }} = 'gke' ]; then
-          export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
-          export CLUSTER_VERSION=1.21
-          export CLUSTER_REGION=us-central1-a
+          kind version
+      - name: Install clusterctl
+        run: |
+          curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.3/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
+          chmod +x ./clusterctl
+          sudo mv ./clusterctl /usr/local/bin/clusterctl
+          clusterctl version
 
-          export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
-          if [ -z $CLUSTER_EXISTS ]
-          then
-            gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
+          # Workarond to override dowloading the cert-manager.yaml because upstream cert-manager repository path is not valid
+          cat > $HOME/.cluster-api/clusterctl.yaml <<- EOM
+          cert-manager:
+            url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
+          EOM
+      - name: Set up ssh
+        uses: ./.github/actions/setup-ssh
+        with:
+          ssh-private-key: ${{ secrets.WGE_GIT_PROVIDER_PRIVATE_KEY }}
+      - name: Configure git settings
+        run: |
+          if [ ${{ env.GIT_PROVIDER }} == "gitlab" ]; then
+            export USERNAME=${{ env.GITLAB_USER }}
+          else
+            export USERNAME=${{ env.GITHUB_USER }}
           fi
-          gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
-          kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
 
-          ls -la $HOME/.kube
-          kubectl get nodes -A
-          kubectl get all --all-namespaces -o wide
-        elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
-          kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.21.1 --config test/utils/data/local-kind-config.yaml
-          kubectl get pods -A
-        fi
-    - name: Setup connect leaf cluster
-      if: ${{ (inputs.management-cluster-kind == 'eks') || (inputs.management-cluster-kind == 'gke') }}
-      run: |
-        # decode kubeconfig and store at path set in EKS_LEAF_KUBECONFIG or GKE_LEAF_KUBECONFIG
-        if [ ${{ inputs.management-cluster-kind }} = "eks" ]; then
-          echo $WGE_ACCEPTANCE_EKS_KUBECONFIG | base64 -d > $EKS_LEAF_KUBECONFIG
-        elif [ ${{ inputs.management-cluster-kind }} = "gke" ]; then
-          echo $WGE_ACCEPTANCE_GCE_KUBECONFIG | base64 -d > $GCE_LEAF_KUBECONFIG
-        fi
-    - name: Run Acceptance tests
-      run: |
-        export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+          git config --global init.defaultBranch main
+          git config --global user.email "team-pesto@weave.works"
+          git config --global user.name $USERNAME
+          git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+          git config --global url.git@gitlab.com:.insteadOf https://gitlab.com/
+          git config --global url.git@gitlab.git.dev.wkp.weave.works:.insteadOf https://gitlab.git.dev.wkp.weave.works/
+      - name: Download totp-cli from GH
+        run: |
+          wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
+          tar -xf totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
+          mv ./totp-cli /usr/local/bin
+      - uses: actions/download-artifact@v2
+        with:
+          name: gitops
+          path: /tmp
+      - name: chmod
+        run: |
+          chmod +x /tmp/gitops
+          ls -la /tmp/gitops
+          sudo mv /tmp/gitops ${{ env.GITOPS_BIN_PATH }}
+          ls -la ${{ env.GITOPS_BIN_PATH }}
+          ls -laR /usr/local/bin
+          echo $PATH
+          gitops version
+      - name: Setup selenium server
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
-        if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER_HOSTNAME }} != "gitlab.com" ]; then
-          export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
-          export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
-        fi
+          # Start selenium server in standalone mode
+          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+      - name: Setup management cluster
+        run: |
+          if [ ${{ inputs.management-cluster-kind }} = 'eks' ]; then
+            export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
+            export CLUSTER_VERSION=1.21
 
-        # Set the ACCEPTANCE_TEST_ARTIFACT_NAME as environment variable for subsequent steps
-        ACCEPTANCE_TEST_ARTIFACT_NAME=$(basename ${{ env.ARTIFACTS_BASE_DIR }})-artifacts
-        echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV
+            export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
+            if [ -z $CLUSTER_EXISTS ]
+            then
+              eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION
+            fi
+            eksctl utils write-kubeconfig --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
+            kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
+            ls -la $HOME/.kube
+            kubectl get nodes -A
+            kubectl get all --all-namespaces -o wide
+          elif [ ${{ inputs.management-cluster-kind }} = 'gke' ]; then
+            export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
+            export CLUSTER_VERSION=1.21
+            export CLUSTER_REGION=us-central1-a
 
-        cd test/acceptance/test/
-        go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
-    - name: Store test results
-      if: ${{ always() }}
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ env.ACCEPTANCE_TEST_ARTIFACT_NAME }}
-        path: ${{ env.ARTIFACTS_BASE_DIR }}
-        retention-days: 7
-    - name: Reset management cluster
-      if: ${{ always() }}
-      continue-on-error: true
-      run: |
-        if [ ${{ inputs.management-cluster-kind }} = "eks" ] || [ ${{ inputs.management-cluster-kind }} = "gke" ]; then
-          ./test/utils/scripts/wego-enterprise.sh reset
-        fi
+            export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
+            if [ -z $CLUSTER_EXISTS ]
+            then
+              gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
+            fi
+            gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
+            kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
+
+            ls -la $HOME/.kube
+            kubectl get nodes -A
+            kubectl get all --all-namespaces -o wide
+          elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
+            kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.21.1 --config test/utils/data/local-kind-config.yaml
+            kubectl get pods -A
+          fi
+      - name: Setup connect leaf cluster
+        if: ${{ (inputs.management-cluster-kind == 'eks') || (inputs.management-cluster-kind == 'gke') }}
+        run: |
+          # decode kubeconfig and store at path set in EKS_LEAF_KUBECONFIG or GKE_LEAF_KUBECONFIG
+          if [ ${{ inputs.management-cluster-kind }} = "eks" ]; then
+            echo $WGE_ACCEPTANCE_EKS_KUBECONFIG | base64 -d > $EKS_LEAF_KUBECONFIG
+          elif [ ${{ inputs.management-cluster-kind }} = "gke" ]; then
+            echo $WGE_ACCEPTANCE_GCE_KUBECONFIG | base64 -d > $GCE_LEAF_KUBECONFIG
+          fi
+      - name: Run Acceptance tests
+        run: |
+          export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
+
+          if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER_HOSTNAME }} != "gitlab.com" ]; then
+            export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
+            export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
+          fi
+
+          # Set the ACCEPTANCE_TEST_ARTIFACT_NAME as environment variable for subsequent steps
+          ACCEPTANCE_TEST_ARTIFACT_NAME=$(basename ${{ env.ARTIFACTS_BASE_DIR }})-artifacts
+          echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV
+
+          cd test/acceptance/test/
+          go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
+      - name: Store test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.ACCEPTANCE_TEST_ARTIFACT_NAME }}
+          path: ${{ env.ARTIFACTS_BASE_DIR }}
+          retention-days: 7
+      - name: Reset management cluster
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          if [ ${{ inputs.management-cluster-kind }} = "eks" ] || [ ${{ inputs.management-cluster-kind }} = "gke" ]; then
+            ./test/utils/scripts/wego-enterprise.sh reset
+          fi

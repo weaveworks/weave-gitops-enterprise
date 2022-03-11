@@ -245,3 +245,21 @@ kubectl exec -ti -n mccp mccp-cluster-service-79854d9fcb-bwvp7 -- /bin/sh
 apk add sqlite3
 sqlite /var/database/mccp.db
 ```
+
+## How to make a self-signed cert that works in chrome!
+
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj '/CN=localhost' -addext "subjectAltName = DNS.1:localhost"
+```
+
+### MacOS trust it
+
+```
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert.pem
+```
+
+### clusters service use it
+
+```
+clusters-service <OTHER_ARGS...> --tls-cert-file cert.pem --tls-private-key key.pem
+```

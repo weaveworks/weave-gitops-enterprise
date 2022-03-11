@@ -3,6 +3,7 @@ package acceptance
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -30,7 +31,9 @@ type GitopsTestRunner interface {
 	VerifyWegoPodsRunning()
 	FireAlert(name, severity, message string, fireFor time.Duration) error
 	KubectlApply(env []string, manifest string) error
+	KubectlApplyInsecure(env []string, manifest string) error
 	KubectlDelete(env []string, manifest string) error
+	KubectlDeleteInsecure(env []string, manifest string) error
 	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
@@ -98,6 +101,9 @@ func (b DatabaseGitopsTestRunner) KubectlApply(env []string, manifest string) er
 	})
 	return nil
 }
+func (b DatabaseGitopsTestRunner) KubectlApplyInsecure(env []string, manifest string) error {
+	return b.KubectlApply(env, manifest)
+}
 
 func (b DatabaseGitopsTestRunner) KubectlDelete(env []string, tokenURL string) error {
 	//
@@ -105,6 +111,10 @@ func (b DatabaseGitopsTestRunner) KubectlDelete(env []string, tokenURL string) e
 	// FIXME: maybe we add a polling loop that keeps creating cluster_info while its connected
 	//
 	return nil
+}
+
+func (b DatabaseGitopsTestRunner) KubectlDeleteInsecure(env []string, tokenURL string) error {
+	return b.KubectlDelete(env, tokenURL)
 }
 
 func (b DatabaseGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
@@ -216,12 +226,28 @@ func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
 	verifyEnterpriseControllers("my-mccp", "", GITOPS_DEFAULT_NAMESPACE)
 }
 
-func (b RealGitopsTestRunner) KubectlApply(env []string, manifest string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", manifest)
+func (b RealGitopsTestRunner) KubectlApply(env []string, url string) error {
+	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", url)
 }
 
-func (b RealGitopsTestRunner) KubectlDelete(env []string, manifest string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-f", manifest)
+func (b RealGitopsTestRunner) KubectlApplyInsecure(env []string, url string) error {
+	err := runCommandPassThrough("curl", "--insecure", "-o", "/tmp/manifest.yaml", url)
+	if err != nil {
+		return fmt.Errorf("failed to curl manifest: %w", err)
+	}
+	return b.KubectlApply(env, "/tmp/manifest.yaml")
+}
+
+func (b RealGitopsTestRunner) KubectlDelete(env []string, url string) error {
+	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-f", url)
+}
+
+func (b RealGitopsTestRunner) KubectlDeleteInsecure(env []string, url string) error {
+	err := runCommandPassThrough("curl", "--insecure", "-o", "/tmp/manifest.yaml", url)
+	if err != nil {
+		return fmt.Errorf("failed to curl manifest: %w", err)
+	}
+	return b.KubectlDelete(env, "/tmp/manifest.yaml")
 }
 
 func (b RealGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
@@ -274,7 +300,12 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -323,11 +354,17 @@ func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 }
 
 func (b RealGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
-	output := func() string {
-		stdOut, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`curl -s -o /dev/null -w %%{http_code} %s/v1/templates`, capiEndpointURL), ASSERTION_30SECONDS_TIME_OUT)
-		return stdOut
-	}
-	Eventually(output, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp("200"), "Cluster Service is not healthy")
+	Eventually(func(g Gomega) {
+		stdOut, stdErr := runCommandAndReturnStringOutput(
+			fmt.Sprintf(
+				// insecure for self-signed tls
+				`curl --insecure --silent -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
+				capiEndpointURL,
+			),
+			ASSERTION_30SECONDS_TIME_OUT,
+		)
+		g.Expect(stdOut).To(MatchRegexp("200"), "Cluster Service is not healthy: %v", stdErr)
+	}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
 }
 
 func (b RealGitopsTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {

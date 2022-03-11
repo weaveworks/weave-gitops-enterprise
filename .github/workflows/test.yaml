@@ -228,7 +228,7 @@ jobs:
           retention-days: 1
 
   smoke-tests:
-    needs: [build]
+    needs: [build, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -254,7 +254,7 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
 
   smoke-tests-gitlab:
-    needs: [build]
+    needs: [build, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -282,7 +282,7 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_SAS_GITLAB_CLIENT_SECRET }}
 
   smoke-tests-gitlab-on-prem:
-    needs: [build]
+    needs: [build, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -309,8 +309,19 @@ jobs:
       WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
+  gitops-binary:
+    uses: ./.github/workflows/gitops-binary.yaml
+    with:
+      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
+
   acceptance-tests-github:
-    needs: [build, lint, unit-tests, integration-tests, ui-integration-tests]
+    needs:
+      - build
+      - lint
+      - unit-tests
+      - integration-tests
+      - ui-integration-tests
+      - gitops-binary
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
