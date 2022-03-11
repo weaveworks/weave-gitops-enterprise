@@ -32,6 +32,7 @@ type GitopsTestRunner interface {
 	KubectlApply(env []string, manifest string) error
 	KubectlApplyInsecure(env []string, manifest string) error
 	KubectlDelete(env []string, manifest string) error
+	KubectlDeleteInsecure(env []string, manifest string) error
 	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
@@ -109,6 +110,10 @@ func (b DatabaseGitopsTestRunner) KubectlDelete(env []string, tokenURL string) e
 	// FIXME: maybe we add a polling loop that keeps creating cluster_info while its connected
 	//
 	return nil
+}
+
+func (b DatabaseGitopsTestRunner) KubectlDeleteInsecure(env []string, tokenURL string) error {
+	return b.KubectlDelete(env, tokenURL)
 }
 
 func (b DatabaseGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
@@ -220,8 +225,8 @@ func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
 	verifyEnterpriseControllers("my-mccp", "", GITOPS_DEFAULT_NAMESPACE)
 }
 
-func (b RealGitopsTestRunner) KubectlApply(env []string, manifest string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", manifest)
+func (b RealGitopsTestRunner) KubectlApply(env []string, url string) error {
+	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", url)
 }
 
 func (b RealGitopsTestRunner) KubectlApplyInsecure(env []string, url string) error {
@@ -229,11 +234,19 @@ func (b RealGitopsTestRunner) KubectlApplyInsecure(env []string, url string) err
 	if err != nil {
 		return fmt.Errorf("failed to curl manifest: %w", err)
 	}
-	return runCommandPassThroughWithEnv(env, "kubectl", "--insecure-skip-tls-verify", "apply", "-f", "/tmp/manifest.yaml")
+	return b.KubectlApply(env, "/tmp/manifest.yaml")
 }
 
-func (b RealGitopsTestRunner) KubectlDelete(env []string, manifest string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-f", manifest)
+func (b RealGitopsTestRunner) KubectlDelete(env []string, url string) error {
+	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-f", url)
+}
+
+func (b RealGitopsTestRunner) KubectlDeleteInsecure(env []string, url string) error {
+	err := runCommandPassThrough("curl", "--insecure", "-o", "/tmp/manifest.yaml", url)
+	if err != nil {
+		return fmt.Errorf("failed to curl manifest: %w", err)
+	}
+	return b.KubectlDelete(env, "/tmp/manifest.yaml")
 }
 
 func (b RealGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {

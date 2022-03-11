@@ -401,7 +401,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			clustersPage, clusterName, tokenURL := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
 			By("And I disconnect the cluster", func() {
-				_ = gitopsTestRunner.KubectlDelete([]string{}, tokenURL)
+				_ = gitopsTestRunner.KubectlDeleteInsecure([]string{}, tokenURL)
 			})
 
 			By("Then I should see the cluster status is changed to Last seen", func() {
