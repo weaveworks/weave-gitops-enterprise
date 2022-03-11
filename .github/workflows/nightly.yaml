@@ -17,8 +17,14 @@ jobs:
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
 
+  gitops-binary-ubuntu:
+    uses: ./.github/workflows/gitops-binary.yaml
+    with:
+      runs-on: ubuntu-latest
+      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
+
   acceptance-tests-eks-github:
-    needs: [build]
+    needs: [build, gitops-binary-ubuntu]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -47,8 +53,14 @@ jobs:
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
       WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
 
+  gitops-binary-macOs:
+    uses: ./.github/workflows/gitops-binary.yaml
+    with:
+      runs-on: macOS-latest
+      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
+
   acceptance-tests-gke-gitlab-on-prem:
-    needs: [build]
+    needs: [build, gitops-binary-macOs]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: macOS-latest

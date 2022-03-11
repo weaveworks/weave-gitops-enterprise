@@ -61,6 +61,7 @@ function setup {
   helm repo update  
   
   kubectl create ns wego-system
+  gitopsArgs=()
   if [ ${GIT_PROVIDER} == "github" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
     GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
@@ -82,13 +83,15 @@ function setup {
       --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
       --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET" \
       --from-literal="GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" \
-      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES" 
+      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES"
+      
+      gitopsArgs+=( --git-host-types=${GITOPS_GIT_HOST_TYPES} )
     fi
-  fi
-
-  # Install weave gitops core controllers
-  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} --auto-merge
+  fi  
  
+  # Install weave gitops core controllers
+  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} ${gitopsArgs[@]} --auto-merge
+  
   kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
   kubectl apply -f ${args[1]}/test/utils/data/gitlab-on-prem-ssh-config.yaml
 
