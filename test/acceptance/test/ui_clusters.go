@@ -420,6 +420,8 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Skip("This test case runs only with sqlite")
 			}
 
+			Skip("Alertmanager is not accessible via ingress anymore!")
+
 			gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
 			gitopsTestRunner.CheckClusterService(capi_endpoint_url)
@@ -444,7 +446,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			By("And when a critical alert fires", func() {
 				for i := 0; i < len(alerts); i++ {
-					_ = gitopsTestRunner.FireAlert(alerts[i], severity[i], messages[i], time.Second*15)
+					Expect(gitopsTestRunner.FireAlert(alerts[i], severity[i], messages[i], time.Second*15)).To(Succeed())
 				}
 
 				Eventually(clustersPage.FiringAlerts, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
@@ -468,10 +470,12 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 		It("Verify that cluster status is changed to Alerting and then to Critical alerts ", func() {
 
+			Skip("Alertmanager is not accessible via ingress anymore!")
+
 			clustersPage, clusterName, _ := connectACluster(webDriver, gitopsTestRunner, leaves["self"])
 
 			By("And system raises a warning alert", func() {
-				_ = gitopsTestRunner.FireAlert("ExampleAlert", "warning", "oh no", time.Second*30)
+				Expect(gitopsTestRunner.FireAlert("ExampleAlert", "warning", "oh no", time.Second*30)).To(Succeed())
 			})
 
 			By("Then I should see the cluster status is changed to Alerting", func() {
@@ -486,7 +490,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			By("And system raises a critical alert", func() {
-				_ = gitopsTestRunner.FireAlert("ExampleAlert", "critical", "oh no", time.Second*30)
+				Expect(gitopsTestRunner.FireAlert("ExampleAlert", "critical", "oh no", time.Second*30)).To(Succeed())
 			})
 
 			By("Then I should see the cluster status changes to Critical alerts", func() {
@@ -531,6 +535,9 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")
 			}
+
+			Skip("Alertmanager is not accessible via ingress anymore!")
+
 			gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
 			gitopsTestRunner.CheckClusterService(capi_endpoint_url)
@@ -551,10 +558,8 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			message := "My Critical Alert"
 
 			By("And when an alert fires", func() {
-
-				_ = gitopsTestRunner.FireAlert(alert, "critical", message, time.Second*15)
+				Expect(gitopsTestRunner.FireAlert(alert, "critical", message, time.Second*15)).To(Succeed())
 				Eventually(clustersPage.FiringAlerts, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
-
 			})
 
 			By("Then alerts appear in the firing alerts widget with hyper link cluster name ", func() {
