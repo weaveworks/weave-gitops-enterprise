@@ -120,10 +120,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 							cmd = fmt.Sprintf(`kubectl create secret generic git-provider-credentials --namespace=%s --from-literal="GIT_PROVIDER_TOKEN=%s"  --from-literal="GITLAB_CLIENT_ID=%s" --from-literal="GITLAB_CLIENT_SECRET=%s"`,
 								GITOPS_DEFAULT_NAMESPACE, gitProviderEnv.Token, gitProviderEnv.ClientId, gitProviderEnv.ClientSecret)
 						} else {
-							checkoutRepoPath := getCheckoutRepoPath()
-							onPremConfig := path.Join(checkoutRepoPath, "test", "utils", "data", "gitlab-on-prem-ssh-config.yaml")
-							_, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s", onPremConfig))
-							Expect(stdErr).Should(BeEmpty(), "Failed to create on-prem known hosts configmap")
+							stdOut, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`ssh-keyscan %s > known_hosts`, gitProviderEnv.Hostname) + " && " + fmt.Sprintf(`kubectl create configmap ssh-config --namespace %s --from-file=./known_hosts`, GITOPS_DEFAULT_NAMESPACE))
+							Expect(stdOut).Should(MatchRegexp(`configmap/ssh-config created`), "Failed to create on-prem known hosts 'ssh-config' configmap")
 
 							cmd = fmt.Sprintf(`kubectl create secret generic git-provider-credentials --namespace=%s --from-literal="GIT_PROVIDER_TOKEN=%s"  --from-literal="GITLAB_CLIENT_ID=%s" --from-literal="GITLAB_CLIENT_SECRET=%s"  --from-literal="GITLAB_HOSTNAME=%s" --from-literal="GIT_HOST_TYPES=%s"`,
 								GITOPS_DEFAULT_NAMESPACE, gitProviderEnv.Token, gitProviderEnv.ClientId, gitProviderEnv.ClientSecret, gitProviderEnv.GitlabHostname, gitProviderEnv.HostTypes)
@@ -141,7 +139,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				version := "0.0.19"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := public_ip + ":" + NATS_NODEPORT
-					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is nopt supported for capi cluster PR creation
+					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is nopt supported for capi cluster PR creation.
 					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s' --set 'nginx-ingress-controller.service.type=NodePort' --set 'nginx-ingress-controller.service.nodePorts.http=%s' ",
 						gitops_bin_path, version, prBranch, getGitRepositoryURL(repoAbsolutePath), gitProviderEnv.Type, gitProviderEnv.Hostname, natsURL, NATS_NODEPORT, UI_NODEPORT)
 
@@ -171,7 +169,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
-					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
+					// Temporary FIX: Since v0.0.19 uses nginx-ingress-controller, we need to check for ingress service type
+					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service weave-gitops-enterprise-nginx-ingress-controller -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
+					// serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					if serviceType == "NodePort" {
 						capi_endpoint_url = fmt.Sprintf(`http://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
 						test_ui_url = fmt.Sprintf(`http://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)

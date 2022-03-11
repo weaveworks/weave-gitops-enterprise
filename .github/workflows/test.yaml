@@ -227,6 +227,12 @@ jobs:
           path: ${{ env.ARTIFACTS_BASE_DIR }}
           retention-days: 1
 
+  gitops-binary:
+    uses: ./.github/workflows/gitops-binary.yaml
+    with:
+      runs-on: ubuntu-latest
+      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
+
   smoke-tests:
     needs: [build, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
@@ -308,11 +314,6 @@ jobs:
       WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
       WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
-
-  gitops-binary:
-    uses: ./.github/workflows/gitops-binary.yaml
-    with:
-      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
 
   acceptance-tests-github:
     needs:
