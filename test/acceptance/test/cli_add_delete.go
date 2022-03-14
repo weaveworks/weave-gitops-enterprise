@@ -400,7 +400,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-observability-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 `, gitops_bin_path, clusterName, namespace, k8version) +
 						fmt.Sprintf(`--profile 'name=podinfo,version=6.0.1' --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s" --endpoint %s %s`, prBranch, prTitle, git_repository_url, prCommit, prDescription, capi_endpoint_url, insecureFlag)
 					By(fmt.Sprintf("And I run '%s'", cmd), func() {
-						stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
+						stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_30SECONDS_TIME_OUT)
 					})
 
 					By("Then I should see pull request created to management cluster", func() {

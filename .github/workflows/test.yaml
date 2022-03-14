@@ -119,7 +119,7 @@ jobs:
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
-      GIT_PROVIDER_HOSTNAME: gitlab.git.dev.wkp.weave.works
+      GIT_PROVIDER_HOSTNAME: gitlab.git.dev.weave.works
     steps:
       - id: cache-paths
         run: |
@@ -297,7 +297,7 @@ jobs:
       focus-or-skip: "-ginkgo.focus='@smoke'"
       kubectl-version: "v1.22.0"
       git-provider: gitlab
-      git-provider_hostname: gitlab.git.dev.wkp.weave.works
+      git-provider_hostname: gitlab.git.dev.weave.works
       cluster_resource_set: true
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops

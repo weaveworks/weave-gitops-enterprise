@@ -69,7 +69,7 @@ jobs:
       focus-or-skip: "-ginkgo.skip='@gce|@eks|@capd|@upgrade'"
       kubectl-version: "v1.22.0"
       git-provider: gitlab
-      git-provider_hostname: gitlab.git.dev.wkp.weave.works
+      git-provider_hostname: gitlab.git.dev.weave.works
       cluster_resource_set: false
       management-cluster-kind: gke
       gitops-bin-path: /usr/local/bin/gitops

@@ -146,6 +146,7 @@ env:
   UI_NODEPORT: 30080
   NATS_NODEPORT: 31490
   MANAGEMENT_CLUSTER_CNAME: weave.gitops.enterprise.com
+  UPGRADE_MANAGEMENT_CLUSTER_CNAME: weave.gitops.upgrade.enterprise.com
   MANAGEMENT_CLUSTER_KIND: ${{ inputs.management-cluster-kind }}
   GITOPS_BIN_PATH: ${{ inputs.gitops-bin-path }}
   ACCEPTANCE_TESTS_DATABASE_TYPE: ${{ inputs.database-type }}
@@ -275,7 +276,7 @@ jobs:
           git config --global user.name $USERNAME
           git config --global url.ssh://git@github.com/.insteadOf https://github.com/
           git config --global url.git@gitlab.com:.insteadOf https://gitlab.com/
-          git config --global url.git@gitlab.git.dev.wkp.weave.works:.insteadOf https://gitlab.git.dev.wkp.weave.works/
+          git config --global url.git@gitlab.git.dev.weave.works:.insteadOf https://gitlab.git.dev.weave.works/
       - name: Download totp-cli from GH
         run: |
           wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
@@ -291,7 +292,6 @@ jobs:
           chmod +x /tmp/gitops-${{ inputs.runs-on }}
           ls -la /tmp/gitops-${{ inputs.runs-on }}
           sudo mv /tmp/gitops-${{ inputs.runs-on }} ${{ env.GITOPS_BIN_PATH }}
-          ls -la ${{ env.GITOPS_BIN_PATH }}
           gitops version
       - name: Setup selenium server
         if: ${{ runner.os == 'Linux' }}
