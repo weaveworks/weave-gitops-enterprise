@@ -171,7 +171,7 @@ func deleteGitopsApplication(appName string, nameSpace string) {
 }
 
 func deleteGitopsGitRepository(nameSpace string) {
-	cmd := fmt.Sprintf(`kubectl get GitRepositories -n %[1]v | grep auto |grep %[2]v | cut -d' ' -f1 | xargs kubectl delete GitRepositories -n %[1]v`, nameSpace, gitProviderEnv.Repo)
+	cmd := fmt.Sprintf(`kubectl get GitRepositories -n %[1]v | grep wego |grep %[2]v | cut -d' ' -f1 | xargs kubectl delete GitRepositories -n %[1]v`, nameSpace, gitProviderEnv.Repo)
 	By("And I delete GitRepository resource", func() {
 		logger.Trace(cmd)
 		_, _ = runCommandAndReturnStringOutput(cmd)
