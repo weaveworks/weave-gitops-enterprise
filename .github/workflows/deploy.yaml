@@ -123,7 +123,7 @@ jobs:
       focus-or-skip: "-ginkgo.focus='@git'"
       kubectl-version: "v1.22.0"
       git-provider: gitlab
-      git-provider_hostname: gitlab.git.dev.wkp.weave.works
+      git-provider_hostname: gitlab.git.dev.weave.works
       cluster_resource_set: true
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops

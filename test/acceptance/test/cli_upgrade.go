@@ -173,8 +173,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service weave-gitops-enterprise-nginx-ingress-controller -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					// serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					if serviceType == "NodePort" {
-						capi_endpoint_url = fmt.Sprintf(`http://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
-						test_ui_url = fmt.Sprintf(`http://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
+						capi_endpoint_url = fmt.Sprintf(`http://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
+						test_ui_url = fmt.Sprintf(`http://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
 					} else {
 						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s svc/clusters-service 8000:80", GITOPS_DEFAULT_NAMESPACE)
 

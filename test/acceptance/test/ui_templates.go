@@ -1215,9 +1215,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				if beFound {
-					Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
+					Eventually(checkOutput, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
 				} else {
-					Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFalse())
+					Eventually(checkOutput, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFalse())
 				}
 
 			}
