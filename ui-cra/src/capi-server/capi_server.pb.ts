@@ -115,6 +115,15 @@ export type Cluster = {
   type?: string
   status?: string
   label?: string
+  objects?: ClusterObject[]
+  error?: string
+}
+
+export type ClusterObject = {
+  kind?: string
+  apiVersion?: string
+  name?: string
+  displayName?: string
 }
 
 export type Credential = {

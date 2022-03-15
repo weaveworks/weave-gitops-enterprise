@@ -443,6 +443,32 @@
         },
         "label": {
           "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterObject"
+          }
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ClusterObject": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
         }
       }
     },

@@ -201,6 +201,15 @@ message Cluster {
   string type = 2;
   string status = 3;
   string label = 4;
+  repeated ClusterObject objects = 5;
+  string error = 6;
+}
+
+message ClusterObject {
+  string kind = 1;
+  string api_version = 2;
+  string name = 3;
+  string display_name = 4;
 }
 
 message Credential {
