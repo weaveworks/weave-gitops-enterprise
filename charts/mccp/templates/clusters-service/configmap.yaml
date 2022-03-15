@@ -23,3 +23,8 @@ data:
   OIDC_REDIRECT_URL: {{ .Values.config.oidc.redirectURL | quote }}
   OIDC_COOKIE_DURATION: {{ .Values.config.oidc.cookieDuration | quote }}
   {{- end }}
+  NO_TLS: {{ not .Values.tls.enabled | quote }}
+  {{- if and .Values.tls.enabled .Values.tls.secretName }}
+  TLS_CERT_FILE: /etc/clusters-service-tls/tls.crt
+  TLS_PRIVATE_KEY: /etc/clusters-service-tls/tls.key
+  {{- end }}

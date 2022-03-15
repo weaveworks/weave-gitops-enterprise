@@ -39,7 +39,7 @@ Configure git with the following global settings. It will elevates the manual in
     git config --global user.name <your user name>  
     git config --global url.ssh://git@github.com/.insteadOf https://github.com/  
     git config --global url.git@gitlab.com:.insteadOf https://gitlab.com/  
-    git config --global url.git@gitlab.git.dev.wkp.weave.works:.insteadOf https://gitlab.git.dev.wkp.weave.works/ 
+    git config --global url.git@gitlab.git.dev.weave.works:.insteadOf https://gitlab.git.dev.weave.works/ 
 
 
 <font size="5">**Git provider(s) key fingerprints**</font>
@@ -50,10 +50,10 @@ Add git providers i.e. (GitHub, gitlab and gitlab-on-prm) key fingerprints to th
 # Clean up potentially old keys
 ssh-keygen -R github.com
 ssh-keygen -R gitlab.com
-ssh-keygen -R gitlab.git.dev.wkp.weave.works
+ssh-keygen -R gitlab.git.dev.weave.works
 
 # Append fresh new keys
-ssh-keyscan gitlab.git.dev.wkp.weave.works github.com gitlab.com >> ~/.ssh/known_hosts
+ssh-keyscan gitlab.git.dev.weave.works github.com gitlab.com >> ~/.ssh/known_hosts
 ```
 
 <font size="5">**Environment variables**</font>
@@ -101,17 +101,17 @@ export GITLAB_CLIENT_SECRET=<gitlab oath app secret>
 **Gitlab on-prem**
 ```
 export GIT_PROVIDER=gitlab
-export GIT_PROVIDER_HOSTNAME=gitlab.git.dev.wkp.weave.works
+export GIT_PROVIDER_HOSTNAME=gitlab.git.dev.weave.works
 export GITHUB_ORG=<gitlab group name>
 export GITHUB_TOKEN=<gitlab account token>
 export GITHUB_USER=<gitlab account user name>
 export GITHUB_PASSWORD=<gitlab account password>
 export GITLAB_CLIENT_ID=<gitlab oath app id>
 export GITLAB_CLIENT_SECRET=<gitlab oath app secret>
-export GITOPS_GIT_HOST_TYPES="gitlab.git.dev.wkp.weave.works=gitlab"
-export GITLAB_HOSTNAME=“gitlab.git.dev.wkp.weave.works"
+export GITOPS_GIT_HOST_TYPES="gitlab.git.dev.weave.works=gitlab"
+export GITLAB_HOSTNAME=“gitlab.git.dev.weave.works"
 ```
-You can use any gitlab on-prem instance to run tests. However, `gitlab.git.dev.wkp.weave.works` instance is already setup and ready to use for development and testing purposes.
+You can use any gitlab on-prem instance to run tests. However, `gitlab.git.dev.weave.works` instance is already setup and ready to use for development and testing purposes.
 You must configure the gitlab oath application with redirect url as below. It is required for automated gitlab authentication flows (applicabel to both gilab sas and gitlab on-prem).
     http://weave.gitops.enterprise.com:30080/oauth/gitlab
 

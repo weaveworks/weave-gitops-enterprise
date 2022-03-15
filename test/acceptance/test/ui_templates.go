@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,6 +35,9 @@ func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
 		client := http.Client{
 			Timeout: 5 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
 		}
 		resp, err := client.Get(test_ui_url + "/v1/profiles")
 		if err != nil {
@@ -1211,9 +1215,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				if beFound {
-					Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
+					Eventually(checkOutput, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
 				} else {
-					Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFalse())
+					Eventually(checkOutput, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFalse())
 				}
 
 			}

@@ -27,6 +27,3 @@ dependencies:
   - name: nats
     version: "6.1.2"
     repository: "https://charts.bitnami.com/bitnami"
-  - name: nginx-ingress-controller
-    version: "7.6.21"
-    repository: https://charts.bitnami.com/bitnami

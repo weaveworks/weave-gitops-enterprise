@@ -90,6 +90,10 @@ spec:
               mountPath: /flux-cli
             - name: ui-server-volume
               mountPath: /html
+            {{- if .Values.tls.secretName }}
+            - name: clusters-service-tls-volume
+              mountPath: /etc/clusters-service-tls
+            {{- end }}
             {{- if eq .Values.dbConfig.databaseType "sqlite" }}
             - name: database-volume
               mountPath: /var/database
@@ -100,6 +104,11 @@ spec:
       volumes:
       - name: flux-cli-volume
         emptyDir: {}
+      {{- if .Values.tls.secretName }}
+      - name: clusters-service-tls-volume
+        secret:
+          secretName: {{ .Values.tls.secretName }}
+      {{- end }}
       - name: ui-server-volume
         emptyDir: {}
       {{- if eq .Values.dbConfig.databaseType "sqlite" }}

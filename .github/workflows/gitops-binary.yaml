@@ -1,0 +1,64 @@
+name: "Get a gitops binary"
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "which binary to get"
+        default: "main"
+        required: false
+        type: string
+      runs-on:
+        description: "`macOS-latest` or `ubuntu-latest`"
+        required: false
+        default: "ubuntu-latest"
+        type: string
+      os-name:
+        description: "`linux` or `darwin`"
+        required: false
+        default: "linux"
+        type: string
+
+jobs:
+  latest-main:
+    if: inputs.ref == 'main'
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Download gitops binary from s3
+        shell: bash
+        run: |
+          wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-${{ inputs.runs-on }}
+
+          # curl -LO https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0-rc2/gitops-${{ inputs.os-name }}-x86_64.tar.gz
+          # tar -xf gitops-${{ inputs.os-name }}-x86_64.tar.gz
+          # mv gitops gitops-${{ inputs.runs-on }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: gitops
+          path: gitops-${{ inputs.runs-on }}
+          retention-days: 1
+
+  build-a-commit:
+    if: inputs.ref != 'main'
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+      - uses: actions/checkout@v2
+        with:
+          repository: weaveworks/weave-gitops
+          token: ${{ github.token }}
+          ref: ${{ inputs.ref }}
+      - name: Clean
+        run: make clean
+      - name: build
+        run: |
+          make gitops
+          mv bin/gitops bin/gitops-${{ inputs.runs-on }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: gitops
+          path: bin/gitops-${{ inputs.runs-on }}
+          retention-days: 1
