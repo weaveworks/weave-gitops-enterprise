@@ -52,7 +52,7 @@ func (s *server) ListWeaveClusters(ctx context.Context, msg *capiv1_proto.ListWe
 	}
 
 	if msg.Label != "" {
-		if !isProviderRecognised(msg.Label) {
+		if !isLabelRecognised(msg.Label) {
 			return nil, fmt.Errorf("label %q is not recognised", msg.Label)
 		}
 
