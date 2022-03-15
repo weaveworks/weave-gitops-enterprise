@@ -87,16 +87,6 @@ jobs:
         run: |
           go version
           make unit-tests-with-coverage
-    # - name: Send coverage
-    #   run: |
-    #     # submit the coverage 1 by 1, seems important that they have a -flagname
-    #     goveralls -parallel -coverprofile=.coverprofile -service="GitHub Action" -flagname wks -repotoken $WGE_COVERALLS_TOKEN
-    #     (cd cmd/event-writer; goveralls -coverprofile=.coverprofile -flagname event-writer -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
-    #     (cd common; goveralls -coverprofile=.coverprofile -flagname common -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
-    #     (cd cmd/capi-serve; goveralls -coverprofile=.coverprofile -flagname capi-server -parallel -service="GitHub Action" -repotoken $WGE_COVERALLS_TOKEN)
-
-    #     # We've finished submitting the coverage
-    #     curl -k "https://coveralls.io/webhook?repo_token=$WGE_COVERALLS_TOKEN" -d "payload[build_num]=$GITHUB_RUN_NUMBER&payload[status]=done"
 
   build:
     uses: ./.github/workflows/build.yaml
@@ -116,7 +106,7 @@ jobs:
       GO_CACHE_NAME: cache-go-modules
       YARN_CACHE_NAME: cache-yarn
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      GITHUB_ORG: wge-org-test
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
       GIT_PROVIDER_HOSTNAME: gitlab.git.dev.weave.works
@@ -254,7 +244,7 @@ jobs:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      WGE_GITHUB_ORG: wge-org-test
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
@@ -342,7 +332,7 @@ jobs:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      WGE_GITHUB_ORG: wge-org-test
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
