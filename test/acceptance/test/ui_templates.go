@@ -715,10 +715,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then AWS test-role-identity credential can be selected", func() {
-
-					Expect(createPage.Credentials.Click()).To(Succeed())
-					// FIXME - credentials may or may no be filtered
-					// Expect(pages.GetCredentials(webDriver).Count()).Should(Equal(4), "Credentials count in the cluster should be '3' excluding 'None")
+					Eventually(createPage.Credentials.Click).Should(Succeed())
+					// Credentials are not filtered for selected template
+					Eventually(pages.GetCredentials(webDriver).Count).Should(Equal(4), "Credentials count in the cluster should be '4' including 'None")
 					Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
 				})
 
@@ -1032,6 +1031,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, paramSection)
 				pages.ScrollWindow(webDriver, 0, 4000)
 
+				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
+				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+				pages.ScrollWindow(webDriver, 0, 4000)
+
 				By("And select the podinfo profile to install", func() {
 					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
 					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
@@ -1145,7 +1148,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(downloadedKubeconfigPath, GITOPS_DEFAULT_NAMESPACE)
+					// List of Profiles in order of layering
+					profiles := []string{"observability", "podinfo"}
+					verifyCapiClusterHealth(downloadedKubeconfigPath, clusterName, profiles, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
