@@ -719,10 +719,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then AWS test-role-identity credential can be selected", func() {
-					Eventually(createPage.Credentials.Click).Should(Succeed())
-					// Credentials are not filtered for selected template
-					Eventually(pages.GetCredentials(webDriver).Count).Should(Equal(4), "Credentials count in the cluster should be '4' including 'None")
-					Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
+					selectCredential := func() bool {
+						Eventually(createPage.Credentials.Click).Should(Succeed())
+						// Credentials are not filtered for selected template
+						Eventually(pages.GetCredentials(webDriver).Count).Should(Equal(4), "Credentials count in the cluster should be '4' including 'None")
+						Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
+
+						credentialText, _ := createPage.Credentials.Text()
+						return strings.Contains(credentialText, "test-role-identity")
+					}
+					Eventually(selectCredential, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
 				})
 
 				// AWS template parameter values
@@ -925,6 +931,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
+			clusterNamespace := map[string]string{
+				GitProviderGitLab: "default",
+				// GitProviderGitHub: "github-system", (FIXME: there is an existing bug #563)
+				GitProviderGitHub: "default",
+			}
+
 			appName := "management"
 			appPath := "./management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
@@ -994,7 +1006,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				// Parameter values
 				clusterName := capdClusterName
-				namespace := "default"
+				namespace := clusterNamespace[gitProviderEnv.Type]
 				k8Version := "1.23.3"
 				controlPlaneMachineCount := "1"
 				workerMachineCount := "1"
