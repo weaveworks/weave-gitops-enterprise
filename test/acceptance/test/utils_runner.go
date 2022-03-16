@@ -43,7 +43,7 @@ type GitopsTestRunner interface {
 	CreateIPCredentials(infrastructureProvider string)
 	DeleteIPCredentials(infrastructureProvider string)
 	CheckClusterService(capiEndpointURL string)
-	RestartDeploymentPods(env []string, appName string, namespace string) error
+	RestartDeploymentPods(appName string, namespace string) error
 }
 
 // "DB" backend that creates/delete rows
@@ -193,7 +193,7 @@ func (b DatabaseGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
 
 }
 
-func (b DatabaseGitopsTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+func (b DatabaseGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
 	return nil
 }
 
@@ -367,12 +367,12 @@ func (b RealGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
 	}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
 }
 
-func (b RealGitopsTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
 	// Restart the deployment pods
-	err := runCommandPassThroughWithEnv(env, "kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+	err := runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
 	if err == nil {
 		// Wait for all the deployments replicas to rolled out successfully
-		err = runCommandPassThroughWithEnv(env, "kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+		err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
 	}
 	return err
 }
