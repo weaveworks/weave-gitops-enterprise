@@ -336,6 +336,11 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
+			clusterNamespace := map[string]string{
+				GitProviderGitLab: "default",
+				// GitProviderGitHub: "github-system", (FIXME: there is an existing bug #563)
+				GitProviderGitHub: "default",
+			}
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "capi.kubeconfig")
 			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
 			appName := "management"
@@ -459,7 +464,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				// Parameter values
 				clusterName := capdClusterNames[0]
-				namespace := "default"
+				namespace := clusterNamespace[gitProviderEnv.Type]
 				k8version := "1.23.0"
 				// Creating two capd clusters
 				createCluster(clusterName, namespace, k8version)
