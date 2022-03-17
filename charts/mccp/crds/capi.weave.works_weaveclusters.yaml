@@ -12,14 +12,14 @@ spec:
   names:
     kind: WeaveCluster
     listKind: WeaveClusterList
-    plural: WeaveClusters
-    singular: WeaveCluster
+    plural: weaveclusters
+    singular: weavecluster
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: WeaveCluster is the Schema for the WeaveClusters API
+        description: WeaveCluster is the Schema for the weaveclusters API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation

@@ -2,6 +2,7 @@ package clusters
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -19,9 +20,9 @@ const testdata1 = `
 apiVersion: capi.weave.works/v1alpha1
 kind: WeaveCluster
 metadata:
-  name: weave-cluster1
+  name: weave-cluster
 spec:
-  description: this is test cluster 1
+  label: foo
 `
 
 const testdata2 = `
@@ -30,7 +31,7 @@ kind: WeaveCluster
 metadata:
   name: weave-cluster2
 spec:
-  description: this is test cluster 2
+  label: bar
 `
 
 func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -54,7 +55,7 @@ func TestGetClusterFromCRDs(t *testing.T) {
 	c1 := mustParseCluster(t, testdata1)
 	c2 := mustParseCluster(t, testdata2)
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
-	result, err := lib.Get(context.Background(), "weave-cluster-2")
+	result, err := lib.Get(context.Background(), "weave-cluster2")
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
@@ -63,7 +64,7 @@ func TestGetClusterFromCRDs(t *testing.T) {
 	}
 }
 
-func TestListTemplateFromCRDs(t *testing.T) {
+func TestListClusterFromCRDs(t *testing.T) {
 	c1 := mustParseCluster(t, testdata1)
 	c2 := mustParseCluster(t, testdata2)
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
@@ -72,8 +73,8 @@ func TestListTemplateFromCRDs(t *testing.T) {
 		t.Fatalf("On no, error: %v", err)
 	}
 	want := map[string]*capiv1.WeaveCluster{
-		"weave-cluster-1": c1,
-		"weave-cluster-2": c2,
+		"weave-cluster":  c1,
+		"weave-cluster2": c2,
 	}
 	if diff := cmp.Diff(want, result); diff != "" {
 		t.Fatalf("On no, diff clusters: %v", diff)
@@ -88,5 +89,6 @@ func mustParseCluster(t *testing.T, data string) *capiv1.WeaveCluster {
 	if err != nil {
 		t.Fatal(err)
 	}
+	fmt.Println(c)
 	return &c
 }
