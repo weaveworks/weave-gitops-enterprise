@@ -78,7 +78,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.config.oidc.clientCredentialsSecret }}
-                  key: clientId
+                  key: clientID
             - name: OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
