@@ -253,6 +253,14 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			initializeWebdriver(test_ui_url)
 		})
 
+		It("@integration Verify Weave Gitops Enterprise version", func() {
+			By("And I verify the version", func() {
+				clustersPage := pages.GetClustersPage(webDriver)
+				Eventually(clustersPage.Version).Should(BeFound())
+				Expect(clustersPage.Version.Text()).Should(MatchRegexp(enterpriseChartVersion()), "Expected Weave Gitops enterprise version is not found")
+			})
+		})
+
 		It("Verify page structure first time with no cluster configured", func() {
 			if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
 				Skip("This test case runs only with sqlite")

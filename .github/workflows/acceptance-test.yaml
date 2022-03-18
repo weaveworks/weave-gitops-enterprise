@@ -178,7 +178,7 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Go Build Cache

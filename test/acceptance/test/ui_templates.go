@@ -61,6 +61,10 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 			templateSection := createPage.GetTemplateSection(webDriver, section)
 			Expect(templateSection.Name).Should(HaveText(section))
 
+			if len(parameters) == 0 {
+				Expect(len(templateSection.Fields)).To(BeNumerically("==", 0), fmt.Sprintf("No form fields should be visible for section %s", section))
+			}
+
 			for i := 0; i < len(parameters); i++ {
 				paramSet := false
 				for j := 0; j < len(templateSection.Fields); j++ {
@@ -398,6 +402,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
+				paramSection["2.AWSManagedCluster"] = nil
 				paramSection["3.AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
@@ -415,6 +420,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
+				paramSection["4.AWSFargateProfile"] = nil
 
 				setParameterValues(createPage, paramSection)
 
@@ -1220,16 +1226,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			checkEntitlement := func(typeEntitelment string, beFound bool) {
 				checkOutput := func() bool {
 					found, _ := pages.GetEntitelment(webDriver, typeEntitelment).Visible()
-					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 					return found
 
 				}
 
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				if beFound {
-					Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
+					Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT).Should(BeTrue())
 				} else {
-					Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFalse())
+					Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT).Should(BeFalse())
 				}
 
 			}
