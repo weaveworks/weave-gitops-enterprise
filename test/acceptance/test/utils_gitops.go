@@ -61,7 +61,7 @@ func waitForResourceState(state string, statusCondition string, resourceName str
 	cmd := fmt.Sprintf(" kubectl wait --for=condition=%s=%s --timeout=%s %s -n %s --all %s %s",
 		state, statusCondition, fmt.Sprintf("%.0fs", timeout.Seconds()), resourceName, nameSpace, selector, kubeconfig)
 	logger.Trace(cmd)
-	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_3MINUTE_TIME_OUT)
+	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_5MINUTE_TIME_OUT)
 	Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("%s resource has failed to become %s.", resourceName, state))
 }
 

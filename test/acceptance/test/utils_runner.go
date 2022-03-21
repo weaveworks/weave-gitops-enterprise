@@ -382,26 +382,26 @@ func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string)
 	if infrastructureProvider == "AWS" {
 		By("Install AWSClusterStaticIdentity CRD", func() {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io")
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 		})
 
 		By("Install AWSClusterRoleIdentity CRD", func() {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io")
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 		})
 
 		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 
 	} else if infrastructureProvider == "AZURE" {
 		By("Install AzureClusterIdentity CRD", func() {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io")
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 		})
 
 		By("Create Azure Secret and AzureClusterIdentity)", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/azure_cluster_credentials.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/azure_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 	}
 
