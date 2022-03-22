@@ -68,6 +68,7 @@ type ClustersPage struct {
 	ClustersListPaginationPerPageDropdown       *agouti.Selection
 	ClustersListPaginationPerPageDropdownSecond *agouti.Selection
 	MessageBar                                  *agouti.Selection
+	Version                                     *agouti.Selection
 }
 
 // This function waits for cluster to appear in the cluste table (become visible)
@@ -166,6 +167,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		ClustersListPaginationPerPageDropdown: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/div`),
 		ClustersListPaginationPerPageDropdownSecond: webDriver.FindByXPath(`//*[@id="menu-"]/div[3]/ul/li[2]`),
 		MessageBar: webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
+		Version:    webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
 
 	return &clustersPage
