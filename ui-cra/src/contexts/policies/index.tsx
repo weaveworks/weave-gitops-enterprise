@@ -1,13 +1,13 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { Template } from '../../types/custom';
+import { Policy } from '../../types/custom';
 
 interface PoliciesContext {
-  policies:  Template[];
+  policies:  Policy[];
   loading: boolean;
   error: string | null;
-  activePolicy: Template | null;
-  setActivePolicy: Dispatch<React.SetStateAction<Template | null>>;
-  getPolicy: (policyName: string) => Template | null;
+  activePolicy: Policy | null;
+  setActivePolicy: Dispatch<React.SetStateAction<Policy | null>>;
+  getPolicy: (policyName: string) => Policy | null;
   setError: Dispatch<React.SetStateAction<string | null>>;
 }
 

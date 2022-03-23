@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { Template } from '../../types/custom';
+import { Policy } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Policies } from './index';
 import { useHistory } from 'react-router-dom';
@@ -7,8 +7,8 @@ import useNotifications from '../Notifications';
 
 const PoliciesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [policies, setPolicies] = useState<Template[]>([]);
-  const [activePolicy, setActivePolicy] = useState<Template | null>(null);
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [activePolicy, setActivePolicy] = useState<Policy | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const { setNotifications } = useNotifications();
 

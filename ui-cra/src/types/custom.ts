@@ -83,3 +83,29 @@ export type ChildrenOccurences = {
   groupVisible: boolean;
   count: number;
 };
+
+export type Policy = {
+  name?: string;
+  id?: string;
+  code?: string;
+  description?: string;
+  howToSolve?: string;
+  category?: string;
+  tags?: string[];
+  severity?: string;
+  controls?: string[];
+  gitCommit?: string;
+  parameters?: PolicyParameters[];
+  targets?: Targets[];
+};
+export type Targets = {
+  kind?: string[];
+  label?: [{ ['values']: { [key: string]: string } }];
+  namespace?: string[];
+};
+export type PolicyParameters = {
+  name?: string;
+  type?: string;
+  default?: Object;
+  required?: boolean;
+};
