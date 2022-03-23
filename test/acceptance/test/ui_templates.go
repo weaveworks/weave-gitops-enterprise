@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,6 +35,9 @@ func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
 		client := http.Client{
 			Timeout: 5 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
 		}
 		resp, err := client.Get(test_ui_url + "/v1/profiles")
 		if err != nil {
@@ -56,6 +60,10 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 		By(fmt.Sprintf("And set template section %s parameter values", section), func() {
 			templateSection := createPage.GetTemplateSection(webDriver, section)
 			Expect(templateSection.Name).Should(HaveText(section))
+
+			if len(parameters) == 0 {
+				Expect(len(templateSection.Fields)).To(BeNumerically("==", 0), fmt.Sprintf("No form fields should be visible for section %s", section))
+			}
 
 			for i := 0; i < len(parameters); i++ {
 				paramSet := false
@@ -394,6 +402,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
+				paramSection["2.AWSManagedCluster"] = nil
 				paramSection["3.AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
@@ -411,6 +420,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
+				paramSection["4.AWSFargateProfile"] = nil
 
 				setParameterValues(createPage, paramSection)
 
@@ -715,11 +725,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then AWS test-role-identity credential can be selected", func() {
+					selectCredential := func() bool {
+						Eventually(createPage.Credentials.Click).Should(Succeed())
+						// Credentials are not filtered for selected template
+						Eventually(pages.GetCredentials(webDriver).Count).Should(Equal(4), "Credentials count in the cluster should be '4' including 'None")
+						Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
 
-					Expect(createPage.Credentials.Click()).To(Succeed())
-					// FIXME - credentials may or may no be filtered
-					// Expect(pages.GetCredentials(webDriver).Count()).Should(Equal(4), "Credentials count in the cluster should be '3' excluding 'None")
-					Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
+						credentialText, _ := createPage.Credentials.Text()
+						return strings.Contains(credentialText, "test-role-identity")
+					}
+					Eventually(selectCredential, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
 				})
 
 				// AWS template parameter values
@@ -922,6 +937,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
+			clusterNamespace := map[string]string{
+				GitProviderGitLab: "default",
+				// GitProviderGitHub: "github-system", (FIXME: there is an existing bug #563)
+				GitProviderGitHub: "default",
+			}
+
 			appName := "management"
 			appPath := "./management"
 			capdClusterName := "ui-end-to-end-capd-cluster"
@@ -991,7 +1012,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				// Parameter values
 				clusterName := capdClusterName
-				namespace := "default"
+				namespace := clusterNamespace[gitProviderEnv.Type]
 				k8Version := "1.23.3"
 				controlPlaneMachineCount := "1"
 				workerMachineCount := "1"
@@ -1030,6 +1051,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				setParameterValues(createPage, paramSection)
+				pages.ScrollWindow(webDriver, 0, 4000)
+
+				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
+				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
 				pages.ScrollWindow(webDriver, 0, 4000)
 
 				By("And select the podinfo profile to install", func() {
@@ -1145,7 +1170,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(downloadedKubeconfigPath, GITOPS_DEFAULT_NAMESPACE)
+					// List of Profiles in order of layering
+					profiles := []string{"observability", "podinfo"}
+					verifyCapiClusterHealth(downloadedKubeconfigPath, clusterName, profiles, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
@@ -1199,16 +1226,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			checkEntitlement := func(typeEntitelment string, beFound bool) {
 				checkOutput := func() bool {
 					found, _ := pages.GetEntitelment(webDriver, typeEntitelment).Visible()
-					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 					return found
 
 				}
 
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				if beFound {
-					Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
+					Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT).Should(BeTrue())
 				} else {
-					Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFalse())
+					Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT).Should(BeFalse())
 				}
 
 			}
@@ -1219,7 +1245,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I should not see the error or warning message for valid entitlement", func() {
@@ -1235,7 +1261,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the error message for missing entitlement", func() {
@@ -1247,7 +1273,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the warning message for expired entitlement", func() {
@@ -1259,7 +1285,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the error message for invalid entitlement", func() {

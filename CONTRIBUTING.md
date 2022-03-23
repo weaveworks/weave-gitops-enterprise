@@ -1,7 +1,5 @@
 # Developing `weave-gitops-enterprise`
 
-[comment]: <> (Github can generate TOCs now see https://github.blog/changelog/2021-04-13-table-of-contents-support-in-markdown-files/)
-
 A guide to making it easier to develop `weave-gitops-enterprise`. If you came here expecting but not finding an answer please make an issue to help improve these docs!
 
 ## Building the project
@@ -52,7 +50,7 @@ Further, don't forget to update your `~/.gitconfig` with:
 
 When making code modifications see if you can write a test first!
 
-- **Integration and unit tests** should be places in the `_test.go` file next to the source you're modifying.
+- **Integration and unit tests** should be placed in the `_test.go` file next to the source you're modifying.
 - **Acceptance tests** live in `./test/acceptance`
 
 ## How to run services locally against an existing cluster
@@ -70,7 +68,7 @@ The `clusters-service` requires the presence of a valid entitlement secret for i
 
 An existing entitlement secret that you can use can be found [here](../test/utils/scripts/entitlement-secret.yaml). Alternatively, you can generate your own entitlement secret by using the `wge-credentials` binary.
 
-Create a local database (optional):
+#### Create a local database (optional):
 
 ```bash
 $ (cd cmd/event-writer && go run main.go database create --db-type sqlite --db-uri file:///tmp/wge.db)
@@ -89,15 +87,38 @@ cluster_pull_requests  flux_info              workspaces
 sqlite>
 ```
 
-Run the server:
+#### Port forward the source-controller to access profiles (optional):
+
+To query profiles the `clusters-service` needs to be able to DNS resolve the source-controller which provides the helm-repo (profile) info.
+
+Goes like this: `/v1/profiles` on the `clusters-service` finds the `HelmRepository` CR to figure out the URL where it can get a copy of the `index.yaml` that lists all the profiles.
+
+```yaml
+kind: HelmRepository
+status:
+  # some url that only resolves when running inside the cluster
+  url: source-controller.svc.wego-system/my-repo/index.yaml
+```
+
+Outside the cluster this is no good (e.g. `curl`ing the above URL will fail). To fix this we need to:
+
+1. expose the source-controller outside the cluster (in another terminal):
+   - `kubectl -n wego-system port-forward svc/source-controller 8080:80`
+2. tell the `clusters-service` to forget about _most_ of that above URL it finds on the `HelmRepository` and use the port-forwarded one instead:
+   - `SOURCE_CONTROLLER_LOCALHOST=localhost:8080`
+
+#### Run the server:
 
 ```bash
 # Optional, configure the kube context the capi-server should use
 export KUBECONFIG=test-server-kubeconfig
 
 # The weave-gitops core library uses an embedded Flux. That's not going to work when used as a library though
-# so we need to tell it to use a different Flux. This is also done by the cluster-service deployment.
-WEAVE_GITOPS_FLUX_BIN_PATH=`which flux`
+# so we need to tell it to use a different Flux. This is also done by the clusters-service deployment.
+export WEAVE_GITOPS_FLUX_BIN_PATH=`which flux`
+
+# If you have port-forward the source-controller from a cluster make sure to include its local address when starting the clusters-service:
+SOURCE_CONTROLLER_LOCALHOST=localhost:8080
 
 # Run the server configured using lots of env vars
 DB_URI=/tmp/wge.db CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=wego-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
@@ -137,6 +158,14 @@ When you need to develop the UI against new features that haven't made to the te
 CAPI_SERVER_HOST=http://localhost:8000 yarn start
 ```
 
+### UI against a remote server
+
+If you need to use a remote server, set the `CAPI_SERVER_HOST` env var to the server's address before running `yarn start`:
+
+```bash
+CAPI_SERVER_HOST=http://34.67.250.163:30080 yarn start
+```
+
 ### Testing changes to an unreleased weave-gitops locally
 
 Maybe you need to add an extra export or tweak a style in a component in weave-gitops:
@@ -165,7 +194,11 @@ yarn add ../../weave-gitops/dist
 export WG_VERSION=0.2.4
 
 # 1.update the backend golang code
-go get github.com/weaveworks/weave-gitops@$WG_VERSION
+cd cmd/clusters-service
+go get -d github.com/weaveworks/weave-gitops@$WG_VERSION
+go mod tidy -compat=1.17
+cd ../..
+go mod tidy -compat=1.17
 
 # 2. Update the frontend typescript/javascript code
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
@@ -185,15 +218,17 @@ Hit up http://34.67.250.163:30080
 The private ssh key to the server lives in the `pesto test cluster ssh key` secret in 1Password.
 
 1. Grab it and save it to `~/.ssh/cluster-key`
-2. Copy `kubeconfig` using this ssh key
+1. Set permissions `chmod 600 ~/.ssh/cluster-key`
+1. Add it to your current ssh agent session with `ssh-add ~/.ssh/cluster-key`
+1. Copy `kubeconfig` using this ssh key
    ```
-   scp -i ~/.ssh/cluster-key wks@34.67.250.163:.kube/config demokubeconfig.txt
+   LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 scp wks@34.67.250.163:.kube/config demokubeconfig.txt
    ```
-3. Port forward the api-server port (6443) in another tab
+1. Port forward the api-server port (6443) in another tab
    ```
-   ssh -i ~/.ssh/cluster-key wks@34.67.250.163 -L 6443:localhost:6443
+   ssh wks@34.67.250.163 -L 6443:localhost:6443
    ```
-4. Use the `kubeconfig`:
+1. Use the `kubeconfig`:
    ```
    export KUBECONFIG=demokubeconfig.txt
    kubectl get pods -A
@@ -244,4 +279,22 @@ Or, we can inspect _and modify_ the database in the cluster with
 kubectl exec -ti -n mccp mccp-cluster-service-79854d9fcb-bwvp7 -- /bin/sh
 apk add sqlite3
 sqlite /var/database/mccp.db
+```
+
+## How to make a self-signed cert that works in chrome!
+
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj '/CN=localhost' -addext "subjectAltName = DNS.1:localhost"
+```
+
+### MacOS trust it
+
+```
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert.pem
+```
+
+### clusters service use it
+
+```
+clusters-service <OTHER_ARGS...> --tls-cert-file cert.pem --tls-private-key key.pem
 ```

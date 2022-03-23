@@ -76,7 +76,25 @@ nats:
       type: NodePort
   extraEnvVarsSecret: nats-env-vars-secret
 
-nginx-ingress-controller:
-  ingressClass: mccp-nginx
-  config:
-    ssl-redirect: "false"
+tls:
+  enabled: true
+  # if no tls secret is specified then we generate it in-mem in the server
+  secretName: ""
+
+service:
+  type: ClusterIP
+  ports:
+    https: 8000
+  targetPorts:
+    https: 8000
+  nodePorts:
+    http: ""
+    https: ""
+    tcp: {}
+    udp: {}
+  clusterIP: ""
+  externalIPs: []
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: ""
+  healthCheckNodePort: 0

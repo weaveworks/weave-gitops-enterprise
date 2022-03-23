@@ -22,11 +22,13 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 	}
 
 	timeoutInSeconds := int(timeout.Seconds())
+	cmd := fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace)
+	logger.Trace(cmd)
 	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
 		logger.Tracef("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
-		err := runCommandPassThroughWithoutOutput("sh", "-c", fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace))
+		err := runCommandPassThroughWithoutOutput("sh", "-c", cmd)
 		if err == nil {
-			stdOut, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl %s get %s %s -n %s", kubeconfig, resourceType, resourceName, namespace))
+			stdOut, _ := runCommandAndReturnStringOutput(cmd)
 
 			noResourcesFoundMessage := ""
 			if namespace == "default" {
@@ -45,19 +47,21 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 	return fmt.Errorf("error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
-func waitForResourceState(state string, resourceName string, nameSpace string, selector string, kubeconfig string) {
+func waitForResourceState(state string, statusCondition string, resourceName string, nameSpace string, selector string, kubeconfig string, timeout time.Duration) {
 	if kubeconfig != "" {
 		kubeconfig = "--kubeconfig=" + kubeconfig
 	}
 
 	if selector != "" {
-		selector = "--selector=" + selector
+		selector = fmt.Sprintf("--selector='%s'", selector)
 	}
 
 	logger.Tracef("Waiting for %s '%s' state in namespace: %s", resourceName, state, nameSpace)
 
-	cmd := fmt.Sprintf(" kubectl wait --for=condition=%s --timeout=180s %s -n %s --all %s %s", state, resourceName, nameSpace, selector, kubeconfig)
-	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_3MINUTE_TIME_OUT)
+	cmd := fmt.Sprintf(" kubectl wait --for=condition=%s=%s --timeout=%s %s -n %s --all %s %s",
+		state, statusCondition, fmt.Sprintf("%.0fs", timeout.Seconds()), resourceName, nameSpace, selector, kubeconfig)
+	logger.Trace(cmd)
+	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_5MINUTE_TIME_OUT)
 	Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("%s resource has failed to become %s.", resourceName, state))
 }
 
@@ -71,7 +75,7 @@ func verifyCoreControllers(namespace string) {
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
-		waitForResourceState("Ready", "pod", namespace, "app!=wego-app", "")
+		waitForResourceState("Ready", "true", "pod", namespace, "app!=wego-app", "", ASSERTION_3MINUTE_TIME_OUT)
 	})
 }
 
@@ -79,14 +83,10 @@ func verifyEnterpriseControllers(releaseName string, mccpPrefix, namespace strin
 	// SOMETIMES (?) (with helm install ./local-path), the mccpPrefix is skipped
 	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"event-writer", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"cluster-service", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", releaseName+"-nginx-ingress-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	// FIXME
-	// const maxDeploymentLength = 63
-	// Expect(waitForResource("deploy", (releaseName + "-nginx-ingress-controller-default-backend")[:maxDeploymentLength], namespace, ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops enterprise controllers to be ready", func() {
-		waitForResourceState("Ready", "pod", namespace, "app!=wego-app", "")
+		waitForResourceState("Ready", "true", "pod", namespace, "app!=wego-app", "", ASSERTION_3MINUTE_TIME_OUT)
 	})
 }
 
@@ -101,36 +101,36 @@ func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace str
 }
 
 func verifyWegoAddCommand(appName string, namespace string) {
-	waitForResourceState("Ready", "GitRepositories", namespace, "", "")
+	waitForResourceState("Ready", "true", "GitRepositories", namespace, "", "", ASSERTION_3MINUTE_TIME_OUT)
 	Expect(waitForResource("GitRepositories", appName, namespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
 }
 
 func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
+	cmdInstall := fmt.Sprintf(`%s install --config-repo %s --namespace=%s --auto-merge `, gitops_bin_path, manifestRepoURL, gitopsNamespace)
+	if gitProviderEnv.HostTypes != "" {
+		cmdInstall += fmt.Sprintf(` --git-host-types="%s"`, gitProviderEnv.HostTypes)
+	}
+	logger.Info(cmdInstall)
 
-	// Deploy key secret should not exist already
-	deleteGitopsDeploySecret(gitopsNamespace)
-
-	cmdInstall := fmt.Sprintf("%s install --config-repo %s --namespace=%s --auto-merge", gitops_bin_path, manifestRepoURL, gitopsNamespace)
-	By(fmt.Sprintf("And I run '%s'", cmdInstall), func() {
+	verifyGitRepositories := false
+	for i := 1; i < 5; i++ {
+		// Deploy key secret should not exist already
+		deleteGitopsDeploySecret(gitopsNamespace)
+		deleteGitopsGitRepository(gitopsNamespace)
 		_, stdErr := runCommandAndReturnStringOutput(cmdInstall, ASSERTION_5MINUTE_TIME_OUT)
 		Expect(stdErr).Should(BeEmpty())
 		verifyCoreControllers(gitopsNamespace)
 
 		// Check if GitRepository resource is Ready
-		cmdGitRepository := fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=120s -n %s GitRepositories --all", gitopsNamespace)
-		_, stdErr = runCommandAndReturnStringOutput(cmdGitRepository, ASSERTION_3MINUTE_TIME_OUT)
-
-		if stdErr != "" {
-			// Here we will do one more try to make the GitRepository Ready; maybe gitops install needs to do more error checking
-			deleteGitopsDeploySecret(gitopsNamespace)
-			deleteGitopsGitRepository(gitopsNamespace)
-			_, stdErr := runCommandAndReturnStringOutput(cmdInstall, ASSERTION_5MINUTE_TIME_OUT)
-			Expect(stdErr).Should(BeEmpty())
-			verifyCoreControllers(gitopsNamespace)
-
-			waitForResourceState("Ready", "GitRepositories", gitopsNamespace, "", "")
+		logger.Tracef("Waiting for GitRepositories 'Ready' state in namespace: %s", gitopsNamespace)
+		cmdGitRepository := fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=90s -n %s GitRepositories --all", gitopsNamespace)
+		_, stdErr = runCommandAndReturnStringOutput(cmdGitRepository, ASSERTION_2MINUTE_TIME_OUT)
+		if stdErr == "" {
+			verifyGitRepositories = true
+			break
 		}
-	})
+	}
+	Expect(verifyGitRepositories).Should(BeTrue(), "GitRepositories resource has failed to become READY.")
 }
 
 func removeGitopsCapiClusters(appName string, clusternames []string, nameSpace string) {
@@ -171,8 +171,9 @@ func deleteGitopsApplication(appName string, nameSpace string) {
 }
 
 func deleteGitopsGitRepository(nameSpace string) {
-	cmd := fmt.Sprintf(`kubectl get GitRepositories -n %[1]v | grep auto |grep %[2]v | cut -d' ' -f1 | xargs kubectl delete GitRepositories -n %[1]v`, nameSpace, gitProviderEnv.Repo)
+	cmd := fmt.Sprintf(`kubectl get GitRepositories -n %[1]v | grep wego |grep %[2]v | cut -d' ' -f1 | xargs kubectl delete GitRepositories -n %[1]v`, nameSpace, gitProviderEnv.Repo)
 	By("And I delete GitRepository resource", func() {
+		logger.Trace(cmd)
 		_, _ = runCommandAndReturnStringOutput(cmd)
 	})
 }
@@ -241,11 +242,25 @@ func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
 	}
 }
 
-func verifyCapiClusterHealth(kubeconfigPath string, namespace string) {
+func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string, profiles []string, namespace string) {
 
-	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT))
-	waitForResourceState("Ready", "nodes", "default", "", kubeconfigPath)
+	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	waitForResourceState("Ready", "true", "nodes", "default", "", kubeconfigPath, ASSERTION_5MINUTE_TIME_OUT)
 
-	Expect(waitForResource("pods", "", namespace, kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT))
-	waitForResourceState("Ready", "pods", namespace, "", kubeconfigPath)
+	Expect(waitForResource("pods", "", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	waitForResourceState("Ready", "true", "pods", namespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+
+	for _, profile := range profiles {
+		// Check all profiles are installed in layering order
+		switch profile {
+		case "observability":
+			Expect(waitForResource("deploy", capiCluster+"-observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+			Expect(waitForResource("deploy", capiCluster+"-observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+			Expect(waitForResource("deploy", capiCluster+"-operator", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+			waitForResourceState("Ready", "true", "pods", namespace, "release="+capiCluster+"-observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		case "podinfo":
+			Expect(waitForResource("deploy", capiCluster+"-podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+			waitForResourceState("Ready", "true", "pods", namespace, "app.kubernetes.io/name="+capiCluster+"-podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		}
+	}
 }

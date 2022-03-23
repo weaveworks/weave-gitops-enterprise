@@ -28,14 +28,18 @@ const (
 )
 
 type GitProviderEnv struct {
-	Type      string
-	Token     string
-	Username  string
-	Password  string
-	TokenType string
-	Hostname  string
-	Org       string
-	Repo      string
+	Type           string
+	Token          string
+	Username       string
+	Password       string
+	TokenType      string
+	Hostname       string
+	Org            string
+	Repo           string
+	HostTypes      string
+	ClientId       string
+	ClientSecret   string
+	GitlabHostname string
 }
 
 func initGitProviderData() GitProviderEnv {
@@ -59,14 +63,18 @@ func initGitProviderData() GitProviderEnv {
 			viper.Set("git-host-types", hostTypes)
 		}
 		return GitProviderEnv{
-			Type:      GitProviderGitLab,
-			Hostname:  GetEnv("GIT_PROVIDER_HOSTNAME", gitlab.DefaultDomain),
-			TokenType: tokenTypeOauth,
-			Token:     GetEnv("GITLAB_TOKEN", ""),
-			Org:       GetEnv("GITLAB_ORG", ""),
-			Repo:      GetEnv("CLUSTER_REPOSITORY", ""),
-			Username:  GetEnv("GITLAB_USER", ""),
-			Password:  GetEnv("GITLAB_PASSWORD", ""),
+			Type:           GitProviderGitLab,
+			Hostname:       GetEnv("GIT_PROVIDER_HOSTNAME", gitlab.DefaultDomain),
+			TokenType:      tokenTypeOauth,
+			Token:          GetEnv("GITLAB_TOKEN", ""),
+			Org:            GetEnv("GITLAB_ORG", ""),
+			Repo:           GetEnv("CLUSTER_REPOSITORY", ""),
+			Username:       GetEnv("GITLAB_USER", ""),
+			Password:       GetEnv("GITLAB_PASSWORD", ""),
+			ClientId:       GetEnv("GITLAB_CLIENT_ID", ""),
+			ClientSecret:   GetEnv("GITLAB_CLIENT_SECRET", ""),
+			HostTypes:      GetEnv("GITOPS_GIT_HOST_TYPES", ""),
+			GitlabHostname: GetEnv("GITLAB_HOSTNAME", ""),
 		}
 	}
 }

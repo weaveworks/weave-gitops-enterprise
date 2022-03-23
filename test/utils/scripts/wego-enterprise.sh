@@ -17,6 +17,12 @@ function setup {
     exit 1
   fi
 
+  if [ "$(uname -s)" == "Linux" ]; then
+      LOCALHOST_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
+    elif [ "$(uname -s)" == "Darwin" ]; then
+      LOCALHOST_IP=$(ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
+    fi
+
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
     WORKER_NAME=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
     WORKER_NODE_EXTERNAL_IP=$(kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='${WORKER_NAME}')].status.addresses[?(@.type=='ExternalIP')].address}")
@@ -30,19 +36,17 @@ function setup {
       gcloud compute firewall-rules create nats-node-port --allow tcp:${NATS_NODEPORT}
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
     fi
-  elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
-  # MANAGEMENT_CLUSTER_KIND is a KIND cluster
-    if [ "$(uname -s)" == "Linux" ]; then
-      WORKER_NODE_EXTERNAL_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
-    elif [ "$(uname -s)" == "Darwin" ]; then
-      WORKER_NODE_EXTERNAL_IP=$(ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
+    elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
+      # MANAGEMENT_CLUSTER_KIND is a KIND cluster
+      WORKER_NODE_EXTERNAL_IP=${LOCALHOST_IP}
     fi
-  fi
 
-  # Sets enterprise CNAME host entry in the hosts file
+  # Set enterprise cluster CNAME host entry in the hosts file
   hostEntry=$(cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
-  if [ -z $hostEntry ]; then
+  upgradeHostEntry=$(cat /etc/hosts | grep "${LOCALHOST_IP} ${UPGRADE_MANAGEMENT_CLUSTER_CNAME}")
+  if [ -z "${hostEntry}" ] || [ -z "${upgradeHostEntry}" ]; then
     echo "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
+    echo "${LOCALHOST_IP} ${UPGRADE_MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
   fi
 
   kubectl create namespace prom
@@ -61,6 +65,7 @@ function setup {
   helm repo update  
   
   kubectl create ns wego-system
+  gitopsArgs=()
   if [ ${GIT_PROVIDER} == "github" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
     GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
@@ -82,15 +87,16 @@ function setup {
       --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
       --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET" \
       --from-literal="GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" \
-      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES" 
+      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES"
+      
+      gitopsArgs+=( --git-host-types=${GITOPS_GIT_HOST_TYPES} )
     fi
-  fi
-
-  # Install weave gitops core controllers
-  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} --auto-merge
+  fi  
  
-  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml
-  kubectl apply -f ${args[1]}/test/utils/data/gitlab-on-prem-ssh-config.yaml
+  # Install weave gitops core controllers
+  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} ${gitopsArgs[@]} --auto-merge
+
+  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml 
 
   # Choosing weave-gitops-enterprise chart version to install
   if [ -z ${ENTERPRISE_CHART_VERSION} ]; then
@@ -103,8 +109,8 @@ function setup {
   helmArgs=()
   helmArgs+=( --set "nats.client.service.nodePort=${NATS_NODEPORT}" )
   helmArgs+=( --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" )
-  helmArgs+=( --set "nginx-ingress-controller.service.nodePorts.http=${UI_NODEPORT}" )
-  helmArgs+=( --set "nginx-ingress-controller.service.type=NodePort" )
+  helmArgs+=( --set "service.nodePorts.https=${UI_NODEPORT}" )
+  helmArgs+=( --set "service.type=NodePort" )
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
@@ -129,6 +135,9 @@ function setup {
     helmArgs+=( --set "config.extraVolumes[0].configMap.name=ssh-config" )
     helmArgs+=( --set "config.extraVolumeMounts[0].name=ssh-config" )
     helmArgs+=( --set "config.extraVolumeMounts[0].mountPath=/root/.ssh" )
+
+    ssh-keyscan ${GIT_PROVIDER_HOSTNAME} > known_hosts
+    kubectl create configmap ssh-config --namespace wego-system --from-file=./known_hosts
   fi
 
   helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system ${helmArgs[@]}
