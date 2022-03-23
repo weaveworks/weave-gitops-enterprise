@@ -41,6 +41,9 @@ export const DeleteClusterDialog: FC<Props> = ({
   const { deleteCreatedClusters, loading, setSelectedClusters } = useClusters();
   const { setNotifications } = useNotifications();
 
+  // check the status of the clusters and exclude if they already have delete PR
+  console.log(selectedCapiClusters);
+
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       setFormData((prevState: any) => ({

@@ -92,6 +92,13 @@ const ClusterRow = ({
   const [open, setOpen] = React.useState<boolean>(false);
   const labelId = `enhanced-table-checkbox-${index}`;
 
+  const disabled =
+    cluster.pullRequest?.type === 'delete' && status === 'PR Created';
+
+  const checkBoxColor = !disabled
+    ? weaveTheme.colors.primary
+    : weaveTheme.colors.neutral20;
+
   return (
     <>
       <TableRow
@@ -102,9 +109,10 @@ const ClusterRow = ({
         <TableCell padding="checkbox">
           <Checkbox
             checked={selected}
+            disabled={disabled}
             inputProps={{ 'aria-labelledby': labelId }}
             style={{
-              color: weaveTheme.colors.primary,
+              color: checkBoxColor,
             }}
             onClick={event => onCheckboxClick(event, name)}
           />
