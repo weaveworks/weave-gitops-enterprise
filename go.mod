@@ -7,8 +7,8 @@ require (
 	github.com/cloudevents/sdk-go/v2 v2.3.1
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/go-logfmt/logfmt v0.5.0
-	github.com/go-logr/logr v1.2.2
-	github.com/go-logr/zapr v1.2.2
+	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/zapr v1.2.3
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/google/go-cmp v0.5.6
@@ -17,7 +17,6 @@ require (
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/nats-io/nats-server/v2 v2.1.7
 	github.com/nats-io/nats.go v1.10.0
-	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.18.1
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/alertmanager v0.21.0
@@ -29,16 +28,16 @@ require (
 	github.com/weaveworks/weave-gitops v0.6.3-0.20220308050142-34e87ea3dd58
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
-	go.uber.org/zap v1.19.0
+	go.uber.org/zap v1.19.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	gorm.io/datatypes v1.0.0
 	gorm.io/driver/sqlite v1.1.4 // indirect
 	gorm.io/gorm v1.21.11
-	k8s.io/api v0.22.2
-	k8s.io/apimachinery v0.22.2
-	k8s.io/cli-runtime v0.22.1 // indirect
-	k8s.io/client-go v0.22.2
-	sigs.k8s.io/controller-runtime v0.10.2
+	k8s.io/api v0.23.4
+	k8s.io/apimachinery v0.23.5
+	k8s.io/cli-runtime v0.23.4 // indirect
+	k8s.io/client-go v0.23.4
+	sigs.k8s.io/controller-runtime v0.11.1
 )
 
 require (
@@ -63,9 +62,9 @@ require (
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	helm.sh/helm/v3 v3.7.1
-	k8s.io/apiextensions-apiserver v0.22.2
+	k8s.io/apiextensions-apiserver v0.23.4
 	k8s.io/helm v2.17.0+incompatible
-	k8s.io/klog/v2 v2.10.0
+	k8s.io/klog/v2 v2.30.0
 	sigs.k8s.io/cluster-api v0.3.16
 	sigs.k8s.io/kustomize/kyaml v0.13.0
 	sigs.k8s.io/yaml v1.3.0
@@ -109,7 +108,7 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/drone/envsubst v1.0.3-0.20200709223903-efdb65b94e5a // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
-	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
+	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fluxcd/kustomize-controller/api v0.18.2 // indirect
@@ -240,13 +239,12 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
-	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
+	golang.org/x/net v0.0.0-20211209124913-491a49abca63 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
-	golang.org/x/tools v0.1.9-0.20211228192929-ee1ca4ffc4da // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -258,25 +256,16 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/postgres v1.0.5 // indirect
-	k8s.io/apiserver v0.22.2 // indirect
-	k8s.io/component-base v0.22.2 // indirect
-	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
+	k8s.io/apiserver v0.23.4 // indirect
+	k8s.io/component-base v0.23.4 // indirect
+	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	k8s.io/kubectl v0.22.1 // indirect
-	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a // indirect
+	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
 	oras.land/oras-go v0.4.0 // indirect
 	sigs.k8s.io/cli-utils v0.26.0 // indirect
+	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
 
-replace (
-	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.7.0
-	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
-	github.com/docker/distribution => github.com/2opremio/distribution v0.0.0-20190419185413-6c9727e5e5de
-	github.com/weaveworks/weave-gitops-enterprise/common => ./common
-	gopkg.in/jcmturner/gokrb5.v6 => github.com/weaveworks/gokrb5 v0.0.0-20181126152309-94803fd23bf2
-)
-
-replace github.com/go-logr/logr v1.2.2 => github.com/go-logr/logr v0.4.0
-
-replace github.com/go-logr/zapr v1.2.2 => github.com/go-logr/zapr v0.4.0
+replace github.com/weaveworks/weave-gitops-enterprise/common => ./common
