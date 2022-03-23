@@ -178,6 +178,28 @@
         ]
       }
     },
+    "/v1/policies": {
+      "get": {
+        "operationId": "ClustersService_ListPolicies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPoliciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates": {
       "get": {
         "operationId": "ClustersService_ListTemplates",
@@ -578,6 +600,21 @@
         }
       }
     },
+    "v1ListPoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Policy"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ListTemplateParamsResponse": {
       "type": "object",
       "properties": {
@@ -640,6 +677,107 @@
           "type": "boolean"
         },
         "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1Policy": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "howToSolve": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "severity": {
+          "type": "string"
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gitCommit": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyParams"
+          }
+        },
+        "targets": {
+          "$ref": "#/definitions/v1PolicyTargets"
+        }
+      }
+    },
+    "v1PolicyParams": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "default": {
+          "$ref": "#/definitions/protobufAny"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1PolicyTargetLabel": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1PolicyTargets": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "label": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyTargetLabel"
+          }
+        },
+        "namespace": {
           "type": "array",
           "items": {
             "type": "string"

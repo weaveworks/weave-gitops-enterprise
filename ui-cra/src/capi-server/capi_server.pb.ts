@@ -6,6 +6,7 @@
 
 import * as fm from "./fetch.pb"
 import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
+import * as GoogleProtobufAny from "./google/protobuf/any.pb"
 export type ListTemplatesRequest = {
   provider?: string
 }
@@ -49,6 +50,14 @@ export type RenderTemplateRequest = {
 
 export type RenderTemplateResponse = {
   renderedTemplate?: string
+}
+
+export type ListPoliciesRequest = {
+}
+
+export type ListPoliciesResponse = {
+  policies?: Policy[]
+  total?: number
 }
 
 export type CreatePullRequestRequest = {
@@ -185,6 +194,42 @@ export type GetConfigResponse = {
   repositoryURL?: string
 }
 
+export type PolicyParamRepeatedString = {
+  values?: string[]
+}
+
+export type PolicyParams = {
+  name?: string
+  type?: string
+  default?: GoogleProtobufAny.Any
+  required?: boolean
+}
+
+export type PolicyTargetLabel = {
+  values?: {[key: string]: string}
+}
+
+export type PolicyTargets = {
+  kind?: string[]
+  label?: PolicyTargetLabel[]
+  namespace?: string[]
+}
+
+export type Policy = {
+  name?: string
+  id?: string
+  code?: string
+  description?: string
+  howToSolve?: string
+  category?: string
+  tags?: string[]
+  severity?: string
+  controls?: string[]
+  gitCommit?: string
+  parameters?: PolicyParams[]
+  targets?: PolicyTargets
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -218,5 +263,8 @@ export class ClustersService {
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListPolicies(req: ListPoliciesRequest, initReq?: fm.InitReq): Promise<ListPoliciesResponse> {
+    return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(`/v1/policies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

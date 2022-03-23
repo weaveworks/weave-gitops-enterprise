@@ -6,6 +6,7 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-
 
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
+import "google/protobuf/any.proto";
 
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
@@ -85,6 +86,12 @@ service ClustersService {
       get : "/v1/config"
     };
   }
+
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
+    option (google.api.http) = {
+      get : "/v1/policies"
+    };
+  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -114,6 +121,12 @@ message RenderTemplateRequest {
   Credential credentials = 3;
 }
 message RenderTemplateResponse { string rendered_template = 1; }
+
+message ListPoliciesRequest{}
+message ListPoliciesResponse {
+  repeated Policy policies = 1;
+  int32 total = 2;
+}
 
 message CreatePullRequestRequest {
   // The repository to use.
@@ -268,3 +281,38 @@ message GetConfigResponse {
   string repositoryURL = 1;
 }
 
+message PolicyParamRepeatedString {
+  repeated string values = 1;
+}
+
+message PolicyParams {
+  string name = 1;
+  string type = 2;
+  google.protobuf.Any default = 3;
+  bool required = 4;
+}
+
+message PolicyTargetLabel {
+  map<string, string> values = 1;
+}
+
+message PolicyTargets {
+  repeated string kind = 1;
+  repeated PolicyTargetLabel label = 2;
+  repeated string namespace = 3;
+}
+
+message Policy {
+  string name = 1;
+  string id = 2;
+  string code = 3;
+  string description = 4;
+  string how_to_solve = 5;
+  string category = 6;
+  repeated string tags = 7;
+  string severity = 8;
+  repeated string controls = 9;
+  string git_commit = 10;
+  repeated PolicyParams parameters = 11;
+  PolicyTargets targets = 12;
+}
