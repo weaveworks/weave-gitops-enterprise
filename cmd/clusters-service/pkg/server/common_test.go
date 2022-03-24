@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 
+	policiesv1 "github.com/weaveworks/magalix-policy-agent/api/v1"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -29,6 +30,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1beta1.AddToScheme,
+		policiesv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -151,4 +153,29 @@ func rawExtension(s string) runtime.RawExtension {
 	return runtime.RawExtension{
 		Raw: []byte(s),
 	}
+}
+
+func makePolicy(t *testing.T, opts ...func(p *policiesv1.Policy)) *policiesv1.Policy {
+	t.Helper()
+	policy := &policiesv1.Policy{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Policy",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "magalix.policies.missing-owner-label",
+		},
+		Spec: policiesv1.PolicySpec{
+			Name:     "Missing Owner Label",
+			Severity: "high",
+			Code:     "foo",
+			Targets: policiesv1.PolicyTargets{
+				Label: []map[string]string{{"my-label": "my-value"}},
+			},
+		},
+	}
+	for _, o := range opts {
+		o(policy)
+	}
+	return policy
 }

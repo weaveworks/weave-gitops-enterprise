@@ -210,9 +210,9 @@ export type PolicyTargetLabel = {
 }
 
 export type PolicyTargets = {
-  kind?: string[]
-  label?: PolicyTargetLabel[]
-  namespace?: string[]
+  kinds?: string[]
+  labels?: PolicyTargetLabel[]
+  namespaces?: string[]
 }
 
 export type Policy = {

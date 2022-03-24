@@ -93,9 +93,9 @@ func ToPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 		Severity:    policySpec.Severity,
 		Controls:    policySpec.Controls,
 		Targets: &capiv1_proto.PolicyTargets{
-			Kind:      policySpec.Targets.Kind,
-			Namespace: policySpec.Targets.Namespace,
-			Label:     policyLabels,
+			Kinds:      policySpec.Targets.Kind,
+			Namespaces: policySpec.Targets.Namespace,
+			Labels:     policyLabels,
 		},
 		Parameters: policyParams,
 	}

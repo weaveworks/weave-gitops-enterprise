@@ -297,9 +297,9 @@ message PolicyTargetLabel {
 }
 
 message PolicyTargets {
-  repeated string kind = 1;
-  repeated PolicyTargetLabel label = 2;
-  repeated string namespace = 3;
+  repeated string kinds = 1;
+  repeated PolicyTargetLabel labels = 2;
+  repeated string namespaces = 3;
 }
 
 message Policy {

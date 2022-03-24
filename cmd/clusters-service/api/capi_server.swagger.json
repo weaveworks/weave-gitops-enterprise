@@ -765,19 +765,19 @@
     "v1PolicyTargets": {
       "type": "object",
       "properties": {
-        "kind": {
+        "kinds": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "label": {
+        "labels": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1PolicyTargetLabel"
           }
         },
-        "namespace": {
+        "namespaces": {
           "type": "array",
           "items": {
             "type": "string"
