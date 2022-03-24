@@ -5,10 +5,10 @@ interface PoliciesContext {
   policies:  Policy[];
   loading: boolean;
   error: string | null;
-  activePolicy: Policy | null;
-  setActivePolicy: Dispatch<React.SetStateAction<Policy | null>>;
-  getPolicy: (policyName: string) => Policy | null;
+  policy: Policy | null;
+  // setPolicy: Dispatch<React.SetStateAction<Policy | null>>;
   setError: Dispatch<React.SetStateAction<string | null>>;
+  getPolicy: (policyName: string) => void;
 }
 
 export const Policies = createContext<PoliciesContext | null>(null);

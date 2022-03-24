@@ -8,7 +8,7 @@ import useNotifications from '../Notifications';
 const PoliciesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [policies, setPolicies] = useState<Policy[]>([]);
-  const [activePolicy, setActivePolicy] = useState<Policy | null>(null);
+  const [policy, setPolicy] = useState<Policy | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const { setNotifications } = useNotifications();
 
@@ -16,8 +16,8 @@ const PoliciesProvider: FC = ({ children }) => {
 
   const policiesUrl = '/v1/policies';
 
-  const getPolicy = (policyName: string) =>
-    policies.find(policy => policy.name === policyName) || null;
+  // const getPolicy = (policyName: string) =>
+  //   policies.find(policy => policy.name === policyName) || null;
 
   // const renderTemplate = useCallback(
   //   data => {
@@ -42,6 +42,19 @@ const PoliciesProvider: FC = ({ children }) => {
   //   }).finally(() => setLoading(false));
   // }, []);
 
+  const getPolicy = useCallback((policyName) => {
+    setLoading(true);
+    request('GET', `${policiesUrl}/${policyName}`, {
+      cache: 'no-store',
+    })
+      .then(res => setPolicies(res.policies))
+      .catch(err =>
+        setNotifications([{ message: err.message, variant: 'danger' }]),
+      )
+      .finally(() => setLoading(false));
+  }, [setNotifications]);
+
+
   const getPolicies = useCallback(() => {
     setLoading(true);
     request('GET', policiesUrl, {
@@ -63,12 +76,11 @@ const PoliciesProvider: FC = ({ children }) => {
     <Policies.Provider
       value={{
         policies,
+        policy,
         loading,
-        activePolicy,
-        setActivePolicy,
-        getPolicy,
         error,
         setError,
+        getPolicy,
       }}
     >
       {children}
