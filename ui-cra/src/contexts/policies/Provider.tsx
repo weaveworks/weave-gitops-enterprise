@@ -12,9 +12,9 @@ const PoliciesProvider: FC = ({ children }) => {
   const [error, setError] = React.useState<string | null>(null);
   const { setNotifications } = useNotifications();
 
-  // const history = useHistory();
+  const history = useHistory();
 
-  // const templatesUrl = '/v1/templates';
+  const policiesUrl = '/v1/policies';
 
   const getPolicy = (policyName: string) =>
     policies.find(policy => policy.name === policyName) || null;
@@ -42,22 +42,22 @@ const PoliciesProvider: FC = ({ children }) => {
   //   }).finally(() => setLoading(false));
   // }, []);
 
-  // const getTemplates = useCallback(() => {
-  //   setLoading(true);
-  //   request('GET', templatesUrl, {
-  //     cache: 'no-store',
-  //   })
-  //     .then(res => setTemplates(res.templates))
-  //     .catch(err =>
-  //       setNotifications([{ message: err.message, variant: 'danger' }]),
-  //     )
-  //     .finally(() => setLoading(false));
-  // }, [setNotifications]);
+  const getPolicies = useCallback(() => {
+    setLoading(true);
+    request('GET', policiesUrl, {
+      cache: 'no-store',
+    })
+      .then(res => setPolicies(res.policies))
+      .catch(err =>
+        setNotifications([{ message: err.message, variant: 'danger' }]),
+      )
+      .finally(() => setLoading(false));
+  }, [setNotifications]);
 
-  // useEffect(() => {
-  //   getTemplates();
-  //   return history.listen(getTemplates);
-  // }, [history, getTemplates]);
+  useEffect(() => {
+    getPolicies();
+    return history.listen(getPolicies);
+  }, [history, getPolicies]);
 
   return (
     <Policies.Provider
