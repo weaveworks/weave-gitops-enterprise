@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -258,7 +257,6 @@ func Test_server_ListPolicies(t *testing.T) {
 					t.Fatalf("unexpected error while listing policies:\n%s", diff)
 				}
 			} else {
-				fmt.Println(gotResponse, tt.expected)
 				if diff := cmp.Diff(tt.expected, gotResponse, protocmp.Transform()); diff != "" {
 					t.Fatalf("policies didn't match expected:\n%s", diff)
 				}
