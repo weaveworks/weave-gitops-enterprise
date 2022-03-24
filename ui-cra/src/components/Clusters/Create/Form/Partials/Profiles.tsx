@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useEffect } from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
 import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import { FormStep } from '../Step';
@@ -15,18 +15,25 @@ const Profiles: FC<{
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
   profiles: UpdatedProfile[];
-  setProfiles: Dispatch<React.SetStateAction<any>>;
-}> = ({ activeStep, setActiveStep, clickedStep, profiles, setProfiles }) => {
-  const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
-    [],
-  );
-
-  const handleSelectProfiles = (selectProfiles: UpdatedProfile[]) =>
+  selectedProfiles: any;
+  setSelectedProfiles: Dispatch<React.SetStateAction<any>>;
+}> = ({
+  activeStep,
+  setActiveStep,
+  clickedStep,
+  profiles,
+  selectedProfiles,
+  setSelectedProfiles,
+}) => {
+  const handleSelectProfiles = (selectProfiles: UpdatedProfile[]) => {
     setSelectedProfiles(selectProfiles);
+  };
 
   useEffect(() => {
-    setSelectedProfiles(profiles.filter(profile => profile.required));
-  }, [profiles]);
+    if (selectedProfiles.length === 0) {
+      setSelectedProfiles(profiles.filter(profile => profile.required));
+    }
+  }, [profiles, setSelectedProfiles, selectedProfiles.length]);
 
   return (
     <FormStep

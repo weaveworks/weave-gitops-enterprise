@@ -12,9 +12,8 @@ const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   margin-bottom: ${weaveTheme.spacing.base};
   width: 100%;
   & .auth-message {
-    width: 300px;
+    margin-right: ${weaveTheme.spacing.xs};
     & .MuiButtonBase-root {
-      width: 100%;
     }
   }
 `;

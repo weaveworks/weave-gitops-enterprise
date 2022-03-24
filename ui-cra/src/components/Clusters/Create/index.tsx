@@ -131,12 +131,17 @@ const AddCluster: FC = () => {
 
   const callbackState = getCallbackState();
 
+  console.log(callbackState);
+
   if (callbackState) {
     initialFormData = {
       ...initialFormData,
       ...callbackState.state.formData,
     };
-    initialProfiles = [...initialProfiles, ...callbackState.state.profiles];
+    initialProfiles = [
+      ...initialProfiles,
+      ...callbackState.state.selectedProfiles,
+    ];
     initialInfraCredential = {
       ...initialInfraCredential,
       ...callbackState.state.infraCredential,
@@ -145,6 +150,8 @@ const AddCluster: FC = () => {
 
   const [formData, setFormData] = useState<any>(initialFormData);
   const [profiles, setProfiles] = useState<UpdatedProfile[]>(initialProfiles);
+  const [selectedProfiles, setSelectedProfiles] =
+    useState<any[]>(initialProfiles);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
   );
@@ -286,7 +293,7 @@ const AddCluster: FC = () => {
         <CallbackStateContextProvider
           callbackState={{
             page: authRedirectPage as PageRoute,
-            state: { infraCredential, formData, profiles },
+            state: { infraCredential, formData, profiles, selectedProfiles },
           }}
         >
           <SectionHeader
@@ -332,7 +339,8 @@ const AddCluster: FC = () => {
                   setActiveStep={setActiveStep}
                   clickedStep={clickedStep}
                   profiles={profiles}
-                  setProfiles={setProfiles}
+                  selectedProfiles={selectedProfiles}
+                  setSelectedProfiles={setSelectedProfiles}
                 />
                 {openPreview && PRPreview ? (
                   <Preview
@@ -388,6 +396,7 @@ const AddCluster: FC = () => {
     showAuthDialog,
     handlePRPreview,
     handleAddCluster,
+    selectedProfiles,
   ]);
 };
 
