@@ -39,9 +39,10 @@ func Test_server_ListPolicies(t *testing.T) {
 			expected: &capiv1_proto.ListPoliciesResponse{
 				Policies: []*capiv1_proto.Policy{
 					{
-						Name:     "Missing app Label",
-						Severity: "medium",
-						Code:     "foo",
+						Name:      "Missing app Label",
+						Severity:  "medium",
+						Code:      "foo",
+						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Targets: &capiv1_proto.PolicyTargets{
 							Labels: []*capi_server.PolicyTargetLabel{
 								{
@@ -51,9 +52,10 @@ func Test_server_ListPolicies(t *testing.T) {
 						},
 					},
 					{
-						Name:     "Missing Owner Label",
-						Severity: "high",
-						Code:     "foo",
+						Name:      "Missing Owner Label",
+						Severity:  "high",
+						Code:      "foo",
+						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Targets: &capiv1_proto.PolicyTargets{
 							Labels: []*capi_server.PolicyTargetLabel{
 								{
@@ -94,6 +96,7 @@ func Test_server_ListPolicies(t *testing.T) {
 								},
 							},
 						},
+						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Parameters: []*capi_server.PolicyParams{
 							{
 								Name:    "key",
@@ -134,6 +137,7 @@ func Test_server_ListPolicies(t *testing.T) {
 								},
 							},
 						},
+						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Parameters: []*capi_server.PolicyParams{
 							{
 								Name:    "key",
@@ -174,6 +178,7 @@ func Test_server_ListPolicies(t *testing.T) {
 								},
 							},
 						},
+						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Parameters: []*capi_server.PolicyParams{
 							{
 								Name:    "key",
@@ -214,6 +219,7 @@ func Test_server_ListPolicies(t *testing.T) {
 								},
 							},
 						},
+						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Parameters: []*capi_server.PolicyParams{
 							{
 								Name:    "key",
@@ -283,4 +289,60 @@ func getAnyValue(t *testing.T, kind string, o interface{}) *anypb.Any {
 		t.Fatal(err)
 	}
 	return defaultAny
+}
+
+func Test_server_GetPolicy(t *testing.T) {
+	tests := []struct {
+		name         string
+		policy_name  string
+		clusterState []runtime.Object
+		err          error
+		expected     *capiv1_proto.GetPolicyResponse
+	}{
+		{
+			name:        "get policy",
+			policy_name: "magalix.policies.missing-owner-label",
+			clusterState: []runtime.Object{
+				makePolicy(t),
+			},
+			expected: &capiv1_protos.GetPolicyResponse{
+				Policy: &capiv1_protos.Policy{
+					Name:     "Missing Owner Label",
+					Severity: "high",
+					Code:     "foo",
+					Targets: &capiv1_proto.PolicyTargets{
+						Labels: []*capi_server.PolicyTargetLabel{
+							{
+								Values: map[string]string{"my-label": "my-value"},
+							},
+						},
+					},
+					CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
+				},
+			},
+		},
+		{
+			name:        "policy not found",
+			policy_name: "magalix.policies.not-found",
+			err:         errors.New("error while getting policy magalix.policies.not-found: policies.magalix.com \"magalix.policies.not-found\" not found"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil)
+			gotResponse, err := s.GetPolicy(context.Background(), &capiv1_proto.GetPolicyRequest{PolicyName: tt.policy_name})
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to get policy:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("unexpected error while getting policy:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, gotResponse, protocmp.Transform()); diff != "" {
+					t.Fatalf("policy didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
 }

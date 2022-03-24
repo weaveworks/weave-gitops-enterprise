@@ -52,7 +52,15 @@ export type RenderTemplateResponse = {
   renderedTemplate?: string
 }
 
+export type GetPolicyRequest = {
+  policyName?: string
+}
+
 export type ListPoliciesRequest = {
+}
+
+export type GetPolicyResponse = {
+  policy?: Policy
 }
 
 export type ListPoliciesResponse = {
@@ -228,6 +236,7 @@ export type Policy = {
   gitCommit?: string
   parameters?: PolicyParams[]
   targets?: PolicyTargets
+  createdAt?: string
 }
 
 export class ClustersService {
@@ -266,5 +275,8 @@ export class ClustersService {
   }
   static ListPolicies(req: ListPoliciesRequest, initReq?: fm.InitReq): Promise<ListPoliciesResponse> {
     return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(`/v1/policies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetPolicy(req: GetPolicyRequest, initReq?: fm.InitReq): Promise<GetPolicyResponse> {
+    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["policyName"]}?${fm.renderURLSearchParams(req, ["policyName"])}`, {...initReq, method: "GET"})
   }
 }

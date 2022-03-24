@@ -180,6 +180,7 @@
     },
     "/v1/policies": {
       "get": {
+        "summary": "ListPolicies list policies available on the management cluster",
         "operationId": "ClustersService_ListPolicies",
         "responses": {
           "200": {
@@ -195,6 +196,37 @@
             }
           }
         },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/policies/{policyName}": {
+      "get": {
+        "summary": "GetPolicy gets a policy on the management cluster by name",
+        "operationId": "ClustersService_GetPolicy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "policyName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "tags": [
           "ClustersService"
         ]
@@ -577,6 +609,14 @@
         }
       }
     },
+    "v1GetPolicyResponse": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/v1Policy"
+        }
+      }
+    },
     "v1GetTemplateResponse": {
       "type": "object",
       "properties": {
@@ -731,6 +771,9 @@
         },
         "targets": {
           "$ref": "#/definitions/v1PolicyTargets"
+        },
+        "createdAt": {
+          "type": "string"
         }
       }
     },

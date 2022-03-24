@@ -11,6 +11,7 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func getPolicyParamDefaultValue(param policiesv1.PolicyParameters, policyID string) (*anypb.Any, error) {
@@ -98,6 +99,7 @@ func ToPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 			Labels:     policyLabels,
 		},
 		Parameters: policyParams,
+		CreatedAt:  policyCRD.CreationTimestamp.String(),
 	}
 
 	return policy, nil
@@ -106,11 +108,10 @@ func ToPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesRequest) (*capiv1_proto.ListPoliciesResponse, error) {
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load client: %w", err)
+		return nil, fmt.Errorf("failed to load Kubernetes client: %w", err)
 	}
 
 	list := policiesv1.PolicyList{}
-
 	err = client.List(ctx, &list)
 	if err != nil {
 		return nil, fmt.Errorf("error while listing policies: %w", err)
@@ -128,4 +129,23 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 		Policies: policies,
 		Total:    int32(len(policies)),
 	}, nil
+}
+
+func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest) (*capiv1_proto.GetPolicyResponse, error) {
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load Kubernetes client: %w", err)
+	}
+
+	policyCRD := policiesv1.Policy{}
+	err = client.Get(ctx, types.NamespacedName{Name: m.PolicyName}, &policyCRD)
+	if err != nil {
+		return nil, fmt.Errorf("error while getting policy %s: %w", m.PolicyName, err)
+	}
+
+	policy, err := ToPolicyResponse(policyCRD)
+	if err != nil {
+		return nil, err
+	}
+	return &capiv1_proto.GetPolicyResponse{Policy: policy}, nil
 }

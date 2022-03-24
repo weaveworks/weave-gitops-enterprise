@@ -87,9 +87,17 @@ service ClustersService {
     };
   }
 
+  // ListPolicies list policies available on the management cluster
   rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
     option (google.api.http) = {
       get : "/v1/policies"
+    };
+  }
+
+  // GetPolicy gets a policy on the management cluster by name
+  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
+    option (google.api.http) = {
+      get : "/v1/policies/{policy_name}"
     };
   }
 }
@@ -122,7 +130,9 @@ message RenderTemplateRequest {
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
+message GetPolicyRequest{ string policy_name = 1; }
 message ListPoliciesRequest{}
+message GetPolicyResponse{ Policy policy = 1; }
 message ListPoliciesResponse {
   repeated Policy policies = 1;
   int32 total = 2;
@@ -315,4 +325,5 @@ message Policy {
   string git_commit = 10;
   repeated PolicyParams parameters = 11;
   PolicyTargets targets = 12;
+  string created_at = 13;
 }
