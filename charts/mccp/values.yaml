@@ -10,7 +10,7 @@ images:
   eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:v2.5.0
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
-  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.0.3
+  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.0.4
 
 serviceAccount:
   # Specifies whether a service account should be created

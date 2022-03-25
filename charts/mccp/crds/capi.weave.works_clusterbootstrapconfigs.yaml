@@ -31,6 +31,9 @@ spec:
           spec:
             description: ClusterBootstrapConfigSpec defines the desired state of ClusterBootstrapConfig
             properties:
+              clusterReadinessBackoff:
+                description: When checking for readiness, this is the time to wait before checking again.
+                type: string
               clusterSelector:
                 description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
                 properties:
@@ -3991,8 +3994,13 @@ spec:
                 - generateName
                 - spec
                 type: object
+              requireClusterReady:
+                description: Wait for the remote cluster to be "ready" before creating the jobs. Defaults to false.
+                type: boolean
             required:
             - clusterSelector
+            - jobTemplate
+            - requireClusterReady
             type: object
           status:
             description: ClusterBootstrapConfigStatus defines the observed state of ClusterBootstrapConfig
