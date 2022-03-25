@@ -27,9 +27,8 @@ const Profiles: FC<{
 }) => {
   const { updatedProfiles, loading } = useProfiles();
 
-  const handleSelectProfiles = (selectProfiles: UpdatedProfile[]) => {
+  const handleSelectProfiles = (selectProfiles: UpdatedProfile[]) =>
     setSelectedProfiles(selectProfiles);
-  };
 
   useEffect(() => {
     if (selectedProfiles.length === 0) {

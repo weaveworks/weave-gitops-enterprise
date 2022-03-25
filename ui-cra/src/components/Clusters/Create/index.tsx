@@ -275,7 +275,6 @@ const AddCluster: FC = () => {
 
   useEffect(() => {
     if (!callbackState) {
-      // setProfiles(updatedProfiles);
       setFormData((prevState: any) => ({
         ...prevState,
         url: repositoryURL,
@@ -292,7 +291,6 @@ const AddCluster: FC = () => {
             state: {
               infraCredential,
               formData,
-              // profiles,
               selectedProfiles,
             },
           }}
@@ -340,7 +338,6 @@ const AddCluster: FC = () => {
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
                     clickedStep={clickedStep}
-                    // profiles={profiles}
                     selectedProfiles={selectedProfiles}
                     setSelectedProfiles={setSelectedProfiles}
                   />
