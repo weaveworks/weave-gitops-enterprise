@@ -5,16 +5,12 @@ import (
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 )
 
-func ToClusterResponse(c *capiv1.WeaveCluster) *capiv1_proto.Cluster {
+func ToClusterResponse(c *capiv1.Cluster) *capiv1_proto.Cluster {
 	res := &capiv1_proto.Cluster{
 		Name:   c.GetName(),
-		Type:   c.Spec.Type,
 		Status: c.Spec.Status,
-		Label:  c.Spec.Label,
 	}
 
 	meta, err := ParseClusterMeta(c)
@@ -40,34 +36,12 @@ const (
 	DisplayNameAnnotation = "capi.weave.works/display-name"
 )
 
-func ParseClusterMeta(s *capiv1.WeaveCluster) (*ClusterMeta, error) {
-	proc := processor.NewSimpleProcessor()
-	variables := map[string]bool{}
+func ParseClusterMeta(s *capiv1.Cluster) (*ClusterMeta, error) {
 	var objects []Object
-	for _, v := range s.Spec.ResourceClusters {
-		tv, err := proc.GetVariables(v.RawExtension.Raw)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get parameters processing cluster: %w", err)
-		}
-		for _, n := range tv {
-			variables[n] = true
-		}
-		var uv unstructured.Unstructured
-		if err := uv.UnmarshalJSON(v.RawExtension.Raw); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal resourceCluster: %w", err)
-		}
-		objects = append(objects, Object{
-			Kind:        uv.GetKind(),
-			APIVersion:  uv.GetAPIVersion(),
-			DisplayName: uv.GetAnnotations()[DisplayNameAnnotation],
-		})
-	}
 
 	return &ClusterMeta{
 		Name:    s.ObjectMeta.Name,
-		Type:    s.Spec.Type,
 		Status:  s.Spec.Status,
-		Label:   s.Spec.Label,
 		Objects: objects,
 	}, nil
 }

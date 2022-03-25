@@ -12,12 +12,12 @@ import (
 
 // ClusterGetter implementations get clusters by name.
 type ClusterGetter interface {
-	Get(ctx context.Context, name string) (*capiv1.WeaveCluster, error)
+	Get(ctx context.Context, name string) (*capiv1.Cluster, error)
 }
 
 // ClusterLister implementations list clusters from a Library.
 type ClusterLister interface {
-	List(ctx context.Context) (map[string]*capiv1.WeaveCluster, error)
+	List(ctx context.Context) (map[string]*capiv1.Cluster, error)
 }
 
 // Library represents a library of Clusters indexed by name.
@@ -32,14 +32,14 @@ type CRDLibrary struct {
 	Namespace    string
 }
 
-func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.WeaveCluster, error) {
+func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.Cluster, error) {
 	lib.Log.Info("Getting client from context")
 	cl, err := lib.ClientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	weaveCluster := capiv1.WeaveCluster{}
+	weaveCluster := capiv1.Cluster{}
 	lib.Log.Info("Getting weavecluster", "cluster", name)
 	err = cl.Get(ctx, client.ObjectKey{
 		Namespace: lib.Namespace,
@@ -54,7 +54,7 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.WeaveClust
 	return &weaveCluster, nil
 }
 
-func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.WeaveCluster, error) {
+func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.Cluster, error) {
 	lib.Log.Info("Getting client from context")
 	cl, err := lib.ClientGetter.Client(ctx)
 	if err != nil {
@@ -62,14 +62,14 @@ func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.WeaveCluste
 	}
 
 	lib.Log.Info("Querying namespace for WeaveCluster resources", "namespace", lib.Namespace)
-	weaveClusterList := capiv1.WeaveClusterList{}
+	weaveClusterList := capiv1.ClusterList{}
 	err = cl.List(ctx, &weaveClusterList, client.InNamespace(lib.Namespace))
 	if err != nil {
 		return nil, fmt.Errorf("error getting weaveclusters: %s", err)
 	}
 	lib.Log.Info("Got weaveclusters", "numberOfClusters", len(weaveClusterList.Items))
 
-	result := map[string]*capiv1.WeaveCluster{}
+	result := map[string]*capiv1.Cluster{}
 	for i, ct := range weaveClusterList.Items {
 		result[ct.ObjectMeta.Name] = &weaveClusterList.Items[i]
 	}

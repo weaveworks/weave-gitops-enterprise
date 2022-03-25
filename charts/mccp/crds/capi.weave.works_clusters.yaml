@@ -4,22 +4,22 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.1
+    controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
-  name: weaveclusters.capi.weave.works
+  name: clusters.gitops.weave.works
 spec:
-  group: capi.weave.works
+  group: gitops.weave.works
   names:
-    kind: WeaveCluster
-    listKind: WeaveClusterList
-    plural: weaveclusters
-    singular: weavecluster
+    kind: Cluster
+    listKind: ClusterList
+    plural: clusters
+    singular: cluster
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: WeaveCluster is the Schema for the weaveclusters API
+        description: Cluster is the Schema for the clusters API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,23 +34,31 @@ spec:
           metadata:
             type: object
           spec:
-            description: WeaveClusterSpec defines the desired state of WeaveCluster
+            description: ClusterSpec defines the desired state of Cluster
             properties:
-              type:
-                type: string
-              status:
-                type: string
-              label:
-                type: string
-              resourceclusters:
-                items:
-                  description: WeaveResourceCluster describes a resource to create.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: array
+              capiClusterRef:
+                description: LocalObjectReference contains enough information to locate
+                  the referenced Kubernetes resource object.
+                properties:
+                  name:
+                    description: Name of the referent.
+                    type: string
+                required:
+                - name
+                type: object
+              secretRef:
+                description: LocalObjectReference contains enough information to locate
+                  the referenced Kubernetes resource object.
+                properties:
+                  name:
+                    description: Name of the referent.
+                    type: string
+                required:
+                - name
+                type: object
             type: object
           status:
-            description: WeaveClusterStatus defines the observed state of WeaveCluster
+            description: ClusterStatus defines the observed state of Cluster
             type: object
         type: object
     served: true

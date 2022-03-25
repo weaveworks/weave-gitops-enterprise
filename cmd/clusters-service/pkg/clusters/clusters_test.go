@@ -16,8 +16,16 @@ import (
 )
 
 func TestGetClusterFromCRDs(t *testing.T) {
-	c1 := makeTestCluster("weave-cluster", "foo")
-	c2 := makeTestCluster("weave-cluster2", "bar")
+	c1 := makeTestCluster(func(o *capiv1.Cluster) {
+		o.ObjectMeta.Name = "weave-cluster"
+		o.ObjectMeta.Namespace = "default"
+		o.Spec.CapiClusterRef.Name = "dev"
+	})
+	c2 := makeTestCluster(func(o *capiv1.Cluster) {
+		o.ObjectMeta.Name = "weave-cluster2"
+		o.ObjectMeta.Namespace = "default"
+		o.Spec.SecretRef.Name = "dev"
+	})
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
 	result, err := lib.Get(context.Background(), "weave-cluster2")
 	if err != nil {
@@ -29,14 +37,22 @@ func TestGetClusterFromCRDs(t *testing.T) {
 }
 
 func TestListClusterFromCRDs(t *testing.T) {
-	c1 := makeTestCluster("weave-cluster", "foo")
-	c2 := makeTestCluster("weave-cluster2", "bar")
+	c1 := makeTestCluster(func(o *capiv1.Cluster) {
+		o.ObjectMeta.Name = "weave-cluster"
+		o.ObjectMeta.Namespace = "default"
+		o.Spec.CapiClusterRef.Name = "dev"
+	})
+	c2 := makeTestCluster(func(o *capiv1.Cluster) {
+		o.ObjectMeta.Name = "weave-cluster2"
+		o.ObjectMeta.Namespace = "default"
+		o.Spec.SecretRef.Name = "dev"
+	})
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
 	result, err := lib.List(context.Background())
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
-	want := map[string]*capiv1.WeaveCluster{
+	want := map[string]*capiv1.Cluster{
 		"weave-cluster":  c1,
 		"weave-cluster2": c2,
 	}
@@ -62,18 +78,13 @@ func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		Build()
 }
 
-func makeTestCluster(name, label string, opts ...func(*capiv1.WeaveCluster)) *capiv1.WeaveCluster {
-	c := &capiv1.WeaveCluster{
+func makeTestCluster(opts ...func(*capiv1.Cluster)) *capiv1.Cluster {
+	c := &capiv1.Cluster{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "capi.weave.works/v1alpha1",
-			Kind:       "WeaveCluster",
+			Kind:       "Cluster",
 		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Spec: capiv1.WeaveClusterSpec{
-			Label: label,
-		},
+		Spec: capiv1.ClusterSpec{},
 	}
 	for _, o := range opts {
 		o(c)
