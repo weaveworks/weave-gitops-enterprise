@@ -70,6 +70,10 @@ func AuthEnabled() bool {
 	return os.Getenv(AuthEnabledFeatureFlag) == "true"
 }
 
+func EnterprisePublicRoutes() []string {
+	return append(core.PublicRoutes, "/gitops/api/agent.yaml")
+}
+
 // Options contains all the options for the `ui run` command.
 type Params struct {
 	dbURI                             string
@@ -406,9 +410,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.ClientGetter == nil {
 		return errors.New("kubernetes client getter is not set")
 	}
-	if (AuthEnabled() && args.OIDC == OIDCAuthenticationOptions{}) {
-		return errors.New("OIDC configuration is not set")
-	}
 
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
@@ -487,8 +488,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}
 
 		// Secure `/v1` and `/gitops/api` API routes
-		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, core.PublicRoutes)
-		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv, core.PublicRoutes)
+		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes())
+		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv, EnterprisePublicRoutes())
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
@@ -498,7 +499,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			args.Log,
 			args.KubernetesClient,
 			args.EntitlementSecretKey,
-			entitlement.CheckEntitlementHandler(args.Log, wrapperHandler, core.PublicRoutes),
+			entitlement.CheckEntitlementHandler(args.Log, wrapperHandler, EnterprisePublicRoutes()),
 		)
 	}
 
