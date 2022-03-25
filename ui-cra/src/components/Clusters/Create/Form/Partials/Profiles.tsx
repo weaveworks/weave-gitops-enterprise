@@ -16,8 +16,8 @@ const Profiles: FC<{
   activeStep: string | undefined;
   setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
   clickedStep: string;
-  selectedProfiles: any;
-  setSelectedProfiles: Dispatch<React.SetStateAction<any>>;
+  selectedProfiles: UpdatedProfile[];
+  setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
 }> = ({
   activeStep,
   setActiveStep,
