@@ -117,6 +117,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	// Check this route is public
 	res, err := client.Get("https://localhost:8001/gitops/api/agent.yaml?token=derp")
 	assert.NoError(t, err)
+	// 400 is okay, 401 is not
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
 	// login

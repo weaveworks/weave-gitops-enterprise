@@ -410,6 +410,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.ClientGetter == nil {
 		return errors.New("kubernetes client getter is not set")
 	}
+	if (AuthEnabled() && args.OIDC == OIDCAuthenticationOptions{}) {
+		return errors.New("OIDC configuration is not set")
+	}
 
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
