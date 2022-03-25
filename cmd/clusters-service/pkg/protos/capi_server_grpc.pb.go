@@ -28,7 +28,7 @@ type ClustersServiceClient interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
-	ListWeaveClusters(ctx context.Context, in *ListWeaveClustersRequest, opts ...grpc.CallOption) (*ListWeaveClustersResponse, error)
+	ListClusters(ctx context.Context, in *ListClustersRequest, opts ...grpc.CallOption) (*ListClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
@@ -97,9 +97,9 @@ func (c *clustersServiceClient) RenderTemplate(ctx context.Context, in *RenderTe
 	return out, nil
 }
 
-func (c *clustersServiceClient) ListWeaveClusters(ctx context.Context, in *ListWeaveClustersRequest, opts ...grpc.CallOption) (*ListWeaveClustersResponse, error) {
-	out := new(ListWeaveClustersResponse)
-	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListWeaveClusters", in, out, opts...)
+func (c *clustersServiceClient) ListClusters(ctx context.Context, in *ListClustersRequest, opts ...grpc.CallOption) (*ListClustersResponse, error) {
+	out := new(ListClustersResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListClusters", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ type ClustersServiceServer interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
-	ListWeaveClusters(context.Context, *ListWeaveClustersRequest) (*ListWeaveClustersResponse, error)
+	ListClusters(context.Context, *ListClustersRequest) (*ListClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
@@ -209,8 +209,8 @@ func (UnimplementedClustersServiceServer) ListTemplateProfiles(context.Context, 
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
 }
-func (UnimplementedClustersServiceServer) ListWeaveClusters(context.Context, *ListWeaveClustersRequest) (*ListWeaveClustersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListWeaveClusters not implemented")
+func (UnimplementedClustersServiceServer) ListClusters(context.Context, *ListClustersRequest) (*ListClustersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListClusters not implemented")
 }
 func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
@@ -333,20 +333,20 @@ func _ClustersService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClustersService_ListWeaveClusters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListWeaveClustersRequest)
+func _ClustersService_ListClusters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListClustersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClustersServiceServer).ListWeaveClusters(ctx, in)
+		return srv.(ClustersServiceServer).ListClusters(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/capi_server.v1.ClustersService/ListWeaveClusters",
+		FullMethod: "/capi_server.v1.ClustersService/ListClusters",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).ListWeaveClusters(ctx, req.(*ListWeaveClustersRequest))
+		return srv.(ClustersServiceServer).ListClusters(ctx, req.(*ListClustersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -487,8 +487,8 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_RenderTemplate_Handler,
 		},
 		{
-			MethodName: "ListWeaveClusters",
-			Handler:    _ClustersService_ListWeaveClusters_Handler,
+			MethodName: "ListClusters",
+			Handler:    _ClustersService_ListClusters_Handler,
 		},
 		{
 			MethodName: "CreatePullRequest",

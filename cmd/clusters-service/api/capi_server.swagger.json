@@ -18,12 +18,12 @@
   "paths": {
     "/v1/clusters": {
       "get": {
-        "operationId": "ClustersService_ListWeaveClusters",
+        "operationId": "ClustersService_ListClusters",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListWeaveClustersResponse"
+              "$ref": "#/definitions/v1ListClustersResponse"
             }
           },
           "default": {
@@ -634,6 +634,21 @@
         }
       }
     },
+    "v1ListClustersResponse": {
+      "type": "object",
+      "properties": {
+        "clusters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Cluster"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ListCredentialsResponse": {
       "type": "object",
       "properties": {
@@ -690,21 +705,6 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Template"
-          }
-        },
-        "total": {
-          "type": "integer",
-          "format": "int32"
-        }
-      }
-    },
-    "v1ListWeaveClustersResponse": {
-      "type": "object",
-      "properties": {
-        "clusters": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Cluster"
           }
         },
         "total": {

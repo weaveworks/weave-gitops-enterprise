@@ -54,7 +54,7 @@ type Object struct {
 	DisplayName string `json:"displayName"`
 }
 
-// ClusterMeta contains all the objects extracted from a WeaveCluster
+// ClusterMeta contains all the objects extracted from a Cluster
 type ClusterMeta struct {
 	Name    string   `json:"name"`
 	Type    string   `json:"type,omitempty"`

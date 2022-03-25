@@ -40,7 +40,7 @@ import (
 
 var labels = []string{}
 
-func (s *server) ListWeaveClusters(ctx context.Context, msg *capiv1_proto.ListWeaveClustersRequest) (*capiv1_proto.ListWeaveClustersResponse, error) {
+func (s *server) ListClusters(ctx context.Context, msg *capiv1_proto.ListClustersRequest) (*capiv1_proto.ListClustersResponse, error) {
 	cl, err := s.clustersLibrary.List(ctx)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (s *server) ListWeaveClusters(ctx context.Context, msg *capiv1_proto.ListWe
 	}
 
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
-	return &capiv1_proto.ListWeaveClustersResponse{Clusters: clusters, Total: int32(len(cl))}, err
+	return &capiv1_proto.ListClustersResponse{Clusters: clusters, Total: int32(len(cl))}, err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {

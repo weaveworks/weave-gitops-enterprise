@@ -40,8 +40,8 @@ service ClustersService {
       body : "*"
     };
   }
-  rpc ListWeaveClusters(ListWeaveClustersRequest)
-      returns (ListWeaveClustersResponse) {
+  rpc ListClusters(ListClustersRequest)
+      returns (ListClustersResponse) {
     option (google.api.http) = {
       get : "/v1/clusters"
     };
@@ -121,8 +121,8 @@ message RenderTemplateRequest {
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
-message ListWeaveClustersRequest { string label = 1; }
-message ListWeaveClustersResponse {
+message ListClustersRequest { string label = 1; }
+message ListClustersResponse {
   repeated Cluster clusters = 1;
   int32 total = 2;
 }

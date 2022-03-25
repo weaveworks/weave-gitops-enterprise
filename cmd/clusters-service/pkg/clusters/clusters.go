@@ -39,19 +39,19 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.Cluster, e
 		return nil, err
 	}
 
-	weaveCluster := capiv1.Cluster{}
-	lib.Log.Info("Getting weavecluster", "cluster", name)
+	cluster := capiv1.Cluster{}
+	lib.Log.Info("Getting cluster", "cluster", name)
 	err = cl.Get(ctx, client.ObjectKey{
 		Namespace: lib.Namespace,
 		Name:      name,
-	}, &weaveCluster)
+	}, &cluster)
 	if err != nil {
-		lib.Log.Error(err, "Failed to get weavecluster", "cluster", name)
-		return nil, fmt.Errorf("error getting weavecluster %s/%s: %s", lib.Namespace, name, err)
+		lib.Log.Error(err, "Failed to get cluster", "cluster", name)
+		return nil, fmt.Errorf("error getting cluster %s/%s: %s", lib.Namespace, name, err)
 	}
-	lib.Log.Info("Got weavecluster", "cluster", name)
+	lib.Log.Info("Got cluster", "cluster", name)
 
-	return &weaveCluster, nil
+	return &cluster, nil
 }
 
 func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.Cluster, error) {
@@ -61,17 +61,17 @@ func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.Cluster, er
 		return nil, err
 	}
 
-	lib.Log.Info("Querying namespace for WeaveCluster resources", "namespace", lib.Namespace)
-	weaveClusterList := capiv1.ClusterList{}
-	err = cl.List(ctx, &weaveClusterList, client.InNamespace(lib.Namespace))
+	lib.Log.Info("Querying namespace for Cluster resources", "namespace", lib.Namespace)
+	clusterList := capiv1.ClusterList{}
+	err = cl.List(ctx, &clusterList, client.InNamespace(lib.Namespace))
 	if err != nil {
-		return nil, fmt.Errorf("error getting weaveclusters: %s", err)
+		return nil, fmt.Errorf("error getting clusters: %s", err)
 	}
-	lib.Log.Info("Got weaveclusters", "numberOfClusters", len(weaveClusterList.Items))
+	lib.Log.Info("Got clusters", "numberOfClusters", len(clusterList.Items))
 
 	result := map[string]*capiv1.Cluster{}
-	for i, ct := range weaveClusterList.Items {
-		result[ct.ObjectMeta.Name] = &weaveClusterList.Items[i]
+	for i, ct := range clusterList.Items {
+		result[ct.ObjectMeta.Name] = &clusterList.Items[i]
 	}
 	return result, nil
 }
