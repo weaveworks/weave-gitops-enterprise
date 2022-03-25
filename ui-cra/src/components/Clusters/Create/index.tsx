@@ -107,7 +107,6 @@ const AddCluster: FC = () => {
     renderTemplate,
     PRPreview,
     setPRPreview,
-    loading,
     addCluster,
     setError,
   } = useTemplates();
@@ -131,8 +130,6 @@ const AddCluster: FC = () => {
 
   const callbackState = getCallbackState();
 
-  console.log(callbackState);
-
   if (callbackState) {
     initialFormData = {
       ...initialFormData,
@@ -149,9 +146,8 @@ const AddCluster: FC = () => {
   }
 
   const [formData, setFormData] = useState<any>(initialFormData);
-  const [profiles, setProfiles] = useState<UpdatedProfile[]>(initialProfiles);
   const [selectedProfiles, setSelectedProfiles] =
-    useState<any[]>(initialProfiles);
+    useState<UpdatedProfile[]>(initialProfiles);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
   );
@@ -223,7 +219,7 @@ const AddCluster: FC = () => {
           parameter_values: {
             ...formData,
           },
-          values: encodedProfiles(profiles),
+          values: encodedProfiles(selectedProfiles),
         },
         getProviderToken(formData.provider as GitProvider),
       )
@@ -238,7 +234,7 @@ const AddCluster: FC = () => {
           }
         }),
     [
-      profiles,
+      selectedProfiles,
       addCluster,
       formData,
       activeTemplate?.name,
@@ -279,7 +275,7 @@ const AddCluster: FC = () => {
 
   useEffect(() => {
     if (!callbackState) {
-      setProfiles(updatedProfiles);
+      // setProfiles(updatedProfiles);
       setFormData((prevState: any) => ({
         ...prevState,
         url: repositoryURL,
@@ -293,7 +289,12 @@ const AddCluster: FC = () => {
         <CallbackStateContextProvider
           callbackState={{
             page: authRedirectPage as PageRoute,
-            state: { infraCredential, formData, profiles, selectedProfiles },
+            state: {
+              infraCredential,
+              formData,
+              // profiles,
+              selectedProfiles,
+            },
           }}
         >
           <SectionHeader
@@ -334,14 +335,16 @@ const AddCluster: FC = () => {
                 ) : (
                   <Loader />
                 )}
-                <Profiles
-                  activeStep={activeStep}
-                  setActiveStep={setActiveStep}
-                  clickedStep={clickedStep}
-                  profiles={profiles}
-                  selectedProfiles={selectedProfiles}
-                  setSelectedProfiles={setSelectedProfiles}
-                />
+                {updatedProfiles.length > 0 && (
+                  <Profiles
+                    activeStep={activeStep}
+                    setActiveStep={setActiveStep}
+                    clickedStep={clickedStep}
+                    // profiles={profiles}
+                    selectedProfiles={selectedProfiles}
+                    setSelectedProfiles={setSelectedProfiles}
+                  />
+                )}
                 {openPreview && PRPreview ? (
                   <Preview
                     openPreview={openPreview}
@@ -363,7 +366,6 @@ const AddCluster: FC = () => {
                   showAuthDialog={showAuthDialog}
                   setShowAuthDialog={setShowAuthDialog}
                 />
-                {loading && <Loader />}
               </Grid>
               <Grid className={classes.steps} item md={3}>
                 <FormStepsNavigation
@@ -381,14 +383,13 @@ const AddCluster: FC = () => {
   }, [
     authRedirectPage,
     formData,
-    profiles,
+    updatedProfiles.length,
     infraCredential,
     activeTemplate,
     clustersCount,
     classes,
     openPreview,
     PRPreview,
-    loading,
     steps,
     activeStep,
     clickedStep,
