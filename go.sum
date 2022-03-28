@@ -1744,8 +1744,8 @@ github.com/vishvananda/netns v0.0.0-20200728191858-db3c7e526aae/go.mod h1:DD4vA1
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQdHzmBimPxGIus5JOvNPu+tWxOTC+Q4w9fJOok=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/libgitops v0.0.3/go.mod h1:xXfpB1QJWp7aCiFblQgkBP3QjzbivigvXOr2ixhRJWU=
-github.com/weaveworks/magalix-policy-agent/api v1.0.0 h1:Zp9R2IK3fSxldrEQKz72HGubfWBKnm6ioVBNRd/hlew=
-github.com/weaveworks/magalix-policy-agent/api v1.0.0/go.mod h1:ubvnwG4LSluYu8VJojmu7Pk+lG2SABbFXkqYO6+ZrnA=
+github.com/weaveworks/policy-agent/api v1.0.1 h1:KE1DDEmfdowyLp/aTx8zHr+Fbaz37B6A5AGr+P1EKqo=
+github.com/weaveworks/policy-agent/api v1.0.1/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
 github.com/weaveworks/weave-gitops v0.6.3-0.20220308050142-34e87ea3dd58 h1:WjCNdkPu5e7JNMfAsT+sQvzx8yleK3fM3s+8mL804B8=
 github.com/weaveworks/weave-gitops v0.6.3-0.20220308050142-34e87ea3dd58/go.mod h1:GqfmHLwa4HljFtP7ZTPDRqJJacKy4qIKWTP0ZswfIFs=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1/go.mod h1:xWxoy/Ff1R3VnKWacRlbmBnVSu066ykpZIkk+T/g1Vw=

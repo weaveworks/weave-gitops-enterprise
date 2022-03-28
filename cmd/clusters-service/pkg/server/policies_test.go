@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	policiesv1 "github.com/weaveworks/magalix-policy-agent/api/v1"
+	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	capi_server "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -19,7 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func Test_server_ListPolicies(t *testing.T) {
+func TestListPolicies(t *testing.T) {
 	tests := []struct {
 		name         string
 		clusterState []runtime.Object
@@ -69,7 +69,7 @@ func Test_server_ListPolicies(t *testing.T) {
 			},
 		},
 		{
-			name: "list policies with paramter type string",
+			name: "list policies with parameter type string",
 			clusterState: []runtime.Object{
 				makePolicy(t, func(p *policiesv1.Policy) {
 					strBytes, err := json.Marshal("value")
@@ -97,7 +97,7 @@ func Test_server_ListPolicies(t *testing.T) {
 							},
 						},
 						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
-						Parameters: []*capi_server.PolicyParams{
+						Parameters: []*capi_server.PolicyParam{
 							{
 								Name:    "key",
 								Type:    "string",
@@ -110,7 +110,7 @@ func Test_server_ListPolicies(t *testing.T) {
 			},
 		},
 		{
-			name: "list policies with paramter type integer",
+			name: "list policies with parameter type integer",
 			clusterState: []runtime.Object{
 				makePolicy(t, func(p *policiesv1.Policy) {
 					intBytes, err := json.Marshal(1)
@@ -138,7 +138,7 @@ func Test_server_ListPolicies(t *testing.T) {
 							},
 						},
 						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
-						Parameters: []*capi_server.PolicyParams{
+						Parameters: []*capi_server.PolicyParam{
 							{
 								Name:    "key",
 								Type:    "integer",
@@ -151,7 +151,7 @@ func Test_server_ListPolicies(t *testing.T) {
 			},
 		},
 		{
-			name: "list policies with paramter type boolean",
+			name: "list policies with parameter type boolean",
 			clusterState: []runtime.Object{
 				makePolicy(t, func(p *policiesv1.Policy) {
 					boolBytes, err := json.Marshal(false)
@@ -179,7 +179,7 @@ func Test_server_ListPolicies(t *testing.T) {
 							},
 						},
 						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
-						Parameters: []*capi_server.PolicyParams{
+						Parameters: []*capi_server.PolicyParam{
 							{
 								Name:    "key",
 								Type:    "boolean",
@@ -192,7 +192,7 @@ func Test_server_ListPolicies(t *testing.T) {
 			},
 		},
 		{
-			name: "list policies with paramter type array",
+			name: "list policies with parameter type array",
 			clusterState: []runtime.Object{
 				makePolicy(t, func(p *policiesv1.Policy) {
 					sliceBytes, err := json.Marshal([]string{"value"})
@@ -220,7 +220,7 @@ func Test_server_ListPolicies(t *testing.T) {
 							},
 						},
 						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
-						Parameters: []*capi_server.PolicyParams{
+						Parameters: []*capi_server.PolicyParam{
 							{
 								Name:    "key",
 								Type:    "array",
@@ -233,7 +233,7 @@ func Test_server_ListPolicies(t *testing.T) {
 			},
 		},
 		{
-			name: "list policies with invalid paramter type",
+			name: "list policies with invalid parameter type",
 			clusterState: []runtime.Object{
 				makePolicy(t, func(p *policiesv1.Policy) {
 					strBytes, err := json.Marshal("value")
@@ -247,7 +247,7 @@ func Test_server_ListPolicies(t *testing.T) {
 					})
 				}),
 			},
-			err: errors.New("found unsupported policy paramter type invalid in policy "),
+			err: errors.New("found unsupported policy parameter type invalid in policy "),
 		},
 	}
 	for _, tt := range tests {
@@ -291,7 +291,7 @@ func getAnyValue(t *testing.T, kind string, o interface{}) *anypb.Any {
 	return defaultAny
 }
 
-func Test_server_GetPolicy(t *testing.T) {
+func TestGetPolicy(t *testing.T) {
 	tests := []struct {
 		name         string
 		policy_name  string

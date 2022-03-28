@@ -54,7 +54,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.10.1
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
-	github.com/weaveworks/magalix-policy-agent/api v1.0.0
+	github.com/weaveworks/policy-agent/api v1.0.1
 	github.com/xanzy/go-gitlab v0.54.3
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa

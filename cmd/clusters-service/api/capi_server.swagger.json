@@ -766,7 +766,7 @@
         "parameters": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1PolicyParams"
+            "$ref": "#/definitions/v1PolicyParam"
           }
         },
         "targets": {
@@ -777,7 +777,7 @@
         }
       }
     },
-    "v1PolicyParams": {
+    "v1PolicyParam": {
       "type": "object",
       "properties": {
         "name": {
@@ -787,7 +787,8 @@
           "type": "string"
         },
         "default": {
-          "$ref": "#/definitions/protobufAny"
+          "$ref": "#/definitions/protobufAny",
+          "title": "default is a generic value that can be a string, int, bool and array of strings"
         },
         "required": {
           "type": "boolean"

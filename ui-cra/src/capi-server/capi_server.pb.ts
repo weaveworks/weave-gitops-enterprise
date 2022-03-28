@@ -206,7 +206,7 @@ export type PolicyParamRepeatedString = {
   values?: string[]
 }
 
-export type PolicyParams = {
+export type PolicyParam = {
   name?: string
   type?: string
   default?: GoogleProtobufAny.Any
@@ -234,7 +234,7 @@ export type Policy = {
   severity?: string
   controls?: string[]
   gitCommit?: string
-  parameters?: PolicyParams[]
+  parameters?: PolicyParam[]
   targets?: PolicyTargets
   createdAt?: string
 }

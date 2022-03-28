@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/golang/protobuf/ptypes/any"
-	policiesv1 "github.com/weaveworks/magalix-policy-agent/api/v1"
+	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -50,7 +50,7 @@ func getPolicyParamDefaultValue(param policiesv1.PolicyParameters, policyID stri
 		value := &capiv1_proto.PolicyParamRepeatedString{Values: arrayValue}
 		defaultAny, err = anypb.New(value)
 	default:
-		return nil, fmt.Errorf("found unsupported policy paramter type %s in policy %s", param.Type, policyID)
+		return nil, fmt.Errorf("found unsupported policy parameter type %s in policy %s", param.Type, policyID)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize parameter default value %s in policy %s: %w", param.Name, policyID, err)
@@ -58,7 +58,7 @@ func getPolicyParamDefaultValue(param policiesv1.PolicyParameters, policyID stri
 	return defaultAny, nil
 }
 
-func ToPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error) {
+func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error) {
 	policySpec := policyCRD.Spec
 
 	var policyLabels []*capiv1_proto.PolicyTargetLabel
@@ -68,10 +68,10 @@ func ToPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 		})
 	}
 
-	var policyParams []*capiv1_proto.PolicyParams
+	var policyParams []*capiv1_proto.PolicyParam
 	for i := range policySpec.Parameters {
 		param := policySpec.Parameters[i]
-		policyParam := &capiv1_proto.PolicyParams{
+		policyParam := &capiv1_proto.PolicyParam{
 			Name:     param.Name,
 			Required: param.Required,
 			Type:     param.Type,
@@ -119,7 +119,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 
 	var policies []*capiv1_proto.Policy
 	for i := range list.Items {
-		policy, err := ToPolicyResponse(list.Items[i])
+		policy, err := toPolicyResponse(list.Items[i])
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +143,7 @@ func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest
 		return nil, fmt.Errorf("error while getting policy %s: %w", m.PolicyName, err)
 	}
 
-	policy, err := ToPolicyResponse(policyCRD)
+	policy, err := toPolicyResponse(policyCRD)
 	if err != nil {
 		return nil, err
 	}

@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
-	policiesv1 "github.com/weaveworks/magalix-policy-agent/api/v1"
+	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
