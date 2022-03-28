@@ -2,6 +2,8 @@ import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import AlertsProvider from '../contexts/Alerts/Provider';
+import  PoliciesProvider  from '../contexts/policies/Provider';
+
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
 import { Navigation } from './Navigation';
@@ -44,7 +46,7 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import WGApplicationRemove from './Applications/Remove';
 
-import Policies from "./Policies"
+import Policies from './Policies';
 
 const APPS_ROUTE = '/applications';
 const APP_DETAIL_ROUTE = '/application_detail';
@@ -143,6 +145,7 @@ const ResponsiveDrawer = () => {
         TemplatesProvider,
         ClustersProvider,
         AlertsProvider,
+        PoliciesProvider,
         WGAppProvider,
         VersionsProvider,
       ]}
