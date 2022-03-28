@@ -17,13 +17,7 @@ import {
   Theme,
   createStyles,
 } from '@material-ui/core/styles';
-import {
-  AppContextProvider,
-  applicationsClient,
-  AuthCheck,
-  OAuthCallback,
-  SignIn,
-} from '@weaveworks/weave-gitops';
+import { AuthCheck, SignIn } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
@@ -36,18 +30,11 @@ import { ContentWrapper } from './Layout/ContentWrapper';
 import Lottie from 'react-lottie-player';
 import error404 from '../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
-import WGApplicationsDashboard from './Applications';
-import WGApplicationAdd from './Applications/Add';
-import WGApplicationDetail from './Applications/Detail';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-import WGApplicationRemove from './Applications/Remove';
+import OAuthCallback from './GitAuth/OAuthCallback';
 
-const APPS_ROUTE = '/applications';
-const APP_DETAIL_ROUTE = '/application_detail';
-const APP_ADD_ROUTE = '/application_add';
-const APP_DELETE_ROUTE = '/application_remove';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 
 const drawerWidth = 220;
@@ -106,10 +93,6 @@ const SignInWrapper = styled.div`
   }
 `;
 
-export const WGAppProvider: React.FC = props => (
-  <AppContextProvider applicationsClient={applicationsClient} {...props} />
-);
-
 const ResponsiveDrawer = () => {
   const classes = useStyles();
   const theme = useTheme();
@@ -140,7 +123,6 @@ const ResponsiveDrawer = () => {
         TemplatesProvider,
         ClustersProvider,
         AlertsProvider,
-        WGAppProvider,
         VersionsProvider,
       ]}
     >
@@ -205,22 +187,6 @@ const ResponsiveDrawer = () => {
               path="/clusters/templates"
             />
             <Route component={AlertsDashboard} exact path="/clusters/alerts" />
-            <Route
-              component={WGApplicationsDashboard}
-              exact
-              path={APPS_ROUTE}
-            />
-            <Route
-              exact
-              path={APP_DETAIL_ROUTE}
-              component={WGApplicationDetail}
-            />
-            <Route exact path={APP_ADD_ROUTE} component={WGApplicationAdd} />
-            <Route
-              exact
-              path={APP_DELETE_ROUTE}
-              component={WGApplicationRemove}
-            />
             <Route
               exact
               path={GITLAB_OAUTH_CALLBACK}

@@ -1,3 +1,4 @@
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { RequestMethod } from '../types/global';
 
 export const processResponse = (res: Response) => {
@@ -65,3 +66,7 @@ export const isUnauthenticated = (code: number): boolean => {
 
 export const removeToken = (provider: string) =>
   localStorage.removeItem(`gitProviderToken_${provider}`);
+
+export function gitlabOAuthRedirectURI() {
+  return `${window.location.origin}${PageRoute.GitlabOAuthCallback}`;
+}
