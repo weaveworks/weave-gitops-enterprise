@@ -24,7 +24,7 @@ import (
 const (
 	GitProviderGitHub = "github"
 	GitProviderGitLab = "gitlab"
-	tokenTypeOauth    = "oauth2"
+	TokenTypeOauth    = "oauth2"
 )
 
 type GitProviderEnv struct {
@@ -48,7 +48,7 @@ func initGitProviderData() GitProviderEnv {
 		return GitProviderEnv{
 			Type:      GitProviderGitHub,
 			Hostname:  GetEnv("GIT_PROVIDER_HOSTNAME", github.DefaultDomain),
-			TokenType: tokenTypeOauth,
+			TokenType: TokenTypeOauth,
 			Token:     GetEnv("GITHUB_TOKEN", ""),
 			Org:       GetEnv("GITHUB_ORG", ""),
 			Repo:      GetEnv("CLUSTER_REPOSITORY", ""),
@@ -65,7 +65,7 @@ func initGitProviderData() GitProviderEnv {
 		return GitProviderEnv{
 			Type:           GitProviderGitLab,
 			Hostname:       GetEnv("GIT_PROVIDER_HOSTNAME", gitlab.DefaultDomain),
-			TokenType:      tokenTypeOauth,
+			TokenType:      TokenTypeOauth,
 			Token:          GetEnv("GITLAB_TOKEN", ""),
 			Org:            GetEnv("GITLAB_ORG", ""),
 			Repo:           GetEnv("CLUSTER_REPOSITORY", ""),
