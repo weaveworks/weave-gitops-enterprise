@@ -44,11 +44,14 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import WGApplicationRemove from './Applications/Remove';
 
+import Policies from "./Policies"
+
 const APPS_ROUTE = '/applications';
 const APP_DETAIL_ROUTE = '/application_detail';
 const APP_ADD_ROUTE = '/application_add';
 const APP_DELETE_ROUTE = '/application_remove';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
+const POLICIES = '/policies';
 
 const drawerWidth = 220;
 
@@ -221,6 +224,9 @@ const ResponsiveDrawer = () => {
               path={APP_DELETE_ROUTE}
               component={WGApplicationRemove}
             />
+
+            <Route exact path={POLICIES} component={Policies} />
+
             <Route
               exact
               path={GITLAB_OAUTH_CALLBACK}

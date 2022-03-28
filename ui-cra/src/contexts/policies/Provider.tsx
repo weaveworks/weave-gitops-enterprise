@@ -68,8 +68,12 @@ const PoliciesProvider: FC = ({ children }) => {
   }, [setNotifications]);
 
   useEffect(() => {
+    console.log("Ana hena ta3ala");
+    
     getPolicies();
-    return history.listen(getPolicies);
+    return () => {
+      setPolicies([])
+    };
   }, [history, getPolicies]);
 
   return (
