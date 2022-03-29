@@ -2,7 +2,6 @@ import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import AlertsProvider from '../contexts/Alerts/Provider';
-import PoliciesProvider from '../contexts/Policies/Provider';
 
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
@@ -145,7 +144,6 @@ const ResponsiveDrawer = () => {
         TemplatesProvider,
         ClustersProvider,
         AlertsProvider,
-        PoliciesProvider,
         WGAppProvider,
         VersionsProvider,
       ]}

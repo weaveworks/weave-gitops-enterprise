@@ -44,9 +44,9 @@ interface RowProps {
   policy: Policy;
 }
 
-const PolicyRow = ({  policy }: RowProps) => {
+const PolicyRow = ({ policy }: RowProps) => {
   const classes = useStyles();
-  const { name } = policy;
+  const { name, category, severity, createdAt } = policy;
   return (
     <>
       <TableRow
@@ -54,6 +54,9 @@ const PolicyRow = ({  policy }: RowProps) => {
         className={`details ${classes.collapsibleRow}`}
       >
         <TableCell>{name}</TableCell>
+        <TableCell>{category}</TableCell>
+        <TableCell>{severity}</TableCell>
+        <TableCell>{createdAt}</TableCell>
       </TableRow>
     </>
   );

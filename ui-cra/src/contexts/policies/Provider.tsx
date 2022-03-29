@@ -16,32 +16,6 @@ const PoliciesProvider: FC = ({ children }) => {
 
   const policiesUrl = '/v1/policies';
 
-  // const getPolicy = (policyName: string) =>
-  //   policies.find(policy => policy.name === policyName) || null;
-
-  // const renderTemplate = useCallback(
-  //   data => {
-  //     setLoading(true);
-  //     request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
-  //       body: JSON.stringify(data),
-  //     })
-  //       .then(data => setPRPreview(data.renderedTemplate))
-  //       .catch(err =>
-  //         setNotifications([{ message: err.message, variant: 'danger' }]),
-  //       )
-  //       .finally(() => setLoading(false));
-  //   },
-  //   [activeTemplate, setNotifications],
-  // );
-
-  // const addCluster = useCallback(({ ...data }, token: string) => {
-  //   setLoading(true);
-  //   return request('POST', '/v1/clusters', {
-  //     body: JSON.stringify(data),
-  //     headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-  //   }).finally(() => setLoading(false));
-  // }, []);
-
   const getPolicy = useCallback((policyName) => {
     setLoading(true);
     request('GET', `${policiesUrl}/${policyName}`, {
@@ -68,8 +42,6 @@ const PoliciesProvider: FC = ({ children }) => {
   }, [setNotifications]);
 
   useEffect(() => {
-    console.log("Ana hena ta3ala");
-    
     getPolicies();
     return () => {
       setPolicies([])

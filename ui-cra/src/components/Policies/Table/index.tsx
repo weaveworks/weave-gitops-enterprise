@@ -65,10 +65,10 @@ const useStyles = makeStyles(() =>
 
 interface Props {
   policies: Policy[] | null;
-  count: number | null;
+  // count: number | null;
 }
 
-export const PolicyTable: FC<Props> = ({ policies, count }) => {
+export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = useStyles();
 
   return (
@@ -86,11 +86,20 @@ export const PolicyTable: FC<Props> = ({ policies, count }) => {
                     <span>Name</span>
                   </ColumnHeaderTooltip>
                 </TableCell>
+                <TableCell className={classes.nameHeaderCell} align="left">
+                  <span>Category</span>
+                </TableCell>
+                <TableCell className={classes.nameHeaderCell} align="left">
+                  <span>Severity</span>
+                </TableCell>
+                <TableCell className={classes.nameHeaderCell} align="left">
+                  <span>Age</span>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {policies?.map((policy: Policy, index: number) => {
-                return <PolicyRow policy={policy} />;
+                return <PolicyRow policy={policy} key={policy.name} />;
               })}
             </TableBody>
           </Table>
