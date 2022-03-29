@@ -1,9 +1,8 @@
-import React from 'react';
 import { TableCell, TableRow, Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { Cluster } from '../../../types/kubernetes';
 
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import moment from 'moment';
 import { Policy } from '../../../types/custom';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -56,7 +55,7 @@ const PolicyRow = ({ policy }: RowProps) => {
         <TableCell>{name}</TableCell>
         <TableCell>{category}</TableCell>
         <TableCell>{severity}</TableCell>
-        <TableCell>{createdAt}</TableCell>
+        <TableCell>{moment(createdAt).fromNow()}</TableCell>
       </TableRow>
     </>
   );
