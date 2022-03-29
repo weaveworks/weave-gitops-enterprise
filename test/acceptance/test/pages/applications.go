@@ -188,7 +188,7 @@ func ActivateDeviceGithub(webDriver *agouti.Page) *DeviceActivationGitHub {
 	return &DeviceActivationGitHub{
 		Username:            webDriver.Find(`input[type=text][name=login]`),
 		Password:            webDriver.Find(`input[type=password][name*=password]`),
-		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
+		Signin:              webDriver.Find(`button[data-qa-selector=sign_in_button]`),
 		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
 		AuthCode:            webDriver.Find(`input#otp`),
 		Verify:              webDriver.FindByButton(`Verify`),
