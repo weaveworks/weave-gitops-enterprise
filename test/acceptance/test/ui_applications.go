@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitlab"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -14,7 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
+func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProviderHostname string) {
 	if gitProvider == GitProviderGitHub {
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
@@ -33,7 +34,12 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
 			Eventually(authenticate.AuthroizeButton).ShouldNot(BeFound())
 		}
 	} else if gitProvider == GitProviderGitLab {
-		authenticate := pages.AuthenticateWithGitlab(webDriver)
+		var authenticate *pages.AuthenticateGitlab
+		if gitProviderHostname == gitlab.DefaultDomain {
+			authenticate = pages.AuthenticateWithGitlab(webDriver)
+		} else {
+			authenticate = pages.AuthenticateWithOnPremGitlab(webDriver)
+		}
 
 		if pages.ElementExist(authenticate.AuthenticateGitlab) {
 			Expect(authenticate.AuthenticateGitlab.Click()).To(Succeed())
@@ -199,7 +205,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(`And authenticate with Git provider`, func() {
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(addApp.GitCredentials).Should(BeVisible())
 
 					addApp = pages.GetAddApplicationForm(webDriver)
@@ -260,7 +266,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(`Then authenticate with Git provider`, func() {
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				})
 
