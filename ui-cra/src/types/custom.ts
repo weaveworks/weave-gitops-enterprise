@@ -97,6 +97,7 @@ export type Policy = {
   gitCommit?: string;
   parameters?: PolicyParameters[];
   targets?: Targets[];
+  createdAt?: string;
 };
 export type Targets = {
   kind?: string[];

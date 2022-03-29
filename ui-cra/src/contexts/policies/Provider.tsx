@@ -47,7 +47,7 @@ const PoliciesProvider: FC = ({ children }) => {
     request('GET', `${policiesUrl}/${policyName}`, {
       cache: 'no-store',
     })
-      .then(res => setPolicies(res.policies))
+      .then(res => setPolicy(res.policy))
       .catch(err =>
         setNotifications([{ message: err.message, variant: 'danger' }]),
       )
@@ -85,6 +85,7 @@ const PoliciesProvider: FC = ({ children }) => {
         error,
         setError,
         getPolicy,
+        setPolicy,
       }}
     >
       {children}

@@ -6,7 +6,7 @@ interface PoliciesContext {
   loading: boolean;
   error: string | null;
   policy: Policy | null;
-  // setPolicy: Dispatch<React.SetStateAction<Policy | null>>;
+  setPolicy: Dispatch<React.SetStateAction<Policy | null>>;
   setError: Dispatch<React.SetStateAction<string | null>>;
   getPolicy: (policyName: string) => void;
 }

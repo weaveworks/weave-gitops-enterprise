@@ -4,7 +4,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { CallbackStateContextProvider } from '@weaveworks/weave-gitops';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
-import usePolicies from '../../contexts/policies';
+import usePolicies from '../../contexts/Policies';
 import { Loader } from '../Loader';
 import { PolicyTable } from './Table';
 
@@ -20,14 +20,11 @@ const Policies = () => {
             className="count-header"
             path={[{ label: 'Policies', url: 'policies', count: policies.length }]}
           />
-          <ContentWrapper>
-            <Title>Policies</Title>
-          </ContentWrapper>
-        </CallbackStateContextProvider>
-        {!loading ? (
+          {!loading ? (
           <div style={{ display: 'flex' }}>
            
               <ContentWrapper>
+              <Title>Policies</Title>
                
                 <PolicyTable
                   count={policies.length}
@@ -38,9 +35,11 @@ const Policies = () => {
           </div>
         ) : (
           <ContentWrapper>
+            <Title>Policies</Title>
             <Loader />
           </ContentWrapper>
         )}
+        </CallbackStateContextProvider>
       </PageTemplate>
     </ThemeProvider>
   );
