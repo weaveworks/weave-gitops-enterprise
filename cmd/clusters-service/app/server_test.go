@@ -1,9 +1,11 @@
 package app_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"testing"
 	"time"
@@ -26,6 +28,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
+	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,10 +41,27 @@ import (
 var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
 
 func TestWeaveGitOpsHandlers(t *testing.T) {
+	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+
 	ctx := context.Background()
 	defer ctx.Done()
 
-	c := createFakeClient(t, createSecret(validEntitlement))
+	password := "my-secret-password"
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
+	hashedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "admin-password-hash",
+			Namespace: "wego-system",
+		},
+		Data: map[string][]byte{
+			"password": hashed,
+		},
+	}
+
+	c := createFakeClient(t, createSecret(validEntitlement), hashedSecret)
 	db, err := utils.Open("", "sqlite", "", "", "")
 	if err != nil {
 		t.Fatalf("expected no errors but got %v", err)
@@ -79,17 +99,33 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 			}),
 			app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
+			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
 		)
 		t.Logf("%v", err)
 	}(ctx)
 
+	jar, err := cookiejar.New(&cookiejar.Options{})
+	assert.NoError(t, err)
 	client := &http.Client{
+		Jar: jar,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
 	time.Sleep(1 * time.Second)
-	res, err := client.Get("https://localhost:8001/v1/applications")
+
+	// Check this route is public
+	res, err := client.Get("https://localhost:8001/gitops/api/agent.yaml?token=derp")
+	assert.NoError(t, err)
+	// 400 is okay, 401 is not
+	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
+
+	// login
+	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, res1.StatusCode)
+
+	res, err = client.Get("https://localhost:8001/v1/applications")
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
@@ -103,6 +139,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	if res.StatusCode != http.StatusNotFound {
 		t.Fatalf("expected status code to be %d but got %d instead", http.StatusNotFound, res.StatusCode)
 	}
+
 }
 
 func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
