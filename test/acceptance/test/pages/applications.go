@@ -211,6 +211,18 @@ func AuthenticateWithGitlab(webDriver *agouti.Page) *AuthenticateGitlab {
 	}
 }
 
+func AuthenticateWithOnPremGitlab(webDriver *agouti.Page) *AuthenticateGitlab {
+	return &AuthenticateGitlab{
+		AuthenticateGitlab: webDriver.FindByButton(`Authenticate with GitLab`),
+		Authorize:          webDriver.Find(`input[name="commit"][value="Authorize"]`),
+		Username:           webDriver.Find(`#user_login`),
+		Password:           webDriver.Find(`#user_password`),
+		Signin:             webDriver.Find(`input[name=commit]`),
+		AcceptCookies:      webDriver.Find(`#onetrust-accept-btn-handler`),
+		CheckBrowser:       webDriver.Find(`span[data-translate=checking_browser]`),
+	}
+}
+
 func GetCommits(webDriver *agouti.Page) []Commits {
 	Eventually(webDriver.All(`div[class^=CommitsTable] thead tr`)).Should(BeVisible())
 

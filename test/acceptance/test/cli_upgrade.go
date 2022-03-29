@@ -270,7 +270,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, paramSection)
 				pages.ScrollWindow(webDriver, 0, 4000)
 				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 				pages.ScrollWindow(webDriver, 0, 4000)
 
 				By("And select the podinfo profile to install", func() {
@@ -319,7 +319,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
 					if pages.ElementExist(gitops.SuccessBar) {
 						Expect(gitops.SuccessBar.Click()).To(Succeed())
