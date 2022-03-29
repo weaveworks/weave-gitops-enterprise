@@ -188,7 +188,7 @@ func ActivateDeviceGithub(webDriver *agouti.Page) *DeviceActivationGitHub {
 	return &DeviceActivationGitHub{
 		Username:            webDriver.Find(`input[type=text][name=login]`),
 		Password:            webDriver.Find(`input[type=password][name*=password]`),
-		Signin:              webDriver.Find(`button[data-qa-selector=sign_in_button]`),
+		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
 		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
 		AuthCode:            webDriver.Find(`input#otp`),
 		Verify:              webDriver.FindByButton(`Verify`),
@@ -205,7 +205,7 @@ func AuthenticateWithGitlab(webDriver *agouti.Page) *AuthenticateGitlab {
 		Authorize:          webDriver.Find(`input[name="commit"][value="Authorize"]`),
 		Username:           webDriver.Find(`#user_login`),
 		Password:           webDriver.Find(`#user_password`),
-		Signin:             webDriver.Find(`input[name=commit]`),
+		Signin:             webDriver.Find(`button[data-qa-selector=sign_in_button]`),
 		AcceptCookies:      webDriver.Find(`#onetrust-accept-btn-handler`),
 		CheckBrowser:       webDriver.Find(`span[data-translate=checking_browser]`),
 	}
