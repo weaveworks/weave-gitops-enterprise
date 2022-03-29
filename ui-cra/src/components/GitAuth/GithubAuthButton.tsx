@@ -1,10 +1,10 @@
 // eslint-disable-next-line
+import * as React from 'react';
 import { ButtonProps } from '@material-ui/core';
 import { Button } from '@weaveworks/weave-gitops';
-import * as React from 'react';
 import styled from 'styled-components';
 import { GithubAuthContext } from '../../contexts/GitAuth/GithubAuthContext';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import { GitProvider } from '../../types/custom';
 
 type Props = ButtonProps;
 

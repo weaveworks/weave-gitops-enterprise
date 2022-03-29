@@ -17,6 +17,7 @@ import { useHistory } from 'react-router-dom';
 import FormStepsNavigation from './Form/StepsNavigation';
 import {
   Credential,
+  GitProvider,
   TemplateObject,
   UpdatedProfile,
 } from '../../../types/custom';
@@ -30,15 +31,17 @@ import {
   getCallbackState,
   getProviderToken,
 } from '@weaveworks/weave-gitops';
-import { isUnauthenticated, removeToken } from '../../../utils/request';
+import {
+  isUnauthenticated,
+  PageRoute,
+  removeToken,
+} from '../../../utils/request';
 import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
 import Credentials from './Form/Partials/Credentials';
 import GitOps from './Form/Partials/GitOps';
 import Preview from './Form/Partials/Preview';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
 

@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@weaveworks/weave-gitops": "/Users/alina/Desktop/projects/weave-gitops/dist/"
+  }
+}

@@ -21,9 +21,9 @@ import {
   IconType,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
+import { PageRoute } from '../../utils/request';
 
 interface Size {
   size?: 'small';

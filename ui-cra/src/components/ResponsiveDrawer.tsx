@@ -32,8 +32,8 @@ import error404 from '../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import OAuthCallback from './GitAuth/OAuthCallback';
+import { GitProvider } from '../types/custom';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 

@@ -83,3 +83,16 @@ export type ChildrenOccurences = {
   groupVisible: boolean;
   count: number;
 };
+
+export enum GitProvider {
+  Unknown = 'Unknown',
+  GitHub = 'GitHub',
+  GitLab = 'GitLab',
+}
+
+export type GetGithubDeviceCodeResponse = {
+  userCode?: string;
+  deviceCode?: string;
+  validationURI?: string;
+  interval?: number;
+};

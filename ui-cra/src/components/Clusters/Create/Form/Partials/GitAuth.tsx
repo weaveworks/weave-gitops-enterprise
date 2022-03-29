@@ -1,5 +1,4 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import {
   getProviderToken,
   RepoInputWithAuth,
@@ -7,6 +6,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import GithubDeviceAuthModal from '../../../../GitAuth/GithubDeviceAuthModal';
+import { GitProvider } from '../../../../../types/custom';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   margin-bottom: ${weaveTheme.spacing.base};

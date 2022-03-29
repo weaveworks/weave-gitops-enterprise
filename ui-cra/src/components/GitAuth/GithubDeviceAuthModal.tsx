@@ -12,10 +12,7 @@ import {
 import * as React from 'react';
 import styled from 'styled-components';
 import { GithubAuthContext } from '../../contexts/GitAuth/GithubAuthContext';
-import {
-  GitProvider,
-  GetGithubDeviceCodeResponse,
-} from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import { GitProvider, GetGithubDeviceCodeResponse } from '../../types/custom';
 
 type Props = {
   className?: string;

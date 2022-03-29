@@ -17,10 +17,10 @@ import {
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
 import { PRdefaults } from '.';
+import { GitProvider } from '../../types/custom';
 
 interface Props {
   formData: any;

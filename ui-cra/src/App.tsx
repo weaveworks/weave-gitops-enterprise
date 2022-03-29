@@ -5,6 +5,7 @@ import { MuiThemeProvider } from '@material-ui/core/styles';
 import '@fortawesome/fontawesome-free/css/all.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import {
+  AppContextProvider,
   AuthContextProvider,
   FeatureFlagsContextProvider,
   theme,
@@ -13,6 +14,8 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import Background from './assets/img/background.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
+// @ts-ignore
+import { Core } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -63,14 +66,16 @@ const App: FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <MuiThemeProvider theme={muiTheme}>
-        <BrowserRouter basename={process.env.PUBLIC_URL}>
-          <FeatureFlagsContextProvider>
-            <AuthContextProvider>
-              <GlobalStyle />
-              <ResponsiveDrawer />
-            </AuthContextProvider>
-          </FeatureFlagsContextProvider>
-        </BrowserRouter>
+        <AppContextProvider renderFooter coreClient={Core}>
+          <BrowserRouter basename={process.env.PUBLIC_URL}>
+            <FeatureFlagsContextProvider>
+              <AuthContextProvider>
+                <GlobalStyle />
+                <ResponsiveDrawer />
+              </AuthContextProvider>
+            </FeatureFlagsContextProvider>
+          </BrowserRouter>
+        </AppContextProvider>
       </MuiThemeProvider>
     </ThemeProvider>
   );

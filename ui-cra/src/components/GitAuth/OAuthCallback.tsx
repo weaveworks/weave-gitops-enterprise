@@ -2,7 +2,7 @@ import { CircularProgress } from '@material-ui/core';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import { GitProvider } from '../../types/custom';
 import { gitlabOAuthRedirectURI } from '../../utils/request';
 import {
   Alert,
@@ -39,7 +39,7 @@ function OAuthCallback({ code, provider }: Props) {
         }),
       );
     }
-  }, [code]);
+  }, [code, applicationsClient, provider, req]);
 
   React.useEffect(() => {
     if (!res) {
@@ -55,7 +55,7 @@ function OAuthCallback({ code, provider }: Props) {
       history.push(linkResolver(state.page));
       return;
     }
-  }, [res]);
+  }, [res, getCallbackState, history, linkResolver, storeProviderToken]);
 
   return (
     <Flex wide align center>
