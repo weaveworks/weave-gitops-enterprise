@@ -19,12 +19,9 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -125,7 +122,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err = client.Get("https://localhost:8001/v1/applications")
+	res, err = client.Get("https://localhost:8001/v1/featureflags")
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
@@ -144,7 +141,6 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 
 func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 	appFactory := &servicesfakes.FakeFactory{}
-	k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
 			return &auth.Claims{
@@ -153,11 +149,10 @@ func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 		},
 	}
 	return &wego_server.ApplicationsConfig{
-		Factory:        appFactory,
-		FetcherFactory: applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
-		Logger:         logr.Discard(),
-		JwtClient:      jwtClient,
-		ClusterConfig:  kube.ClusterConfig{},
+		Factory:       appFactory,
+		Logger:        logr.Discard(),
+		JwtClient:     jwtClient,
+		ClusterConfig: kube.ClusterConfig{},
 	}
 }
 
@@ -204,7 +199,7 @@ func TestNoIssuerURL(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoIssuerURL)
+	assert.ErrorIs(t, err, app.ErrNoIssuerURL)
 }
 
 func TestNoClientID(t *testing.T) {
@@ -220,7 +215,7 @@ func TestNoClientID(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoClientID)
+	assert.ErrorIs(t, err, app.ErrNoClientID)
 }
 
 func TestNoClientSecret(t *testing.T) {
@@ -237,7 +232,7 @@ func TestNoClientSecret(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoClientSecret)
+	assert.ErrorIs(t, err, app.ErrNoClientSecret)
 }
 
 func TestNoRedirectURL(t *testing.T) {
@@ -256,5 +251,5 @@ func TestNoRedirectURL(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoRedirectURL)
+	assert.ErrorIs(t, err, app.ErrNoRedirectURL)
 }
