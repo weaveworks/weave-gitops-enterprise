@@ -11,7 +11,7 @@ import { Policy } from '../../types/custom';
 import LoadingError from '../LoadingError';
 
 const Policies = () => {
-  const fetchUserApi = (payload: any = { page: 1, limit: 25 }) => {
+  const fetchPoliciesAPI = (payload: any = { page: 1, limit: 25 }) => {
     // return PolicyService.getPolicyList()
     return Promise.resolve([
       {
@@ -41,7 +41,7 @@ const Policies = () => {
     });
   };
 
-  const [fetchUser, setFetchuser] = useState(() => fetchUserApi);
+  const [fetchPolicies, setFetchPolicies] = useState(() => fetchPoliciesAPI);
   const [count, setCount] = useState(0);
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -53,7 +53,7 @@ const Policies = () => {
           />
           <ContentWrapper>
             <Title>Policies</Title>
-            <LoadingError fetchFn={fetchUser}>
+            <LoadingError fetchFn={fetchPolicies}>
               {({ value }: { value: any }) => (
                 <>
                   <PolicyTable policies={value} />
