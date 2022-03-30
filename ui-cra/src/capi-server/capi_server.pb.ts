@@ -113,17 +113,9 @@ export type GetKubeconfigResponse = {
 export type Cluster = {
   name?: string
   type?: string
-  status?: string
-  label?: string
-  objects?: ClusterObject[]
+  annotations?: {[key: string]: string}
+  labels?: {[key: string]: string}
   error?: string
-}
-
-export type ClusterObject = {
-  kind?: string
-  apiVersion?: string
-  name?: string
-  displayName?: string
 }
 
 export type Credential = {

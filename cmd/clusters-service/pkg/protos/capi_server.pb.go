@@ -1182,12 +1182,11 @@ type Cluster struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name    string           `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Type    string           `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	Status  string           `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	Label   string           `protobuf:"bytes,4,opt,name=label,proto3" json:"label,omitempty"`
-	Objects []*ClusterObject `protobuf:"bytes,5,rep,name=objects,proto3" json:"objects,omitempty"`
-	Error   string           `protobuf:"bytes,6,opt,name=error,proto3" json:"error,omitempty"`
+	Name        string            `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Type        string            `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Annotations map[string]string `protobuf:"bytes,3,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Labels      map[string]string `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Error       string            `protobuf:"bytes,5,opt,name=error,proto3" json:"error,omitempty"`
 }
 
 func (x *Cluster) Reset() {
@@ -1236,23 +1235,16 @@ func (x *Cluster) GetType() string {
 	return ""
 }
 
-func (x *Cluster) GetStatus() string {
+func (x *Cluster) GetAnnotations() map[string]string {
 	if x != nil {
-		return x.Status
+		return x.Annotations
 	}
-	return ""
+	return nil
 }
 
-func (x *Cluster) GetLabel() string {
+func (x *Cluster) GetLabels() map[string]string {
 	if x != nil {
-		return x.Label
-	}
-	return ""
-}
-
-func (x *Cluster) GetObjects() []*ClusterObject {
-	if x != nil {
-		return x.Objects
+		return x.Labels
 	}
 	return nil
 }
@@ -1260,77 +1252,6 @@ func (x *Cluster) GetObjects() []*ClusterObject {
 func (x *Cluster) GetError() string {
 	if x != nil {
 		return x.Error
-	}
-	return ""
-}
-
-type ClusterObject struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Kind        string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
-	ApiVersion  string `protobuf:"bytes,2,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
-	Name        string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	DisplayName string `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-}
-
-func (x *ClusterObject) Reset() {
-	*x = ClusterObject{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[21]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ClusterObject) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ClusterObject) ProtoMessage() {}
-
-func (x *ClusterObject) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[21]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ClusterObject.ProtoReflect.Descriptor instead.
-func (*ClusterObject) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *ClusterObject) GetKind() string {
-	if x != nil {
-		return x.Kind
-	}
-	return ""
-}
-
-func (x *ClusterObject) GetApiVersion() string {
-	if x != nil {
-		return x.ApiVersion
-	}
-	return ""
-}
-
-func (x *ClusterObject) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *ClusterObject) GetDisplayName() string {
-	if x != nil {
-		return x.DisplayName
 	}
 	return ""
 }
@@ -1350,7 +1271,7 @@ type Credential struct {
 func (x *Credential) Reset() {
 	*x = Credential{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[22]
+		mi := &file_capi_server_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1363,7 +1284,7 @@ func (x *Credential) String() string {
 func (*Credential) ProtoMessage() {}
 
 func (x *Credential) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[22]
+	mi := &file_capi_server_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1376,7 +1297,7 @@ func (x *Credential) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Credential.ProtoReflect.Descriptor instead.
 func (*Credential) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{22}
+	return file_capi_server_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *Credential) GetGroup() string {
@@ -1431,7 +1352,7 @@ type Template struct {
 func (x *Template) Reset() {
 	*x = Template{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[23]
+		mi := &file_capi_server_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1444,7 +1365,7 @@ func (x *Template) String() string {
 func (*Template) ProtoMessage() {}
 
 func (x *Template) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[23]
+	mi := &file_capi_server_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1457,7 +1378,7 @@ func (x *Template) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Template.ProtoReflect.Descriptor instead.
 func (*Template) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{23}
+	return file_capi_server_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Template) GetName() string {
@@ -1523,7 +1444,7 @@ type Parameter struct {
 func (x *Parameter) Reset() {
 	*x = Parameter{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[24]
+		mi := &file_capi_server_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1536,7 +1457,7 @@ func (x *Parameter) String() string {
 func (*Parameter) ProtoMessage() {}
 
 func (x *Parameter) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[24]
+	mi := &file_capi_server_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1549,7 +1470,7 @@ func (x *Parameter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Parameter.ProtoReflect.Descriptor instead.
 func (*Parameter) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{24}
+	return file_capi_server_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Parameter) GetName() string {
@@ -1592,7 +1513,7 @@ type TemplateProfile struct {
 func (x *TemplateProfile) Reset() {
 	*x = TemplateProfile{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[25]
+		mi := &file_capi_server_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1605,7 +1526,7 @@ func (x *TemplateProfile) String() string {
 func (*TemplateProfile) ProtoMessage() {}
 
 func (x *TemplateProfile) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[25]
+	mi := &file_capi_server_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1618,7 +1539,7 @@ func (x *TemplateProfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TemplateProfile.ProtoReflect.Descriptor instead.
 func (*TemplateProfile) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{25}
+	return file_capi_server_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *TemplateProfile) GetName() string {
@@ -1650,7 +1571,7 @@ type TemplateObject struct {
 func (x *TemplateObject) Reset() {
 	*x = TemplateObject{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[26]
+		mi := &file_capi_server_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1663,7 +1584,7 @@ func (x *TemplateObject) String() string {
 func (*TemplateObject) ProtoMessage() {}
 
 func (x *TemplateObject) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[26]
+	mi := &file_capi_server_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1676,7 +1597,7 @@ func (x *TemplateObject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TemplateObject.ProtoReflect.Descriptor instead.
 func (*TemplateObject) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{26}
+	return file_capi_server_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *TemplateObject) GetKind() string {
@@ -1723,7 +1644,7 @@ type GetEnterpriseVersionRequest struct {
 func (x *GetEnterpriseVersionRequest) Reset() {
 	*x = GetEnterpriseVersionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[27]
+		mi := &file_capi_server_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1736,7 +1657,7 @@ func (x *GetEnterpriseVersionRequest) String() string {
 func (*GetEnterpriseVersionRequest) ProtoMessage() {}
 
 func (x *GetEnterpriseVersionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[27]
+	mi := &file_capi_server_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1749,7 +1670,7 @@ func (x *GetEnterpriseVersionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnterpriseVersionRequest.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseVersionRequest) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{27}
+	return file_capi_server_proto_rawDescGZIP(), []int{26}
 }
 
 type GetEnterpriseVersionResponse struct {
@@ -1764,7 +1685,7 @@ type GetEnterpriseVersionResponse struct {
 func (x *GetEnterpriseVersionResponse) Reset() {
 	*x = GetEnterpriseVersionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[28]
+		mi := &file_capi_server_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1777,7 +1698,7 @@ func (x *GetEnterpriseVersionResponse) String() string {
 func (*GetEnterpriseVersionResponse) ProtoMessage() {}
 
 func (x *GetEnterpriseVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[28]
+	mi := &file_capi_server_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1790,7 +1711,7 @@ func (x *GetEnterpriseVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnterpriseVersionResponse.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseVersionResponse) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{28}
+	return file_capi_server_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetEnterpriseVersionResponse) GetVersion() string {
@@ -1813,7 +1734,7 @@ type Maintainer struct {
 func (x *Maintainer) Reset() {
 	*x = Maintainer{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[29]
+		mi := &file_capi_server_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1826,7 +1747,7 @@ func (x *Maintainer) String() string {
 func (*Maintainer) ProtoMessage() {}
 
 func (x *Maintainer) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[29]
+	mi := &file_capi_server_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1839,7 +1760,7 @@ func (x *Maintainer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Maintainer.ProtoReflect.Descriptor instead.
 func (*Maintainer) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{29}
+	return file_capi_server_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *Maintainer) GetName() string {
@@ -1875,7 +1796,7 @@ type HelmRepository struct {
 func (x *HelmRepository) Reset() {
 	*x = HelmRepository{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[30]
+		mi := &file_capi_server_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1888,7 +1809,7 @@ func (x *HelmRepository) String() string {
 func (*HelmRepository) ProtoMessage() {}
 
 func (x *HelmRepository) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[30]
+	mi := &file_capi_server_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1901,7 +1822,7 @@ func (x *HelmRepository) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelmRepository.ProtoReflect.Descriptor instead.
 func (*HelmRepository) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{30}
+	return file_capi_server_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *HelmRepository) GetName() string {
@@ -1939,7 +1860,7 @@ type Profile struct {
 func (x *Profile) Reset() {
 	*x = Profile{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[31]
+		mi := &file_capi_server_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1952,7 +1873,7 @@ func (x *Profile) String() string {
 func (*Profile) ProtoMessage() {}
 
 func (x *Profile) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[31]
+	mi := &file_capi_server_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1965,7 +1886,7 @@ func (x *Profile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Profile.ProtoReflect.Descriptor instead.
 func (*Profile) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{31}
+	return file_capi_server_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *Profile) GetName() string {
@@ -2059,7 +1980,7 @@ type ProfileValues struct {
 func (x *ProfileValues) Reset() {
 	*x = ProfileValues{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[32]
+		mi := &file_capi_server_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2072,7 +1993,7 @@ func (x *ProfileValues) String() string {
 func (*ProfileValues) ProtoMessage() {}
 
 func (x *ProfileValues) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[32]
+	mi := &file_capi_server_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2085,7 +2006,7 @@ func (x *ProfileValues) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProfileValues.ProtoReflect.Descriptor instead.
 func (*ProfileValues) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{32}
+	return file_capi_server_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ProfileValues) GetName() string {
@@ -2125,7 +2046,7 @@ type GetConfigRequest struct {
 func (x *GetConfigRequest) Reset() {
 	*x = GetConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[33]
+		mi := &file_capi_server_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2138,7 +2059,7 @@ func (x *GetConfigRequest) String() string {
 func (*GetConfigRequest) ProtoMessage() {}
 
 func (x *GetConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[33]
+	mi := &file_capi_server_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2151,7 +2072,7 @@ func (x *GetConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetConfigRequest) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{33}
+	return file_capi_server_proto_rawDescGZIP(), []int{32}
 }
 
 type GetConfigResponse struct {
@@ -2165,7 +2086,7 @@ type GetConfigResponse struct {
 func (x *GetConfigResponse) Reset() {
 	*x = GetConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[34]
+		mi := &file_capi_server_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2178,7 +2099,7 @@ func (x *GetConfigResponse) String() string {
 func (*GetConfigResponse) ProtoMessage() {}
 
 func (x *GetConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[34]
+	mi := &file_capi_server_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2191,7 +2112,7 @@ func (x *GetConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConfigResponse.ProtoReflect.Descriptor instead.
 func (*GetConfigResponse) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{34}
+	return file_capi_server_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetConfigResponse) GetRepositoryURL() string {
@@ -2369,26 +2290,28 @@ var file_capi_server_proto_rawDesc = []byte{
 	0x47, 0x65, 0x74, 0x4b, 0x75, 0x62, 0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73,
 	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x6b, 0x75, 0x62, 0x65, 0x63, 0x6f, 0x6e,
 	0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6b, 0x75, 0x62, 0x65, 0x63,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0xae, 0x01, 0x0a, 0x07, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0xcb, 0x02, 0x0a, 0x07, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65,
 	0x72, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61,
-	0x74, 0x75, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75,
-	0x73, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x12, 0x37, 0x0a, 0x07, 0x6f, 0x62, 0x6a, 0x65, 0x63,
-	0x74, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x63, 0x61, 0x70, 0x69, 0x5f,
-	0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65,
-	0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x07, 0x6f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x73,
-	0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x7b, 0x0a, 0x0d, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65,
-	0x72, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x12, 0x1f, 0x0a, 0x0b, 0x61,
-	0x70, 0x69, 0x5f, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x0a, 0x61, 0x70, 0x69, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04,
-	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65,
-	0x12, 0x21, 0x0a, 0x0c, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x6e, 0x61, 0x6d, 0x65,
-	0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e,
-	0x61, 0x6d, 0x65, 0x22, 0x82, 0x01, 0x0a, 0x0a, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x4a, 0x0a, 0x0b, 0x61, 0x6e, 0x6e,
+	0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x28,
+	0x2e, 0x63, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
+	0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x2e, 0x41, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0b, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x3b, 0x0a, 0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x18,
+	0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x2e, 0x4c,
+	0x61, 0x62, 0x65, 0x6c, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x06, 0x6c, 0x61, 0x62, 0x65,
+	0x6c, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x1a, 0x3e, 0x0a, 0x10, 0x41, 0x6e, 0x6e, 0x6f,
+	0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03,
+	0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14,
+	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x1a, 0x39, 0x0a, 0x0b, 0x4c, 0x61, 0x62, 0x65,
+	0x6c, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c,
+	0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a,
+	0x02, 0x38, 0x01, 0x22, 0x82, 0x01, 0x0a, 0x0a, 0x43, 0x72, 0x65, 0x64, 0x65, 0x6e, 0x74, 0x69,
 	0x61, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73,
 	0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69,
@@ -2622,7 +2545,7 @@ func file_capi_server_proto_rawDescGZIP() []byte {
 	return file_capi_server_proto_rawDescData
 }
 
-var file_capi_server_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_capi_server_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_capi_server_proto_goTypes = []interface{}{
 	(*ListTemplatesRequest)(nil),              // 0: capi_server.v1.ListTemplatesRequest
 	(*ListTemplatesResponse)(nil),             // 1: capi_server.v1.ListTemplatesResponse
@@ -2645,77 +2568,79 @@ var file_capi_server_proto_goTypes = []interface{}{
 	(*GetKubeconfigRequest)(nil),              // 18: capi_server.v1.GetKubeconfigRequest
 	(*GetKubeconfigResponse)(nil),             // 19: capi_server.v1.GetKubeconfigResponse
 	(*Cluster)(nil),                           // 20: capi_server.v1.Cluster
-	(*ClusterObject)(nil),                     // 21: capi_server.v1.ClusterObject
-	(*Credential)(nil),                        // 22: capi_server.v1.Credential
-	(*Template)(nil),                          // 23: capi_server.v1.Template
-	(*Parameter)(nil),                         // 24: capi_server.v1.Parameter
-	(*TemplateProfile)(nil),                   // 25: capi_server.v1.TemplateProfile
-	(*TemplateObject)(nil),                    // 26: capi_server.v1.TemplateObject
-	(*GetEnterpriseVersionRequest)(nil),       // 27: capi_server.v1.GetEnterpriseVersionRequest
-	(*GetEnterpriseVersionResponse)(nil),      // 28: capi_server.v1.GetEnterpriseVersionResponse
-	(*Maintainer)(nil),                        // 29: capi_server.v1.Maintainer
-	(*HelmRepository)(nil),                    // 30: capi_server.v1.HelmRepository
-	(*Profile)(nil),                           // 31: capi_server.v1.Profile
-	(*ProfileValues)(nil),                     // 32: capi_server.v1.ProfileValues
-	(*GetConfigRequest)(nil),                  // 33: capi_server.v1.GetConfigRequest
-	(*GetConfigResponse)(nil),                 // 34: capi_server.v1.GetConfigResponse
-	nil,                                       // 35: capi_server.v1.RenderTemplateRequest.ValuesEntry
-	nil,                                       // 36: capi_server.v1.CreatePullRequestRequest.ParameterValuesEntry
-	nil,                                       // 37: capi_server.v1.Template.AnnotationsEntry
-	nil,                                       // 38: capi_server.v1.Profile.AnnotationsEntry
-	(*httpbody.HttpBody)(nil),                 // 39: google.api.HttpBody
+	(*Credential)(nil),                        // 21: capi_server.v1.Credential
+	(*Template)(nil),                          // 22: capi_server.v1.Template
+	(*Parameter)(nil),                         // 23: capi_server.v1.Parameter
+	(*TemplateProfile)(nil),                   // 24: capi_server.v1.TemplateProfile
+	(*TemplateObject)(nil),                    // 25: capi_server.v1.TemplateObject
+	(*GetEnterpriseVersionRequest)(nil),       // 26: capi_server.v1.GetEnterpriseVersionRequest
+	(*GetEnterpriseVersionResponse)(nil),      // 27: capi_server.v1.GetEnterpriseVersionResponse
+	(*Maintainer)(nil),                        // 28: capi_server.v1.Maintainer
+	(*HelmRepository)(nil),                    // 29: capi_server.v1.HelmRepository
+	(*Profile)(nil),                           // 30: capi_server.v1.Profile
+	(*ProfileValues)(nil),                     // 31: capi_server.v1.ProfileValues
+	(*GetConfigRequest)(nil),                  // 32: capi_server.v1.GetConfigRequest
+	(*GetConfigResponse)(nil),                 // 33: capi_server.v1.GetConfigResponse
+	nil,                                       // 34: capi_server.v1.RenderTemplateRequest.ValuesEntry
+	nil,                                       // 35: capi_server.v1.CreatePullRequestRequest.ParameterValuesEntry
+	nil,                                       // 36: capi_server.v1.Cluster.AnnotationsEntry
+	nil,                                       // 37: capi_server.v1.Cluster.LabelsEntry
+	nil,                                       // 38: capi_server.v1.Template.AnnotationsEntry
+	nil,                                       // 39: capi_server.v1.Profile.AnnotationsEntry
+	(*httpbody.HttpBody)(nil),                 // 40: google.api.HttpBody
 }
 var file_capi_server_proto_depIdxs = []int32{
-	23, // 0: capi_server.v1.ListTemplatesResponse.templates:type_name -> capi_server.v1.Template
-	23, // 1: capi_server.v1.GetTemplateResponse.template:type_name -> capi_server.v1.Template
-	24, // 2: capi_server.v1.ListTemplateParamsResponse.parameters:type_name -> capi_server.v1.Parameter
-	26, // 3: capi_server.v1.ListTemplateParamsResponse.objects:type_name -> capi_server.v1.TemplateObject
-	25, // 4: capi_server.v1.ListTemplateProfilesResponse.profiles:type_name -> capi_server.v1.TemplateProfile
-	26, // 5: capi_server.v1.ListTemplateProfilesResponse.objects:type_name -> capi_server.v1.TemplateObject
-	35, // 6: capi_server.v1.RenderTemplateRequest.values:type_name -> capi_server.v1.RenderTemplateRequest.ValuesEntry
-	22, // 7: capi_server.v1.RenderTemplateRequest.credentials:type_name -> capi_server.v1.Credential
+	22, // 0: capi_server.v1.ListTemplatesResponse.templates:type_name -> capi_server.v1.Template
+	22, // 1: capi_server.v1.GetTemplateResponse.template:type_name -> capi_server.v1.Template
+	23, // 2: capi_server.v1.ListTemplateParamsResponse.parameters:type_name -> capi_server.v1.Parameter
+	25, // 3: capi_server.v1.ListTemplateParamsResponse.objects:type_name -> capi_server.v1.TemplateObject
+	24, // 4: capi_server.v1.ListTemplateProfilesResponse.profiles:type_name -> capi_server.v1.TemplateProfile
+	25, // 5: capi_server.v1.ListTemplateProfilesResponse.objects:type_name -> capi_server.v1.TemplateObject
+	34, // 6: capi_server.v1.RenderTemplateRequest.values:type_name -> capi_server.v1.RenderTemplateRequest.ValuesEntry
+	21, // 7: capi_server.v1.RenderTemplateRequest.credentials:type_name -> capi_server.v1.Credential
 	20, // 8: capi_server.v1.ListClustersResponse.clusters:type_name -> capi_server.v1.Cluster
-	36, // 9: capi_server.v1.CreatePullRequestRequest.parameter_values:type_name -> capi_server.v1.CreatePullRequestRequest.ParameterValuesEntry
-	22, // 10: capi_server.v1.CreatePullRequestRequest.credentials:type_name -> capi_server.v1.Credential
-	32, // 11: capi_server.v1.CreatePullRequestRequest.values:type_name -> capi_server.v1.ProfileValues
-	22, // 12: capi_server.v1.DeleteClustersPullRequestRequest.credentials:type_name -> capi_server.v1.Credential
-	22, // 13: capi_server.v1.ListCredentialsResponse.credentials:type_name -> capi_server.v1.Credential
-	21, // 14: capi_server.v1.Cluster.objects:type_name -> capi_server.v1.ClusterObject
-	24, // 15: capi_server.v1.Template.parameters:type_name -> capi_server.v1.Parameter
-	26, // 16: capi_server.v1.Template.objects:type_name -> capi_server.v1.TemplateObject
-	37, // 17: capi_server.v1.Template.annotations:type_name -> capi_server.v1.Template.AnnotationsEntry
-	29, // 18: capi_server.v1.Profile.maintainers:type_name -> capi_server.v1.Maintainer
-	38, // 19: capi_server.v1.Profile.annotations:type_name -> capi_server.v1.Profile.AnnotationsEntry
-	30, // 20: capi_server.v1.Profile.helm_repository:type_name -> capi_server.v1.HelmRepository
-	0,  // 21: capi_server.v1.ClustersService.ListTemplates:input_type -> capi_server.v1.ListTemplatesRequest
-	2,  // 22: capi_server.v1.ClustersService.GetTemplate:input_type -> capi_server.v1.GetTemplateRequest
-	4,  // 23: capi_server.v1.ClustersService.ListTemplateParams:input_type -> capi_server.v1.ListTemplateParamsRequest
-	6,  // 24: capi_server.v1.ClustersService.ListTemplateProfiles:input_type -> capi_server.v1.ListTemplateProfilesRequest
-	8,  // 25: capi_server.v1.ClustersService.RenderTemplate:input_type -> capi_server.v1.RenderTemplateRequest
-	10, // 26: capi_server.v1.ClustersService.ListClusters:input_type -> capi_server.v1.ListClustersRequest
-	12, // 27: capi_server.v1.ClustersService.CreatePullRequest:input_type -> capi_server.v1.CreatePullRequestRequest
-	14, // 28: capi_server.v1.ClustersService.DeleteClustersPullRequest:input_type -> capi_server.v1.DeleteClustersPullRequestRequest
-	16, // 29: capi_server.v1.ClustersService.ListCredentials:input_type -> capi_server.v1.ListCredentialsRequest
-	18, // 30: capi_server.v1.ClustersService.GetKubeconfig:input_type -> capi_server.v1.GetKubeconfigRequest
-	27, // 31: capi_server.v1.ClustersService.GetEnterpriseVersion:input_type -> capi_server.v1.GetEnterpriseVersionRequest
-	33, // 32: capi_server.v1.ClustersService.GetConfig:input_type -> capi_server.v1.GetConfigRequest
-	1,  // 33: capi_server.v1.ClustersService.ListTemplates:output_type -> capi_server.v1.ListTemplatesResponse
-	3,  // 34: capi_server.v1.ClustersService.GetTemplate:output_type -> capi_server.v1.GetTemplateResponse
-	5,  // 35: capi_server.v1.ClustersService.ListTemplateParams:output_type -> capi_server.v1.ListTemplateParamsResponse
-	7,  // 36: capi_server.v1.ClustersService.ListTemplateProfiles:output_type -> capi_server.v1.ListTemplateProfilesResponse
-	9,  // 37: capi_server.v1.ClustersService.RenderTemplate:output_type -> capi_server.v1.RenderTemplateResponse
-	11, // 38: capi_server.v1.ClustersService.ListClusters:output_type -> capi_server.v1.ListClustersResponse
-	13, // 39: capi_server.v1.ClustersService.CreatePullRequest:output_type -> capi_server.v1.CreatePullRequestResponse
-	15, // 40: capi_server.v1.ClustersService.DeleteClustersPullRequest:output_type -> capi_server.v1.DeleteClustersPullRequestResponse
-	17, // 41: capi_server.v1.ClustersService.ListCredentials:output_type -> capi_server.v1.ListCredentialsResponse
-	39, // 42: capi_server.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
-	28, // 43: capi_server.v1.ClustersService.GetEnterpriseVersion:output_type -> capi_server.v1.GetEnterpriseVersionResponse
-	34, // 44: capi_server.v1.ClustersService.GetConfig:output_type -> capi_server.v1.GetConfigResponse
-	33, // [33:45] is the sub-list for method output_type
-	21, // [21:33] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	35, // 9: capi_server.v1.CreatePullRequestRequest.parameter_values:type_name -> capi_server.v1.CreatePullRequestRequest.ParameterValuesEntry
+	21, // 10: capi_server.v1.CreatePullRequestRequest.credentials:type_name -> capi_server.v1.Credential
+	31, // 11: capi_server.v1.CreatePullRequestRequest.values:type_name -> capi_server.v1.ProfileValues
+	21, // 12: capi_server.v1.DeleteClustersPullRequestRequest.credentials:type_name -> capi_server.v1.Credential
+	21, // 13: capi_server.v1.ListCredentialsResponse.credentials:type_name -> capi_server.v1.Credential
+	36, // 14: capi_server.v1.Cluster.annotations:type_name -> capi_server.v1.Cluster.AnnotationsEntry
+	37, // 15: capi_server.v1.Cluster.labels:type_name -> capi_server.v1.Cluster.LabelsEntry
+	23, // 16: capi_server.v1.Template.parameters:type_name -> capi_server.v1.Parameter
+	25, // 17: capi_server.v1.Template.objects:type_name -> capi_server.v1.TemplateObject
+	38, // 18: capi_server.v1.Template.annotations:type_name -> capi_server.v1.Template.AnnotationsEntry
+	28, // 19: capi_server.v1.Profile.maintainers:type_name -> capi_server.v1.Maintainer
+	39, // 20: capi_server.v1.Profile.annotations:type_name -> capi_server.v1.Profile.AnnotationsEntry
+	29, // 21: capi_server.v1.Profile.helm_repository:type_name -> capi_server.v1.HelmRepository
+	0,  // 22: capi_server.v1.ClustersService.ListTemplates:input_type -> capi_server.v1.ListTemplatesRequest
+	2,  // 23: capi_server.v1.ClustersService.GetTemplate:input_type -> capi_server.v1.GetTemplateRequest
+	4,  // 24: capi_server.v1.ClustersService.ListTemplateParams:input_type -> capi_server.v1.ListTemplateParamsRequest
+	6,  // 25: capi_server.v1.ClustersService.ListTemplateProfiles:input_type -> capi_server.v1.ListTemplateProfilesRequest
+	8,  // 26: capi_server.v1.ClustersService.RenderTemplate:input_type -> capi_server.v1.RenderTemplateRequest
+	10, // 27: capi_server.v1.ClustersService.ListClusters:input_type -> capi_server.v1.ListClustersRequest
+	12, // 28: capi_server.v1.ClustersService.CreatePullRequest:input_type -> capi_server.v1.CreatePullRequestRequest
+	14, // 29: capi_server.v1.ClustersService.DeleteClustersPullRequest:input_type -> capi_server.v1.DeleteClustersPullRequestRequest
+	16, // 30: capi_server.v1.ClustersService.ListCredentials:input_type -> capi_server.v1.ListCredentialsRequest
+	18, // 31: capi_server.v1.ClustersService.GetKubeconfig:input_type -> capi_server.v1.GetKubeconfigRequest
+	26, // 32: capi_server.v1.ClustersService.GetEnterpriseVersion:input_type -> capi_server.v1.GetEnterpriseVersionRequest
+	32, // 33: capi_server.v1.ClustersService.GetConfig:input_type -> capi_server.v1.GetConfigRequest
+	1,  // 34: capi_server.v1.ClustersService.ListTemplates:output_type -> capi_server.v1.ListTemplatesResponse
+	3,  // 35: capi_server.v1.ClustersService.GetTemplate:output_type -> capi_server.v1.GetTemplateResponse
+	5,  // 36: capi_server.v1.ClustersService.ListTemplateParams:output_type -> capi_server.v1.ListTemplateParamsResponse
+	7,  // 37: capi_server.v1.ClustersService.ListTemplateProfiles:output_type -> capi_server.v1.ListTemplateProfilesResponse
+	9,  // 38: capi_server.v1.ClustersService.RenderTemplate:output_type -> capi_server.v1.RenderTemplateResponse
+	11, // 39: capi_server.v1.ClustersService.ListClusters:output_type -> capi_server.v1.ListClustersResponse
+	13, // 40: capi_server.v1.ClustersService.CreatePullRequest:output_type -> capi_server.v1.CreatePullRequestResponse
+	15, // 41: capi_server.v1.ClustersService.DeleteClustersPullRequest:output_type -> capi_server.v1.DeleteClustersPullRequestResponse
+	17, // 42: capi_server.v1.ClustersService.ListCredentials:output_type -> capi_server.v1.ListCredentialsResponse
+	40, // 43: capi_server.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
+	27, // 44: capi_server.v1.ClustersService.GetEnterpriseVersion:output_type -> capi_server.v1.GetEnterpriseVersionResponse
+	33, // 45: capi_server.v1.ClustersService.GetConfig:output_type -> capi_server.v1.GetConfigResponse
+	34, // [34:46] is the sub-list for method output_type
+	22, // [22:34] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_capi_server_proto_init() }
@@ -2977,18 +2902,6 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ClusterObject); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_capi_server_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Credential); i {
 			case 0:
 				return &v.state
@@ -3000,7 +2913,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Template); i {
 			case 0:
 				return &v.state
@@ -3012,7 +2925,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Parameter); i {
 			case 0:
 				return &v.state
@@ -3024,7 +2937,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TemplateProfile); i {
 			case 0:
 				return &v.state
@@ -3036,7 +2949,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TemplateObject); i {
 			case 0:
 				return &v.state
@@ -3048,7 +2961,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetEnterpriseVersionRequest); i {
 			case 0:
 				return &v.state
@@ -3060,7 +2973,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetEnterpriseVersionResponse); i {
 			case 0:
 				return &v.state
@@ -3072,7 +2985,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Maintainer); i {
 			case 0:
 				return &v.state
@@ -3084,7 +2997,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*HelmRepository); i {
 			case 0:
 				return &v.state
@@ -3096,7 +3009,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Profile); i {
 			case 0:
 				return &v.state
@@ -3108,7 +3021,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ProfileValues); i {
 			case 0:
 				return &v.state
@@ -3120,7 +3033,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetConfigRequest); i {
 			case 0:
 				return &v.state
@@ -3132,7 +3045,7 @@ func file_capi_server_proto_init() {
 				return nil
 			}
 		}
-		file_capi_server_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
+		file_capi_server_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetConfigResponse); i {
 			case 0:
 				return &v.state
@@ -3151,7 +3064,7 @@ func file_capi_server_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_capi_server_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   39,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
