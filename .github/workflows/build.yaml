@@ -22,6 +22,7 @@ env:
   NODE_MODULES_CACHE_NAME: cache-node-modules
   NODE_VERSION: "14"
   HELM_REPO: ${{ inputs.helmrepo }}
+  GOPRIVATE: github.com/weaveworks
 
 jobs:
   helm-chart:
