@@ -27,7 +27,7 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.1
 	github.com/weaveworks/weave-gitops v0.6.3-0.20220308050142-34e87ea3dd58
-	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
+	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	go.uber.org/zap v1.21.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect

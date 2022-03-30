@@ -11,7 +11,7 @@ require (
 	github.com/prometheus/alertmanager v0.21.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.1
+	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	gorm.io/datatypes v1.0.0
 	gorm.io/driver/postgres v1.0.5
 	gorm.io/driver/sqlite v1.1.4
