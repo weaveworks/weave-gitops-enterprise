@@ -264,6 +264,23 @@ The private ssh key to the server lives in the `pesto test cluster ssh key` secr
 
 3. Voila
 
+
+
+
+## The Demo Cluster
+
+The following steps use [demo-01](https://demo-01.wge.dev.weave.works) as an example but the same concepts can be applied to other demo clusters.
+
+### How to update the demo cluster
+
+1. Figure out the version of the chart you want to deploy.
+   1. Add the charts repo locally using `helm repo add wkp https://charts.dev.wkp.weave.works/charts-v3 --username wge --password gitops`
+   2. Use the commit sha to find the relevant chart version by running `helm repo update && helm search repo wkp --devel --versions | grep ge4e540d` where `ge4e540d` is your commit sha. This will return `wkp/mccp  	0.0.17-88-ge4e540d 	1.16.0     	A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
+2. Update the chart version of the HelmRelease of `demo-01`
+   1. Sign up to https://gitlab.git.dev.weave.works using your weaveworks email if needed and request access to https://gitlab.git.dev.weave.works/wge/demo-01
+   2. Update the HelmRelease version [here](https://gitlab.git.dev.weave.works/wge/demo-01/-/blob/main/wego-system/wego-system.yaml#L31) with  the version `0.0.17-88-ge4e540d` from step 1.2
+   3. Flux will detect this change and update `demo-01` with the version you specified in the previous step.
+
 ## How to inspect/modify the `sqlite` database of a running cluster
 
 Copy the database to your local machine and inspect using sqlite
