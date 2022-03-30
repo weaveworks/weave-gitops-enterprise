@@ -9,7 +9,7 @@ import {
 } from '@material-ui/core';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
-import { createStyles, makeStyles } from '@material-ui/styles';
+import { createStyles, makeStyles, withStyles } from '@material-ui/styles';
 import Octicon, { Icon, Tools } from '@primer/octicons-react';
 import { Cluster } from '../../../types/kubernetes';
 import { EKS, ExistingInfra, GKE, Kind } from '../../../utils/icons';
@@ -57,6 +57,20 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
+const IndividualCheckbox = withStyles({
+  root: {
+    color: weaveTheme.colors.primary,
+    '&$checked': {
+      color: weaveTheme.colors.primary,
+    },
+    '&$disabled': {
+      color: weaveTheme.colors.neutral20,
+    },
+  },
+  checked: {},
+  disabled: {},
+})(Checkbox);
+
 interface RowProps {
   index: number;
   cluster: Cluster;
@@ -92,6 +106,9 @@ const ClusterRow = ({
   const [open, setOpen] = React.useState<boolean>(false);
   const labelId = `enhanced-table-checkbox-${index}`;
 
+  const disabled =
+    cluster.pullRequest?.type === 'delete' && status === 'PR Created';
+
   return (
     <>
       <TableRow
@@ -100,13 +117,11 @@ const ClusterRow = ({
         key={name}
       >
         <TableCell padding="checkbox">
-          <Checkbox
+          <IndividualCheckbox
             checked={selected}
+            disabled={disabled}
             inputProps={{ 'aria-labelledby': labelId }}
-            style={{
-              color: weaveTheme.colors.primary,
-            }}
-            onClick={event => onCheckboxClick(event, name)}
+            onClick={(event: any) => onCheckboxClick(event, name)}
           />
         </TableCell>
         <TableCell className={classes.nameCell} align="left">
