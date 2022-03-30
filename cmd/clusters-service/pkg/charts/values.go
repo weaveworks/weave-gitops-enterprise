@@ -20,7 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/fluxcd/pkg/runtime/dependency"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 )
 
@@ -247,7 +247,7 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 			if layer.dependsOn != "" {
 				for _, v := range layerInstalls[layer.dependsOn] {
 					hr.Spec.DependsOn = append(hr.Spec.DependsOn,
-						meta.NamespacedObjectReference{
+						dependency.CrossNamespaceDependencyReference{
 							Name: makeHelmReleaseName(clusterName, v.Ref.Chart),
 						})
 				}

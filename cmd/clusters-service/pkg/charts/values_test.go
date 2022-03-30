@@ -10,8 +10,8 @@ import (
 	"time"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/pkg/apis/meta"
 	fluxmeta "github.com/fluxcd/pkg/apis/meta"
+	"github.com/fluxcd/pkg/runtime/dependency"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/google/go-cmp/cmp"
 	"helm.sh/helm/v3/pkg/chart"
@@ -200,7 +200,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 	dependsOn := func(name string) func(hr *helmv2beta1.HelmRelease) {
 		return func(hr *helmv2beta1.HelmRelease) {
 			hr.Spec.DependsOn = append(hr.Spec.DependsOn,
-				meta.NamespacedObjectReference{Name: name})
+				dependency.CrossNamespaceDependencyReference{Name: name})
 		}
 	}
 	layerLabel := func(name string) func(hr *helmv2beta1.HelmRelease) {
