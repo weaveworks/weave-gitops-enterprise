@@ -3,8 +3,10 @@ import { Input } from '../../../../../utils/form';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button } from '@weaveworks/weave-gitops';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import useTemplates from '../../../../../contexts/Templates';
 import { FormStep } from '../Step';
 import GitAuth from './GitAuth';
+import { Loader } from '../../../../Loader';
 
 const base = weaveTheme.spacing.base;
 
@@ -41,6 +43,7 @@ const GitOps: FC<{
 }) => {
   const classes = useStyles();
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  const { loading } = useTemplates();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -117,12 +120,16 @@ const GitOps: FC<{
         setShowAuthDialog={setShowAuthDialog}
       />
       <div className={classes.createCTA} onClick={handleGitOps}>
-        <Button
-          onClick={() => setClickedStep('GitOps')}
-          disabled={!enableCreatePR}
-        >
-          CREATE PULL REQUEST
-        </Button>
+        {loading && clickedStep === 'GitOps' ? (
+          <Loader />
+        ) : (
+          <Button
+            onClick={() => setClickedStep('GitOps')}
+            disabled={!enableCreatePR}
+          >
+            CREATE PULL REQUEST
+          </Button>
+        )}
       </div>
     </FormStep>
   );
