@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { LoadingPage } from '@weaveworks/weave-gitops';
-
+import { Refresh } from '@material-ui/icons';
 export interface ILoadingError {
   fetchFn: () => Promise<any>;
   children?: any;
 }
 
 const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [data, setData] = useState<any>();
 
   const fetchLoad = (fn: Promise<any>) => {
@@ -20,6 +20,7 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
         setData(res);
       })
       .catch(err => {
+        setErrorMessage(err.message || 'Something Went wrong');
         setError(true);
       })
       .finally(() => {
@@ -47,12 +48,9 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
       {!loading && error && (
         <div>
           <div className="alert alert-danger text-center" role="alert">
-            Something Went Wrong,
-            <span
-              onClick={() => fetchLoad(fetchFn())}
-              className="ml-medium pointer"
-            >
-              Retry
+            {errorMessage}
+            <span onClick={() => fetchLoad(fetchFn())} className="retry">
+              <Refresh />
             </span>
           </div>
         </div>

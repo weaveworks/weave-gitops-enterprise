@@ -57,6 +57,48 @@ const GlobalStyle = createGlobalStyle`
   a {
     text-decoration: none;
   }
+
+  .text-center {
+    text-align: center!important;
+  }
+  .alert-danger {
+      background-color: #f8d7da;
+      border-color: #f5c2c7;
+      color: #842029;
+  }
+  .alert {
+      border: 1px solid transparent;
+      border-radius: 0.25rem;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+  .retry{
+    margin-left: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .flex-center{
+    display: flex;
+    align-items:center;
+  }
+  .severity-icon{
+    font-size: 14px;
+    margin-right:4px;
+  }
+  .severity-low{
+    color:#DFD41B
+  }
+  .severity-medium{
+    color:#FF7000
+  }
+  .severity-high{
+    color:#E2423B
+  }
 `;
 
 const App: FC = () => {
