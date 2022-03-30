@@ -69,8 +69,7 @@ func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 	}
 
 	var policyParams []*capiv1_proto.PolicyParam
-	for i := range policySpec.Parameters {
-		param := policySpec.Parameters[i]
+	for _, param := range policySpec.Parameters {
 		policyParam := &capiv1_proto.PolicyParam{
 			Name:     param.Name,
 			Required: param.Required,
@@ -137,13 +136,13 @@ func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest
 		return nil, fmt.Errorf("failed to load Kubernetes client: %w", err)
 	}
 
-	policyCRD := policiesv1.Policy{}
-	err = client.Get(ctx, types.NamespacedName{Name: m.PolicyName}, &policyCRD)
+	policyCR := policiesv1.Policy{}
+	err = client.Get(ctx, types.NamespacedName{Name: m.PolicyName}, &policyCR)
 	if err != nil {
 		return nil, fmt.Errorf("error while getting policy %s: %w", m.PolicyName, err)
 	}
 
-	policy, err := toPolicyResponse(policyCRD)
+	policy, err := toPolicyResponse(policyCR)
 	if err != nil {
 		return nil, err
 	}
