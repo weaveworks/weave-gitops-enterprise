@@ -1,27 +1,18 @@
 import {
-  Checkbox,
   Paper,
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableRow,
-  TableSortLabel,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import React, { FC, useEffect } from 'react';
-import { Cluster } from '../../../types/kubernetes';
-import { Pagination } from '../../Pagination';
+import React, { FC  } from 'react';
 import { ColumnHeaderTooltip } from '../../Shared';
-import ClusterRow from './Row';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
-import useClusters from '../../../contexts/Clusters';
-import useNotifications from '../../../contexts/Notifications';
-import { useHistory } from 'react-router-dom';
-import { Loader } from '../../Loader';
+
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { Policy } from '../../../types/custom';
 import PolicyRow from './Row';
@@ -33,8 +24,9 @@ const localMuiTheme = createTheme({
 
 const useStyles = makeStyles(() =>
   createStyles({
-    nameHeaderCell: {
-      paddingLeft: weaveTheme.spacing.medium,
+    headerCell: {
+      color: weaveTheme.colors.neutral30,
+      fontWeight: 700,
     },
     paper: {
       marginBottom: 10,
@@ -50,9 +42,7 @@ const useStyles = makeStyles(() =>
     },
     tableHead: {
       borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
-    },
-    noMaxWidth: {
-      maxWidth: 'none',
+
     },
   }),
 );
@@ -65,7 +55,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = useStyles();
 
   return (
-    <div className={`${classes.root}`} id="clusters-list">
+    <div className={`${classes.root}`} id="policies-list">
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
           <Table className={classes.table} size="small">
@@ -74,19 +64,19 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
             ) : null}
             <TableHead className={classes.tableHead}>
               <TableRow>
-                <TableCell  align="left">
+                <TableCell  align="left" >
                   <ColumnHeaderTooltip title="Name configured in management UI">
-                    <span>Name</span>
+                    <span className={classes.headerCell}>Name</span>
                   </ColumnHeaderTooltip>
                 </TableCell>
                 <TableCell align="left">
-                  <span>Category</span>
+                  <span className={classes.headerCell}>Category</span>
                 </TableCell>
                 <TableCell  align="left">
-                  <span>Severity</span>
+                  <span className={classes.headerCell}>Severity</span>
                 </TableCell>
                 <TableCell  align="left">
-                  <span>Age</span>
+                  <span className={classes.headerCell}>Age</span>
                 </TableCell>
               </TableRow>
             </TableHead>

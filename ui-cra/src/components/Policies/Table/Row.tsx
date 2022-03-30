@@ -52,11 +52,11 @@ const PolicyRow = ({ policy }: RowProps) => {
   const { name, category, severity, createdAt } = policy;
   return (
     <>
-      <TableRow data-cluster-name={name} className={`details ${classes.normalRow}`}>
-        <TableCell className={`details ${classes.normalCell}`}>{name}</TableCell>
-        <TableCell className={`details ${classes.normalCell}`}>{category}</TableCell>
-        <TableCell className={`details ${classes.normalCell}`}>{SeverityComponent(severity || '')}</TableCell>
-        <TableCell className={`details ${classes.normalCell}`}>{moment(createdAt).fromNow()}</TableCell>
+      <TableRow data-cluster-name={name} className={` ${classes.normalRow}`}>
+        <TableCell className={` ${classes.normalCell}`}>{name}</TableCell>
+        <TableCell className={` ${classes.normalCell}`}>{category}</TableCell>
+        <TableCell className={` ${classes.normalCell}`}>{SeverityComponent(severity || '')}</TableCell>
+        <TableCell className={` ${classes.normalCell}`}>{moment(createdAt).fromNow()}</TableCell>
       </TableRow>
     </>
   );
