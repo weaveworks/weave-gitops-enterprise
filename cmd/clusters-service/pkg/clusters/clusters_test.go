@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
@@ -20,12 +21,16 @@ func TestGetClusterFromCRDs(t *testing.T) {
 	c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 		o.ObjectMeta.Name = "weave-cluster"
 		o.ObjectMeta.Namespace = "default"
-		o.Spec.CAPIClusterRef.Name = "dev"
+		o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+			Name: "dev",
+		}
 	})
 	c2 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 		o.ObjectMeta.Name = "weave-cluster2"
 		o.ObjectMeta.Namespace = "default"
-		o.Spec.SecretRef.Name = "dev"
+		o.Spec.SecretRef = &meta.LocalObjectReference{
+			Name: "dev",
+		}
 	})
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
 	result, err := lib.Get(context.Background(), "weave-cluster2")
@@ -41,12 +46,16 @@ func TestListClusterFromCRDs(t *testing.T) {
 	c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 		o.ObjectMeta.Name = "weave-cluster"
 		o.ObjectMeta.Namespace = "default"
-		o.Spec.CAPIClusterRef.Name = "dev"
+		o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+			Name: "dev",
+		}
 	})
 	c2 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 		o.ObjectMeta.Name = "weave-cluster2"
 		o.ObjectMeta.Namespace = "default"
-		o.Spec.SecretRef.Name = "dev"
+		o.Spec.SecretRef = &meta.LocalObjectReference{
+			Name: "dev",
+		}
 	})
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
 	result, err := lib.List(context.Background())
@@ -67,6 +76,7 @@ func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
