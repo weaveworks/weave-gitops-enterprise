@@ -45,9 +45,6 @@ const useStyles = makeStyles(() =>
     root: {
       width: '100%',
     },
-    disabled: {
-      opacity: 0.5,
-    },
     table: {
       whiteSpace: 'nowrap',
     },
@@ -57,15 +54,11 @@ const useStyles = makeStyles(() =>
     noMaxWidth: {
       maxWidth: 'none',
     },
-    tablePagination: {
-      height: '80px',
-    },
   }),
 );
 
 interface Props {
   policies: Policy[] | null;
-  // count: number | null;
 }
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
@@ -81,24 +74,24 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
             ) : null}
             <TableHead className={classes.tableHead}>
               <TableRow>
-                <TableCell className={classes.nameHeaderCell} align="left">
+                <TableCell  align="left">
                   <ColumnHeaderTooltip title="Name configured in management UI">
                     <span>Name</span>
                   </ColumnHeaderTooltip>
                 </TableCell>
-                <TableCell className={classes.nameHeaderCell} align="left">
+                <TableCell align="left">
                   <span>Category</span>
                 </TableCell>
-                <TableCell className={classes.nameHeaderCell} align="left">
+                <TableCell  align="left">
                   <span>Severity</span>
                 </TableCell>
-                <TableCell className={classes.nameHeaderCell} align="left">
+                <TableCell  align="left">
                   <span>Age</span>
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {policies?.map((policy: Policy, index: number) => {
+              {policies?.map((policy: Policy) => {
                 return <PolicyRow policy={policy} key={policy.name} />;
               })}
             </TableBody>

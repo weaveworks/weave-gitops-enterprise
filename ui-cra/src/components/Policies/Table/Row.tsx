@@ -14,13 +14,6 @@ const useStyles = makeStyles((theme: Theme) =>
     icon: {
       color: weaveTheme.colors.neutral20,
     },
-    nameHeaderCell: {
-      paddingLeft: theme.spacing(4),
-    },
-    nameCell: {
-      paddingLeft: theme.spacing(0.5),
-      width: '300px',
-    },
     iconTableCell: {
       width: 30,
     },
@@ -29,12 +22,6 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     normalRow: {
       borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
-    },
-    collapsibleRow: {
-      '& > *': {
-        paddingTop: 0,
-        paddingBottom: 0,
-      },
     },
   }),
 );
@@ -50,9 +37,9 @@ const PolicyRow = ({ policy }: RowProps) => {
     <>
       <TableRow
         data-cluster-name={name}
-        className={`details ${classes.collapsibleRow}`}
+        className={`details`}
       >
-        <TableCell>{name}</TableCell>
+        <TableCell >{name}</TableCell>
         <TableCell>{category}</TableCell>
         <TableCell>{severity}</TableCell>
         <TableCell>{moment(createdAt).fromNow()}</TableCell>
