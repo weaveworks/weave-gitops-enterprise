@@ -77,7 +77,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
         <Paper className={classes.paper}>
           <Table className={classes.table} size="small">
             {policies?.length === 0 ? (
-              <caption>No clusters configured</caption>
+              <caption>No policies configured</caption>
             ) : null}
             <TableHead className={classes.tableHead}>
               <TableRow>
