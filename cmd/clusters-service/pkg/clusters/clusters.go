@@ -63,7 +63,7 @@ func (lib *CRDLibrary) List(ctx context.Context) (map[string]*gitopsv1alpha1.Git
 
 	lib.Log.Info("Querying namespace for Cluster resources", "namespace", lib.Namespace)
 
-	clusterList := []gitopsv1alpha1.GitopsCluster{}
+	clusterList := gitopsv1alpha1.GitopsClusterList{}
 	err = cl.List(ctx, &clusterList, client.InNamespace(lib.Namespace))
 	if err != nil {
 		return nil, fmt.Errorf("error getting clusters: %s", err)

@@ -609,8 +609,10 @@ func filterClustersByLabel(cl []*capiv1_proto.Cluster, label string) []*capiv1_p
 	clusters := []*capiv1_proto.Cluster{}
 
 	for _, c := range cl {
-		if strings.EqualFold(c.Label, label) {
-			clusters = append(clusters, c)
+		for _, l := range c.Labels {
+			if strings.EqualFold(l, label) {
+				clusters = append(clusters, c)
+			}
 		}
 	}
 

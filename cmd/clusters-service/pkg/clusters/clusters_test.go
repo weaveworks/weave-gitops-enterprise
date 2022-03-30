@@ -20,7 +20,7 @@ func TestGetClusterFromCRDs(t *testing.T) {
 	c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 		o.ObjectMeta.Name = "weave-cluster"
 		o.ObjectMeta.Namespace = "default"
-		o.Spec.CapiClusterRef.Name = "dev"
+		o.Spec.CAPIClusterRef.Name = "dev"
 	})
 	c2 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 		o.ObjectMeta.Name = "weave-cluster2"
@@ -41,7 +41,7 @@ func TestListClusterFromCRDs(t *testing.T) {
 	c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 		o.ObjectMeta.Name = "weave-cluster"
 		o.ObjectMeta.Namespace = "default"
-		o.Spec.CapiClusterRef.Name = "dev"
+		o.Spec.CAPIClusterRef.Name = "dev"
 	})
 	c2 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 		o.ObjectMeta.Name = "weave-cluster2"
