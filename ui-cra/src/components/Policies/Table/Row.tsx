@@ -8,19 +8,11 @@ import { Policy } from '../../../types/custom';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-    
-    icon: {
-      color: weaveTheme.colors.neutral20,
-    },
-    iconTableCell: {
-      width: 30,
-    },
-    noMaxWidth: {
-      maxWidth: 'none',
-    },
     normalRow: {
       borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
-      padding:'16px'
+    },
+    normalCell: {
+      padding: theme.spacing(2),
     },
   }),
 );
@@ -61,10 +53,10 @@ const PolicyRow = ({ policy }: RowProps) => {
   return (
     <>
       <TableRow data-cluster-name={name} className={`details ${classes.normalRow}`}>
-        <TableCell>{name}</TableCell>
-        <TableCell>{category}</TableCell>
-        <TableCell>{SeverityComponent(severity || '')}</TableCell>
-        <TableCell>{moment(createdAt).fromNow()}</TableCell>
+        <TableCell className={`details ${classes.normalCell}`}>{name}</TableCell>
+        <TableCell className={`details ${classes.normalCell}`}>{category}</TableCell>
+        <TableCell className={`details ${classes.normalCell}`}>{SeverityComponent(severity || '')}</TableCell>
+        <TableCell className={`details ${classes.normalCell}`}>{moment(createdAt).fromNow()}</TableCell>
       </TableRow>
     </>
   );
