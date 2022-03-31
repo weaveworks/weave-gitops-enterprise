@@ -525,7 +525,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
 					if pages.ElementExist(gitops.ErrorBar) {
 						Expect(gitops.ErrorBar.Click()).To(Succeed())
@@ -638,7 +638,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
 
 					if pages.ElementExist(gitops.ErrorBar) {
@@ -1054,7 +1054,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.ScrollWindow(webDriver, 0, 4000)
 
 				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 				pages.ScrollWindow(webDriver, 0, 4000)
 
 				By("And select the podinfo profile to install", func() {
@@ -1118,7 +1118,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
@@ -1185,7 +1185,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					deletePR := pages.GetDeletePRPopup(webDriver)
 					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster, it is not required any more")).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(deletePR.GitCredentials).Should(BeVisible())
 
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
