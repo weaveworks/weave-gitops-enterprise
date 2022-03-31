@@ -72,6 +72,7 @@ cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/wkp-agent
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(WKP_AGENT) \
 		--file cmd/wkp-agent/Dockerfile \

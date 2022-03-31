@@ -75,7 +75,6 @@ To build all containers use the following command:
 make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
 ```
 
-
 ## Common dev workflows
 The following sections suggest some common dev workflows.
 
@@ -190,10 +189,73 @@ When you push your changes to a remote branch (even before creating a PR for it)
     flux create source helm weave-gitops-enterprise-charts --url=https://charts.dev.wkp.weave.works/charts-v3 --namespace=flux-system --secret-ref=weave-gitops-enterprise-credentials
     flux create hr weave-gitops-enterprise --namespace=flux-system --interval=10m --source=HelmRepository/weave-gitops-enterprise-charts --chart=mccp --chart-version=<chart-version-with-commit-SHA> --values values.yaml
 
-## Thing to explore in the future
+## Run local development environment
+To run a local development environment, you need to install the following tools:
+ * [docker](https://www.docker.com)
+ * [kind](https://kind.sigs.k8s.io/)
+ * [tilt](https://tilt.dev/)
+ * [clusterctl](https://cluster-api.sigs.k8s.io/user/quick-start.html#install-clusterctl)
 
-- **tilt files** for faster feedback loops when interactively developing kubernetes services.
-- ??
+### Preparation
+
+In order for the CAPI pieces of gitops enterprise to work, you need to
+provision your kind cluster to let you do that. If you're not interested
+in CAPI functionality, you can skip this step and just use any old cluster.
+```
+cat > kind-cluster-with-extramounts.yaml <<EOF
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraMounts:
+  - hostPath: /var/run/docker.sock
+    containerPath: /var/run/docker.sock
+EOF
+
+kind create cluster --name kind --config=kind-cluster-with-extramounts.yaml
+
+EXP_CLUSTER_RESOURCE_SET=true clusterctl init --infrastructure docker
+```
+
+Now, bootstrap flux onto your cluster:
+```
+flux bootstrap github --owner=$GITHUB_USER --repository=fleet-infra --branch=main --path=./clusters/tilt-cluster --personal
+```
+In order to tell enterprise to write to this repository, create the file
+`tools/dev-values-local.yaml' with content such as:
+
+```
+config.capi.repositoryURL: "https://github.com/$GITHUB_USER/fleet-infra.git"
+```
+
+### Start environment
+To start the development environment, run
+```
+tilt up
+```
+and your system should build and start.
+
+
+When `chart-mccp-cluster-service` has become green, you should be able
+to access your cluster at
+[https://localhost:8000](https://localhost:8000). The login is
+username `dev` and password `dev`.
+
+Any change you make to local code will trigger tilt to rebuild and
+restart the pods running in your system.
+
+### Faster frontend development
+Especially for frontend development, the time it takes for the pod to
+restart can be annoying. To spin up a local development frontend against
+your development cluster, run:
+```
+cd ui-cra
+yarn
+PROXY_HOST=https://localhost:8000 yarn start
+```
+
+Now you have a separate frontend running on
+[http://localhost:3000](http://localhost:3000) with in-process reload.
 
 ## How to change the code
 
@@ -410,7 +472,7 @@ Install and configure the gcloud CLI if needed. Then run:
 
 ```sh
 gcloud container clusters get-credentials demo-01 --region europe-north1-a
-```   
+```
 
 #### demo-02
 
@@ -483,7 +545,7 @@ helm repo add wkp https://charts.dev.wkp.weave.works/charts-v3 \
 ```sh
 helm repo update && helm search repo wkp --devel --versions | grep e4e540d
 ```
-where `e4e540d` is your commit sha. This will return `wkp/mccp  	0.0.17-88-ge4e540d 	1.16.0     	A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
+where `e4e540d` is your commit sha. This will return `wkp/mccp      0.0.17-88-ge4e540d      1.16.0          A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
 
 
 ## How to inspect/modify the `sqlite` database of a running cluster
