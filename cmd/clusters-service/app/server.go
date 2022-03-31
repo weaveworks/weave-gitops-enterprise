@@ -61,7 +61,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
-	"k8s.io/klog/v2/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -386,7 +385,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
 				grpc_runtime.WithMetadata(TrackEvents(log)),
-				middleware.WithGrpcErrorLogging(klogr.New()),
+				middleware.WithGrpcErrorLogging(log),
 			},
 		),
 		WithCAPIClustersNamespace(ns),
