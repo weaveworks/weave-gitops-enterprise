@@ -25,21 +25,21 @@ const SeverityComponent = (severity: string) => {
   switch (severity.toLocaleLowerCase()) {
     case 'low':
       return (
-        <div className="flex-center">
+        <div className="flex-start">
           <CallReceived className="severity-icon severity-low" />
           <span>{severity}</span>
         </div>
       );
     case 'high':
       return (
-        <div className="flex-center">
+        <div className="flex-start">
           <CallMade className="severity-icon severity-high" />
           <span>{severity}</span>
         </div>
       );
     case 'medium':
       return (
-        <div className="flex-center">
+        <div className="flex-start">
           <Remove className="severity-icon severity-medium" />
           <span>{severity}</span>
         </div>

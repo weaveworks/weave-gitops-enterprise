@@ -101,8 +101,13 @@ const GlobalStyle = createGlobalStyle`
   }
   .flex-center{
     display:flex;
-    align-items:center;
-    justicy-content:center
+    lign-items: center;
+    justify-content: center;
+  }
+  .flex-start{
+    display:flex;
+    align-items: center;
+    justify-content: start;
   }
 `;
 
