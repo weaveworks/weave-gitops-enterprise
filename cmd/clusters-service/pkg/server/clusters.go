@@ -40,12 +40,12 @@ import (
 
 var labels = []string{}
 
-func (s *server) ListClusters(ctx context.Context, msg *capiv1_proto.ListClustersRequest) (*capiv1_proto.ListClustersResponse, error) {
+func (s *server) ListClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
 	cl, err := s.clustersLibrary.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	clusters := []*capiv1_proto.Cluster{}
+	clusters := []*capiv1_proto.GitopsCluster{}
 
 	for _, c := range cl {
 		clusters = append(clusters, ToClusterResponse(c))
@@ -60,7 +60,7 @@ func (s *server) ListClusters(ctx context.Context, msg *capiv1_proto.ListCluster
 	}
 
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
-	return &capiv1_proto.ListClustersResponse{Clusters: clusters, Total: int32(len(cl))}, err
+	return &capiv1_proto.ListGitopsClustersResponse{GitopsClusters: clusters, Total: int32(len(cl))}, err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
@@ -605,8 +605,8 @@ func isLabelRecognised(label string) bool {
 	return false
 }
 
-func filterClustersByLabel(cl []*capiv1_proto.Cluster, label string) []*capiv1_proto.Cluster {
-	clusters := []*capiv1_proto.Cluster{}
+func filterClustersByLabel(cl []*capiv1_proto.GitopsCluster, label string) []*capiv1_proto.GitopsCluster {
+	clusters := []*capiv1_proto.GitopsCluster{}
 
 	for _, c := range cl {
 		for _, l := range c.Labels {

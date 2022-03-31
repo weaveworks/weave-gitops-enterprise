@@ -61,7 +61,7 @@ func waitForResourceState(state string, statusCondition string, resourceName str
 	cmd := fmt.Sprintf(" kubectl wait --for=condition=%s=%s --timeout=%s %s -n %s --all %s %s",
 		state, statusCondition, fmt.Sprintf("%.0fs", timeout.Seconds()), resourceName, nameSpace, selector, kubeconfig)
 	logger.Trace(cmd)
-	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_5MINUTE_TIME_OUT)
+	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_6MINUTE_TIME_OUT)
 	Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("%s resource has failed to become %s.", resourceName, state))
 }
 
@@ -92,6 +92,20 @@ func verifyEnterpriseControllers(releaseName string, mccpPrefix, namespace strin
 
 func controllerStatus(controllerName, namespace string) error {
 	return runCommandPassThroughWithoutOutput("sh", "-c", fmt.Sprintf("kubectl rollout status deployment %s -n %s", controllerName, namespace))
+}
+
+func CheckClusterService(capiEndpointURL string) {
+	Eventually(func(g Gomega) {
+		stdOut, stdErr := runCommandAndReturnStringOutput(
+			fmt.Sprintf(
+				// insecure for self-signed tls
+				`curl --insecure --silent -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
+				capiEndpointURL,
+			),
+			ASSERTION_1MINUTE_TIME_OUT,
+		)
+		g.Expect(stdOut).To(MatchRegexp("200"), "Cluster Service is not healthy: %v", stdErr)
+	}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
 }
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {

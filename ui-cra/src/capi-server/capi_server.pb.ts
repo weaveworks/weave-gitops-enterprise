@@ -6,6 +6,7 @@
 
 import * as fm from "./fetch.pb"
 import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
+import * as GoogleProtobufAny from "./google/protobuf/any.pb"
 export type ListTemplatesRequest = {
   provider?: string
 }
@@ -51,12 +52,28 @@ export type RenderTemplateResponse = {
   renderedTemplate?: string
 }
 
-export type ListClustersRequest = {
+export type ListGitopsClustersRequest = {
   label?: string
 }
 
-export type ListClustersResponse = {
-  clusters?: Cluster[]
+export type ListGitopsClustersResponse = {
+  gitopsClusters?: GitopsCluster[]
+  total?: number
+}
+
+export type GetPolicyRequest = {
+  policyName?: string
+}
+
+export type ListPoliciesRequest = {
+}
+
+export type GetPolicyResponse = {
+  policy?: Policy
+}
+
+export type ListPoliciesResponse = {
+  policies?: Policy[]
   total?: number
 }
 
@@ -110,7 +127,7 @@ export type GetKubeconfigResponse = {
   kubeconfig?: string
 }
 
-export type Cluster = {
+export type GitopsCluster = {
   name?: string
   type?: string
   annotations?: {[key: string]: string}
@@ -202,6 +219,43 @@ export type GetConfigResponse = {
   repositoryURL?: string
 }
 
+export type PolicyParamRepeatedString = {
+  values?: string[]
+}
+
+export type PolicyParam = {
+  name?: string
+  type?: string
+  default?: GoogleProtobufAny.Any
+  required?: boolean
+}
+
+export type PolicyTargetLabel = {
+  values?: {[key: string]: string}
+}
+
+export type PolicyTargets = {
+  kinds?: string[]
+  labels?: PolicyTargetLabel[]
+  namespaces?: string[]
+}
+
+export type Policy = {
+  name?: string
+  id?: string
+  code?: string
+  description?: string
+  howToSolve?: string
+  category?: string
+  tags?: string[]
+  severity?: string
+  controls?: string[]
+  gitCommit?: string
+  parameters?: PolicyParam[]
+  targets?: PolicyTargets
+  createdAt?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -218,8 +272,8 @@ export class ClustersService {
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static ListClusters(req: ListClustersRequest, initReq?: fm.InitReq): Promise<ListClustersResponse> {
-    return fm.fetchReq<ListClustersRequest, ListClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
+    return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
     return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/clusters`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -238,5 +292,11 @@ export class ClustersService {
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListPolicies(req: ListPoliciesRequest, initReq?: fm.InitReq): Promise<ListPoliciesResponse> {
+    return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(`/v1/policies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetPolicy(req: GetPolicyRequest, initReq?: fm.InitReq): Promise<GetPolicyResponse> {
+    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["policyName"]}?${fm.renderURLSearchParams(req, ["policyName"])}`, {...initReq, method: "GET"})
   }
 }

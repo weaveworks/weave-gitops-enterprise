@@ -246,11 +246,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Clusters", func() {
 
 		BeforeEach(func() {
-
-			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			})
-			initializeWebdriver(test_ui_url)
+			Expect(webDriver.Navigate(test_ui_url)).To(Succeed())
 		})
 
 		It("@integration Verify Weave Gitops Enterprise version", func() {
@@ -269,8 +265,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			By("And wego enterprise state is reset", func() {
 				gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+				Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
 			})
 
 			clustersPage := pages.GetClustersPage(webDriver)
@@ -432,8 +427,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
-			gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+			Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
 			pages.NavigateToPage(webDriver, "Alerts")
@@ -548,8 +542,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			gitopsTestRunner.ResetControllers("enterprise")
 			gitopsTestRunner.VerifyWegoPodsRunning()
-			gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+			Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
 
 			clustersPage := pages.GetClustersPage(webDriver)
 

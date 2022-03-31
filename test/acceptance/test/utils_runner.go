@@ -42,7 +42,6 @@ type GitopsTestRunner interface {
 	DeleteApplyCapiTemplates(templateFiles []string)
 	CreateIPCredentials(infrastructureProvider string)
 	DeleteIPCredentials(infrastructureProvider string)
-	CheckClusterService(capiEndpointURL string)
 	RestartDeploymentPods(appName string, namespace string) error
 }
 
@@ -187,10 +186,6 @@ func (b DatabaseGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []strin
 			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
 		}
 	})
-}
-
-func (b DatabaseGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
-
 }
 
 func (b DatabaseGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
@@ -351,20 +346,6 @@ func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 
 	err := deleteFile(templateFiles)
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
-}
-
-func (b RealGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
-	Eventually(func(g Gomega) {
-		stdOut, stdErr := runCommandAndReturnStringOutput(
-			fmt.Sprintf(
-				// insecure for self-signed tls
-				`curl --insecure --silent -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
-				capiEndpointURL,
-			),
-			ASSERTION_30SECONDS_TIME_OUT,
-		)
-		g.Expect(stdOut).To(MatchRegexp("200"), "Cluster Service is not healthy: %v", stdErr)
-	}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
 }
 
 func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
