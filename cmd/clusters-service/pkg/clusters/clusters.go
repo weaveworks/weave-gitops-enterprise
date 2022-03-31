@@ -39,19 +39,19 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*gitopsv1alpha1.Gi
 		return nil, err
 	}
 
-	cluster := &gitopsv1alpha1.GitopsCluster{}
+	cluster := gitopsv1alpha1.GitopsCluster{}
 	lib.Log.Info("Getting cluster", "cluster", name)
 	err = cl.Get(ctx, client.ObjectKey{
 		Namespace: lib.Namespace,
 		Name:      name,
-	}, cluster)
+	}, &cluster)
 	if err != nil {
 		lib.Log.Error(err, "Failed to get cluster", "cluster", name)
 		return nil, fmt.Errorf("error getting cluster %s/%s: %s", lib.Namespace, name, err)
 	}
 	lib.Log.Info("Got cluster", "cluster", name)
 
-	return cluster, nil
+	return &cluster, nil
 }
 
 func (lib *CRDLibrary) List(ctx context.Context) (map[string]*gitopsv1alpha1.GitopsCluster, error) {

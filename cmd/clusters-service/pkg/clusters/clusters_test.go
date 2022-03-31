@@ -19,21 +19,19 @@ import (
 
 func TestGetClusterFromCRDs(t *testing.T) {
 	c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
-		o.ObjectMeta.Name = "weave-cluster"
-		o.ObjectMeta.Namespace = "default"
+		o.ObjectMeta.Name = "gitops-cluster"
 		o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 			Name: "dev",
 		}
 	})
 	c2 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
-		o.ObjectMeta.Name = "weave-cluster2"
-		o.ObjectMeta.Namespace = "default"
+		o.ObjectMeta.Name = "gitops-cluster2"
 		o.Spec.SecretRef = &meta.LocalObjectReference{
 			Name: "dev",
 		}
 	})
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
-	result, err := lib.Get(context.Background(), "weave-cluster2")
+	result, err := lib.Get(context.Background(), "gitops-cluster2")
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
@@ -44,14 +42,14 @@ func TestGetClusterFromCRDs(t *testing.T) {
 
 func TestListClusterFromCRDs(t *testing.T) {
 	c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
-		o.ObjectMeta.Name = "weave-cluster"
+		o.ObjectMeta.Name = "gitops-cluster"
 		o.ObjectMeta.Namespace = "default"
 		o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 			Name: "dev",
 		}
 	})
 	c2 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
-		o.ObjectMeta.Name = "weave-cluster2"
+		o.ObjectMeta.Name = "gitops-cluster2"
 		o.ObjectMeta.Namespace = "default"
 		o.Spec.SecretRef = &meta.LocalObjectReference{
 			Name: "dev",
@@ -63,8 +61,8 @@ func TestListClusterFromCRDs(t *testing.T) {
 		t.Fatalf("On no, error: %v", err)
 	}
 	want := map[string]*gitopsv1alpha1.GitopsCluster{
-		"weave-cluster":  c1,
-		"weave-cluster2": c2,
+		"gitops-cluster":  c1,
+		"gitops-cluster2": c2,
 	}
 	if diff := cmp.Diff(want, result); diff != "" {
 		t.Fatalf("On no, diff clusters: %v", diff)
@@ -92,8 +90,8 @@ func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 func makeTestCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv1alpha1.GitopsCluster {
 	c := &gitopsv1alpha1.GitopsCluster{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "capi.weave.works/v1alpha1",
-			Kind:       "Cluster",
+			APIVersion: "gitops.weave.works/v1alpha1",
+			Kind:       "GitopsCluster",
 		},
 		Spec: gitopsv1alpha1.GitopsClusterSpec{},
 	}
