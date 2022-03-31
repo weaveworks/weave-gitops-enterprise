@@ -19,11 +19,14 @@ import {
   createStyles,
 } from '@material-ui/core/styles';
 import {
+  AuthContextProvider,
   AppContextProvider,
-  applicationsClient,
+  coreClient,
   AuthCheck,
   OAuthCallback,
   SignIn,
+  FeatureFlagsContextProvider,
+  V2Routes,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
@@ -38,21 +41,30 @@ import Lottie from 'react-lottie-player';
 import error404 from '../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
 import WGApplicationsDashboard from './Applications';
-import WGApplicationAdd from './Applications/Add';
-import WGApplicationDetail from './Applications/Detail';
+import WGApplicationsSources from './Applications/Sources';
+import WGApplicationsKustomization from './Applications/Kustomization';
+import WGApplicationsGitRepository from './Applications/GitRepository';
+import WGApplicationsHelmRepository from './Applications/HelmRepository';
+import WGApplicationsBucket from './Applications/Bucket';
+import WGApplicationsHelmRelease from './Applications/HelmRelease';
+import WGApplicationsHelmChart from './Applications/HelmChart';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-import WGApplicationRemove from './Applications/Remove';
 
 import Policies from './Policies';
 
-const APPS_ROUTE = '/applications';
-const APP_DETAIL_ROUTE = '/application_detail';
-const APP_ADD_ROUTE = '/application_add';
-const APP_DELETE_ROUTE = '/application_remove';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
+
+function withName(Cmp: any) {
+  return ({ location: { search }, ...rest }: any) => {
+    const params = qs.parse(search);
+
+    return <Cmp {...rest} name={params.name as string} />;
+  };
+}
+
 
 const drawerWidth = 220;
 
@@ -110,10 +122,6 @@ const SignInWrapper = styled.div`
   }
 `;
 
-export const WGAppProvider: React.FC = props => (
-  <AppContextProvider applicationsClient={applicationsClient} {...props} />
-);
-
 const ResponsiveDrawer = () => {
   const classes = useStyles();
   const theme = useTheme();
@@ -144,7 +152,6 @@ const ResponsiveDrawer = () => {
         TemplatesProvider,
         ClustersProvider,
         AlertsProvider,
-        WGAppProvider,
         VersionsProvider,
       ]}
     >
@@ -212,18 +219,42 @@ const ResponsiveDrawer = () => {
             <Route
               component={WGApplicationsDashboard}
               exact
-              path={APPS_ROUTE}
+              path={V2Routes.Automations}
             />
             <Route
+              component={WGApplicationsSources}
               exact
-              path={APP_DETAIL_ROUTE}
-              component={WGApplicationDetail}
+              path={V2Routes.Sources}
             />
-            <Route exact path={APP_ADD_ROUTE} component={WGApplicationAdd} />
             <Route
+              component={withName(WGApplicationsKustomization)}
               exact
-              path={APP_DELETE_ROUTE}
-              component={WGApplicationRemove}
+              path={V2Routes.Kustomization}
+            />
+            <Route
+              component={withName(WGApplicationsGitRepository)}
+              exact
+              path={V2Routes.GitRepo}
+            />
+            <Route
+              component={withName(WGApplicationsHelmRepository)}
+              exact
+              path={V2Routes.HelmRepo}
+            />
+            <Route
+              component={withName(WGApplicationsBucket)}
+              exact
+              path={V2Routes.Bucket}
+            />
+            <Route
+              component={withName(WGApplicationsHelmRelease)}
+              exact
+              path={V2Routes.HelmRelease}
+            />
+            <Route
+              component={withName(WGApplicationsHelmChart)}
+              exact
+              path={V2Routes.HelmChart}
             />
 
             <Route exact path={POLICIES} component={Policies} />
@@ -249,23 +280,29 @@ const ResponsiveDrawer = () => {
   );
 
   return (
-    <Switch>
-      <Route
-        component={() => (
-          <SignInWrapper>
-            <SignIn />
-          </SignInWrapper>
-        )}
-        exact={true}
-        path="/sign_in"
-      />
-      <Route path="*">
-        {/* Check we've got a logged in user otherwise redirect back to signin */}
-        <AuthCheck>
-          <App />
-        </AuthCheck>
-      </Route>
-    </Switch>
+    <AppContextProvider coreClient={coreClient}>
+      <FeatureFlagsContextProvider>
+        <AuthContextProvider>
+          <Switch>
+            <Route
+              component={() => (
+                <SignInWrapper>
+                  <SignIn />
+                </SignInWrapper>
+              )}
+              exact={true}
+              path="/sign_in"
+            />
+            <Route path="*">
+              {/* Check we've got a logged in user otherwise redirect back to signin */}
+              <AuthCheck>
+                <App />
+              </AuthCheck>
+            </Route>
+          </Switch>
+        </AuthContextProvider>
+      </FeatureFlagsContextProvider>
+    </AppContextProvider>
   );
 };
 

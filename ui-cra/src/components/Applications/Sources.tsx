@@ -2,24 +2,15 @@ import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { ApplicationRemove } from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
-import styled from 'styled-components';
+import { SourcesTable, useListSources } from '@weaveworks/weave-gitops';
 
-const ApplicationRemoveWrapper = styled(ApplicationRemove)`
-  div[role='alert'] {
-    width: 100%;
-  }
-`;
-
-const WGApplicationRemove: FC = () => {
+const WGApplicationsSources: FC = () => {
   const applicationsCount = useApplicationsCount();
-
-  const queryParams = new URLSearchParams(window.location.search);
-  const name = queryParams.get('name');
+  const { data: sources } = useListSources();
 
   return (
-    <PageTemplate documentTitle="WeGO · Application Detail">
+    <PageTemplate documentTitle="WeGO · Application Sources">
       <SectionHeader
         path={[
           {
@@ -27,14 +18,13 @@ const WGApplicationRemove: FC = () => {
             url: '/applications',
             count: applicationsCount,
           },
-          { label: `${name}` },
         ]}
       />
       <ContentWrapper type="WG">
-        <ApplicationRemoveWrapper name={name || ''} />
+        <SourcesTable sources={sources} />
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationRemove;
+export default WGApplicationsSources;

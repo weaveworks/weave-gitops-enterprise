@@ -3,14 +3,21 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { AutomationsTable, useListAutomations, Automation } from '@weaveworks/weave-gitops';
+import { HelmReleaseDetail, useGetHelmRelease } from '@weaveworks/weave-gitops';
 
-const WGApplicationsDashboard: FC = () => {
-  const { data: automations } = useListAutomations();
+type Props = {
+  name: string;
+  clusterName: string;
+  namespace: string;
+}
+
+const WGApplicationsBucket: FC<Props> = ({ name, clusterName }) => {
   const applicationsCount = useApplicationsCount();
+  const { data } = useGetHelmRelease(name);
+  const helmRelease = data?.helmRelease;
 
   return (
-    <PageTemplate documentTitle="WeGO · Applications">
+    <PageTemplate documentTitle="WeGO · Bucket">
       <SectionHeader
         path={[
           {
@@ -21,10 +28,10 @@ const WGApplicationsDashboard: FC = () => {
         ]}
       />
       <ContentWrapper type="WG">
-        <AutomationsTable automations={automations} />
+        <HelmReleaseDetail helmRelease={helmRelease} clusterName={clusterName} name={name} />
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationsDashboard;
+export default WGApplicationsBucket;
