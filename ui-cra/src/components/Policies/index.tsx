@@ -10,34 +10,16 @@ import { useState } from 'react';
 import { Policy } from '../../types/custom';
 import LoadingError from '../LoadingError';
 
+interface IPolicyResponse {
+  policies: Array<Policy>;
+  total: number;
+}
+
 const Policies = () => {
   const fetchPoliciesAPI = (payload: any = { page: 1, limit: 25 }) => {
-    // return PolicyService.getPolicyList()
-    return Promise.resolve([
-      {
-        id: 'magalix.standards.soc2-type-i',
-        name: 'SOC2 Type 1',
-        category: 'Security',
-        severity: 'high',
-        createdAt: '2021-11-23T04:49:28.418Z',
-      },
-      {
-        id: 'magalix.standards.soc2-type-i',
-        name: 'SOC2 Type 2',
-        category: 'Security',
-        severity: 'medium',
-        createdAt: '2021-11-23T04:49:28.418Z',
-      },
-      {
-        id: 'magalix.standards.soc2-type-i',
-        name: 'SOC2 Type 3',
-        category: 'Security',
-        severity: 'low',
-        createdAt: '2021-11-23T04:49:28.418Z',
-      },
-    ]).then(data => {
-      setCount(data.length);
-      return data;
+    return PolicyService.getPolicyList().then((res: IPolicyResponse) => {
+      setCount(res.total);
+      return res;
     });
   };
 
@@ -54,9 +36,13 @@ const Policies = () => {
           <ContentWrapper>
             <Title>Policies</Title>
             <LoadingError fetchFn={fetchPolicies}>
-              {({ value }: { value: any }) => (
+              {({ value }: { value: IPolicyResponse }) => (
                 <>
-                  <PolicyTable policies={value} />
+                  {value.total > 0 ? (
+                    <PolicyTable policies={value.policies} />
+                  ) : (
+                    <div>No data to display</div>
+                  )}
                 </>
               )}
             </LoadingError>

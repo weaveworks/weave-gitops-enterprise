@@ -3,8 +3,8 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import { CallReceived, CallMade, Remove } from '@material-ui/icons';
 
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import moment from 'moment';
 import { Policy } from '../../../types/custom';
+import moment from 'moment';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -55,8 +55,12 @@ const PolicyRow = ({ policy }: RowProps) => {
       <TableRow data-cluster-name={name} className={` ${classes.normalRow}`}>
         <TableCell className={` ${classes.normalCell}`}>{name}</TableCell>
         <TableCell className={` ${classes.normalCell}`}>{category}</TableCell>
-        <TableCell className={` ${classes.normalCell}`}>{SeverityComponent(severity || '')}</TableCell>
-        <TableCell className={` ${classes.normalCell}`}>{moment(createdAt).fromNow()}</TableCell>
+        <TableCell className={` ${classes.normalCell}`}>
+          {SeverityComponent(severity || '')}
+        </TableCell>
+        <TableCell className={` ${classes.normalCell}`}>
+          {moment(Date.parse(createdAt.replace('EET', ''))).fromNow()}
+        </TableCell>
       </TableRow>
     </>
   );

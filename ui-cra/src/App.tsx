@@ -99,6 +99,11 @@ const GlobalStyle = createGlobalStyle`
   .severity-high{
     color:#E2423B
   }
+  .flex-center{
+    display:flex;
+    align-items:center;
+    justicy-content:center
+  }
 `;
 
 const App: FC = () => {
