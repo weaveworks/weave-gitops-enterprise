@@ -499,7 +499,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 
 	}
 
-	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "wego-system", installs)
+	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "flux-system", installs)
 	if err != nil {
 		return nil, fmt.Errorf("making helm releases for cluster %s: %w", clusterName, err)
 	}
