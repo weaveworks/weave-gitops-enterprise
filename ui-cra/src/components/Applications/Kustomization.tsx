@@ -2,36 +2,34 @@ import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { ApplicationAdd, theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
-import styled from 'styled-components';
+import { KustomizationDetail, useGetKustomization } from '@weaveworks/weave-gitops';
 
-const ApplicationAddWrapper = styled(ApplicationAdd)`
-  & .auth-message {
-    margin-bottom: ${weaveTheme.spacing.xs};
-  }
-`;
+type Props = {
+  name: string;
+}
 
-const WGApplicationDetail: FC = () => {
+const WGApplicationsKustomization: FC<Props> = ({ name }) => {
   const applicationsCount = useApplicationsCount();
+  const { data } = useGetKustomization(name);
+  const kustomization = data?.kustomization;
 
   return (
-    <PageTemplate documentTitle="WeGO · Application Detail">
+    <PageTemplate documentTitle="WeGO · Kustomization">
       <SectionHeader
         path={[
           {
-            label: 'Applications',
-            url: '/applications',
+            label: 'Sources',
+            url: '/sections',
             count: applicationsCount,
           },
-          { label: 'Add' },
         ]}
       />
       <ContentWrapper type="WG">
-        <ApplicationAddWrapper />
+        <KustomizationDetail kustomization={kustomization} name={name} />
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationDetail;
+export default WGApplicationsKustomization;
