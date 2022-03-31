@@ -101,11 +101,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		templateFiles := []string{}
 
 		BeforeEach(func() {
-
-			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			})
-			initializeWebdriver(test_ui_url)
+			Expect(webDriver.Navigate(test_ui_url)).To(Succeed())
 		})
 
 		AfterEach(func() {
@@ -1232,9 +1228,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				if beFound {
-					Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT).Should(BeTrue())
+					Eventually(checkOutput, ASSERTION_2MINUTE_TIME_OUT).Should(BeTrue())
 				} else {
-					Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT).Should(BeFalse())
+					Eventually(checkOutput, ASSERTION_2MINUTE_TIME_OUT).Should(BeFalse())
 				}
 
 			}
