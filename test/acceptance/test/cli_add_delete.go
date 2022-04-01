@@ -23,14 +23,6 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 		BeforeEach(func() {
 			repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
-
-			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
-			})
-
-			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			})
 		})
 
 		AfterEach(func() {
@@ -350,7 +342,6 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			JustBeforeEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
 
-				initializeWebdriver(test_ui_url)
 				logger.Info("Connecting cluster to itself")
 				leaf := LeafSpec{
 					Status:          "Ready",

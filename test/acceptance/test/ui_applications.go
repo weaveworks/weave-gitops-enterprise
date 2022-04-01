@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitlab"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -14,7 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
+func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProviderHostname string) {
 	if gitProvider == GitProviderGitHub {
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
@@ -33,7 +34,12 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
 			Eventually(authenticate.AuthroizeButton).ShouldNot(BeFound())
 		}
 	} else if gitProvider == GitProviderGitLab {
-		authenticate := pages.AuthenticateWithGitlab(webDriver)
+		var authenticate *pages.AuthenticateGitlab
+		if gitProviderHostname == gitlab.DefaultDomain {
+			authenticate = pages.AuthenticateWithGitlab(webDriver)
+		} else {
+			authenticate = pages.AuthenticateWithOnPremGitlab(webDriver)
+		}
 
 		if pages.ElementExist(authenticate.AuthenticateGitlab) {
 			Expect(authenticate.AuthenticateGitlab.Click()).To(Succeed())
@@ -55,7 +61,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider string) {
 				Eventually(authenticate.Username).Should(BeVisible())
 				Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
 				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
-				Expect(authenticate.Signin.Click()).To(Succeed())
+				Expect(authenticate.Signin.Submit()).To(Succeed())
 			} else {
 				logger.Info("Login not found, assuming already logged in")
 			}
@@ -129,16 +135,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops application UI Tests", func() {
 
 		BeforeEach(func() {
-
-			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
-			})
-
-			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			})
-
-			initializeWebdriver(test_ui_url)
+			Expect(webDriver.Navigate(test_ui_url)).To(Succeed())
 		})
 
 		AfterEach(func() {
@@ -199,7 +196,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(`And authenticate with Git provider`, func() {
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(addApp.GitCredentials).Should(BeVisible())
 
 					addApp = pages.GetAddApplicationForm(webDriver)
@@ -260,7 +257,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(`Then authenticate with Git provider`, func() {
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 				})
 

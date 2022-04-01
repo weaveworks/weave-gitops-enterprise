@@ -27,9 +27,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 		BeforeEach(func() {
 
-			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
-			})
 		})
 
 		Context("[CLI] When gitops upgrade command is available", func() {
@@ -188,11 +185,11 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						test_ui_url = "http://localhost:8000"
 						capi_endpoint_url = "http://localhost:8000"
 					}
-					initializeWebdriver(test_ui_url)
+					InitializeWebdriver(test_ui_url)
 				})
 
 				By("And the Cluster service is healthy", func() {
-					gitopsTestRunner.CheckClusterService(capi_endpoint_url)
+					CheckClusterService(capi_endpoint_url)
 				})
 
 				By("Then I should run enterprise CLI commands", func() {
@@ -270,7 +267,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, paramSection)
 				pages.ScrollWindow(webDriver, 0, 4000)
 				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 				pages.ScrollWindow(webDriver, 0, 4000)
 
 				By("And select the podinfo profile to install", func() {
@@ -319,7 +316,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type)
+					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
 					if pages.ElementExist(gitops.SuccessBar) {
 						Expect(gitops.SuccessBar.Click()).To(Succeed())

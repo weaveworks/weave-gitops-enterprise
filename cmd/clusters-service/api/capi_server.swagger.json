@@ -178,6 +178,60 @@
         ]
       }
     },
+    "/v1/policies": {
+      "get": {
+        "summary": "ListPolicies list policies available on the management cluster",
+        "operationId": "ClustersService_ListPolicies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPoliciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/policies/{policyName}": {
+      "get": {
+        "summary": "GetPolicy gets a policy on the management cluster by name",
+        "operationId": "ClustersService_GetPolicy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "policyName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates": {
       "get": {
         "operationId": "ClustersService_ListTemplates",
@@ -555,6 +609,14 @@
         }
       }
     },
+    "v1GetPolicyResponse": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/v1Policy"
+        }
+      }
+    },
     "v1GetTemplateResponse": {
       "type": "object",
       "properties": {
@@ -570,6 +632,21 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Credential"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListPoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Policy"
           }
         },
         "total": {
@@ -640,6 +717,111 @@
           "type": "boolean"
         },
         "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1Policy": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "howToSolve": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "severity": {
+          "type": "string"
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gitCommit": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyParam"
+          }
+        },
+        "targets": {
+          "$ref": "#/definitions/v1PolicyTargets"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PolicyParam": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "default": {
+          "$ref": "#/definitions/protobufAny",
+          "title": "default is a generic value that can be a string, int, bool and array of strings"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1PolicyTargetLabel": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1PolicyTargets": {
+      "type": "object",
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyTargetLabel"
+          }
+        },
+        "namespaces": {
           "type": "array",
           "items": {
             "type": "string"
