@@ -10,7 +10,7 @@ import {
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { createStyles, makeStyles, withStyles } from '@material-ui/styles';
-import Octicon, { Icon, Tools } from '@primer/octicons-react';
+import Octicon, { Icon } from '@primer/octicons-react';
 import { Cluster } from '../../../types/kubernetes';
 import { EKS, ExistingInfra, GKE, Kind } from '../../../utils/icons';
 import { ClusterNameLink, Tooltip } from '../../Shared';
@@ -74,7 +74,6 @@ const IndividualCheckbox = withStyles({
 interface RowProps {
   index: number;
   cluster: Cluster;
-  onEdit: (cluster: Cluster) => void;
   selected: boolean;
   onCheckboxClick: (event: any, name: string) => void;
 }
@@ -95,7 +94,6 @@ const getClusterTypeIcon = (clusterType?: string): Icon | null => {
 const ClusterRow = ({
   index,
   cluster,
-  onEdit,
   selected,
   onCheckboxClick,
 }: RowProps) => {
@@ -169,20 +167,6 @@ const ClusterRow = ({
               />
             </div>
           </Tooltip>
-        </TableCell>
-        <TableCell
-          title="Edit cluster"
-          className={classes.iconTableCell}
-          align="left"
-        >
-          <IconButton onClick={() => onEdit(cluster)}>
-            <Octicon
-              className={classes.icon}
-              icon={Tools}
-              size={16}
-              verticalAlign="middle"
-            />
-          </IconButton>
         </TableCell>
       </TableRow>
       <TableRow

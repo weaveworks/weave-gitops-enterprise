@@ -65,7 +65,6 @@ interface Props {
   filteredClusters: Cluster[] | null;
   count: number | null;
   disabled?: boolean;
-  onEdit: (cluster: Cluster) => void;
   onSortChange: (order: string) => void;
   onSelectPageParams: (page: number, perPage: number) => void;
   order: string;
@@ -76,7 +75,6 @@ export const ClustersTable: FC<Props> = ({
   filteredClusters,
   count,
   disabled,
-  onEdit,
   onSortChange,
   onSelectPageParams,
   order,
@@ -203,7 +201,6 @@ export const ClustersTable: FC<Props> = ({
                       onCheckboxClick={event =>
                         handleClick(event, cluster.name)
                       }
-                      onEdit={onEdit}
                       selected={isItemSelected}
                     />
                   );

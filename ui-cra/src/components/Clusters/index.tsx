@@ -2,12 +2,10 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
-import { Cluster } from '../../types/kubernetes';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ClustersTable } from './Table';
 import { Tooltip } from '../Shared';
-import { ConnectClusterDialog } from './Connect/ConnectDialog';
 import { useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
@@ -56,7 +54,6 @@ const MCCP: FC = () => {
     selectedClusters,
   } = useClusters();
   const { setNotifications } = useNotifications();
-  const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
   const capiClusters = useMemo(
@@ -70,11 +67,6 @@ const MCCP: FC = () => {
   );
 
   const authRedirectPage = `/clusters`;
-
-  const NEW_CLUSTER = {
-    name: '',
-    token: '',
-  };
 
   interface FormData {
     url: string;
@@ -155,7 +147,7 @@ const MCCP: FC = () => {
             path={[{ label: 'Clusters', url: 'clusters', count }]}
           />
           <ContentWrapper>
-            <Title>Connected clusters dashboard</Title>
+            <Title>Clusters dashboard</Title>
             <ActionsWrapper>
               <Button
                 id="create-cluster"
@@ -163,13 +155,6 @@ const MCCP: FC = () => {
                 onClick={handleAddCluster}
               >
                 CREATE A CLUSTER
-              </Button>
-              <Button
-                id="connect-cluster"
-                startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
-                onClick={() => setClusterToEdit(NEW_CLUSTER)}
-              >
-                CONNECT A CLUSTER
               </Button>
               <Tooltip
                 title="No CAPI clusters selected"
@@ -200,14 +185,7 @@ const MCCP: FC = () => {
                 />
               )}
             </ActionsWrapper>
-            {clusterToEdit && (
-              <ConnectClusterDialog
-                cluster={clusterToEdit}
-                onFinish={() => setClusterToEdit(null)}
-              />
-            )}
             <ClustersTable
-              onEdit={cluster => setClusterToEdit(cluster)}
               order={order}
               orderBy={orderBy}
               onSortChange={handleRequestSort}
