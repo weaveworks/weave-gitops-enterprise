@@ -36,10 +36,10 @@ function setup {
       gcloud compute firewall-rules create nats-node-port --allow tcp:${NATS_NODEPORT}
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
     fi
-    elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
-      # MANAGEMENT_CLUSTER_KIND is a KIND cluster
-      WORKER_NODE_EXTERNAL_IP=${LOCALHOST_IP}
-    fi
+  elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
+    # MANAGEMENT_CLUSTER_KIND is a KIND cluster
+    WORKER_NODE_EXTERNAL_IP=${LOCALHOST_IP}
+  fi
 
   # Set enterprise cluster CNAME host entry in the hosts file
   hostEntry=$(cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
@@ -65,6 +65,8 @@ function setup {
   helm repo update  
   
   kubectl create ns wego-system
+
+  # Create secrete for git provider authentication
   gitopsArgs=()
   if [ ${GIT_PROVIDER} == "github" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
@@ -92,7 +94,20 @@ function setup {
       gitopsArgs+=( --git-host-types=${GITOPS_GIT_HOST_TYPES} )
     fi
   fi  
- 
+
+
+  # Create admin cluster user secret
+  kubectl create secret generic admin-password-hash \
+  --namespace wego-system \
+  --from-literal=username=admin \
+  --from-literal=password=${CLUSTER_ADMIN_PASSWORD_HASH}
+  
+  #  Create client credential secret for OIDC (dex)
+  kubectl create secret generic client-credentials \
+  --namespace wego-system \
+  --from-literal=clientId=${DEX_CLIENT_ID} \
+  --from-literal=clientSecret=${DEX_CLIENT_SECRET}
+
   # Install weave gitops core controllers
   $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} ${gitopsArgs[@]} --auto-merge
 
@@ -117,6 +132,10 @@ function setup {
   helmArgs+=( --set "config.capi.repositoryPath=./management" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
+  # helmArgs+=( --set "config.oidc.enabled=true" )
+  # helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
+  # helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
+  # helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
 
   if [ ${ACCEPTANCE_TESTS_DATABASE_TYPE} == "postgres" ]; then
     # Create postgres DB

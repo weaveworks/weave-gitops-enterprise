@@ -21,13 +21,6 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		BeforeEach(func() {
 
-			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
-			})
-
-			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			})
 		})
 
 		AfterEach(func() {
@@ -333,16 +326,20 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				By("And gitops state is reset", func() {
 					gitopsTestRunner.ResetControllers("enterprise")
 					gitopsTestRunner.VerifyWegoPodsRunning()
-					gitopsTestRunner.CheckClusterService(capi_endpoint_url)
 				})
 
 				cmd := fmt.Sprintf(`%s get cluster --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
+				checkoutput := func() string {
+					stdOut, _ = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
+					return stdOut
+
+				}
 				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
+					checkoutput()
 				})
 
 				By("Then gitops lists no clusters", func() {
-					Eventually(stdOut).Should(MatchRegexp("No clusters found"))
+					Eventually(checkoutput).Should(MatchRegexp("No clusters found"))
 				})
 			})
 		})

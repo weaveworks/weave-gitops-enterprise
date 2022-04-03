@@ -29,6 +29,7 @@ var (
 	logger               *logrus.Logger
 	logFile              *os.File
 	gitProviderEnv       GitProviderEnv
+	login_user_type      string
 	git_repository_url   string
 	selenium_service_url string
 	gitops_bin_path      string
@@ -135,6 +136,7 @@ func SetupTestEnvironment() {
 	capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	gitops_bin_path = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	artifacts_base_dir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
+	login_user_type = GetEnv("LOGIN_USER_TYPE", "admin")
 
 	gitProviderEnv = initGitProviderData()
 	git_repository_url = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
@@ -147,6 +149,9 @@ func SetupTestEnvironment() {
 }
 
 func InstallWeaveGitopsControllers() {
+	// gitops binary must exists, it is required to install weave gitops controllers
+	Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
+
 	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
 		logger.Info("No need to install Weave gitops controllers, managemnt cluster is already configured and setup.")
 
@@ -157,7 +162,7 @@ func InstallWeaveGitopsControllers() {
 		initAndCreateEmptyRepo(gitProviderEnv, true)
 
 		logger.Info("Starting weave-gitops-enterprise installation...")
-		//wego-enterprise.sh script install core and enterprise controller and setup the management cluster along with required resources, secrets and entitlements etc.
+		// wego-enterprise.sh script install core and enterprise controller and setup the management cluster along with required resources, secrets and entitlements etc.
 		checkoutRepoPath := getCheckoutRepoPath()
 		setupScriptPath := path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh")
 		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`%s setup %s`, setupScriptPath, checkoutRepoPath), ASSERTION_15MINUTE_TIME_OUT)
@@ -180,7 +185,7 @@ func stringWithCharset(length int, charset string) string {
 	return string(b)
 }
 
-func initializeWebdriver(wgeURL string) {
+func InitializeWebdriver(wgeURL string) {
 	var err error
 	if webDriver == nil {
 		switch runtime.GOOS {
