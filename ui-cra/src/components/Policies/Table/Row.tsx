@@ -5,6 +5,7 @@ import { CallReceived, CallMade, Remove } from '@material-ui/icons';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { Policy } from '../../../types/custom';
 import moment from 'moment';
+import { Link } from 'react-router-dom';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -49,11 +50,13 @@ const SeverityComponent = (severity: string) => {
 
 const PolicyRow = ({ policy }: RowProps) => {
   const classes = useStyles();
-  const { name, category, severity, createdAt } = policy;
+  const { name, category, severity, createdAt, id } = policy;
   return (
     <>
       <TableRow data-cluster-name={name} className={` ${classes.normalRow}`}>
-        <TableCell className={` ${classes.normalCell}`}>{name}</TableCell>
+        <TableCell className={` ${classes.normalCell}`}>
+          <Link to={`/policies/${id}`}>{name}</Link>
+        </TableCell>
         <TableCell className={` ${classes.normalCell}`}>{category}</TableCell>
         <TableCell className={` ${classes.normalCell}`}>
           {SeverityComponent(severity || '')}

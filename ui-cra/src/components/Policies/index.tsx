@@ -23,7 +23,7 @@ const Policies = () => {
     });
   };
 
-  // const [fetchPolicies, setFetchPolicies] = useState(() => fetchPoliciesAPI);
+  const [fetchPolicies] = useState(() => fetchPoliciesAPI);
   const [count, setCount] = useState(0);
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -35,7 +35,7 @@ const Policies = () => {
           />
           <ContentWrapper>
             <Title>Policies</Title>
-            <LoadingError fetchFn={fetchPoliciesAPI}>
+            <LoadingError fetchFn={fetchPolicies}>
               {({ value }: { value: IPolicyResponse }) => (
                 <>
                   {value.total > 0 ? (

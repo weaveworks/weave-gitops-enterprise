@@ -50,7 +50,7 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
       {!loading && error && (
         <div>
           <div className="alert-danger alert" role="alert">
-          <ErrorOutline className="alert-icon" />
+            <ErrorOutline className="alert-icon" />
             {errorMessage}
             <span onClick={() => fetchLoad(fetchFn())} className="retry">
               <Refresh />

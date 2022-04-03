@@ -29,7 +29,7 @@ const fetchPoliciesAPI = () => PolicyService.getPolicyById(id).then((res: any) =
         <CallbackStateContextProvider>
           <SectionHeader
             className="count-header"
-            path={[{ label: 'Policies', url: 'policies'}, { label: name, url: 'policy-details' }]}
+            path={[{ label: 'Policies', url: '/policies'}, { label: name, url: 'policy-details' }]}
           />
           <ContentWrapper>
             <Title>{name}</Title>
