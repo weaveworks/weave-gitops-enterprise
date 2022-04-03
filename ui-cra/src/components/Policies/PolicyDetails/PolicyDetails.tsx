@@ -16,12 +16,16 @@ interface IPolicyDetailsResponse {
 }
 
 const PolicyDetails = () => {
-const { id } = useParams<{id:string}>();
-const [name,setName] = useState('');
-const fetchPoliciesAPI = () => PolicyService.getPolicyById(id).then((res: any) => {setName(res.policy.name); return res;});
+  const { id } = useParams<{ id: string }>();
+  const [name, setName] = useState('');
 
+  const fetchPoliciesAPI = () =>
+    PolicyService.getPolicyById(id).then((res: IPolicyDetailsResponse) => {
+      setName(res.policy.name);
+      return res;
+    });
 
-
+  const [fetchPolicyById] = useState(() => fetchPoliciesAPI);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -29,15 +33,16 @@ const fetchPoliciesAPI = () => PolicyService.getPolicyById(id).then((res: any) =
         <CallbackStateContextProvider>
           <SectionHeader
             className="count-header"
-            path={[{ label: 'Policies', url: '/policies'}, { label: name, url: 'policy-details' }]}
+            path={[
+              { label: 'Policies', url: '/policies' },
+              { label: name, url: 'policy-details' },
+            ]}
           />
           <ContentWrapper>
             <Title>{name}</Title>
-            <LoadingError fetchFn={fetchPoliciesAPI}>
-              {({ value }: { value: IPolicyDetailsResponse }) => ( 
-                <>
-                {console.log(value)}
-                </>
+            <LoadingError fetchFn={fetchPolicyById}>
+              {({ value }: { value: IPolicyDetailsResponse }) => (
+                <>{console.log(value)}</>
               )}
             </LoadingError>
           </ContentWrapper>

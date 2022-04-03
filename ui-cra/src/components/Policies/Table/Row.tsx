@@ -15,6 +15,10 @@ const useStyles = makeStyles((theme: Theme) =>
     normalCell: {
       padding: theme.spacing(2),
     },
+    link: {
+      color: weaveTheme.colors.primary,
+      fontWeight:600
+    }
   }),
 );
 
@@ -53,15 +57,15 @@ const PolicyRow = ({ policy }: RowProps) => {
   const { name, category, severity, createdAt, id } = policy;
   return (
     <>
-      <TableRow data-cluster-name={name} className={` ${classes.normalRow}`}>
-        <TableCell className={` ${classes.normalCell}`}>
-          <Link to={`/policies/${id}`}>{name}</Link>
+      <TableRow data-cluster-name={name} className={classes.normalRow}>
+        <TableCell className={classes.normalCell}>
+          <Link to={`/policies/${id}`} className={classes.link}>{name}</Link>
         </TableCell>
-        <TableCell className={` ${classes.normalCell}`}>{category}</TableCell>
-        <TableCell className={` ${classes.normalCell}`}>
+        <TableCell className={classes.normalCell}>{category}</TableCell>
+        <TableCell className={classes.normalCell}>
           {SeverityComponent(severity || '')}
         </TableCell>
-        <TableCell className={` ${classes.normalCell}`}>
+        <TableCell className={classes.normalCell}>
           {moment(createdAt).fromNow()}
         </TableCell>
       </TableRow>

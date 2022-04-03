@@ -16,6 +16,7 @@ interface IPolicyResponse {
 }
 
 const Policies = () => {
+  
   const fetchPoliciesAPI = (payload: any = { page: 1, limit: 25 }) => {
     return PolicyService.getPolicyList().then((res: IPolicyResponse) => {
       setCount(res.total);
