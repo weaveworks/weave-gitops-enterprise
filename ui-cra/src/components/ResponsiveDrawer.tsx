@@ -46,6 +46,7 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import WGApplicationRemove from './Applications/Remove';
 
 import Policies from './Policies';
+import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 
 const APPS_ROUTE = '/applications';
 const APP_DETAIL_ROUTE = '/application_detail';
@@ -227,6 +228,7 @@ const ResponsiveDrawer = () => {
             />
 
             <Route exact path={POLICIES} component={Policies} />
+            <Route exact path="/policies/:id" component={PolicyDetails} />
 
             <Route
               exact

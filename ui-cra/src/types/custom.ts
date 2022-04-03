@@ -85,8 +85,8 @@ export type ChildrenOccurences = {
 };
 
 export type Policy = {
-  name?: string;
-  id?: string;
+  name: string;
+  id: string;
   code?: string;
   description?: string;
   howToSolve?: string;
