@@ -62,9 +62,9 @@ const GlobalStyle = createGlobalStyle`
     text-align: center!important;
   }
   .alert-danger {
-      background-color: #f8d7da;
       border-color: #f5c2c7;
-      color: #842029;
+      color: rgb(97, 26, 21);
+      background-color: rgb(253, 236, 234);
   }
   .alert {
       border: 1px solid transparent;
@@ -73,7 +73,7 @@ const GlobalStyle = createGlobalStyle`
       padding: 1rem;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: start;
   }
   .retry{
     margin-left: 4px;
@@ -85,6 +85,10 @@ const GlobalStyle = createGlobalStyle`
   .flex-center{
     display: flex;
     align-items:center;
+  }
+  .alert-icon{
+    margin-right: 8px;
+    color:#f44336;
   }
   .severity-icon{
     font-size: 14px;

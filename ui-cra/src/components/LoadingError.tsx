@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Refresh } from '@material-ui/icons';
+import { ErrorOutline } from '@material-ui/icons';
+
 export interface ILoadingError {
   fetchFn: () => Promise<any>;
   children?: any;
@@ -47,7 +49,8 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
       )}
       {!loading && error && (
         <div>
-          <div className="alert alert-danger text-center" role="alert">
+          <div className="alert-danger alert" role="alert">
+          <ErrorOutline className="alert-icon" />
             {errorMessage}
             <span onClick={() => fetchLoad(fetchFn())} className="retry">
               <Refresh />
