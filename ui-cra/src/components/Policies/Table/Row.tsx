@@ -59,7 +59,7 @@ const PolicyRow = ({ policy }: RowProps) => {
           {SeverityComponent(severity || '')}
         </TableCell>
         <TableCell className={` ${classes.normalCell}`}>
-          {moment(Date.parse(createdAt.replace('EET', ''))).fromNow()}
+          {moment(createdAt).fromNow()}
         </TableCell>
       </TableRow>
     </>

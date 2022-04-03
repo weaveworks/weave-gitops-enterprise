@@ -47,7 +47,7 @@ func getPolicyParamDefaultValue(param policiesv1.PolicyParameters, policyID stri
 			err = convErr
 			break
 		}
-		value := &capiv1_proto.PolicyParamRepeatedString{Values: arrayValue}
+		value := &capiv1_proto.PolicyParamRepeatedString{Value: arrayValue}
 		defaultAny, err = anypb.New(value)
 	default:
 		return nil, fmt.Errorf("found unsupported policy parameter type %s in policy %s", param.Type, policyID)
@@ -98,7 +98,7 @@ func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 			Labels:     policyLabels,
 		},
 		Parameters: policyParams,
-		CreatedAt:  policyCRD.CreationTimestamp.String(),
+		CreatedAt:  policyCRD.CreationTimestamp.UTC().String(),
 	}
 
 	return policy, nil
