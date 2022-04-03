@@ -98,7 +98,7 @@ func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 			Labels:     policyLabels,
 		},
 		Parameters: policyParams,
-		CreatedAt:  policyCRD.CreationTimestamp.String(),
+		CreatedAt:  policyCRD.CreationTimestamp.UTC().String(),
 	}
 
 	return policy, nil
