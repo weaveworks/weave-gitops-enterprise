@@ -282,7 +282,7 @@ func getAnyValue(t *testing.T, kind string, o interface{}) *anypb.Any {
 	case "boolean":
 		src = wrapperspb.Bool(o.(bool))
 	case "array":
-		src = &capiv1_proto.PolicyParamRepeatedString{Values: o.([]string)}
+		src = &capiv1_proto.PolicyParamRepeatedString{Value: o.([]string)}
 	}
 	defaultAny, err := anypb.New(src)
 	if err != nil {

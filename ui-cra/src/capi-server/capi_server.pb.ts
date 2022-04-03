@@ -203,7 +203,7 @@ export type GetConfigResponse = {
 }
 
 export type PolicyParamRepeatedString = {
-  values?: string[]
+  value?: string[]
 }
 
 export type PolicyParam = {
