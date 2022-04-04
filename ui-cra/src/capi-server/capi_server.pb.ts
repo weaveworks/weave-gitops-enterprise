@@ -52,6 +52,15 @@ export type RenderTemplateResponse = {
   renderedTemplate?: string
 }
 
+export type ListGitopsClustersRequest = {
+  label?: string
+}
+
+export type ListGitopsClustersResponse = {
+  gitopsClusters?: GitopsCluster[]
+  total?: number
+}
+
 export type GetPolicyRequest = {
   policyName?: string
 }
@@ -116,6 +125,14 @@ export type GetKubeconfigRequest = {
 
 export type GetKubeconfigResponse = {
   kubeconfig?: string
+}
+
+export type GitopsCluster = {
+  name?: string
+  type?: string
+  annotations?: {[key: string]: string}
+  labels?: {[key: string]: string}
+  error?: string
 }
 
 export type Credential = {
@@ -254,6 +271,9 @@ export class ClustersService {
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
+    return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
     return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/clusters`, {...initReq, method: "POST", body: JSON.stringify(req)})
