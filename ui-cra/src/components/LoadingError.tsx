@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Refresh } from '@material-ui/icons';
-import { ErrorOutline } from '@material-ui/icons';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import Alert from '@material-ui/lab/Alert';
 
