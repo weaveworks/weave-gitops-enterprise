@@ -22,12 +22,6 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "mccp.serviceAccountName" . }}
       initContainers:
-      - name: mount-flux-cli-bin
-        image: {{ .Values.fluxCli.image }}
-        command: ["cp", {{ .Values.fluxCli.binPath | quote }}, "/flux-cli/flux"]
-        volumeMounts:
-        - mountPath: /flux-cli
-          name: flux-cli-volume
       - name: mount-ui-server
         image: {{ .Values.images.uiServer }}
         volumeMounts:
@@ -49,8 +43,6 @@ spec:
           - secretRef:
               name: nats-env-vars-secret
           env:
-            - name: WEAVE_GITOPS_FLUX_BIN_PATH
-              value: /flux-cli/flux
             - name: RUNTIME_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -88,8 +80,6 @@ spec:
                   key: clientSecret
             {{- end }}
           volumeMounts:
-            - name: flux-cli-volume
-              mountPath: /flux-cli
             - name: ui-server-volume
               mountPath: /html
             {{- if .Values.tls.secretName }}
@@ -104,8 +94,6 @@ spec:
             {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
       volumes:
-      - name: flux-cli-volume
-        emptyDir: {}
       {{- if .Values.tls.secretName }}
       - name: clusters-service-tls-volume
         secret:

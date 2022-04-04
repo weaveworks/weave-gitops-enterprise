@@ -1,5 +1,4 @@
 import React, { FC } from 'react';
-import { NameLink } from '../Shared';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
