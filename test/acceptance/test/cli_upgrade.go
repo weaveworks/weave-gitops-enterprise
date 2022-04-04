@@ -208,13 +208,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I can connect cluster to itself", func() {
-					leaf := LeafSpec{
-						Status:          "Ready",
-						IsWKP:           false,
-						AlertManagerURL: "",
-						KubeconfigPath:  "",
-					}
-					connectACluster(webDriver, gitopsTestRunner, leaf)
+					// leaf := LeafSpec{
+					// 	Status:          "Ready",
+					// 	IsWKP:           false,
+					// 	AlertManagerURL: "",
+					// 	KubeconfigPath:  "",
+					// }
+					// connectACluster(webDriver, gitopsTestRunner, leaf)
 				})
 
 				By("Apply/Install CAPITemplate", func() {
