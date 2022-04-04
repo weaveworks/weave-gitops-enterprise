@@ -1,41 +1,12 @@
 package acceptance
 
 import (
-	"os"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
-
-type LeafSpec struct {
-	Status          string
-	IsWKP           bool
-	AlertManagerURL string
-	KubeconfigPath  string
-}
-
-var leaves = map[string]LeafSpec{
-	"self": {
-		Status:          "Ready",
-		IsWKP:           false,
-		AlertManagerURL: "http://my-prom-kube-prometheus-st-alertmanager.prom:9093/api/v2",
-		KubeconfigPath:  "",
-	},
-	"gce": {
-		Status:         "Critical alerts",
-		IsWKP:          true,
-		KubeconfigPath: os.Getenv("GCE_LEAF_KUBECONFIG"),
-	},
-	"eks": {
-		Status:          "Critical alerts",
-		IsWKP:           false,
-		AlertManagerURL: "http://acmeprom-kube-prometheus-s-alertmanager.default:9093/api/v2",
-		KubeconfigPath:  os.Getenv("EKS_LEAF_KUBECONFIG"),
-	},
-}
 
 func ClusterStatusFromList(clustersPage *pages.ClustersPage, clusterName string) *agouti.Selection {
 	return pages.FindClusterInList(clustersPage, clusterName).Status
