@@ -21,7 +21,7 @@ import {
   Status,
   statusSummary,
 } from '../Status';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { Button, theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -167,6 +167,13 @@ const ClusterRow = ({
               />
             </div>
           </Tooltip>
+        </TableCell>
+        <TableCell align="left">
+          <a target="_blank" rel="noreferrer" href={cluster.pullRequest?.url}>
+            <Button disabled={!cluster.pullRequest?.url} type="button">
+              VIEW REPO
+            </Button>
+          </a>
         </TableCell>
       </TableRow>
       <TableRow
