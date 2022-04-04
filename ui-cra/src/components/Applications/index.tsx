@@ -3,7 +3,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { AutomationsTable, useListAutomations, Automation } from '@weaveworks/weave-gitops';
+import { AutomationsTable, useListAutomations } from '@weaveworks/weave-gitops';
 
 const WGApplicationsDashboard: FC = () => {
   const { data: automations } = useListAutomations();
