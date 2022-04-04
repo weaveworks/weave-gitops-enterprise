@@ -14,6 +14,19 @@ const useStyles = makeStyles((theme: Theme) =>
     normalCell: {
       padding: theme.spacing(2),
     },
+   "severityIcon": {
+      fontSize: '14px',
+      marginRight:'4px',
+    },
+    "severityLow": {
+      color:'#DFD41B',
+    },
+  "severityMedium": {
+      color:'#FF7000',
+    },
+    "severityHigh":{
+      color:'#E2423B',
+    }
   }),
 );
 
@@ -22,25 +35,26 @@ interface RowProps {
 }
 
 const SeverityComponent = (severity: string) => {
+  const classes = useStyles();
   switch (severity.toLocaleLowerCase()) {
     case 'low':
       return (
         <div className="flex-start">
-          <CallReceived className="severity-icon severity-low" />
+          <CallReceived className={`${classes.severityIcon} ${classes.severityLow}`} />
           <span>{severity}</span>
         </div>
       );
     case 'high':
       return (
         <div className="flex-start">
-          <CallMade className="severity-icon severity-high" />
+          <CallMade className={`${classes.severityIcon} ${classes.severityHigh}`} />
           <span>{severity}</span>
         </div>
       );
     case 'medium':
       return (
         <div className="flex-start">
-          <Remove className="severity-icon severity-medium" />
+          <Remove className={`${classes.severityIcon} ${classes.severityMedium}`} />
           <span>{severity}</span>
         </div>
       );
