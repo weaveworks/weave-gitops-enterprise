@@ -6,7 +6,7 @@ import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { PolicyService } from './PolicyService';
 import { useState } from 'react';
-import { Policy } from '../../types/custom';
+import { Policy } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
 
 interface IPolicyResponse {

@@ -7,14 +7,13 @@ import {
   TableRow,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import React, { FC  } from 'react';
+import React, { FC } from 'react';
 import { ColumnHeaderTooltip } from '../../Shared';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
-
+import { Policy } from '../../../capi-server/capi_server.pb';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { Policy } from '../../../types/custom';
 import PolicyRow from './Row';
 
 const localMuiTheme = createTheme({
@@ -42,7 +41,6 @@ const useStyles = makeStyles(() =>
     },
     tableHead: {
       borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
-
     },
   }),
 );
@@ -64,7 +62,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
             ) : null}
             <TableHead className={classes.tableHead}>
               <TableRow>
-                <TableCell  align="left" >
+                <TableCell align="left">
                   <ColumnHeaderTooltip title="Name configured in management UI">
                     <span className={classes.headerCell}>Name</span>
                   </ColumnHeaderTooltip>
@@ -72,10 +70,10 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
                 <TableCell align="left">
                   <span className={classes.headerCell}>Category</span>
                 </TableCell>
-                <TableCell  align="left">
+                <TableCell align="left">
                   <span className={classes.headerCell}>Severity</span>
                 </TableCell>
-                <TableCell  align="left">
+                <TableCell align="left">
                   <span className={classes.headerCell}>Age</span>
                 </TableCell>
               </TableRow>

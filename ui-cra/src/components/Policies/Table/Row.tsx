@@ -1,9 +1,9 @@
 import { TableCell, TableRow, Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { CallReceived, CallMade, Remove } from '@material-ui/icons';
-
+import { Policy } from '../../../capi-server/capi_server.pb';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { Policy } from '../../../types/custom';
+
 import moment from 'moment';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -14,19 +14,19 @@ const useStyles = makeStyles((theme: Theme) =>
     normalCell: {
       padding: theme.spacing(2),
     },
-   "severityIcon": {
+    severityIcon: {
       fontSize: '14px',
-      marginRight:'4px',
+      marginRight: '4px',
     },
-    "severityLow": {
-      color:'#DFD41B',
+    severityLow: {
+      color: '#DFD41B',
     },
-  "severityMedium": {
-      color:'#FF7000',
+    severityMedium: {
+      color: '#FF7000',
     },
-    "severityHigh":{
-      color:'#E2423B',
-    }
+    severityHigh: {
+      color: '#E2423B',
+    },
   }),
 );
 
@@ -40,21 +40,27 @@ const SeverityComponent = (severity: string) => {
     case 'low':
       return (
         <div className="flex-start">
-          <CallReceived className={`${classes.severityIcon} ${classes.severityLow}`} />
+          <CallReceived
+            className={`${classes.severityIcon} ${classes.severityLow}`}
+          />
           <span>{severity}</span>
         </div>
       );
     case 'high':
       return (
         <div className="flex-start">
-          <CallMade className={`${classes.severityIcon} ${classes.severityHigh}`} />
+          <CallMade
+            className={`${classes.severityIcon} ${classes.severityHigh}`}
+          />
           <span>{severity}</span>
         </div>
       );
     case 'medium':
       return (
         <div className="flex-start">
-          <Remove className={`${classes.severityIcon} ${classes.severityMedium}`} />
+          <Remove
+            className={`${classes.severityIcon} ${classes.severityMedium}`}
+          />
           <span>{severity}</span>
         </div>
       );
