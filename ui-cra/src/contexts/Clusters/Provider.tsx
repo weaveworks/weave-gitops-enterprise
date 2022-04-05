@@ -97,7 +97,7 @@ const ClustersProvider: FC = ({ children }) => {
     [setNotifications],
   );
 
-  const { error, data } = useQuery(
+  const { error, data } = useQuery<{ data: any; total: number }, Error>(
     ['clusters', pageParams],
     () => fetchClusters(pageParams),
     {
@@ -111,7 +111,19 @@ const ClustersProvider: FC = ({ children }) => {
       setClusters(data.data.clusters);
       setCount(data.total);
     }
-  }, [data]);
+
+    if (
+      error &&
+      notifications?.some(
+        notification => error.message === notification.message,
+      ) === false
+    ) {
+      setNotifications([
+        ...notifications,
+        { message: error.message, variant: 'danger' },
+      ]);
+    }
+  }, [data, error, notifications, setNotifications]);
 
   return (
     <Clusters.Provider
