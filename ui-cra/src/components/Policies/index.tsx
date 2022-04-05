@@ -6,24 +6,19 @@ import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { PolicyService } from './PolicyService';
 import { useState } from 'react';
-import { Policy } from '../../capi-server/capi_server.pb';
+import { ListPoliciesResponse } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
-
-interface IPolicyResponse {
-  policies: Array<Policy>;
-  total: number;
-}
 
 const Policies = () => {
   const fetchPoliciesAPI = (payload: any = { page: 1, limit: 25 }) => {
-    return PolicyService.getPolicyList().then((res: IPolicyResponse) => {
+    return PolicyService.getPolicyList().then((res: ListPoliciesResponse) => {
       setCount(res.total);
       return res;
     });
   };
 
   const [fetchPolicies] = useState(() => fetchPoliciesAPI);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState<number | undefined>(0);
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
@@ -34,9 +29,9 @@ const Policies = () => {
         <ContentWrapper>
           <Title>Policies</Title>
           <LoadingError fetchFn={fetchPolicies}>
-            {({ value }: { value: IPolicyResponse }) => (
+            {({ value }: { value: ListPoliciesResponse }) => (
               <>
-                {value.total > 0 ? (
+                {value.total && value.total > 0 ? (
                   <PolicyTable policies={value.policies} />
                 ) : (
                   <div>No data to display</div>

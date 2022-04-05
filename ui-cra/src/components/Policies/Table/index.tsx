@@ -46,7 +46,7 @@ const useStyles = makeStyles(() =>
 );
 
 interface Props {
-  policies: Policy[] | null;
+  policies: Policy[] | undefined;
 }
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
