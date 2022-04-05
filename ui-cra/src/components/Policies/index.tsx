@@ -12,13 +12,13 @@ import LoadingError from '../LoadingError';
 const Policies = () => {
   const fetchPoliciesAPI = (payload: any = { page: 1, limit: 25 }) => {
     return PolicyService.getPolicyList().then((res: ListPoliciesResponse) => {
-      setCount(res.total);
+      res.total && setCount(res.total);
       return res;
     });
   };
 
   const [fetchPolicies] = useState(() => fetchPoliciesAPI);
-  const [count, setCount] = useState<number | undefined>(0);
+  const [count, setCount] = useState<number>(0);
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">

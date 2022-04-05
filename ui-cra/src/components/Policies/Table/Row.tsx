@@ -19,13 +19,13 @@ const useStyles = makeStyles((theme: Theme) =>
       marginRight: '4px',
     },
     severityLow: {
-      color: '#DFD41B',
+      color: weaveTheme.colors.primary,
     },
     severityMedium: {
-      color: '#FF7000',
+      color: '#8A460A',
     },
     severityHigh: {
-      color: '#E2423B',
+      color: '#9F3119',
     },
   }),
 );
