@@ -155,18 +155,13 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
+
+				// Force clean the repository directory for subsequent tests
+				cleanGitRepository(appPath)
 			})
 
 			It("@application @git Verify application's status and history can be monitored.", func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-
-				By("When I create a private repository for cluster configs", func() {
-					initAndCreateEmptyRepo(gitProviderEnv, true)
-				})
-
-				By("When I install gitops/wego to my active cluster", func() {
-					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
-				})
 
 				By("And I add the kustomization file for application deployment", func() {
 					pullGitRepo(repoAbsolutePath)
