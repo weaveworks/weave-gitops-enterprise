@@ -11,7 +11,7 @@ terraform {
     }
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0.0"
+      version = "~> 4.8.0"
     }
   }
 
@@ -22,11 +22,24 @@ variable "project" {
   description = "GCP project id"
 }
 
-variable "region" {
+variable "gcp_region" {
   description = "GCP project region"
+}
+
+variable "aws_region" {
+  description = "AWS region"
 }
 
 provider "google" {
   project = var.project
-  region = var.region
+  region = var.gcp_region
+}
+
+provider "google-beta" {
+  project = var.project
+  region = var.gcp_region
+}
+
+provider "aws" {  
+  region = var.aws_region
 }

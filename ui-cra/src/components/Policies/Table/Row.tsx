@@ -1,9 +1,9 @@
 import { TableCell, TableRow, Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { CallReceived, CallMade, Remove } from '@material-ui/icons';
-
+import { Policy } from '../../../capi-server/capi_server.pb';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { Policy } from '../../../types/custom';
+
 import moment from 'moment';
 import { Link } from 'react-router-dom';
 
@@ -18,7 +18,20 @@ const useStyles = makeStyles((theme: Theme) =>
     link: {
       color: weaveTheme.colors.primary,
       fontWeight:600
-    }
+    },
+    severityIcon: {
+      fontSize: '14px',
+      marginRight: '4px',
+    },
+    severityLow: {
+      color: weaveTheme.colors.primary,
+    },
+    severityMedium: {
+      color: '#8A460A',
+    },
+    severityHigh: {
+      color: '#9F3119',
+    },
   }),
 );
 
@@ -27,25 +40,32 @@ interface RowProps {
 }
 
 const SeverityComponent = (severity: string) => {
+  const classes = useStyles();
   switch (severity.toLocaleLowerCase()) {
     case 'low':
       return (
         <div className="flex-start">
-          <CallReceived className="severity-icon severity-low" />
+          <CallReceived
+            className={`${classes.severityIcon} ${classes.severityLow}`}
+          />
           <span>{severity}</span>
         </div>
       );
     case 'high':
       return (
         <div className="flex-start">
-          <CallMade className="severity-icon severity-high" />
+          <CallMade
+            className={`${classes.severityIcon} ${classes.severityHigh}`}
+          />
           <span>{severity}</span>
         </div>
       );
     case 'medium':
       return (
         <div className="flex-start">
-          <Remove className="severity-icon severity-medium" />
+          <Remove
+            className={`${classes.severityIcon} ${classes.severityMedium}`}
+          />
           <span>{severity}</span>
         </div>
       );

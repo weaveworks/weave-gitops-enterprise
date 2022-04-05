@@ -112,10 +112,6 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 		Eventually(clustersPage.SupportEmailLink).Should(BeVisible())
 		Eventually(clustersPage.ClusterCount).Should(MatchText(`[0-9]+`))
 		Eventually(clustersPage.ClustersListSection).Should(BeFound())
-		time.Sleep(POLL_INTERVAL_1SECONDS) // Sometimes UI took bit longer to update the cluster count
-		count, _ = clustersPage.ClusterCount.Text()
-		tmpCount, _ := strconv.Atoi(count)
-		expectedCount = strconv.Itoa(tmpCount + 1)
 	})
 
 	By("When I click Connect a cluster button", func() {
@@ -130,6 +126,13 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 	By("And I enter the cluster name and ingress url", func() {
 		_ = clusterConnectionPage.ClusterName.SendKeys(clusterName)
 		_ = clusterConnectionPage.ClusterIngressURL.SendKeys("https://google.com")
+	})
+
+	By("And cluster count before adding new cluster entery", func() {
+		time.Sleep(POLL_INTERVAL_1SECONDS) // Sometimes UI took bit longer to update the cluster count
+		count, _ = clustersPage.ClusterCount.Text()
+		tmpCount, _ := strconv.Atoi(count)
+		expectedCount = strconv.Itoa(tmpCount + 1)
 	})
 
 	By("And I click SAVE & NEXT button", func() {
