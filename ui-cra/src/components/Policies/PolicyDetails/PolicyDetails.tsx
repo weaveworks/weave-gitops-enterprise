@@ -7,9 +7,9 @@ import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 
 import { PolicyService } from './../PolicyService';
 import { useState } from 'react';
-import { Policy } from '../../../types/custom';
 import LoadingError from '../../LoadingError';
 import { useParams } from 'react-router-dom';
+import { Policy } from '../../../capi-server/capi_server.pb';
 
 interface IPolicyDetailsResponse {
   policy: Policy;
@@ -21,7 +21,7 @@ const PolicyDetails = () => {
 
   const fetchPoliciesAPI = () =>
     PolicyService.getPolicyById(id).then((res: IPolicyDetailsResponse) => {
-      setName(res.policy.name);
+      res.policy.name && setName(res.policy.name);
       return res;
     });
 

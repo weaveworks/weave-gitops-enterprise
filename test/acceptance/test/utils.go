@@ -153,7 +153,10 @@ func InstallWeaveGitopsControllers() {
 	Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
 
 	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
-		logger.Info("No need to install Weave gitops controllers, managemnt cluster is already configured and setup.")
+		repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+		initAndCreateEmptyRepo(gitProviderEnv, true)
+		installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+		logger.Info("No need to install Weave gitops enterprise controllers, managemnt cluster is already configured and setup.")
 
 	} else {
 		logger.Info("Installing Weave gitops controllers on to management cluster along with respective configurations and setting such as config repo creation etc.")
@@ -311,20 +314,32 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")
 }
 
-func ShowItems(itemType string) error {
+func ShowItems(itemType string) {
 	if itemType != "" {
-		return runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+		_ = runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
-	err := runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
-	if err != nil {
-		return fmt.Errorf("failed to get all resources %s", err)
-	}
-	return runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
+	_ = runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	_ = runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
 }
 
-func DumpClusterInfo(testName string) error {
-	scriptPath := path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "dump-cluster-info.sh")
-	return runCommandPassThrough(scriptPath, testName, path.Join(artifacts_base_dir, "cluster-info"))
+func DumpClusterInfo(testName string) {
+	logsPath := "/tmp/dumped-cluster-logs"
+	archiveLogsPath := path.Join(artifacts_base_dir, "cluster-info")
+	archivedPath := path.Join(archiveLogsPath, testName+".tar.gz")
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, logsPath, archiveLogsPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl cluster-info dump --all-namespaces --output-directory %s`, logsPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, logsPath, archivedPath))
+}
+
+func DumpConfigRepo(testName string) {
+	repoPath := "/tmp/config-repo"
+	archiveRepoPath := path.Join(artifacts_base_dir, "config-repo")
+	archivedPath := path.Join(archiveRepoPath, testName+".tar.gz")
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, repoPath, archiveRepoPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone https://%s/%s/%s.git %s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo, repoPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, repoPath, archivedPath))
 }
 
 func getDownloadedKubeconfigPath(clusterName string) string {
