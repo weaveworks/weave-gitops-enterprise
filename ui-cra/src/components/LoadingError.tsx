@@ -3,6 +3,7 @@ import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Refresh } from '@material-ui/icons';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import Alert from '@material-ui/lab/Alert';
+import styled from 'styled-components';
 
 export interface ILoadingError {
   fetchFn: () => Promise<any>;
@@ -20,6 +21,18 @@ const useStyles = makeStyles(() =>
     },
   }),
 );
+
+const FlexCenter = styled.div`
+  display: flex;
+  lign-items: center;
+  justify-content: center;
+`;
+
+const FlexStart = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: start;
+`;
 
 const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
   const classes = useStyles();
@@ -57,14 +70,14 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
   return (
     <>
       {loading && (
-        <div className="flex-center">
+        <FlexCenter>
           <LoadingPage />
-        </div>
+        </FlexCenter>
       )}
       {!loading && error && (
         <div>
           <Alert severity="error">
-            <div className="flex-start">
+            <FlexStart>
               {errorMessage}
               <span
                 onClick={() => fetchLoad(fetchFn())}
@@ -72,7 +85,7 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
               >
                 <Refresh />
               </span>
-            </div>
+            </FlexStart>
           </Alert>
         </div>
       )}

@@ -5,6 +5,7 @@ import { Policy } from '../../../capi-server/capi_server.pb';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 import moment from 'moment';
+import styled from 'styled-components';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -30,6 +31,12 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
+const FlexStart = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: start;
+`;
+
 interface RowProps {
   policy: Policy;
 }
@@ -39,30 +46,33 @@ const SeverityComponent = (severity: string) => {
   switch (severity.toLocaleLowerCase()) {
     case 'low':
       return (
-        <div className="flex-start">
+        <FlexStart>
+          {' '}
           <CallReceived
             className={`${classes.severityIcon} ${classes.severityLow}`}
           />
           <span>{severity}</span>
-        </div>
+        </FlexStart>
       );
     case 'high':
       return (
-        <div className="flex-start">
+        <FlexStart>
+          {' '}
           <CallMade
             className={`${classes.severityIcon} ${classes.severityHigh}`}
           />
           <span>{severity}</span>
-        </div>
+        </FlexStart>
       );
     case 'medium':
       return (
-        <div className="flex-start">
+        <FlexStart>
+          {' '}
           <Remove
             className={`${classes.severityIcon} ${classes.severityMedium}`}
           />
           <span>{severity}</span>
-        </div>
+        </FlexStart>
       );
   }
 };

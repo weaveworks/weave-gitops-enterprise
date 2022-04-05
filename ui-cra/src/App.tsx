@@ -57,16 +57,6 @@ const GlobalStyle = createGlobalStyle`
   a {
     text-decoration: none;
   }
-  .flex-center{
-    display:flex;
-    lign-items: center;
-    justify-content: center;
-  }
-  .flex-start{
-    display:flex;
-    align-items: center;
-    justify-content: start;
-  }
 `;
 
 const App: FC = () => {
