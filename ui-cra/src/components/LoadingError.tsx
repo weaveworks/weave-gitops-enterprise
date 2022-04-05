@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Refresh } from '@material-ui/icons';
 import { createStyles, makeStyles } from '@material-ui/styles';
@@ -6,7 +6,7 @@ import Alert from '@material-ui/lab/Alert';
 import styled from 'styled-components';
 
 export interface ILoadingError {
-  fetchFn: () => Promise<any>;
+  requestInfo: RequestInfo;
   children?: any;
 }
 
@@ -34,17 +34,24 @@ const FlexStart = styled.div`
   justify-content: start;
 `;
 
-const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
-  const classes = useStyles();
+export interface RequestInfo {
+  loading: boolean;
+  error: boolean;
+  errorMessage: string;
+  data: any;
+  retry: () => Promise<any>;
+}
+
+export const useRequest = (fetchFn: () => Promise<any>): RequestInfo => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [data, setData] = useState<any>();
 
-  const fetchLoad = (fn: Promise<any>) => {
+  const fetchLoad = useCallback(() => {
     setLoading(true);
     setError(false);
-    return fn
+    return fetchFn()
       .then(res => {
         setData(res);
       })
@@ -55,18 +62,26 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
       .finally(() => {
         setLoading(false);
       });
-  };
+  }, [fetchFn]);
 
   useEffect(() => {
     setLoading(true);
     setError(false);
-    fetchLoad(fetchFn());
+    fetchLoad();
 
     return () => {
       setData(null);
     };
-  }, [fetchFn]);
+  }, [fetchLoad]);
 
+  return { retry: fetchLoad, error, errorMessage, data, loading };
+};
+
+const LoadingError: React.FC<any> = ({
+  children,
+  requestInfo: { error, errorMessage, loading, retry },
+}: ILoadingError) => {
+  const classes = useStyles();
   return (
     <>
       {loading && (
@@ -79,17 +94,14 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
           <Alert severity="error">
             <FlexStart>
               {errorMessage}
-              <span
-                onClick={() => fetchLoad(fetchFn())}
-                className={classes.retry}
-              >
+              <span onClick={retry} className={classes.retry}>
                 <Refresh />
               </span>
             </FlexStart>
           </Alert>
         </div>
       )}
-      {!loading && !error && children({ value: data })}
+      {!loading && !error && children}
     </>
   );
 };
