@@ -39,13 +39,13 @@ const ClustersProvider: FC = ({ children }) => {
 
   const clustersBaseUrl = '/gitops/api/clusters';
 
-  const fetchClusters = (page: number, perPage: number) =>
+  const fetchClusters = (pageParams: { page: number; perPage: number }) =>
     requestWithCountHeader(
       'GET',
       clustersBaseUrl +
         `?sortBy=${orderBy}&order=${order.toUpperCase()}&page=${
-          page + 1
-        }&per_page=${perPage}`,
+          pageParams.page + 1
+        }&per_page=${pageParams.perPage}`,
       {
         cache: 'no-store',
       },
@@ -98,8 +98,8 @@ const ClustersProvider: FC = ({ children }) => {
   );
 
   const { error, data } = useQuery(
-    ['clusters', pageParams.page, pageParams.perPage],
-    () => fetchClusters(pageParams.page, pageParams.perPage),
+    ['clusters', pageParams],
+    () => fetchClusters(pageParams),
     {
       keepPreviousData: true,
       refetchInterval: CLUSTERS_POLL_INTERVAL,
@@ -109,7 +109,7 @@ const ClustersProvider: FC = ({ children }) => {
   useEffect(() => {
     if (data) {
       setClusters(data.data.clusters);
-      setCount(data.data.total);
+      setCount(data.total);
     }
   }, [data]);
 
