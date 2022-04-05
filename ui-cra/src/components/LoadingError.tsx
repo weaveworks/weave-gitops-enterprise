@@ -9,20 +9,17 @@ export interface ILoadingError {
   children?: any;
 }
 
-
 const useStyles = makeStyles(() =>
   createStyles({
-    retry :{
-    marginLeft: '4px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    retry: {
+      marginLeft: '4px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-  })
-  );
-
-
+  }),
+);
 
 const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
   const classes = useStyles();
@@ -32,8 +29,8 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
   const [data, setData] = useState<any>();
 
   const fetchLoad = (fn: Promise<any>) => {
-    setLoading(loading => (loading = true));
-    setError(err => (err = false));
+    setLoading(true);
+    setError(false);
     return fn
       .then(res => {
         setData(res);
@@ -43,12 +40,12 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
         setError(true);
       })
       .finally(() => {
-        setLoading(loading => (loading = false));
+        setLoading(false);
       });
   };
 
   useEffect(() => {
-    setLoading(loading => (loading = true));
+    setLoading(true);
     setError(false);
     fetchLoad(fetchFn());
 
@@ -60,23 +57,23 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
   return (
     <>
       {loading && (
-        <div className="flex-center" >
+        <div className="flex-center">
           <LoadingPage />
         </div>
       )}
       {!loading && error && (
         <div>
-
-      <Alert severity="error" > 
-        <div className="flex-start">
-        {errorMessage}
-              <span onClick={() => fetchLoad(fetchFn())} className={classes.retry}>
+          <Alert severity="error">
+            <div className="flex-start">
+              {errorMessage}
+              <span
+                onClick={() => fetchLoad(fetchFn())}
+                className={classes.retry}
+              >
                 <Refresh />
-              </span>   
-          </div>
-        </Alert>
-   
-     
+              </span>
+            </div>
+          </Alert>
         </div>
       )}
       {!loading && !error && children({ value: data })}

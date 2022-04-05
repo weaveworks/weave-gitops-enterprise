@@ -2,7 +2,6 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { CallbackStateContextProvider } from '@weaveworks/weave-gitops';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { PolicyService } from './PolicyService';
@@ -28,26 +27,24 @@ const Policies = () => {
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
-        <CallbackStateContextProvider>
-          <SectionHeader
-            className="count-header"
-            path={[{ label: 'Policies', url: 'policies', count }]}
-          />
-          <ContentWrapper>
-            <Title>Policies</Title>
-            <LoadingError fetchFn={fetchPolicies}>
-              {({ value }: { value: IPolicyResponse }) => (
-                <>
-                  {value.total > 0 ? (
-                    <PolicyTable policies={value.policies} />
-                  ) : (
-                    <div>No data to display</div>
-                  )}
-                </>
-              )}
-            </LoadingError>
-          </ContentWrapper>
-        </CallbackStateContextProvider>
+        <SectionHeader
+          className="count-header"
+          path={[{ label: 'Policies', url: 'policies', count }]}
+        />
+        <ContentWrapper>
+          <Title>Policies</Title>
+          <LoadingError fetchFn={fetchPolicies}>
+            {({ value }: { value: IPolicyResponse }) => (
+              <>
+                {value.total > 0 ? (
+                  <PolicyTable policies={value.policies} />
+                ) : (
+                  <div>No data to display</div>
+                )}
+              </>
+            )}
+          </LoadingError>
+        </ContentWrapper>
       </PageTemplate>
     </ThemeProvider>
   );
