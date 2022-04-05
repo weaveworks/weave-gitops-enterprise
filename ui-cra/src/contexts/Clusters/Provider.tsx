@@ -1,7 +1,7 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
+import { useQuery } from 'react-query';
 import { Cluster } from '../../types/kubernetes';
 import { request, requestWithCountHeader } from '../../utils/request';
-import { useInterval } from '../../utils/use-interval';
 import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
@@ -11,8 +11,6 @@ const CLUSTERS_POLL_INTERVAL = 5000;
 const ClustersProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(false);
-  const [abortController, setAbortController] =
-    useState<AbortController | null>(null);
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [order, setOrder] = useState<string>('asc');
   const [orderBy, setOrderBy] = useState<string>('ClusterStatus');
@@ -40,41 +38,18 @@ const ClustersProvider: FC = ({ children }) => {
   };
 
   const clustersBaseUrl = '/gitops/api/clusters';
-  const clustersParameters = `?sortBy=${orderBy}&order=${order.toUpperCase()}&page=${
-    pageParams.page + 1
-  }&per_page=${pageParams.perPage}`;
 
-  const fetchClusters = useCallback(() => {
-    abortController?.abort();
-
-    const newAbortController = new AbortController();
-    setAbortController(newAbortController);
-    requestWithCountHeader('GET', clustersBaseUrl + clustersParameters, {
-      cache: 'no-store',
-      signal: newAbortController.signal,
-    })
-      .then(res => {
-        setCount(res.total);
-        setClusters(res.data.clusters);
-      })
-      .catch(err => {
-        if (
-          err.name !== 'AbortError' &&
-          notifications?.some(
-            notification => err.message === notification.message,
-          ) === false
-        ) {
-          setNotifications([
-            ...notifications,
-            { message: err.message, variant: 'danger' },
-          ]);
-        }
-      })
-      .finally(() => {
-        setDisabled(false);
-        setAbortController(null);
-      });
-  }, [abortController, clustersParameters, notifications, setNotifications]);
+  const fetchClusters = (page: number, perPage: number) =>
+    requestWithCountHeader(
+      'GET',
+      clustersBaseUrl +
+        `?sortBy=${orderBy}&order=${order.toUpperCase()}&page=${
+          page + 1
+        }&per_page=${perPage}`,
+      {
+        cache: 'no-store',
+      },
+    ).finally(() => setDisabled(false));
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
@@ -122,12 +97,21 @@ const ClustersProvider: FC = ({ children }) => {
     [setNotifications],
   );
 
-  useInterval(() => fetchClusters(), CLUSTERS_POLL_INTERVAL, true, [
-    order,
-    orderBy,
-    pageParams.page,
-    pageParams.perPage,
-  ]);
+  const { error, data } = useQuery(
+    ['clusters', pageParams.page, pageParams.perPage],
+    () => fetchClusters(pageParams.page, pageParams.perPage),
+    {
+      keepPreviousData: true,
+      refetchInterval: CLUSTERS_POLL_INTERVAL,
+    },
+  );
+
+  useEffect(() => {
+    if (data) {
+      setClusters(data.data.clusters);
+      setCount(data.data.total);
+    }
+  }, [data]);
 
   return (
     <Clusters.Provider
