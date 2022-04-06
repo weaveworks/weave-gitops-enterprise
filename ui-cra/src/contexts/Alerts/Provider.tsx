@@ -18,7 +18,7 @@ const AlertsProvider: FC = ({ children }) => {
       cache: 'no-store',
     });
 
-  const { error, data } = useQuery<{ data: { alerts: Alert[] } }, Error>(
+  const { error, data } = useQuery<{ alerts: Alert[] }, Error>(
     'alerts',
     () => fetchAlerts(),
     {
@@ -28,7 +28,7 @@ const AlertsProvider: FC = ({ children }) => {
 
   useEffect(() => {
     if (data) {
-      setAlerts(data.data.alerts);
+      setAlerts(data.alerts);
     }
     if (
       error &&
