@@ -14,57 +14,57 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func getPolicyParamDefaultValue(param policiesv1.PolicyParameters, policyID string) (*anypb.Any, error) {
-	if param.Default == nil {
+func getPolicyParamValue(param policiesv1.PolicyParameters, policyID string) (*anypb.Any, error) {
+	if param.Value == nil {
 		return nil, nil
 	}
-	var defaultAny *any.Any
+	var anyValue *any.Any
 	var err error
 	switch param.Type {
 	case "string":
-		value := wrapperspb.String(string(param.Default.Raw))
-		defaultAny, err = anypb.New(value)
+		value := wrapperspb.String(string(param.Value.Raw))
+		anyValue, err = anypb.New(value)
 	case "integer":
-		intValue, convErr := strconv.Atoi(string(param.Default.Raw))
+		intValue, convErr := strconv.Atoi(string(param.Value.Raw))
 		if convErr != nil {
 			err = convErr
 			break
 		}
 		value := wrapperspb.Int32(int32(intValue))
-		defaultAny, err = anypb.New(value)
+		anyValue, err = anypb.New(value)
 	case "boolean":
-		boolValue, convErr := strconv.ParseBool(string(param.Default.Raw))
+		boolValue, convErr := strconv.ParseBool(string(param.Value.Raw))
 		if convErr != nil {
 			err = convErr
 			break
 		}
 		value := wrapperspb.Bool(boolValue)
-		defaultAny, err = anypb.New(value)
+		anyValue, err = anypb.New(value)
 	case "array":
 		var arrayValue []string
-		convErr := json.Unmarshal(param.Default.Raw, &arrayValue)
+		convErr := json.Unmarshal(param.Value.Raw, &arrayValue)
 		if convErr != nil {
 			err = convErr
 			break
 		}
 		value := &capiv1_proto.PolicyParamRepeatedString{Value: arrayValue}
-		defaultAny, err = anypb.New(value)
+		anyValue, err = anypb.New(value)
 	default:
 		return nil, fmt.Errorf("found unsupported policy parameter type %s in policy %s", param.Type, policyID)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize parameter default value %s in policy %s: %w", param.Name, policyID, err)
+		return nil, fmt.Errorf("failed to serialize parameter value %s in policy %s: %w", param.Name, policyID, err)
 	}
-	return defaultAny, nil
+	return anyValue, nil
 }
 
 func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error) {
 	policySpec := policyCRD.Spec
 
 	var policyLabels []*capiv1_proto.PolicyTargetLabel
-	for i := range policySpec.Targets.Label {
+	for i := range policySpec.Targets.Labels {
 		policyLabels = append(policyLabels, &capiv1_proto.PolicyTargetLabel{
-			Values: policySpec.Targets.Label[i],
+			Values: policySpec.Targets.Labels[i],
 		})
 	}
 
@@ -75,11 +75,11 @@ func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 			Required: param.Required,
 			Type:     param.Type,
 		}
-		defaultValue, err := getPolicyParamDefaultValue(param, policySpec.ID)
+		value, err := getPolicyParamValue(param, policySpec.ID)
 		if err != nil {
 			return nil, err
 		}
-		policyParam.Default = defaultValue
+		policyParam.Value = value
 		policyParams = append(policyParams, policyParam)
 	}
 	policy := &capiv1_proto.Policy{
@@ -93,8 +93,8 @@ func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 		Severity:    policySpec.Severity,
 		Controls:    policySpec.Controls,
 		Targets: &capiv1_proto.PolicyTargets{
-			Kinds:      policySpec.Targets.Kind,
-			Namespaces: policySpec.Targets.Namespace,
+			Kinds:      policySpec.Targets.Kinds,
+			Namespaces: policySpec.Targets.Namespaces,
 			Labels:     policyLabels,
 		},
 		Parameters: policyParams,
