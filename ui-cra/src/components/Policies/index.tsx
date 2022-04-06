@@ -5,19 +5,24 @@ import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { PolicyService } from './PolicyService';
-import { useCallback } from 'react';
+import { useState } from 'react';
 import { ListPoliciesResponse } from '../../capi-server/capi_server.pb';
-import LoadingError, { useRequest } from '../LoadingError';
+import LoadingError from '../LoadingError';
 
 const Policies = () => {
-  const fetchPolicies = useCallback(
-    (payload: any = { page: 1, limit: 25 }) => PolicyService.getPolicyList(),
-    [],
-  );
+  const fetchPoliciesAPI = (payload: any = { page: 1, limit: 25 }) => {
+    return PolicyService.getPolicyList(payload).then((res: any) => {
+      res.total && setCount(res.total);
+      return res;
+    });
+  };
 
-  const requestInfo = useRequest(fetchPolicies);
-  const data = requestInfo.data as ListPoliciesResponse;
-  const count = data ? data.total : 0;
+  const [fetchPolicies, setFetchPolicies] = useState(() => fetchPoliciesAPI);
+  const [count, setCount] = useState<number>(0);
+
+  const updatePayload = () => {
+    setFetchPolicies(() => ()=> fetchPoliciesAPI({ page: 1, limit: 21 }));
+  };
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
@@ -26,12 +31,16 @@ const Policies = () => {
           path={[{ label: 'Policies', url: 'policies', count }]}
         />
         <ContentWrapper>
-          <Title >Policies</Title>
-          <LoadingError requestInfo={requestInfo}>
-            {data?.total! > 0 ? (
-              <PolicyTable policies={data.policies} />
-            ) : (
-              <div>No data to display</div>
+          <Title onClick={updatePayload}>Policies</Title>
+          <LoadingError fetchFn={fetchPolicies}>
+            {({ value }: { value: ListPoliciesResponse }) => (
+              <>
+                {value.total && value.total > 0 ? (
+                  <PolicyTable policies={value.policies} />
+                ) : (
+                  <div>No data to display</div>
+                )}
+              </>
             )}
           </LoadingError>
         </ContentWrapper>

@@ -6,8 +6,8 @@ import { CallbackStateContextProvider } from '@weaveworks/weave-gitops';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 
 import { PolicyService } from './../PolicyService';
-import { useCallback, useState } from 'react';
-import LoadingError, { useRequest } from '../../LoadingError';
+import { useState } from 'react';
+import LoadingError from '../../LoadingError';
 import HeaderSection from './HeaderSection';
 import { useParams } from 'react-router-dom';
 import { GetPolicyResponse } from '../../../capi-server/capi_server.pb';
@@ -15,17 +15,14 @@ import { GetPolicyResponse } from '../../../capi-server/capi_server.pb';
 const PolicyDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [name, setName] = useState('');
+  const fetchPoliciesAPI = () =>
+    PolicyService.getPolicyById(id).then((res: GetPolicyResponse) => {
+      res.policy?.name && setName(res.policy.name);
+      return res;
+    });
 
-  const fetchPoliciesAPI = useCallback(
-    () =>
-      PolicyService.getPolicyById(id).then((res: GetPolicyResponse) => {
-        res.policy?.name && setName(res.policy.name);
-        return res;
-      }),
-    [id],
-  );
+  const [fetchPolicyById] = useState(() => fetchPoliciesAPI);
 
-  const requestInfo = useRequest(fetchPoliciesAPI);
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
@@ -39,7 +36,7 @@ const PolicyDetails = () => {
           />
           <ContentWrapper>
             <Title>{name}</Title>
-            <LoadingError requestInfo={requestInfo}>
+            <LoadingError fetchFn={fetchPolicyById}>
               {({ value: { policy } }: { value: GetPolicyResponse }) => (
                 <>
                   <HeaderSection
