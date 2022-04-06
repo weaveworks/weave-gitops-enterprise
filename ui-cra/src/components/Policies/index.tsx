@@ -17,12 +17,9 @@ const Policies = () => {
     });
   };
 
-  const [fetchPolicies, setFetchPolicies] = useState(() => fetchPoliciesAPI);
+  const [fetchPolicies] = useState(() => fetchPoliciesAPI);
   const [count, setCount] = useState<number>(0);
 
-  const updatePayload = () => {
-    setFetchPolicies(() => ()=> fetchPoliciesAPI({ page: 1, limit: 21 }));
-  };
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
@@ -31,7 +28,7 @@ const Policies = () => {
           path={[{ label: 'Policies', url: 'policies', count }]}
         />
         <ContentWrapper>
-          <Title onClick={updatePayload}>Policies</Title>
+          <Title>Policies</Title>
           <LoadingError fetchFn={fetchPolicies}>
             {({ value }: { value: ListPoliciesResponse }) => (
               <>

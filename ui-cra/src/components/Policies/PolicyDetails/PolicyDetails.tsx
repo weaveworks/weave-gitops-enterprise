@@ -45,6 +45,8 @@ const PolicyDetails = () => {
                     severity={policy?.severity}
                     category={policy?.category}
                     targets={policy?.targets}
+                    description={policy?.description}
+                    howToSolve={policy?.howToSolve}
                   ></HeaderSection>
                 </>
               )}

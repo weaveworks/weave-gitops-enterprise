@@ -24,10 +24,24 @@ const useStyles = makeStyles(() =>
       fontWeight: 400,
       fontSize: '11px',
     },
+    codeWrapper: {
+      background: '#F8FAFA',
+      borderRadius: '4px',
+      padding: '10px 16px',
+      marginLeft:0,
+    },
   }),
 );
 
-function HeaderSection({ id, tags, severity, category, targets }: Policy) {
+function HeaderSection({
+  id,
+  tags,
+  severity,
+  category,
+  targets,
+  description,
+  howToSolve
+}: Policy) {
   const classes = useStyles();
   return (
     <>
@@ -58,6 +72,19 @@ function HeaderSection({ id, tags, severity, category, targets }: Policy) {
             {kind}
           </span>
         ))}
+      </div>
+
+      <div>
+        <span className={classes.cardTitle}>Description</span>
+        <p className={`${classes.body1} ${classes.codeWrapper}`}>
+          {description}
+        </p>
+      </div>
+      <div>
+        <span className={classes.cardTitle}>How To Resolve</span>
+        <p className={`${classes.body1} ${classes.codeWrapper}`}>
+          {howToSolve}
+        </p>
       </div>
     </>
   );
