@@ -9,19 +9,83 @@ import { PolicyService } from './../PolicyService';
 import { useState } from 'react';
 import LoadingError from '../../LoadingError';
 import { useParams } from 'react-router-dom';
-import { Policy } from '../../../capi-server/capi_server.pb';
+import { GetPolicyResponse, Policy } from '../../../capi-server/capi_server.pb';
+import { createStyles, makeStyles } from '@material-ui/styles';
 
-interface IPolicyDetailsResponse {
-  policy: Policy;
-}
+const useStyles = makeStyles(() =>
+  createStyles({
+    cardTitle: {
+      fontWeight: 700,
+      fontSize: '14px',
+      color: '#737373',
+      marginBottom:'12px'
+    },
+    body1: {
+      fontWeight: 400,
+      fontSize: '14px',
+      color: '#1A1A1A',
+      marginLeft: '8px',
+    },
+    chip: {
+      background: 'rgba(10, 57, 64, 0.06)',
+      borderRadius: '2px',
+      padding: '2px 8px',
+      marginLeft: '8px',
+      fontWeight: 400,
+      fontSize: '11px',
+    },
+  }),
+);
+
+// Move to separate file => PolicyDetailsHeaderSection
+const HeaderSection = ({ id, tags, severity, category, targets }: Policy) => {
+  const classes = useStyles();
+  return (
+    <>
+      <div>
+        <span className={classes.cardTitle}>Policy ID:</span>
+        <span className={classes.body1}>{id}</span>
+      </div>
+      <div>
+        <span className={classes.cardTitle}>Tags:</span>
+        {tags?.map(tag => (
+          <span key={tag} className={classes.chip}>
+            {tag}
+          </span>
+        ))}
+      </div>
+      <div>
+        <span className={classes.cardTitle}>Severity:</span>
+        <span className={classes.body1}>{severity}</span>
+      </div>
+      <div>
+        <span className={classes.cardTitle}>Category:</span>
+        <span className={classes.body1}>{category}</span>
+      </div>
+      <div>
+        <span className={classes.cardTitle}>Targeted K8s Kind:</span>
+        {targets?.kinds?.map(kind => (
+          <span key={kind} className={classes.chip}>
+            {kind}
+          </span>
+        ))}
+      </div>
+    </>
+  );
+};
 
 const PolicyDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [name, setName] = useState('');
 
   const fetchPoliciesAPI = () =>
+<<<<<<< HEAD
     PolicyService.getPolicyById(id).then((res: IPolicyDetailsResponse) => {
       res.policy.name && setName(res.policy.name);
+=======
+    PolicyService.getPolicyById(id).then((res: GetPolicyResponse) => {
+      res.policy?.name && setName(res.policy.name);
+>>>>>>> bd1682cf6a525f8341bcf306fb2766870170340d
       return res;
     });
 
@@ -41,8 +105,16 @@ const PolicyDetails = () => {
           <ContentWrapper>
             <Title>{name}</Title>
             <LoadingError fetchFn={fetchPolicyById}>
-              {({ value }: { value: IPolicyDetailsResponse }) => (
-                <>{console.log(value)}</>
+              {({ value: { policy } }: { value: GetPolicyResponse }) => (
+                <>
+                  <HeaderSection
+                    id={policy?.id}
+                    tags={policy?.tags}
+                    severity={policy?.severity}
+                    category={policy?.category}
+                    targets={policy?.targets}
+                  />
+                </>
               )}
             </LoadingError>
           </ContentWrapper>
