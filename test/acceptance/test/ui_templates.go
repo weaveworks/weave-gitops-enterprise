@@ -1,11 +1,13 @@
 package acceptance
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"path"
 	"sort"
@@ -29,28 +31,42 @@ type TemplateField struct {
 // Wait until we get a good looking response from /v1/profiles
 // Ignore all errors (connection refused, 500s etc)
 func waitForProfiles(ctx context.Context, timeout time.Duration) error {
+	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
 	waitCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
+		jar, _ := cookiejar.New(&cookiejar.Options{})
 		client := http.Client{
 			Timeout: 5 * time.Second,
+			Jar:     jar,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
 		}
-		resp, err := client.Get(test_ui_url + "/v1/profiles")
+		// login to fetch cookie
+		resp, err := client.Post(test_ui_url+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"password":"%s"}`, adminPassword))))
 		if err != nil {
 			return false, nil
 		}
 		if resp.StatusCode != http.StatusOK {
 			return false, nil
 		}
+		// fetch profiles
+		resp, err = client.Get(test_ui_url + "/v1/profiles")
+		if err != nil {
+			return false, nil
+		}
+		if resp.StatusCode != http.StatusOK {
+			return false, nil
+		}
+
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return false, nil
 		}
 		bodyString := string(bodyBytes)
+
 		return strings.Contains(bodyString, `"profiles":`), nil
 	}, waitCtx.Done())
 }
@@ -94,6 +110,21 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 			}
 		})
 	}
+}
+
+func selectCredentials(createPage *pages.CreateCluster, credentialName string, credentialCount int) {
+	selectCredential := func() bool {
+		Eventually(createPage.Credentials.Click).Should(Succeed())
+		// Credentials are not filtered for selected template
+		if cnt, _ := pages.GetCredentials(webDriver).Count(); cnt > 0 {
+			Eventually(pages.GetCredentials(webDriver).Count).Should(Equal(credentialCount), fmt.Sprintf(`Credentials count in the cluster should be '%d' including 'None`, credentialCount))
+			Expect(pages.GetCredential(webDriver, credentialName).Click()).To(Succeed())
+		}
+
+		credentialText, _ := createPage.Credentials.Text()
+		return strings.Contains(credentialText, credentialName)
+	}
+	Eventually(selectCredential, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
 }
 
 func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
@@ -666,12 +697,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then no infrastructure provider identity can be selected", func() {
-
-					Expect(createPage.Credentials.Click()).To(Succeed())
-					Expect(pages.GetCredentials(webDriver).Count()).Should(Equal(1), "Credentials count in the cluster should be '0'' excluding 'None'")
-
-					Expect(pages.GetCredential(webDriver, "None").Click()).To(Succeed())
-
+					selectCredentials(createPage, "None", 1)
 				})
 			})
 		})
@@ -713,16 +739,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then AWS test-role-identity credential can be selected", func() {
-					selectCredential := func() bool {
-						Eventually(createPage.Credentials.Click).Should(Succeed())
-						// Credentials are not filtered for selected template
-						Eventually(pages.GetCredentials(webDriver).Count).Should(Equal(4), "Credentials count in the cluster should be '4' including 'None")
-						Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
-
-						credentialText, _ := createPage.Credentials.Text()
-						return strings.Contains(credentialText, "test-role-identity")
-					}
-					Eventually(selectCredential, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
+					selectCredentials(createPage, "test-role-identity", 4)
 				})
 
 				// AWS template parameter values
@@ -845,10 +862,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then AWS aws-test-identity credential can be selected", func() {
-
-					Expect(createPage.Credentials.Click()).To(Succeed())
-					// FIXME - credentials may or may no be filtered
-					Expect(pages.GetCredential(webDriver, "test-role-identity").Click()).To(Succeed())
+					selectCredentials(createPage, "aws-test-identity", 3)
 				})
 
 				// Azure template parameter values
