@@ -54,7 +54,7 @@ const SeverityComponent = (severity: string) => {
           <CallReceived
             className={`${classes.severityIcon} ${classes.severityLow}`}
           />
-          <span className={`${classes.severityName}`}>{severity}</span>
+          <span className={classes.severityName}>{severity}</span>
         </FlexStart>
       );
     case 'high':
@@ -64,7 +64,7 @@ const SeverityComponent = (severity: string) => {
           <CallMade
             className={`${classes.severityIcon} ${classes.severityHigh}`}
           />
-          <span className={`${classes.severityName}`}>{severity}</span>
+          <span className={classes.severityName}>{severity}</span>
         </FlexStart>
       );
     case 'medium':
@@ -74,7 +74,7 @@ const SeverityComponent = (severity: string) => {
           <Remove
             className={`${classes.severityIcon} ${classes.severityMedium}`}
           />
-          <span className={`${classes.severityName}`}>{severity}</span>
+          <span className={classes.severityName}>{severity}</span>
         </FlexStart>
       );
   }
