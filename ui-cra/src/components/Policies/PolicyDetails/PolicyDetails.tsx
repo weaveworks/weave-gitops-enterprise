@@ -18,7 +18,7 @@ const useStyles = makeStyles(() =>
       fontWeight: 700,
       fontSize: '14px',
       color: '#737373',
-      marginBottom:'12px'
+      marginBottom: '12px',
     },
     body1: {
       fontWeight: 400,
@@ -79,13 +79,8 @@ const PolicyDetails = () => {
   const [name, setName] = useState('');
 
   const fetchPoliciesAPI = () =>
-<<<<<<< HEAD
-    PolicyService.getPolicyById(id).then((res: IPolicyDetailsResponse) => {
-      res.policy.name && setName(res.policy.name);
-=======
     PolicyService.getPolicyById(id).then((res: GetPolicyResponse) => {
       res.policy?.name && setName(res.policy.name);
->>>>>>> bd1682cf6a525f8341bcf306fb2766870170340d
       return res;
     });
 

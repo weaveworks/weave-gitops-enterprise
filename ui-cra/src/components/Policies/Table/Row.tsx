@@ -15,13 +15,6 @@ const useStyles = makeStyles((theme: Theme) =>
     normalCell: {
       padding: theme.spacing(2),
     },
-<<<<<<< HEAD
-=======
-    link: {
-      color: weaveTheme.colors.primary,
-      fontWeight:600
-    },
->>>>>>> bd1682cf6a525f8341bcf306fb2766870170340d
     severityIcon: {
       fontSize: '14px',
       marginRight: '4px',
