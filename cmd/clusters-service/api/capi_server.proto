@@ -318,8 +318,8 @@ message PolicyParamRepeatedString {
 message PolicyParam {
   string name = 1;
   string type = 2;
-  // default is a generic value that can be a string, int, bool and array of strings
-  google.protobuf.Any default = 3;
+  // value is a generic value that can be a string, int, bool and array of strings
+  google.protobuf.Any value = 3;
   bool required = 4;
 }
 

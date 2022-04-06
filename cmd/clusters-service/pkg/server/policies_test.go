@@ -31,7 +31,7 @@ func TestListPolicies(t *testing.T) {
 			clusterState: []runtime.Object{
 				makePolicy(t),
 				makePolicy(t, func(p *policiesv1.Policy) {
-					p.ObjectMeta.Name = "magalix.policies.missing-app-label"
+					p.ObjectMeta.Name = "weave.policies.missing-app-label"
 					p.Spec.Name = "Missing app Label"
 					p.Spec.Severity = "medium"
 				}),
@@ -77,9 +77,9 @@ func TestListPolicies(t *testing.T) {
 						t.Fatal(err)
 					}
 					p.Spec.Parameters = append(p.Spec.Parameters, policiesv1.PolicyParameters{
-						Name:    "key",
-						Type:    "string",
-						Default: &apiextensionsv1.JSON{Raw: strBytes},
+						Name:  "key",
+						Type:  "string",
+						Value: &apiextensionsv1.JSON{Raw: strBytes},
 					})
 				}),
 			},
@@ -99,9 +99,9 @@ func TestListPolicies(t *testing.T) {
 						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Parameters: []*capi_server.PolicyParam{
 							{
-								Name:    "key",
-								Type:    "string",
-								Default: getAnyValue(t, "string", `"value"`),
+								Name:  "key",
+								Type:  "string",
+								Value: getAnyValue(t, "string", `"value"`),
 							},
 						},
 					},
@@ -118,9 +118,9 @@ func TestListPolicies(t *testing.T) {
 						t.Fatal(err)
 					}
 					p.Spec.Parameters = append(p.Spec.Parameters, policiesv1.PolicyParameters{
-						Name:    "key",
-						Type:    "integer",
-						Default: &apiextensionsv1.JSON{Raw: intBytes},
+						Name:  "key",
+						Type:  "integer",
+						Value: &apiextensionsv1.JSON{Raw: intBytes},
 					})
 				}),
 			},
@@ -140,9 +140,9 @@ func TestListPolicies(t *testing.T) {
 						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Parameters: []*capi_server.PolicyParam{
 							{
-								Name:    "key",
-								Type:    "integer",
-								Default: getAnyValue(t, "integer", int32(1)),
+								Name:  "key",
+								Type:  "integer",
+								Value: getAnyValue(t, "integer", int32(1)),
 							},
 						},
 					},
@@ -159,9 +159,9 @@ func TestListPolicies(t *testing.T) {
 						t.Fatal(err)
 					}
 					p.Spec.Parameters = append(p.Spec.Parameters, policiesv1.PolicyParameters{
-						Name:    "key",
-						Type:    "boolean",
-						Default: &apiextensionsv1.JSON{Raw: boolBytes},
+						Name:  "key",
+						Type:  "boolean",
+						Value: &apiextensionsv1.JSON{Raw: boolBytes},
 					})
 				}),
 			},
@@ -181,9 +181,9 @@ func TestListPolicies(t *testing.T) {
 						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Parameters: []*capi_server.PolicyParam{
 							{
-								Name:    "key",
-								Type:    "boolean",
-								Default: getAnyValue(t, "boolean", false),
+								Name:  "key",
+								Type:  "boolean",
+								Value: getAnyValue(t, "boolean", false),
 							},
 						},
 					},
@@ -200,9 +200,9 @@ func TestListPolicies(t *testing.T) {
 						t.Fatal(err)
 					}
 					p.Spec.Parameters = append(p.Spec.Parameters, policiesv1.PolicyParameters{
-						Name:    "key",
-						Type:    "array",
-						Default: &apiextensionsv1.JSON{Raw: sliceBytes},
+						Name:  "key",
+						Type:  "array",
+						Value: &apiextensionsv1.JSON{Raw: sliceBytes},
 					})
 				}),
 			},
@@ -222,9 +222,9 @@ func TestListPolicies(t *testing.T) {
 						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
 						Parameters: []*capi_server.PolicyParam{
 							{
-								Name:    "key",
-								Type:    "array",
-								Default: getAnyValue(t, "array", []string{"value"}),
+								Name:  "key",
+								Type:  "array",
+								Value: getAnyValue(t, "array", []string{"value"}),
 							},
 						},
 					},
@@ -241,9 +241,9 @@ func TestListPolicies(t *testing.T) {
 						t.Fatal(err)
 					}
 					p.Spec.Parameters = append(p.Spec.Parameters, policiesv1.PolicyParameters{
-						Name:    "key",
-						Type:    "invalid",
-						Default: &apiextensionsv1.JSON{Raw: strBytes},
+						Name:  "key",
+						Type:  "invalid",
+						Value: &apiextensionsv1.JSON{Raw: strBytes},
 					})
 				}),
 			},
@@ -301,7 +301,7 @@ func TestGetPolicy(t *testing.T) {
 	}{
 		{
 			name:        "get policy",
-			policy_name: "magalix.policies.missing-owner-label",
+			policy_name: "weave.policies.missing-owner-label",
 			clusterState: []runtime.Object{
 				makePolicy(t),
 			},
@@ -323,8 +323,8 @@ func TestGetPolicy(t *testing.T) {
 		},
 		{
 			name:        "policy not found",
-			policy_name: "magalix.policies.not-found",
-			err:         errors.New("error while getting policy magalix.policies.not-found: policies.magalix.com \"magalix.policies.not-found\" not found"),
+			policy_name: "weave.policies.not-found",
+			err:         errors.New("error while getting policy weave.policies.not-found: policies.pac.weave.works \"weave.policies.not-found\" not found"),
 		},
 	}
 	for _, tt := range tests {
