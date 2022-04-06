@@ -97,21 +97,19 @@ const ClustersProvider: FC = ({ children }) => {
     [setNotifications],
   );
 
-  const { error, data } = useQuery<{ data: any; total: number }, Error>(
-    ['clusters', pageParams],
-    () => fetchClusters(pageParams),
-    {
-      keepPreviousData: true,
-      refetchInterval: CLUSTERS_POLL_INTERVAL,
-    },
-  );
+  const { error, data } = useQuery<
+    { data: { clusters: Cluster[] }; total: number },
+    Error
+  >(['clusters', pageParams], () => fetchClusters(pageParams), {
+    keepPreviousData: true,
+    refetchInterval: CLUSTERS_POLL_INTERVAL,
+  });
 
   useEffect(() => {
     if (data) {
       setClusters(data.data.clusters);
       setCount(data.total);
     }
-
     if (
       error &&
       notifications?.some(

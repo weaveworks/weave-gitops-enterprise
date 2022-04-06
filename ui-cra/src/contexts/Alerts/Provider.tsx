@@ -18,7 +18,7 @@ const AlertsProvider: FC = ({ children }) => {
       cache: 'no-store',
     });
 
-  const { error, data } = useQuery<{ data: any }, Error>(
+  const { error, data } = useQuery<{ data: { alerts: Alert[] } }, Error>(
     'alerts',
     () => fetchAlerts(),
     {
@@ -30,7 +30,6 @@ const AlertsProvider: FC = ({ children }) => {
     if (data) {
       setAlerts(data.data.alerts);
     }
-
     if (
       error &&
       notifications?.some(
