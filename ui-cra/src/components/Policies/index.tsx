@@ -26,9 +26,9 @@ const Policies = () => {
           path={[{ label: 'Policies', url: 'policies', count }]}
         />
         <ContentWrapper>
-          <Title>Policies</Title>
+          <Title >Policies</Title>
           <LoadingError requestInfo={requestInfo}>
-            {data && data.total && data.total > 0 ? (
+            {data?.total! > 0 ? (
               <PolicyTable policies={data.policies} />
             ) : (
               <div>No data to display</div>
