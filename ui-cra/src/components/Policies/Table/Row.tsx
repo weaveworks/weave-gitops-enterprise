@@ -28,6 +28,9 @@ const useStyles = makeStyles((theme: Theme) =>
     severityHigh: {
       color: '#9F3119',
     },
+    severityName: {
+      textTransform: 'capitalize',
+    },
   }),
 );
 
@@ -51,7 +54,7 @@ const SeverityComponent = (severity: string) => {
           <CallReceived
             className={`${classes.severityIcon} ${classes.severityLow}`}
           />
-          <span>{severity}</span>
+          <span className={`${classes.severityName}`}>{severity}</span>
         </FlexStart>
       );
     case 'high':
@@ -61,7 +64,7 @@ const SeverityComponent = (severity: string) => {
           <CallMade
             className={`${classes.severityIcon} ${classes.severityHigh}`}
           />
-          <span>{severity}</span>
+          <span className={`${classes.severityName}`}>{severity}</span>
         </FlexStart>
       );
     case 'medium':
@@ -71,7 +74,7 @@ const SeverityComponent = (severity: string) => {
           <Remove
             className={`${classes.severityIcon} ${classes.severityMedium}`}
           />
-          <span>{severity}</span>
+          <span className={`${classes.severityName}`}>{severity}</span>
         </FlexStart>
       );
   }
