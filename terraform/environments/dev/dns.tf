@@ -44,3 +44,11 @@ resource "aws_route53_record" "dex_01_ingress" {
   ttl     = "300"
   records = ["35.228.83.196"]
 }
+
+resource "aws_route53_record" "charts_ingress" {
+  zone_id = local.zone_id
+  name    = "charts"
+  type    = "A"
+  ttl     = "300"
+  records = ["35.228.83.196"]
+}
