@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/golang/protobuf/ptypes/any"
 	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
@@ -98,7 +99,7 @@ func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 			Labels:     policyLabels,
 		},
 		Parameters: policyParams,
-		CreatedAt:  policyCRD.CreationTimestamp.UTC().String(),
+		CreatedAt:  policyCRD.CreationTimestamp.Format(time.RFC3339),
 	}
 
 	return policy, nil
