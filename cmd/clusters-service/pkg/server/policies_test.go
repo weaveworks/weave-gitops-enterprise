@@ -42,7 +42,7 @@ func TestListPolicies(t *testing.T) {
 						Name:      "Missing app Label",
 						Severity:  "medium",
 						Code:      "foo",
-						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
+						CreatedAt: "0001-01-01T00:00:00Z",
 						Targets: &capiv1_proto.PolicyTargets{
 							Labels: []*capi_server.PolicyTargetLabel{
 								{
@@ -55,7 +55,7 @@ func TestListPolicies(t *testing.T) {
 						Name:      "Missing Owner Label",
 						Severity:  "high",
 						Code:      "foo",
-						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
+						CreatedAt: "0001-01-01T00:00:00Z",
 						Targets: &capiv1_proto.PolicyTargets{
 							Labels: []*capi_server.PolicyTargetLabel{
 								{
@@ -96,7 +96,7 @@ func TestListPolicies(t *testing.T) {
 								},
 							},
 						},
-						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
+						CreatedAt: "0001-01-01T00:00:00Z",
 						Parameters: []*capi_server.PolicyParam{
 							{
 								Name:  "key",
@@ -137,7 +137,7 @@ func TestListPolicies(t *testing.T) {
 								},
 							},
 						},
-						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
+						CreatedAt: "0001-01-01T00:00:00Z",
 						Parameters: []*capi_server.PolicyParam{
 							{
 								Name:  "key",
@@ -178,7 +178,7 @@ func TestListPolicies(t *testing.T) {
 								},
 							},
 						},
-						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
+						CreatedAt: "0001-01-01T00:00:00Z",
 						Parameters: []*capi_server.PolicyParam{
 							{
 								Name:  "key",
@@ -219,7 +219,7 @@ func TestListPolicies(t *testing.T) {
 								},
 							},
 						},
-						CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
+						CreatedAt: "0001-01-01T00:00:00Z",
 						Parameters: []*capi_server.PolicyParam{
 							{
 								Name:  "key",
@@ -317,7 +317,7 @@ func TestGetPolicy(t *testing.T) {
 							},
 						},
 					},
-					CreatedAt: "0001-01-01 00:00:00 +0000 UTC",
+					CreatedAt: "0001-01-01T00:00:00Z",
 				},
 			},
 		},
