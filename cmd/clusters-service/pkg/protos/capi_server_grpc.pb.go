@@ -28,6 +28,7 @@ type ClustersServiceClient interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
+	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
@@ -94,6 +95,15 @@ func (c *clustersServiceClient) ListTemplateProfiles(ctx context.Context, in *Li
 func (c *clustersServiceClient) RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error) {
 	out := new(RenderTemplateResponse)
 	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/RenderTemplate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error) {
+	out := new(ListGitopsClustersResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/ListGitopsClusters", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +195,7 @@ type ClustersServiceServer interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
+	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
@@ -223,6 +234,9 @@ func (UnimplementedClustersServiceServer) ListTemplateProfiles(context.Context, 
 }
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
+}
+func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGitopsClusters not implemented")
 }
 func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
@@ -347,6 +361,24 @@ func _ClustersService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).RenderTemplate(ctx, req.(*RenderTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_ListGitopsClusters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGitopsClustersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListGitopsClusters(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/ListGitopsClusters",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListGitopsClusters(ctx, req.(*ListGitopsClustersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -521,6 +553,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenderTemplate",
 			Handler:    _ClustersService_RenderTemplate_Handler,
+		},
+		{
+			MethodName: "ListGitopsClusters",
+			Handler:    _ClustersService_ListGitopsClusters_Handler,
 		},
 		{
 			MethodName: "CreatePullRequest",

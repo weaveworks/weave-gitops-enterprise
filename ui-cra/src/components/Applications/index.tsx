@@ -3,10 +3,12 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { Applications } from '@weaveworks/weave-gitops';
+import { AutomationsTable, useListAutomations } from '@weaveworks/weave-gitops';
 
 const WGApplicationsDashboard: FC = () => {
+  const { data: automations } = useListAutomations();
   const applicationsCount = useApplicationsCount();
+
   return (
     <PageTemplate documentTitle="WeGO · Applications">
       <SectionHeader
@@ -19,7 +21,7 @@ const WGApplicationsDashboard: FC = () => {
         ]}
       />
       <ContentWrapper type="WG">
-        <Applications />
+        <AutomationsTable automations={automations} />
       </ContentWrapper>
     </PageTemplate>
   );

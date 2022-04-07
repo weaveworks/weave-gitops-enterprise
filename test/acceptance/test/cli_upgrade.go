@@ -62,14 +62,17 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[CLI] When Wego core is installed in the cluster", func() {
-			var current_context string
-			var public_ip string
+			var currentConfigRepo string
+			var currentContext string
+			var publicIP string
 			kind_upgrade_cluster_name := "test-upgrade"
 
 			templateFiles := []string{}
 
 			JustBeforeEach(func() {
-				current_context, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+				currentContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+				currentConfigRepo = gitProviderEnv.Repo
+				gitProviderEnv.Repo = "upgrade-" + currentConfigRepo
 
 				// Create vanilla cluster for WGE upgrade
 				createCluster("kind", kind_upgrade_cluster_name, "upgrade-kind-config.yaml")
@@ -81,7 +84,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 				templateFiles = []string{}
 
-				err := runCommandPassThrough("kubectl", "config", "use-context", current_context)
+				deleteRepo(gitProviderEnv)              // Delete the upgrade config repository to keep the org clean
+				gitProviderEnv.Repo = currentConfigRepo // Revert to original config repository for subsequent tests
+				err := runCommandPassThrough("kubectl", "config", "use-context", currentContext)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				deleteClusters("kind", []string{kind_upgrade_cluster_name})
@@ -129,13 +134,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should update/modify the default upgrade manifest ", func() {
-					public_ip = clusterWorkloadNonePublicIP("KIND")
+					publicIP = clusterWorkloadNonePublicIP("KIND")
 				})
 
 				prBranch := "wego-upgrade-enterprise"
 				version := "0.0.19"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
-					natsURL := public_ip + ":" + NATS_NODEPORT
+					natsURL := publicIP + ":" + NATS_NODEPORT
 					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is nopt supported for capi cluster PR creation.
 					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s' --set 'nginx-ingress-controller.service.type=NodePort' --set 'nginx-ingress-controller.service.nodePorts.http=%s' ",
 						gitops_bin_path, version, prBranch, getGitRepositoryURL(repoAbsolutePath), gitProviderEnv.Type, gitProviderEnv.Hostname, natsURL, NATS_NODEPORT, UI_NODEPORT)

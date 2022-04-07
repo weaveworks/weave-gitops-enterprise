@@ -163,14 +163,14 @@ func makePolicy(t *testing.T, opts ...func(p *policiesv1.Policy)) *policiesv1.Po
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "magalix.policies.missing-owner-label",
+			Name: "weave.policies.missing-owner-label",
 		},
 		Spec: policiesv1.PolicySpec{
 			Name:     "Missing Owner Label",
 			Severity: "high",
 			Code:     "foo",
 			Targets: policiesv1.PolicyTargets{
-				Label: []map[string]string{{"my-label": "my-value"}},
+				Labels: []map[string]string{{"my-label": "my-value"}},
 			},
 		},
 	}

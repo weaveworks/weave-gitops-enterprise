@@ -17,6 +17,34 @@
   ],
   "paths": {
     "/v1/clusters": {
+      "get": {
+        "operationId": "ClustersService_ListGitopsClusters",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListGitopsClustersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "label",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      },
       "delete": {
         "operationId": "ClustersService_DeleteClustersPullRequest",
         "responses": {
@@ -625,6 +653,32 @@
         }
       }
     },
+    "v1GitopsCluster": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
     "v1ListCredentialsResponse": {
       "type": "object",
       "properties": {
@@ -632,6 +686,21 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Credential"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListGitopsClustersResponse": {
+      "type": "object",
+      "properties": {
+        "gitopsClusters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1GitopsCluster"
           }
         },
         "total": {
@@ -786,9 +855,9 @@
         "type": {
           "type": "string"
         },
-        "default": {
+        "value": {
           "$ref": "#/definitions/protobufAny",
-          "title": "default is a generic value that can be a string, int, bool and array of strings"
+          "title": "value is a generic value that can be a string, int, bool and array of strings"
         },
         "required": {
           "type": "boolean"

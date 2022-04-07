@@ -74,7 +74,7 @@ func TestFlavours_with_error_cases(t *testing.T) {
 		errMsg      string
 	}{
 		{"invalid yaml", "badtemplates1", "failed to parse: failed to unmarshal badtemplates1/0.0.1/bad_template.yaml: error converting YAML to JSON: yaml: cannot decode !!str `error` as a !!float"},
-		{"invalid params", "badtemplates2", "failed to get params from template: processing template: bad substitution"},
+		{"invalid params", "badtemplates2", "failed to get params from template: processing template: missing closing brace"},
 	}
 
 	for _, tt := range errorTests {

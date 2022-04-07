@@ -62,7 +62,7 @@ func TestParseTemplateMeta_bad_parameter(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = ParseTemplateMeta(parsed)
-	assert.EqualError(t, err, "failed to get parameters processing template: bad substitution")
+	assert.EqualError(t, err, "failed to get parameters processing template: missing closing brace")
 }
 
 func readFixture(t *testing.T, fname string) []byte {

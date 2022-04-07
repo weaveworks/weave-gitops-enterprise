@@ -20,8 +20,9 @@ func GomegaFail(message string, callerSkip ...int) {
 	}
 
 	// Show management cluster pods etc.
-	_ = ShowItems("")
-	_ = DumpClusterInfo(randID)
+	ShowItems("")
+	DumpClusterInfo(randID)
+	DumpConfigRepo(randID)
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)

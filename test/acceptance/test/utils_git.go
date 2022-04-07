@@ -128,18 +128,6 @@ func configRepoAbsolutePath(gp GitProviderEnv) string {
 	return path.Join(os.Getenv("HOME"), gp.Repo)
 }
 
-func getRepoVisibility(gp GitProviderEnv) string {
-	gitProvider, orgRef, err := getGitProvider(gp.Type, gp.Org, gp.Repo, gp.Token, gp.TokenType, gp.Hostname)
-	Expect(err).ShouldNot(HaveOccurred())
-
-	orgInfo, err := gitProvider.OrgRepositories().Get(context.Background(), orgRef)
-	Expect(err).ShouldNot(HaveOccurred())
-
-	visibility := string(*orgInfo.Get().Visibility)
-
-	return visibility
-}
-
 func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
 	repoAbsolutePath := configRepoAbsolutePath(gp)
 
@@ -339,7 +327,7 @@ func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 		commitMessage = "edit repo file"
 	}
 
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m '%s' && git pull --rebase && git push origin HEAD", repoAbsolutePath, commitMessage))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cd %s && git add -u && git add -A && git commit -m '%s' && git push", repoAbsolutePath, commitMessage))
 }
 
 func getGitRepositoryURL(repoAbsolutePath string) string {
@@ -348,10 +336,19 @@ func getGitRepositoryURL(repoAbsolutePath string) string {
 }
 
 func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
-	stdOut, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git checkout -b %s && git push --set-upstream origin %s`, repoAbsolutePath, branchName, branchName), ASSERTION_30SECONDS_TIME_OUT)
+	stdOut, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git checkout -b %s && git push --set-upstream origin %s && git checkout main`, repoAbsolutePath, branchName, branchName), ASSERTION_30SECONDS_TIME_OUT)
 	return stdOut
 }
 
 func pullGitRepo(repoAbsolutePath string) {
-	_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git pull`, repoAbsolutePath), ASSERTION_30SECONDS_TIME_OUT)
+	_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git pull --rebase`, repoAbsolutePath), ASSERTION_30SECONDS_TIME_OUT)
+}
+
+func cleanGitRepository(subDirName string) {
+	repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+	logger.Infof("Deleting directory %s from repo: %s", subDirName, repoAbsolutePath)
+
+	pullGitRepo(repoAbsolutePath)
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("rm -rf %s", path.Join(repoAbsolutePath, subDirName)))
+	gitUpdateCommitPush(repoAbsolutePath, "")
 }
