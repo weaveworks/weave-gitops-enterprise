@@ -74,12 +74,15 @@ on:
       BUILD_BOT_USER:
         description: "Build bot user name"
         required: true
+      WGE_CLUSTER_ADMIN_PASSWORD:
+        description: "Cluster user admin password"
+        required: true
       WGE_CLUSTER_ADMIN_PASSWORD_HASH:
         description: "Cluster user admin password hash"
-        required: false
+        required: true
       WGE_DEX_CLIENT_SECRET:
         description: "client credential secret for OIDC (dex)"
-        required: false
+        required: true
       BUILD_BOT_PERSONAL_ACCESS_TOKEN:
         description: "Build obt personal access token"
         required: true
@@ -141,10 +144,11 @@ on:
 env:
   GO_CACHE_NAME: cache-go-modules
   LOGIN_USER_TYPE: ${{ inputs.login_user_type }}
+  CLUSTER_ADMIN_PASSWORD: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}
   CLUSTER_ADMIN_PASSWORD_HASH: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}
   OIDC_ISSUER_URL: https://dex-01.wge.dev.weave.works
   DEX_CLIENT_ID: weave-gitops-enterprise
-  DEX_CLIENT_SECRET: ${{ secrets.WGE_WGE_DEX_CLIENT_SECRET }}
+  DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
   GIT_PROVIDER: ${{ inputs.git-provider }}
   GIT_PROVIDER_HOSTNAME: ${{ inputs.git-provider_hostname }}
   GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
