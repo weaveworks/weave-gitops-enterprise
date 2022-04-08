@@ -3,29 +3,46 @@ package acceptance
 import (
 	"fmt"
 
+	"github.com/fluxcd/go-git-providers/gitlab"
 	. "github.com/onsi/gomega"
 	. "github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-var loginUserName string
-
 const (
-	EnableUserLogin   = false
-	AdminUserName     = "admin"
-	AdminUserPassword = "wego-enterprise"
-	ClusterUserLogin  = "cluster-user"
-	OidcUserLogin     = "oidc"
+	AdminUserName    = "admin"
+	ClusterUserLogin = "cluster-user"
+	OidcUserLogin    = "oidc"
 )
 
-func loginUser(userType string) {
+type UserCredentials struct {
+	UserType     string
+	UserName     string
+	UserPassword string
+}
+
+func initUserCredentials() UserCredentials {
+	userCredentials := UserCredentials{
+		UserType:     GetEnv("LOGIN_USER_TYPE", ClusterUserLogin),
+		UserName:     AdminUserName,
+		UserPassword: GetEnv("CLUSTER_ADMIN_PASSWORD", ""),
+	}
+
+	if userCredentials.UserType == OidcUserLogin {
+		userCredentials.UserName = gitProviderEnv.Username
+		userCredentials.UserPassword = gitProviderEnv.Password
+	}
+	return userCredentials
+}
+
+func loginUser() {
 	loginPage := pages.GetLoginPage(webDriver)
 	Eventually(loginPage.LoginOIDC).Should(BeVisible())
 
-	switch userType {
+	switch userCredentials.UserType {
 	case ClusterUserLogin:
 		// Login via cluster user account
-		Expect(loginPage.Password.SendKeys(AdminUserPassword)).To(Succeed())
+		Expect(loginPage.Password.SendKeys(userCredentials.UserPassword)).To(Succeed())
 		Expect(loginPage.Continue.Click()).To(Succeed())
 	case OidcUserLogin:
 		// Login via OIDC provider
@@ -40,8 +57,8 @@ func loginUser(userType string) {
 
 			if pages.ElementExist(authenticate.Username) {
 				Eventually(authenticate.Username).Should(BeVisible())
-				Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
-				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
+				Expect(authenticate.Username.SendKeys(userCredentials.UserName)).To(Succeed())
+				Expect(authenticate.Password.SendKeys(userCredentials.UserPassword)).To(Succeed())
 				Expect(authenticate.Signin.Click()).To(Succeed())
 			}
 
@@ -56,20 +73,24 @@ func loginUser(userType string) {
 		case GitProviderGitLab:
 			Eventually(dexLogin.GitlabOnPrem.Click).Should(Succeed())
 
-			authenticate := pages.AuthenticateWithGitlab(webDriver)
+			var authenticate *pages.AuthenticateGitlab
+			if gitProviderEnv.Hostname == gitlab.DefaultDomain {
+				authenticate = pages.AuthenticateWithGitlab(webDriver)
+			} else {
+				authenticate = pages.AuthenticateWithOnPremGitlab(webDriver)
+			}
 			if pages.ElementExist(authenticate.Username) {
 				Eventually(authenticate.Username).Should(BeVisible())
-				Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
-				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
+				Expect(authenticate.Username.SendKeys(userCredentials.UserName)).To(Succeed())
+				Expect(authenticate.Password.SendKeys(userCredentials.UserPassword)).To(Succeed())
 				Expect(authenticate.Signin.Click()).To(Succeed())
 			}
-
 			Eventually(dexLogin.GrantAccess.Click).Should(Succeed())
 		default:
 			Expect(fmt.Errorf("error: Provided oidc issuer '%s' is not supported", gitProviderEnv.Type))
 		}
 	default:
-		Expect(fmt.Errorf("error: Provided login type '%s' is not supported", userType))
+		Expect(fmt.Errorf("error: Provided login type '%s' is not supported", userCredentials.UserType))
 	}
 
 	Eventually(loginPage.AccountSettings.Click).Should(Succeed())
@@ -77,7 +98,7 @@ func loginUser(userType string) {
 	Eventually(account.User.Click).Should(Succeed())
 }
 
-func logoutUser(authenticationType string) {
+func logoutUser() {
 	loginPage := pages.GetLoginPage(webDriver)
 
 	if pages.ElementExist(loginPage.AccountSettings) {

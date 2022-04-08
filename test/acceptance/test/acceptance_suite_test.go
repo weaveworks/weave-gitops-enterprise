@@ -40,7 +40,8 @@ func TestAcceptance(t *testing.T) {
 	// Runs the UI tests
 	DescribeSpecsUi(RealGitopsTestRunner{})
 	// Runs the CLI tests
-	DescribeSpecsCli(RealGitopsTestRunner{})
+	// FIXME: CLI acceptances are disabled due to authentication not being supported
+	// DescribeSpecsCli(RealGitopsTestRunner{})
 
 	RunSpecs(t, "Weave GitOps Enterprise Acceptance Tests")
 
@@ -53,27 +54,18 @@ var _ = BeforeSuite(func() {
 	InstallWeaveGitopsControllers()                         // Install weave gitops core and enterprise controllers
 	InitializeWebdriver(test_ui_url)                        // Initilize web driver for whole test suite run
 
-	if EnableUserLogin {
-		loginUserName := AdminUserName
-		if login_user_type == OidcUserLogin {
-			loginUserName = gitProviderEnv.Username
-		}
-
-		By(fmt.Sprintf("Login %s user as: %s", login_user_type, loginUserName), func() {
-			loginUser(login_user_type) // Login to the weaveworks enterprise
-		})
-	}
+	By(fmt.Sprintf("Login as a %s user", userCredentials.UserType), func() {
+		loginUser() // Login to the weaveworks enterprise
+	})
 
 	CheckClusterService(capi_endpoint_url) // Cluster service should be running before running any test for enterprise
 })
 
 var _ = AfterSuite(func() {
 	//Tear down the suite level setup
-	if EnableUserLogin {
-		By(fmt.Sprintf("Logout %s user as: %s", login_user_type, loginUserName), func() {
-			logoutUser(login_user_type) // Login to the weaveworks enterprise
-		})
-	}
+	By(fmt.Sprintf("Logout as a %s user", userCredentials.UserType), func() {
+		logoutUser() // Logout to the weaveworks enterprise
+	})
 
 	deleteRepo(gitProviderEnv) // Delete the config repository to keep the org clean
 	if webDriver != nil {

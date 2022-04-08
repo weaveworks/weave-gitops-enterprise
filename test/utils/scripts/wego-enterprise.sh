@@ -105,7 +105,7 @@ function setup {
   #  Create client credential secret for OIDC (dex)
   kubectl create secret generic client-credentials \
   --namespace wego-system \
-  --from-literal=clientId=${DEX_CLIENT_ID} \
+  --from-literal=clientID=${DEX_CLIENT_ID} \
   --from-literal=clientSecret=${DEX_CLIENT_SECRET}
 
   # Install weave gitops core controllers
@@ -132,10 +132,10 @@ function setup {
   helmArgs+=( --set "config.capi.repositoryPath=./management" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
-  # helmArgs+=( --set "config.oidc.enabled=true" )
-  # helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
-  # helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
-  # helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
+  helmArgs+=( --set "config.oidc.enabled=true" )
+  helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
+  helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
+  helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
 
   if [ ${ACCEPTANCE_TESTS_DATABASE_TYPE} == "postgres" ]; then
     # Create postgres DB
@@ -160,6 +160,9 @@ function setup {
   fi
 
   helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system ${helmArgs[@]}
+
+  # Install RBAC for user authentication
+   kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
 
   # Install capi infrastructure provider
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
