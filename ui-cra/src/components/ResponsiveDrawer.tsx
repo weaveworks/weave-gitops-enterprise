@@ -27,6 +27,7 @@ import {
   SignIn,
   FeatureFlagsContextProvider,
   V2Routes,
+  applicationsClient,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
@@ -64,7 +65,6 @@ function withName(Cmp: any) {
     return <Cmp {...rest} name={params.name as string} />;
   };
 }
-
 
 const drawerWidth = 220;
 
@@ -145,6 +145,10 @@ const ResponsiveDrawer = () => {
     </PageTemplate>
   );
 
+  const WGAppProvider: React.FC = props => (
+    <AppContextProvider applicationsClient={applicationsClient} {...props} />
+  );
+
   const App = () => (
     <Compose
       components={[
@@ -153,6 +157,7 @@ const ResponsiveDrawer = () => {
         ClustersProvider,
         AlertsProvider,
         VersionsProvider,
+        WGAppProvider,
       ]}
     >
       <div className={classes.root}>
