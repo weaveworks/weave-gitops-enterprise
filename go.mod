@@ -56,7 +56,7 @@ require (
 	github.com/spf13/viper v1.10.1
 	github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
-	github.com/weaveworks/policy-agent/api v1.0.1
+	github.com/weaveworks/policy-agent/api v1.0.2
 	github.com/xanzy/go-gitlab v0.54.3
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8

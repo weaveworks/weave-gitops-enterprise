@@ -103,6 +103,11 @@ export const Navigation: FC = () => {
             Applications
           </NavItem>
         </Box>
+        <Box className={classes.section}>
+          <NavItem className={classes.bold} to="/policies">
+            Policies
+          </NavItem>
+        </Box>
       </Box>
     </>
   );
