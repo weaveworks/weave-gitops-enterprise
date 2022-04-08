@@ -3,11 +3,14 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { KustomizationDetail, useGetKustomization } from '@weaveworks/weave-gitops';
+import {
+  KustomizationDetail,
+  useGetKustomization,
+} from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
-}
+};
 
 const WGApplicationsKustomization: FC<Props> = ({ name }) => {
   const applicationsCount = useApplicationsCount();
