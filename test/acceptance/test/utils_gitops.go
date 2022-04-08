@@ -286,7 +286,6 @@ func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string, profiles
 		case "observability":
 			Expect(waitForResource("deploy", capiCluster+"-observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 			Expect(waitForResource("deploy", capiCluster+"-observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
-			Expect(waitForResource("deploy", capiCluster+"-operator", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 			waitForResourceState("Ready", "true", "pods", namespace, "release="+capiCluster+"-observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "podinfo":
 			Expect(waitForResource("deploy", capiCluster+"-podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))

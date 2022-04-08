@@ -64,7 +64,8 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	//Tear down the suite level setup
 	By(fmt.Sprintf("Logout as a %s user", userCredentials.UserType), func() {
-		logoutUser() // Logout to the weaveworks enterprise
+		Expect(webDriver.Navigate(test_ui_url)).To(Succeed()) // Make sure the UI should not has any popups and modal dialogs
+		logoutUser()                                          // Logout to the weaveworks enterprise
 	})
 
 	deleteRepo(gitProviderEnv) // Delete the config repository to keep the org clean
