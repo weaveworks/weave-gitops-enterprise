@@ -75,7 +75,6 @@ var seededRand *rand.Rand = rand.New(
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
-	DescribeApplications(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
