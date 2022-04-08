@@ -271,6 +271,10 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
 			})
 
+			By(fmt.Sprintf("Login again as a %s user after eterprise state reset", userCredentials.UserType), func() {
+				loginUser()
+			})
+
 			clustersPage := pages.GetClustersPage(webDriver)
 			By("Then I should see the correct clusters count next to the clusters header", func() {
 				Eventually(clustersPage.ClusterCount).Should(MatchText(`[0-9]+`))
@@ -428,9 +432,15 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			Skip("Alertmanager is not accessible via ingress anymore!")
 
-			gitopsTestRunner.ResetControllers("enterprise")
-			gitopsTestRunner.VerifyWegoPodsRunning()
-			Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
+			By("And wego enterprise state is reset", func() {
+				gitopsTestRunner.ResetControllers("enterprise")
+				gitopsTestRunner.VerifyWegoPodsRunning()
+				Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
+			})
+
+			By(fmt.Sprintf("Login again as a %s user after eterprise state reset", userCredentials.UserType), func() {
+				loginUser()
+			})
 
 			clustersPage := pages.GetClustersPage(webDriver)
 			pages.NavigateToPage(webDriver, "Alerts")
@@ -543,9 +553,15 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			Skip("Alertmanager is not accessible via ingress anymore!")
 
-			gitopsTestRunner.ResetControllers("enterprise")
-			gitopsTestRunner.VerifyWegoPodsRunning()
-			Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
+			By("And wego enterprise state is reset", func() {
+				gitopsTestRunner.ResetControllers("enterprise")
+				gitopsTestRunner.VerifyWegoPodsRunning()
+				Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
+			})
+
+			By(fmt.Sprintf("Login again as a %s user after eterprise state reset", userCredentials.UserType), func() {
+				loginUser()
+			})
 
 			clustersPage := pages.GetClustersPage(webDriver)
 

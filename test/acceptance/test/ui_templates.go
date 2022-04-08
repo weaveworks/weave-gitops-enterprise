@@ -1221,6 +1221,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+				loginUser()
+
 				if beFound {
 					Eventually(checkOutput, ASSERTION_2MINUTE_TIME_OUT).Should(BeTrue())
 				} else {
