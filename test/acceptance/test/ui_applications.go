@@ -61,7 +61,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 				Eventually(authenticate.Username).Should(BeVisible())
 				Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
 				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
-				Expect(authenticate.Signin.Click()).To(Succeed())
+				Expect(authenticate.Signin.Submit()).To(Succeed())
 			} else {
 				logger.Info("Login not found, assuming already logged in")
 			}
@@ -135,16 +135,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops application UI Tests", func() {
 
 		BeforeEach(func() {
-
-			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
-			})
-
-			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			})
-
-			initializeWebdriver(test_ui_url)
+			Expect(webDriver.Navigate(test_ui_url)).To(Succeed())
 		})
 
 		AfterEach(func() {
@@ -164,18 +155,13 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteGitopsDeploySecret(GITOPS_DEFAULT_NAMESPACE)
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, kustomizationFile)
+
+				// Force clean the repository directory for subsequent tests
+				cleanGitRepository(appPath)
 			})
 
 			It("@application @git Verify application's status and history can be monitored.", func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-
-				By("When I create a private repository for cluster configs", func() {
-					initAndCreateEmptyRepo(gitProviderEnv, true)
-				})
-
-				By("When I install gitops/wego to my active cluster", func() {
-					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
-				})
 
 				By("And I add the kustomization file for application deployment", func() {
 					pullGitRepo(repoAbsolutePath)

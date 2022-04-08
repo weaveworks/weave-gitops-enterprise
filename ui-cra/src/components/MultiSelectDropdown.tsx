@@ -65,6 +65,17 @@ const MultiSelectDropdown: FC<{
         value={selected}
         onChange={handleChange}
         renderValue={(selected: any) => selected.join(', ')}
+        MenuProps={{
+          anchorOrigin: {
+            vertical: 'bottom',
+            horizontal: 'left',
+          },
+          transformOrigin: {
+            vertical: 'top',
+            horizontal: 'left',
+          },
+          getContentAnchorEl: null,
+        }}
       >
         <MenuItem value="all" disabled={onlyRequiredItems}>
           <ListItemIcon>

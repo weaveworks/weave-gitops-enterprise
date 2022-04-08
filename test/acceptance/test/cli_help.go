@@ -45,9 +45,6 @@ func DescribeCliHelp() {
 
 		BeforeEach(func() {
 
-			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
-			})
 		})
 
 		Context("[CLI] When gitops binary is available", func() {

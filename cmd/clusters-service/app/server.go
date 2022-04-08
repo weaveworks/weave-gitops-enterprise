@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/go-checkpoint"
+	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -269,6 +270,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		capiv1.AddToScheme,
 		sourcev1beta1.AddToScheme,
 	}
+
 	err = schemeBuilder.AddToScheme(scheme)
 	if err != nil {
 		return err
@@ -340,7 +342,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}()
 
 	configGetter := core.NewImpersonatingConfigGetter(kubeClientConfig, false)
-	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),

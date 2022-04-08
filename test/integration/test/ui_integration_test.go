@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	os_runtime "runtime"
 	"strconv"
 	"sync"
 	"testing"
@@ -217,13 +218,27 @@ var _ = Describe("Integration suite", func() {
 	BeforeEach(func() {
 		var err error
 		if intWebDriver == nil {
-			intWebDriver, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string][]string{
-					"args": {
-						"--disable-gpu",
-						"--no-sandbox",
-					}}}))
-			Expect(err).NotTo(HaveOccurred())
+			switch os_runtime.GOOS {
+			case "darwin":
+				chromeDriver := agouti.ChromeDriver(
+					agouti.ChromeOptions("w3c", false),
+					agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
+					agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
+
+				err = chromeDriver.Start()
+				Expect(err).NotTo(HaveOccurred())
+				intWebDriver, err = chromeDriver.NewPage()
+				Expect(err).NotTo(HaveOccurred())
+			case "linux":
+				intWebDriver, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
+					"acceptInsecureCerts": true,
+					"chromeOptions": map[string]interface{}{
+						"args":            []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
+						"w3c":             false,
+						"excludeSwitches": []string{"enable-automation"},
+					}}))
+				Expect(err).NotTo(HaveOccurred())
+			}
 		}
 
 		// reload fresh page each time
@@ -707,6 +722,7 @@ func TestMccpUI(t *testing.T) {
 
 	BeforeSuite(func() {
 		acceptancetest.InitializeLogger("ui-integration-tests.log") // Initilaize the global logger and tee Ginkgowriter
+		acceptancetest.InitializeWebdriver(uiURL)                   // Initilize web driver for whole test suite run
 	})
 
 	AfterSuite(func() {
