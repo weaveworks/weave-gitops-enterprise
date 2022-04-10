@@ -1,12 +1,10 @@
 import { TableCell, TableRow, Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { CallReceived, CallMade, Remove } from '@material-ui/icons';
 import { Policy } from '../../../capi-server/capi_server.pb';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-
-import moment from 'moment';
 import { Link } from 'react-router-dom';
-import styled from 'styled-components';
+import Severity from '../Severity';
+import moment from 'moment';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -16,19 +14,6 @@ const useStyles = makeStyles((theme: Theme) =>
     normalCell: {
       padding: theme.spacing(2),
     },
-    severityIcon: {
-      fontSize: '14px',
-      marginRight: '4px',
-    },
-    severityLow: {
-      color: weaveTheme.colors.primary,
-    },
-    severityMedium: {
-      color: '#8A460A',
-    },
-    severityHigh: {
-      color: '#9F3119',
-    },
     link: {
       color: weaveTheme.colors.primary,
       fontWeight: 600,
@@ -36,51 +21,9 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-const FlexStart = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: start;
-`;
-
 interface RowProps {
   policy: Policy;
 }
-
-const SeverityComponent = (severity: string) => {
-  const classes = useStyles();
-  switch (severity.toLocaleLowerCase()) {
-    case 'low':
-      return (
-        <FlexStart>
-          {' '}
-          <CallReceived
-            className={`${classes.severityIcon} ${classes.severityLow}`}
-          />
-          <span>{severity}</span>
-        </FlexStart>
-      );
-    case 'high':
-      return (
-        <FlexStart>
-          {' '}
-          <CallMade
-            className={`${classes.severityIcon} ${classes.severityHigh}`}
-          />
-          <span>{severity}</span>
-        </FlexStart>
-      );
-    case 'medium':
-      return (
-        <FlexStart>
-          {' '}
-          <Remove
-            className={`${classes.severityIcon} ${classes.severityMedium}`}
-          />
-          <span>{severity}</span>
-        </FlexStart>
-      );
-  }
-};
 
 const PolicyRow = ({ policy }: RowProps) => {
   const classes = useStyles();
@@ -95,7 +38,7 @@ const PolicyRow = ({ policy }: RowProps) => {
         </TableCell>
         <TableCell className={classes.normalCell}>{category}</TableCell>
         <TableCell className={classes.normalCell}>
-          {SeverityComponent(severity || '')}
+          <Severity severity={severity || ''} />
         </TableCell>
         <TableCell className={classes.normalCell}>
           {moment(createdAt).fromNow()}

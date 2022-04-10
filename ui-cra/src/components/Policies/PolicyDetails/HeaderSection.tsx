@@ -1,6 +1,8 @@
 import React from 'react';
 import { Policy } from '../../../capi-server/capi_server.pb';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import Severity from '../Severity';
+import styled from 'styled-components';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -8,7 +10,6 @@ const useStyles = makeStyles(() =>
       fontWeight: 700,
       fontSize: '14px',
       color: '#737373',
-      marginBottom: '12px',
     },
     body1: {
       fontWeight: 400,
@@ -18,7 +19,7 @@ const useStyles = makeStyles(() =>
     },
     chip: {
       background: 'rgba(10, 57, 64, 0.06)',
-      borderRadius: '2px',
+      borderRadius: '4px',
       padding: '2px 8px',
       marginLeft: '8px',
       fontWeight: 400,
@@ -28,10 +29,26 @@ const useStyles = makeStyles(() =>
       background: '#F8FAFA',
       borderRadius: '4px',
       padding: '10px 16px',
-      marginLeft:0,
+      marginLeft: 0,
+    },
+    paddingTopSmall: {
+      paddingTop: '8px',
+    },
+    marginrightSmall: {
+      marginRight: '8px',
+    },
+    flexStart: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'start',
     },
   }),
 );
+const FlexStart = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: start;
+`;
 
 function HeaderSection({
   id,
@@ -40,7 +57,8 @@ function HeaderSection({
   category,
   targets,
   description,
-  howToSolve
+  howToSolve,
+  code,
 }: Policy) {
   const classes = useStyles();
   return (
@@ -57,10 +75,13 @@ function HeaderSection({
           </span>
         ))}
       </div>
-      <div>
-        <span className={classes.cardTitle}>Severity:</span>
-        <span className={classes.body1}>{severity}</span>
-      </div>
+      <FlexStart>
+        <span className={`${classes.cardTitle} ${classes.marginrightSmall}`}>
+          Severity:
+        </span>
+        <Severity severity={severity || ''} />
+      </FlexStart>
+
       <div>
         <span className={classes.cardTitle}>Category:</span>
         <span className={classes.body1}>{category}</span>
@@ -74,7 +95,9 @@ function HeaderSection({
         ))}
       </div>
 
-      <div>
+      <hr />
+
+      <div className={classes.paddingTopSmall}>
         <span className={classes.cardTitle}>Description</span>
         <p className={`${classes.body1} ${classes.codeWrapper}`}>
           {description}
@@ -85,6 +108,11 @@ function HeaderSection({
         <p className={`${classes.body1} ${classes.codeWrapper}`}>
           {howToSolve}
         </p>
+      </div>
+
+      <div>
+        <span className={classes.cardTitle}>Policy Code</span>
+        <p className={`${classes.body1} ${classes.codeWrapper}`}>{code}</p>
       </div>
     </>
   );
