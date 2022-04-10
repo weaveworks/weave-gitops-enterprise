@@ -18,6 +18,9 @@ const useStyles = makeStyles((theme: Theme) =>
       color: weaveTheme.colors.primary,
       fontWeight: 600,
     },
+    severityName: {
+      textTransform: 'capitalize',
+    },
   }),
 );
 

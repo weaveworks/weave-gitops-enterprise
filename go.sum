@@ -1639,8 +1639,8 @@ github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4 h1:S
 github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQdHzmBimPxGIus5JOvNPu+tWxOTC+Q4w9fJOok=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
-github.com/weaveworks/policy-agent/api v1.0.1 h1:KE1DDEmfdowyLp/aTx8zHr+Fbaz37B6A5AGr+P1EKqo=
-github.com/weaveworks/policy-agent/api v1.0.1/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
+github.com/weaveworks/policy-agent/api v1.0.2 h1:2F1bLVLuV0BV1Dl59trq9x3IRxy1SS4P9FHzOTwgKd0=
+github.com/weaveworks/policy-agent/api v1.0.2/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
 github.com/weaveworks/weave-gitops v0.6.3-0.20220308050142-34e87ea3dd58 h1:WjCNdkPu5e7JNMfAsT+sQvzx8yleK3fM3s+8mL804B8=
 github.com/weaveworks/weave-gitops v0.6.3-0.20220308050142-34e87ea3dd58/go.mod h1:GqfmHLwa4HljFtP7ZTPDRqJJacKy4qIKWTP0ZswfIFs=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=

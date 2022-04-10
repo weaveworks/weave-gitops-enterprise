@@ -226,7 +226,7 @@ export type PolicyParamRepeatedString = {
 export type PolicyParam = {
   name?: string
   type?: string
-  default?: GoogleProtobufAny.Any
+  value?: GoogleProtobufAny.Any
   required?: boolean
 }
 

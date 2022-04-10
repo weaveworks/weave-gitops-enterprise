@@ -243,7 +243,9 @@ jobs:
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_WGE_DEX_CLIENT_SECRET }}
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
       WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       WGE_GITHUB_ORG: wge-org-test
@@ -270,8 +272,10 @@ jobs:
       artifacts-base-dir: "/tmp/smoke-test-gitlab"
     secrets:
       BUILD_BOT_USER: wge-build-bot     
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}      
-      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}" 
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}  
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_SAS_GITLAB_PRIVATE_KEY }}
       WGE_GITLAB_TOKEN: ${{ secrets.WGE_SAS_GITLAB_TOKEN }}
@@ -290,7 +294,7 @@ jobs:
       timeout-minutes: 60
       focus-or-skip: "-ginkgo.focus='@smoke'"
       kubectl-version: "v1.22.0"
-      login_user_type: "oidc"
+      login_user_type: "cluster-user"
       git-provider: gitlab
       git-provider_hostname: gitlab.git.dev.weave.works
       cluster_resource_set: true
@@ -301,7 +305,9 @@ jobs:
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_WGE_DEX_CLIENT_SECRET }}
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
       WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
@@ -337,7 +343,9 @@ jobs:
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_WGE_DEX_CLIENT_SECRET }}
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
       WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       WGE_GITHUB_ORG: wge-org-test
