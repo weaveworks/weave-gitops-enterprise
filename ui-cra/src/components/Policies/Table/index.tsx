@@ -64,7 +64,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
               <TableRow>
                 <TableCell align="left">
                   <ColumnHeaderTooltip title="Name configured in management UI">
-                    <span className={classes.headerCell}>Name</span>
+                    <span className={classes.headerCell}>Policy Name</span>
                   </ColumnHeaderTooltip>
                 </TableCell>
                 <TableCell align="left">
