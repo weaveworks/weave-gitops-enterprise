@@ -11,6 +11,7 @@ import LoadingError from '../../LoadingError';
 import HeaderSection from './HeaderSection';
 import { useParams } from 'react-router-dom';
 import { GetPolicyResponse } from '../../../capi-server/capi_server.pb';
+import ParametersSection from './ParametersSection';
 
 const PolicyDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +49,9 @@ const PolicyDetails = () => {
                     description={policy?.description}
                     howToSolve={policy?.howToSolve}
                   ></HeaderSection>
+                  <ParametersSection
+                    parameters={policy?.parameters}
+                  ></ParametersSection>
                 </>
               )}
             </LoadingError>

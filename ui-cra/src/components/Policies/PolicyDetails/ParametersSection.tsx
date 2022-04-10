@@ -14,7 +14,6 @@ const useStyles = makeStyles(() =>
       fontWeight: 400,
       fontSize: '14px',
       color: '#1A1A1A',
-      marginLeft: '8px',
     },
     labelText: {
       fontWeight: 400,
@@ -26,11 +25,14 @@ const useStyles = makeStyles(() =>
       borderRadius: '2px',
       padding: '16px',
       display: 'flex',
+      marginBottom: '16px',
+      marginTop: '16px',
     },
     parameterInfo: {
       display: 'flex',
       alignItems: 'start',
       flexDirection: 'column',
+      width: '100%',
     },
   }),
 );
@@ -42,7 +44,7 @@ function ParametersSection({ parameters }: Policy) {
       <div>
         <span className={classes.cardTitle}>Parameters Definition</span>
         {parameters?.map(parameter => (
-          <div className={classes.parameterWrapper}>
+          <div key={parameter.name} className={classes.parameterWrapper}>
             <div className={classes.parameterInfo}>
               <span className={classes.labelText}>Parameter Name</span>
               <span className={classes.body1}>{parameter.name}</span>
@@ -53,11 +55,21 @@ function ParametersSection({ parameters }: Policy) {
             </div>
             <div className={classes.parameterInfo}>
               <span className={classes.labelText}>Value</span>
-              <span className={classes.body1}>{parameter.value.value}</span>
+              <span className={classes.body1}>
+                {parameter.type === 'array'
+                  ? parameter.value
+                    ? parameter.value.value.join(', ')
+                    : 'N/A'
+                  : parameter.value
+                  ? parameter.value.value
+                  : 'undefined'}
+              </span>
             </div>
             <div className={classes.parameterInfo}>
               <span className={classes.labelText}>Required</span>
-              <span className={classes.body1}>{parameter.required}</span>
+              <span className={classes.body1}>
+                {parameter.required ? 'True' : 'False'}
+              </span>
             </div>
           </div>
         ))}
