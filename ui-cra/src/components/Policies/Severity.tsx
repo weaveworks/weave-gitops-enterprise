@@ -1,5 +1,3 @@
-import React from 'react';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import styled from 'styled-components';
 import { CallReceived, CallMade, Remove } from '@material-ui/icons';
