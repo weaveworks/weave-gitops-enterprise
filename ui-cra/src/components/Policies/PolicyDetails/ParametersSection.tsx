@@ -1,6 +1,7 @@
 import React from 'react';
 import { Policy } from '../../../capi-server/capi_server.pb';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import styled from 'styled-components';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -18,6 +19,7 @@ const useStyles = makeStyles(() =>
     labelText: {
       fontWeight: 400,
       fontSize: '12px',
+      color: '#737373',
     },
     parameterWrapper: {
       border: '1px solid #DADDE0',
@@ -36,6 +38,11 @@ const useStyles = makeStyles(() =>
     },
   }),
 );
+const Chip = styled.div`
+  background-color: #f8fafa;
+  border-radius: 4px;
+  padding: 4px;
+`;
 
 function ParametersSection({ parameters }: Policy) {
   const classes = useStyles();
@@ -56,13 +63,15 @@ function ParametersSection({ parameters }: Policy) {
             <div className={classes.parameterInfo}>
               <span className={classes.labelText}>Value</span>
               <span className={classes.body1}>
-                {parameter.type === 'array'
-                  ? parameter.value
-                    ? parameter.value.value.join(', ')
-                    : 'N/A'
-                  : parameter.value
-                  ? parameter.value.value
-                  : 'undefined'}
+                {parameter.value ? (
+                  parameter.type === 'array' ? (
+                    parameter.value.value.join(', ')
+                  ) : (
+                    parameter.value.value
+                  )
+                ) : (
+                  <Chip>undefined</Chip>
+                )}
               </span>
             </div>
             <div className={classes.parameterInfo}>
