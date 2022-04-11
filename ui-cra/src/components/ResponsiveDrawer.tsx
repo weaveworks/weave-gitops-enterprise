@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import AlertsProvider from '../contexts/Alerts/Provider';
@@ -20,14 +20,11 @@ import {
 } from '@material-ui/core/styles';
 import {
   AuthContextProvider,
-  AppContextProvider,
-  coreClient,
   AuthCheck,
   OAuthCallback,
   SignIn,
-  FeatureFlagsContextProvider,
   V2Routes,
-  applicationsClient,
+  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
@@ -54,6 +51,7 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 import Policies from './Policies';
+import _ from 'lodash';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -122,7 +120,21 @@ const SignInWrapper = styled.div`
   }
 `;
 
-const ResponsiveDrawer = () => {
+const Page404 = () => (
+  <PageTemplate documentTitle="WeGO · NotFound">
+    <SectionHeader />
+    <ContentWrapper>
+      <Lottie
+        loop
+        animationData={error404}
+        play
+        style={{ width: '100%', height: 650 }}
+      />
+    </ContentWrapper>
+  </PageTemplate>
+);
+
+const App = () => {
   const classes = useStyles();
   const theme = useTheme();
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -131,25 +143,7 @@ const ResponsiveDrawer = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handle404 = () => (
-    <PageTemplate documentTitle="WeGO · NotFound">
-      <SectionHeader />
-      <ContentWrapper>
-        <Lottie
-          loop
-          animationData={error404}
-          play
-          style={{ width: '100%', height: 650 }}
-        />
-      </ContentWrapper>
-    </PageTemplate>
-  );
-
-  const WGAppProvider: React.FC = props => (
-    <AppContextProvider applicationsClient={applicationsClient} {...props} />
-  );
-
-  const App = () => (
+  return (
     <Compose
       components={[
         NotificationsProvider,
@@ -157,7 +151,6 @@ const ResponsiveDrawer = () => {
         ClustersProvider,
         AlertsProvider,
         VersionsProvider,
-        WGAppProvider,
       ]}
     >
       <div className={classes.root}>
@@ -277,37 +270,50 @@ const ResponsiveDrawer = () => {
                 );
               }}
             />
-            <Route render={handle404} />
+            <Route render={Page404} />
           </Switch>
         </main>
       </div>
     </Compose>
   );
+};
+
+const ResponsiveDrawer = () => {
+  useEffect(() => {
+    console.log('drawer mounted');
+    return () => {
+      console.log('drawer unmount');
+    };
+  }, []);
+
+  const flags = useFeatureFlags();
+
+  // FIXME: hack for "isLoading"
+  const flagsIsLoading = _.isEmpty(flags);
+  if (flagsIsLoading) {
+    return null;
+  }
 
   return (
-    <AppContextProvider coreClient={coreClient}>
-      <FeatureFlagsContextProvider>
-        <AuthContextProvider>
-          <Switch>
-            <Route
-              component={() => (
-                <SignInWrapper>
-                  <SignIn />
-                </SignInWrapper>
-              )}
-              exact={true}
-              path="/sign_in"
-            />
-            <Route path="*">
-              {/* Check we've got a logged in user otherwise redirect back to signin */}
-              <AuthCheck>
-                <App />
-              </AuthCheck>
-            </Route>
-          </Switch>
-        </AuthContextProvider>
-      </FeatureFlagsContextProvider>
-    </AppContextProvider>
+    <AuthContextProvider>
+      <Switch>
+        <Route
+          component={() => (
+            <SignInWrapper>
+              <SignIn />
+            </SignInWrapper>
+          )}
+          exact={true}
+          path="/sign_in"
+        />
+        <Route path="*">
+          {/* Check we've got a logged in user otherwise redirect back to signin */}
+          <AuthCheck>
+            <App />
+          </AuthCheck>
+        </Route>
+      </Switch>
+    </AuthContextProvider>
   );
 };
 
