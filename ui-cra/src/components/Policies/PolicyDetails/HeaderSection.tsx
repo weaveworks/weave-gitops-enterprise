@@ -110,10 +110,10 @@ function HeaderSection({
         </p>
       </div>
 
-      <div>
+      {/* <div>
         <span className={classes.cardTitle}>Policy Code</span>
         <p className={`${classes.body1} ${classes.codeWrapper}`}>{code}</p>
-      </div>
+      </div> */}
     </>
   );
 }

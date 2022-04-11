@@ -1,7 +1,5 @@
-import React from 'react';
 import { Policy, PolicyParam } from '../../../capi-server/capi_server.pb';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import styled from 'styled-components';
 
 const useStyles = makeStyles(() =>
   createStyles({
