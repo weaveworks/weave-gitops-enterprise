@@ -19,15 +19,6 @@ It is recommended to install latest and stable version of these tools. All tools
 | Selenium server | Standalone server for web browser instance | `wget https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar` <br> `It is not required if test host is a macOS machine.`|
 | Gitops | Gitops command line interface | `wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-macOS-latest` <br> `wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-ubuntu-latest` <br> `mv gitops-ubuntu-latest /usr/local/bin/gitops` <br> `sudo chmod +x /usr/local/bin/gitops`|
 
-**Clusterctl workaround**
-
-Run the following script to override downloading of cert-manager.yaml during capd infrastructure provider installation.
-
-    cat > $HOME/.cluster-api/clusterctl.yaml <<- EOM
-    cert-manager:
-      url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
-    EOM
-
 ## Environment Setup
 
 <font size="5">**Git**</font>
@@ -37,7 +28,7 @@ Configure git with the following global settings. It will elevates the manual in
     git config --global init.defaultBranch main  
     git config --global user.email <your email address>  
     git config --global user.name <your user name>  
-    git config --global url.ssh://git@github.com/.insteadOf https://github.com/  
+    git config --global url.git@github.com/.insteadOf https://github.com/  
     git config --global url.git@gitlab.com:.insteadOf https://gitlab.com/  
     git config --global url.git@gitlab.git.dev.weave.works:.insteadOf https://gitlab.git.dev.weave.works/ 
 
@@ -70,7 +61,21 @@ export UI_NODEPORT=30080
 export NATS_NODEPORT=31490
 export MANAGEMENT_CLUSTER_CNAME=weave.gitops.enterprise.com
 export CLUSTER_REPOSITORY=gitops-testing
+export LOGIN_USER_TYPE=cluster-user
 ```
+
+You can either set 'LOGIN_USER_TYPE' to `oidc` if oidc user authentication is desired or `cluster-user` if cluster user i.e. `admin` account authentication is desired to run the tests.
+
+**User login**
+```
+export CLUSTER_ADMIN_PASSWORD=<Your chosen password for admin account>
+export CLUSTER_ADMIN_PASSWORD_HASH=<Bcrypt hash for your chosen password>
+export OIDC_ISSUER_URL='https://dex-01.wge.dev.weave.works'
+export DEX_CLIENT_ID='weave-gitops-enterprise'
+export DEX_CLIENT_SECRET='2JPIcb5IvO1isJ3Zii7jvjqbUtLtTC'
+```
+
+OIDC provider instance `https://dex-01.wge.dev.weave.works`  is already setup and ready to use for development and testing purposes.
 
 You can set the environment variables for any one of the gitprovider as per your testing requirements.
 
@@ -86,7 +91,7 @@ export TOTP_TOKEN=<github MFA token key>
 ```
 You must setup`MFA` for GitHub and export the MFA key as `TOTP_TOKEN`. It is required for automated GitHub authentication flows.
 
-**Gitlab**
+**Gitlab saas**
 ```
 export GIT_PROVIDER=gitlab
 export GIT_PROVIDER_HOSTNAME=gitlab.com
@@ -112,11 +117,10 @@ export GITOPS_GIT_HOST_TYPES="gitlab.git.dev.weave.works=gitlab"
 export GITLAB_HOSTNAME=“gitlab.git.dev.weave.works"
 ```
 You can use any gitlab on-prem instance to run tests. However, `gitlab.git.dev.weave.works` instance is already setup and ready to use for development and testing purposes.
-You must configure the gitlab oath application with redirect url as below. It is required for automated gitlab authentication flows (applicabel to both gilab sas and gitlab on-prem).
+You must configure the gitlab oath application with redirect url as below. It is required for automated gitlab authentication flows (applicabel to both gilab saas and gitlab on-prem).
     http://weave.gitops.enterprise.com:30080/oauth/gitlab
 
-`weave.gitops.enterprise.com` is set as `MANAGEMENT_CLUSTER_CNAME` environment variable. Redirect url domain should match `MANAGEMENT_CLUSTER_CNAME`.
-
+`weave.gitops.enterprise.com` is set as `MANAGEMENT_CLUSTER_CNAME` environment variable. Redirect url domain should match `MANAGEMENT_CLUSTER_CNAME` and `UI_NODEPORT`.
 
 ## Running Tests
 
@@ -135,9 +139,11 @@ You must configure the gitlab oath application with redirect url as below. It is
 
 - ***Automatic installation:*** Test frame work automatically installs the  core and enterprise controllers and setup the management cluster along with required repository, resources, secrets and entitlements etc. Any subsequent test runs will skip the management cluster setup and starts the test execution straight away. You need to recreate the kind cluster in case you want to install new enterprise version/release for testing.
 
+You may needed to add a `MANAGEMENT_CLUSTER_CNAME` entry to `/etc/hosts` file e.g. `192.168.0.5 weave.gitops.enterprise.com` (where `192.168.0.5` is test host's ip address) before start running the tests.
+
 - ***Manual installation:*** You can manually install and setup core and enterprise controllers without running acceptance test. You must create the config repository i.e. `CLUSTER_REPOSITORY` prior to running the following command. The core controllers can not be installed if `CLUSTER_REPOSITORY` doesn't exists. Manual creation of cluster repository is only required for manual installation. 
 
-	You may be be prompted for administrator password while running the below script. It is needed to add a `MANAGEMENT_CLUSTER_CNAME` entry to `/etc/hosts` file e.g. `192.168.0.5 weave.gitops.enterprise.com` (where `192.168.0.5` is test host's ip address).
+	You may be prompted for administrator password while running the below script. It is needed to add a `MANAGEMENT_CLUSTER_CNAME` entry to `/etc/hosts` file e.g. `192.168.0.5 weave.gitops.enterprise.com` (where `192.168.0.5` is test host's ip address).
 
 	`test/utils/scripts/wego-enterprise.sh setup $(pwd)`
 	
@@ -147,15 +153,15 @@ You must configure the gitlab oath application with redirect url as below. It is
 	`export ENTERPRISE_CHART_VERSION=0.0.17-53-gb6aa363`
 
 	If you make any changes to UI or backend, you need to rebuild the cluster. The easiest and fastest way is to push to origin (your remote branch). It will build the image corresponding to your local branch commit hash and push it to *S3*.
-	You can also manually build and push the release to *S3*.
+	You can also manually build and push the build to *S3*.
 
 ## Troubleshooting
 
 Please refer to the Cluster API troubleshooting guide for issues related to `capd`. You may encounter following issues:
-- Failed clusterctl init - ‘failed to get cert-manager object'
+- Failed clusterctl init - ‘failed to get cert-manager object' (Resolved in latest docker version)
 
 	`https://cluster-api.sigs.k8s.io/user/troubleshooting.html#failed-clusterctl-init---failed-to-get-cert-manager-object`
-- Cluster API with Docker Desktop - “too many open files”
+- Cluster API with Docker Desktop - “too many open files”  (Resolved in latest docker version)
 
 	`https://cluster-api.sigs.k8s.io/user/troubleshooting.html#cluster-api-with-docker-desktop---too-many-open-files`
 
