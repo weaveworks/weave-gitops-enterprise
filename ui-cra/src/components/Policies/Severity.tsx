@@ -11,7 +11,7 @@ const useStyles = makeStyles(() =>
       marginRight: '4px',
     },
     severityLow: {
-      color: weaveTheme.colors.primary,
+      color: '#006B8E',
     },
     severityMedium: {
       color: '#8A460A',
