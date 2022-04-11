@@ -151,11 +151,12 @@ func SetupTestEnvironment() {
 func InstallWeaveGitopsControllers() {
 	// gitops binary must exists, it is required to install weave gitops controllers
 	Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
+	// TODO: check flux bin is available too.
 
 	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
 		repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 		initAndCreateEmptyRepo(gitProviderEnv, true)
-		installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+		installAndVerifyGitops(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 		logger.Info("No need to install Weave gitops enterprise controllers, managemnt cluster is already configured and setup.")
 
 	} else {

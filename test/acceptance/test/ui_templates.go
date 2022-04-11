@@ -47,17 +47,21 @@ func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 		// login to fetch cookie
 		resp, err := client.Post(test_ui_url+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"username":"admin", "password":"%s"}`, adminPassword))))
 		if err != nil {
+			logger.Tracef("error logging in (waiting for a success, retrying): %v", err)
 			return false, nil
 		}
 		if resp.StatusCode != http.StatusOK {
+			logger.Tracef("wrong status from login (waiting for a ok, retrying): %v", resp.StatusCode)
 			return false, nil
 		}
 		// fetch profiles
 		resp, err = client.Get(test_ui_url + "/v1/profiles")
 		if err != nil {
+			logger.Tracef("error getting profiles in (waiting for a success, retrying): %v", err)
 			return false, nil
 		}
 		if resp.StatusCode != http.StatusOK {
+			logger.Tracef("wrong status from profiles (waiting for a ok, retrying): %v", resp.StatusCode)
 			return false, nil
 		}
 
@@ -945,8 +949,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				GitProviderGitHub: "default",
 			}
 
-			appName := "management"
-			appPath := "./management"
+			clusterPath := "./clusters"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
 			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
@@ -968,9 +971,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 
 				// Force clean the repository directory for subsequent tests
-				cleanGitRepository(appName)
+				cleanGitRepository(clusterPath)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters(appName, []string{capdClusterName}, GITOPS_DEFAULT_NAMESPACE)
+				removeGitopsCapiClusters([]string{capdClusterName})
 			})
 
 			It("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
@@ -1123,17 +1126,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I add a test kustomization file to the management appliction (because flux doesn't reconcile empty folders on deletion)", func() {
 					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f %s %s", kustomizationFile, path.Join(repoAbsolutePath, appPath)))
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f %s %s", kustomizationFile, path.Join(repoAbsolutePath, clusterPath)))
 					gitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
-				By("And I run gitops add app 'management' command", func() {
-					addCommand := fmt.Sprintf("add app . --path=%s  --name=%s  --auto-merge=true", appPath, appName)
-					runWegoAddCommand(repoAbsolutePath, addCommand, GITOPS_DEFAULT_NAMESPACE)
-				})
-
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
-					verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
+					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText("Cluster found"))
 				})
 

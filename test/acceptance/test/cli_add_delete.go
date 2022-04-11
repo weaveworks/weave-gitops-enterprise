@@ -359,7 +359,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(appName)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters(appName, capdClusterNames, GITOPS_DEFAULT_NAMESPACE)
+				removeGitopsCapiClusters(capdClusterNames)
 			})
 
 			It("@git @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
@@ -419,7 +419,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					})
 
 					By("And I should see cluster status changes to 'clusterFound'", func() {
-						verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
+						waitForGitRepoReady(appName, GITOPS_DEFAULT_NAMESPACE)
 						clusterFound := func() string {
 							output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get clusters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag))
 							return output

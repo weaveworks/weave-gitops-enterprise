@@ -68,6 +68,13 @@ function setup {
 
     kubectl create secret generic git-provider-credentials --namespace=flux-system \
     --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
+
+    flux bootstrap github \
+      --owner=${GITHUB_ORG} \
+      --repository=${CLUSTER_REPOSITORY} \
+      --branch=main \
+      --path=./clusters/my-cluster
+
   elif [ ${GIT_PROVIDER} == "gitlab" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY"
     GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY.git
@@ -87,8 +94,14 @@ function setup {
       
       gitopsArgs+=( --git-host-types=${GITOPS_GIT_HOST_TYPES} )
     fi
-  fi  
 
+    flux bootstrap gitlab \
+      --owner=${GITLAB_ORG} \
+      --repository=${CLUSTER_REPOSITORY} \
+      --branch=main \
+      --hostname=${GIT_PROVIDER_HOSTNAME} \
+      --path=./clusters/my-cluster
+  fi  
 
   # Create admin cluster user secret
   kubectl create secret generic cluster-user-auth \
@@ -101,9 +114,6 @@ function setup {
   --namespace flux-system \
   --from-literal=clientID=${DEX_CLIENT_ID} \
   --from-literal=clientSecret=${DEX_CLIENT_SECRET}
-
-  # Install weave gitops core controllers
-  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} ${gitopsArgs[@]} --auto-merge
 
   kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml 
 
@@ -123,7 +133,7 @@ function setup {
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
-  helmArgs+=( --set "config.capi.repositoryPath=./management" )
+  helmArgs+=( --set "config.capi.repositoryPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
   helmArgs+=( --set "config.oidc.enabled=true" )
