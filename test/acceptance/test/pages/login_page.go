@@ -5,6 +5,7 @@ import (
 )
 
 type LoginPage struct {
+	Username        *agouti.Selection
 	Password        *agouti.Selection
 	LoginOIDC       *agouti.Selection
 	Continue        *agouti.Selection
@@ -25,6 +26,7 @@ type DexLoginPage struct {
 
 func GetLoginPage(webDriver *agouti.Page) *LoginPage {
 	loginPage := LoginPage{
+		Username:        webDriver.Find(`input#email`),
 		Password:        webDriver.Find(`input#password`),
 		LoginOIDC:       webDriver.FindByButton(`LOGIN WITH OIDC PROVIDER`),
 		Continue:        webDriver.FindByButton(`CONTINUE`),

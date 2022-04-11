@@ -139,7 +139,7 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	err = waitUntil(POLL_INTERVAL_5SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
-		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone https://%s/%s/%s.git %s`, gp.Hostname, gp.Org, gp.Repo, repoAbsolutePath))
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gp.Hostname, gp.Org, gp.Repo, repoAbsolutePath))
 		if err != nil {
 			os.RemoveAll(repoAbsolutePath)
 			return err

@@ -49,14 +49,6 @@ function setup {
     echo "${LOCALHOST_IP} ${UPGRADE_MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
   fi
 
-  kubectl create namespace prom
-  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-  helm repo update
-  helm install my-prom prometheus-community/kube-prometheus-stack \
-    --namespace prom \
-    --version 14.4.0 \
-    --values ${args[1]}/test/utils/data/mccp-prometheus-values.yaml
-  
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
   else
@@ -65,7 +57,8 @@ function setup {
   helm repo update  
   
   # TODO: call out this is required now, hosts the entitlements secret still
-  kubectl create ns wego-system
+  kubectl create namespace wego-system
+  kubectl create namespace flux-system
 
   # Create secrete for git provider authentication
   gitopsArgs=()
@@ -98,7 +91,7 @@ function setup {
 
 
   # Create admin cluster user secret
-  kubectl create secret generic admin-password-hash \
+  kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
   --from-literal=username=admin \
   --from-literal=password=${CLUSTER_ADMIN_PASSWORD_HASH}
@@ -213,7 +206,7 @@ function reset {
   kubectl delete deployment postgres
   kubectl delete service postgres
   # Delete namespaces and their respective resources
-  kubectl delete namespaces prom wkp-agent
+  kubectl delete namespaces wkp-agent
   # Delete wego system from the management cluster
   $GITOPS_BIN_PATH flux uninstall --silent
   $GITOPS_BIN_PATH flux uninstall --namespace flux-system --silent
