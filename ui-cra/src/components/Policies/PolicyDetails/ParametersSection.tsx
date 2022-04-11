@@ -1,5 +1,5 @@
 import React from 'react';
-import { Policy } from '../../../capi-server/capi_server.pb';
+import { Policy, PolicyParam } from '../../../capi-server/capi_server.pb';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import styled from 'styled-components';
 
@@ -36,21 +36,48 @@ const useStyles = makeStyles(() =>
       flexDirection: 'column',
       width: '100%',
     },
+    chip: {
+      background: 'rgba(10, 57, 64, 0.06)',
+      borderRadius: '4px',
+      padding: '2px 8px',
+      fontWeight: 400,
+      fontSize: '14px',
+    },
   }),
 );
-const Chip = styled.div`
-  background-color: #f8fafa;
-  border-radius: 4px;
-  padding: 4px;
-`;
+
+// function parameterParseValue({ value, type }: PolicyParam) : React.FC<any> {
+//   const classes = useStyles();
+
+//   return (
+//     <>
+//      { !!value && <div className={classes.chip}>undefined</div> }
+//      {/* {parseValue(type)} */}
+
+//     </>
+//     );
+
+// }
 
 function ParametersSection({ parameters }: Policy) {
   const classes = useStyles();
+  const parseValue = (parameter: PolicyParam) => {
+    switch (parameter.type) {
+      case 'boolean':
+        return parameter.value.value ? 'true' : 'false';
+      case 'array':
+        return parameter.value.value.join(', ');
+      case 'string':
+        return parameter.value.value;
+      case 'integer':
+        return parameter.value.value.toString();
+    }
+  };
   return (
     <>
       <div>
         <span className={classes.cardTitle}>Parameters Definition</span>
-        {parameters?.map(parameter => (
+        {parameters?.map((parameter: PolicyParam) => (
           <div key={parameter.name} className={classes.parameterWrapper}>
             <div className={classes.parameterInfo}>
               <span className={classes.labelText}>Parameter Name</span>
@@ -64,13 +91,9 @@ function ParametersSection({ parameters }: Policy) {
               <span className={classes.labelText}>Value</span>
               <span className={classes.body1}>
                 {parameter.value ? (
-                  parameter.type === 'array' ? (
-                    parameter.value.value.join(', ')
-                  ) : (
-                    parameter.value.value
-                  )
+                  parseValue(parameter)
                 ) : (
-                  <Chip>undefined</Chip>
+                  <div className={classes.chip}>undefined</div>
                 )}
               </span>
             </div>
