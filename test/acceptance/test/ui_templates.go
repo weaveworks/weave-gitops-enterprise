@@ -45,7 +45,7 @@ func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 			},
 		}
 		// login to fetch cookie
-		resp, err := client.Post(test_ui_url+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"password":"%s"}`, adminPassword))))
+		resp, err := client.Post(test_ui_url+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"username":"admin", "password":"%s"}`, adminPassword))))
 		if err != nil {
 			return false, nil
 		}
