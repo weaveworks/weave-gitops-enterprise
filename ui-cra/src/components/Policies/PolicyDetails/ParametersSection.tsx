@@ -46,19 +46,6 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-// function parameterParseValue({ value, type }: PolicyParam) : React.FC<any> {
-//   const classes = useStyles();
-
-//   return (
-//     <>
-//      { !!value && <div className={classes.chip}>undefined</div> }
-//      {/* {parseValue(type)} */}
-
-//     </>
-//     );
-
-// }
-
 function ParametersSection({ parameters }: Policy) {
   const classes = useStyles();
   const parseValue = (parameter: PolicyParam) => {
