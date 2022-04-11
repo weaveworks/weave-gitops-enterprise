@@ -1,10 +1,10 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import {
-  getProviderToken,
   GithubDeviceAuthModal,
   RepoInputWithAuth,
   theme as weaveTheme,
+  useIsAuthenticated,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
@@ -35,27 +35,27 @@ const GitAuth: FC<{
   setEnableCreatePR,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  const credentialsDetected =
-    authSuccess || !!getProviderToken(formData.provider as GitProvider);
+  const { isAuthenticated, req: check } = useIsAuthenticated();
 
   useEffect(() => {
-    setIsAuthenticated(!!formData.url && credentialsDetected);
-  }, [credentialsDetected, formData.url]);
+    if (!formData.provider) {
+      return;
+    }
+    check(formData.provider);
+  }, [formData.provider, authSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (authSuccess || isAuthenticated) {
       setEnableCreatePR(true);
     } else {
       setEnableCreatePR(false);
     }
-  }, [isAuthenticated, setEnableCreatePR]);
+  }, [authSuccess, isAuthenticated, setEnableCreatePR]);
 
   return (
     <>
       <RepoInputWithAuthWrapper
-        isAuthenticated={isAuthenticated}
+        isAuthenticated={authSuccess || isAuthenticated}
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
         }}
