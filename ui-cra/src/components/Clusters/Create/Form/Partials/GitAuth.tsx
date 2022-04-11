@@ -42,10 +42,10 @@ const GitAuth: FC<{
       return;
     }
     check(formData.provider);
-  }, [formData.provider]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [formData.provider, authSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (authSuccess || isAuthenticated) {
+    if (isAuthenticated) {
       setEnableCreatePR(true);
     } else {
       setEnableCreatePR(false);
@@ -55,7 +55,7 @@ const GitAuth: FC<{
   return (
     <>
       <RepoInputWithAuthWrapper
-        isAuthenticated={authSuccess || isAuthenticated}
+        isAuthenticated={isAuthenticated}
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
         }}
