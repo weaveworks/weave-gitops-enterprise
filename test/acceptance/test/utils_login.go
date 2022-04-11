@@ -40,7 +40,7 @@ func initUserCredentials() UserCredentials {
 func loginUser() {
 	loginPage := pages.GetLoginPage(webDriver)
 
-	if pages.ElementExist(loginPage.LoginOIDC, 30) {
+	if pages.ElementExist(loginPage.LoginOIDC, 10) {
 		Eventually(loginPage.LoginOIDC).Should(BeVisible())
 
 		switch userCredentials.UserType {

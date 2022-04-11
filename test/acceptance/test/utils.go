@@ -42,7 +42,7 @@ var (
 
 const (
 	WGE_WINDOW_NAME                string = "weave-gitops-enterprise"
-	GITOPS_DEFAULT_NAMESPACE       string = "wego-system"
+	GITOPS_DEFAULT_NAMESPACE       string = "flux-system"
 	CLUSTER_SERVICE_DEPLOYMENT_APP string = "my-mccp-cluster-service"
 	SCREENSHOTS_DIR_NAME           string = "screenshots"
 	WINDOW_SIZE_X                  int    = 1800
