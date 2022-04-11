@@ -1,7 +1,6 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import {
-  getProviderToken,
   GithubDeviceAuthModal,
   RepoInputWithAuth,
   theme as weaveTheme,
@@ -43,21 +42,15 @@ const GitAuth: FC<{
       return;
     }
     check(formData.provider);
-  }, [
-    formData.provider,
-    authSuccess,
-    // check
-  ]);
-
-  console.log(isAuthenticated, authSuccess);
+  }, [formData.provider]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (authSuccess || isAuthenticated) {
       setEnableCreatePR(true);
     } else {
       setEnableCreatePR(false);
     }
-  }, [isAuthenticated, setEnableCreatePR]);
+  }, [authSuccess, isAuthenticated, setEnableCreatePR]);
 
   return (
     <>
