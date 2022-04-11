@@ -1,8 +1,10 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
+<<<<<<< HEAD
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
+<<<<<<< HEAD:ui-cra/src/components/Applications/Sources.tsx
 import { SourcesTable, useListSources } from '@weaveworks/weave-gitops';
 
 const WGApplicationsSources: FC = () => {
@@ -11,20 +13,75 @@ const WGApplicationsSources: FC = () => {
 
   return (
     <PageTemplate documentTitle="WeGO · Application Sources">
+=======
+import {
+  KustomizationDetail,
+  useGetKustomization,
+} from '@weaveworks/weave-gitops';
+
+type Props = {
+  name: string;
+};
+
+const WGApplicationsKustomization: FC<Props> = ({ name }) => {
+  const applicationsCount = useApplicationsCount();
+  const { data } = useGetKustomization(name);
+  const kustomization = data?.kustomization;
+
+  return (
+    <PageTemplate documentTitle="WeGO · Kustomization">
+>>>>>>> 9bb33d3d8bda881092f178c3b16c27df0b0a5b6b:ui-cra/src/components/Applications/Kustomization.tsx
+=======
+import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import {
+  LoadingPage,
+  SourcesTable,
+  useListSources,
+} from '@weaveworks/weave-gitops';
+
+const WGApplicationsSources: FC = () => {
+  const { data: sources, isLoading } = useListSources();
+
+  return (
+    <PageTemplate documentTitle="WeGO · Application Sources">
+>>>>>>> 9bb33d3d8bda881092f178c3b16c27df0b0a5b6b
       <SectionHeader
         path={[
           {
-            label: 'Applications',
-            url: '/applications',
+            label: 'Sources',
+<<<<<<< HEAD
+            url: '/sections',
             count: applicationsCount,
           },
         ]}
       />
       <ContentWrapper type="WG">
+<<<<<<< HEAD:ui-cra/src/components/Applications/Sources.tsx
         <SourcesTable sources={sources} />
+=======
+        <KustomizationDetail kustomization={kustomization} name={name} />
+>>>>>>> 9bb33d3d8bda881092f178c3b16c27df0b0a5b6b:ui-cra/src/components/Applications/Kustomization.tsx
+=======
+            url: '/sources',
+            count: sources?.length,
+          },
+        ]}
+      />
+      <ContentWrapper>
+        <Title>Sources</Title>
+        {isLoading ? <LoadingPage /> : <SourcesTable sources={sources} />}
+>>>>>>> 9bb33d3d8bda881092f178c3b16c27df0b0a5b6b
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
+<<<<<<< HEAD
+<<<<<<< HEAD:ui-cra/src/components/Applications/Sources.tsx
 export default WGApplicationsSources;
+=======
+export default WGApplicationsKustomization;
+>>>>>>> 9bb33d3d8bda881092f178c3b16c27df0b0a5b6b:ui-cra/src/components/Applications/Kustomization.tsx
+=======
+export default WGApplicationsSources;
+>>>>>>> 9bb33d3d8bda881092f178c3b16c27df0b0a5b6b

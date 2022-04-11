@@ -29,7 +29,7 @@ var (
 	logger               *logrus.Logger
 	logFile              *os.File
 	gitProviderEnv       GitProviderEnv
-	login_user_type      string
+	userCredentials      UserCredentials
 	git_repository_url   string
 	selenium_service_url string
 	gitops_bin_path      string
@@ -42,7 +42,7 @@ var (
 
 const (
 	WGE_WINDOW_NAME                string = "weave-gitops-enterprise"
-	GITOPS_DEFAULT_NAMESPACE       string = "wego-system"
+	GITOPS_DEFAULT_NAMESPACE       string = "flux-system"
 	CLUSTER_SERVICE_DEPLOYMENT_APP string = "my-mccp-cluster-service"
 	SCREENSHOTS_DIR_NAME           string = "screenshots"
 	WINDOW_SIZE_X                  int    = 1800
@@ -135,10 +135,11 @@ func SetupTestEnvironment() {
 	capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	gitops_bin_path = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	artifacts_base_dir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
-	login_user_type = GetEnv("LOGIN_USER_TYPE", "admin")
 
 	gitProviderEnv = initGitProviderData()
 	git_repository_url = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
+
+	userCredentials = initUserCredentials()
 
 	//Cleanup the workspace dir, it helps when running locally
 	err := os.RemoveAll(artifacts_base_dir)
