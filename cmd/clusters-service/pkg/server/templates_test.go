@@ -28,7 +28,7 @@ func TestListTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no configmap",
-			err:      errors.New("configmap capi-templates not found in default namespace"),
+			err:      errors.New("configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
 			expected: []*capiv1_protos.Template{},
 		},
 		{
@@ -269,7 +269,7 @@ func TestGetTemplate(t *testing.T) {
 	}{
 		{
 			name: "No templates",
-			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace"),
+			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
 		},
 		{
 			name: "1 parameter",
@@ -331,7 +331,7 @@ func TestListTemplateParams(t *testing.T) {
 	}{
 		{
 			name: "1 parameter err",
-			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace"),
+			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
 		},
 		{
 			name: "1 parameter",
@@ -381,7 +381,7 @@ func TestListTemplateProfiles(t *testing.T) {
 	}{
 		{
 			name: "1 profile err",
-			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace"),
+			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
 		},
 		{
 			name: "1 profile",

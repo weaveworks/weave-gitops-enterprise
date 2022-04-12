@@ -21,13 +21,6 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		BeforeEach(func() {
 
-			By("Given I have a gitops binary installed on my local machine", func() {
-				Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
-			})
-
-			By("And the Cluster service is healthy", func() {
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			})
 		})
 
 		AfterEach(func() {
@@ -333,16 +326,20 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				By("And gitops state is reset", func() {
 					gitopsTestRunner.ResetControllers("enterprise")
 					gitopsTestRunner.VerifyWegoPodsRunning()
-					gitopsTestRunner.CheckClusterService(capi_endpoint_url)
 				})
 
 				cmd := fmt.Sprintf(`%s get cluster --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
+				checkoutput := func() string {
+					stdOut, _ = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
+					return stdOut
+
+				}
 				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
+					checkoutput()
 				})
 
 				By("Then gitops lists no clusters", func() {
-					Eventually(stdOut).Should(MatchRegexp("No clusters found"))
+					Eventually(checkoutput).Should(MatchRegexp("No clusters found"))
 				})
 			})
 		})
@@ -374,13 +371,13 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				resourceName = "templates"
 				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
-				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
+				Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 				resourceName = "credentials"
 				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
-				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
+				Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 				resourceName = "clusters"
 				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
-				Eventually(checkOutput, ASSERTION_DEFAULT_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
+				Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 			}
 
 			JustBeforeEach(func() {
@@ -395,7 +392,11 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				})
+
+				By("And the Cluster service is healthy", func() {
+					CheckClusterService(capi_endpoint_url)
 				})
 
 				By("And I should not see the error or warning message for valid entitlement", func() {
@@ -413,7 +414,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the error message for missing entitlement", func() {
@@ -425,7 +426,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the warning message for expired entitlement", func() {
@@ -437,7 +438,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods([]string{}, DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
 				By("And I should see the error message for invalid entitlement", func() {

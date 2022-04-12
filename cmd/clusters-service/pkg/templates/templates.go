@@ -45,15 +45,15 @@ func (lib *ConfigMapLibrary) List(ctx context.Context) (map[string]*capiv1.CAPIT
 		Name:      lib.ConfigMapName,
 	}, templateConfigMap)
 	if errors.IsNotFound(err) {
-		return nil, fmt.Errorf("configmap %s not found in %s namespace", lib.ConfigMapName, lib.Namespace)
+		return nil, fmt.Errorf("configmap %s not found in %s namespace: %w", lib.ConfigMapName, lib.Namespace, err)
 	} else if err != nil {
-		return nil, fmt.Errorf("error getting configmap: %s", err)
+		return nil, fmt.Errorf("error getting configmap: %w", err)
 	}
 	lib.Log.Info("Got template configmap", "configmap", templateConfigMap)
 
 	tm, err := capi.ParseConfigMap(*templateConfigMap)
 	if errors.IsNotFound(err) {
-		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %s", err)
+		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %w", err)
 	}
 	return tm, nil
 }
@@ -97,7 +97,7 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITempla
 	}, &capiTemplate)
 	if err != nil {
 		lib.Log.Error(err, "Failed to get capitemplate", "template", name)
-		return nil, fmt.Errorf("error getting capitemplate %s/%s: %s", lib.Namespace, name, err)
+		return nil, fmt.Errorf("error getting capitemplate %s/%s: %w", lib.Namespace, name, err)
 	}
 	lib.Log.Info("Got capitemplate", "template", name)
 
@@ -115,7 +115,7 @@ func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.CAPITemplat
 	capiTemplateList := capiv1.CAPITemplateList{}
 	err = cl.List(ctx, &capiTemplateList, client.InNamespace(lib.Namespace))
 	if err != nil {
-		return nil, fmt.Errorf("error getting capitemplates: %s", err)
+		return nil, fmt.Errorf("error getting capitemplates: %w", err)
 	}
 	lib.Log.Info("Got capitemplates", "numberOfTemplates", len(capiTemplateList.Items))
 

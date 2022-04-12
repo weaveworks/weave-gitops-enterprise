@@ -28,6 +28,10 @@ on:
         description: "Version of kubectl"
         required: true
         type: string
+      login_user_type:
+        description: "Login user type e.g. cluster-user or oidc"
+        required: true
+        type: string
       git-provider:
         description: "Git provider for running tests either on github or gitlab"
         required: true
@@ -69,6 +73,15 @@ on:
     secrets:
       BUILD_BOT_USER:
         description: "Build bot user name"
+        required: true
+      WGE_CLUSTER_ADMIN_PASSWORD:
+        description: "Cluster user admin password"
+        required: true
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH:
+        description: "Cluster user admin password hash"
+        required: true
+      WGE_DEX_CLIENT_SECRET:
+        description: "client credential secret for OIDC (dex)"
         required: true
       BUILD_BOT_PERSONAL_ACCESS_TOKEN:
         description: "Build obt personal access token"
@@ -130,6 +143,12 @@ on:
 
 env:
   GO_CACHE_NAME: cache-go-modules
+  LOGIN_USER_TYPE: ${{ inputs.login_user_type }}
+  CLUSTER_ADMIN_PASSWORD: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}
+  CLUSTER_ADMIN_PASSWORD_HASH: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}
+  OIDC_ISSUER_URL: https://dex-01.wge.dev.weave.works
+  DEX_CLIENT_ID: weave-gitops-enterprise
+  DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
   GIT_PROVIDER: ${{ inputs.git-provider }}
   GIT_PROVIDER_HOSTNAME: ${{ inputs.git-provider_hostname }}
   GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
@@ -178,7 +197,7 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Go Build Cache

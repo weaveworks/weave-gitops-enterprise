@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -61,7 +62,7 @@ func waitForResourceState(state string, statusCondition string, resourceName str
 	cmd := fmt.Sprintf(" kubectl wait --for=condition=%s=%s --timeout=%s %s -n %s --all %s %s",
 		state, statusCondition, fmt.Sprintf("%.0fs", timeout.Seconds()), resourceName, nameSpace, selector, kubeconfig)
 	logger.Trace(cmd)
-	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_3MINUTE_TIME_OUT)
+	_, stdErr := runCommandAndReturnStringOutput(cmd, ASSERTION_6MINUTE_TIME_OUT)
 	Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("%s resource has failed to become %s.", resourceName, state))
 }
 
@@ -92,6 +93,35 @@ func verifyEnterpriseControllers(releaseName string, mccpPrefix, namespace strin
 
 func controllerStatus(controllerName, namespace string) error {
 	return runCommandPassThroughWithoutOutput("sh", "-c", fmt.Sprintf("kubectl rollout status deployment %s -n %s", controllerName, namespace))
+}
+
+func CheckClusterService(capiEndpointURL string) {
+	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
+	Eventually(func(g Gomega) {
+		// login to obtain cookie
+		stdOut, _ := runCommandAndReturnStringOutput(
+			fmt.Sprintf(
+				// insecure for self-signed tls
+				`curl --insecure  -d '{"password":"%s"}' -H "Content-Type: application/json" -X POST %s/oauth2/sign_in -c -`,
+				adminPassword, capiEndpointURL,
+			),
+			ASSERTION_1MINUTE_TIME_OUT,
+		)
+		g.Expect(stdOut).To(MatchRegexp(`id_token\s*(.*)`), "Failed to fetch cookie/Cluster Service is not healthy")
+
+		re := regexp.MustCompile(`id_token\s*(.*)`)
+		match := re.FindAllStringSubmatch(stdOut, -1)
+		cookie := match[0][1]
+		stdOut, stdErr := runCommandAndReturnStringOutput(
+			fmt.Sprintf(
+				`curl --insecure --silent --cookie "id_token=%s" -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
+				cookie, capiEndpointURL,
+			),
+			ASSERTION_1MINUTE_TIME_OUT,
+		)
+		g.Expect(stdOut).To(MatchRegexp("200"), "Cluster Service is not healthy: %v", stdErr)
+
+	}, ASSERTION_10SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
 }
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {
@@ -256,7 +286,6 @@ func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string, profiles
 		case "observability":
 			Expect(waitForResource("deploy", capiCluster+"-observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 			Expect(waitForResource("deploy", capiCluster+"-observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
-			Expect(waitForResource("deploy", capiCluster+"-operator", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 			waitForResourceState("Ready", "true", "pods", namespace, "release="+capiCluster+"-observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "podinfo":
 			Expect(waitForResource("deploy", capiCluster+"-podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))

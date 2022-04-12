@@ -42,8 +42,7 @@ type GitopsTestRunner interface {
 	DeleteApplyCapiTemplates(templateFiles []string)
 	CreateIPCredentials(infrastructureProvider string)
 	DeleteIPCredentials(infrastructureProvider string)
-	CheckClusterService(capiEndpointURL string)
-	RestartDeploymentPods(env []string, appName string, namespace string) error
+	RestartDeploymentPods(appName string, namespace string) error
 }
 
 // "DB" backend that creates/delete rows
@@ -189,11 +188,7 @@ func (b DatabaseGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []strin
 	})
 }
 
-func (b DatabaseGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
-
-}
-
-func (b DatabaseGitopsTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+func (b DatabaseGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
 	return nil
 }
 
@@ -353,26 +348,12 @@ func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
-func (b RealGitopsTestRunner) CheckClusterService(capiEndpointURL string) {
-	Eventually(func(g Gomega) {
-		stdOut, stdErr := runCommandAndReturnStringOutput(
-			fmt.Sprintf(
-				// insecure for self-signed tls
-				`curl --insecure --silent -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
-				capiEndpointURL,
-			),
-			ASSERTION_30SECONDS_TIME_OUT,
-		)
-		g.Expect(stdOut).To(MatchRegexp("200"), "Cluster Service is not healthy: %v", stdErr)
-	}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
-}
-
-func (b RealGitopsTestRunner) RestartDeploymentPods(env []string, appName string, namespace string) error {
+func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
 	// Restart the deployment pods
-	err := runCommandPassThroughWithEnv(env, "kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+	err := runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
 	if err == nil {
 		// Wait for all the deployments replicas to rolled out successfully
-		err = runCommandPassThroughWithEnv(env, "kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+		err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
 	}
 	return err
 }
@@ -382,26 +363,26 @@ func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string)
 	if infrastructureProvider == "AWS" {
 		By("Install AWSClusterStaticIdentity CRD", func() {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io")
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 		})
 
 		By("Install AWSClusterRoleIdentity CRD", func() {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io")
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 		})
 
 		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 
 	} else if infrastructureProvider == "AZURE" {
 		By("Install AzureClusterIdentity CRD", func() {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io")
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 		})
 
 		By("Create Azure Secret and AzureClusterIdentity)", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/azure_cluster_credentials.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/azure_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 	}
 

@@ -6,6 +6,7 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-
 
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
+import "google/protobuf/any.proto";
 
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
@@ -38,6 +39,12 @@ service ClustersService {
     option (google.api.http) = {
       post : "/v1/templates/{template_name}/render"
       body : "*"
+    };
+  }
+  rpc ListGitopsClusters(ListGitopsClustersRequest)
+      returns (ListGitopsClustersResponse) {
+    option (google.api.http) = {
+      get : "/v1/clusters"
     };
   }
   // Creates a pull request for a cluster template.
@@ -235,6 +242,14 @@ message GetKubeconfigResponse{
   string kubeconfig = 1;
 }
 
+message GitopsCluster {
+  string name = 1;
+  string type = 2;
+  map<string, string> annotations = 3;
+  map<string, string> labels = 4;
+  string error = 5;
+}
+
 message Credential {
   string group = 1;
   string version = 2;
@@ -319,3 +334,40 @@ message GetConfigResponse {
   string repositoryURL = 1;
 }
 
+message PolicyParamRepeatedString {
+  repeated string value = 1;
+}
+
+message PolicyParam {
+  string name = 1;
+  string type = 2;
+  // value is a generic value that can be a string, int, bool and array of strings
+  google.protobuf.Any value = 3;
+  bool required = 4;
+}
+
+message PolicyTargetLabel {
+  map<string, string> values = 1;
+}
+
+message PolicyTargets {
+  repeated string kinds = 1;
+  repeated PolicyTargetLabel labels = 2;
+  repeated string namespaces = 3;
+}
+
+message Policy {
+  string name = 1;
+  string id = 2;
+  string code = 3;
+  string description = 4;
+  string how_to_solve = 5;
+  string category = 6;
+  repeated string tags = 7;
+  string severity = 8;
+  repeated string controls = 9;
+  string git_commit = 10;
+  repeated PolicyParam parameters = 11;
+  PolicyTargets targets = 12;
+  string created_at = 13;
+}
