@@ -1110,6 +1110,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
+
+					// Wait for template to be reloaded before submitting
+					Eventually(webDriver.Find("#root_CLUSTER_NAME-label")).Should(BeFound())
+
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
 
