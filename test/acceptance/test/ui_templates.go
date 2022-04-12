@@ -560,7 +560,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Expect(gitops.ErrorBar.Click()).To(Succeed())
 					}
 
-					Expect(gitops.CreatePR.Click()).To(Succeed())
+					Eventually(gitops.CreatePR.Click).Should(Succeed())
 				})
 
 				var prUrl string

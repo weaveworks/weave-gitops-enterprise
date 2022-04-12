@@ -133,7 +133,7 @@ function setup {
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
-  helmArgs+=( --set "config.capi.repositoryPath=./clusters" )
+  helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
   helmArgs+=( --set "config.oidc.enabled=true" )
