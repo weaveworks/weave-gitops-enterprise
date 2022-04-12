@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -15,26 +15,42 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 	config := ctrl.GetConfigOrDie()
 	clientset := kubernetes.NewForConfigOrDie(config)
 
-	namespace := "default"
-	items, err := GetEvents(clientset, ctx, namespace)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		for _, item := range items {
-			fmt.Printf("%+v\n", item)
-		}
-	}
-	return &capiv1_proto.ListPolicyValidationsResponse{}, nil
-}
+	policyviolationlist := capiv1_proto.ListPolicyValidationsResponse{}
 
-func GetEvents(clientset *kubernetes.Clientset, ctx context.Context,
-	namespace string) ([]corev1.Event, error) {
+	events, err := clientset.CoreV1().Events(v1.NamespaceAll).
+		List(ctx, metav1.ListOptions{
+			LabelSelector: "policy-validation.weave.works=Admission",
+			FieldSelector: "type=Warning",
+		})
 
-	list, err := clientset.CoreV1().Events(namespace).
-		List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v\n", list.Items)
-	return list.Items, nil
+
+	for _, item := range events.Items {
+		policyviolationlist.Violations = append(policyviolationlist.Violations, toPolicyValidation(item))
+	}
+	policyviolationlist.Total = int32(len(events.Items))
+	return &policyviolationlist, nil
+}
+
+func toPolicyValidation(item v1.Event) *capiv1_proto.PolicyValidation {
+	annotations := item.GetAnnotations()
+	return &capiv1_proto.PolicyValidation{
+		Id:        item.Name,
+		Category:  getAnnotation(annotations, "category"),
+		Severity:  getAnnotation(annotations, "severity"),
+		CreatedAt: item.GetCreationTimestamp().Format(time.RFC3339),
+		Message:   item.Message,
+		Entity:    item.InvolvedObject.Name,
+		Namespace: item.InvolvedObject.Namespace,
+	}
+}
+
+func getAnnotation(annotations map[string]string, key string) string {
+	value, ok := annotations[key]
+	if !ok {
+		return ""
+	}
+	return value
 }

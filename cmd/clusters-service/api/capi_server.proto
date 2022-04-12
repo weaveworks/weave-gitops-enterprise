@@ -171,6 +171,8 @@ message PolicyValidation{
   string category = 4;
   string severity = 5;
   string created_at = 6;
+  string entity=7;
+  string namespace=8;
 }
 
 message CreatePullRequestRequest {
