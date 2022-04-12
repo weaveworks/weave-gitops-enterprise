@@ -85,6 +85,27 @@ service ClustersService {
       get : "/v1/config"
     };
   }
+
+  // ListPolicies list policies available on the management cluster
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
+    option (google.api.http) = {
+      get : "/v1/policies"
+    };
+  }
+
+  // GetPolicy gets a policy on the management cluster by name
+  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
+    option (google.api.http) = {
+      get : "/v1/policies/{policy_name}"
+    };
+  }
+
+  // ListPolicyValidation list policy violations policies available on the management cluster
+  rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
+    option (google.api.http) = {
+      get : "/v1/violations"
+    };
+  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -114,6 +135,36 @@ message RenderTemplateRequest {
   Credential credentials = 3;
 }
 message RenderTemplateResponse { string rendered_template = 1; }
+
+message ListGitopsClustersRequest { string label = 1; }
+message ListGitopsClustersResponse {
+  repeated GitopsCluster gitops_clusters = 1;
+  int32 total = 2;
+}
+
+message GetPolicyRequest{ string policy_name = 1; }
+message ListPoliciesRequest{}
+message GetPolicyResponse{ Policy policy = 1; }
+message ListPoliciesResponse {
+  repeated Policy policies = 1;
+  int32 total = 2;
+}
+
+
+
+message ListPolicyValidationsRequest{}
+message ListPolicyValidationsResponse {
+  repeated PolicyValidation violations = 1;
+  int32 total = 2;
+}
+message PolicyValidation{
+  string id = 1;
+  string message = 2;
+  string cluster_id = 3;
+  string category = 4;
+  string severity = 5;
+  string created_at = 6;
+}
 
 message CreatePullRequestRequest {
   // The repository to use.
