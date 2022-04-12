@@ -71,8 +71,6 @@ func verifyCoreControllers(namespace string) {
 	Expect(waitForResource("deploy", "kustomize-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", "notification-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", "source-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	// Expect(waitForResource("deploy", "image-automation-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	// Expect(waitForResource("deploy", "image-reflector-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
@@ -135,20 +133,12 @@ func waitForGitRepoReady(appName string, namespace string) {
 	Expect(waitForResource("GitRepositories", appName, namespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
 }
 
-func installAndVerifyGitops(gp GitProviderEnv, gitopsNamespace string, manifestRepoURL string) {
-	// flux bootstrap gitlab \
-	//   --owner=${GITLAB_ORG} \
-	//   --repository=${CLUSTER_REPOSITORY} \
-	//   --branch=main \
-	//   --hostname=${GIT_PROVIDER_HOSTNAME} \
-	//   --path=./clusters/my-cluster
+func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestRepoURL string) {
 	cmdInstall := fmt.Sprintf(`flux bootstrap %s --owner=%s --repository=%s --branch=main --hostname=%s --path=./clusters/my-cluster`, gp.Type, gp.Org, gp.Repo, gp.Hostname)
 	logger.Info(cmdInstall)
 
 	verifyGitRepositories := false
 	for i := 1; i < 5; i++ {
-		// Deploy key secret should not exist already
-		// FIXME: need these?
 		deleteGitopsDeploySecret(gitopsNamespace)
 		deleteGitopsGitRepository(gitopsNamespace)
 		_, _ = runCommandAndReturnStringOutput(cmdInstall, ASSERTION_5MINUTE_TIME_OUT)

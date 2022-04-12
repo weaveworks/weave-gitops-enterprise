@@ -102,7 +102,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("When I install gitops/wego to my active cluster", func() {
 					// FIXME
-					// installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+					// bootstrapAndVerifyFlux(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 				})
 
 				By("And I install Profile (HelmRepository chart)", func() {
