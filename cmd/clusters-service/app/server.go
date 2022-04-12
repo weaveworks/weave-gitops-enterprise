@@ -36,7 +36,10 @@ import (
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/helm/watcher"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/helm/watcher/cache"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
@@ -50,9 +53,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -388,7 +388,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(coreConfig),
 		WithClusterFetcher(fetcher),
-		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
+		WithProfilesConfig(server.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",
 		}, profileCache, p.helmRepoNamespace, p.helmRepoName)),
@@ -467,8 +467,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 
-	wegoProfilesServer := core.NewProfilesServer(args.Log, args.ProfilesConfig)
-	if err := core_profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
+	wegoProfilesServer := server.NewProfilesServer(args.Log, args.ProfilesConfig)
+	if err := profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 

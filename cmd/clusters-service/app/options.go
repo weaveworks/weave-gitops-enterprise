@@ -4,11 +4,12 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	core "github.com/weaveworks/weave-gitops/core/server"
+	core_core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/server"
+	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"gorm.io/gorm"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,9 +24,9 @@ type Options struct {
 	DiscoveryClient              discovery.DiscoveryInterface
 	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
-	ApplicationsConfig           *server.ApplicationsConfig
-	CoreServerConfig             core.CoreServerConfig
-	ApplicationsOptions          []server.ApplicationsOption
+	ApplicationsConfig           *core.ApplicationsConfig
+	CoreServerConfig             core_core.CoreServerConfig
+	ApplicationsOptions          []core.ApplicationsOption
 	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
@@ -93,7 +94,7 @@ func WithGitProvider(gitProvider git.Provider) Option {
 
 // WithApplicationsConfig is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
+func WithApplicationsConfig(appConfig *core.ApplicationsConfig) Option {
 	return func(o *Options) {
 		o.ApplicationsConfig = appConfig
 	}
@@ -101,7 +102,7 @@ func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 
 // WithApplicationsOptions is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsOptions(appOptions ...server.ApplicationsOption) Option {
+func WithApplicationsOptions(appOptions ...core.ApplicationsOption) Option {
 	return func(o *Options) {
 		o.ApplicationsOptions = appOptions
 	}
@@ -109,7 +110,7 @@ func WithApplicationsOptions(appOptions ...server.ApplicationsOption) Option {
 
 // WithCoreConfig is used to set the configuration needed to work
 // with Weave GitOps Core
-func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
+func WithCoreConfig(coreServerConfig core_core.CoreServerConfig) Option {
 	return func(o *Options) {
 		o.CoreServerConfig = coreServerConfig
 	}
