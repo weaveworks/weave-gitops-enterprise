@@ -1217,13 +1217,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					if !pages.ElementExist(pages.GetClustersPage(webDriver).Version) {
 						Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 					}
+					loginUser()
 					found, _ := pages.GetEntitelment(webDriver, typeEntitelment).Visible()
 					return found
 
 				}
 
 				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
-				loginUser()
 
 				if beFound {
 					Eventually(checkOutput, ASSERTION_2MINUTE_TIME_OUT).Should(BeTrue())
