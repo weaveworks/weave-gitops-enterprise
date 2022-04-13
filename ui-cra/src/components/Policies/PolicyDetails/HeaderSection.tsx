@@ -21,7 +21,7 @@ const useStyles = makeStyles(() =>
     chip: {
       background: theme.colors.neutral10,
       borderRadius: theme.spacing.xxs,
-      padding: `${theme.spacing.xs} ${theme.spacing.xxs}`,
+      padding: `${theme.spacing.xxs} ${theme.spacing.xs}`,
       marginLeft: theme.spacing.xs,
       fontWeight: 400,
       fontSize: theme.fontSizes.tiny,
@@ -45,6 +45,9 @@ const FlexStart = styled.div`
   align-items: center;
   justify-content: start;
 `;
+const RowContainer = styled.div`
+  padding-bottom: ${theme.spacing.xxs};
+`;
 
 function HeaderSection({
   id,
@@ -61,18 +64,18 @@ function HeaderSection({
   console.log(theme.spacing);
   return (
     <>
-      <div>
+      <RowContainer>
         <span className={classes.cardTitle}>Policy ID:</span>
         <span className={classes.body1}>{id}</span>
-      </div>
-      <div>
+      </RowContainer>
+      <RowContainer>
         <span className={classes.cardTitle}>Tags:</span>
         {tags?.map(tag => (
           <span key={tag} className={classes.chip}>
             {tag}
           </span>
         ))}
-      </div>
+      </RowContainer>
       <FlexStart>
         <span className={`${classes.cardTitle} ${classes.marginrightSmall}`}>
           Severity:
@@ -80,33 +83,33 @@ function HeaderSection({
         <Severity severity={severity || ''} />
       </FlexStart>
 
-      <div>
+      <RowContainer>
         <span className={classes.cardTitle}>Category:</span>
         <span className={classes.body1}>{category}</span>
-      </div>
-      <div>
+      </RowContainer>
+      <RowContainer>
         <span className={classes.cardTitle}>Targeted K8s Kind:</span>
         {targets?.kinds?.map(kind => (
           <span key={kind} className={classes.chip}>
             {kind}
           </span>
         ))}
-      </div>
+      </RowContainer>
 
       <hr />
-
       <div className={classes.paddingTopSmall}>
         <span className={classes.cardTitle}>Description</span>
         <p className={`${classes.body1} ${classes.codeWrapper}`}>
           {description}
         </p>
       </div>
-      <div>
+
+      <RowContainer>
         <span className={classes.cardTitle}>How To Resolve</span>
         <p className={`${classes.body1} ${classes.codeWrapper}`}>
           {howToSolve}
         </p>
-      </div>
+      </RowContainer>
     </>
   );
 }
