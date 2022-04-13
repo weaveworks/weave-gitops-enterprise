@@ -1,32 +1,32 @@
 import { Policy, PolicyParam } from '../../../capi-server/capi_server.pb';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import { theme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({
     cardTitle: {
       fontWeight: 700,
-      fontSize: '14px',
-      color: '#737373',
-      marginBottom: '12px',
+      fontSize: theme.fontSizes.small,
+      color: theme.colors.neutral30,
     },
     body1: {
       fontWeight: 400,
-      fontSize: '14px',
-      color: '#1A1A1A',
+      fontSize: theme.fontSizes.small,
+      color: theme.colors.black,
     },
     labelText: {
       fontWeight: 400,
-      fontSize: '12px',
-      color: '#737373',
+      fontSize: theme.fontSizes.tiny,
+      color: theme.colors.neutral30,
     },
     parameterWrapper: {
-      border: '1px solid #DADDE0',
+      border: `1px solid ${theme.colors.neutral20}`,
       boxSizing: 'border-box',
-      borderRadius: '2px',
-      padding: '16px',
+      borderRadius: theme.spacing.xxs,
+      padding: theme.spacing.base,
       display: 'flex',
-      marginBottom: '16px',
-      marginTop: '16px',
+      marginBottom: theme.spacing.base,
+      marginTop: theme.spacing.base,
     },
     parameterInfo: {
       display: 'flex',
@@ -35,15 +35,14 @@ const useStyles = makeStyles(() =>
       width: '100%',
     },
     chip: {
-      background: 'rgba(10, 57, 64, 0.06)',
-      borderRadius: '4px',
-      padding: '2px 8px',
+      background: theme.colors.neutral10,
+      borderRadius: theme.spacing.xxs,
+      padding: `${theme.spacing.xxs} ${theme.spacing.xs}`,
       fontWeight: 400,
-      fontSize: '14px',
+      fontSize: theme.fontSizes.tiny,
     },
   }),
 );
-
 function ParametersSection({ parameters }: Policy) {
   const classes = useStyles();
   const parseValue = (parameter: PolicyParam) => {

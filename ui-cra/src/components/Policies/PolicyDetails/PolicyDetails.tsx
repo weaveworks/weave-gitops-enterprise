@@ -18,7 +18,7 @@ const PolicyDetails = () => {
 
   const fetchPoliciesAPI = useCallback(() => {
     return PolicyService.getPolicyById(id).then((res: GetPolicyResponse) => {
-      setName(res.policy?.name || '');
+      res.policy && setName(res.policy?.name || '');
       return res;
     });
   }, [id]);

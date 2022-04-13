@@ -60,8 +60,6 @@ function HeaderSection({
   code,
 }: Policy) {
   const classes = useStyles();
-
-  console.log(theme.spacing);
   return (
     <>
       <RowContainer>
