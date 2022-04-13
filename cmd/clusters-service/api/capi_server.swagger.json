@@ -431,7 +431,7 @@
       }
     },
     "/v1/violations": {
-      "get": {
+      "post": {
         "summary": "ListPolicyValidation list policy violations policies available on the management cluster",
         "operationId": "ClustersService_ListPolicyValidations",
         "responses": {
@@ -448,6 +448,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyValidationsRequest"
+            }
+          }
+        ],
         "tags": [
           "ClustersService"
         ]
@@ -744,6 +754,14 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "v1ListPolicyValidationsRequest": {
+      "type": "object",
+      "properties": {
+        "clusterId": {
+          "type": "string"
         }
       }
     },

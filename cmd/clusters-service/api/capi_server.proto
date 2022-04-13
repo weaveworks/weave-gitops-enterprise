@@ -110,7 +110,8 @@ service ClustersService {
   // ListPolicyValidation list policy violations policies available on the management cluster
   rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
     option (google.api.http) = {
-      get : "/v1/violations"
+      post : "/v1/violations"
+      body : "*"
     };
   }
 }
@@ -159,7 +160,9 @@ message ListPoliciesResponse {
 
 
 
-message ListPolicyValidationsRequest{}
+message ListPolicyValidationsRequest{
+  string cluster_id = 1;
+}
 message ListPolicyValidationsResponse {
   repeated PolicyValidation violations = 1;
   int32 total = 2;
