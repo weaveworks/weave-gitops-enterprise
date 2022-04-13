@@ -5,6 +5,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
@@ -26,6 +27,7 @@ type Options struct {
 	CoreServerConfig             core.CoreServerConfig
 	ApplicationsOptions          []server.ApplicationsOption
 	ProfilesConfig               server.ProfilesConfig
+	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
@@ -110,6 +112,12 @@ func WithApplicationsOptions(appOptions ...server.ApplicationsOption) Option {
 func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
 	return func(o *Options) {
 		o.CoreServerConfig = coreServerConfig
+	}
+}
+
+func WithClusterFetcher(clusterFetcher clustersmngr.ClusterFetcher) Option {
+	return func(o *Options) {
+		o.ClusterFetcher = clusterFetcher
 	}
 }
 

@@ -316,8 +316,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
-
-	cacheContainer, err := core_cache.NewContainer(context.Background(), rest, log)
+	cacheContainer, err := core_cache.NewContainer(ctx, rest, log)
 	if err != nil {
 		return fmt.Errorf("could not create cache container: %w", err)
 	}
@@ -365,6 +364,11 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme)
 
+	fetcher, err := clustersmngr.NewSingleClusterFetcher(rest)
+	if err != nil {
+		return err
+	}
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithProfileHelmRepository(p.helmRepoName),
@@ -383,6 +387,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(coreConfig),
+		WithClusterFetcher(fetcher),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",
@@ -467,21 +472,14 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
+	if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
+		return fmt.Errorf("failed to register core servers: %w", err)
+	}
+
 	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
-
-	// FIXME: This is a bit dangerous but required so that we can start the EE server w/ a fake kube client
-	// (Which isn't supported by the core handler right now)
-	if args.CoreServerConfig.RestCfg != nil {
-		if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
-			return fmt.Errorf("failed to register core servers: %w", err)
-		}
-		clustersFetcher, err := clustersmngr.NewSingleClusterFetcher(args.CoreServerConfig.RestCfg)
-		if err != nil {
-			return fmt.Errorf("failed fetching clusters: %w", err)
-		}
-		grpcHttpHandler = clustersmngr.WithClustersClient(clustersFetcher, grpcHttpHandler)
-	}
+	// Cluster discovery
+	grpcHttpHandler = clustersmngr.WithClustersClient(args.ClusterFetcher, grpcHttpHandler)
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
