@@ -75,6 +75,8 @@ const useRequest = (fetchFn: () => Promise<any>): RequestInfo => {
 
 const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
   const classes = useStyles();
+
+  // Use the useRequest hook to fetch the data from the server and show the loading spinner while the data is being fetched
   const { loading, error, errorMessage, data, retry } = useRequest(fetchFn);
 
   return (

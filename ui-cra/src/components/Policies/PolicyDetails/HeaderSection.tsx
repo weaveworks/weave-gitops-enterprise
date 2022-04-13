@@ -3,44 +3,40 @@ import { Policy } from '../../../capi-server/capi_server.pb';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import Severity from '../Severity';
 import styled from 'styled-components';
+import { theme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({
     cardTitle: {
       fontWeight: 700,
-      fontSize: '14px',
-      color: '#737373',
+      fontSize: theme.fontSizes.small,
+      color: theme.colors.neutral30,
     },
     body1: {
       fontWeight: 400,
-      fontSize: '14px',
-      color: '#1A1A1A',
-      marginLeft: '8px',
+      fontSize: theme.fontSizes.small,
+      color: theme.colors.black,
+      marginLeft: theme.spacing.xs,
     },
     chip: {
-      background: 'rgba(10, 57, 64, 0.06)',
-      borderRadius: '4px',
-      padding: '2px 8px',
-      marginLeft: '8px',
+      background: theme.colors.neutral10,
+      borderRadius: theme.spacing.xxs,
+      padding: `${theme.spacing.xs} ${theme.spacing.xxs}`,
+      marginLeft: theme.spacing.xs,
       fontWeight: 400,
-      fontSize: '11px',
+      fontSize: theme.fontSizes.tiny,
     },
     codeWrapper: {
-      background: '#F8FAFA',
-      borderRadius: '4px',
-      padding: '10px 16px',
-      marginLeft: 0,
+      background: theme.colors.neutral10,
+      borderRadius: theme.spacing.xxs,
+      padding: `${theme.spacing.small} ${theme.spacing.base}`,
+      marginLeft: theme.spacing.none,
     },
     paddingTopSmall: {
-      paddingTop: '8px',
+      paddingTop: theme.spacing.xs,
     },
     marginrightSmall: {
-      marginRight: '8px',
-    },
-    flexStart: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'start',
+      marginRight: theme.spacing.xs,
     },
   }),
 );
@@ -61,6 +57,8 @@ function HeaderSection({
   code,
 }: Policy) {
   const classes = useStyles();
+
+  console.log(theme.spacing);
   return (
     <>
       <div>

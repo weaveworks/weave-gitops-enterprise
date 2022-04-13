@@ -3,218 +3,351 @@ import { request } from '../../utils/request';
 export class PolicyService {
   static policiesUrl = '/v1/policies';
 
-  static getPolicyList = (payload: any) => {
-
-    // if (payload.limit === 20) {
-    //   return new Promise((resolve, reject) => {
-    //     resolve({
-    //       policies: [
-    //         {
-    //           name: 'MariaDB Enforce Environment Variable - MYSQL_ROOT_PASSWORD',
-    //           id: 'magalix.policies.mariadb-enforce-mysql-root-password-env-var',
-    //           code: 'package magalix.advisor.mariadb.enforce_mysql_root_password_env_var\n\nenv_name = "MYSQL_ROOT_PASSWORD"\napp_name = "mariadb"\nexclude_namespace = input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\n\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  some i\n  containers := controller_spec.containers[i]\n  contains(containers.image, app_name)\n  not containers.env\n  result = {\n    "issue detected": true,\n    "msg": "environment variables needs to be set",\n    "violating_key": sprintf("spec.template.spec.containers[%v]", [i]),  }\n}\n\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  some i\n  containers := controller_spec.containers[i]\n  contains(containers.image, app_name)\n  envs := containers.env\n  not array_contains(envs, env_name)\n  result = {\n    "issue detected": true,\n    "msg": sprintf("\'%v\' is missing\'; detected \'%v\'", [env_name, envs]),\n    "violating_key": sprintf("spec.template.spec.containers[%v].env.name", [i])\n  }\n}\n\n\narray_contains(array, element) {\n  array[_].name = element\n}\n\n# Controller input\ncontroller_input = input.review.object\n\n# controller_container acts as an iterator to get containers from the template\ncontroller_spec = controller_input.spec.template.spec {\n  contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})\n} else = controller_input.spec {\n  controller_input.kind == "Pod"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n  controller_input.kind == "CronJob"\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}',
-    //           description:
-    //             'This Policy ensures MYSQL_ROOT_PASSWORD environment variable are in place when using the official container images from Docker Hub.\nMYSQL_ROOT_PASSWORD: The MYSQL_ROOT_PASSWORD environment variable specifies a password for the MARIADB root account. \n',
-    //           howToSolve:
-    //             'If you encounter a violation, ensure the MYSQL_ROOT_PASSWORD environment variables is set.\nFor futher information about the MariaDB Docker container, check here: https://hub.docker.com/_/mariadb\n',
-    //           category: 'magalix.categories.access-control',
-    //           tags: ['pci-dss', 'mitre-attack', 'hipaa', 'gdpr'],
-    //           severity: 'high',
-    //           controls: [
-    //             'magalix.controls.pci-dss.2.1',
-    //             'magalix.controls.hipaa.164.312.a.1',
-    //             'magalix.controls.hipaa.164.312.a.2.i',
-    //             'magalix.controls.gdpr.24',
-    //             'magalix.controls.gdpr.25',
-    //             'magalix.controls.gdpr.32',
-    //           ],
-    //           gitCommit: '',
-    //           parameters: [
-    //             {
-    //               name: 'exclude_namespace',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //             {
-    //               name: 'exclude_label_key',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //             {
-    //               name: 'exclude_label_value',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //           ],
-    //           targets: {
-    //             kinds: [
-    //               'Deployment',
-    //               'Job',
-    //               'ReplicationController',
-    //               'ReplicaSet',
-    //               'DaemonSet',
-    //               'StatefulSet',
-    //               'CronJob',
-    //             ],
-    //             labels: [],
-    //             namespaces: [],
-    //           },
-    //           createdAt: '2022-03-31 11:36:02 +0000 UTC',
-    //         },
-    //         {
-    //           name: 'Missing Owner Label',
-    //           id: 'magalix.policies.missing-owner-label',
-    //           code: 'package magalix.advisor.labels.missing_owner_label\n\nexclude_namespace := input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  # Filter the type of entity before moving on since this shouldn\'t apply to all entities\n  label := "owner"\n  contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})\n  not controller_input.metadata.labels[label]\n  result = {\n    "issue detected": true,\n    "msg": sprintf("you are missing a label with the key \'%v\'", [label]),\n    "violating_key": "metadata.labels",\n    "recommended_value": label\n  }\n}\n\n# Controller input\ncontroller_input = input.review.object\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}',
-    //           description:
-    //             "Custom labels can help enforce organizational standards for each artifact deployed. This Policy ensure a custom label key is set in the entity's `metadata`. The Policy detects the presence of the following: \n\n### owner\nA label key of `owner` will help identify who the owner of this entity is. \n\n### app.kubernetes.io/name\nThe name of the application\t\n\n### app.kubernetes.io/instance\nA unique name identifying the instance of an application\t  \n\n### app.kubernetes.io/version\nThe current version of the application (e.g., a semantic version, revision hash, etc.)\n\n### app.kubernetes.io/part-of\nThe name of a higher level application this one is part of\t\n\n### app.kubernetes.io/managed-by\nThe tool being used to manage the operation of an application\t\n\n### app.kubernetes.io/created-by\nThe controller/user who created this resource\t\n",
-    //           howToSolve:
-    //             'Add these custom labels to `metadata`.\n* owner\n* app.kubernetes.io/name\n* app.kubernetes.io/instance\n* app.kubernetes.io/version\n* app.kubernetes.io/name\n* app.kubernetes.io/part-of\n* app.kubernetes.io/managed-by\n* app.kubernetes.io/created-by\n\n```\nmetadata:\n  labels:\n    <label>: value\n```  \nFor additional information, please check\n* https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels \n',
-    //           category: 'magalix.categories.organizational-standards',
-    //           tags: [],
-    //           severity: 'low',
-    //           controls: [],
-    //           gitCommit: '',
-    //           parameters: [
-    //             {
-    //               name: 'exclude_namespace',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //             {
-    //               name: 'exclude_label_key',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //             {
-    //               name: 'exclude_label_value',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //           ],
-    //           targets: {
-    //             kinds: [
-    //               'Deployment',
-    //               'Job',
-    //               'ReplicationController',
-    //               'ReplicaSet',
-    //               'DaemonSet',
-    //               'StatefulSet',
-    //               'CronJob',
-    //             ],
-    //             labels: [],
-    //             namespaces: [],
-    //           },
-    //           createdAt: '2022-03-31 11:36:02 +0000 UTC',
-    //         },
-    //         {
-    //           name: 'Mongo-Express Enforce Environment Variable - ME_CONFIG_BASICAUTH_PASSWORD',
-    //           id: 'magalix.policies.mongo-express-enforce-auth-password-env-var',
-    //           code: 'package magalix.advisor.mongo_express.enforce_auth_password_env_var\n\nenv_name = "ME_CONFIG_BASICAUTH_PASSWORD"\napp_name = "mongo-express"\nexclude_namespace = input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\n\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  some i\n  containers := controller_spec.containers[i]\n  contains(containers.image, app_name)\n  not containers.env\n  result = {\n    "issue detected": true,\n    "msg": "environment variables needs to be set",\n    "violating_key": sprintf("spec.template.spec.containers[%v]", [i]),  }\n}\n\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  some i\n  containers := controller_spec.containers[i]\n  contains(containers.image, app_name)\n  envs := containers.env\n  not array_contains(envs, env_name)\n  result = {\n    "issue detected": true,\n    "msg": sprintf("\'%v\' is missing\'; detected \'%v\'", [env_name, envs]),\n    "violating_key": sprintf("spec.template.spec.containers[%v].env.name", [i])\n  }\n}\n\n\narray_contains(array, element) {\n  array[_].name = element\n}\n\n# Controller input\ncontroller_input = input.review.object\n\n# controller_container acts as an iterator to get containers from the template\ncontroller_spec = controller_input.spec.template.spec {\n  contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})\n} else = controller_input.spec {\n  controller_input.kind == "Pod"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n  controller_input.kind == "CronJob"\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}',
-    //           description:
-    //             'This Policy ensures ME_CONFIG_BASICAUTH_PASSWORD environment variable are in place when using the official container images from Docker Hub.\nME_CONFIG_BASICAUTH_PASSWORD: The ME_CONFIG_BASICAUTH_PASSWORD environment variable sets the mongo-express web password.\n',
-    //           howToSolve:
-    //             'If you encounter a violation, ensure the ME_CONFIG_BASICAUTH_PASSWORD environment variables is set.\nFor futher information about the Mongo-Express Docker container, check here: https://hub.docker.com/_/mongo-express\n',
-    //           category: 'magalix.categories.access-control',
-    //           tags: ['pci-dss', 'mitre-attack', 'hipaa'],
-    //           severity: 'high',
-    //           controls: [
-    //             'magalix.controls.pci-dss.2.1',
-    //             'magalix.controls.hipaa.164.312.a.1',
-    //             'magalix.controls.hipaa.164.312.a.2.i',
-    //           ],
-    //           gitCommit: '',
-    //           parameters: [
-    //             {
-    //               name: 'exclude_namespace',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //             {
-    //               name: 'exclude_label_key',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //             {
-    //               name: 'exclude_label_value',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //           ],
-    //           targets: {
-    //             kinds: [
-    //               'Deployment',
-    //               'Job',
-    //               'ReplicationController',
-    //               'ReplicaSet',
-    //               'DaemonSet',
-    //               'StatefulSet',
-    //               'CronJob',
-    //             ],
-    //             labels: [],
-    //             namespaces: [],
-    //           },
-    //           createdAt: '2022-03-31 11:36:02 +0000 UTC',
-    //         },
-    //         {
-    //           name: 'Persistent Volume Reclaim Policy Should Be Set To Retain',
-    //           id: 'magalix.policies.persistent-volume-reclaim-policy-should-be-set-to-retain',
-    //           code: 'package magalix.advisor.storage.persistentvolume_reclaim_policy\n\npolicy := input.parameters.pv_policy\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  pv_policy := storage_spec.persistentVolumeReclaimPolicy\n  not pv_policy == policy\n  result = {\n    "issue detected": true,\n    "msg": sprintf("persistentVolumeReclaimPolicy must be \'%v\'; found \'%v\'", [policy, pv_policy]),\n    "violating_key": "spec.persistentVolumeReclaimPolicy",\n    "recommened_value": policy\n  }\n}\n\n# controller_container acts as an iterator to get containers from the template\nstorage_spec = input.review.object.spec {\n  contains_kind(input.review.object.kind, {"PersistentVolume"})\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}\n\n',
-    //           description:
-    //             'This Policy checks to see whether or not the persistent volume reclaim policy is set.\n\nPersistentVolumes can have various reclaim policies, including "Retain", "Recycle", and "Delete". For dynamically provisioned PersistentVolumes, the default reclaim policy is "Delete". This means that a dynamically provisioned volume is automatically deleted when a user deletes the corresponding PersistentVolumeClaim. This automatic behavior might be inappropriate if the volume contains precious data. In that case, it is more appropriate to use the "Retain" policy. With the "Retain" policy, if a user deletes a PersistentVolumeClaim, the corresponding PersistentVolume is not be deleted. Instead, it is moved to the Released phase, where all of its data can be manually recovered.\n',
-    //           howToSolve:
-    //             'Check your reclaim policy configuration within your PersistentVolume configuration. \n```\nspec:\n  persistentVolumeReclaimPolicy: <pv_policy>\n```\n\nhttps://kubernetes.io/docs/tasks/administer-cluster/change-pv-reclaim-policy/#why-change-reclaim-policy-of-a-persistentvolume\n',
-    //           category: 'magalix.categories.data-protection',
-    //           tags: ['pci-dss', 'soc2-type1'],
-    //           severity: 'medium',
-    //           controls: [
-    //             'magalix.controls.pci-dss.3.1',
-    //             'magalix.controls.soc2-type-i.2.1.2',
-    //           ],
-    //           gitCommit: '',
-    //           parameters: [
-    //             {
-    //               name: 'pv_policy',
-    //               type: 'string',
-    //               default: {
-    //                 '@type': 'type.googleapis.com/google.protobuf.StringValue',
-    //                 value: '"Retain"',
-    //               },
-    //               required: true,
-    //             },
-    //             {
-    //               name: 'exclude_label_key',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //             {
-    //               name: 'exclude_label_value',
-    //               type: 'string',
-    //               default: null,
-    //               required: false,
-    //             },
-    //           ],
-    //           targets: {
-    //             kinds: ['PersistentVolume'],
-    //             labels: [],
-    //             namespaces: [],
-    //           },
-    //           createdAt: '2022-03-31 11:36:02 +0000 UTC',
-    //         },
-    //       ],
-    //       total: 4,
-    //     });
-    //   });
-    // }
+  static listPolicies = (payload: any) => {
+    if (payload.limit === 20) {
+      return new Promise((resolve, reject) => {
+        // reject({
+        //   error: 'Invalid limit',
+        // });
+        resolve({
+          policies: [
+            {
+              name: 'Container Running As Root',
+              id: 'weave.policies.container-running-as-rootss',
+              code: 'package weave.advisor.podSecurity.runningAsRoot\n\nexclude_namespace := input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\n# Check for missing securityContext.runAsNonRoot (missing in both, pod and container)\nviolation[result] {\n\tnot exclude_namespace == controller_input.metadata.namespace\n\tnot exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n\n\tcontroller_spec.securityContext\n\tnot controller_spec.securityContext.runAsNonRoot\n\tnot controller_spec.securityContext.runAsNonRoot == false\n\n\tsome i\n\tcontainers := controller_spec.containers[i]\n\tcontainers.securityContext\n\tnot containers.securityContext.runAsNonRoot\n\tnot containers.securityContext.runAsNonRoot == false\n\n\tresult = {\n\t\t"issue detected": true,\n\t\t"msg": sprintf("Container missing spec.template.spec.containers[%v].securityContext.runAsNonRoot while Pod spec.template.spec.securityContext.runAsNonRoot is not defined as well.", [i]),\n\t\t"violating_key": sprintf("spec.template.spec.containers[%v].securityContext", [i]),\n\t}\n}\n\n# Container security context\n# Check if containers.securityContext.runAsNonRoot exists and = false\nviolation[result] {\n\tnot exclude_namespace == controller_input.metadata.namespace\n\tnot exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n\n\tsome i\n\tcontainers := controller_spec.containers[i]\n\tcontainers.securityContext\n\tcontainers.securityContext.runAsNonRoot == false\n\n\tresult = {\n\t\t"issue detected": true,\n\t\t"msg": sprintf("Container spec.template.spec.containers[%v].securityContext.runAsNonRoot should be set to true ", [i]),\n\t\t"violating_key": sprintf("spec.template.spec.containers[%v].securityContext.runAsNonRoot", [i]),\n\t\t"recommended_value": true,\n\t}\n}\n\n# Pod security context\n# Check if spec.securityContext.runAsNonRoot exists and = false\nviolation[result] {\n\tnot exclude_namespace == controller_input.metadata.namespace\n\tnot exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n\n\tcontroller_spec.securityContext\n\tcontroller_spec.securityContext.runAsNonRoot == false\n\n\tresult = {\n\t\t"issue detected": true,\n\t\t"msg": "Pod spec.template.spec.securityContext.runAsNonRoot should be set to true",\n\t\t"violating_key": "spec.template.spec.securityContext.runAsNonRoot",\n\t\t"recommended_value": true,\n\t}\n}\n\ncontroller_input = input.review.object\n\ncontroller_spec = controller_input.spec.template.spec {\n\tcontains(controller_input.kind, {"StatefulSet", "DaemonSet", "Deployment", "Job", "ReplicaSet"})\n} else = controller_input.spec {\n\tcontroller_input.kind == "Pod"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n\tcontroller_input.kind == "CronJob"\n}\n\ncontains(kind, kinds) {\n\tkinds[_] = kind\n}',
+              description:
+                'Running as root gives the container full access to all resources in the VM it is running on. Containers should not run with such access rights unless required by design. This Policy enforces that the `securityContext.runAsNonRoot` attribute is set to `true`. \n',
+              howToSolve:
+                'You should set `securityContext.runAsNonRoot` to `true`. Not setting it will default to giving the container root user rights on the VM that it is running on. \n```\n...\n  spec:\n    securityContext:\n      runAsNonRoot: true\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n',
+              category: 'weave.categories.pod-security',
+              tags: [
+                'pci-dss',
+                'cis-benchmark',
+                'mitre-attack',
+                'nist800-190',
+                'gdpr',
+                'default',
+              ],
+              severity: 'high',
+              controls: [
+                'weave.controls.pci-dss.2.2.4',
+                'weave.controls.pci-dss.2.2.5',
+                'weave.controls.cis-benchmark.5.2.6',
+                'weave.controls.mitre-attack.4.1',
+                'weave.controls.nist-800-190.3.3.1',
+                'weave.controls.gdpr.24',
+                'weave.controls.gdpr.25',
+                'weave.controls.gdpr.32',
+              ],
+              gitCommit: '',
+              parameters: [
+                {
+                  name: 'exclude_namespace',
+                  type: 'string',
+                  value: {
+                    '@type': 'type.googleapis.com/google.protobuf.StringValue',
+                    value: '"kube-system"',
+                  },
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_key',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_value',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+              ],
+              targets: {
+                kinds: [
+                  'Deployment',
+                  'Job',
+                  'ReplicationController',
+                  'ReplicaSet',
+                  'DaemonSet',
+                  'StatefulSet',
+                  'CronJob',
+                ],
+                labels: [],
+                namespaces: [],
+              },
+              createdAt: '2022-04-11T17:35:04+02:00',
+            },
+            {
+              name: 'Containers Read Only Root Filesystem',
+              id: 'weave.policies.containers-read-only-root-filesystemss',
+              code: 'package weave.advisor.podSecurity.enforce_ro_fs\n\nread_only = input.parameters.read_only\nexclude_namespace := input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  some i\n  containers := controller_spec.containers[i]\n  root_fs := containers.securityContext.readOnlyRootFilesystem\n  not root_fs == read_only\n  result = {\n    "issue detected": true,\n    "msg": sprintf("readOnlyRootFilesystem should equal \'%v\'; detected \'%v\'", [read_only, root_fs]),\n    "recommended_value": read_only,\n    "violating_key": sprintf("spec.template.spec.containers[%v].securityContext.readOnlyRootFilesystem", [i]) \n  }\n}\n\n# Controller input\ncontroller_input = input.review.object\n\n# controller_container acts as an iterator to get containers from the template\ncontroller_spec = controller_input.spec.template.spec {\n  contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})\n} else = controller_input.spec {\n  controller_input.kind == "Pod"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n  controller_input.kind == "CronJob"\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}',
+              description:
+                'This Policy will cause a violation if the root file system is not mounted as specified. As a security practice, the root file system should be read-only or expose risk to your nodes if compromised. \n\nThis Policy requires containers must run with a read-only root filesystem (i.e. no writable layer).\n',
+              howToSolve:
+                'Set `readOnlyRootFilesystem` in your `securityContext` to the value specified in the Policy. \n```\n...\n  spec:\n    containers:\n      - securityContext:\n          readOnlyRootFilesystem: <read_only>\n```\n\nhttps://kubernetes.io/docs/concepts/policy/pod-security-policy/#volumes-and-file-systems\n',
+              category: 'weave.categories.pod-security',
+              tags: ['mitre-attack', 'nist800-190'],
+              severity: 'high',
+              controls: [
+                'weave.controls.mitre-attack.3.2',
+                'weave.controls.nist-800-190.4.4.4',
+              ],
+              gitCommit: '',
+              parameters: [
+                {
+                  name: 'read_only',
+                  type: 'boolean',
+                  value: {
+                    '@type': 'type.googleapis.com/google.protobuf.BoolValue',
+                    value: true,
+                  },
+                  required: true,
+                },
+                {
+                  name: 'exclude_namespace',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_key',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_value',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+              ],
+              targets: {
+                kinds: [
+                  'Deployment',
+                  'Job',
+                  'ReplicationController',
+                  'ReplicaSet',
+                  'DaemonSet',
+                  'StatefulSet',
+                  'CronJob',
+                ],
+                labels: [],
+                namespaces: [],
+              },
+              createdAt: '2022-04-11T17:35:04+02:00',
+            },
+            {
+              name: 'Container Running As Root',
+              id: 'weave.policies.container-running-as-root',
+              code: 'package weave.advisor.podSecurity.runningAsRoot\n\nexclude_namespace := input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\n# Check for missing securityContext.runAsNonRoot (missing in both, pod and container)\nviolation[result] {\n\tnot exclude_namespace == controller_input.metadata.namespace\n\tnot exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n\n\tcontroller_spec.securityContext\n\tnot controller_spec.securityContext.runAsNonRoot\n\tnot controller_spec.securityContext.runAsNonRoot == false\n\n\tsome i\n\tcontainers := controller_spec.containers[i]\n\tcontainers.securityContext\n\tnot containers.securityContext.runAsNonRoot\n\tnot containers.securityContext.runAsNonRoot == false\n\n\tresult = {\n\t\t"issue detected": true,\n\t\t"msg": sprintf("Container missing spec.template.spec.containers[%v].securityContext.runAsNonRoot while Pod spec.template.spec.securityContext.runAsNonRoot is not defined as well.", [i]),\n\t\t"violating_key": sprintf("spec.template.spec.containers[%v].securityContext", [i]),\n\t}\n}\n\n# Container security context\n# Check if containers.securityContext.runAsNonRoot exists and = false\nviolation[result] {\n\tnot exclude_namespace == controller_input.metadata.namespace\n\tnot exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n\n\tsome i\n\tcontainers := controller_spec.containers[i]\n\tcontainers.securityContext\n\tcontainers.securityContext.runAsNonRoot == false\n\n\tresult = {\n\t\t"issue detected": true,\n\t\t"msg": sprintf("Container spec.template.spec.containers[%v].securityContext.runAsNonRoot should be set to true ", [i]),\n\t\t"violating_key": sprintf("spec.template.spec.containers[%v].securityContext.runAsNonRoot", [i]),\n\t\t"recommended_value": true,\n\t}\n}\n\n# Pod security context\n# Check if spec.securityContext.runAsNonRoot exists and = false\nviolation[result] {\n\tnot exclude_namespace == controller_input.metadata.namespace\n\tnot exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n\n\tcontroller_spec.securityContext\n\tcontroller_spec.securityContext.runAsNonRoot == false\n\n\tresult = {\n\t\t"issue detected": true,\n\t\t"msg": "Pod spec.template.spec.securityContext.runAsNonRoot should be set to true",\n\t\t"violating_key": "spec.template.spec.securityContext.runAsNonRoot",\n\t\t"recommended_value": true,\n\t}\n}\n\ncontroller_input = input.review.object\n\ncontroller_spec = controller_input.spec.template.spec {\n\tcontains(controller_input.kind, {"StatefulSet", "DaemonSet", "Deployment", "Job", "ReplicaSet"})\n} else = controller_input.spec {\n\tcontroller_input.kind == "Pod"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n\tcontroller_input.kind == "CronJob"\n}\n\ncontains(kind, kinds) {\n\tkinds[_] = kind\n}',
+              description:
+                'Running as root gives the container full access to all resources in the VM it is running on. Containers should not run with such access rights unless required by design. This Policy enforces that the `securityContext.runAsNonRoot` attribute is set to `true`. \n',
+              howToSolve:
+                'You should set `securityContext.runAsNonRoot` to `true`. Not setting it will default to giving the container root user rights on the VM that it is running on. \n```\n...\n  spec:\n    securityContext:\n      runAsNonRoot: true\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n',
+              category: 'weave.categories.pod-security',
+              tags: [
+                'pci-dss',
+                'cis-benchmark',
+                'mitre-attack',
+                'nist800-190',
+                'gdpr',
+                'default',
+              ],
+              severity: 'high',
+              controls: [
+                'weave.controls.pci-dss.2.2.4',
+                'weave.controls.pci-dss.2.2.5',
+                'weave.controls.cis-benchmark.5.2.6',
+                'weave.controls.mitre-attack.4.1',
+                'weave.controls.nist-800-190.3.3.1',
+                'weave.controls.gdpr.24',
+                'weave.controls.gdpr.25',
+                'weave.controls.gdpr.32',
+              ],
+              gitCommit: '',
+              parameters: [
+                {
+                  name: 'exclude_namespace',
+                  type: 'string',
+                  value: {
+                    '@type': 'type.googleapis.com/google.protobuf.StringValue',
+                    value: '"kube-system"',
+                  },
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_key',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_value',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+              ],
+              targets: {
+                kinds: [
+                  'Deployment',
+                  'Job',
+                  'ReplicationController',
+                  'ReplicaSet',
+                  'DaemonSet',
+                  'StatefulSet',
+                  'CronJob',
+                ],
+                labels: [],
+                namespaces: [],
+              },
+              createdAt: '2022-04-11T17:35:04+02:00',
+            },
+            {
+              name: 'Containers Read Only Root Filesystem',
+              id: 'weave.policies.containers-read-only-root-filesystem',
+              code: 'package weave.advisor.podSecurity.enforce_ro_fs\n\nread_only = input.parameters.read_only\nexclude_namespace := input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  some i\n  containers := controller_spec.containers[i]\n  root_fs := containers.securityContext.readOnlyRootFilesystem\n  not root_fs == read_only\n  result = {\n    "issue detected": true,\n    "msg": sprintf("readOnlyRootFilesystem should equal \'%v\'; detected \'%v\'", [read_only, root_fs]),\n    "recommended_value": read_only,\n    "violating_key": sprintf("spec.template.spec.containers[%v].securityContext.readOnlyRootFilesystem", [i]) \n  }\n}\n\n# Controller input\ncontroller_input = input.review.object\n\n# controller_container acts as an iterator to get containers from the template\ncontroller_spec = controller_input.spec.template.spec {\n  contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})\n} else = controller_input.spec {\n  controller_input.kind == "Pod"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n  controller_input.kind == "CronJob"\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}',
+              description:
+                'This Policy will cause a violation if the root file system is not mounted as specified. As a security practice, the root file system should be read-only or expose risk to your nodes if compromised. \n\nThis Policy requires containers must run with a read-only root filesystem (i.e. no writable layer).\n',
+              howToSolve:
+                'Set `readOnlyRootFilesystem` in your `securityContext` to the value specified in the Policy. \n```\n...\n  spec:\n    containers:\n      - securityContext:\n          readOnlyRootFilesystem: <read_only>\n```\n\nhttps://kubernetes.io/docs/concepts/policy/pod-security-policy/#volumes-and-file-systems\n',
+              category: 'weave.categories.pod-security',
+              tags: ['mitre-attack', 'nist800-190'],
+              severity: 'high',
+              controls: [
+                'weave.controls.mitre-attack.3.2',
+                'weave.controls.nist-800-190.4.4.4',
+              ],
+              gitCommit: '',
+              parameters: [
+                {
+                  name: 'read_only',
+                  type: 'boolean',
+                  value: {
+                    '@type': 'type.googleapis.com/google.protobuf.BoolValue',
+                    value: true,
+                  },
+                  required: true,
+                },
+                {
+                  name: 'exclude_namespace',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_key',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_value',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+              ],
+              targets: {
+                kinds: [
+                  'Deployment',
+                  'Job',
+                  'ReplicationController',
+                  'ReplicaSet',
+                  'DaemonSet',
+                  'StatefulSet',
+                  'CronJob',
+                ],
+                labels: [],
+                namespaces: [],
+              },
+              createdAt: '2022-04-11T17:35:04+02:00',
+            },
+            {
+              name: 'Containers Running With Privilege Escalation',
+              id: 'weave.policies.containers-running-with-privilege-escalation',
+              code: 'package weave.advisor.podSecurity.privilegeEscalation\n\nexclude_namespace := input.parameters.exclude_namespace\nallow_privilege_escalation := input.parameters.allow_privilege_escalation\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  some i\n  isExcludedNamespace == false\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  containers := controller_spec.containers[i]\n  allow_priv := containers.securityContext.allowPrivilegeEscalation\n  not allow_priv == allow_privilege_escalation\n  result = {\n    "issue detected": true,\n    "msg": sprintf("Container\'s privilegeEscalation should be set to \'%v\'; detected \'%v\'", [allow_privilege_escalation, allow_priv]),\n    "violating_key": sprintf("spec.template.spec.containers[%v].securityContext.allowPrivilegeEscalation", [i]),\n    "recommended_value": allow_privilege_escalation\n  }\n}\n\nisExcludedNamespace  = true {\n  input.review.object.metadata.namespace == exclude_namespace\n}else = false {true}\n\nis_array_contains(array,str) {\n  array[_] = str\n}\n\n# Controller input\ncontroller_input = input.review.object\n\n# controller_container acts as an iterator to get containers from the template\ncontroller_spec = controller_input.spec.template.spec {\n  contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})\n} else = controller_input.spec {\n  controller_input.kind == "Pod"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n  controller_input.kind == "CronJob"\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}',
+              description:
+                'Containers are running with PrivilegeEscalation configured. Setting this Policy to `true` allows child processes to gain more privileges than its parent process.  \n\nThis Policy gates whether or not a user is allowed to set the security context of a container to `allowPrivilegeEscalation` to `true`. The default value for this is `false` so no child process of a container can gain more privileges than its parent.\n\nThere are 2 parameters for this Policy:\n- exclude_namespace (string) : This sets a namespace you want to exclude from Policy compliance checking. \n- allow_privilege_escalation (bool) : This checks for the value of `allowPrivilegeEscalation` in your spec.  \n',
+              howToSolve:
+                'Check the following path to see what the PrivilegeEscalation value is set to.\n```\n...\n  spec:\n    containers:\n      securityContext:\n        allowPrivilegeEscalation: <value>\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n',
+              category: 'weave.categories.pod-security',
+              tags: [
+                'pci-dss',
+                'cis-benchmark',
+                'mitre-attack',
+                'nist800-190',
+                'gdpr',
+                'default',
+                'soc2-type1',
+              ],
+              severity: 'high',
+              controls: [
+                'weave.controls.pci-dss.2.2.4',
+                'weave.controls.pci-dss.2.2.5',
+                'weave.controls.cis-benchmark.5.2.5',
+                'weave.controls.mitre-attack.4.1',
+                'weave.controls.nist-800-190.3.3.2',
+                'weave.controls.gdpr.25',
+                'weave.controls.gdpr.32',
+                'weave.controls.gdpr.24',
+                'weave.controls.soc2-type-i.1.6.1',
+              ],
+              gitCommit: '',
+              parameters: [
+                {
+                  name: 'exclude_namespace',
+                  type: 'string',
+                  value: {
+                    '@type': 'type.googleapis.com/google.protobuf.StringValue',
+                    value: '"kube-system"',
+                  },
+                  required: true,
+                },
+                {
+                  name: 'allow_privilege_escalation',
+                  type: 'boolean',
+                  value: {
+                    '@type': 'type.googleapis.com/google.protobuf.BoolValue',
+                    value: false,
+                  },
+                  required: true,
+                },
+                {
+                  name: 'exclude_label_key',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+                {
+                  name: 'exclude_label_value',
+                  type: 'string',
+                  value: null,
+                  required: false,
+                },
+              ],
+              targets: {
+                kinds: [
+                  'Deployment',
+                  'Job',
+                  'ReplicationController',
+                  'ReplicaSet',
+                  'DaemonSet',
+                  'StatefulSet',
+                  'CronJob',
+                ],
+                labels: [],
+                namespaces: [],
+              },
+              createdAt: '2022-04-11T17:35:04+02:00',
+            },
+          ],
+          total: 5,
+        });
+      });
+    }
     return request('GET', this.policiesUrl, {
       cache: 'no-store',
     });
