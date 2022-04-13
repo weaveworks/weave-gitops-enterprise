@@ -134,6 +134,7 @@ func selectCredentials(createPage *pages.CreateCluster, credentialName string, c
 func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
 		templateFiles := []string{}
+		clusterPath := "./clusters/my-cluster"
 
 		BeforeEach(func() {
 			Expect(webDriver.Navigate(test_ui_url)).To(Succeed())
@@ -475,7 +476,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			JustAfterEach(func() {
 				// Force clean the repository directory for subsequent tests
-				cleanGitRepository("management")
+				cleanGitRepository(clusterPath)
 			})
 
 			It("@integration @git Verify pull request can be created for capi template to the management cluster", func() {
@@ -949,7 +950,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				GitProviderGitHub: "default",
 			}
 
-			clusterPath := "./clusters/my-cluster"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
 			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
