@@ -472,14 +472,17 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
-	if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
-		return fmt.Errorf("failed to register core servers: %w", err)
-	}
-
 	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
-	// Cluster discovery
-	grpcHttpHandler = clustersmngr.WithClustersClient(args.ClusterFetcher, grpcHttpHandler)
+
+	// FIXME: This is a bit dangerous but required so that we can start the EE server w/ a fake kube client
+	// (Which isn't supported by the core handler right now)
+	if args.CoreServerConfig.RestCfg != nil {
+		if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
+			return fmt.Errorf("failed to register core servers: %w", err)
+		}
+		grpcHttpHandler = clustersmngr.WithClustersClient(args.ClusterFetcher, grpcHttpHandler)
+	}
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
