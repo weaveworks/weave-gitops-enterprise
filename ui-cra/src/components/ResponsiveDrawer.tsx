@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import AlertsProvider from '../contexts/Alerts/Provider';
@@ -279,13 +279,6 @@ const App = () => {
 };
 
 const ResponsiveDrawer = () => {
-  useEffect(() => {
-    console.log('drawer mounted');
-    return () => {
-      console.log('drawer unmount');
-    };
-  }, []);
-
   const flags = useFeatureFlags();
 
   // FIXME: hack for "isLoading"
