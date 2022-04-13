@@ -48,7 +48,7 @@ jobs:
           aws-region: eu-central-1
       - name: Publish helm chart to s3
         run: |
-          TAG=$(git describe --always --match "v*")
+          TAG=$(git describe --always --match "v*" --abbrev=7)
 
           CHART_VALUES_PATH=./charts/mccp/values.yaml
           # Update the MCCP chart values.yaml file with the current image tag
@@ -57,12 +57,12 @@ jobs:
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
       - name: Publish Helm chart for main only
-        env: 
+        env:
           HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
           HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
         if: github.ref_name == 'main'
         run: |
-          TAG=$(git describe --always --match "v*")
+          TAG=$(git describe --always --match "v*" --abbrev=7)
           SEMVER_TAG=$(awk -F'v|-g' '{print $2}' <<< $TAG)
           echo "Current tag $TAG"
           echo "Current semver tag $SEMVER_TAG"
@@ -77,7 +77,6 @@ jobs:
             # Use the same image tag from the previous step but set the semver version
             helm cm-push ./charts/mccp weave-gitops-enterprise-main --version=$SEMVER_TAG --force
           fi
-
 
   cluster-service:
     runs-on: ubuntu-latest
