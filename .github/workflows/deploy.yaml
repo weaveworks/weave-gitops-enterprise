@@ -17,6 +17,8 @@ jobs:
       WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+      WGE_HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
+      WGE_HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
 
   coverage:
     runs-on: ubuntu-latest
