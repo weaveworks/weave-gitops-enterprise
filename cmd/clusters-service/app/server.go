@@ -46,6 +46,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	core_cache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -315,7 +316,12 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
-	coreConfig := core_core.NewCoreConfig(log, rest, clusterName)
+
+	cacheContainer, err := core_cache.NewContainer(context.Background(), rest, log)
+	if err != nil {
+		return fmt.Errorf("could not create cache container: %w", err)
+	}
+	coreConfig := core_core.NewCoreConfig(log, rest, cacheContainer, clusterName)
 
 	profileCache, err := cache.NewCache(p.profileCacheLocation)
 	if err != nil {

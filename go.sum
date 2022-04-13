@@ -1654,6 +1654,8 @@ github.com/weaveworks/policy-agent/api v1.0.2 h1:2F1bLVLuV0BV1Dl59trq9x3IRxy1SS4
 github.com/weaveworks/policy-agent/api v1.0.2/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
 github.com/weaveworks/weave-gitops v0.7.0-rc11 h1:BMm9xZa3SoLMZKnkl+5IgzCc2ASiFVDe1RZXJ/+PsSo=
 github.com/weaveworks/weave-gitops v0.7.0-rc11/go.mod h1:8rgfgDGGrLpAoYU6B33SLn3rfWWcA3AWAPOCocsToUQ=
+github.com/weaveworks/weave-gitops v0.7.0 h1:B04jeyUOvkL8KVTzW6NEdiOW7IFkES87QfDASXLYa18=
+github.com/weaveworks/weave-gitops v0.7.0/go.mod h1:8rgfgDGGrLpAoYU6B33SLn3rfWWcA3AWAPOCocsToUQ=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/willf/bitset v1.1.11-0.20200630133818-d5bec3311243/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
