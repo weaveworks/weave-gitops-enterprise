@@ -42,7 +42,7 @@ var (
 
 const (
 	WGE_WINDOW_NAME                string = "weave-gitops-enterprise"
-	GITOPS_DEFAULT_NAMESPACE       string = "wego-system"
+	GITOPS_DEFAULT_NAMESPACE       string = "flux-system"
 	CLUSTER_SERVICE_DEPLOYMENT_APP string = "my-mccp-cluster-service"
 	SCREENSHOTS_DIR_NAME           string = "screenshots"
 	WINDOW_SIZE_X                  int    = 1800
@@ -75,7 +75,6 @@ var seededRand *rand.Rand = rand.New(
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
-	DescribeApplications(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -152,11 +151,12 @@ func SetupTestEnvironment() {
 func InstallWeaveGitopsControllers() {
 	// gitops binary must exists, it is required to install weave gitops controllers
 	Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
+	// TODO: check flux bin is available too.
 
 	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
 		repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 		initAndCreateEmptyRepo(gitProviderEnv, true)
-		installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+		bootstrapAndVerifyFlux(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 		logger.Info("No need to install Weave gitops enterprise controllers, managemnt cluster is already configured and setup.")
 
 	} else {
@@ -339,7 +339,7 @@ func DumpConfigRepo(testName string) {
 	archivedPath := path.Join(archiveRepoPath, testName+".tar.gz")
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, repoPath, archiveRepoPath))
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone https://%s/%s/%s.git %s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo, repoPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo, repoPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, repoPath, archivedPath))
 }
 

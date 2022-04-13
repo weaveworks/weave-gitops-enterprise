@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: apps-reader
-  namespace: wego-system
+  namespace: flux-system
 rules:
   - apiGroups: ["wego.weave.works"]
     resources: ["apps"]
@@ -18,7 +18,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: profiles-reader
-  namespace: wego-system
+  namespace: flux-system
 rules:
   - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: ["helmrepositories"]
@@ -29,7 +29,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: configmaps-reader
-  namespace: wego-system
+  namespace: flux-system
 rules:
   - apiGroups: [""]
     resources: ["configmaps"]
@@ -53,7 +53,7 @@ metadata:
   namespace: default
 subjects:
 - kind: User
-  name: "admin"
+  name: "wego-admin"
   apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
@@ -67,10 +67,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-profiles
-  namespace: wego-system
+  namespace: flux-system
 subjects:
 - kind: User
-  name: "admin"
+  name: "wego-admin"
   apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
@@ -84,10 +84,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-apps
-  namespace: wego-system
+  namespace: flux-system
 subjects:
 - kind: User
-  name: "admin"
+  name: "wego-admin"
   apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
@@ -101,10 +101,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-configmaps
-  namespace: wego-system
+  namespace: flux-system
 subjects:
 - kind: User
-  name: admin
+  name: wego-admin
   apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
@@ -158,7 +158,7 @@ metadata:
   name: read-identities
 subjects:
 - kind: User
-  name: "admin"
+  name: "wego-admin"
   apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
@@ -174,7 +174,7 @@ metadata:
   name: read-secrets
 subjects:
 - kind: User
-  name: "admin"
+  name: "wego-admin"
   apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
@@ -190,7 +190,7 @@ metadata:
   name: read-policies
 subjects:
 - kind: User
-  name: "admin"
+  name: "wego-admin"
   apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
@@ -206,7 +206,7 @@ metadata:
   name: write-apps
 subjects:
 - kind: User
-  name: admin
+  name: wego-admin
   apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"

@@ -5,6 +5,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"gorm.io/gorm"
@@ -22,8 +24,10 @@ type Options struct {
 	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
 	ApplicationsConfig           *server.ApplicationsConfig
+	CoreServerConfig             core.CoreServerConfig
 	ApplicationsOptions          []server.ApplicationsOption
 	ProfilesConfig               server.ProfilesConfig
+	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
@@ -95,11 +99,25 @@ func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 	}
 }
 
-// WithApplicationsConfig is used to set the configuration needed to work
+// WithApplicationsOptions is used to set the configuration needed to work
 // with Weave GitOps Core applications
 func WithApplicationsOptions(appOptions ...server.ApplicationsOption) Option {
 	return func(o *Options) {
 		o.ApplicationsOptions = appOptions
+	}
+}
+
+// WithCoreConfig is used to set the configuration needed to work
+// with Weave GitOps Core
+func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
+	return func(o *Options) {
+		o.CoreServerConfig = coreServerConfig
+	}
+}
+
+func WithClusterFetcher(clusterFetcher clustersmngr.ClusterFetcher) Option {
+	return func(o *Options) {
+		o.ClusterFetcher = clusterFetcher
 	}
 }
 
