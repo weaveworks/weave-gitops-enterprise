@@ -949,7 +949,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				GitProviderGitHub: "default",
 			}
 
-			clusterPath := "./clusters"
+			clusterPath := "./clusters/my-cluster"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
 			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
