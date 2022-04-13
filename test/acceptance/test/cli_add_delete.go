@@ -121,6 +121,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			JustAfterEach(func() {
 				// Force clean the repository directory for subsequent tests
+				// FIXME: should be changed to clusters/my-cluster when updating cli tests
 				cleanGitRepository("management")
 			})
 
@@ -336,6 +337,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			}
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "capi.kubeconfig")
 			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
+			// FIXME: should be changed to ./clusters/my-cluster when updating these tests
 			appName := "management"
 			appPath := "./management"
 			capdClusterNames := []string{"cli-end-to-end-capd-cluster-1", "cli-end-to-end-capd-cluster-2"}
@@ -359,7 +361,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(appName)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters(appName, capdClusterNames, GITOPS_DEFAULT_NAMESPACE)
+				removeGitopsCapiClusters(capdClusterNames)
 			})
 
 			It("@git @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
@@ -419,7 +421,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					})
 
 					By("And I should see cluster status changes to 'clusterFound'", func() {
-						verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
+						waitForGitRepoReady(appName, GITOPS_DEFAULT_NAMESPACE)
 						clusterFound := func() string {
 							output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get clusters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag))
 							return output
@@ -494,6 +496,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
+					// FIXME: should be changed to clusters/my-cluster when updating cli tests
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})

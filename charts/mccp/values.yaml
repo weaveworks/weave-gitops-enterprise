@@ -32,10 +32,6 @@ dbConfig:
   postgresConfig:
     databaseName: postgres
 
-fluxCli:
-  image: ghcr.io/fluxcd/flux-cli:v0.19.1
-  binPath: /usr/local/bin/flux
-
 config:
   cluster:
     name: default

@@ -1,13 +1,17 @@
+import { QueryClient, QueryClientProvider } from 'react-query';
 import React, { FC } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { muiTheme } from './muiTheme';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import '@fortawesome/fontawesome-free/css/all.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
+
 import {
-  AuthContextProvider,
-  FeatureFlagsContextProvider,
   theme,
+  coreClient,
+  applicationsClient,
+  FeatureFlagsContextProvider,
+  AppContextProvider,
 } from '@weaveworks/weave-gitops';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
@@ -59,17 +63,24 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
+const queryClient = new QueryClient();
+
 const App: FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <MuiThemeProvider theme={muiTheme}>
         <BrowserRouter basename={process.env.PUBLIC_URL}>
-          <FeatureFlagsContextProvider>
-            <AuthContextProvider>
-              <GlobalStyle />
-              <ResponsiveDrawer />
-            </AuthContextProvider>
-          </FeatureFlagsContextProvider>
+          <QueryClientProvider client={queryClient}>
+            <GlobalStyle />
+            <AppContextProvider
+              applicationsClient={applicationsClient}
+              coreClient={coreClient}
+            >
+              <FeatureFlagsContextProvider>
+                <ResponsiveDrawer />
+              </FeatureFlagsContextProvider>
+            </AppContextProvider>
+          </QueryClientProvider>
         </BrowserRouter>
       </MuiThemeProvider>
     </ThemeProvider>

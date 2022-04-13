@@ -177,7 +177,7 @@ kind: HelmRelease
 metadata:
   creationTimestamp: null
   name: dev-demo-profile
-  namespace: wego-system
+  namespace: flux-system
 spec:
   chart:
     spec:
@@ -613,7 +613,7 @@ kind: HelmRelease
 metadata:
   creationTimestamp: null
   name: cluster-foo-foo
-  namespace: wego-system
+  namespace: flux-system
 spec:
   chart:
     spec:
@@ -674,7 +674,7 @@ metadata:
   labels:
     weave.works/applied-layer: testing
   name: cluster-foo-bar
-  namespace: wego-system
+  namespace: flux-system
 spec:
   chart:
     spec:
@@ -695,7 +695,7 @@ kind: HelmRelease
 metadata:
   creationTimestamp: null
   name: cluster-foo-foo
-  namespace: wego-system
+  namespace: flux-system
 spec:
   chart:
     spec:
