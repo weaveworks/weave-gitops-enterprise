@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -70,8 +71,6 @@ func verifyCoreControllers(namespace string) {
 	Expect(waitForResource("deploy", "kustomize-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", "notification-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", "source-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", "image-automation-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", "image-reflector-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
@@ -95,17 +94,32 @@ func controllerStatus(controllerName, namespace string) error {
 }
 
 func CheckClusterService(capiEndpointURL string) {
+	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
 	Eventually(func(g Gomega) {
-		stdOut, stdErr := runCommandAndReturnStringOutput(
+		// login to obtain cookie
+		stdOut, _ := runCommandAndReturnStringOutput(
 			fmt.Sprintf(
 				// insecure for self-signed tls
-				`curl --insecure --silent -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
-				capiEndpointURL,
+				`curl --insecure  -d '{"username":"admin","password":"%s"}' -H "Content-Type: application/json" -X POST %s/oauth2/sign_in -c -`,
+				adminPassword, capiEndpointURL,
+			),
+			ASSERTION_1MINUTE_TIME_OUT,
+		)
+		g.Expect(stdOut).To(MatchRegexp(`id_token\s*(.*)`), "Failed to fetch cookie/Cluster Service is not healthy")
+
+		re := regexp.MustCompile(`id_token\s*(.*)`)
+		match := re.FindAllStringSubmatch(stdOut, -1)
+		cookie := match[0][1]
+		stdOut, stdErr := runCommandAndReturnStringOutput(
+			fmt.Sprintf(
+				`curl --insecure --silent --cookie "id_token=%s" -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
+				cookie, capiEndpointURL,
 			),
 			ASSERTION_1MINUTE_TIME_OUT,
 		)
 		g.Expect(stdOut).To(MatchRegexp("200"), "Cluster Service is not healthy: %v", stdErr)
-	}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
+
+	}, ASSERTION_10SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
 }
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {
@@ -114,31 +128,26 @@ func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace str
 	Expect(errOutput).Should(BeEmpty())
 }
 
-func verifyWegoAddCommand(appName string, namespace string) {
+func waitForGitRepoReady(appName string, namespace string) {
 	waitForResourceState("Ready", "true", "GitRepositories", namespace, "", "", ASSERTION_3MINUTE_TIME_OUT)
 	Expect(waitForResource("GitRepositories", appName, namespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
 }
 
-func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
-	cmdInstall := fmt.Sprintf(`%s install --config-repo %s --namespace=%s --auto-merge `, gitops_bin_path, manifestRepoURL, gitopsNamespace)
-	if gitProviderEnv.HostTypes != "" {
-		cmdInstall += fmt.Sprintf(` --git-host-types="%s"`, gitProviderEnv.HostTypes)
-	}
+func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestRepoURL string) {
+	cmdInstall := fmt.Sprintf(`flux bootstrap %s --owner=%s --repository=%s --branch=main --hostname=%s --path=./clusters/my-cluster`, gp.Type, gp.Org, gp.Repo, gp.Hostname)
 	logger.Info(cmdInstall)
 
 	verifyGitRepositories := false
 	for i := 1; i < 5; i++ {
-		// Deploy key secret should not exist already
 		deleteGitopsDeploySecret(gitopsNamespace)
 		deleteGitopsGitRepository(gitopsNamespace)
-		_, stdErr := runCommandAndReturnStringOutput(cmdInstall, ASSERTION_5MINUTE_TIME_OUT)
-		Expect(stdErr).Should(BeEmpty())
+		_, _ = runCommandAndReturnStringOutput(cmdInstall, ASSERTION_5MINUTE_TIME_OUT)
 		verifyCoreControllers(gitopsNamespace)
 
 		// Check if GitRepository resource is Ready
 		logger.Tracef("Waiting for GitRepositories 'Ready' state in namespace: %s", gitopsNamespace)
 		cmdGitRepository := fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=90s -n %s GitRepositories --all", gitopsNamespace)
-		_, stdErr = runCommandAndReturnStringOutput(cmdGitRepository, ASSERTION_2MINUTE_TIME_OUT)
+		_, stdErr := runCommandAndReturnStringOutput(cmdGitRepository, ASSERTION_2MINUTE_TIME_OUT)
 		if stdErr == "" {
 			verifyGitRepositories = true
 			break
@@ -147,19 +156,8 @@ func installAndVerifyGitops(gitopsNamespace string, manifestRepoURL string) {
 	Expect(verifyGitRepositories).Should(BeTrue(), "GitRepositories resource has failed to become READY.")
 }
 
-func removeGitopsCapiClusters(appName string, clusternames []string, nameSpace string) {
-	susspendGitopsApplication(appName, nameSpace)
-
+func removeGitopsCapiClusters(clusternames []string) {
 	deleteClusters("capi", clusternames)
-
-	deleteGitopsApplication(appName, nameSpace)
-}
-
-func susspendGitopsApplication(appName string, nameSpace string) {
-	cmd := fmt.Sprintf("%s suspend app %s", gitops_bin_path, appName)
-	By(fmt.Sprintf("And I run '%s'", cmd), func() {
-		_, _ = runCommandAndReturnStringOutput(cmd)
-	})
 }
 
 func listGitopsApplication(appName string, nameSpace string) string {
@@ -171,21 +169,8 @@ func listGitopsApplication(appName string, nameSpace string) string {
 	return stdOut
 }
 
-func deleteGitopsApplication(appName string, nameSpace string) {
-	cmd := fmt.Sprintf("%s delete app %s --auto-merge=true", gitops_bin_path, appName)
-	By(fmt.Sprintf("And I run '%s'", cmd), func() {
-		_, _ = runCommandAndReturnStringOutput(cmd)
-
-		appDeleted := func() bool {
-			status := listGitopsApplication(appName, nameSpace)
-			return status == ""
-		}
-		Eventually(appDeleted, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), fmt.Sprintf("%s application failed to delete", appName))
-	})
-}
-
 func deleteGitopsGitRepository(nameSpace string) {
-	cmd := fmt.Sprintf(`kubectl get GitRepositories -n %[1]v | grep wego |grep %[2]v | cut -d' ' -f1 | xargs kubectl delete GitRepositories -n %[1]v`, nameSpace, gitProviderEnv.Repo)
+	cmd := fmt.Sprintf(`kubectl delete GitRepositories -n %v flux-system`, nameSpace)
 	By("And I delete GitRepository resource", func() {
 		logger.Trace(cmd)
 		_, _ = runCommandAndReturnStringOutput(cmd)
@@ -193,7 +178,7 @@ func deleteGitopsGitRepository(nameSpace string) {
 }
 
 func deleteGitopsDeploySecret(nameSpace string) {
-	cmd := fmt.Sprintf(`kubectl get secrets -n %[1]v  | grep Opaque | grep wego- | cut -d' ' -f1 | xargs kubectl delete secrets -n %[1]v`, nameSpace)
+	cmd := fmt.Sprintf(`kubectl delete secrets -n %v flux-system`, nameSpace)
 	By("And I delete deploy key secret", func() {
 		_, _ = runCommandAndReturnStringOutput(cmd)
 	})
@@ -270,7 +255,6 @@ func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string, profiles
 		case "observability":
 			Expect(waitForResource("deploy", capiCluster+"-observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 			Expect(waitForResource("deploy", capiCluster+"-observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
-			Expect(waitForResource("deploy", capiCluster+"-operator", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 			waitForResourceState("Ready", "true", "pods", namespace, "release="+capiCluster+"-observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "podinfo":
 			Expect(waitForResource("deploy", capiCluster+"-podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))

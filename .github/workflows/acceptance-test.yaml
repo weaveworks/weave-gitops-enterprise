@@ -74,12 +74,15 @@ on:
       BUILD_BOT_USER:
         description: "Build bot user name"
         required: true
+      WGE_CLUSTER_ADMIN_PASSWORD:
+        description: "Cluster user admin password"
+        required: true
       WGE_CLUSTER_ADMIN_PASSWORD_HASH:
         description: "Cluster user admin password hash"
-        required: false
+        required: true
       WGE_DEX_CLIENT_SECRET:
         description: "client credential secret for OIDC (dex)"
-        required: false
+        required: true
       BUILD_BOT_PERSONAL_ACCESS_TOKEN:
         description: "Build obt personal access token"
         required: true
@@ -141,10 +144,11 @@ on:
 env:
   GO_CACHE_NAME: cache-go-modules
   LOGIN_USER_TYPE: ${{ inputs.login_user_type }}
+  CLUSTER_ADMIN_PASSWORD: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}
   CLUSTER_ADMIN_PASSWORD_HASH: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}
   OIDC_ISSUER_URL: https://dex-01.wge.dev.weave.works
   DEX_CLIENT_ID: weave-gitops-enterprise
-  DEX_CLIENT_SECRET: ${{ secrets.WGE_WGE_DEX_CLIENT_SECRET }}
+  DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
   GIT_PROVIDER: ${{ inputs.git-provider }}
   GIT_PROVIDER_HOSTNAME: ${{ inputs.git-provider_hostname }}
   GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
@@ -220,6 +224,11 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
           eksctl get clusters
+      - name: Install flux
+        run: |
+          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.28.5/flux_0.28.5_linux_amd64.tar.gz | tar xz -C /tmp
+          sudo mv /tmp/flux /usr/local/bin
+          flux version --client
       - name: Install aws-iam-authenticator
         if: ${{ inputs.management-cluster-kind == 'eks' }}
         run: |
@@ -268,7 +277,7 @@ jobs:
           chmod +x ./clusterctl
           sudo mv ./clusterctl /usr/local/bin/clusterctl
           clusterctl version
-          
+
       - name: Set up ssh
         uses: ./.github/actions/setup-ssh
         with:

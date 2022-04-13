@@ -32,11 +32,10 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -558,11 +557,10 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 	}
 
 	fakeAppsConfig := &wego_server.ApplicationsConfig{
-		Factory:        &servicesfakes.FakeFactory{},
-		JwtClient:      jwtClient,
-		Logger:         logr.Discard(),
-		FetcherFactory: applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(cl)),
-		ClusterConfig:  kube.ClusterConfig{},
+		Factory:       &servicesfakes.FakeFactory{},
+		JwtClient:     jwtClient,
+		Logger:        logr.Discard(),
+		ClusterConfig: kube.ClusterConfig{},
 	}
 
 	viper.SetDefault("capi-clusters-namespace", "default")
@@ -577,7 +575,9 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithApplicationsConfig(fakeAppsConfig),
 		app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
-		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)))
+		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
+		app.WithClusterFetcher(&clustersmngrfakes.FakeClusterFetcher{}),
+	)
 }
 
 func RunUIServer(ctx context.Context) {

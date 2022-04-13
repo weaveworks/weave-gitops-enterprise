@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { FeatureFlags, theme, UserSettings } from '@weaveworks/weave-gitops';
+import { useFeatureFlags, theme, UserSettings } from '@weaveworks/weave-gitops';
 import { Breadcrumb, Breadcrumbs } from '../Breadcrumbs';
 
 interface Size {
@@ -35,12 +35,12 @@ export const SectionHeader: FC<Props> = ({
   className,
   path,
 }) => {
-  const { authFlag } = React.useContext(FeatureFlags);
+  const flags = useFeatureFlags();
   return (
     <Wrapper className={className} size={size}>
       {path ? <Breadcrumbs path={path} /> : null}
       {children}
-      {authFlag ? <UserSettings /> : null}
+      {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
     </Wrapper>
   );
 };

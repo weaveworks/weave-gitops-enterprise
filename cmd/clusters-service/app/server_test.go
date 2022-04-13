@@ -19,12 +19,13 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/core/cache/cachefakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/core/logger"
+	core_core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -34,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -53,10 +55,11 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "admin-password-hash",
-			Namespace: "wego-system",
+			Name:      "cluster-user-auth",
+			Namespace: "flux-system",
 		},
 		Data: map[string][]byte{
+			"username": []byte("testsuite"),
 			"password": hashed,
 		},
 	}
@@ -78,28 +81,36 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	}
 
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
-
 	if err != nil {
 		t.Fatalf("expected no errors but got %v", err)
 	}
+
+	log, err := logger.New("debug", false)
+	if err != nil {
+		t.Fatalf("expected no errors but got %v", err)
+	}
+
 	go func(ctx context.Context) {
-		appsConfig := fakeAppsConfig(c)
+		coreConfig := fakeCoreConfig(t, log)
+		appsConfig := fakeAppsConfig(c, log)
 		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001",
 			app.WithCAPIClustersNamespace("default"),
 			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
 			app.WithKubernetesClient(c),
 			app.WithDiscoveryClient(dc),
 			app.WithDatabase(db),
+			app.WithCoreConfig(coreConfig),
 			app.WithApplicationsConfig(appsConfig),
 			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(c))),
 			app.WithTemplateLibrary(&templates.CRDLibrary{
-				Log:          logr.Discard(),
+				Log:          log,
 				ClientGetter: kubefakes.NewFakeClientGetter(c),
 				Namespace:    "default",
 			}),
-			app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
+			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
 			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
+			app.WithClusterFetcher(&clustersmngrfakes.FakeClusterFetcher{}),
 		)
 		t.Logf("%v", err)
 	}(ctx)
@@ -121,11 +132,11 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 
 	// login
-	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err = client.Get("https://localhost:8001/v1/applications")
+	res, err = client.Get("https://localhost:8001/v1/kustomizations?namespace=foo")
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
@@ -142,9 +153,13 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 
 }
 
-func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
+func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
+	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, &cachefakes.FakeContainer{}, "test")
+	return coreConfig
+}
+
+func fakeAppsConfig(c client.Client, log logr.Logger) *wego_server.ApplicationsConfig {
 	appFactory := &servicesfakes.FakeFactory{}
-	k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
 			return &auth.Claims{
@@ -153,11 +168,10 @@ func fakeAppsConfig(c client.Client) *wego_server.ApplicationsConfig {
 		},
 	}
 	return &wego_server.ApplicationsConfig{
-		Factory:        appFactory,
-		FetcherFactory: applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
-		Logger:         logr.Discard(),
-		JwtClient:      jwtClient,
-		ClusterConfig:  kube.ClusterConfig{},
+		Factory:       appFactory,
+		Logger:        log,
+		JwtClient:     jwtClient,
+		ClusterConfig: kube.ClusterConfig{},
 	}
 }
 
@@ -204,7 +218,7 @@ func TestNoIssuerURL(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoIssuerURL)
+	assert.ErrorIs(t, err, app.ErrNoIssuerURL)
 }
 
 func TestNoClientID(t *testing.T) {
@@ -220,7 +234,7 @@ func TestNoClientID(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoClientID)
+	assert.ErrorIs(t, err, app.ErrNoClientID)
 }
 
 func TestNoClientSecret(t *testing.T) {
@@ -237,7 +251,7 @@ func TestNoClientSecret(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoClientSecret)
+	assert.ErrorIs(t, err, app.ErrNoClientSecret)
 }
 
 func TestNoRedirectURL(t *testing.T) {
@@ -256,5 +270,5 @@ func TestNoRedirectURL(t *testing.T) {
 	})
 
 	err = cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoRedirectURL)
+	assert.ErrorIs(t, err, app.ErrNoRedirectURL)
 }

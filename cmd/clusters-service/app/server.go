@@ -1,10 +1,20 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
+	"math/big"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -36,24 +46,22 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	core_cache "github.com/weaveworks/weave-gitops/core/cache"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	coretls "github.com/weaveworks/weave-gitops/pkg/server/tls"
 	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
-	"k8s.io/klog/v2/klogr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -65,6 +73,13 @@ const (
 
 	// Allowed login requests per second
 	loginRequestRateLimit = 20
+)
+
+var (
+	ErrNoIssuerURL    = errors.New("the OIDC issuer URL flag (--oidc-issuer-url) has not been set")
+	ErrNoClientID     = errors.New("the OIDC client ID flag (--oidc-client-id) has not been set")
+	ErrNoClientSecret = errors.New("the OIDC client secret flag (--oidc-client-secret) has not been set")
+	ErrNoRedirectURL  = errors.New("the OIDC redirect URL flag (--oidc-redirect-url) has not been set")
 )
 
 func AuthEnabled() bool {
@@ -189,19 +204,19 @@ func checkParams(params Params) error {
 
 	if issuerURL != "" || clientID != "" || clientSecret != "" || redirectURL != "" {
 		if issuerURL == "" {
-			return cmderrors.ErrNoIssuerURL
+			return ErrNoIssuerURL
 		}
 
 		if clientID == "" {
-			return cmderrors.ErrNoClientID
+			return ErrNoClientID
 		}
 
 		if clientSecret == "" {
-			return cmderrors.ErrNoClientSecret
+			return ErrNoClientSecret
 		}
 
 		if redirectURL == "" {
-			return cmderrors.ErrNoRedirectURL
+			return ErrNoRedirectURL
 		}
 	}
 
@@ -292,15 +307,20 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 
-	appsConfig, err := core.DefaultApplicationsConfig()
+	appsConfig, err := core.DefaultApplicationsConfig(log)
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
-	// Override logger to ensure consistency
-	appsConfig.Logger = log
 
-	// Setup the flux binary needed by some weave-gitops code endpoints like adding apps
-	flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
+	rest, clusterName, err := kube.RestConfig()
+	if err != nil {
+		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
+	}
+	cacheContainer, err := core_cache.NewContainer(ctx, rest, log)
+	if err != nil {
+		return fmt.Errorf("could not create cache container: %w", err)
+	}
+	coreConfig := core_core.NewCoreConfig(log, rest, cacheContainer, clusterName)
 
 	profileCache, err := cache.NewCache(p.profileCacheLocation)
 	if err != nil {
@@ -319,7 +339,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}
 
 	go func() {
-		if err := profileWatcher.StartWatcher(); err != nil {
+		if err := profileWatcher.StartWatcher(log); err != nil {
 			log.Error(err, "failed to start profile watcher")
 			os.Exit(1)
 		}
@@ -341,8 +361,13 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}
 	}()
 
-	configGetter := core.NewImpersonatingConfigGetter(kubeClientConfig, false)
+	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme)
+
+	fetcher, err := clustersmngr.NewSingleClusterFetcher(rest)
+	if err != nil {
+		return err
+	}
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
@@ -361,6 +386,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			Namespace:    p.capiTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
+		WithCoreConfig(coreConfig),
+		WithClusterFetcher(fetcher),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",
@@ -369,7 +396,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
 				grpc_runtime.WithMetadata(TrackEvents(log)),
-				middleware.WithGrpcErrorLogging(klogr.New()),
+				middleware.WithGrpcErrorLogging(log),
 			},
 		),
 		WithCAPIClustersNamespace(ns),
@@ -440,13 +467,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 
-	wegoProfilesServer := core.NewProfilesServer(args.ProfilesConfig)
+	wegoProfilesServer := core.NewProfilesServer(args.Log, args.ProfilesConfig)
 	if err := core_profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
 	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
+
+	// FIXME: This is a bit dangerous but required so that we can start the EE server w/ a fake kube client
+	// (Which isn't supported by the core handler right now)
+	if args.CoreServerConfig.RestCfg != nil {
+		if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
+			return fmt.Errorf("failed to register core servers: %w", err)
+		}
+		grpcHttpHandler = clustersmngr.WithClustersClient(args.ClusterFetcher, grpcHttpHandler)
+	}
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
@@ -472,16 +508,24 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			return fmt.Errorf("could not create HMAC token signer: %w", err)
 		}
 
-		srv, err := auth.NewAuthServer(ctx, args.Log, http.DefaultClient,
-			auth.AuthConfig{
-				OIDCConfig: auth.OIDCConfig{
-					IssuerURL:     args.OIDC.IssuerURL,
-					ClientID:      args.OIDC.ClientID,
-					ClientSecret:  args.OIDC.ClientSecret,
-					RedirectURL:   args.OIDC.RedirectURL,
-					TokenDuration: args.OIDC.TokenDuration,
-				},
-			}, args.KubernetesClient, tsv,
+		authServerConfig, err := auth.NewAuthServerConfig(
+			args.Log,
+			auth.OIDCConfig{
+				IssuerURL:     args.OIDC.IssuerURL,
+				ClientID:      args.OIDC.ClientID,
+				ClientSecret:  args.OIDC.ClientSecret,
+				RedirectURL:   args.OIDC.RedirectURL,
+				TokenDuration: args.OIDC.TokenDuration,
+			},
+			args.KubernetesClient,
+			tsv,
+		)
+		if err != nil {
+			return fmt.Errorf("could not create auth server: %w", err)
+		}
+		srv, err := auth.NewAuthServer(
+			ctx,
+			authServerConfig,
 		)
 		if err != nil {
 			return fmt.Errorf("could not create auth server: %w", err)
@@ -535,6 +579,87 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	return nil
 }
 
+func TLSConfig(hosts []string) (*tls.Config, error) {
+	certPEMBlock, keyPEMBlock, err := generateKeyPair(hosts)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to generate TLS keys %w", err)
+	}
+
+	cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to generate X509 key pair %w", err)
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	return tlsConfig, nil
+}
+
+// Adapted from https://go.dev/src/crypto/tls/generate_cert.go
+func generateKeyPair(hosts []string) ([]byte, []byte, error) {
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failing to generate new ecdsa key: %w", err)
+	}
+
+	// A CA is supposed to choose unique serial numbers, that is, unique for the CA.
+	maxSerialNumber := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, maxSerialNumber)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to generate a random serial number: %w", err)
+	}
+
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"Weaveworks"},
+		},
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().Add(time.Hour * 24 * 365),
+
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+	}
+
+	for _, h := range hosts {
+		if ip := net.ParseIP(h); ip != nil {
+			template.IPAddresses = append(template.IPAddresses, ip)
+		} else {
+			template.DNSNames = append(template.DNSNames, h)
+		}
+	}
+
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to create certificate: %w", err)
+	}
+
+	certPEMBlock := &bytes.Buffer{}
+
+	err = pem.Encode(certPEMBlock, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to encode cert pem: %w", err)
+	}
+
+	keyPEMBlock := &bytes.Buffer{}
+
+	b, err := x509.MarshalECPrivateKey(priv)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Unable to marshal ECDSA private key: %v", err)
+	}
+
+	err = pem.Encode(keyPEMBlock, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b})
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to encode key pem: %w", err)
+	}
+
+	return certPEMBlock.Bytes(), keyPEMBlock.Bytes(), nil
+}
+
 func ListenAndServe(srv *http.Server, noTLS bool, tlsCert, tlsKey string, log logr.Logger) error {
 	if noTLS {
 		log.Info("TLS connections disabled")
@@ -544,7 +669,7 @@ func ListenAndServe(srv *http.Server, noTLS bool, tlsCert, tlsKey string, log lo
 	if tlsCert == "" && tlsKey == "" {
 		log.Info("TLS cert and key not specified, generating and using in-memory keys")
 
-		tlsConfig, err := coretls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1", "weave.gitops.enterprise.com"})
+		tlsConfig, err := TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1", "weave.gitops.enterprise.com"})
 		if err != nil {
 			return fmt.Errorf("failed to generate a TLSConfig: %w", err)
 		}
