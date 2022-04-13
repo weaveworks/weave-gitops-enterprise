@@ -57,11 +57,8 @@ function HeaderSection({
   targets,
   description,
   howToSolve,
-  code,
 }: Policy) {
   const classes = useStyles();
-
-  console.log(theme.spacing);
   return (
     <>
       <RowContainer>
