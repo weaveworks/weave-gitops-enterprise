@@ -293,8 +293,8 @@ jobs:
       os-name: linux
       timeout-minutes: 60
       focus-or-skip: "-ginkgo.focus='@smoke'"
-      kubectl-version: "v1.22.0"
-      login_user_type: "cluster-user"
+      kubectl-version: "v1.23.3"
+      login_user_type: "oidc"
       git-provider: gitlab
       git-provider_hostname: gitlab.git.dev.weave.works
       cluster_resource_set: true
@@ -331,7 +331,7 @@ jobs:
       os-name: linux
       timeout-minutes: 90
       focus-or-skip: "-ginkgo.skip='@upgrade|@smoke|@gce|@eks'"
-      kubectl-version: "v1.21.1"
+      kubectl-version: "v1.23.3"
       login_user_type: "oidc"
       git-provider: github
       git-provider_hostname: github.com
