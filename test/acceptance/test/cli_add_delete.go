@@ -21,16 +21,13 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		// Using self signed certs, all `gitops get clusters` etc commands should use insecure tls connections
 		insecureFlag := "--insecure-skip-tls-verify"
 
-		BeforeEach(func() {
-			repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
-		})
-
 		AfterEach(func() {
 			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 			templateFiles = []string{}
 		})
 
 		Context("[CLI] When Capi Templates are available in the cluster", func() {
+
 			It("@git Verify gitops can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
@@ -114,19 +111,28 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					Eventually(stdErr).Should(MatchRegexp(`Error: unable to create pull request.*template name must be specified`))
 				})
 			})
+		})
+
+		Context("[CLI] When Capi Templates are available in the cluster to create pull requests", func() {
+
+			BeforeEach(func() {
+				repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
+			})
+
+			JustAfterEach(func() {
+				// Force clean the repository directory for subsequent tests
+				// FIXME: should be changed to clusters/my-cluster when updating cli tests
+				cleanGitRepository("management")
+			})
 
 			It("@smoke @git Verify gitops can create pull requests to management cluster", func() {
-				By("When I create a private repository for cluster configs", func() {
-					initAndCreateEmptyRepo(gitProviderEnv, true)
-				})
-
 				// CAPD Parameter values
 				capdClusterName := "my-capd-cluster2"
 				capdNamespace := "gitops-dev"
 				capdK8version := "1.19.7"
 
 				//CAPD Pull request values
-				capdPRBranch := "feature-capd"
+				capdPRBranch := "cli-feature-capd"
 				capdPRTitle := "My first pull request"
 				capdPRCommit := "First capd capi template"
 				capdPRDescription := "This PR creates a new capd Kubernetes cluster"
@@ -171,7 +177,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				eksNamespace := "default" // FIXME: NAMESPACE parameter value is not required, need to get rid of it. it is just there to mask an existing bug WKP-2203
 
 				//EKS Pull request values
-				eksPRBranch := "feature-eks"
+				eksPRBranch := "cli-feature-eks"
 				eksPRTitle := "My second pull request"
 				eksPRCommit := "First eks capi template"
 				eksPRDescription := "This PR creates a new eks Kubernetes cluster"
@@ -218,11 +224,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("@git Verify giops can not create pull request to management cluster using existing branch", func() {
-				By("When I create a private repository for cluster configs", func() {
-					initAndCreateEmptyRepo(gitProviderEnv, true)
-				})
-
-				branchName := "test-branch"
+				branchName := "cli-test-branch"
 				By("And create new git repository branch", func() {
 					createGitRepoBranch(repoAbsolutePath, branchName)
 				})
@@ -335,12 +337,14 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			}
 			kubeconfigPath := path.Join(os.Getenv("HOME"), "capi.kubeconfig")
 			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
+			// FIXME: should be changed to ./clusters/my-cluster when updating these tests
 			appName := "management"
 			appPath := "./management"
 			capdClusterNames := []string{"cli-end-to-end-capd-cluster-1", "cli-end-to-end-capd-cluster-2"}
 
 			JustBeforeEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
+				repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
 
 				logger.Info("Connecting cluster to itself")
 				leaf := LeafSpec{
@@ -354,30 +358,13 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
+				// Force clean the repository directory for subsequent tests
+				cleanGitRepository(appName)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters(appName, capdClusterNames, GITOPS_DEFAULT_NAMESPACE)
-
-				logger.Info("Deleting all the wkp agents")
-				_ = gitopsTestRunner.KubectlDeleteAllAgents([]string{})
-				gitopsTestRunner.ResetControllers("enterprise")
-				gitopsTestRunner.VerifyWegoPodsRunning()
+				removeGitopsCapiClusters(capdClusterNames)
 			})
 
 			It("@git @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
-
-				By("Check wge is all running", func() {
-					gitopsTestRunner.VerifyWegoPodsRunning()
-				})
-
-				By("When I create a private repository for cluster configs", func() {
-					initAndCreateEmptyRepo(gitProviderEnv, true)
-				})
-
-				By("And I install gitops to my active cluster", func() {
-					Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
-					installAndVerifyGitops(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
-				})
-
 				By("Wait for cluster-service to cache profiles", func() {
 					Expect(waitForProfiles(context.Background(), ASSERTION_30SECONDS_TIME_OUT)).To(Succeed())
 				})
@@ -434,7 +421,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					})
 
 					By("And I should see cluster status changes to 'clusterFound'", func() {
-						verifyWegoAddCommand(appName, GITOPS_DEFAULT_NAMESPACE)
+						waitForGitRepoReady(appName, GITOPS_DEFAULT_NAMESPACE)
 						clusterFound := func() string {
 							output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get clusters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag))
 							return output
@@ -509,6 +496,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
+					// FIXME: should be changed to clusters/my-cluster when updating cli tests
 					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})

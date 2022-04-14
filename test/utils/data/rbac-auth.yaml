@@ -1,0 +1,218 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: apps-reader
+  namespace: flux-system
+rules:
+  - apiGroups: ["wego.weave.works"]
+    resources: ["apps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["gitrepositories"]
+    verbs: ["get"]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: ["kustomizations"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: profiles-reader
+  namespace: flux-system
+rules:
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["helmrepositories"]
+    verbs: ["get"]
+    resourceNames: ["weaveworks-charts"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: configmaps-reader
+  namespace: flux-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: templates-reader
+rules:
+- apiGroups: ["capi.weave.works"]
+  resources: ["capitemplates"]
+  verbs: ["get", "watch", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-templates
+  namespace: default
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: "team-pesto@weave.works"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: templates-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-profiles
+  namespace: flux-system
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: "team-pesto@weave.works"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: profiles-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-apps
+  namespace: flux-system
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: "team-pesto@weave.works"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: apps-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-configmaps
+  namespace: flux-system
+subjects:
+- kind: User
+  name: wego-admin
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: "team-pesto@weave.works"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: configmaps-reader
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: apps-writer
+rules:
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get"]
+    resourceNames: ["apps.wego.weave.works"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: identities-reader
+rules:
+- apiGroups: ["infrastructure.cluster.x-k8s.io"]
+  resources: ["awsclusterstaticidentities", "awsclusterroleidentities", "azureclusteridentities"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: secrets-reader
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: policies-reader
+rules:
+  - apiGroups: ["pac.weave.works"]
+    resources: ["policies"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: read-identities
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: "team-pesto@weave.works"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: identities-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: read-secrets
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: "team-pesto@weave.works"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: secrets-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: read-policies
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: "team-pesto@weave.works"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: policies-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: write-apps
+subjects:
+- kind: User
+  name: wego-admin
+  apiGroup: rbac.authorization.k8s.io
+- kind: User
+  name: "team-pesto@weave.works"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: apps-writer
+  apiGroup: rbac.authorization.k8s.io
+

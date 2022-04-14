@@ -8,4 +8,4 @@ kind: ConfigMap
 metadata:
   creationTimestamp: null
   name: ssh-config
-  namespace: wego-system
+  namespace: flux-system

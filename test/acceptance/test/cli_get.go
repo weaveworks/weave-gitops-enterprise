@@ -395,6 +395,10 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
+				By("And the Cluster service is healthy", func() {
+					CheckClusterService(capi_endpoint_url)
+				})
+
 				By("And I should not see the error or warning message for valid entitlement", func() {
 					checkEntitlement("expired", false)
 					checkEntitlement("invalid", false)

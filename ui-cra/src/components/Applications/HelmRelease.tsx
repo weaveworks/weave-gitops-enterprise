@@ -2,24 +2,22 @@ import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { ApplicationRemove } from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
-import styled from 'styled-components';
+import { HelmReleaseDetail, useGetHelmRelease } from '@weaveworks/weave-gitops';
 
-const ApplicationRemoveWrapper = styled(ApplicationRemove)`
-  div[role='alert'] {
-    width: 100%;
-  }
-`;
+type Props = {
+  name: string;
+  clusterName: string;
+  namespace: string;
+}
 
-const WGApplicationRemove: FC = () => {
+const WGApplicationsBucket: FC<Props> = ({ name, clusterName }) => {
   const applicationsCount = useApplicationsCount();
-
-  const queryParams = new URLSearchParams(window.location.search);
-  const name = queryParams.get('name');
+  const { data } = useGetHelmRelease(name);
+  const helmRelease = data?.helmRelease;
 
   return (
-    <PageTemplate documentTitle="WeGO · Application Detail">
+    <PageTemplate documentTitle="WeGO · Bucket">
       <SectionHeader
         path={[
           {
@@ -27,14 +25,13 @@ const WGApplicationRemove: FC = () => {
             url: '/applications',
             count: applicationsCount,
           },
-          { label: `${name}` },
         ]}
       />
       <ContentWrapper type="WG">
-        <ApplicationRemoveWrapper name={name || ''} />
+        <HelmReleaseDetail helmRelease={helmRelease} clusterName={clusterName} name={name} />
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationRemove;
+export default WGApplicationsBucket;

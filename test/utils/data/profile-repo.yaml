@@ -3,7 +3,7 @@ kind: HelmRepository
 metadata:
   creationTimestamp: null
   name: weaveworks-charts
-  namespace: wego-system
+  namespace: flux-system
 spec:
   interval: 1m
   url: https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-profile

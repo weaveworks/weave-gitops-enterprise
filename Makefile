@@ -6,9 +6,9 @@
 IMAGE_PREFIX := docker.io/weaveworks/weave-gitops-enterprise-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
-VERSION=$(shell git describe --always --match "v*")
+VERSION=$(shell git describe --always --match "v*" --abbrev=7)
 CALENDAR_VERSION=$(shell date +"%Y-%m")
-WEAVE_GITOPS_VERSION=$(shell git describe --always --match "v*" | sed 's/^[^0-9]*//')
+WEAVE_GITOPS_VERSION=$(shell git describe --always --match "v*" --abbrev=7 | sed 's/^[^0-9]*//')
 TIME_NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate

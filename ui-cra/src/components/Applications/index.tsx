@@ -1,12 +1,18 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { Applications } from '@weaveworks/weave-gitops';
+import {
+  AutomationsTable,
+  LoadingPage,
+  useListAutomations,
+} from '@weaveworks/weave-gitops';
 
 const WGApplicationsDashboard: FC = () => {
+  const { data: automations, isLoading } = useListAutomations();
   const applicationsCount = useApplicationsCount();
+
   return (
     <PageTemplate documentTitle="WeGO · Applications">
       <SectionHeader
@@ -18,8 +24,13 @@ const WGApplicationsDashboard: FC = () => {
           },
         ]}
       />
-      <ContentWrapper type="WG">
-        <Applications />
+      <ContentWrapper>
+        <Title>Applications</Title>
+        {isLoading ? (
+          <LoadingPage />
+        ) : (
+          <AutomationsTable automations={automations} />
+        )}
       </ContentWrapper>
     </PageTemplate>
   );

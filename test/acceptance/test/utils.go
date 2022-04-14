@@ -29,7 +29,7 @@ var (
 	logger               *logrus.Logger
 	logFile              *os.File
 	gitProviderEnv       GitProviderEnv
-	login_user_type      string
+	userCredentials      UserCredentials
 	git_repository_url   string
 	selenium_service_url string
 	gitops_bin_path      string
@@ -42,7 +42,7 @@ var (
 
 const (
 	WGE_WINDOW_NAME                string = "weave-gitops-enterprise"
-	GITOPS_DEFAULT_NAMESPACE       string = "wego-system"
+	GITOPS_DEFAULT_NAMESPACE       string = "flux-system"
 	CLUSTER_SERVICE_DEPLOYMENT_APP string = "my-mccp-cluster-service"
 	SCREENSHOTS_DIR_NAME           string = "screenshots"
 	WINDOW_SIZE_X                  int    = 1800
@@ -75,7 +75,6 @@ var seededRand *rand.Rand = rand.New(
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
-	DescribeApplications(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -136,10 +135,11 @@ func SetupTestEnvironment() {
 	capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	gitops_bin_path = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	artifacts_base_dir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
-	login_user_type = GetEnv("LOGIN_USER_TYPE", "admin")
 
 	gitProviderEnv = initGitProviderData()
 	git_repository_url = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
+
+	userCredentials = initUserCredentials()
 
 	//Cleanup the workspace dir, it helps when running locally
 	err := os.RemoveAll(artifacts_base_dir)
@@ -151,9 +151,13 @@ func SetupTestEnvironment() {
 func InstallWeaveGitopsControllers() {
 	// gitops binary must exists, it is required to install weave gitops controllers
 	Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
+	// TODO: check flux bin is available too.
 
 	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
-		logger.Info("No need to install Weave gitops controllers, managemnt cluster is already configured and setup.")
+		repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+		initAndCreateEmptyRepo(gitProviderEnv, true)
+		bootstrapAndVerifyFlux(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+		logger.Info("No need to install Weave gitops enterprise controllers, managemnt cluster is already configured and setup.")
 
 	} else {
 		logger.Info("Installing Weave gitops controllers on to management cluster along with respective configurations and setting such as config repo creation etc.")
@@ -311,20 +315,32 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")
 }
 
-func ShowItems(itemType string) error {
+func ShowItems(itemType string) {
 	if itemType != "" {
-		return runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+		_ = runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
-	err := runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
-	if err != nil {
-		return fmt.Errorf("failed to get all resources %s", err)
-	}
-	return runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
+	_ = runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	_ = runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
 }
 
-func DumpClusterInfo(testName string) error {
-	scriptPath := path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "dump-cluster-info.sh")
-	return runCommandPassThrough(scriptPath, testName, path.Join(artifacts_base_dir, "cluster-info"))
+func DumpClusterInfo(testName string) {
+	logsPath := "/tmp/dumped-cluster-logs"
+	archiveLogsPath := path.Join(artifacts_base_dir, "cluster-info")
+	archivedPath := path.Join(archiveLogsPath, testName+".tar.gz")
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, logsPath, archiveLogsPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl cluster-info dump --all-namespaces --output-directory %s`, logsPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, logsPath, archivedPath))
+}
+
+func DumpConfigRepo(testName string) {
+	repoPath := "/tmp/config-repo"
+	archiveRepoPath := path.Join(artifacts_base_dir, "config-repo")
+	archivedPath := path.Join(archiveRepoPath, testName+".tar.gz")
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, repoPath, archiveRepoPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo, repoPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, repoPath, archivedPath))
 }
 
 func getDownloadedKubeconfigPath(clusterName string) string {
