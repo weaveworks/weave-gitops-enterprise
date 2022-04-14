@@ -119,7 +119,7 @@ func CheckClusterService(capiEndpointURL string) {
 		)
 		g.Expect(stdOut).To(MatchRegexp("200"), "Cluster Service is not healthy: %v", stdErr)
 
-	}, ASSERTION_10SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
+	}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
 }
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {
