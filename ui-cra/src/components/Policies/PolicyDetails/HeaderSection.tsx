@@ -57,7 +57,6 @@ function HeaderSection({
   targets,
   description,
   howToSolve,
-  code,
 }: Policy) {
   const classes = useStyles();
   return (

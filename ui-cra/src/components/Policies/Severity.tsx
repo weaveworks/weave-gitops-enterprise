@@ -1,12 +1,13 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
 import styled from 'styled-components';
 import { CallReceived, CallMade, Remove } from '@material-ui/icons';
+import { theme } from '@weaveworks/weave-gitops';
 
 const useStyles = makeStyles(() =>
   createStyles({
     severityIcon: {
-      fontSize: '14px',
-      marginRight: '4px',
+      fontSize: theme.fontSizes.small,
+      marginRight: theme.spacing.xxs,
     },
     severityLow: {
       color: '#006B8E',
