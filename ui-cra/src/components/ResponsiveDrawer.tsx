@@ -52,6 +52,7 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 
 import Policies from './Policies';
 import _ from 'lodash';
+import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -256,6 +257,7 @@ const App = () => {
             />
 
             <Route exact path={POLICIES} component={Policies} />
+            <Route exact path="/policies/:id" component={PolicyDetails} />
 
             <Route
               exact
