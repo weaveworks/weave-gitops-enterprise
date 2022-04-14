@@ -10,7 +10,6 @@ import { ListPoliciesResponse } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
 
 const Policies = () => {
-  
   const [count, setCount] = useState<number>(0);
   const [payload, setPayload] = useState<any>({ page: 1, limit: 25 });
 
@@ -26,9 +25,9 @@ const Policies = () => {
   }, [payload]);
 
   // Update payload on page change for next page request to work properly with pagination component in PolicyTable component below
-  const updatePayload = (payload: any) => {
-    setPayload(payload);
-  };
+  // const updatePayload = (payload: any) => {
+  //   setPayload(payload);
+  // };
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -38,9 +37,7 @@ const Policies = () => {
           path={[{ label: 'Policies', url: 'policies', count: count }]}
         />
         <ContentWrapper>
-          <Title>
-            Policies
-          </Title>
+          <Title>Policies</Title>
           <LoadingError fetchFn={fetchPoliciesAPI}>
             {({ value }: { value: ListPoliciesResponse }) => (
               <>
