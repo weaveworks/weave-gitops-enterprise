@@ -17,7 +17,7 @@ It is recommended to install latest and stable version of these tools. All tools
 | Clusterctl | Cluster API management command-line tool | `curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.3/clusterctl-darwin-amd64 -o clusterctl` <br> `curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.3/clusterctl-ubuntu-amd64 -o clusterctl` <br> `chmod +x ./clusterctl` <br> `sudo mv ./clusterctl /usr/local/bin/clusterctl` |
 | Totp-cli | Generates OTP tokens for two factor authentication | `wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-darwin-amd64.tar.gz` <br> `wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-ubuntu-amd64.tar.gz` <br> `tar -xf totp-cli-v1.1.17-darwin-amd64.tar.gz` <br> `mv ./totp-cli /usr/local/bin` |
 | Selenium server | Standalone server for web browser instance | `wget https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar` <br> `It is not required if test host is a macOS machine.`|
-| Gitops | Gitops command line interface | `wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-macOS-latest` <br> `wget https://weave-gitops.s3.us-east-2.amazonaws.com/gitops-ubuntu-latest` <br> `mv gitops-ubuntu-latest /usr/local/bin/gitops` <br> `sudo chmod +x /usr/local/bin/gitops`|
+| flux | Command-line interface to bootstrap and interact with Flux | `https://fluxcd.io/docs/installation/#install-the-flux-cli`|
 
 ## Environment Setup
 
