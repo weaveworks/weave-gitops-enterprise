@@ -221,7 +221,7 @@ jobs:
     uses: ./.github/workflows/gitops-binary.yaml
     with:
       runs-on: ubuntu-latest
-      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
+      ref: main
 
   smoke-tests:
     needs: [build, gitops-binary]
