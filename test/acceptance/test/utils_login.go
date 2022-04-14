@@ -46,7 +46,7 @@ func loginUser() {
 		switch userCredentials.UserType {
 		case ClusterUserLogin:
 			// Login via cluster user account
-			Expect(loginPage.Username.SendKeys("admin")).To(Succeed())
+			Expect(loginPage.Username.SendKeys(userCredentials.UserName)).To(Succeed())
 			Expect(loginPage.Password.SendKeys(userCredentials.UserPassword)).To(Succeed())
 			Expect(loginPage.Continue.Click()).To(Succeed())
 		case OidcUserLogin:

@@ -1,6 +1,6 @@
-import { QueryClient, QueryClientProvider } from 'react-query';
 import React, { FC } from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
 import { muiTheme } from './muiTheme';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import '@fortawesome/fontawesome-free/css/all.css';

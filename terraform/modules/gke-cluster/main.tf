@@ -62,7 +62,7 @@ resource "google_compute_subnetwork" "subnet" {
 data "google_client_config" "provider" {}
 
 data "template_file" "kubeconfig" {
-  template = file("${path.module}/templates/kubeconfig.yaml.tpl")
+  template = file("${path.module}/templates/kubeconfig.yaml.tftpl")
 
   vars = {
     cluster_name            = google_container_cluster.cluster.name

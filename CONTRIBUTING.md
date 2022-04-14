@@ -215,18 +215,18 @@ We have 5 demo clusters currently that we use to demonstrate our work and test n
 |--------------------------------------|-----------------------------------------------------|--------|
 | http://34.67.250.163:30080           | https://github.com/wkp-example-org/capd-demo-simon  |  CAPD  |
 | https://demo-01.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-01      |  CAPG  |
-| https://demo-02.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-02          |   -    |
+| https://demo-02.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-02          |  CAPG  |
 | https://demo-03.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-03      |  CAPG  |
 | https://demo-04.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-04          |   -    |
 
 ---
 **CAPI NAME COLLISION WARNING**
 
-`demo-01` and `demo-03` are currently deployed on the same [GCP project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so there may be collisions when creating CAPI clusters if they share the same name. Therefore avoid using common names like `test` and prefer to prefix them with your name i.e. `bob-test-2` instead.
+`demo-01`, `demo-02` and `demo-03` are currently deployed on the same [GCP project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so there may be collisions when creating CAPI clusters if they share the same name. Therefore avoid using common names like `test` and prefer to prefix them with your name i.e. `bob-test-2` instead.
 
 ---
 
-There is no process to update these clusters automatically at the moment when there is a new release/merge to main although that would be desirable for a couple of them. The following sections describe how to get kubectl access to each of those clusters and how to update them to a newer version of Weave GitOps Enterprise.
+`demo-01` is always up to date with the current version of main. `demo-02` should be manually updated to the latest release of Weave GitOps Enterprise to test release upgrades. Other clusters may also need to be updated manually to a newer version. The following sections describe how to get kubectl access to each of those clusters and how to update them to a newer version of Weave GitOps Enterprise.
 
 #### 34.67.250.163
 
@@ -295,14 +295,14 @@ aws eks --region eu-west-1 update-kubeconfig --name demo-04
 
 ### How to update to a new version
 
-The following steps use [demo-01](https://demo-01.wge.dev.weave.works) as an example but the same concepts can be applied to all demo clusters. Depending on the cluster, you may need to sign up to our [on-prem Gitlab instance](https://gitlab.git.dev.weave.works) using your @weave.works email address and request access to the [Weave GitOps Enterprise](https://gitlab.git.dev.weave.works/wge) group or get added to the [wkp-example-org](https://github.com/wkp-example-org) in Github.
+The following steps use [demo-03](https://demo-03.wge.dev.weave.works) as an example but the same concepts can be applied to all demo clusters. Depending on the cluster, you may need to sign up to our [on-prem Gitlab instance](https://gitlab.git.dev.weave.works) using your @weave.works email address and request access to the [Weave GitOps Enterprise](https://gitlab.git.dev.weave.works/wge) group or get added to the [wkp-example-org](https://github.com/wkp-example-org) in Github.
 
 1. Figure out the version of the WGE chart you want to deploy:
 
    1. If we've done a release recently you can change it to `0.0.19` or a major version like that.
    2. Alternatively, to deploy an unreleased version from `main` or another branch you need to take a look at the [branch](#how-to-determine-the-version-of-a-branch) or the [charts repo](#how-to-search-for-a-helm-release-using-a-commit-sha) to determine the version.
 
-2. Find the `HelmRelease` definition for WGE in the [repo](https://github.com/wkp-example-org/demo-01). It is called `weave-gitops-enterprise` and is part of the `wego-system` namespace. Locate the `spec.chart.spec.version` field [(example)](https://gitlab.git.dev.weave.works/wge/demo-01/-/blob/d431861309aae9c3645817af19c597c2f9d6f410/clusters/demo-01/wego-system/wego-system.yaml#L30) and update it to the new version (i.e. `0.0.17-88-ge4e540d`) by committing to `main` or via a PR.
+2. Find the `HelmRelease` definition for WGE in the [repo](https://github.com/wkp-example-org/demo-03). It is called `weave-gitops-enterprise` and is part of the `wego-system` namespace. Locate the `spec.chart.spec.version` field [(example)](https://gitlab.git.dev.weave.works/wge/demo-03/-/blob/77390541343d889f0fab0fc50198f6f233692003/clusters/demo-03/wego-system/wego-system.yaml#L30) and update it to the new version (i.e. `0.0.17-110-g485f9bf`) by committing to `main` or via a PR.
 
    1. If this is an official release (i.e `0.0.19` etc) make sure the release repo is set:
       ```

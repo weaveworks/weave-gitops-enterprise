@@ -5,6 +5,7 @@ import { transparentize } from 'polished';
 import { ReactComponent as BreadcrumbDivider } from '../assets/img/breadcrumb-divider.svg';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { Link } from 'react-router-dom';
 
 interface Size {
   size?: 'small';
@@ -17,9 +18,6 @@ const Container = styled.div`
   height: 32px;
 `;
 const Span = styled.span`
-  color: ${({ theme }) => theme.colors.white};
-`;
-const Link = styled.a`
   color: ${({ theme }) => theme.colors.white};
 `;
 export const Title = styled.div<Size>`
@@ -60,6 +58,9 @@ const useStyles = makeStyles(() =>
       paddingLeft: weaveTheme.spacing.small,
       paddingRight: weaveTheme.spacing.small,
     },
+    link: {
+      color: weaveTheme.colors.white,
+    },
   }),
 );
 export const Breadcrumbs: FC<Props> = ({ path, size }) => {
@@ -78,11 +79,15 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
           ) : (
             <>
               <Title role="heading" size={size}>
-                <Link href={url}>{label}</Link>
+                <Link to={url || ''} className={classes.link}>
+                  {label}
+                </Link>
               </Title>
-              <Count className="section-header-count" size={size}>
-                {count || 0}
-              </Count>
+              {!(count === undefined || count === null) && (
+                <Count className="section-header-count" size={size}>
+                  {count || 0}
+                </Count>
+              )}
             </>
           )}
         </div>

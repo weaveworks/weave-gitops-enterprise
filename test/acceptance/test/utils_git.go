@@ -317,8 +317,12 @@ func mergePullRequest(gp GitProviderEnv, repoAbsolutePath string, prLink string)
 	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
 	Expect(repoErr).ShouldNot(HaveOccurred())
 
-	err := or.PullRequests().Merge(ctx, prNumber, gitprovider.MergeMethodMerge, "merge for test")
-	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(func(g Gomega) {
+		err := or.PullRequests().Merge(ctx, prNumber, gitprovider.MergeMethodMerge, "merge for test")
+		g.Expect(err).ShouldNot(HaveOccurred())
+
+	}, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
+
 }
 
 func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
