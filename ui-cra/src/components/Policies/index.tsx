@@ -5,19 +5,31 @@ import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { PolicyService } from './PolicyService';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { ListPoliciesResponse } from '../../capi-server/capi_server.pb';
-import LoadingError, { useRequest } from '../LoadingError';
+import LoadingError from '../LoadingError';
 
 const Policies = () => {
-  const fetchPolicies = useCallback(
-    (payload: any = { page: 1, limit: 25 }) => PolicyService.getPolicyList(),
-    [],
-  );
+  const [count, setCount] = useState<number>(0);
 
-  const requestInfo = useRequest(fetchPolicies);
-  const data = requestInfo.data as ListPoliciesResponse;
-  const count = data ? data.total : 0;
+  // const [payload, setPayload] = useState<any>({ page: 1, limit: 25 });
+
+  // Update payload on page change for next page request to work properly with pagination component in PolicyTable component below
+  // const updatePayload = (payload: any) => {
+  //   setPayload(payload);
+  // };
+
+  // I used callback here because I need to pass the payload to the API call as well as the setter function to update the payload in the state object (payload)
+  // I could have used useState and setState but I wanted to keep the code as simple as possible.
+  const fetchPoliciesAPI = useCallback(() => {
+    return PolicyService.listPolicies({}).then(
+      (res: ListPoliciesResponse | any) => {
+        !!res && setCount(res.total);
+        return res;
+      },
+    );
+  }, []);
+
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
@@ -27,11 +39,15 @@ const Policies = () => {
         />
         <ContentWrapper>
           <Title>Policies</Title>
-          <LoadingError requestInfo={requestInfo}>
-            {data && data.total && data.total > 0 ? (
-              <PolicyTable policies={data.policies} />
-            ) : (
-              <div>No data to display</div>
+          <LoadingError fetchFn={fetchPoliciesAPI}>
+            {({ value }: { value: ListPoliciesResponse }) => (
+              <>
+                {value.total && value.total > 0 ? (
+                  <PolicyTable policies={value.policies} />
+                ) : (
+                  <div>No data to display</div>
+                )}
+              </>
             )}
           </LoadingError>
         </ContentWrapper>
