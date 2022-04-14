@@ -5,7 +5,7 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import Alert from '@material-ui/lab/Alert';
 import styled from 'styled-components';
 
-export interface ILoadingError {
+interface ILoadingError {
   fetchFn: () => Promise<any>;
   children?: any;
 }
@@ -41,7 +41,7 @@ export interface RequestInfo {
   data: any;
   retry: (fn: Promise<any>) => Promise<void>;
 }
-const useRequest = (fetchFn: () => Promise<any>): RequestInfo => {
+export const useRequest = (fetchFn: () => Promise<any>): RequestInfo => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -103,4 +103,32 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
   );
 };
 
+// export const LoadingErrorRequestInfo: React.FC<any> = ({
+//   children,
+//   requestInfo: { error, errorMessage, loading, retry },
+// }: any) => {
+//   const classes = useStyles();
+//   return (
+//     <>
+//       {loading && (
+//         <FlexCenter>
+//           <LoadingPage />
+//         </FlexCenter>
+//       )}
+//       {!loading && error && (
+//         <div>
+//           <Alert severity="error">
+//             <FlexStart>
+//               {errorMessage}
+//               <span onClick={retry} className={classes.retry}>
+//                 <Refresh />
+//               </span>
+//             </FlexStart>
+//           </Alert>
+//         </div>
+//       )}
+//       {!loading && !error && children}
+//     </>
+//   );
+// };
 export default LoadingError;

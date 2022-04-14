@@ -10,11 +10,16 @@ import { ListPoliciesResponse } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
 
 const Policies = () => {
-  
   const [count, setCount] = useState<number>(0);
+
   const [payload, setPayload] = useState<any>({ page: 1, limit: 25 });
 
-  // I used callback here because I need to pass the payload to the API call as well as the setter function to update the payload in the state object (payload) and I don't want to pass the payload to the API call as well.
+  // Update payload on page change for next page request to work properly with pagination component in PolicyTable component below
+  const updatePayload = (payload: any) => {
+    setPayload(payload);
+  };
+
+  // I used callback here because I need to pass the payload to the API call as well as the setter function to update the payload in the state object (payload)
   // I could have used useState and setState but I wanted to keep the code as simple as possible.
   const fetchPoliciesAPI = useCallback(() => {
     return PolicyService.listPolicies(payload).then(
@@ -25,11 +30,6 @@ const Policies = () => {
     );
   }, [payload]);
 
-  // Update payload on page change for next page request to work properly with pagination component in PolicyTable component below
-  const updatePayload = (payload: any) => {
-    setPayload(payload);
-  };
-
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
@@ -38,9 +38,7 @@ const Policies = () => {
           path={[{ label: 'Policies', url: 'policies', count: count }]}
         />
         <ContentWrapper>
-          <Title>
-            Policies
-          </Title>
+          <Title>Policies</Title>
           <LoadingError fetchFn={fetchPoliciesAPI}>
             {({ value }: { value: ListPoliciesResponse }) => (
               <>
