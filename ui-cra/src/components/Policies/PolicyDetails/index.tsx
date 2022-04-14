@@ -2,7 +2,6 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { CallbackStateContextProvider } from '@weaveworks/weave-gitops';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 
 import { PolicyService } from '../PolicyService';
@@ -27,37 +26,35 @@ const PolicyDetails = () => {
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
-        <CallbackStateContextProvider>
-          <SectionHeader
-            className="count-header"
-            path={[
-              { label: 'Policies', url: '/policies' },
-              { label: name, url: 'policy-details' },
-            ]}
-          />
-          <ContentWrapper>
-            <Title>{name}</Title>
-            <LoadingError fetchFn={fetchPolicyById}>
-              {({ value: { policy } }: { value: GetPolicyResponse }) => (
-                <>
-                  <HeaderSection
-                    id={policy?.id}
-                    tags={policy?.tags}
-                    severity={policy?.severity}
-                    category={policy?.category}
-                    targets={policy?.targets}
-                    description={policy?.description}
-                    howToSolve={policy?.howToSolve}
-                    code={policy?.code}
-                  ></HeaderSection>
-                  <ParametersSection
-                    parameters={policy?.parameters}
-                  ></ParametersSection>
-                </>
-              )}
-            </LoadingError>
-          </ContentWrapper>
-        </CallbackStateContextProvider>
+        <SectionHeader
+          className="count-header"
+          path={[
+            { label: 'Policies', url: '/policies' },
+            { label: name, url: 'policy-details' },
+          ]}
+        />
+        <ContentWrapper>
+          <Title>{name}</Title>
+          <LoadingError fetchFn={fetchPolicyById}>
+            {({ value: { policy } }: { value: GetPolicyResponse }) => (
+              <>
+                <HeaderSection
+                  id={policy?.id}
+                  tags={policy?.tags}
+                  severity={policy?.severity}
+                  category={policy?.category}
+                  targets={policy?.targets}
+                  description={policy?.description}
+                  howToSolve={policy?.howToSolve}
+                  code={policy?.code}
+                ></HeaderSection>
+                <ParametersSection
+                  parameters={policy?.parameters}
+                ></ParametersSection>
+              </>
+            )}
+          </LoadingError>
+        </ContentWrapper>
       </PageTemplate>
     </ThemeProvider>
   );
