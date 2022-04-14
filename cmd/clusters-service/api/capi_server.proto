@@ -107,10 +107,10 @@ service ClustersService {
     };
   }
 
-  // ListPolicyValidation list policy violations policies available on the management cluster
+  // ListPolicyValidation list policy violations available on the management cluster
   rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
     option (google.api.http) = {
-      post : "/v1/violations"
+      post : "/v1/policies/violations"
       body : "*"
     };
   }

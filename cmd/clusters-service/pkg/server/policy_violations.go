@@ -28,9 +28,10 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 	}
 
 	for _, item := range events.Items {
-		if getAnnotation(item.GetAnnotations(), "cluster_id") == m.ClusterId {
-			policyviolationlist.Violations = append(policyviolationlist.Violations, toPolicyValidation(item))
-		}
+		// TODO: filter by cluster_id
+		// if m.ClusterId != "" && m.ClusterId != getAnnotation(item.GetAnnotations(), "cluster_id")
+		policyviolationlist.Violations = append(policyviolationlist.Violations, toPolicyValidation(item))
+
 	}
 	policyviolationlist.Total = int32(len(events.Items))
 	return &policyviolationlist, nil

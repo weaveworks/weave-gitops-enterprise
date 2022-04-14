@@ -229,6 +229,39 @@
         ]
       }
     },
+    "/v1/policies/violations": {
+      "post": {
+        "summary": "ListPolicyValidation list policy violations available on the management cluster",
+        "operationId": "ClustersService_ListPolicyValidations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyValidationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyValidationsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policies/{policyName}": {
       "get": {
         "summary": "GetPolicy gets a policy on the management cluster by name",
@@ -422,39 +455,6 @@
                   "$ref": "#/definitions/v1Credential"
                 }
               }
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/violations": {
-      "post": {
-        "summary": "ListPolicyValidation list policy violations policies available on the management cluster",
-        "operationId": "ClustersService_ListPolicyValidations",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListPolicyValidationsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1ListPolicyValidationsRequest"
             }
           }
         ],
