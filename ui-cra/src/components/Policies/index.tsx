@@ -11,7 +11,7 @@ import LoadingError from '../LoadingError';
 
 const Policies = () => {
   const [count, setCount] = useState<number>(0);
-  const [payload, setPayload] = useState<any>({ page: 1, limit: 25 });
+  const [payload] = useState<any>({ page: 1, limit: 25 });
 
   // I used callback here because I need to pass the payload to the API call as well as the setter function to update the payload in the state object (payload) and I don't want to pass the payload to the API call as well.
   // I could have used useState and setState but I wanted to keep the code as simple as possible.
