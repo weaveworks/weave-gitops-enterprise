@@ -85,7 +85,7 @@ jobs:
       os-name: linux
       timeout-minutes: 90
       focus-or-skip: "-ginkgo.skip='@gce|@eks'"
-      kubectl-version: "v1.22.0"
+      kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab
       git-provider_hostname: gitlab.git.dev.weave.works

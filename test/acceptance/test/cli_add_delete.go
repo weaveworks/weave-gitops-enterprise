@@ -443,7 +443,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := capdClusterNames[0]
 				namespace := clusterNamespace[gitProviderEnv.Type]
-				k8version := "1.23.0"
+				k8version := "1.23.3"
 				// Creating two capd clusters
 				createCluster(clusterName, namespace, k8version)
 
