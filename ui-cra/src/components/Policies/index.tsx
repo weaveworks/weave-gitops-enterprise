@@ -35,7 +35,7 @@ const Policies = () => {
       <PageTemplate documentTitle="WeGo · Policies">
         <SectionHeader
           className="count-header"
-          path={[{ label: 'Policies', url: 'policies', count: count }]}
+          path={[{ label: 'Policies', url: 'policies', count }]}
         />
         <ContentWrapper>
           <Title>Policies</Title>
