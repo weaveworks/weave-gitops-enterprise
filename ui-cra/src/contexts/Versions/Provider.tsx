@@ -7,7 +7,7 @@ import { useHistory } from 'react-router-dom';
 const VersionsProvider: FC = ({ children }) => {
   const [entitlement, setEntitlement] = useState<string | null>(null);
   const [versions, setVersions] = useState<VersionData>({
-    ui: process.env.REACT_APP_VERSION || 'no version specified',
+    ui: 'no version specified',
   });
   const [repositoryURL, setRepositoryURL] = useState<string | null>(null);
   const { setNotifications } = useNotifications();

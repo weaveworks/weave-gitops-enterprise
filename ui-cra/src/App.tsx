@@ -67,7 +67,7 @@ const App: FC = () => {
     <ThemeProvider theme={theme}>
       <MuiThemeProvider theme={muiTheme}>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter basename={process.env.PUBLIC_URL}>
+          <BrowserRouter>
             <GlobalStyle />
             <AppContextProvider applicationsClient={applicationsClient}>
               <FeatureFlagsContextProvider>
