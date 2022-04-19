@@ -31,7 +31,7 @@ export class PolicyStyles {
         fontSize: theme.fontSizes.tiny,
       },
       codeWrapper: {
-        background: '#F8FAFA', // theme.colors.neutral10,
+        background:  '#ebebeb', // theme.colors.neutral10,
         borderRadius: theme.spacing.xxs,
         padding: `${theme.spacing.small} ${theme.spacing.base}`,
         marginLeft: theme.spacing.none,
@@ -45,7 +45,7 @@ export class PolicyStyles {
       },
       editor: {
         marginTop: theme.spacing.xs,
-        background: '#F8FAFA',
+        background: '#ebebeb', // theme.colors.neutral10,
         padding: theme.spacing.xs,
         maxHeight: '450px',
         overflowY: 'scroll',
