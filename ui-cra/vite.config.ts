@@ -16,6 +16,11 @@ const proxyConfig = {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'es2020',
+    },
+  },
   server: {
     proxy: {
       '/gitops': proxyConfig,
