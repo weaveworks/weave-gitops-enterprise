@@ -1,35 +1,37 @@
 import { TableCell, TableRow } from '@material-ui/core';
-import { Policy } from '../../../capi-server/capi_server.pb';
+import { PolicyValidation } from '../../../capi-server/capi_server.pb';
 import { Link } from 'react-router-dom';
-import Severity from '../Severity';
+import Severity from '../../Policies/Severity';
 import moment from 'moment';
-import { PolicyStyles } from '../PolicyStyles';
+import { PolicyStyles } from '../../Policies/PolicyStyles';
 
 interface RowProps {
-  policy: Policy;
+  violation: PolicyValidation;
 }
 
-const PolicyRow = ({ policy }: RowProps) => {
+const PolicyViolationRow = ({ violation }: RowProps) => {
   const classes = PolicyStyles.useStyles();
-  const { name, category, severity, createdAt, id } = policy;
+  const { severity, createdAt, id, entity, message, namespace } = violation;
   return (
     <>
-      <TableRow data-cluster-name={name} className={classes.normalRow}>
+      <TableRow className={classes.normalRow}>
         <TableCell className={classes.normalCell}>
           <Link to={`/policies/${id}`} className={classes.link}>
-            {name}
+            {message}
           </Link>
         </TableCell>
-        <TableCell className={classes.normalCell}>{category}</TableCell>
         <TableCell className={classes.normalCell}>
           <Severity severity={severity || ''} />
         </TableCell>
         <TableCell className={classes.normalCell}>
           {moment(createdAt).fromNow()}
         </TableCell>
+        <TableCell className={classes.normalCell}>
+          {`${namespace}/${entity}`}
+        </TableCell>
       </TableRow>
     </>
   );
 };
 
-export default PolicyRow;
+export default PolicyViolationRow;

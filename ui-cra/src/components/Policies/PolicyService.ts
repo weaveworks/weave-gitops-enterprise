@@ -357,4 +357,42 @@ export class PolicyService {
       cache: 'no-store',
     });
   };
+
+  // TODO payload should be a ClusterId
+  static listPolicyViolations = () => {
+    return request('POST', `${this.policiesUrl}/violations`, {
+      cache: 'no-store',
+    });
+    // return new Promise<ListPolicyValidationsResponse>((resolve, reject) => {
+    //   resolve({
+    //     violations: [
+    //       {
+    //         id: '1',
+    //         severity: 'high',
+    //         category: 'weave.categories.pod-security',
+    //         message: 'Pod Security Policy violation',
+    //         namespace: 'default',
+    //         entity: 'default/weave-net-0',
+    //       },
+    //       {
+    //         id: '2',
+    //         severity: 'high',
+    //         category: 'weave.categories.pod-security',
+    //         message: 'Pod Security Policy violation',
+    //         namespace: 'default',
+    //         entity: 'default/weave-net-1',
+    //       },
+    //       {
+    //         id: '3',
+    //         severity: 'high',
+    //         category: 'weave.categories.pod-security',
+    //         message: 'Pod Security Policy violation',
+    //         namespace: 'default',
+    //         entity: 'default/weave-net-2',
+    //       },
+    //     ],
+    //     total: 3,
+    //   });
+    // });
+  };
 }

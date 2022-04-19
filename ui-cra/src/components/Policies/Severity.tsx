@@ -1,65 +1,39 @@
-import { createStyles, makeStyles } from '@material-ui/styles';
-import styled from 'styled-components';
 import { CallReceived, CallMade, Remove } from '@material-ui/icons';
-import { theme } from '@weaveworks/weave-gitops';
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    severityIcon: {
-      fontSize: theme.fontSizes.small,
-      marginRight: theme.spacing.xxs,
-    },
-    severityLow: {
-      color: '#006B8E',
-    },
-    severityMedium: {
-      color: '#8A460A',
-    },
-    severityHigh: {
-      color: '#9F3119',
-    },
-  }),
-);
-
-const FlexStart = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: start;
-`;
+import { PolicyStyles } from './PolicyStyles';
 
 function Severity({ severity }: { severity: string }) {
-  const classes = useStyles();
+  const classes = PolicyStyles.useStyles();
   switch (severity.toLocaleLowerCase()) {
     case 'low':
       return (
-        <FlexStart>
+        <div className={classes.flexStart}>
           <CallReceived
             className={`${classes.severityIcon} ${classes.severityLow}`}
           />
-          <span>{severity}</span>
-        </FlexStart>
+          <span className={classes.capitlize}>{severity}</span>
+        </div>
       );
     case 'high':
       return (
-        <FlexStart>
+        <div className={classes.flexStart}>
           <CallMade
             className={`${classes.severityIcon} ${classes.severityHigh}`}
           />
-          <span>{severity}</span>
-        </FlexStart>
+          <span className={classes.capitlize}>{severity}</span>
+        </div>
       );
     case 'medium':
       return (
-        <FlexStart>
+        <div className={classes.flexStart}>
           <Remove
             className={`${classes.severityIcon} ${classes.severityMedium}`}
           />
-          <span>{severity}</span>
-        </FlexStart>
+          <span className={classes.capitlize}>{severity}</span>
+        </div>
       );
 
     default:
-      return <span>{severity}</span>;
+      return <span className={classes.capitlize}>{severity}</span>;
   }
 }
 
