@@ -79,7 +79,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 	for section, parameters := range paramSection {
 		By(fmt.Sprintf("And set template section %s parameter values", section), func() {
 			templateSection := createPage.GetTemplateSection(webDriver, section)
-			Expect(templateSection.Name).Should(HaveText(section))
+			Eventually(templateSection.Name).Should(HaveText(section))
 
 			if len(parameters) == 0 {
 				Expect(len(templateSection.Fields)).To(BeNumerically("==", 0), fmt.Sprintf("No form fields should be visible for section %s", section))

@@ -317,14 +317,22 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 }
 
 func ShowItems(itemType string) {
+	logger.Info("Duming cluster objects/resources...")
 	if itemType != "" {
 		_ = runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
 	_ = runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+
+	logger.Info(fmt.Sprintf("Dumping %s congigmap", CLUSTER_SERVICE_DEPLOYMENT_APP))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml", CLUSTER_SERVICE_DEPLOYMENT_APP))
+
+	logger.Info("Duming cluster crds...")
 	_ = runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
 }
 
 func DumpClusterInfo(testName string) {
+	logger.Info("Duming cluster-info...")
+
 	logsPath := "/tmp/dumped-cluster-logs"
 	archiveLogsPath := path.Join(artifacts_base_dir, "cluster-info")
 	archivedPath := path.Join(archiveLogsPath, testName+".tar.gz")

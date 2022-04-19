@@ -123,8 +123,8 @@ function setup {
   helmArgs=()
   helmArgs+=( --set "nats.client.service.nodePort=${NATS_NODEPORT}" )
   helmArgs+=( --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" )
-  helmArgs+=( --set "service.nodePorts.https=${UI_NODEPORT}" )
-  helmArgs+=( --set "service.type=NodePort" )
+  helmArgs+=( --set "service.ports.https=8000" )
+  helmArgs+=( --set "service.targetPorts.https=8000" )
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
@@ -132,6 +132,7 @@ function setup {
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
+   helmArgs+=( --set "tls.enabled=false" )
   helmArgs+=( --set "config.oidc.enabled=true" )
   helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
@@ -162,6 +163,7 @@ function setup {
   helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
 
   helm repo add profiles-catalog https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+  helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
   helm repo add cert-manager https://charts.jetstack.io
   helm repo update 
 
@@ -172,6 +174,23 @@ function setup {
     --version v1.8.0 \
     --set installCRDs=true
   kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
+
+  # Install ingress-nginx for tls termination 
+  helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+    --namespace ingress-nginx --create-namespace \
+    --version 4.0.18 \
+    --set controller.service.type=NodePort \
+    --set controller.service.nodePorts.https=${UI_NODEPORT}
+  kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
+  
+  cat ${args[1]}/test/utils/data/certificate-issuer.yaml | \
+      sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
+      kubectl apply -f -
+  kubectl wait --for=condition=Ready --timeout=60s -n flux-system --all certificate
+
+  cat ${args[1]}/test/utils/data/ingress.yaml | \
+      sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
+      kubectl apply -f -
 
   # Install RBAC for user authentication
    kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
