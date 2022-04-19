@@ -324,6 +324,7 @@ jobs:
           if [ ${{ inputs.management-cluster-kind }} = 'eks' ]; then
             export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
             export CLUSTER_VERSION=1.21
+            export AWS_REGION=us-east-1
 
             export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
             if [ -z $CLUSTER_EXISTS ]
