@@ -77,6 +77,10 @@ tls:
   # if no tls secret is specified then we generate it in-mem in the server
   secretName: ""
 
+rbac:
+  userRoles:
+    create: true
+
 service:
   type: ClusterIP
   ports:
