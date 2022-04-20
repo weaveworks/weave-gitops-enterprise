@@ -62,7 +62,7 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 func toPolicyValidation(item v1.Event) *capiv1_proto.PolicyValidation {
 	annotations := item.GetAnnotations()
 	return &capiv1_proto.PolicyValidation{
-		Id:        item.Name,
+		Id:        getAnnotation(item.GetLabels(), "pac.weave.works/id"),
 		Name:      getAnnotation(annotations, "policy_name"),
 		ClusterId: getAnnotation(annotations, "cluster_id"),
 		Category:  getAnnotation(annotations, "category"),
@@ -79,7 +79,7 @@ func toPolicyValidationDetails(item v1.Event) *capiv1_proto.PolicyValidation {
 	var violation = toPolicyValidation(item)
 	violation.Description = getAnnotation(annotations, "description")
 	violation.HowToSolve = getAnnotation(annotations, "how_to_solve")
-	violation.ViolatingEntity = getAnnotation(annotations, "violating_entity")
+	violation.ViolatingEntity = getAnnotation(annotations, "entity_manifest")
 	return violation
 }
 
