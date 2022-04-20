@@ -55,25 +55,32 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 		return nil, fmt.Errorf("no policy violation found with id %s", m.ViolationId)
 	}
 	return &capiv1_proto.GetPolicyValidationResponse{
-		Violation: toPolicyValidation(events.Items[0]),
+		Violation: toPolicyValidationDetails(events.Items[0]),
 	}, nil
 }
 
 func toPolicyValidation(item v1.Event) *capiv1_proto.PolicyValidation {
 	annotations := item.GetAnnotations()
 	return &capiv1_proto.PolicyValidation{
-		Id:              item.Name,
-		ClusterId:       getAnnotation(annotations, "cluster_id"),
-		Category:        getAnnotation(annotations, "category"),
-		Severity:        getAnnotation(annotations, "severity"),
-		CreatedAt:       item.GetCreationTimestamp().Format(time.RFC3339),
-		Message:         item.Message,
-		Entity:          item.InvolvedObject.Name,
-		Namespace:       item.InvolvedObject.Namespace,
-		Description:     getAnnotation(annotations, "description"),
-		HowToSolve:      getAnnotation(annotations, "how_to_solve"),
-		ViolatingEntity: getAnnotation(annotations, "entity_manifest"),
+		Id:        item.Name,
+		Name:      getAnnotation(annotations, "policy_name"),
+		ClusterId: getAnnotation(annotations, "cluster_id"),
+		Category:  getAnnotation(annotations, "category"),
+		Severity:  getAnnotation(annotations, "severity"),
+		CreatedAt: item.GetCreationTimestamp().Format(time.RFC3339),
+		Message:   item.Message,
+		Entity:    item.InvolvedObject.Name,
+		Namespace: item.InvolvedObject.Namespace,
 	}
+}
+
+func toPolicyValidationDetails(item v1.Event) *capiv1_proto.PolicyValidation {
+	annotations := item.GetAnnotations()
+	var violation = toPolicyValidation(item)
+	violation.Description = getAnnotation(annotations, "description")
+	violation.HowToSolve = getAnnotation(annotations, "how_to_solve")
+	violation.ViolatingEntity = getAnnotation(annotations, "violating_entity")
+	return violation
 }
 
 func getAnnotation(annotations map[string]string, key string) string {

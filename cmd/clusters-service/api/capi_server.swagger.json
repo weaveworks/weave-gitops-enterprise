@@ -1028,6 +1028,9 @@
         },
         "howToSolve": {
           "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
