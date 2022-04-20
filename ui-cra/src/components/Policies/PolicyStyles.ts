@@ -31,7 +31,7 @@ export class PolicyStyles {
         fontSize: theme.fontSizes.tiny,
       },
       codeWrapper: {
-        background:  '#ebebeb', // theme.colors.neutral10,
+        background:  '#F8FAFA', // theme.colors.neutral10,
         borderRadius: theme.spacing.xxs,
         padding: `${theme.spacing.small} ${theme.spacing.base}`,
         marginLeft: theme.spacing.none,
@@ -45,11 +45,12 @@ export class PolicyStyles {
       },
       editor: {
         marginTop: theme.spacing.xs,
-        background: '#ebebeb', // theme.colors.neutral10,
+        background: '#F8FAFA', // theme.colors.neutral10,
         padding: theme.spacing.xs,
         maxHeight: '450px',
         overflowY: 'scroll',
         fontSize: theme.fontSizes.tiny,
+        // whiteSpace: 'pre-line'
       },
       severityIcon: {
         fontSize: theme.fontSizes.small,
@@ -105,6 +106,7 @@ export class PolicyStyles {
       link: {
         color: theme.colors.primary,
         fontWeight: 600,
+        whiteSpace: 'pre-line'
       },
 
     }),

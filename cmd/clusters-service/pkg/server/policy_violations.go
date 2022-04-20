@@ -37,6 +37,25 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 	return &policyviolationlist, nil
 }
 
+func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPolicyValidationRequest) (*capiv1_proto.GetPolicyValidationResponse, error) {
+	config := ctrl.GetConfigOrDie()
+	clientset := kubernetes.NewForConfigOrDie(config)
+
+	events, err := clientset.CoreV1().Events(v1.NamespaceAll).
+		List(ctx, metav1.ListOptions{
+			LabelSelector: "policy-validation.weave.works=Admission",
+			FieldSelector: "type=Warning, metadata.annotations.id=" + m.ViolationId,
+		})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &capiv1_proto.GetPolicyValidationResponse{
+		Violation: toPolicyValidation(events.Items[0]),
+	}, nil
+}
+
 func toPolicyValidation(item v1.Event) *capiv1_proto.PolicyValidation {
 	annotations := item.GetAnnotations()
 	return &capiv1_proto.PolicyValidation{
