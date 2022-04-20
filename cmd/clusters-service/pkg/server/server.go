@@ -27,12 +27,12 @@ var providers = map[string]string{
 }
 
 type server struct {
-	log             logr.Logger
-	library         templates.Library
-	clustersLibrary clusters.Library
-	provider        git.Provider
-	clientGetter    kube.ClientGetter
-	discoveryClient discovery.DiscoveryInterface
+	log              logr.Logger
+	templatesLibrary templates.Library
+	clustersLibrary  clusters.Library
+	provider         git.Provider
+	clientGetter     kube.ClientGetter
+	discoveryClient  discovery.DiscoveryInterface
 	capiv1_proto.UnimplementedClustersServiceServer
 	db                        *gorm.DB
 	ns                        string // The namespace where cluster objects reside
@@ -40,10 +40,11 @@ type server struct {
 	helmRepositoryCacheDir    string
 }
 
-func NewClusterServer(log logr.Logger, library templates.Library, provider git.Provider, clientGetter kube.ClientGetter, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
+func NewClusterServer(log logr.Logger, clustersLibrary clusters.Library, templatesLibrary templates.Library, provider git.Provider, clientGetter kube.ClientGetter, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
 	return &server{
 		log:                       log,
-		library:                   library,
+		clustersLibrary:           clustersLibrary,
+		templatesLibrary:          templatesLibrary,
 		provider:                  provider,
 		clientGetter:              clientGetter,
 		discoveryClient:           discoveryClient,

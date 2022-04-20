@@ -31,10 +31,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
 	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
@@ -286,6 +288,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		v1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1beta1.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
 	}
 
 	err = schemeBuilder.AddToScheme(scheme)
@@ -364,7 +367,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}()
 
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
-	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme, gitopsv1alpha1.AddToScheme)
 
 	fetcher, err := clustersmngr.NewSingleClusterFetcher(rest)
 	if err != nil {
@@ -382,6 +385,11 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
+		WithClustersLibrary(&clusters.CRDLibrary{
+			Log:          log,
+			ClientGetter: clientGetter,
+			Namespace:    p.capiTemplatesNamespace,
+		}),
 		WithTemplateLibrary(&templates.CRDLibrary{
 			Log:          log,
 			ClientGetter: clientGetter,
@@ -450,6 +458,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		args.Log,
+		args.ClustersLibrary,
 		args.TemplateLibrary,
 		args.GitProvider,
 		args.ClientGetter,
