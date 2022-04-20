@@ -86,6 +86,14 @@ export type ListPolicyValidationsResponse = {
   total?: number
 }
 
+export type GetPolicyValidationRequest = {
+  violationId?: string
+}
+
+export type GetPolicyValidationResponse = {
+  violation?: PolicyValidation
+}
+
 export type PolicyValidation = {
   id?: string
   message?: string
@@ -95,6 +103,9 @@ export type PolicyValidation = {
   createdAt?: string
   entity?: string
   namespace?: string
+  violatingEntity?: string
+  description?: string
+  howToSolve?: string
 }
 
 export type CreatePullRequestRequest = {
@@ -321,5 +332,8 @@ export class ClustersService {
   }
   static ListPolicyValidations(req: ListPolicyValidationsRequest, initReq?: fm.InitReq): Promise<ListPolicyValidationsResponse> {
     return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policies/violations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
+    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policies/violations/${req["violationId"]}?${fm.renderURLSearchParams(req, ["violationId"])}`, {...initReq, method: "GET"})
   }
 }
