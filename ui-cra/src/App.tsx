@@ -45,14 +45,13 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: url(${Background}) no-repeat;
-    background-color: ${theme.colors.neutral10};
-    background-position: right bottom;
-    background-attachment:fixed;
+    background: right bottom url(${Background}) no-repeat fixed ${props =>
+  props.theme.colors.neutral10}; 
+    background-size: 100%;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
-    /* Layout - grow to at least viewport height */
+    // /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
     margin: 0;
