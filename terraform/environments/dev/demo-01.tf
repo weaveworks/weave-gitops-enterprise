@@ -13,25 +13,6 @@ module "demo_01" {
   }
 }
 
-output "demo_01_endpoint" {
-  value = module.demo_01.endpoint
-}
- 
-output "demo_01_client_certificate" {
-  value = module.demo_01.client_certificate
-  sensitive = true
-}
-
-output "demo_01_client_key" {
-  value = module.demo_01.client_key
-  sensitive = true
-}
-
-output "demo_01_cluster_ca_certificate" {
-  value = module.demo_01.cluster_ca_certificate
-  sensitive = true
-}
-
 output "demo_01_kubeconfig" {
   value = module.demo_01.kubeconfig
   sensitive = true
