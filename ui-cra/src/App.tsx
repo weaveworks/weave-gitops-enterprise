@@ -45,8 +45,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: right bottom url(${Background}) no-repeat fixed ${props =>
-  props.theme.colors.neutral10}; 
+    background: right bottom url(${Background}) no-repeat fixed ${theme.colors.neutral10}; 
     background-size: 100%;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
