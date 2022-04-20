@@ -106,6 +106,7 @@ export type PolicyValidation = {
   violatingEntity?: string
   description?: string
   howToSolve?: string
+  name?: string
 }
 
 export type CreatePullRequestRequest = {

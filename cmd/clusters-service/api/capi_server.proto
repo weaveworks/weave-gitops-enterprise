@@ -190,6 +190,7 @@ message PolicyValidation{
   string violating_entity=9;
   string description=10;
   string how_to_solve=11;
+  string name=12;
 }
 
 message CreatePullRequestRequest {
