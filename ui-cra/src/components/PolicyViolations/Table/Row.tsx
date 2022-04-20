@@ -16,7 +16,7 @@ const PolicyViolationRow = ({ violation }: RowProps) => {
     <>
       <TableRow className={classes.normalRow}>
         <TableCell className={classes.normalCell}>
-          <Link to={`/policies/${id}`} className={classes.link}>
+          <Link to={`/clusters/violations/${id}`} className={classes.link}>
             {message}
           </Link>
         </TableCell>

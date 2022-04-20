@@ -9,35 +9,41 @@ import LoadingError from '../../LoadingError';
 import { useParams } from 'react-router-dom';
 import { GetPolicyValidationResponse } from '../../../capi-server/capi_server.pb';
 import { PolicyService } from '../../Policies/PolicyService';
+import ViolationDetails from './ViolationDetails';
 
 const PolicyViolationDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [name, setName] = useState('');
-  const fetchPoliciesAPI = () =>
-    PolicyService.getPolicyViolationById(id).then((res: GetPolicyValidationResponse) => {
-      res.violation?.name && setName(res.violation.name);
-      return res;
-    });
+  const fetchPoliciesViolationsAPI = () =>
+    PolicyService.getPolicyViolationById(id).then(
+      (res: GetPolicyValidationResponse) => {
+        res.violation?.name && setName(res.violation.name);
+        return res;
+      },
+    );
 
-  const [fetchPolicyById] = useState(() => fetchPoliciesAPI);
+  const [fetchPolicyViolationById] = useState(() => fetchPoliciesViolationsAPI);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Policies">
+      <PageTemplate documentTitle="WeGo · Violations Logs">
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Policies', url: '/policies' },
-            { label: name, url: 'policy-details' },
+            { label: 'Violation logs', url: '/clusters/violations' },
+            { label: name, url: 'policy-violation-details' },
           ]}
         />
         <ContentWrapper>
           <Title>{name}</Title>
-          <LoadingError fetchFn={fetchPolicyById}>
-            {({ value: { policy } }: { value: GetPolicyValidationResponse }) => (
+          <LoadingError fetchFn={fetchPolicyViolationById}>
+            {({
+              value: { violation },
+            }: {
+              value: GetPolicyValidationResponse;
+            }) => (
               <>
-               
-               
+                <ViolationDetails violation={violation}></ViolationDetails>
               </>
             )}
           </LoadingError>

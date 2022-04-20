@@ -54,6 +54,7 @@ import Policies from './Policies';
 import _ from 'lodash';
 import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
+import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -219,6 +220,11 @@ const App = () => {
               component={PoliciesViolations}
               exact
               path="/clusters/violations"
+            />
+            <Route
+              component={PolicyViolationDetails}
+              exact
+              path="/clusters/violations/:id"
             />
             <Route component={AlertsDashboard} exact path="/clusters/alerts" />
             <Route
