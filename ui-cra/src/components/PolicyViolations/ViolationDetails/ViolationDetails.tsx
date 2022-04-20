@@ -56,13 +56,16 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
       </div>
 
       <div className={classes.sectionSeperator}>
-        <div className={classes.cardTitle}>Policy Code:</div>
+        <div className={classes.cardTitle}>Violating Entity:</div>
         <div>
           <SyntaxHighlighter
             language="json"
             style={darcula}
             wrapLongLines="pre-wrap"
             showLineNumbers={true}
+            codeTagProps={{
+              className: classes.code,
+            }}
             customStyle={{
               height: '450px',
             }}

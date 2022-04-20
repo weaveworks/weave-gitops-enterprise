@@ -107,6 +107,9 @@ export class PolicyStyles {
         fontWeight: 600,
         whiteSpace: 'pre-line',
       },
+      code: {
+        wordBreak: 'break-word',
+      }
     }),
   );
 }
