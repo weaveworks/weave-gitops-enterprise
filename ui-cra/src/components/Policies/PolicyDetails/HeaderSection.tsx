@@ -3,6 +3,9 @@ import Severity from '../Severity';
 import MDEditor from '@uiw/react-md-editor';
 import { PolicyStyles } from '../PolicyStyles';
 
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
 function HeaderSection({
   id,
   tags,
@@ -55,9 +58,7 @@ function HeaderSection({
       <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Description:</div>
-        <p className={`${classes.body1} ${classes.codeWrapper}`}>
-          {description}
-        </p>
+        <MDEditor.Markdown source={description} className={classes.editor} />
       </div>
 
       <div className={classes.sectionSeperator}>
@@ -67,7 +68,19 @@ function HeaderSection({
 
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Policy Code:</div>
-        <MDEditor.Markdown source={code} className={classes.editor} />
+        <div>
+          <SyntaxHighlighter
+            language="rego"
+            style={darcula}
+            wrapLongLines="pre-wrap"
+            showLineNumbers={true}
+            customStyle={{
+              height: '450px',
+            }}
+          >
+            {code}
+          </SyntaxHighlighter>
+        </div>
       </div>
     </>
   );
