@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -19,7 +20,7 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 
 	events, err := clientset.CoreV1().Events(v1.NamespaceAll).
 		List(ctx, metav1.ListOptions{
-			LabelSelector: "policy-validation.weave.works=Admission",
+			LabelSelector: "pac.weave.works/type=Admission",
 			FieldSelector: "type=Warning",
 		})
 
@@ -43,14 +44,16 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 
 	events, err := clientset.CoreV1().Events(v1.NamespaceAll).
 		List(ctx, metav1.ListOptions{
-			LabelSelector: "policy-validation.weave.works=Admission",
-			FieldSelector: "type=Warning, metadata.annotations.id=" + m.ViolationId,
+			LabelSelector: "pac.weave.works/type=Admission, pac.weave.works/id=" + m.ViolationId,
+			FieldSelector: "type=Warning",
 		})
 
 	if err != nil {
 		return nil, err
 	}
-
+	if len(events.Items) == 0 {
+		return nil, fmt.Errorf("no policy violation found with id %s", m.ViolationId)
+	}
 	return &capiv1_proto.GetPolicyValidationResponse{
 		Violation: toPolicyValidation(events.Items[0]),
 	}, nil
@@ -59,14 +62,17 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 func toPolicyValidation(item v1.Event) *capiv1_proto.PolicyValidation {
 	annotations := item.GetAnnotations()
 	return &capiv1_proto.PolicyValidation{
-		Id:        item.Name,
-		ClusterId: getAnnotation(annotations, "cluster_id"),
-		Category:  getAnnotation(annotations, "category"),
-		Severity:  getAnnotation(annotations, "severity"),
-		CreatedAt: item.GetCreationTimestamp().Format(time.RFC3339),
-		Message:   item.Message,
-		Entity:    item.InvolvedObject.Name,
-		Namespace: item.InvolvedObject.Namespace,
+		Id:              item.Name,
+		ClusterId:       getAnnotation(annotations, "cluster_id"),
+		Category:        getAnnotation(annotations, "category"),
+		Severity:        getAnnotation(annotations, "severity"),
+		CreatedAt:       item.GetCreationTimestamp().Format(time.RFC3339),
+		Message:         item.Message,
+		Entity:          item.InvolvedObject.Name,
+		Namespace:       item.InvolvedObject.Namespace,
+		Description:     getAnnotation(annotations, "description"),
+		HowToSolve:      getAnnotation(annotations, "how_to_solve"),
+		ViolatingEntity: getAnnotation(annotations, "entity_manifest"),
 	}
 }
 
