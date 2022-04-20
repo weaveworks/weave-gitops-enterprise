@@ -13,6 +13,7 @@ export const muiTheme = createTheme({
       root: {
         textTransform: 'none',
         minWidth: 52,
+        marginRight: weaveTheme.spacing.small,
       },
       outlinedPrimary: {
         borderColor: weaveTheme.colors.neutral20,
