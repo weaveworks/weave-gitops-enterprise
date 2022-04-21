@@ -44,7 +44,7 @@ func TestParamsFromSpec(t *testing.T) {
 func TestParamsFromSpec_with_bad_template(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/bad_template.yaml")
 	_, err := ParamsFromSpec(parsed.Spec)
-	assert.EqualError(t, err, "failed to get params from template: processing template: bad substitution")
+	assert.EqualError(t, err, "failed to get params from template: processing template: missing closing brace")
 }
 
 func mustParseFile(t *testing.T, filename string) *capiv1.CAPITemplate {

@@ -36,10 +36,10 @@ function setup {
       gcloud compute firewall-rules create nats-node-port --allow tcp:${NATS_NODEPORT}
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
     fi
-    elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
-      # MANAGEMENT_CLUSTER_KIND is a KIND cluster
-      WORKER_NODE_EXTERNAL_IP=${LOCALHOST_IP}
-    fi
+  elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
+    # MANAGEMENT_CLUSTER_KIND is a KIND cluster
+    WORKER_NODE_EXTERNAL_IP=${LOCALHOST_IP}
+  fi
 
   # Set enterprise cluster CNAME host entry in the hosts file
   hostEntry=$(cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
@@ -49,14 +49,6 @@ function setup {
     echo "${LOCALHOST_IP} ${UPGRADE_MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
   fi
 
-  kubectl create namespace prom
-  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-  helm repo update
-  helm install my-prom prometheus-community/kube-prometheus-stack \
-    --namespace prom \
-    --version 14.4.0 \
-    --values ${args[1]}/test/utils/data/mccp-prometheus-values.yaml
-  
   if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
     helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
   else
@@ -64,25 +56,36 @@ function setup {
   fi
   helm repo update  
   
-  kubectl create ns wego-system
+  # TODO: call out this is required now, hosts the entitlements secret still
+  kubectl create namespace wego-system
+  kubectl create namespace flux-system
+
+  # Create secrete for git provider authentication
   gitopsArgs=()
   if [ ${GIT_PROVIDER} == "github" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
     GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
 
-    kubectl create secret generic git-provider-credentials --namespace=wego-system \
+    kubectl create secret generic git-provider-credentials --namespace=flux-system \
     --from-literal="GIT_PROVIDER_TOKEN=${GITHUB_TOKEN}"
+
+    flux bootstrap github \
+      --owner=${GITHUB_ORG} \
+      --repository=${CLUSTER_REPOSITORY} \
+      --branch=main \
+      --path=./clusters/my-cluster
+
   elif [ ${GIT_PROVIDER} == "gitlab" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY"
     GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY.git
 
     if [ -z ${GITOPS_GIT_HOST_TYPES} ]; then
-      kubectl create secret generic git-provider-credentials --namespace=wego-system \
+      kubectl create secret generic git-provider-credentials --namespace=flux-system \
       --from-literal="GIT_PROVIDER_TOKEN=$GITLAB_TOKEN" \
       --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
       --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET"
     else
-      kubectl create secret generic git-provider-credentials --namespace=wego-system \
+      kubectl create secret generic git-provider-credentials --namespace=flux-system \
       --from-literal="GIT_PROVIDER_TOKEN=$GITLAB_TOKEN" \
       --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
       --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET" \
@@ -91,10 +94,26 @@ function setup {
       
       gitopsArgs+=( --git-host-types=${GITOPS_GIT_HOST_TYPES} )
     fi
+
+    flux bootstrap gitlab \
+      --owner=${GITLAB_ORG} \
+      --repository=${CLUSTER_REPOSITORY} \
+      --branch=main \
+      --hostname=${GIT_PROVIDER_HOSTNAME} \
+      --path=./clusters/my-cluster
   fi  
- 
-  # Install weave gitops core controllers
-  $GITOPS_BIN_PATH install --config-repo ${GIT_REPOSITORY_URL} ${gitopsArgs[@]} --auto-merge
+
+  # Create admin cluster user secret
+  kubectl create secret generic cluster-user-auth \
+  --namespace flux-system \
+  --from-literal=username=admin \
+  --from-literal=password=${CLUSTER_ADMIN_PASSWORD_HASH}
+  
+  #  Create client credential secret for OIDC (dex)
+  kubectl create secret generic client-credentials \
+  --namespace flux-system \
+  --from-literal=clientID=${DEX_CLIENT_ID} \
+  --from-literal=clientSecret=${DEX_CLIENT_SECRET}
 
   kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml 
 
@@ -114,16 +133,21 @@ function setup {
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
-  helmArgs+=( --set "config.capi.repositoryPath=./management" )
+  helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
+  helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
+  helmArgs+=( --set "config.oidc.enabled=true" )
+  helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
+  helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
+  helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
 
   if [ ${ACCEPTANCE_TESTS_DATABASE_TYPE} == "postgres" ]; then
     # Create postgres DB
     kubectl apply -f ${args[1]}/test/utils/data/postgres-manifests.yaml
     kubectl wait --for=condition=available --timeout=600s deployment/postgres
     POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
-    kubectl create secret generic mccp-db-credentials --namespace wego-system --from-literal=username=postgres --from-literal=password=password
+    kubectl create secret generic mccp-db-credentials --namespace flux-system --from-literal=username=postgres --from-literal=password=password
     
     helmArgs+=( --set "dbConfig.databaseType=postgres" )
     helmArgs+=( --set "postgresConfig.databaseName=postgres" )
@@ -137,10 +161,13 @@ function setup {
     helmArgs+=( --set "config.extraVolumeMounts[0].mountPath=/root/.ssh" )
 
     ssh-keyscan ${GIT_PROVIDER_HOSTNAME} > known_hosts
-    kubectl create configmap ssh-config --namespace wego-system --from-file=./known_hosts
+    kubectl create configmap ssh-config --namespace flux-system --from-file=./known_hosts
   fi
 
-  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace wego-system ${helmArgs[@]}
+  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
+
+  # Install RBAC for user authentication
+   kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
 
   # Install capi infrastructure provider
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
@@ -179,7 +206,7 @@ function setup {
   fi
 
   # Wait for cluster to settle
-  kubectl wait --for=condition=Ready --timeout=300s -n wego-system --all pod --selector='app!=wego-app'
+  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A
 
   exit 0
@@ -190,10 +217,10 @@ function reset {
   kubectl delete deployment postgres
   kubectl delete service postgres
   # Delete namespaces and their respective resources
-  kubectl delete namespaces prom wkp-agent
+  kubectl delete namespaces wkp-agent
   # Delete wego system from the management cluster
   $GITOPS_BIN_PATH flux uninstall --silent
-  $GITOPS_BIN_PATH flux uninstall --namespace wego-system --silent
+  $GITOPS_BIN_PATH flux uninstall --namespace flux-system --silent
   # Delete any orphan resources
   kubectl delete CAPITemplate --all
   kubectl delete ClusterBootstrapConfig --all
@@ -211,14 +238,14 @@ function reset_controllers {
     
     controllerNames=()
     if [ ${args[1]} == "enterprise" ] || [ ${args[1]} == "all" ]; then
-      EVENT_WRITER_POD=$(kubectl get pods -n wego-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
+      EVENT_WRITER_POD=$(kubectl get pods -n flux-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
 
       # Sometime due to the test conditions the cluster service pod is in transition state i.e. one terminating and the new one is being created at the same time.
       # Under such state we have two cluster srvice pods momentarily 
       counter=10
       while [ $counter -gt 0 ]
       do
-          CLUSTER_SERVICE_POD=$(kubectl get pods -n wego-system|grep cluster-service|tr -s ' '|cut -f1 -d ' ')
+          CLUSTER_SERVICE_POD=$(kubectl get pods -n flux-system|grep cluster-service|tr -s ' '|cut -f1 -d ' ')
           pod_count=$(echo $CLUSTER_SERVICE_POD | wc -w |awk '{print $1}')
           if [ $pod_count -gt 1 ]
           then            
@@ -230,15 +257,15 @@ function reset_controllers {
       done
       controllerNames+=" ${EVENT_WRITER_POD}"
       controllerNames+=" ${CLUSTER_SERVICE_POD}"
-      kubectl exec -n wego-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
+      kubectl exec -n flux-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
     fi
 
     if [ ${args[1]} == "core" ] || [ ${args[1]} == "all" ]; then
-      KUSTOMIZE_POD=$(kubectl get pods -n wego-system|grep kustomize-controller|tr -s ' '|cut -f1 -d ' ')
+      KUSTOMIZE_POD=$(kubectl get pods -n flux-system|grep kustomize-controller|tr -s ' '|cut -f1 -d ' ')
       controllerNames+=" ${KUSTOMIZE_POD}"
     fi
 
-    kubectl delete -n wego-system pod $controllerNames
+    kubectl delete -n flux-system pod $controllerNames
 }
 
 if [ ${args[0]} = 'setup' ]; then

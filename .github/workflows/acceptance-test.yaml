@@ -28,6 +28,10 @@ on:
         description: "Version of kubectl"
         required: true
         type: string
+      login_user_type:
+        description: "Login user type e.g. cluster-user or oidc"
+        required: true
+        type: string
       git-provider:
         description: "Git provider for running tests either on github or gitlab"
         required: true
@@ -69,6 +73,15 @@ on:
     secrets:
       BUILD_BOT_USER:
         description: "Build bot user name"
+        required: true
+      WGE_CLUSTER_ADMIN_PASSWORD:
+        description: "Cluster user admin password"
+        required: true
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH:
+        description: "Cluster user admin password hash"
+        required: true
+      WGE_DEX_CLIENT_SECRET:
+        description: "client credential secret for OIDC (dex)"
         required: true
       BUILD_BOT_PERSONAL_ACCESS_TOKEN:
         description: "Build obt personal access token"
@@ -130,6 +143,12 @@ on:
 
 env:
   GO_CACHE_NAME: cache-go-modules
+  LOGIN_USER_TYPE: ${{ inputs.login_user_type }}
+  CLUSTER_ADMIN_PASSWORD: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}
+  CLUSTER_ADMIN_PASSWORD_HASH: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}
+  OIDC_ISSUER_URL: https://dex-01.wge.dev.weave.works
+  DEX_CLIENT_ID: weave-gitops-enterprise
+  DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
   GIT_PROVIDER: ${{ inputs.git-provider }}
   GIT_PROVIDER_HOSTNAME: ${{ inputs.git-provider_hostname }}
   GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
@@ -205,6 +224,11 @@ jobs:
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
           eksctl get clusters
+      - name: Install flux
+        run: |
+          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.28.5/flux_0.28.5_linux_amd64.tar.gz | tar xz -C /tmp
+          sudo mv /tmp/flux /usr/local/bin
+          flux version --client
       - name: Install aws-iam-authenticator
         if: ${{ inputs.management-cluster-kind == 'eks' }}
         run: |
@@ -240,7 +264,7 @@ jobs:
       - name: Install kind
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.12.0/kind-linux-amd64
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
            elif [ "$RUNNER_OS" == "macOS" ]; then
@@ -253,7 +277,7 @@ jobs:
           chmod +x ./clusterctl
           sudo mv ./clusterctl /usr/local/bin/clusterctl
           clusterctl version
-          
+
       - name: Set up ssh
         uses: ./.github/actions/setup-ssh
         with:
@@ -300,6 +324,7 @@ jobs:
           if [ ${{ inputs.management-cluster-kind }} = 'eks' ]; then
             export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
             export CLUSTER_VERSION=1.21
+            export AWS_REGION=us-east-1
 
             export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
             if [ -z $CLUSTER_EXISTS ]
@@ -328,7 +353,7 @@ jobs:
             kubectl get nodes -A
             kubectl get all --all-namespaces -o wide
           elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
-            kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.21.1 --config test/utils/data/local-kind-config.yaml
+            kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.23.4 --config test/utils/data/local-kind-config.yaml
             kubectl get pods -A
           fi
       - name: Setup connect leaf cluster

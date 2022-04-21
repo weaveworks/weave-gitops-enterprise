@@ -112,10 +112,6 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 		Eventually(clustersPage.SupportEmailLink).Should(BeVisible())
 		Eventually(clustersPage.ClusterCount).Should(MatchText(`[0-9]+`))
 		Eventually(clustersPage.ClustersListSection).Should(BeFound())
-		time.Sleep(POLL_INTERVAL_1SECONDS) // Sometimes UI took bit longer to update the cluster count
-		count, _ = clustersPage.ClusterCount.Text()
-		tmpCount, _ := strconv.Atoi(count)
-		expectedCount = strconv.Itoa(tmpCount + 1)
 	})
 
 	By("When I click Connect a cluster button", func() {
@@ -130,6 +126,13 @@ func createClusterEntry(webDriver *agouti.Page, clusterName string) (*pages.Clus
 	By("And I enter the cluster name and ingress url", func() {
 		_ = clusterConnectionPage.ClusterName.SendKeys(clusterName)
 		_ = clusterConnectionPage.ClusterIngressURL.SendKeys("https://google.com")
+	})
+
+	By("And cluster count before adding new cluster entery", func() {
+		time.Sleep(POLL_INTERVAL_1SECONDS) // Sometimes UI took bit longer to update the cluster count
+		count, _ = clustersPage.ClusterCount.Text()
+		tmpCount, _ := strconv.Atoi(count)
+		expectedCount = strconv.Itoa(tmpCount + 1)
 	})
 
 	By("And I click SAVE & NEXT button", func() {
@@ -246,11 +249,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Clusters", func() {
 
 		BeforeEach(func() {
-
-			By("Given Kubernetes cluster is setup", func() {
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			})
-			initializeWebdriver(test_ui_url)
+			Expect(webDriver.Navigate(test_ui_url)).To(Succeed())
 		})
 
 		It("@integration Verify Weave Gitops Enterprise version", func() {
@@ -269,8 +268,11 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			By("And wego enterprise state is reset", func() {
 				gitopsTestRunner.ResetControllers("enterprise")
 				gitopsTestRunner.VerifyWegoPodsRunning()
-				gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+				Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
+			})
+
+			By(fmt.Sprintf("Login again as a %s user after eterprise state reset", userCredentials.UserType), func() {
+				loginUser()
 			})
 
 			clustersPage := pages.GetClustersPage(webDriver)
@@ -430,10 +432,15 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			Skip("Alertmanager is not accessible via ingress anymore!")
 
-			gitopsTestRunner.ResetControllers("enterprise")
-			gitopsTestRunner.VerifyWegoPodsRunning()
-			gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+			By("And wego enterprise state is reset", func() {
+				gitopsTestRunner.ResetControllers("enterprise")
+				gitopsTestRunner.VerifyWegoPodsRunning()
+				Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
+			})
+
+			By(fmt.Sprintf("Login again as a %s user after eterprise state reset", userCredentials.UserType), func() {
+				loginUser()
+			})
 
 			clustersPage := pages.GetClustersPage(webDriver)
 			pages.NavigateToPage(webDriver, "Alerts")
@@ -546,10 +553,15 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 			Skip("Alertmanager is not accessible via ingress anymore!")
 
-			gitopsTestRunner.ResetControllers("enterprise")
-			gitopsTestRunner.VerifyWegoPodsRunning()
-			gitopsTestRunner.CheckClusterService(capi_endpoint_url)
-			Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+			By("And wego enterprise state is reset", func() {
+				gitopsTestRunner.ResetControllers("enterprise")
+				gitopsTestRunner.VerifyWegoPodsRunning()
+				Eventually(webDriver.Refresh).ShouldNot(HaveOccurred())
+			})
+
+			By(fmt.Sprintf("Login again as a %s user after eterprise state reset", userCredentials.UserType), func() {
+				loginUser()
+			})
 
 			clustersPage := pages.GetClustersPage(webDriver)
 

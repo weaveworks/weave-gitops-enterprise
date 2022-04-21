@@ -2,41 +2,35 @@
 
 A guide to making it easier to develop `weave-gitops-enterprise`. If you came here expecting but not finding an answer please make an issue to help improve these docs!
 
+## One-time setup
+You need a github Personal Access Token to build the service. This
+token needs at least the `repo` and `read:packages`
+permissions. You can create one
+[here](https://github.com/settings/tokens), and export it as:
+```bash
+export GITHUB_TOKEN=your_token
+```
+
+You must also update your `~/.gitconfig` with:
+```bash
+[url "ssh://git@github.com/"]
+    insteadOf = https://github.com/
+```
+
+Finally, make sure you can access https://github.com/weaveworks/weave-gitops-enterprise-credentials
+
 ## Building the project
+
 
 To build all binaries and containers use the following command:
 
 ```bash
-# Builds everything
-make
+# Builds everything - make sure you exported GITHUB_TOKEN as shown in
+# the one-time setup
+make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
 
 # Builds just the binaries
 make binaries
-```
-
-If you encounter a build error for the containers which looks like this:
-
-```log
- > [builder  7/15] RUN go mod download:
-#15 20.58 go mod download: github.com/weaveworks/weave-gitops-enterprise-credentials@v0.0.1: invalid version: git ls-remote -q origin in /go/pkg/mod/cache/vcs/2d85ed3446e0807d78000711febc8f5eeb93fa1a010e290025afb84defca1ae6: exit status 128:
-#15 20.58       remote: Invalid username or password.
-#15 20.58       fatal: Authentication failed for 'https://github.com/weaveworks/weave-gitops-enterprise-credentials/'
-------
-executor failed running [/bin/sh -c go mod download]: exit code: 1
-make: *** [cmd/event-writer/.uptodate] Error 1
-```
-
-Run make with the following postfix:
-
-```bash
-make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
-```
-
-Further, don't forget to update your `~/.gitconfig` with:
-
-```bash
-[url "ssh://git@github.com/"]
-    insteadOf = https://github.com/
 ```
 
 ## Thing to explore in the future
@@ -207,13 +201,32 @@ cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 open "https://github.com/weaveworks/weave-gitops/tree/v${WG_VERSION}/manifests/crds"
 ```
 
-## The test cluster
+## Demo clusters
+
+We have 5 demo clusters currently that we use to demonstrate our work and test new features.
+
+|                    UI                |                       GitOps                        |  CAPI  |
+|--------------------------------------|-----------------------------------------------------|--------|
+| http://34.67.250.163:30080           | https://github.com/wkp-example-org/capd-demo-simon  |  CAPD  |
+| https://demo-01.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-01      |  CAPG  |
+| https://demo-02.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-02          |  CAPG  |
+| https://demo-03.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-03      |  CAPG  |
+| https://demo-04.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-04          |   -    |
+
+---
+**CAPI NAME COLLISION WARNING**
+
+`demo-01`, `demo-02` and `demo-03` are currently deployed on the same [GCP project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so there may be collisions when creating CAPI clusters if they share the same name. Therefore avoid using common names like `test` and prefer to prefix them with your name i.e. `bob-test-2` instead.
+
+---
+
+`demo-01` is always up to date with the current version of main. `demo-02` should be manually updated to the latest release of Weave GitOps Enterprise to test release upgrades. Other clusters may also need to be updated manually to a newer version. The following sections describe how to get kubectl access to each of those clusters and how to update them to a newer version of Weave GitOps Enterprise.
+
+#### 34.67.250.163
 
 The test cluster currently lives at a static ip but will hopefully move behind a DNS address with auth _soon_.
 
 Hit up http://34.67.250.163:30080
-
-### `kubectl` access
 
 The private ssh key to the server lives in the `pesto test cluster ssh key` secret in 1Password.
 
@@ -234,19 +247,58 @@ The private ssh key to the server lives in the `pesto test cluster ssh key` secr
    kubectl get pods -A
    ```
 
-### How to update the test cluster
+#### demo-01
 
-1. Figure out the version of chart you want to deploy. If we've done a release recently you can change it to `0.0.8` or a major version like that. To deploy a unreleased version from `main` or a `branch` we need to figure out the git ref version:
+Requires: gcloud CLI >= 352.0.0
 
-   1. Get your local copy of `weave-gitops-enterprise` up to date by running `git fetch`
-   2. Figure out the git version ref of `origin/main` (for example) with: `git describe --always --match "v*" --abbrev=7 origin/main | sed 's/^[^0-9]*//'`. You could also provide `origin/fixes-the-funny-bug` as the branch name here.
-   3. It will output a ref that looks like this: `0.0.7-10-g9838aff`
+Install and configure the gcloud CLI if needed. Then run:
 
-2. Update the deployed version on the test cluster
+```sh
+gcloud container clusters get-credentials demo-01 --region europe-north1-a
+```   
 
-   1. As of writing the `HelmRelease` lives in [.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml](https://github.com/wkp-example-org/capd-demo-simon/blob/main/.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml), but may have moved, so look around for the helm-release file if this has gone missing.
-   2. Find the `spec.chart.spec.version` field and change it to the desired value.
-   3. If this is an official release (`0.0.9` etc) make sure the release repo is set:
+#### demo-02
+
+Requires: gcloud CLI >= 352.0.0
+
+Install and configure the gcloud CLI if needed. Then run:
+
+```sh
+gcloud container clusters get-credentials demo-02 --region europe-north1-a
+```
+
+#### demo-03
+
+Requires: gcloud CLI >= 352.0.0
+
+Install and configure the gcloud CLI if needed. Then run:
+
+```sh
+gcloud container clusters get-credentials demo-03 --region europe-north1-a
+```
+
+#### demo-04
+
+Requires: aws CLI >= 2.5.2
+
+Install and configure the aws CLI if needed. Then run:
+
+```sh
+aws eks --region eu-west-1 update-kubeconfig --name demo-04
+```
+
+### How to update to a new version
+
+The following steps use [demo-03](https://demo-03.wge.dev.weave.works) as an example but the same concepts can be applied to all demo clusters. Depending on the cluster, you may need to sign up to our [on-prem Gitlab instance](https://gitlab.git.dev.weave.works) using your @weave.works email address and request access to the [Weave GitOps Enterprise](https://gitlab.git.dev.weave.works/wge) group or get added to the [wkp-example-org](https://github.com/wkp-example-org) in Github.
+
+1. Figure out the version of the WGE chart you want to deploy:
+
+   1. If we've done a release recently you can change it to `0.0.19` or a major version like that.
+   2. Alternatively, to deploy an unreleased version from `main` or another branch you need to take a look at the [branch](#how-to-determine-the-version-of-a-branch) or the [charts repo](#how-to-search-for-a-helm-release-using-a-commit-sha) to determine the version.
+
+2. Find the `HelmRelease` definition for WGE in the [repo](https://github.com/wkp-example-org/demo-03). It is called `weave-gitops-enterprise` and is part of the `wego-system` namespace. Locate the `spec.chart.spec.version` field [(example)](https://gitlab.git.dev.weave.works/wge/demo-03/-/blob/77390541343d889f0fab0fc50198f6f233692003/clusters/demo-03/wego-system/wego-system.yaml#L30) and update it to the new version (i.e. `0.0.17-110-g485f9bf`) by committing to `main` or via a PR.
+
+   1. If this is an official release (i.e `0.0.19` etc) make sure the release repo is set:
       ```
        sourceRef:
          kind: HelmRepository
@@ -260,9 +312,44 @@ The private ssh key to the server lives in the `pesto test cluster ssh key` secr
          name: weave-gitops-enterprise-mccp-chart-dev
          namespace: wego-system
       ```
-   4. Commit to `main` or PR and merge to `main`.
 
-3. Voila
+3. Flux will detect this change and update the cluster with the version you specified in the previous step.
+
+4. Voila
+
+---
+**NOTE FOR UPDATING 34.67.250.163**
+
+As of writing the `HelmRelease` for 34.67.250.163 lives in [.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml](https://github.com/wkp-example-org/capd-demo-simon/blob/main/.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml), but may have moved, so look around for the Helm release file, if this has gone missing.
+
+---
+
+## How to determine the version of a branch
+
+1. Get your local copy of `weave-gitops-enterprise` up to date by running `git fetch`
+
+2. Figure out the git version ref of `origin/main` (for example) with: `git describe --always --match "v*" --abbrev=7 origin/main | sed 's/^[^0-9]*//'`. You could also provide `origin/fixes-the-funny-bug` as the branch name here.
+
+3. It will output a ref that looks like this: `0.0.7-10-g9838aff`
+
+## How to search for a Helm release using a commit sha
+
+Requires: helm CLI >= 3.8.1
+
+1. Add the charts repo locally:
+
+```sh
+helm repo add wkp https://charts.dev.wkp.weave.works/charts-v3 \
+   --username wge --password gitops
+```
+
+2. Use the commit sha to find the relevant chart version by running the following:
+
+```sh
+helm repo update && helm search repo wkp --devel --versions | grep e4e540d
+```
+where `e4e540d` is your commit sha. This will return `wkp/mccp  	0.0.17-88-ge4e540d 	1.16.0     	A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
+
 
 ## How to inspect/modify the `sqlite` database of a running cluster
 

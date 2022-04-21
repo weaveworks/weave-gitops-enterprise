@@ -14,6 +14,8 @@ on:
       WGE_NPM_GITHUB_TOKEN: { required: true }
       WGE_S3_AWS_ACCESS_KEY_ID: { required: true }
       WGE_S3_AWS_SECRET_ACCESS_KEY: { required: true }
+      WGE_HELM_REPO_USERNAME: { required: false }
+      WGE_HELM_REPO_PASSWORD: { required: false }
 
 env:
   GITHUB_BUILD_USERNAME: wge-build-bot
@@ -46,7 +48,7 @@ jobs:
           aws-region: eu-central-1
       - name: Publish helm chart to s3
         run: |
-          TAG=$(git describe --always --match "v*")
+          TAG=$(git describe --always --match "v*" --abbrev=7)
 
           CHART_VALUES_PATH=./charts/mccp/values.yaml
           # Update the MCCP chart values.yaml file with the current image tag
@@ -54,6 +56,27 @@ jobs:
 
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
+      - name: Publish Helm chart for main only
+        env:
+          HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
+          HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
+        if: github.ref_name == 'main'
+        run: |
+          TAG=$(git describe --always --match "v*" --abbrev=7)
+          SEMVER_TAG=$(awk -F'v|-g' '{print $2}' <<< $TAG)
+          echo "Current tag $TAG"
+          echo "Current semver tag $SEMVER_TAG"
+
+          if [ -z $HELM_REPO_USERNAME ] && [ -z "$HELM_REPO_PASSWORD" ];
+          then
+            echo "Helm repo credentials were not found, skipping pushing main version"
+          else
+            # Install Helm cm-push plugin
+            helm plugin install https://github.com/chartmuseum/helm-push
+            helm repo add weave-gitops-enterprise-main https://charts.wge.dev.weave.works --username $HELM_REPO_USERNAME --password $HELM_REPO_PASSWORD
+            # Use the same image tag from the previous step but set the semver version
+            helm cm-push ./charts/mccp weave-gitops-enterprise-main --version=$SEMVER_TAG --force
+          fi
 
   cluster-service:
     runs-on: ubuntu-latest
@@ -159,13 +182,6 @@ jobs:
       - name: Push images to docker registry
         run: |
           docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
-
-  gitops-broker-and-agent:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Stub
-        run: |
-          echo "Stub until we update corp to not require this task"
 
   gitops-agent:
     runs-on: ubuntu-latest

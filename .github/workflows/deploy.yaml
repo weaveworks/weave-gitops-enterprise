@@ -17,6 +17,8 @@ jobs:
       WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+      WGE_HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
+      WGE_HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
 
   coverage:
     runs-on: ubuntu-latest
@@ -73,7 +75,7 @@ jobs:
     uses: ./.github/workflows/gitops-binary.yaml
     with:
       runs-on: ubuntu-latest
-      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
+      ref: main
   
   acceptance-tests-gitlab-on-prem:
     needs: [build, coverage, gitops-binary]
@@ -83,7 +85,8 @@ jobs:
       os-name: linux
       timeout-minutes: 90
       focus-or-skip: "-ginkgo.skip='@gce|@eks'"
-      kubectl-version: "v1.22.0"
+      kubectl-version: "v1.23.3"
+      login_user_type: "cluster-user"
       git-provider: gitlab
       git-provider_hostname: gitlab.git.dev.weave.works
       cluster_resource_set: true
@@ -94,6 +97,9 @@ jobs:
     secrets:
       BUILD_BOT_USER: wge-build-bot
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
       WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}

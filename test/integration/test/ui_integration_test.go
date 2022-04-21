@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	os_runtime "runtime"
 	"strconv"
 	"sync"
 	"testing"
@@ -31,11 +32,10 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -217,13 +217,27 @@ var _ = Describe("Integration suite", func() {
 	BeforeEach(func() {
 		var err error
 		if intWebDriver == nil {
-			intWebDriver, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string][]string{
-					"args": {
-						"--disable-gpu",
-						"--no-sandbox",
-					}}}))
-			Expect(err).NotTo(HaveOccurred())
+			switch os_runtime.GOOS {
+			case "darwin":
+				chromeDriver := agouti.ChromeDriver(
+					agouti.ChromeOptions("w3c", false),
+					agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
+					agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
+
+				err = chromeDriver.Start()
+				Expect(err).NotTo(HaveOccurred())
+				intWebDriver, err = chromeDriver.NewPage()
+				Expect(err).NotTo(HaveOccurred())
+			case "linux":
+				intWebDriver, err = agouti.NewPage(seleniumURL, agouti.Debug, agouti.Desired(agouti.Capabilities{
+					"acceptInsecureCerts": true,
+					"chromeOptions": map[string]interface{}{
+						"args":            []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
+						"w3c":             false,
+						"excludeSwitches": []string{"enable-automation"},
+					}}))
+				Expect(err).NotTo(HaveOccurred())
+			}
 		}
 
 		// reload fresh page each time
@@ -543,11 +557,10 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 	}
 
 	fakeAppsConfig := &wego_server.ApplicationsConfig{
-		Factory:        &servicesfakes.FakeFactory{},
-		JwtClient:      jwtClient,
-		Logger:         logr.Discard(),
-		FetcherFactory: applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(cl)),
-		ClusterConfig:  kube.ClusterConfig{},
+		Factory:       &servicesfakes.FakeFactory{},
+		JwtClient:     jwtClient,
+		Logger:        logr.Discard(),
+		ClusterConfig: kube.ClusterConfig{},
 	}
 
 	viper.SetDefault("capi-clusters-namespace", "default")
@@ -562,7 +575,9 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithApplicationsConfig(fakeAppsConfig),
 		app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
-		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)))
+		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
+		app.WithClusterFetcher(&clustersmngrfakes.FakeClusterFetcher{}),
+	)
 }
 
 func RunUIServer(ctx context.Context) {
@@ -707,6 +722,7 @@ func TestMccpUI(t *testing.T) {
 
 	BeforeSuite(func() {
 		acceptancetest.InitializeLogger("ui-integration-tests.log") // Initilaize the global logger and tee Ginkgowriter
+		acceptancetest.InitializeWebdriver(uiURL)                   // Initilize web driver for whole test suite run
 	})
 
 	AfterSuite(func() {

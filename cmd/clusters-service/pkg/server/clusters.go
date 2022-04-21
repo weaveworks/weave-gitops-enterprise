@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -22,7 +23,6 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
 	wegomodels "github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -36,6 +36,31 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
+
+var labels = []string{}
+
+func (s *server) ListClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
+	cl, err := s.clustersLibrary.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	clusters := []*capiv1_proto.GitopsCluster{}
+
+	for _, c := range cl {
+		clusters = append(clusters, ToClusterResponse(c))
+	}
+
+	if msg.Label != "" {
+		if !isLabelRecognised(msg.Label) {
+			return nil, fmt.Errorf("label %q is not recognised", msg.Label)
+		}
+
+		clusters = filterClustersByLabel(clusters, msg.Label)
+	}
+
+	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
+	return &capiv1_proto.ListGitopsClustersResponse{GitopsClusters: clusters, Total: int32(len(cl))}, err
+}
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
 	gp, err := getGitProvider(ctx)
@@ -86,7 +111,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		clusterNamespace = "default"
 	}
 
-	path := getClusterPathInRepo(clusterName)
+	path := getClusterManifestPath(clusterName)
 	content := string(tmplWithValuesAndCredentials[:])
 	files := []gitprovider.CommitFile{
 		{
@@ -219,7 +244,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	var filesList []gitprovider.CommitFile
 	for _, clusterName := range msg.ClusterNames {
-		path := getClusterPathInRepo(clusterName)
+		path := getClusterManifestPath(clusterName)
 		filesList = append(filesList, gitprovider.CommitFile{
 			Path:    &path,
 			Content: nil,
@@ -473,7 +498,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 
 	}
 
-	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "wego-system", installs)
+	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "flux-system", installs)
 	if err != nil {
 		return nil, fmt.Errorf("making helm releases for cluster %s: %w", clusterName, err)
 	}
@@ -481,7 +506,8 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	if err != nil {
 		return nil, err
 	}
-	profilePath := wegogit.GetSystemQualifiedPath(clusterName, wegomodels.WegoProfilesPath)
+
+	profilePath := getClusterProfilesPath(clusterName)
 	profileContent := string(c)
 	file := &gitprovider.CommitFile{
 		Path:    &profilePath,
@@ -515,12 +541,19 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 	return err
 }
 
-func getClusterPathInRepo(clusterName string) string {
-	repositoryPath := viper.GetString("capi-repository-path")
-	if repositoryPath == "" {
-		repositoryPath = DefaultRepositoryPath
-	}
-	return filepath.Join(repositoryPath, fmt.Sprintf("%s.yaml", clusterName))
+func getClusterManifestPath(clusterName string) string {
+	return filepath.Join(
+		viper.GetString("capi-repository-path"),
+		fmt.Sprintf("%s.yaml", clusterName),
+	)
+}
+
+func getClusterProfilesPath(clusterName string) string {
+	return filepath.Join(
+		viper.GetString("capi-repository-clusters-path"),
+		clusterName,
+		wegomodels.WegoProfilesPath,
+	)
 }
 
 // getProfileLatestVersion returns the default profile values if not given
@@ -568,4 +601,27 @@ func parseValues(s string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
 	}
 	return vals, nil
+}
+
+func isLabelRecognised(label string) bool {
+	for _, l := range labels {
+		if strings.EqualFold(label, l) {
+			return true
+		}
+	}
+	return false
+}
+
+func filterClustersByLabel(cl []*capiv1_proto.GitopsCluster, label string) []*capiv1_proto.GitopsCluster {
+	clusters := []*capiv1_proto.GitopsCluster{}
+
+	for _, c := range cl {
+		for _, l := range c.Labels {
+			if strings.EqualFold(l, label) {
+				clusters = append(clusters, c)
+			}
+		}
+	}
+
+	return clusters
 }

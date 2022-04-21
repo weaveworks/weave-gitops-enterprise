@@ -32,10 +32,6 @@ dbConfig:
   postgresConfig:
     databaseName: postgres
 
-fluxCli:
-  image: ghcr.io/fluxcd/flux-cli:v0.19.1
-  binPath: /usr/local/bin/flux
-
 config:
   cluster:
     name: default
@@ -50,7 +46,8 @@ config:
       namespace: default
     repositoryURL: ""
     repositoryApiURL: ""
-    repositoryPath: ""
+    repositoryPath: "./clusters/management/clusters"
+    repositoryClustersPath: "./clusters"
     baseBranch: main
   checkpoint:
     enabled: true
@@ -80,6 +77,10 @@ tls:
   enabled: true
   # if no tls secret is specified then we generate it in-mem in the server
   secretName: ""
+
+rbac:
+  userRoles:
+    create: true
 
 service:
   type: ClusterIP
