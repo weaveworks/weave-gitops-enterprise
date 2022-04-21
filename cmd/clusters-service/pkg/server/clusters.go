@@ -23,8 +23,6 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	wegogit "github.com/weaveworks/weave-gitops/pkg/git"
-	wegomodels "github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -112,7 +110,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		clusterNamespace = "default"
 	}
 
-	path := getClusterPathInRepo(clusterName)
+	path := getClusterManifestPath(clusterName)
 	content := string(tmplWithValuesAndCredentials[:])
 	files := []gitprovider.CommitFile{
 		{
@@ -245,7 +243,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 
 	var filesList []gitprovider.CommitFile
 	for _, clusterName := range msg.ClusterNames {
-		path := getClusterPathInRepo(clusterName)
+		path := getClusterManifestPath(clusterName)
 		filesList = append(filesList, gitprovider.CommitFile{
 			Path:    &path,
 			Content: nil,
@@ -507,7 +505,8 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	if err != nil {
 		return nil, err
 	}
-	profilePath := wegogit.GetSystemQualifiedPath(clusterName, wegomodels.WegoProfilesPath)
+
+	profilePath := getClusterWorkloadsPath(clusterName)
 	profileContent := string(c)
 	file := &gitprovider.CommitFile{
 		Path:    &profilePath,
@@ -541,12 +540,17 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 	return err
 }
 
-func getClusterPathInRepo(clusterName string) string {
+func getClusterManifestPath(clusterName string) string {
 	repositoryPath := viper.GetString("capi-repository-path")
 	if repositoryPath == "" {
 		repositoryPath = DefaultRepositoryPath
 	}
 	return filepath.Join(repositoryPath, fmt.Sprintf("%s.yaml", clusterName))
+}
+
+func getClusterWorkloadsPath(clusterName string) string {
+	path := viper.GetString("capi-repository-clusters-path")
+	return filepath.Join(path, clusterName)
 }
 
 // getProfileLatestVersion returns the default profile values if not given

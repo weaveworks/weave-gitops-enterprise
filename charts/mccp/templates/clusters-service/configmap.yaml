@@ -12,6 +12,7 @@ data:
   INJECT_PRUNE_ANNOTATION: {{ .Values.config.capi.templates.injectPruneAnnotation }}
   CAPI_TEMPLATES_REPOSITORY_URL: {{ .Values.config.capi.repositoryURL | quote }}
   CAPI_REPOSITORY_PATH: {{ .Values.config.capi.repositoryPath | quote }}
+  CAPI_REPOSITORY_CLUSTERS_PATH: {{ .Values.config.capi.repositoryClustersPath | quote }}
   CAPI_TEMPLATES_REPOSITORY_API_URL: {{ .Values.config.capi.repositoryApiURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
   {{- if not .Values.config.checkpoint.enabled }}
