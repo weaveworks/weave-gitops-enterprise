@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/gitops-binary.yaml
     with:
       runs-on: ubuntu-latest
-      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
+      ref: main
 
   acceptance-tests-eks-github:
     needs: [build, gitops-binary-ubuntu]
@@ -61,7 +61,7 @@ jobs:
     uses: ./.github/workflows/gitops-binary.yaml
     with:
       runs-on: macOS-latest
-      ref: 931b52e59deec59e61e0f2ed34690571b23079a3
+      ref: main
 
   acceptance-tests-gke-gitlab:
     needs: [build, gitops-binary-macOs]

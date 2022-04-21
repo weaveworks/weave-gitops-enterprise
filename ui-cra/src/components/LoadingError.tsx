@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Refresh } from '@material-ui/icons';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import Alert from '@material-ui/lab/Alert';
 import styled from 'styled-components';
 
-export interface ILoadingError {
-  requestInfo: RequestInfo;
+interface ILoadingError {
+  fetchFn: () => Promise<any>;
   children?: any;
 }
 
@@ -39,19 +39,18 @@ export interface RequestInfo {
   error: boolean;
   errorMessage: string;
   data: any;
-  retry: () => Promise<any>;
+  retry: (fn: Promise<any>) => Promise<void>;
 }
-
 export const useRequest = (fetchFn: () => Promise<any>): RequestInfo => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [data, setData] = useState<any>();
 
-  const fetchLoad = useCallback(() => {
+  const fetchLoad = (fn: Promise<any>) => {
     setLoading(true);
     setError(false);
-    return fetchFn()
+    return fn
       .then(res => {
         setData(res);
       })
@@ -62,26 +61,24 @@ export const useRequest = (fetchFn: () => Promise<any>): RequestInfo => {
       .finally(() => {
         setLoading(false);
       });
-  }, [fetchFn]);
+  };
 
   useEffect(() => {
-    setLoading(true);
-    setError(false);
-    fetchLoad();
-
+    fetchLoad(fetchFn());
     return () => {
       setData(null);
     };
-  }, [fetchLoad]);
+  }, [fetchFn]);
 
-  return { retry: fetchLoad, error, errorMessage, data, loading };
+  return { loading, error, errorMessage, data, retry: fetchLoad };
 };
 
-const LoadingError: React.FC<any> = ({
-  children,
-  requestInfo: { error, errorMessage, loading, retry },
-}: ILoadingError) => {
+const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
   const classes = useStyles();
+
+  // Use the useRequest hook to fetch the data from the server and show the loading spinner while the data is being fetched
+  const { loading, error, errorMessage, data, retry } = useRequest(fetchFn);
+
   return (
     <>
       {loading && (
@@ -94,16 +91,44 @@ const LoadingError: React.FC<any> = ({
           <Alert severity="error">
             <FlexStart>
               {errorMessage}
-              <span onClick={retry} className={classes.retry}>
+              <span onClick={() => retry(fetchFn())} className={classes.retry}>
                 <Refresh />
               </span>
             </FlexStart>
           </Alert>
         </div>
       )}
-      {!loading && !error && children}
+      {!loading && !error && children({ value: data })}
     </>
   );
 };
 
+// export const LoadingErrorRequestInfo: React.FC<any> = ({
+//   children,
+//   requestInfo: { error, errorMessage, loading, retry },
+// }: any) => {
+//   const classes = useStyles();
+//   return (
+//     <>
+//       {loading && (
+//         <FlexCenter>
+//           <LoadingPage />
+//         </FlexCenter>
+//       )}
+//       {!loading && error && (
+//         <div>
+//           <Alert severity="error">
+//             <FlexStart>
+//               {errorMessage}
+//               <span onClick={retry} className={classes.retry}>
+//                 <Refresh />
+//               </span>
+//             </FlexStart>
+//           </Alert>
+//         </div>
+//       )}
+//       {!loading && !error && children}
+//     </>
+//   );
+// };
 export default LoadingError;

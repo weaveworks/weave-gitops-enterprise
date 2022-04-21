@@ -1,6 +1,6 @@
-import { QueryClient, QueryClientProvider } from 'react-query';
 import React, { FC } from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
 import { muiTheme } from './muiTheme';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import '@fortawesome/fontawesome-free/css/all.css';
@@ -45,10 +45,8 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: url(${Background}) no-repeat;
-    background-color: ${theme.colors.neutral10};
-    background-position: right bottom;
-    background-attachment:fixed;
+    background: right bottom url(${Background}) no-repeat fixed ${theme.colors.neutral10}; 
+    background-size: 100%;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
