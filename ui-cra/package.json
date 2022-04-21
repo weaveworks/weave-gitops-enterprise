@@ -24,6 +24,7 @@
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.7",
     "@types/styled-components": "^5.1.9",
+    "@uiw/react-md-editor": "^3.12.1",
     "@weaveworks/weave-gitops": "0.7.0",
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
@@ -42,6 +43,7 @@
     "react-query": "^3.34.7",
     "react-router-dom": "^5.2.0",
     "react-scripts": "~5.0.0",
+    "react-syntax-highlighter": "^15.5.0",
     "react-toastify": "^8.0.2",
     "react-use": "^17.1.1",
     "styled-components": "^5.3.0",
@@ -90,6 +92,7 @@
     ]
   },
   "devDependencies": {
+    "@types/react-syntax-highlighter": "^13.5.2",
     "express": "^4.17.1",
     "http-proxy-middleware": "^2.0.0",
     "prettier": "^2.3.0"

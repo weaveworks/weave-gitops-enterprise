@@ -1,53 +1,11 @@
 import React from 'react';
 import { Policy } from '../../../capi-server/capi_server.pb';
-import { createStyles, makeStyles } from '@material-ui/styles';
 import Severity from '../Severity';
-import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    cardTitle: {
-      fontWeight: 700,
-      fontSize: theme.fontSizes.small,
-      color: theme.colors.neutral30,
-    },
-    body1: {
-      fontWeight: 400,
-      fontSize: theme.fontSizes.small,
-      color: theme.colors.black,
-      marginLeft: theme.spacing.xs,
-    },
-    chip: {
-      background: theme.colors.neutral10,
-      borderRadius: theme.spacing.xxs,
-      padding: `${theme.spacing.xxs} ${theme.spacing.xs}`,
-      marginLeft: theme.spacing.xs,
-      fontWeight: 400,
-      fontSize: theme.fontSizes.tiny,
-    },
-    codeWrapper: {
-      background: theme.colors.neutral10,
-      borderRadius: theme.spacing.xxs,
-      padding: `${theme.spacing.small} ${theme.spacing.base}`,
-      marginLeft: theme.spacing.none,
-    },
-    paddingTopSmall: {
-      paddingTop: theme.spacing.xs,
-    },
-    marginrightSmall: {
-      marginRight: theme.spacing.xs,
-    },
-  }),
-);
-const FlexStart = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: start;
-`;
-const RowContainer = styled.div`
-  padding-bottom: ${theme.spacing.xxs};
-`;
+import MDEditor from '@uiw/react-md-editor';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { PolicyStyles } from '../PolicyStyles';
 
 function HeaderSection({
   id,
@@ -57,56 +15,77 @@ function HeaderSection({
   targets,
   description,
   howToSolve,
+  code,
 }: Policy) {
-  const classes = useStyles();
+  const classes = PolicyStyles.useStyles();
+
   return (
     <>
-      <RowContainer>
-        <span className={classes.cardTitle}>Policy ID:</span>
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+        <div className={classes.cardTitle}>Policy ID:</div>
         <span className={classes.body1}>{id}</span>
-      </RowContainer>
-      <RowContainer>
+      </div>
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
         <span className={classes.cardTitle}>Tags:</span>
-        {tags?.map(tag => (
-          <span key={tag} className={classes.chip}>
-            {tag}
-          </span>
-        ))}
-      </RowContainer>
-      <FlexStart>
-        <span className={`${classes.cardTitle} ${classes.marginrightSmall}`}>
+        {!!tags && tags?.length > 0 ? (
+          tags?.map(tag => (
+            <span key={tag} className={classes.chip}>
+              {tag}
+            </span>
+          ))
+        ) : (
+          <span>There is no tags for this policy</span>
+        )}
+      </div>
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+        <div className={`${classes.cardTitle} ${classes.marginrightSmall}`}>
           Severity:
-        </span>
+        </div>
         <Severity severity={severity || ''} />
-      </FlexStart>
-
-      <RowContainer>
-        <span className={classes.cardTitle}>Category:</span>
+      </div>
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+        <div className={classes.cardTitle}>Category:</div>
         <span className={classes.body1}>{category}</span>
-      </RowContainer>
-      <RowContainer>
-        <span className={classes.cardTitle}>Targeted K8s Kind:</span>
+      </div>
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+        <div className={classes.cardTitle}>Targeted K8s Kind:</div>
         {targets?.kinds?.map(kind => (
           <span key={kind} className={classes.chip}>
             {kind}
           </span>
         ))}
-      </RowContainer>
-
-      <hr />
-      <div className={classes.paddingTopSmall}>
-        <span className={classes.cardTitle}>Description</span>
-        <p className={`${classes.body1} ${classes.codeWrapper}`}>
-          {description}
-        </p>
       </div>
 
-      <RowContainer>
-        <span className={classes.cardTitle}>How To Resolve</span>
-        <p className={`${classes.body1} ${classes.codeWrapper}`}>
-          {howToSolve}
-        </p>
-      </RowContainer>
+      <hr />
+      <div className={classes.sectionSeperator}>
+        <div className={classes.cardTitle}>Description:</div>
+        <MDEditor.Markdown source={description} className={classes.editor} />
+      </div>
+
+      <div className={classes.sectionSeperator}>
+        <div className={classes.cardTitle}>How to solve:</div>
+        <MDEditor.Markdown source={howToSolve} className={classes.editor} />
+      </div>
+
+      <div className={classes.sectionSeperator}>
+        <div className={classes.cardTitle}>Policy Code:</div>
+        <div>
+          <SyntaxHighlighter
+            language="rego"
+            style={darcula}
+            wrapLongLines="pre-wrap"
+            showLineNumbers={true}
+            codeTagProps={{
+              className: classes.code,
+            }}
+            customStyle={{
+              height: '450px',
+            }}
+          >
+            {code}
+          </SyntaxHighlighter>
+        </div>
+      </div>
     </>
   );
 }

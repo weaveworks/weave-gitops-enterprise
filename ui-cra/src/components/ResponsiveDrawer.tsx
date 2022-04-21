@@ -148,9 +148,9 @@ const App = () => {
     <Compose
       components={[
         NotificationsProvider,
-        TemplatesProvider,
-        ClustersProvider,
-        AlertsProvider,
+        // TemplatesProvider,
+        // ClustersProvider,
+        // AlertsProvider,
         VersionsProvider,
       ]}
     >
