@@ -25,7 +25,7 @@ spec:
               "--hostname=$(GIT_PROVIDER_HOSTNAME)",
               "--owner=$(GITOPS_REPO_OWNER)",
               "--repository=$(GITOPS_REPO_NAME)",
-              "--path=.weave-gitops/clusters/{{ .ObjectMeta.Name }}/system",
+              "--path=./clusters/{{ .ObjectMeta.Name }}",
             ]
           envFrom:
             - secretRef:
