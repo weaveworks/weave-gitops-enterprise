@@ -21,6 +21,8 @@ app.use(
     '/sign_in',
     '/alerts',
     '/oauth',
+    '/kustomization',
+    '/kustomizations',
   ],
   (req, res, next) => {
     const writeIndexResponse = (err, result) => {

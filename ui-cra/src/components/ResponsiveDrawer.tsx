@@ -60,14 +60,6 @@ import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 
-// function withName(Cmp: any) {
-//   return ({ location: { search }, ...rest }: any) => {
-//     const params = qs.parse(search);
-
-//     return <Cmp {...rest} name={params.name as string} />;
-//   };
-// }
-
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
     const params = qs.parse(search);
