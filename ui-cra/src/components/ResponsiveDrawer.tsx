@@ -122,6 +122,16 @@ const SignInWrapper = styled.div`
   .MuiAlert-root {
     width: 470px;
   }
+  .MuiDivider-root {
+    width: 290px;
+  }
+  form div:nth-child(1),
+  form div:nth-child(2) {
+    padding-right: 14px;
+  }
+  .MuiInputBase-root {
+    flex-grow: 0;
+  }
 `;
 
 const Page404 = () => (
