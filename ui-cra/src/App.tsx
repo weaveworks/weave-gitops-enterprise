@@ -8,7 +8,6 @@ import { createGlobalStyle, ThemeProvider } from 'styled-components';
 
 import {
   theme,
-  coreClient,
   applicationsClient,
   FeatureFlagsContextProvider,
   AppContextProvider,
@@ -45,10 +44,8 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: url(${Background}) no-repeat;
-    background-color: ${theme.colors.neutral10};
-    background-position: right bottom;
-    background-attachment:fixed;
+    background: right bottom url(${Background}) no-repeat fixed ${theme.colors.neutral10}; 
+    background-size: 100%;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
@@ -74,7 +71,6 @@ const App: FC = () => {
             <GlobalStyle />
             <AppContextProvider
               applicationsClient={applicationsClient}
-              coreClient={coreClient}
             >
               <FeatureFlagsContextProvider>
                 <ResponsiveDrawer />

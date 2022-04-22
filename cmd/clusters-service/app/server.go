@@ -117,6 +117,7 @@ type Params struct {
 	injectPruneAnnotation             string
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
+	capiRepositoryClustersPath        string
 	capiTemplatesRepositoryApiUrl     string
 	capiTemplatesRepositoryBaseBranch string
 	runtimeNamespace                  string
@@ -176,6 +177,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
 	cmd.Flags().StringVar(&p.capiRepositoryPath, "capi-repository-path", "", "")
+	cmd.Flags().StringVar(&p.capiRepositoryClustersPath, "capi-repository-clusters-path", "./clusters", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryApiUrl, "capi-templates-repository-api-url", "", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
 	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")

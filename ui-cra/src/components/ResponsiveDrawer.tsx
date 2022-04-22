@@ -21,6 +21,8 @@ import {
 import {
   AuthContextProvider,
   AuthCheck,
+  coreClient,
+  CoreClientContextProvider,
   OAuthCallback,
   SignIn,
   V2Routes,
@@ -46,6 +48,7 @@ import WGApplicationsHelmRepository from './Applications/HelmRepository';
 import WGApplicationsBucket from './Applications/Bucket';
 import WGApplicationsHelmRelease from './Applications/HelmRelease';
 import WGApplicationsHelmChart from './Applications/HelmChart';
+import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
@@ -255,6 +258,11 @@ const App = () => {
               exact
               path={V2Routes.HelmChart}
             />
+            <Route
+              component={WGApplicationsFluxRuntime}
+              exact
+              path={V2Routes.FluxRuntime}
+            />
 
             <Route exact path={POLICIES} component={Policies} />
             <Route exact path="/policies/:id" component={PolicyDetails} />
@@ -291,23 +299,25 @@ const ResponsiveDrawer = () => {
 
   return (
     <AuthContextProvider>
-      <Switch>
-        <Route
-          component={() => (
-            <SignInWrapper>
-              <SignIn />
-            </SignInWrapper>
-          )}
-          exact={true}
-          path="/sign_in"
-        />
-        <Route path="*">
-          {/* Check we've got a logged in user otherwise redirect back to signin */}
-          <AuthCheck>
-            <App />
-          </AuthCheck>
-        </Route>
-      </Switch>
+      <CoreClientContextProvider api={coreClient}>
+        <Switch>
+          <Route
+            component={() => (
+              <SignInWrapper>
+                <SignIn />
+              </SignInWrapper>
+            )}
+            exact={true}
+            path="/sign_in"
+          />
+          <Route path="*">
+            {/* Check we've got a logged in user otherwise redirect back to signin */}
+            <AuthCheck>
+              <App />
+            </AuthCheck>
+          </Route>
+        </Switch>
+      </CoreClientContextProvider>
     </AuthContextProvider>
   );
 };

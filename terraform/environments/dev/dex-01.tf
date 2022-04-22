@@ -12,22 +12,3 @@ module "dex_01" {
     team = "pesto"
   }
 }
-
-output "dex_01_endpoint" {
-  value = module.dex_01.endpoint
-}
- 
-output "dex_01_client_certificate" {
-  value = module.dex_01.client_certificate
-  sensitive = true
-}
-
-output "dex_01_client_key" {
-  value = module.dex_01.client_key
-  sensitive = true
-}
-
-output "dex_01_cluster_ca_certificate" {
-  value = module.dex_01.cluster_ca_certificate
-  sensitive = true
-}
