@@ -3,8 +3,10 @@ import styled, { css } from 'styled-components';
 import { theme, V2Routes } from '@weaveworks/weave-gitops';
 import { NavLink } from 'react-router-dom';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
+import TitleLogo from '../assets/img/title.svg';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
+import Divider from '@material-ui/core/Divider';
 
 const navItemPadding = css`
   padding: 0 ${theme.spacing.small} ${theme.spacing.small} 0;
@@ -43,10 +45,9 @@ const Title = styled.div`
 `;
 
 const Logo = styled.div`
-  width: 50px;
-  height: 40px;
-  background: url(${WeaveGitOps});
-  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 //  How to mix NavLink and SC? Like so:
@@ -85,8 +86,11 @@ export const Navigation: FC = () => {
   return (
     <>
       <Title title="Home">
-        <Logo />
-        <b>Weave</b>GitOps
+        <Logo>
+          <img src={WeaveGitOps} style={{ height: 56 }} />
+          <Divider style={{ margin: theme.spacing.xxs }} />
+          <img src={TitleLogo} />
+        </Logo>
       </Title>
       <Box className={classes.root} bgcolor={theme.colors.white}>
         <Box className={classes.section}>
@@ -104,7 +108,6 @@ export const Navigation: FC = () => {
           </NavItem>
           <NavItem to={V2Routes.Sources}>Sources</NavItem>
           <NavItem to={V2Routes.FluxRuntime}>Flux Runtime</NavItem>
-
         </Box>
         <Box className={classes.section}>
           <NavItem className={classes.bold} to="/policies">
