@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
+import { theme, V2Routes } from '@weaveworks/weave-gitops';
 import { NavLink } from 'react-router-dom';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { makeStyles } from '@material-ui/core/styles';
@@ -99,10 +99,12 @@ export const Navigation: FC = () => {
           </NavItem>
         </Box>
         <Box className={classes.section}>
-          <NavItem className={classes.bold} to="/applications">
+          <NavItem className={classes.bold} to={V2Routes.Automations}>
             Applications
           </NavItem>
-          <NavItem to="/sources">Sources</NavItem>
+          <NavItem to={V2Routes.Sources}>Sources</NavItem>
+          <NavItem to={V2Routes.FluxRuntime}>Flux Runtime</NavItem>
+
         </Box>
         <Box className={classes.section}>
           <NavItem className={classes.bold} to="/policies">

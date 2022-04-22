@@ -3,7 +3,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { Timestamp, Interval, SourceRefSourceKind, SourceDetail } from '@weaveworks/weave-gitops';
+import { HelmChartDetail } from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
@@ -25,17 +25,9 @@ const WGApplicationsHelmChart: FC<Props> = ({ name, namespace }) => {
         ]}
       />
       <ContentWrapper type="WG">
-        <SourceDetail
+        <HelmChartDetail
           name={name}
           namespace={namespace}
-          type={SourceRefSourceKind.HelmChart}
-          info={(ch: any) => [
-            ["Chart", ch?.chart],
-            ["Ref", ch?.sourceRef?.name],
-            ["Last Updated", <Timestamp time={ch?.lastUpdatedAt} />],
-            ["Interval", <Interval interval={ch?.interval} />],
-            ["Namespace", ch?.namespace],
-          ]}
         />
       </ContentWrapper>
     </PageTemplate>

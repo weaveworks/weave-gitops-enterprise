@@ -17,7 +17,7 @@ const WGApplicationsBucket: FC<Props> = ({ name, clusterName }) => {
   const helmRelease = data?.helmRelease;
 
   return (
-    <PageTemplate documentTitle="WeGO · Bucket">
+    <PageTemplate documentTitle="WeGO · Helm Release">
       <SectionHeader
         path={[
           {
