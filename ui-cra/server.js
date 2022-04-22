@@ -4,7 +4,7 @@ const setupProxy = require('./src/setupProxy');
 
 const app = express();
 
-// static files
+// // static files
 app.use(express.static('build'));
 
 // serve index.html on react-router's browserHistory paths
@@ -21,8 +21,6 @@ app.use(
     '/sign_in',
     '/alerts',
     '/oauth',
-    '/kustomization',
-    '/kustomizations',
   ],
   (req, res, next) => {
     const writeIndexResponse = (err, result) => {

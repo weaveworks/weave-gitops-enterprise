@@ -230,12 +230,10 @@ const App = () => {
             />
             <Route
               component={withSearchParams(WGApplicationsKustomization)}
-              exact
               path={V2Routes.Kustomization}
             />
             <Route
               component={withSearchParams(WGApplicationsGitRepository)}
-              exact
               path={V2Routes.GitRepo}
             />
             <Route
@@ -280,7 +278,7 @@ const App = () => {
                 );
               }}
             />
-            <Route render={Page404} />
+            <Route exact render={Page404} />
           </Switch>
         </main>
       </div>
