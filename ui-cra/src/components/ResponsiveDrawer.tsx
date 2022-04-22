@@ -60,11 +60,19 @@ import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 
-function withName(Cmp: any) {
+// function withName(Cmp: any) {
+//   return ({ location: { search }, ...rest }: any) => {
+//     const params = qs.parse(search);
+
+//     return <Cmp {...rest} name={params.name as string} />;
+//   };
+// }
+
+function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
     const params = qs.parse(search);
 
-    return <Cmp {...rest} name={params.name as string} />;
+    return <Cmp {...rest} {...params} />;
   };
 }
 
@@ -229,32 +237,32 @@ const App = () => {
               path={V2Routes.Sources}
             />
             <Route
-              component={withName(WGApplicationsKustomization)}
+              component={withSearchParams(WGApplicationsKustomization)}
               exact
               path={V2Routes.Kustomization}
             />
             <Route
-              component={withName(WGApplicationsGitRepository)}
+              component={withSearchParams(WGApplicationsGitRepository)}
               exact
               path={V2Routes.GitRepo}
             />
             <Route
-              component={withName(WGApplicationsHelmRepository)}
+              component={withSearchParams(WGApplicationsHelmRepository)}
               exact
               path={V2Routes.HelmRepo}
             />
             <Route
-              component={withName(WGApplicationsBucket)}
+              component={withSearchParams(WGApplicationsBucket)}
               exact
               path={V2Routes.Bucket}
             />
             <Route
-              component={withName(WGApplicationsHelmRelease)}
+              component={withSearchParams(WGApplicationsHelmRelease)}
               exact
               path={V2Routes.HelmRelease}
             />
             <Route
-              component={withName(WGApplicationsHelmChart)}
+              component={withSearchParams(WGApplicationsHelmChart)}
               exact
               path={V2Routes.HelmChart}
             />

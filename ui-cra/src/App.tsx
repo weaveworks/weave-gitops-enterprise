@@ -66,18 +66,16 @@ const App: FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <MuiThemeProvider theme={muiTheme}>
-        <BrowserRouter basename={process.env.PUBLIC_URL}>
-          <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
             <GlobalStyle />
-            <AppContextProvider
-              applicationsClient={applicationsClient}
-            >
+            <AppContextProvider applicationsClient={applicationsClient}>
               <FeatureFlagsContextProvider>
                 <ResponsiveDrawer />
               </FeatureFlagsContextProvider>
             </AppContextProvider>
-          </QueryClientProvider>
-        </BrowserRouter>
+          </BrowserRouter>
+        </QueryClientProvider>
       </MuiThemeProvider>
     </ThemeProvider>
   );
