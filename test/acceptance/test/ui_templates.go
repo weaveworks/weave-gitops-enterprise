@@ -479,7 +479,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				cleanGitRepository(clusterPath)
 			})
 
-			It("@integration @git Verify pull request can be created for capi template to the management cluster", func() {
+			It("Verify pull request can be created for capi template to the management cluster", Label("integration", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("Apply/Install CAPITemplate", func() {
@@ -588,7 +588,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("@integration @git Verify pull request can not be created by using exiting repository branch", func() {
+			It("Verify pull request can not be created by using exiting repository branch", Label("integration", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				branchName := "ui-test-branch"
@@ -679,7 +679,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration @git Verify no credentials exists in management cluster", func() {
+			It("Verify no credentials exists in management cluster", Label("integration", "git"), func() {
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
@@ -714,7 +714,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteIPCredentials("AZURE")
 			})
 
-			It("@integration @git Verify matching selected credential can be used for cluster creation", func() {
+			It("Verify matching selected credential can be used for cluster creation", Label("integration", "git"), func() {
 				By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
@@ -840,7 +840,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteIPCredentials("AWS")
 			})
 
-			It("@integration @git Verify user can not use wrong credentials for infrastructure provider", func() {
+			It("Verify user can not use wrong credentials for infrastructure provider", Label("integration", "git"), func() {
 				By("Apply/Install CAPITemplates", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 				})
@@ -976,7 +976,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				removeGitopsCapiClusters([]string{capdClusterName})
 			})
 
-			It("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("Wait for cluster-service to cache profiles", func() {
@@ -1256,7 +1256,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("@integration Verify cluster service acknowledges the entitlement presences", func() {
+			It("Verify cluster service acknowledges the entitlement presences", Label("integration"), func() {
 
 				By("When I delete the entitlement", func() {
 					Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to delete entitlement secret")

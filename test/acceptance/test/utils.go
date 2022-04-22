@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"reflect"
 	"regexp"
 	"runtime"
 	"strings"
@@ -45,8 +46,6 @@ const (
 	GITOPS_DEFAULT_NAMESPACE       string = "flux-system"
 	CLUSTER_SERVICE_DEPLOYMENT_APP string = "my-mccp-cluster-service"
 	SCREENSHOTS_DIR_NAME           string = "screenshots"
-	WINDOW_SIZE_X                  int    = 1800
-	WINDOW_SIZE_Y                  int    = 2500
 
 	ASSERTION_DEFAULT_TIME_OUT   time.Duration = 15 * time.Second
 	ASSERTION_1SECOND_TIME_OUT   time.Duration = 1 * time.Second
@@ -195,28 +194,28 @@ func InitializeWebdriver(wgeURL string) {
 	if webDriver == nil {
 		switch runtime.GOOS {
 		case "darwin":
+			a := make(map[string]bool)
+			a["enableNetwork"] = true
 			chromeDriver := agouti.ChromeDriver(
 				agouti.ChromeOptions("w3c", false),
-				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
+				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "window-size=1500,2000", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
 				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
-
 			err = chromeDriver.Start()
 			Expect(err).NotTo(HaveOccurred())
 			webDriver, err = chromeDriver.NewPage()
 			Expect(err).NotTo(HaveOccurred())
+
 		case "linux":
 			webDriver, err = agouti.NewPage(selenium_service_url, agouti.Debug, agouti.Desired(agouti.Capabilities{
 				"acceptInsecureCerts": true,
 				"chromeOptions": map[string]interface{}{
-					"args":            []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
+					"args":            []string{"--disable-gpu", "--no-sandbox", "window-size=1500,2000", "--disable-blink-features=AutomationControlled"},
 					"w3c":             false,
 					"excludeSwitches": []string{"enable-automation"},
 				}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		err = webDriver.Size(WINDOW_SIZE_X, WINDOW_SIZE_Y)
-		Expect(err).NotTo(HaveOccurred())
 	} else {
 		// Clear localstorage, cookie etc
 		Expect(webDriver.Reset()).To(Succeed())
@@ -350,6 +349,41 @@ func DumpConfigRepo(testName string) {
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, repoPath, archiveRepoPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo, repoPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, repoPath, archivedPath))
+}
+
+func DumpBrowserLogs(console bool, network bool) {
+	fetchLogs := false
+	for _, label := range CurrentSpecReport().LeafNodeLabels {
+		if label == "browser-logs" {
+			fetchLogs = true
+		}
+	}
+
+	if !fetchLogs {
+		return
+	}
+
+	if console {
+		logger.Info("Dumping browser console logs...")
+		consoleLog, _ := webDriver.ReadAllLogs("browser")
+		for _, l := range consoleLog {
+			logger.Trace(l)
+		}
+	}
+
+	if network {
+		logger.Info("Dumping network logs...")
+		var networkLog interface{}
+		Expect(webDriver.RunScript(`return window.performance.getEntries();`, map[string]interface{}{}, &networkLog)).ShouldNot(HaveOccurred())
+
+		switch reflect.TypeOf(networkLog).Kind() {
+		case reflect.Slice:
+			s := reflect.ValueOf(networkLog)
+			for i := 0; i < s.Len(); i++ {
+				logger.Trace(s.Index(i))
+			}
+		}
+	}
 }
 
 func getDownloadedKubeconfigPath(clusterName string) string {
