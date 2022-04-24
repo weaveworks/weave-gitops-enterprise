@@ -8,7 +8,6 @@ import { createGlobalStyle, ThemeProvider } from 'styled-components';
 
 import {
   theme,
-  coreClient,
   applicationsClient,
   FeatureFlagsContextProvider,
   AppContextProvider,
@@ -72,7 +71,6 @@ const App: FC = () => {
             <GlobalStyle />
             <AppContextProvider
               applicationsClient={applicationsClient}
-              coreClient={coreClient}
             >
               <FeatureFlagsContextProvider>
                 <ResponsiveDrawer />

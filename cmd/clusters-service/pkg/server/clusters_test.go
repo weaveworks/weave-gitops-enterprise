@@ -38,6 +38,8 @@ import (
 )
 
 func TestCreatePullRequest(t *testing.T) {
+	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
+	viper.SetDefault("capi-repository-clusters-path", "clusters")
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
@@ -149,7 +151,7 @@ func TestCreatePullRequest(t *testing.T) {
 			dbRows: 1,
 			committedFiles: []CommittedFile{
 				{
-					Path: ".weave-gitops/apps/capi/dev.yaml",
+					Path: "clusters/my-cluster/clusters/dev.yaml",
 					Content: `apiVersion: fooversion
 kind: fookind
 metadata:
@@ -160,7 +162,7 @@ metadata:
 `,
 				},
 				{
-					Path: ".weave-gitops/clusters/dev/system/profiles.yaml",
+					Path: "clusters/dev/profiles.yaml",
 					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
