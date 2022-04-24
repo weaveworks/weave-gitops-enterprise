@@ -49,7 +49,7 @@ const GlobalStyle = createGlobalStyle`
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
-    /* Layout - grow to at least viewport height */
+    // /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
     margin: 0;
