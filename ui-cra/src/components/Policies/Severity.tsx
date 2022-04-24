@@ -1,8 +1,8 @@
 import { CallReceived, CallMade, Remove } from '@material-ui/icons';
-import { PolicyStyles } from './PolicyStyles';
+import { usePolicyStyle } from './PolicyStyles';
 
 function Severity({ severity }: { severity: string }) {
-  const classes = PolicyStyles.useStyles();
+  const classes = usePolicyStyle();
   switch (severity.toLocaleLowerCase()) {
     case 'low':
       return (

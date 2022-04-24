@@ -2,8 +2,7 @@ import { Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
 
-export class PolicyStyles {
-  static useStyles = makeStyles((wtheme: Theme) =>
+export const usePolicyStyle= makeStyles((wtheme: Theme) =>
     createStyles({
       contentWrapper: {
         margin: `${theme.spacing.small} 0`,
@@ -31,7 +30,7 @@ export class PolicyStyles {
         fontSize: theme.fontSizes.tiny,
       },
       codeWrapper: {
-        background: '#F8FAFA', // theme.colors.neutral10,
+        background:  theme.colors.neutral10,
         borderRadius: theme.spacing.xxs,
         padding: `${theme.spacing.small} ${theme.spacing.base}`,
         marginLeft: theme.spacing.none,
@@ -45,11 +44,12 @@ export class PolicyStyles {
       },
       editor: {
         marginTop: theme.spacing.xs,
-        background: '#F8FAFA', // theme.colors.neutral10,
+        background: theme.colors.neutral10,
         padding: theme.spacing.xs,
         maxHeight: '300px',
         fontSize: theme.fontSizes.tiny,
         whiteSpace: 'pre-wrap',
+        overflow: 'scroll',
       },
       severityIcon: {
         fontSize: theme.fontSizes.small,
@@ -112,4 +112,3 @@ export class PolicyStyles {
       },
     }),
   );
-}

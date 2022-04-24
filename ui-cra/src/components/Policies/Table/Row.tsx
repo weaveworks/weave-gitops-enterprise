@@ -3,7 +3,7 @@ import { Policy } from '../../../capi-server/capi_server.pb';
 import { Link } from 'react-router-dom';
 import Severity from '../Severity';
 import moment from 'moment';
-import { PolicyStyles } from '../PolicyStyles';
+import { usePolicyStyle } from '../PolicyStyles';
 
 
 interface RowProps {
@@ -11,7 +11,7 @@ interface RowProps {
 }
 
 const PolicyRow = ({ policy }: RowProps) => {
-  const classes = PolicyStyles.useStyles();
+  const classes = usePolicyStyle();
   const { name, category, severity, createdAt, id } = policy;
   return (
     <>
