@@ -2,41 +2,35 @@
 
 A guide to making it easier to develop `weave-gitops-enterprise`. If you came here expecting but not finding an answer please make an issue to help improve these docs!
 
+## One-time setup
+You need a github Personal Access Token to build the service. This
+token needs at least the `repo` and `read:packages`
+permissions. You can create one
+[here](https://github.com/settings/tokens), and export it as:
+```bash
+export GITHUB_TOKEN=your_token
+```
+
+You must also update your `~/.gitconfig` with:
+```bash
+[url "ssh://git@github.com/"]
+    insteadOf = https://github.com/
+```
+
+Finally, make sure you can access https://github.com/weaveworks/weave-gitops-enterprise-credentials
+
 ## Building the project
+
 
 To build all binaries and containers use the following command:
 
 ```bash
-# Builds everything
-make
+# Builds everything - make sure you exported GITHUB_TOKEN as shown in
+# the one-time setup
+make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
 
 # Builds just the binaries
 make binaries
-```
-
-If you encounter a build error for the containers which looks like this:
-
-```log
- > [builder  7/15] RUN go mod download:
-#15 20.58 go mod download: github.com/weaveworks/weave-gitops-enterprise-credentials@v0.0.1: invalid version: git ls-remote -q origin in /go/pkg/mod/cache/vcs/2d85ed3446e0807d78000711febc8f5eeb93fa1a010e290025afb84defca1ae6: exit status 128:
-#15 20.58       remote: Invalid username or password.
-#15 20.58       fatal: Authentication failed for 'https://github.com/weaveworks/weave-gitops-enterprise-credentials/'
-------
-executor failed running [/bin/sh -c go mod download]: exit code: 1
-make: *** [cmd/event-writer/.uptodate] Error 1
-```
-
-Run make with the following postfix:
-
-```bash
-make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
-```
-
-Further, don't forget to update your `~/.gitconfig` with:
-
-```bash
-[url "ssh://git@github.com/"]
-    insteadOf = https://github.com/
 ```
 
 ## Thing to explore in the future

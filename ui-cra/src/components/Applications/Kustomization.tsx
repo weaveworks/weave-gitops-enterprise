@@ -42,7 +42,7 @@ const WGApplicationsKustomization: FC<Props> = ({ name }) => {
         ]}
       />
       <ContentWrapper>
-        <KustomizationDetailWrapper kustomization={kustomization} name={name} />
+        <KustomizationDetailWrapper kustomization={kustomization} />
       </ContentWrapper>
     </PageTemplate>
   );
