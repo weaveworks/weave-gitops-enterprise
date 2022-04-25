@@ -25,6 +25,7 @@ import {
   OAuthCallback,
   SignIn,
   V2Routes,
+  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
@@ -52,6 +53,7 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 import Policies from './Policies';
+import _ from 'lodash';
 import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
@@ -134,6 +136,9 @@ const SignInWrapper = styled.div`
 const CoreWrapper = styled.div`
   div[class*='FilterDialog__SlideContainer'] {
     overflow: hidden;
+  }
+  .MuiFormControl-root {
+    min-width: 0px;
   }
   max-width: calc(100vw - 220px);
 `;
@@ -313,6 +318,14 @@ const App = () => {
 };
 
 const ResponsiveDrawer = () => {
+  const flags = useFeatureFlags();
+
+  // FIXME: hack for "isLoading"
+  const flagsIsLoading = _.isEmpty(flags);
+  if (flagsIsLoading) {
+    return null;
+  }
+
   return (
     <AuthContextProvider>
       <CoreClientContextProvider api={coreClient}>
