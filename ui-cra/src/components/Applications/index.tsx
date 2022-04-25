@@ -1,5 +1,4 @@
 import React, { FC } from 'react';
-import styled from 'styled-components';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
@@ -9,13 +8,6 @@ import {
   LoadingPage,
   useListAutomations,
 } from '@weaveworks/weave-gitops';
-
-const AutomationsTableWrapper = styled(AutomationsTable)`
-  div[class*='FilterDialog__SlideContainer'] {
-    overflow: hidden;
-  }
-  max-width: calc(100vw - 220px - 76px);
-`;
 
 const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
@@ -37,7 +29,7 @@ const WGApplicationsDashboard: FC = () => {
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTableWrapper automations={automations} />
+          <AutomationsTable automations={automations} />
         )}
       </ContentWrapper>
     </PageTemplate>

@@ -2,7 +2,6 @@ import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import AlertsProvider from '../contexts/Alerts/Provider';
-
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
 import { Navigation } from './Navigation';
@@ -28,7 +27,7 @@ import {
   V2Routes,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import VersionsProvider from '../contexts/Versions/Provider';
@@ -134,6 +133,13 @@ const SignInWrapper = styled.div`
   }
 `;
 
+const CoreWrapper = styled.div`
+  div[class*='FilterDialog__SlideContainer'] {
+    overflow: hidden;
+  }
+  max-width: calc(100vw - 220px);
+`;
+
 const Page404 = () => (
   <PageTemplate documentTitle="WeGO · NotFound">
     <SectionHeader />
@@ -229,12 +235,20 @@ const App = () => {
             />
             <Route component={AlertsDashboard} exact path="/clusters/alerts" />
             <Route
-              component={WGApplicationsDashboard}
+              component={() => (
+                <CoreWrapper>
+                  <WGApplicationsDashboard />
+                </CoreWrapper>
+              )}
               exact
               path={V2Routes.Automations}
             />
             <Route
-              component={WGApplicationsSources}
+              component={() => (
+                <CoreWrapper>
+                  <WGApplicationsSources />
+                </CoreWrapper>
+              )}
               exact
               path={V2Routes.Sources}
             />
@@ -243,7 +257,11 @@ const App = () => {
               path={V2Routes.Kustomization}
             />
             <Route
-              component={withSearchParams(WGApplicationsGitRepository)}
+              component={withSearchParams((props: any) => (
+                <CoreWrapper>
+                  <WGApplicationsGitRepository {...props} />
+                </CoreWrapper>
+              ))}
               path={V2Routes.GitRepo}
             />
             <Route
@@ -298,12 +316,6 @@ const App = () => {
 
 const ResponsiveDrawer = () => {
   const flags = useFeatureFlags();
-
-  // FIXME: hack for "isLoading"
-  const flagsIsLoading = _.isEmpty(flags);
-  if (flagsIsLoading) {
-    return null;
-  }
 
   return (
     <AuthContextProvider>
