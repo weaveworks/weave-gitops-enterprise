@@ -87,9 +87,9 @@ export const Navigation: FC = () => {
     <>
       <Title title="Home">
         <Logo>
-          <img src={WeaveGitOps} alt="logo-image" style={{ height: 56 }} />
+          <img src={WeaveGitOps} alt="WG-logo" style={{ height: 56 }} />
           <Divider style={{ margin: theme.spacing.xxs }} />
-          <img src={TitleLogo} alt="logo-text" />
+          <img src={TitleLogo} alt="WG-text" />
         </Logo>
       </Title>
       <Box className={classes.root} bgcolor={theme.colors.white}>

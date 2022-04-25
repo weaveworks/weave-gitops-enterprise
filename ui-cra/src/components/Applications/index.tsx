@@ -14,6 +14,7 @@ const AutomationsTableWrapper = styled(AutomationsTable)`
   div[class*='FilterDialog__SlideContainer'] {
     overflow: hidden;
   }
+  max-width: calc(100vw - 220px - 76px);
 `;
 
 const WGApplicationsDashboard: FC = () => {

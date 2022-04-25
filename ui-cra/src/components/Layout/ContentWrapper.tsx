@@ -57,8 +57,8 @@ const WarningIconWrapper = styled(WarningIcon)`
 `;
 
 const HelpLinkWrapper = styled.div`
-  padding: ${medium} ${large};
-  margin: 0 ${small} 0 ${small};
+  padding: ${small} ${medium};
+  margin: 0 ${small};
   background-color: ${theme.colors.white};
   color: ${({ theme }) => theme.colors.neutral40};
   display: flex;
