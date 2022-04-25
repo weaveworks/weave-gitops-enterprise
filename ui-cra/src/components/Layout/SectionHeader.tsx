@@ -21,6 +21,10 @@ const Wrapper = styled.div<Size>`
   position: sticky;
   top: 0;
   z-index: 2;
+
+  .MuiListItemIcon-root {
+    min-width: 23px;
+  }
 `;
 
 interface Props extends Size {

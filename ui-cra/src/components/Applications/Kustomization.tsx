@@ -1,6 +1,5 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -12,6 +11,8 @@ import {
 
 type Props = {
   name: string;
+  namespace?: string;
+  clusterName: string;
 };
 
 const KustomizationDetailWrapper = styled(KustomizationDetail)`
@@ -25,9 +26,13 @@ const KustomizationDetailWrapper = styled(KustomizationDetail)`
   }
 `;
 
-const WGApplicationsKustomization: FC<Props> = ({ name }) => {
+const WGApplicationsKustomization: FC<Props> = ({
+  name,
+  namespace,
+  clusterName,
+}) => {
   const applicationsCount = useApplicationsCount();
-  const { data } = useGetKustomization(name);
+  const { data } = useGetKustomization(name, namespace, clusterName);
   const kustomization = data?.kustomization;
 
   return (
