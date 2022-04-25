@@ -46,7 +46,8 @@ config:
       namespace: default
     repositoryURL: ""
     repositoryApiURL: ""
-    repositoryPath: ""
+    repositoryPath: "./clusters/management/clusters"
+    repositoryClustersPath: "./clusters"
     baseBranch: main
   checkpoint:
     enabled: true
