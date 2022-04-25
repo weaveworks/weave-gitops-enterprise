@@ -56,8 +56,6 @@ function setup {
   fi
   helm repo update  
   
-  # TODO: call out this is required now, hosts the entitlements secret still
-  kubectl create namespace wego-system
   kubectl create namespace flux-system
 
   # Create secrete for git provider authentication
