@@ -1,4 +1,4 @@
----
+{{- if .Values.clusterBootstrapController.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -57,7 +57,14 @@ spec:
             memory: 20Mi
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop: [ "ALL" ]
+          seccompProfile:
+            type: RuntimeDefault
       securityContext:
         runAsNonRoot: true
       serviceAccountName: cluster-bootstrap-controller
       terminationGracePeriodSeconds: 10
+{{- end }}
