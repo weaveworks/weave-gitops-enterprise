@@ -8,7 +8,6 @@ import { createGlobalStyle, ThemeProvider } from 'styled-components';
 
 import {
   theme,
-  coreClient,
   applicationsClient,
   FeatureFlagsContextProvider,
   AppContextProvider,
@@ -67,19 +66,16 @@ const App: FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <MuiThemeProvider theme={muiTheme}>
-        <BrowserRouter basename={process.env.PUBLIC_URL}>
-          <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter basename={process.env.PUBLIC_URL}>
             <GlobalStyle />
-            <AppContextProvider
-              applicationsClient={applicationsClient}
-              coreClient={coreClient}
-            >
+            <AppContextProvider applicationsClient={applicationsClient}>
               <FeatureFlagsContextProvider>
                 <ResponsiveDrawer />
               </FeatureFlagsContextProvider>
             </AppContextProvider>
-          </QueryClientProvider>
-        </BrowserRouter>
+          </BrowserRouter>
+        </QueryClientProvider>
       </MuiThemeProvider>
     </ThemeProvider>
   );

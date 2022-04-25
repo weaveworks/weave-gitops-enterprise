@@ -2,7 +2,6 @@ import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import AlertsProvider from '../contexts/Alerts/Provider';
-
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
 import { Navigation } from './Navigation';
@@ -21,6 +20,8 @@ import {
 import {
   AuthContextProvider,
   AuthCheck,
+  coreClient,
+  CoreClientContextProvider,
   OAuthCallback,
   SignIn,
   V2Routes,
@@ -46,6 +47,7 @@ import WGApplicationsHelmRepository from './Applications/HelmRepository';
 import WGApplicationsBucket from './Applications/Bucket';
 import WGApplicationsHelmRelease from './Applications/HelmRelease';
 import WGApplicationsHelmChart from './Applications/HelmChart';
+import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
@@ -57,11 +59,11 @@ import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 
-function withName(Cmp: any) {
+function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
     const params = qs.parse(search);
 
-    return <Cmp {...rest} name={params.name as string} />;
+    return <Cmp {...rest} {...params} />;
   };
 }
 
@@ -119,6 +121,26 @@ const SignInWrapper = styled.div`
   .MuiAlert-root {
     width: 470px;
   }
+  .MuiDivider-root {
+    width: 290px;
+  }
+  form div:nth-child(1),
+  form div:nth-child(2) {
+    padding-right: 14px;
+  }
+  .MuiInputBase-root {
+    flex-grow: 0;
+  }
+`;
+
+const CoreWrapper = styled.div`
+  div[class*='FilterDialog__SlideContainer'] {
+    overflow: hidden;
+  }
+  .MuiFormControl-root {
+    min-width: 0px;
+  }
+  max-width: calc(100vw - 220px);
 `;
 
 const Page404 = () => (
@@ -216,44 +238,59 @@ const App = () => {
             />
             <Route component={AlertsDashboard} exact path="/clusters/alerts" />
             <Route
-              component={WGApplicationsDashboard}
+              component={() => (
+                <CoreWrapper>
+                  <WGApplicationsDashboard />
+                </CoreWrapper>
+              )}
               exact
               path={V2Routes.Automations}
             />
             <Route
-              component={WGApplicationsSources}
+              component={() => (
+                <CoreWrapper>
+                  <WGApplicationsSources />
+                </CoreWrapper>
+              )}
               exact
               path={V2Routes.Sources}
             />
             <Route
-              component={withName(WGApplicationsKustomization)}
-              exact
+              component={withSearchParams(WGApplicationsKustomization)}
               path={V2Routes.Kustomization}
             />
             <Route
-              component={withName(WGApplicationsGitRepository)}
-              exact
+              component={withSearchParams((props: any) => (
+                <CoreWrapper>
+                  <WGApplicationsGitRepository {...props} />
+                </CoreWrapper>
+              ))}
               path={V2Routes.GitRepo}
             />
             <Route
-              component={withName(WGApplicationsHelmRepository)}
+              component={withSearchParams(WGApplicationsHelmRepository)}
               exact
               path={V2Routes.HelmRepo}
             />
             <Route
-              component={withName(WGApplicationsBucket)}
+              component={withSearchParams(WGApplicationsBucket)}
               exact
               path={V2Routes.Bucket}
             />
             <Route
-              component={withName(WGApplicationsHelmRelease)}
+              component={withSearchParams(WGApplicationsHelmRelease)}
               exact
               path={V2Routes.HelmRelease}
             />
             <Route
-              component={withName(WGApplicationsHelmChart)}
+              component={withSearchParams(WGApplicationsHelmChart)}
               exact
               path={V2Routes.HelmChart}
+            />
+            <Route
+              component={WGApplicationsFluxRuntime}
+              exact
+              path={V2Routes.FluxRuntime}
             />
 
             <Route exact path={POLICIES} component={Policies} />
@@ -272,7 +309,7 @@ const App = () => {
                 );
               }}
             />
-            <Route render={Page404} />
+            <Route exact render={Page404} />
           </Switch>
         </main>
       </div>
@@ -291,23 +328,25 @@ const ResponsiveDrawer = () => {
 
   return (
     <AuthContextProvider>
-      <Switch>
-        <Route
-          component={() => (
-            <SignInWrapper>
-              <SignIn />
-            </SignInWrapper>
-          )}
-          exact={true}
-          path="/sign_in"
-        />
-        <Route path="*">
-          {/* Check we've got a logged in user otherwise redirect back to signin */}
-          <AuthCheck>
-            <App />
-          </AuthCheck>
-        </Route>
-      </Switch>
+      <CoreClientContextProvider api={coreClient}>
+        <Switch>
+          <Route
+            component={() => (
+              <SignInWrapper>
+                <SignIn />
+              </SignInWrapper>
+            )}
+            exact={true}
+            path="/sign_in"
+          />
+          <Route path="*">
+            {/* Check we've got a logged in user otherwise redirect back to signin */}
+            <AuthCheck>
+              <App />
+            </AuthCheck>
+          </Route>
+        </Switch>
+      </CoreClientContextProvider>
     </AuthContextProvider>
   );
 };

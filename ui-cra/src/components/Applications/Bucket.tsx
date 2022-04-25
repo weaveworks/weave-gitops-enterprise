@@ -3,7 +3,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { Timestamp, Interval, SourceRefSourceKind, SourceDetail } from '@weaveworks/weave-gitops';
+import { BucketDetail } from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
@@ -25,19 +25,9 @@ const WGApplicationsBucket: FC<Props> = ({ name, namespace }) => {
         ]}
       />
       <ContentWrapper type="WG">
-        <SourceDetail
+        <BucketDetail
           name={name}
           namespace={namespace}
-          type={SourceRefSourceKind.Bucket}
-          // Guard against an undefined bucket with a default empty object
-          info={(b: any = {}) => [
-            ["Endpoint", b.endpoint],
-            ["Bucket Name", b.name],
-            ["Last Updated", <Timestamp time={b.lastUpdatedAt} />],
-            ["Interval", <Interval interval={b.interval} />],
-            ["Cluster", "Default"],
-            ["Namespace", b.namespace],
-          ]}
         />
       </ContentWrapper>
     </PageTemplate>
