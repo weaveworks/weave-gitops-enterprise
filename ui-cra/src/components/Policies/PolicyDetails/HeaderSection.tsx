@@ -1,7 +1,5 @@
 import { Policy } from '../../../capi-server/capi_server.pb';
 import Severity from '../Severity';
-
-// import MDEditor from '@uiw/react-md-editor';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { usePolicyStyle } from '../PolicyStyles';

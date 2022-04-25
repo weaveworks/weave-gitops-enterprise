@@ -43,12 +43,19 @@ export const usePolicyStyle= makeStyles((wtheme: Theme) =>
         marginTop: theme.spacing.xs,
       },
       editor: {
+        '& a': {
+          color: theme.colors.primary,
+        },
+        '& > *:first-child': {
+          marginTop: 0,
+        },
+        '& > *:last-child': {
+          marginBottom: 0,
+        },
         marginTop: theme.spacing.xs,
         background: theme.colors.neutral10,
-        padding: theme.spacing.xs,
+        padding: theme.spacing.small,
         maxHeight: '300px',
-        fontSize: theme.fontSizes.tiny,
-        whiteSpace: 'pre-wrap',
         overflow: 'scroll',
       },
       severityIcon: {
