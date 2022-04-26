@@ -23,7 +23,15 @@ func getPolicyParamValue(param policiesv1.PolicyParameters, policyID string) (*a
 	var err error
 	switch param.Type {
 	case "string":
-		value := wrapperspb.String(string(param.Value.Raw))
+		var strValue string
+		// attempt to clean up extra quotes if not successful show as is
+		unquotedValue, err := strconv.Unquote(string(param.Value.Raw))
+		if err != nil {
+			strValue = string(param.Value.Raw)
+		} else {
+			strValue = unquotedValue
+		}
+		value := wrapperspb.String(strValue)
 		anyValue, err = anypb.New(value)
 	case "integer":
 		intValue, convErr := strconv.Atoi(string(param.Value.Raw))
