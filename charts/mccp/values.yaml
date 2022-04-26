@@ -10,7 +10,7 @@ images:
   eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:v2.5.0
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
-  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.0.3
+  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.0.5
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -56,12 +56,12 @@ config:
     issuerURL: ""
     redirectURL: ""
     cookieDuration: 1h
-    # Name of secret in wego-system namespace that contains a clientId and clientSecret
+    # Name of secret in flux-system namespace that contains a clientId and clientSecret
     clientCredentialsSecret: ""
 
 agentTemplate:
   natsScheme: nats
-  natsURL: weave-gitops-enterprise-nats-client.wego-system:4222
+  natsURL: weave-gitops-enterprise-nats-client.flux-system:4222
 
 nats:
   auth:
@@ -77,6 +77,9 @@ tls:
   enabled: true
   # if no tls secret is specified then we generate it in-mem in the server
   secretName: ""
+
+clusterBootstrapController:
+  enabled: true
 
 rbac:
   userRoles:

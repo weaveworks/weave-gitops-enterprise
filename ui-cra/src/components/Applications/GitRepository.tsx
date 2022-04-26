@@ -25,10 +25,7 @@ const WGApplicationsGitRepository: FC<Props> = ({ name, namespace }) => {
         ]}
       />
       <ContentWrapper>
-        <GitRepositoryDetail
-          name={name}
-          namespace={namespace}
-        />
+        <GitRepositoryDetail name={name} namespace={namespace} />
       </ContentWrapper>
     </PageTemplate>
   );
