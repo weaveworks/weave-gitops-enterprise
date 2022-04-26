@@ -1,10 +1,10 @@
 import { Policy } from '../../../capi-server/capi_server.pb';
 import Severity from '../Severity';
-import MDEditor from '@uiw/react-md-editor';
-import { PolicyStyles } from '../PolicyStyles';
-
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { usePolicyStyle } from '../PolicyStyles';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'
 
 function HeaderSection({
   id,
@@ -16,7 +16,7 @@ function HeaderSection({
   howToSolve,
   code,
 }: Policy) {
-  const classes = PolicyStyles.useStyles();
+  const classes = usePolicyStyle();
 
   return (
     <>
@@ -33,7 +33,9 @@ function HeaderSection({
             </span>
           ))
         ) : (
-          <span>There is no tags for this policy</span>
+          <span className={classes.body1}>
+            There is no tags for this policy
+          </span>
         )}
       </div>
       <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
@@ -58,12 +60,15 @@ function HeaderSection({
       <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Description:</div>
-        <MDEditor.Markdown source={description} className={classes.editor} />
+        <ReactMarkdown
+          children={description || ''}
+          className={classes.editor}
+        />
       </div>
 
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>How to solve:</div>
-        <MDEditor.Markdown source={howToSolve} className={classes.editor} />
+        <ReactMarkdown children={howToSolve || ''} className={classes.editor} remarkPlugins={[remarkGfm]}  />
       </div>
 
       <div className={classes.sectionSeperator}>
@@ -72,8 +77,11 @@ function HeaderSection({
           <SyntaxHighlighter
             language="rego"
             style={darcula}
-            
+            wrapLongLines="pre-wrap"
             showLineNumbers={true}
+            codeTagProps={{
+              className: classes.code,
+            }}
             customStyle={{
               height: '450px',
             }}

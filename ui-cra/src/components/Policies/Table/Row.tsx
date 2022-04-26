@@ -3,18 +3,19 @@ import { Policy } from '../../../capi-server/capi_server.pb';
 import { Link } from 'react-router-dom';
 import Severity from '../Severity';
 import moment from 'moment';
-import { PolicyStyles } from '../PolicyStyles';
+import { usePolicyStyle } from '../PolicyStyles';
+
 
 interface RowProps {
   policy: Policy;
 }
 
 const PolicyRow = ({ policy }: RowProps) => {
-  const classes = PolicyStyles.useStyles();
+  const classes = usePolicyStyle();
   const { name, category, severity, createdAt, id } = policy;
   return (
     <>
-      <TableRow data-cluster-name={name} className={classes.normalRow}>
+      <TableRow data-cluster-name={name} className={classes.tableHead}>
         <TableCell className={classes.normalCell}>
           <Link to={`/policies/${id}`} className={classes.link}>
             {name}

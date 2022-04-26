@@ -2,41 +2,35 @@
 
 A guide to making it easier to develop `weave-gitops-enterprise`. If you came here expecting but not finding an answer please make an issue to help improve these docs!
 
+## One-time setup
+You need a github Personal Access Token to build the service. This
+token needs at least the `repo` and `read:packages`
+permissions. You can create one
+[here](https://github.com/settings/tokens), and export it as:
+```bash
+export GITHUB_TOKEN=your_token
+```
+
+You must also update your `~/.gitconfig` with:
+```bash
+[url "ssh://git@github.com/"]
+    insteadOf = https://github.com/
+```
+
+Finally, make sure you can access https://github.com/weaveworks/weave-gitops-enterprise-credentials
+
 ## Building the project
+
 
 To build all binaries and containers use the following command:
 
 ```bash
-# Builds everything
-make
+# Builds everything - make sure you exported GITHUB_TOKEN as shown in
+# the one-time setup
+make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
 
 # Builds just the binaries
 make binaries
-```
-
-If you encounter a build error for the containers which looks like this:
-
-```log
- > [builder  7/15] RUN go mod download:
-#15 20.58 go mod download: github.com/weaveworks/weave-gitops-enterprise-credentials@v0.0.1: invalid version: git ls-remote -q origin in /go/pkg/mod/cache/vcs/2d85ed3446e0807d78000711febc8f5eeb93fa1a010e290025afb84defca1ae6: exit status 128:
-#15 20.58       remote: Invalid username or password.
-#15 20.58       fatal: Authentication failed for 'https://github.com/weaveworks/weave-gitops-enterprise-credentials/'
-------
-executor failed running [/bin/sh -c go mod download]: exit code: 1
-make: *** [cmd/event-writer/.uptodate] Error 1
-```
-
-Run make with the following postfix:
-
-```bash
-make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
-```
-
-Further, don't forget to update your `~/.gitconfig` with:
-
-```bash
-[url "ssh://git@github.com/"]
-    insteadOf = https://github.com/
 ```
 
 ## Thing to explore in the future
@@ -64,7 +58,7 @@ _Note: the following instructions will use a new local database, you can probabl
 To have entitlements, create a cluster and point your `kubectl` to it. It doesn't matter what kind of cluster you create.
 Integration tests have a config located [here](../test/integration/test/kind-config.yaml) for inspiration.
 
-The `clusters-service` requires the presence of a valid entitlement secret for it to work. Make sure an entitlement secret has been added to the cluster and that the `clusters-service` has been configured to look for it using the correct namespace/name. By default, entitlement secrets are named `weave-gitops-enterprise-credentials` and are added to the `wego-system` namespace. If that's not the case, you will need to point the service to the right place by explicitly specifying the relevant environment variables (example below).
+The `clusters-service` requires the presence of a valid entitlement secret for it to work. Make sure an entitlement secret has been added to the cluster and that the `clusters-service` has been configured to look for it using the correct namespace/name. By default, entitlement secrets are named `weave-gitops-enterprise-credentials` and are added to the `flux-system` namespace. If that's not the case, you will need to point the service to the right place by explicitly specifying the relevant environment variables (example below).
 
 An existing entitlement secret that you can use can be found [here](../test/utils/scripts/entitlement-secret.yaml). Alternatively, you can generate your own entitlement secret by using the `wge-credentials` binary.
 
@@ -97,13 +91,13 @@ Goes like this: `/v1/profiles` on the `clusters-service` finds the `HelmReposito
 kind: HelmRepository
 status:
   # some url that only resolves when running inside the cluster
-  url: source-controller.svc.wego-system/my-repo/index.yaml
+  url: source-controller.svc.flux-system/my-repo/index.yaml
 ```
 
 Outside the cluster this is no good (e.g. `curl`ing the above URL will fail). To fix this we need to:
 
 1. expose the source-controller outside the cluster (in another terminal):
-   - `kubectl -n wego-system port-forward svc/source-controller 8080:80`
+   - `kubectl -n flux-system port-forward svc/source-controller 8080:80`
 2. tell the `clusters-service` to forget about _most_ of that above URL it finds on the `HelmRepository` and use the port-forwarded one instead:
    - `SOURCE_CONTROLLER_LOCALHOST=localhost:8080`
 
@@ -121,7 +115,7 @@ export WEAVE_GITOPS_FLUX_BIN_PATH=`which flux`
 SOURCE_CONTROLLER_LOCALHOST=localhost:8080
 
 # Run the server configured using lots of env vars
-DB_URI=/tmp/wge.db CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=wego-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
+DB_URI=/tmp/wge.db CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=flux-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
 ```
 
 You can query the local capi-server:
@@ -302,21 +296,21 @@ The following steps use [demo-03](https://demo-03.wge.dev.weave.works) as an exa
    1. If we've done a release recently you can change it to `0.0.19` or a major version like that.
    2. Alternatively, to deploy an unreleased version from `main` or another branch you need to take a look at the [branch](#how-to-determine-the-version-of-a-branch) or the [charts repo](#how-to-search-for-a-helm-release-using-a-commit-sha) to determine the version.
 
-2. Find the `HelmRelease` definition for WGE in the [repo](https://github.com/wkp-example-org/demo-03). It is called `weave-gitops-enterprise` and is part of the `wego-system` namespace. Locate the `spec.chart.spec.version` field [(example)](https://gitlab.git.dev.weave.works/wge/demo-03/-/blob/77390541343d889f0fab0fc50198f6f233692003/clusters/demo-03/wego-system/wego-system.yaml#L30) and update it to the new version (i.e. `0.0.17-110-g485f9bf`) by committing to `main` or via a PR.
+2. Find the `HelmRelease` definition for WGE in the [repo](https://github.com/wkp-example-org/demo-03). It is called `weave-gitops-enterprise` and is part of the `flux-system` namespace. Locate the `spec.chart.spec.version` field [(example)](https://gitlab.git.dev.weave.works/wge/demo-03/-/blob/77390541343d889f0fab0fc50198f6f233692003/clusters/demo-03/wego-system/wego-system.yaml#L30) and update it to the new version (i.e. `0.0.17-110-g485f9bf`) by committing to `main` or via a PR.
 
    1. If this is an official release (i.e `0.0.19` etc) make sure the release repo is set:
       ```
        sourceRef:
          kind: HelmRepository
          name: weave-gitops-enterprise-mccp-chart-release
-         namespace: wego-system
+         namespace: flux-system
       ```
       Otherwise make sure its using dev:
       ```
        sourceRef:
          kind: HelmRepository
          name: weave-gitops-enterprise-mccp-chart-dev
-         namespace: wego-system
+         namespace: flux-system
       ```
 
 3. Flux will detect this change and update the cluster with the version you specified in the previous step.

@@ -56,8 +56,6 @@ function setup {
   fi
   helm repo update  
   
-  # TODO: call out this is required now, hosts the entitlements secret still
-  kubectl create namespace wego-system
   kubectl create namespace flux-system
 
   # Create secrete for git provider authentication
@@ -134,6 +132,7 @@ function setup {
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
   helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
+  helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
   helmArgs+=( --set "config.oidc.enabled=true" )

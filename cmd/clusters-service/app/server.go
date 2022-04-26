@@ -117,6 +117,7 @@ type Params struct {
 	injectPruneAnnotation             string
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
+	capiRepositoryClustersPath        string
 	capiTemplatesRepositoryApiUrl     string
 	capiTemplatesRepositoryBaseBranch string
 	runtimeNamespace                  string
@@ -159,7 +160,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.dbPassword, "db-password", "", "database password")
 	cmd.Flags().StringVar(&p.dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 	cmd.Flags().StringVar(&p.entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
-	cmd.Flags().StringVar(&p.entitlementSecretNamespace, "entitlement-secret-namespace", ent.DefaultSecretNamespace, "The namespace of the entitlement secret")
+	cmd.Flags().StringVar(&p.entitlementSecretNamespace, "entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
 	cmd.Flags().StringVar(&p.helmRepoNamespace, "helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().StringVar(&p.helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmd.Flags().StringVar(&p.profileCacheLocation, "profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
@@ -167,7 +168,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.watcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
-	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.wego-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.flux-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
@@ -176,6 +177,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
 	cmd.Flags().StringVar(&p.capiRepositoryPath, "capi-repository-path", "", "")
+	cmd.Flags().StringVar(&p.capiRepositoryClustersPath, "capi-repository-clusters-path", "./clusters", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryApiUrl, "capi-templates-repository-api-url", "", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
 	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")
