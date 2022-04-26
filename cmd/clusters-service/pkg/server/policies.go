@@ -25,8 +25,8 @@ func getPolicyParamValue(param policiesv1.PolicyParameters, policyID string) (*a
 	case "string":
 		var strValue string
 		// attempt to clean up extra quotes if not successful show as is
-		unquotedValue, err := strconv.Unquote(string(param.Value.Raw))
-		if err != nil {
+		unquotedValue, UnquoteErr := strconv.Unquote(string(param.Value.Raw))
+		if UnquoteErr != nil {
 			strValue = string(param.Value.Raw)
 		} else {
 			strValue = unquotedValue
