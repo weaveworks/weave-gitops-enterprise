@@ -101,7 +101,7 @@ func TestListPolicies(t *testing.T) {
 							{
 								Name:  "key",
 								Type:  "string",
-								Value: getAnyValue(t, "string", `"value"`),
+								Value: getAnyValue(t, "string", "value"),
 							},
 						},
 					},
