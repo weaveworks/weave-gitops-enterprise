@@ -50,6 +50,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	core_cache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -321,10 +322,12 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
-	cacheContainer, err := core_cache.NewContainer(ctx, rest, log)
-	if err != nil {
-		return fmt.Errorf("could not create cache container: %w", err)
-	}
+	cacheContainer := core_cache.NewContainer(
+		log,
+		core_cache.WithSimpleCaches(
+			core_cache.WithNamespaceCache(rest),
+		),
+	)
 	coreConfig := core_core.NewCoreConfig(log, rest, cacheContainer, clusterName)
 
 	profileCache, err := cache.NewCache(p.profileCacheLocation)
@@ -369,7 +372,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme, gitopsv1alpha1.AddToScheme)
 
-	fetcher, err := clustersmngr.NewSingleClusterFetcher(rest)
+	singleFetcher, err := fetcher.NewSingleClusterFetcher(rest)
 	if err != nil {
 		return err
 	}
@@ -397,7 +400,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(coreConfig),
-		WithClusterFetcher(fetcher),
+		WithClusterFetcher(singleFetcher),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",

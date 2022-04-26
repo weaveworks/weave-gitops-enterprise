@@ -23,7 +23,8 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	wegomodels "github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
+
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -552,7 +553,7 @@ func getClusterProfilesPath(clusterName string) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterName,
-		wegomodels.WegoProfilesPath,
+		profiles.ManifestFileName,
 	)
 }
 

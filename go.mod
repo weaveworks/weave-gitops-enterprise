@@ -24,7 +24,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.1
-	github.com/weaveworks/weave-gitops v0.7.0
+	github.com/weaveworks/weave-gitops v0.7.1-rc.3
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
@@ -40,11 +40,9 @@ require (
 
 require (
 	github.com/fluxcd/go-git-providers v0.5.3
-	github.com/fluxcd/helm-controller/api v0.14.1
+	github.com/fluxcd/helm-controller/api v0.19.0
 	github.com/fluxcd/pkg/apis/meta v0.12.1
-	github.com/fluxcd/pkg/runtime v0.13.2
-	github.com/fluxcd/source-controller/api v0.19.2
-	github.com/go-logr/zapr v1.2.3
+	github.com/fluxcd/source-controller/api v0.22.5
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1
@@ -57,7 +55,6 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.2
 	github.com/xanzy/go-gitlab v0.54.3
-	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	google.golang.org/genproto v0.0.0-20220228195345-15d65a4533f7
@@ -68,7 +65,6 @@ require (
 	helm.sh/helm/v3 v3.8.1
 	k8s.io/apiextensions-apiserver v0.23.4
 	k8s.io/helm v2.17.0+incompatible
-	k8s.io/klog/v2 v2.50.0
 	sigs.k8s.io/cluster-api v1.1.3
 	sigs.k8s.io/kustomize/kyaml v0.13.0
 	sigs.k8s.io/yaml v1.3.0
@@ -120,9 +116,10 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/fluxcd/kustomize-controller/api v0.18.2 // indirect
+	github.com/fluxcd/kustomize-controller/api v0.23.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.0.3 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v0.3.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v0.3.2 // indirect
+	github.com/fluxcd/pkg/runtime v0.13.4 // indirect
 	github.com/fluxcd/pkg/ssa v0.6.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
@@ -130,6 +127,7 @@ require (
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
+	github.com/go-logr/zapr v1.2.3 // indirect
 	github.com/go-openapi/analysis v0.19.10 // indirect
 	github.com/go-openapi/errors v0.19.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -245,6 +243,7 @@ require (
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
@@ -264,12 +263,13 @@ require (
 	gorm.io/driver/postgres v1.0.5 // indirect
 	k8s.io/apiserver v0.23.4 // indirect
 	k8s.io/component-base v0.23.4 // indirect
+	k8s.io/klog/v2 v2.50.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	k8s.io/kubectl v0.23.4 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	oras.land/oras-go v1.1.0 // indirect
 	sigs.k8s.io/cli-utils v0.26.0 // indirect
-	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
+	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 	sigs.k8s.io/kustomize/kstatus v0.0.2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
@@ -282,7 +282,5 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
-	github.com/fluxcd/pkg/apis/meta => github.com/fluxcd/pkg/apis/meta v0.10.1
-	github.com/fluxcd/pkg/runtime => github.com/fluxcd/pkg/runtime v0.12.2
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 )
