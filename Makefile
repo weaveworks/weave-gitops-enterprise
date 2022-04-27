@@ -53,11 +53,12 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 
 # Takes precedence over the more general rule above
 # The only difference is the build context
-cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/clusters-service
+cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/*
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		--file cmd/clusters-service/Dockerfile \
@@ -79,7 +80,7 @@ cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/wkp-agent
 	touch $@
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
-ui-cra/.uptodate: ui-cra/build
+ui-cra/.uptodate: ui-cra/*
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=revision=$(GIT_REVISION) \
