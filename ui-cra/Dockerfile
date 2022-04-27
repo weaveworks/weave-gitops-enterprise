@@ -1,4 +1,4 @@
-FROM node:14-bullseye AS ui
+FROM node:14-bullseye AS build
 USER node
 WORKDIR /home/node
 COPY --chown=node:node package.json /home/node
@@ -16,7 +16,7 @@ FROM alpine:3.9
 RUN apk add --no-cache bash openssh-client
 
 WORKDIR /
-COPY --from=ui /home/node/build /html
+COPY --from=build /home/node/build /html
 
 ARG now
 ARG revision
