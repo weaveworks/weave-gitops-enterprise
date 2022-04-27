@@ -1,4 +1,4 @@
----
+{{- if .Values.clusterBootstrapController.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,3 +14,4 @@ spec:
     targetPort: https
   selector:
     control-plane: controller-manager
+{{- end }}
