@@ -8,13 +8,19 @@ import (
 
 func ToClusterResponse(c *gitopsv1alpha1.GitopsCluster) *capiv1_proto.GitopsCluster {
 	res := &capiv1_proto.GitopsCluster{
-		Name:           c.GetName(),
-		Namespace:      c.GetNamespace(),
-		Annotations:    c.Annotations,
-		Labels:         c.Labels,
-		CapiClusterRef: &capiv1_proto.GitopsClusterRef{Name: c.Spec.CAPIClusterRef.Name},
-		SecretRef:      &capiv1_proto.GitopsClusterRef{Name: c.Spec.SecretRef.Name},
-		Conditions:     mapConditions(c.Status.Conditions),
+		Name:        c.GetName(),
+		Namespace:   c.GetNamespace(),
+		Annotations: c.Annotations,
+		Labels:      c.Labels,
+		Conditions:  mapConditions(c.Status.Conditions),
+	}
+
+	if c.Spec.CAPIClusterRef != nil {
+		res.CapiClusterRef = &capiv1_proto.GitopsClusterRef{Name: c.Spec.CAPIClusterRef.Name}
+	}
+
+	if c.Spec.SecretRef != nil {
+		res.SecretRef = &capiv1_proto.GitopsClusterRef{Name: c.Spec.SecretRef.Name}
 	}
 
 	return res
