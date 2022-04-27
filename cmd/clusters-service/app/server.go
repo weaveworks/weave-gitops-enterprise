@@ -44,12 +44,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -318,17 +318,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
 
-	rest, clusterName, err := kube.RestConfig()
-	if err != nil {
-		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
-	}
-
-	singleFetcher := fetcher.NewSingleClusterFetcher(rest)
-	clusterClientsFactory := clustersmngr.NewClientFactory(singleFetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
-	clusterClientsFactory.Start(ctx)
-
-	coreConfig := core_core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)
-
 	profileCache, err := cache.NewCache(p.profileCacheLocation)
 	if err != nil {
 		return fmt.Errorf("failed to create cacher: %w", err)
@@ -369,7 +358,24 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}()
 
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
-	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme, gitopsv1alpha1.AddToScheme)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme)
+
+	rest, clusterName, err := kube.RestConfig()
+	if err != nil {
+		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
+	}
+
+	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.capiTemplatesNamespace)
+	if err != nil {
+		return err
+	}
+
+	clusterClientsFactory := clustersmngr.NewClientFactory(
+		mcf,
+		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
+		log,
+	)
+	clusterClientsFactory.Start(ctx)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
@@ -393,7 +399,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			Namespace:    p.capiTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
-		WithCoreConfig(coreConfig),
+		WithCoreConfig(core_core.NewCoreConfig(
+			log, rest, clusterName, clusterClientsFactory,
+		)),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",
@@ -444,6 +452,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 	if args.ClientGetter == nil {
 		return errors.New("kubernetes client getter is not set")
+	}
+	if args.CoreServerConfig.ClientsFactory == nil {
+		return errors.New("clients factory is not set")
 	}
 	if (AuthEnabled() && args.OIDC == OIDCAuthenticationOptions{}) {
 		return errors.New("OIDC configuration is not set")
