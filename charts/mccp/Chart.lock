@@ -5,5 +5,5 @@ dependencies:
 - name: nats
   repository: https://charts.bitnami.com/bitnami
   version: 6.1.2
-digest: sha256:394e5f330857b47d1c3fc78e58f41784ddec1acb43d27e482b2c2d20cdc8e70f
-generated: "2022-04-21T17:46:42.239451+01:00"
+digest: sha256:120b970aadafa3c905c1d46e6703c444d2481d104a36ebce797fbd3c5ed6e150
+generated: "2022-04-27T16:49:43.008183+02:00"
