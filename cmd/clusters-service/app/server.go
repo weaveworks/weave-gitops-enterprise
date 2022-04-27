@@ -388,7 +388,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithClustersLibrary(&clusters.CRDLibrary{
 			Log:          log,
 			ClientGetter: clientGetter,
-			Namespace:    p.capiTemplatesNamespace,
+			Namespace:    p.capiClustersNamespace,
 		}),
 		WithTemplateLibrary(&templates.CRDLibrary{
 			Log:          log,
