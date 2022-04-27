@@ -1,8 +1,22 @@
+FROM node:14-bullseye AS ui
+USER node
+WORKDIR /home/node
+COPY --chown=node:node package.json /home/node
+COPY --chown=node:node .npmrc /home/node
+COPY --chown=node:node yarn.lock /home/node
+COPY --chown=node:node Makefile /home/node
+
+ARG GITHUB_TOKEN
+RUN make node_modules
+
+COPY --chown=node:node . /home/node
+RUN make build
+
 FROM alpine:3.9
 RUN apk add --no-cache bash openssh-client
 
 WORKDIR /
-COPY build /html
+COPY --from=ui /home/node/build /html
 
 ARG now
 ARG revision
