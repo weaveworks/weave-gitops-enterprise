@@ -1,17 +1,18 @@
 import moment from 'moment';
 import { PolicyValidation } from '../../../capi-server/capi_server.pb';
-import { PolicyStyles } from '../../Policies/PolicyStyles';
+import { usePolicyStyle } from '../../Policies/PolicyStyles';
 import Severity from '../../Policies/Severity';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import MDEditor from '@uiw/react-md-editor';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;
 }
 
 function ViolationDetails({ violation }: IViolationDetailsProps) {
-  const classes = PolicyStyles.useStyles();
+  const classes = usePolicyStyle();
   const {
     severity,
     createdAt,
@@ -47,12 +48,19 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
       <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Description:</div>
-        <MDEditor.Markdown source={description} className={classes.editor} />
+        <ReactMarkdown
+          children={description || ''}
+          className={classes.editor}
+        />
       </div>
 
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>How to solve:</div>
-        <MDEditor.Markdown source={howToSolve} className={classes.editor} />
+        <ReactMarkdown
+          children={howToSolve || ''}
+          className={classes.editor}
+          remarkPlugins={[remarkGfm]}
+        />{' '}
       </div>
 
       <div className={classes.sectionSeperator}>

@@ -3,14 +3,14 @@ import { PolicyValidation } from '../../../capi-server/capi_server.pb';
 import { Link } from 'react-router-dom';
 import Severity from '../../Policies/Severity';
 import moment from 'moment';
-import { PolicyStyles } from '../../Policies/PolicyStyles';
+import { usePolicyStyle } from '../../Policies/PolicyStyles';
 
 interface RowProps {
   violation: PolicyValidation;
 }
 
 const PolicyViolationRow = ({ violation }: RowProps) => {
-  const classes = PolicyStyles.useStyles();
+  const classes = usePolicyStyle();
   const { severity, createdAt, id, entity, message, namespace } = violation;
   return (
     <>

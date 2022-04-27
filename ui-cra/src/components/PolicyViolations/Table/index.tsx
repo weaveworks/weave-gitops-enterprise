@@ -13,7 +13,7 @@ import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import { PolicyValidation } from '../../../capi-server/capi_server.pb';
 import PolicyViolationRow from './Row';
-import { PolicyStyles } from '../../Policies/PolicyStyles';
+import { usePolicyStyle } from '../../Policies/PolicyStyles';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -25,8 +25,7 @@ interface Props {
 }
 
 export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
-  const classes = PolicyStyles.useStyles();
-
+  const classes = usePolicyStyle();
   return (
     <div className={`${classes.root}`} id="policies-violations-list">
       <ThemeProvider theme={localMuiTheme}>
