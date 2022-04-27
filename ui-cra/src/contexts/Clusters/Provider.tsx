@@ -37,7 +37,7 @@ const ClustersProvider: FC = ({ children }) => {
     setDisabled(true);
   };
 
-  const clustersBaseUrl = '/gitops/api/clusters';
+  const clustersBaseUrl = '/v1/clusters';
 
   const fetchClusters = (pageParams: { page: number; perPage: number }) =>
     requestWithCountHeader(

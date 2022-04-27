@@ -2309,6 +2309,30 @@
     "@typescript-eslint/types" "5.13.0"
     eslint-visitor-keys "^3.0.0"
 
+"@weaveworks/weave-gitops@/Users/alina/Desktop/projects/weave-gitops/dist/":
+  version "0.7.1-rc.3"
+  dependencies:
+    "@material-ui/core" "^4.12.3"
+    "@material-ui/icons" "^4.11.2"
+    "@material-ui/lab" "^4.0.0-alpha.58"
+    d3 "^6.6.0"
+    d3-selection "^2.0.0"
+    dagre "^0.8.5"
+    dagre-d3 "^0.6.4"
+    history "^5.0.0"
+    http-proxy-middleware "^2.0.3"
+    jest-worker "^27.5.1"
+    lodash "^4.17.21"
+    luxon "^1.27.0"
+    postcss "^8.3.11"
+    query-string "^7.0.0"
+    react "^17.0.2"
+    react-dom "^17.0.2"
+    react-query "^3.34.7"
+    react-router-dom "^5.2.0"
+    react-toastify "^7.0.4"
+    styled-components "^5.3.0"
+
 "@weaveworks/weave-gitops@0.7.1-rc.3":
   version "0.7.1-rc.3"
   resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.7.1-rc.3/f9d8b54ddb0a4745cd9934f0590c706f0e146fd1918d9222847baf03dc97426e#d5f1d2ef99198ee96a90e4f4fc655714b2118192"
