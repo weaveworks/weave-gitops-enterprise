@@ -77,7 +77,7 @@ func WithDiscoveryClient(client discovery.DiscoveryInterface) Option {
 	}
 }
 
-// WithTemplateLibrary is used to set the location that contains
+// WithClustersLibrary is used to set the location that contains
 // CAPI templates. Typically this will be a namespace in the cluster.
 func WithClustersLibrary(clustersLibrary clusters.Library) Option {
 	return func(o *Options) {
