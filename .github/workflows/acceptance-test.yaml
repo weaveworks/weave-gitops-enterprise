@@ -215,7 +215,7 @@ jobs:
           eksctl get clusters
       - name: Install flux
         run: |
-          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.28.5/flux_0.29.5_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp
+          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.29.5/flux_0.29.5_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp
           sudo mv /tmp/flux /usr/local/bin
           flux version --client
       - name: Install aws-iam-authenticator
