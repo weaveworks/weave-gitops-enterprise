@@ -102,3 +102,6 @@ service:
   loadBalancerSourceRanges: []
   externalTrafficPolicy: ""
   healthCheckNodePort: 0
+
+cluster-controller:
+  enabled: false

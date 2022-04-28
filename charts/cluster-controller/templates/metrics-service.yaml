@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # Removed `-controller-manager` to avoid generating a name > 63 chars
+  name: {{ include "cluster-controller.fullname" . }}-metrics-service
+  labels:
+    control-plane: controller-manager
+  {{- include "cluster-controller.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.metricsService.type }}
+  selector:
+    control-plane: controller-manager
+  {{- include "cluster-controller.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.metricsService.ports | toYaml | nindent 2 -}}
