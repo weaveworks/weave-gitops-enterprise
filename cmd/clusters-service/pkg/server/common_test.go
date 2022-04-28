@@ -51,6 +51,7 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 
 	return NewClusterServer(
 		logr.Discard(),
+		nil,
 		&templates.ConfigMapLibrary{
 			Log:           logr.Discard(),
 			Client:        c,

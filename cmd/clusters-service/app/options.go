@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -21,6 +22,7 @@ type Options struct {
 	Database                     *gorm.DB
 	KubernetesClient             client.Client
 	DiscoveryClient              discovery.DiscoveryInterface
+	ClustersLibrary              clusters.Library
 	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
 	ApplicationsConfig           *server.ApplicationsConfig
@@ -72,6 +74,14 @@ func WithKubernetesClient(client client.Client) Option {
 func WithDiscoveryClient(client discovery.DiscoveryInterface) Option {
 	return func(o *Options) {
 		o.DiscoveryClient = client
+	}
+}
+
+// WithClustersLibrary is used to set the location that contains
+// CAPI templates. Typically this will be a namespace in the cluster.
+func WithClustersLibrary(clustersLibrary clusters.Library) Option {
+	return func(o *Options) {
+		o.ClustersLibrary = clustersLibrary
 	}
 }
 
