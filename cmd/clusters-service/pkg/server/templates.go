@@ -13,7 +13,7 @@ import (
 )
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
-	tl, err := s.library.List(ctx)
+	tl, err := s.templatesLibrary.List(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
-	tm, err := s.library.Get(ctx, msg.TemplateName)
+	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -48,7 +48,7 @@ func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateR
 }
 
 func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListTemplateParamsRequest) (*capiv1_proto.ListTemplateParamsResponse, error) {
-	tm, err := s.library.Get(ctx, msg.TemplateName)
+	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -61,7 +61,7 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 }
 
 func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.ListTemplateProfilesRequest) (*capiv1_proto.ListTemplateProfilesResponse, error) {
-	tm, err := s.library.Get(ctx, msg.TemplateName)
+	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -80,7 +80,7 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
 	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
-	tm, err := s.library.Get(ctx, msg.TemplateName)
+	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}

@@ -39,7 +39,7 @@ import (
 
 var labels = []string{}
 
-func (s *server) ListClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
+func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
 	cl, err := s.clustersLibrary.List(ctx)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	tmpl, err := s.library.Get(ctx, msg.TemplateName)
+	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
