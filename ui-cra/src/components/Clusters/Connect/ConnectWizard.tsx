@@ -8,6 +8,7 @@ import { FormState, SetFormState } from '../../../types/form';
 import { Cluster } from '../../../types/kubernetes';
 import { request } from '../../../utils/request';
 import useNotifications from './../../../contexts/Notifications';
+import { GitopsCluster } from '../../../capi-server/capi_server.pb';
 
 export const ButtonText = styled.span`
   margin: 0 ${theme.spacing.xxs};
@@ -138,7 +139,7 @@ const FRIENDLY_ERRORS: { [key: string]: string } = {
 };
 
 export const ConnectClusterWizard: FC<{
-  cluster: Cluster;
+  cluster: GitopsCluster;
   connecting: boolean;
   onFinish: () => void;
 }> = ({ connecting, cluster, onFinish }) => {
@@ -154,7 +155,7 @@ export const ConnectClusterWizard: FC<{
   const [submitting, setSubmitting] = useState<boolean>(false);
   const titles = pages.map(page => page.title);
   const { content } = pages[formState.activeIndex];
-  const isValid = formState.cluster.name.trim() !== '';
+  const isValid = formState.cluster.name?.trim() !== '';
   const { setNotifications } = useNotifications();
 
   const onSubmit = (ev: React.FormEvent<HTMLFormElement>) => {
@@ -164,7 +165,7 @@ export const ConnectClusterWizard: FC<{
     }
     setFormState({ ...formState });
     setSubmitting(true);
-    const id = formState.cluster.id;
+    const id = formState.cluster.name;
     const req = id
       ? request('PUT', `/gitops/api/clusters/${id}`, {
           body: JSON.stringify(formState.cluster),
@@ -203,7 +204,7 @@ export const ConnectClusterWizard: FC<{
     <CreateModelForm>
       <TitleBar
         onClick={index => setActiveIndex(index)}
-        locked={!formState.cluster.id}
+        locked={!formState.cluster.name}
         activeIndex={formState.activeIndex}
         titles={titles}
       />

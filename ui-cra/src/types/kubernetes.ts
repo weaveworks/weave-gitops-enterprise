@@ -58,7 +58,6 @@ export interface Cluster {
   nodes?: Node[];
   workspaces?: Workspace[];
   pullRequest?: PullRequest;
-
   capiName?: string;
   capiNamespace?: string;
   capiCluster?: CAPICluster;

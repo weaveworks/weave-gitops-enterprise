@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   Checkbox,
   Paper,
@@ -11,7 +12,6 @@ import {
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC, useEffect } from 'react';
-import { Cluster } from '../../../types/kubernetes';
 import { Pagination } from '../../Pagination';
 import { ColumnHeaderTooltip } from '../../Shared';
 import ClusterRow from './Row';
@@ -23,6 +23,7 @@ import useNotifications from '../../../contexts/Notifications';
 import { useHistory } from 'react-router-dom';
 import { Loader } from '../../Loader';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { GitopsCluster } from '../../../capi-server/capi_server.pb';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -62,12 +63,11 @@ const useStyles = makeStyles(() =>
 );
 
 interface Props {
-  filteredClusters: Cluster[] | null;
+  filteredClusters: GitopsCluster[] | null;
   count: number | null;
   disabled?: boolean;
-  onEdit: (cluster: Cluster) => void;
+  onEdit: (cluster: GitopsCluster) => void;
   onSortChange: (order: string) => void;
-  onSelectPageParams: (page: number, perPage: number) => void;
   order: string;
   orderBy: string;
 }
@@ -78,7 +78,6 @@ export const ClustersTable: FC<Props> = ({
   disabled,
   onEdit,
   onSortChange,
-  onSelectPageParams,
   order,
   orderBy,
 }) => {
@@ -192,24 +191,26 @@ export const ClustersTable: FC<Props> = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredClusters?.map((cluster: Cluster, index: number) => {
-                  const isItemSelected = isSelected(cluster.name);
-                  return (
-                    <ClusterRow
-                      key={cluster.name}
-                      index={index}
-                      cluster={cluster}
-                      aria-checked={isItemSelected}
-                      onCheckboxClick={event =>
-                        handleClick(event, cluster.name)
-                      }
-                      onEdit={onEdit}
-                      selected={isItemSelected}
-                    />
-                  );
-                })}
+                {filteredClusters?.map(
+                  (cluster: GitopsCluster, index: number) => {
+                    const isItemSelected = isSelected(cluster.name);
+                    return (
+                      <ClusterRow
+                        key={cluster.name}
+                        index={index}
+                        cluster={cluster}
+                        aria-checked={isItemSelected}
+                        onCheckboxClick={event =>
+                          handleClick(event, cluster.name)
+                        }
+                        onEdit={onEdit}
+                        selected={isItemSelected}
+                      />
+                    );
+                  },
+                )}
               </TableBody>
-              <TableFooter>
+              {/* <TableFooter>
                 {filteredClusters?.length === 0 ? null : (
                   <TableRow>
                     <Pagination
@@ -219,7 +220,7 @@ export const ClustersTable: FC<Props> = ({
                     />
                   </TableRow>
                 )}
-              </TableFooter>
+              </TableFooter> */}
             </Table>
           )}
         </Paper>

@@ -2,7 +2,6 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
-import { Cluster } from '../../types/kubernetes';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ClustersTable } from './Table';
@@ -24,6 +23,7 @@ import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
+import { GitopsCluster } from '../../capi-server/capi_server.pb';
 
 interface Size {
   size?: 'small';
@@ -50,16 +50,18 @@ const MCCP: FC = () => {
     count,
     disabled,
     handleRequestSort,
-    handleSetPageParams,
     order,
     orderBy,
     selectedClusters,
   } = useClusters();
   const { setNotifications } = useNotifications();
-  const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
+  const [clusterToEdit, setClusterToEdit] = useState<GitopsCluster | null>(
+    null,
+  );
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
   const capiClusters = useMemo(
+    // @ts-ignore
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
   );
@@ -211,7 +213,6 @@ const MCCP: FC = () => {
               order={order}
               orderBy={orderBy}
               onSortChange={handleRequestSort}
-              onSelectPageParams={handleSetPageParams}
               filteredClusters={clusters}
               count={count}
               disabled={disabled}

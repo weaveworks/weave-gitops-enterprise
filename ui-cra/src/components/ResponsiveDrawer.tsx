@@ -257,14 +257,6 @@ const App = () => {
             />
             <Route
               component={withSearchParams(WGApplicationsKustomization)}
-<<<<<<< HEAD
-              exact
-              path={V2Routes.Kustomization}
-            />
-            <Route
-              component={withSearchParams(WGApplicationsGitRepository)}
-              exact
-=======
               path={V2Routes.Kustomization}
             />
             <Route
@@ -273,7 +265,6 @@ const App = () => {
                   <WGApplicationsGitRepository {...props} />
                 </CoreWrapper>
               ))}
->>>>>>> 87add33999e97468d0cb21dda90decbda13a71d7
               path={V2Routes.GitRepo}
             />
             <Route
@@ -292,8 +283,11 @@ const App = () => {
               path={V2Routes.HelmRelease}
             />
             <Route
-              component={withSearchParams(WGApplicationsHelmChart)}
-              exact
+              component={withSearchParams((props: any) => (
+                <CoreWrapper>
+                  <WGApplicationsHelmChart {...props} />
+                </CoreWrapper>
+              ))}
               path={V2Routes.HelmChart}
             />
             <Route

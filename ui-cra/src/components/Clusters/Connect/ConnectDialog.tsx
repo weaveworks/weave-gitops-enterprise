@@ -6,11 +6,11 @@ import {
   Typography,
 } from '@material-ui/core';
 import { ConnectClusterWizard } from './ConnectWizard';
-import { Cluster } from '../../../types/kubernetes';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
+import { GitopsCluster } from '../../../capi-server/capi_server.pb';
 
 interface Props {
-  cluster: Cluster;
+  cluster: GitopsCluster;
   onFinish: () => void;
 }
 export const ConnectClusterDialog: FC<Props> = ({ cluster, onFinish }) => {
@@ -19,13 +19,13 @@ export const ConnectClusterDialog: FC<Props> = ({ cluster, onFinish }) => {
       <div id="connection-popup">
         <DialogTitle disableTypography>
           <Typography variant="h5">
-            {cluster.id ? 'Configure cluster' : 'Connect a cluster'}
+            {cluster.name ? 'Configure cluster' : 'Connect a cluster'}
           </Typography>
           {onFinish ? <CloseIconButton onClick={() => onFinish()} /> : null}
         </DialogTitle>
         <DialogContent>
           <ConnectClusterWizard
-            connecting={!cluster.id}
+            connecting={!cluster.name}
             cluster={cluster}
             onFinish={onFinish}
           />
