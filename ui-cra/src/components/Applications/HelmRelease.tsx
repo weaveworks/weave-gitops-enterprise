@@ -9,7 +9,7 @@ type Props = {
   name: string;
   clusterName: string;
   namespace: string;
-}
+};
 
 const WGApplicationsBucket: FC<Props> = ({ name, clusterName }) => {
   const applicationsCount = useApplicationsCount();
@@ -27,8 +27,12 @@ const WGApplicationsBucket: FC<Props> = ({ name, clusterName }) => {
           },
         ]}
       />
-      <ContentWrapper type="WG">
-        <HelmReleaseDetail helmRelease={helmRelease} clusterName={clusterName} name={name} />
+      <ContentWrapper>
+        <HelmReleaseDetail
+          helmRelease={helmRelease}
+          clusterName={clusterName}
+          name={name}
+        />
       </ContentWrapper>
     </PageTemplate>
   );
