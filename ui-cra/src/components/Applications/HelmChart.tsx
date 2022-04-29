@@ -8,7 +8,7 @@ import { HelmChartDetail } from '@weaveworks/weave-gitops';
 type Props = {
   name: string;
   namespace: string;
-}
+};
 
 const WGApplicationsHelmChart: FC<Props> = ({ name, namespace }) => {
   const applicationsCount = useApplicationsCount();
@@ -24,11 +24,8 @@ const WGApplicationsHelmChart: FC<Props> = ({ name, namespace }) => {
           },
         ]}
       />
-      <ContentWrapper type="WG">
-        <HelmChartDetail
-          name={name}
-          namespace={namespace}
-        />
+      <ContentWrapper>
+        <HelmChartDetail name={name} namespace={namespace} />
       </ContentWrapper>
     </PageTemplate>
   );

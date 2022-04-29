@@ -8,7 +8,7 @@ import { HelmRepositoryDetail } from '@weaveworks/weave-gitops';
 type Props = {
   name: string;
   namespace: string;
-}
+};
 
 const WGApplicationsHelmRepository: FC<Props> = ({ name, namespace }) => {
   const applicationsCount = useApplicationsCount();
@@ -24,11 +24,8 @@ const WGApplicationsHelmRepository: FC<Props> = ({ name, namespace }) => {
           },
         ]}
       />
-      <ContentWrapper type="WG">
-        <HelmRepositoryDetail
-          name={name}
-          namespace={namespace}
-        />
+      <ContentWrapper>
+        <HelmRepositoryDetail name={name} namespace={namespace} />
       </ContentWrapper>
     </PageTemplate>
   );

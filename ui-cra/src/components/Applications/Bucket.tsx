@@ -8,7 +8,7 @@ import { BucketDetail } from '@weaveworks/weave-gitops';
 type Props = {
   name: string;
   namespace: string;
-}
+};
 
 const WGApplicationsBucket: FC<Props> = ({ name, namespace }) => {
   const applicationsCount = useApplicationsCount();
@@ -24,11 +24,8 @@ const WGApplicationsBucket: FC<Props> = ({ name, namespace }) => {
           },
         ]}
       />
-      <ContentWrapper type="WG">
-        <BucketDetail
-          name={name}
-          namespace={namespace}
-        />
+      <ContentWrapper>
+        <BucketDetail name={name} namespace={namespace} />
       </ContentWrapper>
     </PageTemplate>
   );
