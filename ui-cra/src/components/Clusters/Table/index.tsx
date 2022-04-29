@@ -1,20 +1,7 @@
-import {
-  Checkbox,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableSortLabel,
-} from '@material-ui/core';
+import { Checkbox, Paper } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC, useEffect } from 'react';
-import { Cluster } from '../../../types/kubernetes';
-import { Pagination } from '../../Pagination';
-import { ColumnHeaderTooltip } from '../../Shared';
-import ClusterRow from './Row';
+import { Cluster, GitopsCluster } from '../../../types/kubernetes';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
@@ -22,7 +9,13 @@ import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
 import { useHistory } from 'react-router-dom';
 import { Loader } from '../../Loader';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import {
+  Field,
+  FilterableTable,
+  // filterConfigForString,
+  theme as weaveTheme,
+} from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -62,25 +55,15 @@ const useStyles = makeStyles(() =>
 );
 
 interface Props {
-  filteredClusters: Cluster[] | null;
+  filteredClusters: GitopsCluster[] | null;
   count: number | null;
-  disabled?: boolean;
   onEdit: (cluster: Cluster) => void;
-  onSortChange: (order: string) => void;
-  onSelectPageParams: (page: number, perPage: number) => void;
-  order: string;
-  orderBy: string;
 }
 
 export const ClustersTable: FC<Props> = ({
   filteredClusters,
   count,
-  disabled,
   onEdit,
-  onSortChange,
-  onSelectPageParams,
-  order,
-  orderBy,
 }) => {
   const classes = useStyles();
   const history = useHistory();
@@ -118,6 +101,44 @@ export const ClustersTable: FC<Props> = ({
     setSelectedClusters(newSelected);
   };
 
+  function filterConfigForString(rows: any, key: string) {
+    const typeFilterConfig = _.reduce(
+      rows,
+      (r, v) => {
+        const t = v[key];
+
+        if (!_.includes(r, t)) {
+          // @ts-ignore
+          r.push(t);
+        }
+
+        return r;
+      },
+      [],
+    );
+
+    return { [key]: typeFilterConfig };
+  }
+  const initialFilterState = {
+    ...filterConfigForString(filteredClusters, 'name'),
+    ...filterConfigForString(filteredClusters, 'namespace'),
+  };
+
+  const fields: Field[] = [
+    {
+      label: 'Name',
+      value: 'name',
+      sortValue: ({ name }) => name,
+      textSearchable: true,
+    },
+    {
+      label: 'Namespace',
+      value: 'namespace',
+      sortValue: ({ namespace }) => namespace,
+      textSearchable: true,
+    },
+  ];
+
   useEffect(() => {
     return history.listen(() => {
       setSelectedClusters([]);
@@ -125,102 +146,17 @@ export const ClustersTable: FC<Props> = ({
   }, [notifications, history, setSelectedClusters]);
 
   return (
-    <div
-      className={`${classes.root} ${disabled ? classes.disabled : ''}`}
-      id="clusters-list"
-    >
+    <div id="clusters-list">
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
           {loading ? (
             <Loader />
           ) : (
-            <Table className={classes.table} size="small">
-              {filteredClusters?.length === 0 ? (
-                <caption>No clusters configured</caption>
-              ) : null}
-              <TableHead className={classes.tableHead}>
-                <TableRow>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      indeterminate={numSelected > 0 && numSelected < rowCount}
-                      checked={rowCount > 0 && numSelected === rowCount}
-                      onChange={handleSelectAllClick}
-                      inputProps={{ 'aria-label': 'select all clusters' }}
-                      style={{
-                        color: weaveTheme.colors.primary,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell className={classes.nameHeaderCell} align="left">
-                    <TableSortLabel
-                      disabled={disabled}
-                      active={orderBy === 'Name'}
-                      direction={
-                        orderBy === 'Name' ? (order as 'asc' | 'desc') : 'asc'
-                      }
-                      onClick={() => onSortChange('Name')}
-                    >
-                      <ColumnHeaderTooltip title="Name configured in management UI">
-                        <span>Name</span>
-                      </ColumnHeaderTooltip>
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell />
-                  <TableCell align="left">
-                    <TableSortLabel
-                      disabled={disabled}
-                      active={orderBy === 'ClusterStatus'}
-                      direction={
-                        orderBy === 'ClusterStatus'
-                          ? (order as 'asc' | 'desc')
-                          : 'asc'
-                      }
-                      onClick={() => onSortChange('ClusterStatus')}
-                    >
-                      <ColumnHeaderTooltip
-                        title={
-                          <span>
-                            Shows the status of your clusters based on Agent
-                            connection and Alertmanager alerts
-                          </span>
-                        }
-                      >
-                        <span>Status</span>
-                      </ColumnHeaderTooltip>
-                    </TableSortLabel>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredClusters?.map((cluster: Cluster, index: number) => {
-                  const isItemSelected = isSelected(cluster.name);
-                  return (
-                    <ClusterRow
-                      key={cluster.name}
-                      index={index}
-                      cluster={cluster}
-                      aria-checked={isItemSelected}
-                      onCheckboxClick={event =>
-                        handleClick(event, cluster.name)
-                      }
-                      onEdit={onEdit}
-                      selected={isItemSelected}
-                    />
-                  );
-                })}
-              </TableBody>
-              <TableFooter>
-                {filteredClusters?.length === 0 ? null : (
-                  <TableRow>
-                    <Pagination
-                      className={classes.tablePagination}
-                      count={count}
-                      onSelectPageParams={onSelectPageParams}
-                    />
-                  </TableRow>
-                )}
-              </TableFooter>
-            </Table>
+            <FilterableTable
+              fields={fields}
+              filters={initialFilterState}
+              rows={filteredClusters || []}
+            />
           )}
         </Paper>
       </ThemeProvider>

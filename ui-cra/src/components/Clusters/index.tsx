@@ -45,16 +45,7 @@ export const PRdefaults = {
 };
 
 const MCCP: FC = () => {
-  const {
-    clusters,
-    count,
-    disabled,
-    handleRequestSort,
-    handleSetPageParams,
-    order,
-    orderBy,
-    selectedClusters,
-  } = useClusters();
+  const { clusters, count, selectedClusters } = useClusters();
   const { setNotifications } = useNotifications();
   const [clusterToEdit, setClusterToEdit] = useState<Cluster | null>(null);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
@@ -208,13 +199,8 @@ const MCCP: FC = () => {
             )}
             <ClustersTable
               onEdit={cluster => setClusterToEdit(cluster)}
-              order={order}
-              orderBy={orderBy}
-              onSortChange={handleRequestSort}
-              onSelectPageParams={handleSetPageParams}
               filteredClusters={clusters}
               count={count}
-              disabled={disabled}
             />
           </ContentWrapper>
         </CallbackStateContextProvider>

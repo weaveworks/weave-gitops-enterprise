@@ -58,10 +58,20 @@ export interface Cluster {
   nodes?: Node[];
   workspaces?: Workspace[];
   pullRequest?: PullRequest;
-
   capiName?: string;
   capiNamespace?: string;
   capiCluster?: CAPICluster;
+}
+
+export interface GitopsCluster {
+  name: string;
+  namespace: string;
+  secretRef: string | null;
+  annotations: Object;
+  capiClusterRef: { name: string };
+  conditions: any[];
+  labels: { [key: string]: string };
+  capiCluster?: string;
 }
 
 export interface Node {
