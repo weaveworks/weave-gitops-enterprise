@@ -1,0 +1,99 @@
+{{- if .Values.rbac.adminUserRoleBindings.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-admin-read-apps
+  namespace: flux-system
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-apps-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+# -- do we need this one too?
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: RoleBinding
+# metadata:
+#   name: wego-admin-read-sources
+#   namespace: flux-system
+# subjects:
+# - kind: User
+#   name: "wego-admin"
+#   apiGroup: rbac.authorization.k8s.io
+# roleRef:
+#   kind: ClusterRole
+#   name: sources-reader
+#   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-admin-read-templates
+  namespace: {{ .Values.config.capi.templates.namespace }}
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-templates-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+# -- What configmaps does the user need to read?
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: RoleBinding
+# metadata:
+#   name: wego-admin-read-configmaps
+#   namespace: flux-system
+# subjects:
+# - kind: User
+#   name: wego-admin
+#   apiGroup: rbac.authorization.k8s.io
+# roleRef:
+#   kind: ClusterRole
+#   name: gitops-configmaps-reader
+#   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-admin-read-secrets
+  namespace: {{ .Values.config.capi.clusters.namespace }}
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-secrets-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-read-identities
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-identities-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-read-policies
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-policies-reader
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

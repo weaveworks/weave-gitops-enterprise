@@ -6,9 +6,6 @@ metadata:
   namespace: default
 subjects:
 - kind: User
-  name: "wego-admin"
-  apiGroup: rbac.authorization.k8s.io
-- kind: User
   name: "team-pesto@weave.works"
   apiGroup: rbac.authorization.k8s.io
 roleRef:
@@ -22,9 +19,6 @@ metadata:
   name: read-sources
   namespace: flux-system
 subjects:
-- kind: User
-  name: "wego-admin"
-  apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
   apiGroup: rbac.authorization.k8s.io
@@ -40,9 +34,6 @@ metadata:
   namespace: flux-system
 subjects:
 - kind: User
-  name: "wego-admin"
-  apiGroup: rbac.authorization.k8s.io
-- kind: User
   name: "team-pesto@weave.works"
   apiGroup: rbac.authorization.k8s.io
 roleRef:
@@ -56,9 +47,6 @@ metadata:
   name: read-configmaps
   namespace: flux-system
 subjects:
-- kind: User
-  name: wego-admin
-  apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
   apiGroup: rbac.authorization.k8s.io
@@ -74,9 +62,6 @@ metadata:
   name: read-identities
 subjects:
 - kind: User
-  name: "wego-admin"
-  apiGroup: rbac.authorization.k8s.io
-- kind: User
   name: "team-pesto@weave.works"
   apiGroup: rbac.authorization.k8s.io
 roleRef:
@@ -90,9 +75,6 @@ metadata:
   name: read-secrets
 subjects:
 - kind: User
-  name: "wego-admin"
-  apiGroup: rbac.authorization.k8s.io
-- kind: User
   name: "team-pesto@weave.works"
   apiGroup: rbac.authorization.k8s.io
 roleRef:
@@ -105,9 +87,6 @@ kind: ClusterRoleBinding
 metadata:
   name: read-policies
 subjects:
-- kind: User
-  name: "wego-admin"
-  apiGroup: rbac.authorization.k8s.io
 - kind: User
   name: "team-pesto@weave.works"
   apiGroup: rbac.authorization.k8s.io

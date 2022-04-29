@@ -84,6 +84,8 @@ clusterBootstrapController:
 rbac:
   userRoles:
     create: true
+  adminUserRoleBindings:
+    create: true
 
 service:
   type: ClusterIP
