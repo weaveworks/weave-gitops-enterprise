@@ -12,7 +12,7 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { createStyles, makeStyles, withStyles } from '@material-ui/styles';
 import Octicon, { Icon, Tools } from '@primer/octicons-react';
 import { EKS, ExistingInfra, GKE, Kind } from '../../../utils/icons';
-import { ClusterNameLink, Tooltip } from '../../Shared';
+import { Tooltip } from '../../Shared';
 import { CAPIClusterStatus } from '../CAPIClusterStatus';
 import {
   getClusterStatus,
@@ -21,8 +21,7 @@ import {
   statusSummary,
 } from '../Status';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { GitopsCluster } from '../../../capi-server/capi_server.pb';
-import { ClusterStatus } from '../../../types/kubernetes';
+import { GitopsClusterEnriched } from '../../../contexts/Clusters';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -75,22 +74,8 @@ const IndividualCheckbox = withStyles({
 interface RowProps {
   index: number;
   cluster: GitopsClusterEnriched;
-  onEdit: (cluster: GitopsCluster) => void;
   selected: boolean;
   onCheckboxClick: (event: any, name?: string) => void;
-}
-
-interface GitopsClusterEnriched extends GitopsCluster {
-  status: ClusterStatus;
-  pullRequest: {
-    type: string;
-    url: string;
-  };
-  type: string;
-  updatedAt: string;
-  capiCluster: {
-    status: string;
-  };
 }
 
 const getClusterTypeIcon = (clusterType?: string): Icon | null => {
@@ -109,7 +94,6 @@ const getClusterTypeIcon = (clusterType?: string): Icon | null => {
 const ClusterRow = ({
   index,
   cluster,
-  onEdit,
   selected,
   onCheckboxClick,
 }: RowProps) => {

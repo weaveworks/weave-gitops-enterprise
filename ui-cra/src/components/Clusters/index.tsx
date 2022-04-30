@@ -6,7 +6,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ClustersTable } from './Table';
 import { Tooltip } from '../Shared';
-import { ConnectClusterDialog } from './Connect/ConnectDialog';
+import { ConnectClusterDialog } from './ConnectInfoBox';
 import { useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
@@ -23,7 +23,6 @@ import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
-import { GitopsCluster } from '../../capi-server/capi_server.pb';
 
 interface Size {
   size?: 'small';
@@ -55,9 +54,7 @@ const MCCP: FC = () => {
     selectedClusters,
   } = useClusters();
   const { setNotifications } = useNotifications();
-  const [clusterToEdit, setClusterToEdit] = useState<GitopsCluster | null>(
-    null,
-  );
+  const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
   const capiClusters = useMemo(
@@ -72,11 +69,6 @@ const MCCP: FC = () => {
   );
 
   const authRedirectPage = `/clusters`;
-
-  const NEW_CLUSTER = {
-    name: '',
-    token: '',
-  };
 
   interface FormData {
     url: string;
@@ -169,7 +161,7 @@ const MCCP: FC = () => {
               <Button
                 id="connect-cluster"
                 startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
-                onClick={() => setClusterToEdit(NEW_CLUSTER)}
+                onClick={() => setOpenConnectInfo(true)}
               >
                 CONNECT A CLUSTER
               </Button>
@@ -202,14 +194,12 @@ const MCCP: FC = () => {
                 />
               )}
             </ActionsWrapper>
-            {clusterToEdit && (
+            {openConnectInfo && (
               <ConnectClusterDialog
-                cluster={clusterToEdit}
-                onFinish={() => setClusterToEdit(null)}
+                onFinish={() => setOpenConnectInfo(false)}
               />
             )}
             <ClustersTable
-              onEdit={cluster => setClusterToEdit(cluster)}
               order={order}
               orderBy={orderBy}
               onSortChange={handleRequestSort}

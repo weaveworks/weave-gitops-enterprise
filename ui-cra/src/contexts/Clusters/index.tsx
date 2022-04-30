@@ -1,5 +1,19 @@
 import { createContext, Dispatch, useContext } from 'react';
 import { GitopsCluster } from '../../capi-server/capi_server.pb';
+import { ClusterStatus } from '../../types/kubernetes';
+
+export interface GitopsClusterEnriched extends GitopsCluster {
+  status: ClusterStatus;
+  pullRequest: {
+    type: string;
+    url: string;
+  };
+  type: string;
+  updatedAt: string;
+  capiCluster: {
+    status: string;
+  };
+}
 
 export interface DeleteClusterPRRequest {
   clusterNames: string[];
@@ -10,7 +24,7 @@ export interface DeleteClusterPRRequest {
   repositoryUrl?: string;
 }
 interface ClustersContext {
-  clusters: GitopsCluster[] | [];
+  clusters: GitopsClusterEnriched[] | [];
   count: number | null;
   disabled: boolean;
   loading: boolean;

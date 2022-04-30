@@ -1,17 +1,20 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { request, requestWithCountHeader } from '../../utils/request';
-import { Clusters, DeleteClusterPRRequest } from './index';
+import {
+  Clusters,
+  DeleteClusterPRRequest,
+  GitopsClusterEnriched,
+} from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
-import { GitopsCluster } from '../../capi-server/capi_server.pb';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
 const ClustersProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(false);
-  const [clusters, setClusters] = useState<GitopsCluster[]>([]);
+  const [clusters, setClusters] = useState<GitopsClusterEnriched[]>([]);
   const [order, setOrder] = useState<string>('asc');
   const [orderBy, setOrderBy] = useState<string>('ClusterStatus');
   const [count, setCount] = useState<number | null>(null);
@@ -79,7 +82,7 @@ const ClustersProvider: FC = ({ children }) => {
   );
 
   const { error, data } = useQuery<
-    { data: { gitopsClusters: GitopsCluster[]; total: number } },
+    { data: { gitopsClusters: GitopsClusterEnriched[]; total: number } },
     Error
   >('clusters', () => fetchClusters(), {
     keepPreviousData: true,

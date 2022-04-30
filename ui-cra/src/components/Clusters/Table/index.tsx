@@ -1,29 +1,25 @@
-// @ts-nocheck
 import {
   Checkbox,
   Paper,
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableRow,
   TableSortLabel,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC, useEffect } from 'react';
-import { Pagination } from '../../Pagination';
 import { ColumnHeaderTooltip } from '../../Shared';
 import ClusterRow from './Row';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
-import useClusters from '../../../contexts/Clusters';
+import useClusters, { GitopsClusterEnriched } from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
 import { useHistory } from 'react-router-dom';
 import { Loader } from '../../Loader';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { GitopsCluster } from '../../../capi-server/capi_server.pb';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -63,10 +59,9 @@ const useStyles = makeStyles(() =>
 );
 
 interface Props {
-  filteredClusters: GitopsCluster[] | null;
+  filteredClusters: GitopsClusterEnriched[] | null;
   count: number | null;
   disabled?: boolean;
-  onEdit: (cluster: GitopsCluster) => void;
   onSortChange: (order: string) => void;
   order: string;
   orderBy: string;
@@ -76,7 +71,6 @@ export const ClustersTable: FC<Props> = ({
   filteredClusters,
   count,
   disabled,
-  onEdit,
   onSortChange,
   order,
   orderBy,
@@ -86,24 +80,26 @@ export const ClustersTable: FC<Props> = ({
   const { selectedClusters, setSelectedClusters, loading } = useClusters();
   const { notifications } = useNotifications();
   const numSelected = selectedClusters.length;
-  const isSelected = (name: string) => selectedClusters.indexOf(name) !== -1;
+  const isSelected = (name?: string) =>
+    selectedClusters.indexOf(name || '') !== -1;
   const rowCount = filteredClusters?.length || 0;
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = filteredClusters?.map(cluster => cluster.name);
-      setSelectedClusters(newSelected || []);
+      const newSelected =
+        filteredClusters?.map(cluster => cluster.name || '') || [];
+      setSelectedClusters(newSelected);
       return;
     }
     setSelectedClusters([]);
   };
 
-  const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
-    const selectedIndex = selectedClusters.indexOf(name);
+  const handleClick = (event: React.MouseEvent<unknown>, name?: string) => {
+    const selectedIndex = selectedClusters.indexOf(name || '');
     let newSelected: string[] = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selectedClusters, name);
+      newSelected = newSelected.concat(selectedClusters, name || '');
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selectedClusters.slice(1));
     } else if (selectedIndex === selectedClusters.length - 1) {
@@ -192,8 +188,8 @@ export const ClustersTable: FC<Props> = ({
               </TableHead>
               <TableBody>
                 {filteredClusters?.map(
-                  (cluster: GitopsCluster, index: number) => {
-                    const isItemSelected = isSelected(cluster.name);
+                  (cluster: GitopsClusterEnriched, index: number) => {
+                    const isItemSelected = isSelected(cluster?.name);
                     return (
                       <ClusterRow
                         key={cluster.name}
@@ -201,26 +197,14 @@ export const ClustersTable: FC<Props> = ({
                         cluster={cluster}
                         aria-checked={isItemSelected}
                         onCheckboxClick={event =>
-                          handleClick(event, cluster.name)
+                          handleClick(event, cluster?.name)
                         }
-                        onEdit={onEdit}
                         selected={isItemSelected}
                       />
                     );
                   },
                 )}
               </TableBody>
-              {/* <TableFooter>
-                {filteredClusters?.length === 0 ? null : (
-                  <TableRow>
-                    <Pagination
-                      className={classes.tablePagination}
-                      count={count}
-                      onSelectPageParams={onSelectPageParams}
-                    />
-                  </TableRow>
-                )}
-              </TableFooter> */}
             </Table>
           )}
         </Paper>
