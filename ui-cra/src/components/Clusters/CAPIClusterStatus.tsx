@@ -106,14 +106,14 @@ const statusRenderers: { [key: string]: StatusRenderer } = {
 };
 
 export const CAPIClusterStatus: FC<{
-  clusterName: string;
+  clusterName?: string;
   status?: CAPICluster['status'];
 }> = ({ clusterName, status }) => {
   const classes = useStyles();
   const { getKubeconfig } = useClusters();
 
   const handleClick = () =>
-    getKubeconfig(clusterName, `${clusterName}.kubeconfig`);
+    getKubeconfig(clusterName || '', `${clusterName}.kubeconfig`);
 
   if (!status) {
     return null;

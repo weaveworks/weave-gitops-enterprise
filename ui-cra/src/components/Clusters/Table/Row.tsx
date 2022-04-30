@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import {
   Checkbox,
@@ -23,6 +22,7 @@ import {
 } from '../Status';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitopsCluster } from '../../../capi-server/capi_server.pb';
+import { ClusterStatus } from '../../../types/kubernetes';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -74,10 +74,23 @@ const IndividualCheckbox = withStyles({
 
 interface RowProps {
   index: number;
-  cluster: GitopsCluster;
+  cluster: GitopsClusterEnriched;
   onEdit: (cluster: GitopsCluster) => void;
   selected: boolean;
-  onCheckboxClick: (event: any, name: string) => void;
+  onCheckboxClick: (event: any, name?: string) => void;
+}
+
+interface GitopsClusterEnriched extends GitopsCluster {
+  status: ClusterStatus;
+  pullRequest: {
+    type: string;
+    url: string;
+  };
+  type: string;
+  updatedAt: string;
+  capiCluster: {
+    status: string;
+  };
 }
 
 const getClusterTypeIcon = (clusterType?: string): Icon | null => {
@@ -101,14 +114,12 @@ const ClusterRow = ({
   onCheckboxClick,
 }: RowProps) => {
   const classes = useStyles();
-  // @ts-ignore
   const { name, status: clusterStatus, type: clusterType, updatedAt } = cluster;
   const status = getClusterStatus(clusterStatus);
   const icon = getClusterTypeIcon(clusterType);
   const [open, setOpen] = React.useState<boolean>(false);
   const labelId = `enhanced-table-checkbox-${index}`;
 
-  // @ts-ignore
   const disabled =
     cluster.pullRequest?.type === 'delete' && status === 'PR Created';
 
@@ -136,7 +147,7 @@ const ClusterRow = ({
           >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
-          <ClusterNameLink cluster={cluster} />
+          {cluster?.name}
         </TableCell>
         <TableCell
           title={`Cluster type: ${clusterType ?? 'Unknown'}`}
@@ -172,20 +183,6 @@ const ClusterRow = ({
               />
             </div>
           </Tooltip>
-        </TableCell>
-        <TableCell
-          title="Edit cluster"
-          className={classes.iconTableCell}
-          align="left"
-        >
-          <IconButton onClick={() => onEdit(cluster)}>
-            <Octicon
-              className={classes.icon}
-              icon={Tools}
-              size={16}
-              verticalAlign="middle"
-            />
-          </IconButton>
         </TableCell>
       </TableRow>
       <TableRow

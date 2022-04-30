@@ -1,12 +1,7 @@
 import React, { FC, useState } from 'react';
 import styled from 'styled-components';
 import { Button, theme } from '@weaveworks/weave-gitops';
-import { ConnectClusterGeneralForm } from './ConnectForm';
-import { ConnectClusterConnectionInstructions } from './ConnectionInstructions';
-import { ClusterDisconnectionInstructions } from './DisconnectionInstructions';
 import { FormState, SetFormState } from '../../../types/form';
-import { Cluster } from '../../../types/kubernetes';
-import { request } from '../../../utils/request';
 import useNotifications from './../../../contexts/Notifications';
 import { GitopsCluster } from '../../../capi-server/capi_server.pb';
 
@@ -83,53 +78,6 @@ const nextPage = (formState: FormState): FormState => ({
 const hasNext = (formState: FormState): boolean =>
   formState.activeIndex < formState.numberOfItems - 1;
 
-const PAGES = {
-  general: {
-    title: 'General',
-    content: (
-      formState: FormState,
-      setFormState: SetFormState,
-      connecting: boolean,
-    ) => (
-      <ConnectClusterGeneralForm
-        formState={formState}
-        setFormState={setFormState}
-        connecting={connecting}
-      />
-    ),
-  },
-  connect: {
-    title: 'Connection instructions',
-    content: (
-      formState: FormState,
-      setFormState: SetFormState,
-      connecting: boolean,
-    ) => (
-      <ConnectClusterConnectionInstructions
-        formState={formState}
-        setFormState={setFormState}
-        connecting={connecting}
-      />
-    ),
-  },
-  disconnect: {
-    title: 'Disconnect',
-    content: (
-      formState: FormState,
-      setFormState: SetFormState,
-      connecting: boolean,
-      onFinish: () => void,
-    ) => (
-      <ClusterDisconnectionInstructions
-        formState={formState}
-        setFormState={setFormState}
-        connecting={connecting}
-        onFinish={onFinish}
-      />
-    ),
-  },
-};
-
 // SQLite errors
 const FRIENDLY_ERRORS: { [key: string]: string } = {
   'UNIQUE constraint failed: clusters.name':
@@ -143,91 +91,20 @@ export const ConnectClusterWizard: FC<{
   connecting: boolean;
   onFinish: () => void;
 }> = ({ connecting, cluster, onFinish }) => {
-  const pages = connecting
-    ? [PAGES.general, PAGES.connect]
-    : [PAGES.general, PAGES.connect, PAGES.disconnect];
-  const [formState, setFormState] = useState<FormState>({
-    activeIndex: 0,
-    numberOfItems: pages.length,
-    cluster,
-    error: '',
-  });
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const titles = pages.map(page => page.title);
-  const { content } = pages[formState.activeIndex];
-  const isValid = formState.cluster.name?.trim() !== '';
-  const { setNotifications } = useNotifications();
-
-  const onSubmit = (ev: React.FormEvent<HTMLFormElement>) => {
-    ev.preventDefault();
-    if (!hasNext(formState) || !isValid || submitting) {
-      return;
-    }
-    setFormState({ ...formState });
-    setSubmitting(true);
-    const id = formState.cluster.name;
-    const req = id
-      ? request('PUT', `/gitops/api/clusters/${id}`, {
-          body: JSON.stringify(formState.cluster),
-        })
-      : request('POST', '/gitops/api/clusters', {
-          body: JSON.stringify(formState.cluster),
-        });
-
-    req
-      .then((cluster: Cluster) => {
-        setSubmitting(false);
-        setFormState({ ...formState, cluster });
-        setFormState(nextPage);
-        setNotifications([
-          {
-            message: 'Cluster successfully added to the MCCP',
-            variant: 'success',
-          },
-        ]);
-      })
-      .catch(({ message }) => {
-        setNotifications([
-          {
-            message: FRIENDLY_ERRORS[message] || message,
-            variant: 'danger',
-          },
-        ]);
-        setSubmitting(false);
-      });
-  };
-
-  const setActiveIndex = (activeIndex: number) =>
-    setFormState({ ...formState, activeIndex });
-
   return (
     <CreateModelForm>
-      <TitleBar
-        onClick={index => setActiveIndex(index)}
-        locked={!formState.cluster.name}
-        activeIndex={formState.activeIndex}
-        titles={titles}
-      />
-      <form onSubmit={onSubmit}>
-        <ContentContainer>
+      <form>
+        {/* <ContentContainer>
           {content(formState, setFormState, connecting, onFinish)}
-        </ContentContainer>
+        </ContentContainer> */}
         <ButtonBar>
           <div style={{ flex: 1 }} />
-          {formState.activeIndex === 0 && (
-            <Button
-              type="submit"
-              startIcon={<i className="fas fa-chevron-right" />}
-              disabled={!isValid || submitting}
-            >
-              SAVE & NEXT
-            </Button>
-          )}
-          {formState.activeIndex > 0 && (
-            <Button className="close-button" onClick={() => onFinish()}>
-              CLOSE
-            </Button>
-          )}
+          <Button
+            type="submit"
+            startIcon={<i className="fas fa-chevron-right" />}
+          >
+            SAVE & NEXT
+          </Button>
         </ButtonBar>
       </form>
     </CreateModelForm>
