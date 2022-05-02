@@ -1,9 +1,9 @@
-package capi
+package tfcontroller
 
 import (
 	"fmt"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 )
@@ -13,11 +13,11 @@ import (
 // by each of the objects.
 
 const (
-	// DisplayNameAnnotation is the annotation used for labeling template resources
-	DisplayNameAnnotation = "capi.weave.works/display-name"
+	// DisplayNameAnnotation is the annotation used for labeling template resources used by tf-controller
+	DisplayNameAnnotation = "tfcontroller.weave.works/display-name"
 )
 
-func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
+func ParseTemplateMeta(s *apiv1.TFTemplate) (*TemplateMeta, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := map[string]bool{}
 	var objects []Object
@@ -63,7 +63,7 @@ type Object struct {
 	DisplayName string   `json:"displayName"`
 }
 
-// TemplateMeta contains all the objects extracted from a CAPITemplate along
+// TemplateMeta contains all the objects extracted from a TFTemplate along
 // with the parameters.
 type TemplateMeta struct {
 	Name        string   `json:"name"`

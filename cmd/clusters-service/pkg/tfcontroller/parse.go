@@ -1,4 +1,4 @@
-package capi
+package tfcontroller
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 	"os"
 	"sort"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
 )
 
-func ParseFile(fname string) (*capiv1.CAPITemplate, error) {
+func ParseFile(fname string) (*apiv1.TFTemplate, error) {
 	b, err := os.ReadFile(fname)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read template: %w", err)
@@ -20,7 +20,7 @@ func ParseFile(fname string) (*capiv1.CAPITemplate, error) {
 	return ParseBytes(b, fname)
 }
 
-func ParseFileFromFS(fsys fs.FS, fname string) (*capiv1.CAPITemplate, error) {
+func ParseFileFromFS(fsys fs.FS, fname string) (*apiv1.TFTemplate, error) {
 	b, err := fs.ReadFile(fsys, fname)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read template: %w", err)
@@ -28,8 +28,8 @@ func ParseFileFromFS(fsys fs.FS, fname string) (*capiv1.CAPITemplate, error) {
 	return ParseBytes(b, fname)
 }
 
-func ParseBytes(b []byte, key string) (*capiv1.CAPITemplate, error) {
-	var t capiv1.CAPITemplate
+func ParseBytes(b []byte, key string) (*apiv1.TFTemplate, error) {
+	var t apiv1.TFTemplate
 	err := yaml.Unmarshal(b, &t)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal %s: %w", key, err)
@@ -37,10 +37,10 @@ func ParseBytes(b []byte, key string) (*capiv1.CAPITemplate, error) {
 	return &t, nil
 }
 
-// ParseConfigMap parses a ConfigMap and returns a map of CAPITemplates indexed by their name.
+// ParseConfigMap parses a ConfigMap and returns a map of TFTemplates indexed by their name.
 // The name of the template is set to the key of the ConfigMap.Data map.
-func ParseConfigMap(cm corev1.ConfigMap) (map[string]*capiv1.CAPITemplate, error) {
-	tm := map[string]*capiv1.CAPITemplate{}
+func ParseConfigMap(cm corev1.ConfigMap) (map[string]*apiv1.TFTemplate, error) {
+	tm := map[string]*apiv1.TFTemplate{}
 
 	for k, v := range cm.Data {
 		t, err := ParseBytes([]byte(v), k)
@@ -53,7 +53,7 @@ func ParseConfigMap(cm corev1.ConfigMap) (map[string]*capiv1.CAPITemplate, error
 }
 
 // Params extracts the named parameters from resource templates in a spec.
-func Params(s capiv1.CAPITemplateSpec) ([]string, error) {
+func Params(s apiv1.TFTemplateSpec) ([]string, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := map[string]bool{}
 	for _, v := range s.ResourceTemplates {

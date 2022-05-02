@@ -1,9 +1,9 @@
-package capi
+package tfcontroller
 
 import (
 	"fmt"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
@@ -42,7 +42,7 @@ func InNamespace(ns string) RenderOptFunc {
 
 // Render takes template Spec and vars and returns a slice of byte-slices with
 // the bodies of the rendered objects.
-func Render(spec capiv1.CAPITemplateSpec, vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
+func Render(spec apiv1.TFTemplateSpec, vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
 	proc := processor.NewSimpleProcessor()
 	var processed [][]byte
 	for _, v := range spec.ResourceTemplates {

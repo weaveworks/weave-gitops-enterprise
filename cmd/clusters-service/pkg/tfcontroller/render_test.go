@@ -1,4 +1,4 @@
-package capi
+package tfcontroller
 
 import (
 	"bytes"
@@ -10,33 +10,37 @@ import (
 )
 
 func TestRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := mustParseFile(t, "testdata/tf-controller.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
-		"CLUSTER_NAME":                "testing",
-		"CONTROL_PLANE_MACHINE_COUNT": "5",
+		"CLUSTER_NAME":       "testing",
+		"GIT_REPO_NAME":      "git-repo",
+		"GIT_REPO_NAMESPACE": "git-namespace",
+		"NAMESPACE":          "namespace",
+		"TEMPLATE_NAME":      "test-tf-template",
+		"TEMPLATE_PATH":      "./",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
+apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
-  name: testing
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-kind: AWSMachineTemplate
-metadata:
-  name: testing-md-0
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
-kind: KubeadmControlPlane
-metadata:
-  name: testing-control-plane
+  name: test-tf-template
+  namespace: namespace
 spec:
-  replicas: 5
+  approvePlan: auto
+  interval: 1h
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: git-repo
+    namespace: git-namespace
+  vars:
+  - name: cluster_identifier
+    value: testing
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)

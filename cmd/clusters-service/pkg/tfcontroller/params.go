@@ -1,19 +1,27 @@
-package capi
+package tfcontroller
 
 import (
 	"fmt"
 	"sort"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 )
 
-// ParamsFromSpec extracts the named parameters from a CAPITemplate, finding all
+// Param is a parameter that can be templated into a struct.
+type Param struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Required    bool     `json:"required"`
+	Options     []string `json:"options"`
+}
+
+// ParamsFromSpec extracts the named parameters from a TFTemplate, finding all
 // the named parameters in each of the resource templates, and enriching that
 // with data from the params field in the spec (if found).
 //
 // Any fields in the templates, but not in the params will not be enriched, and
 // only the name will be returned.
-func ParamsFromSpec(s capiv1.CAPITemplateSpec) ([]Param, error) {
+func ParamsFromSpec(s apiv1.TFTemplateSpec) ([]Param, error) {
 	paramNames, err := Params(s)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get params from template: %w", err)

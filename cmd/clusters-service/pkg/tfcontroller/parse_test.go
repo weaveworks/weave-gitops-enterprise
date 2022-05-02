@@ -1,45 +1,128 @@
-package capi
+package tfcontroller
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 )
 
 func TestParseFile(t *testing.T) {
-	c, err := ParseFile("testdata/template1.yaml")
+	c, err := ParseFile("testdata/tf-controller.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want := &capiv1.CAPITemplate{
+	want := &apiv1.TFTemplate{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "CAPITemplate",
-			APIVersion: "capi.weave.works/v1alpha1",
+			Kind:       "TFTemplate",
+			APIVersion: "tfcontroller.weave.works/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "cluster-template",
+			Name:      "sample-wge-tf-controller-template",
+			Namespace: "default",
 		},
-		Spec: capiv1.CAPITemplateSpec{
-			Description: "this is test template 1",
-			Params: []capiv1.TemplateParam{
+		Spec: apiv1.TFTemplateSpec{
+			Description: "This is a sample WGE template that will be translated into a tf-controller specific template.",
+			Params: []apiv1.TemplateParam{
 				{
 					Name:        "CLUSTER_NAME",
-					Description: "This is used for the cluster naming.",
+					Description: "Name of the cluster.",
+				},
+				{
+					Name:        "TEMPLATE_NAME",
+					Description: "Name of the template.",
+				},
+				{
+					Name:        "NAMESPACE",
+					Description: "Namespace to create the Terraform resource in.",
+				},
+				{
+					Name:        "GIT_REPO_NAMESPACE",
+					Description: "Namespace of the configuring git repository object.",
+				},
+				{
+					Name:        "GIT_REPO_NAME",
+					Description: "Name of the configuring git repository.",
+				},
+				{
+					Name:        "TEMPLATE_PATH",
+					Description: "Path to the generated tf-controller templates.",
 				},
 			},
-			ResourceTemplates: []capiv1.ResourceTemplate{},
+			ResourceTemplates: []apiv1.ResourceTemplate{},
 		},
 	}
-	if diff := cmp.Diff(want, c, cmpopts.IgnoreFields(capiv1.CAPITemplateSpec{}, "ResourceTemplates")); diff != "" {
+	if diff := cmp.Diff(want, c, cmpopts.IgnoreFields(apiv1.TFTemplateSpec{}, "ResourceTemplates")); diff != "" {
+		t.Fatalf("failed to read the template:\n%s", diff)
+	}
+}
+
+func TestParseFileResourceTemplate(t *testing.T) {
+	c, err := ParseFile("testdata/tf-controller.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tfControllerResultContent, err := os.ReadFile(filepath.Join("testdata", "tf-controller-result.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := &apiv1.TFTemplate{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "TFTemplate",
+			APIVersion: "tfcontroller.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "sample-wge-tf-controller-template",
+			Namespace: "default",
+		},
+		Spec: apiv1.TFTemplateSpec{
+			Description: "This is a sample WGE template that will be translated into a tf-controller specific template.",
+			Params: []apiv1.TemplateParam{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "Name of the cluster.",
+				},
+				{
+					Name:        "TEMPLATE_NAME",
+					Description: "Name of the template.",
+				},
+				{
+					Name:        "NAMESPACE",
+					Description: "Namespace to create the Terraform resource in.",
+				},
+				{
+					Name:        "GIT_REPO_NAMESPACE",
+					Description: "Namespace of the configuring git repository object.",
+				},
+				{
+					Name:        "GIT_REPO_NAME",
+					Description: "Name of the configuring git repository.",
+				},
+				{
+					Name:        "TEMPLATE_PATH",
+					Description: "Path to the generated tf-controller templates.",
+				},
+			},
+			ResourceTemplates: []apiv1.ResourceTemplate{
+				{
+					RawExtension: runtime.RawExtension{
+						Raw: tfControllerResultContent,
+					},
+				},
+			},
+		},
+	}
+	if diff := cmp.Diff(want, c); diff != "" {
 		t.Fatalf("failed to read the template:\n%s", diff)
 	}
 }
@@ -49,84 +132,9 @@ func TestParseFile_with_unknown_file(t *testing.T) {
 	assert.EqualError(t, err, "failed to read template: open testdata/unknownyaml: no such file or directory")
 }
 
-func TestParseFileFromFS(t *testing.T) {
-	c, err := ParseFileFromFS(os.DirFS("testdata"), "template2.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	want := &capiv1.CAPITemplate{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "CAPITemplate",
-			APIVersion: "capi.weave.works/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "cluster-template2",
-		},
-		Spec: capiv1.CAPITemplateSpec{
-			Description: "this is test template 2",
-			Params: []capiv1.TemplateParam{
-				{
-					Name:        "AWS_SSH_KEY_NAME",
-					Description: "A description",
-				},
-				{
-					Name:    "AWS_NODE_MACHINE_TYPE",
-					Options: []string{"big", "small"},
-				},
-			},
-
-			ResourceTemplates: []capiv1.ResourceTemplate{},
-		},
-	}
-	if diff := cmp.Diff(want, c, cmpopts.IgnoreFields(capiv1.CAPITemplateSpec{}, "ResourceTemplates")); diff != "" {
-		t.Fatalf("failed to read the template:\n%s", diff)
-	}
-}
-
 func TestParseFileFromFS_with_unknown_file(t *testing.T) {
 	_, err := ParseFileFromFS(os.DirFS("testdata"), "unknown.yaml")
 	assert.EqualError(t, err, "failed to read template: open testdata/unknown.yaml: no such file or directory")
-}
-
-func TestParseConfigMap(t *testing.T) {
-	cmBytes := readFixture(t, "testdata/configmap1.yaml")
-	obj, _, err := scheme.Codecs.UniversalDeserializer().Decode(cmBytes, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cm := obj.(*corev1.ConfigMap)
-
-	tm, err := ParseConfigMap(*cm)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	want := map[string]*capiv1.CAPITemplate{
-		"cluster-template": {
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "CAPITemplate",
-				APIVersion: "capi.weave.works/v1alpha1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "cluster-template",
-			},
-			Spec: capiv1.CAPITemplateSpec{
-				Description: "this is test template 1",
-				Params: []capiv1.TemplateParam{
-					{
-						Name:        "CLUSTER_NAME",
-						Description: "This is used for the cluster naming.",
-					},
-				},
-				ResourceTemplates: []capiv1.ResourceTemplate{},
-			},
-		},
-	}
-	if diff := cmp.Diff(want, tm, cmpopts.IgnoreFields(capiv1.CAPITemplateSpec{}, "ResourceTemplates")); diff != "" {
-		t.Fatalf("failed to read the template from the configmap:\n%s", diff)
-	}
 }
 
 func TestParams(t *testing.T) {
@@ -135,15 +143,14 @@ func TestParams(t *testing.T) {
 		want     []string
 	}{
 		{
-			filename: "testdata/template1.yaml",
-			want:     []string{"CLUSTER_NAME"},
-		},
-		{
-			filename: "testdata/template2.yaml",
+			filename: "testdata/tf-controller.yaml",
 			want: []string{
-				"AWS_NODE_MACHINE_TYPE",
-				"AWS_SSH_KEY_NAME",
 				"CLUSTER_NAME",
+				"GIT_REPO_NAME",
+				"GIT_REPO_NAMESPACE",
+				"NAMESPACE",
+				"TEMPLATE_NAME",
+				"TEMPLATE_PATH",
 			},
 		},
 	}

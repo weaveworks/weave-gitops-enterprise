@@ -1,11 +1,11 @@
-package capi
+package tfcontroller
 
 import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 )
 
 func TestParamsFromSpec(t *testing.T) {
@@ -47,7 +47,7 @@ func TestParamsFromSpec_with_bad_template(t *testing.T) {
 	assert.EqualError(t, err, "failed to get params from template: processing template: missing closing brace")
 }
 
-func mustParseFile(t *testing.T, filename string) *capiv1.CAPITemplate {
+func mustParseFile(t *testing.T, filename string) *apiv1.TFTemplate {
 	t.Helper()
 	parsed, err := ParseFile(filename)
 	if err != nil {
