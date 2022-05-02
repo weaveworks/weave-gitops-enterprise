@@ -17,11 +17,12 @@ import (
 	"sigs.k8s.io/yaml"
 
 	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 )
 
 func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -133,7 +134,7 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 					Description: "This is used for the cluster naming.",
 				},
 			},
-			ResourceTemplates: []capiv1.CAPIResourceTemplate{
+			ResourceTemplates: []capiv1.ResourceTemplate{
 				{
 					RawExtension: rawExtension(basicRaw),
 				},

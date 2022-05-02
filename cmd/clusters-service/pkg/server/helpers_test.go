@@ -16,7 +16,7 @@ func TestGetProvider(t *testing.T) {
 			name: "AWSCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -32,7 +32,7 @@ func TestGetProvider(t *testing.T) {
 			name: "AWSManagedCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -48,7 +48,7 @@ func TestGetProvider(t *testing.T) {
 			name: "AWSManagedControlPlane",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -64,7 +64,7 @@ func TestGetProvider(t *testing.T) {
 			name: "AzureCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -80,7 +80,7 @@ func TestGetProvider(t *testing.T) {
 			name: "AzureManagedCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -96,7 +96,7 @@ func TestGetProvider(t *testing.T) {
 			name: "DOCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -112,7 +112,7 @@ func TestGetProvider(t *testing.T) {
 			name: "GCPCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -128,7 +128,7 @@ func TestGetProvider(t *testing.T) {
 			name: "OpenStackCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -144,7 +144,7 @@ func TestGetProvider(t *testing.T) {
 			name: "PacketCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -160,7 +160,7 @@ func TestGetProvider(t *testing.T) {
 			name: "VSphereCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -176,7 +176,7 @@ func TestGetProvider(t *testing.T) {
 			name: "FooCluster",
 			template: &capiv1.CAPITemplate{
 				Spec: capiv1.CAPITemplateSpec{
-					ResourceTemplates: []capiv1.CAPIResourceTemplate{
+					ResourceTemplates: []capiv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",

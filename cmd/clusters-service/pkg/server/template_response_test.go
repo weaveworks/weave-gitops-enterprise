@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/protobuf/testing/protocmp"
+
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestToTemplate(t *testing.T) {
@@ -42,7 +43,7 @@ metadata:
 			value: makeTemplate(t, func(ct *capiv1.CAPITemplate) {
 				ct.ObjectMeta.Name = "cluster-template-1"
 				ct.Spec.Description = "this is test template 1"
-				ct.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+				ct.Spec.ResourceTemplates = []capiv1.ResourceTemplate{
 					{
 						RawExtension: rawExtension(`{
 							"apiVersion": "fooversion",
@@ -127,7 +128,7 @@ func makeErrorTemplate(t *testing.T, rawData string) string {
 	return makeTemplate(t, func(ct *capiv1.CAPITemplate) {
 		ct.ObjectMeta.Name = "cluster-template-1"
 		ct.Spec.Description = ""
-		ct.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+		ct.Spec.ResourceTemplates = []capiv1.ResourceTemplate{
 			{
 				RawExtension: rawExtension(rawData),
 			},

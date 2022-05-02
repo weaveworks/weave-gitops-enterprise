@@ -485,7 +485,7 @@ func TestRenderTemplate(t *testing.T) {
 					makeTemplate(t, func(ct *capiv1.CAPITemplate) {
 						ct.ObjectMeta.Name = "cluster-template-1"
 						ct.Spec.Description = "this is test template 1"
-						ct.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+						ct.Spec.ResourceTemplates = []capiv1.ResourceTemplate{
 							{
 								RawExtension: rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -674,7 +674,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 		}
 	  }`
 	return makeTemplate(t, append(opts, func(c *capiv1.CAPITemplate) {
-		c.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+		c.Spec.ResourceTemplates = []capiv1.ResourceTemplate{
 			{
 				RawExtension: rawExtension(basicRaw),
 			},

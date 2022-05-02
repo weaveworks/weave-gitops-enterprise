@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"os"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -108,7 +109,7 @@ func WriteError(w http.ResponseWriter, appError error, code int) {
 	fmt.Fprintln(w, string(payload))
 }
 
-func B64ResourceTemplate(ct []capiv1.CAPIResourceTemplate) ([]byte, error) {
+func B64ResourceTemplate(ct []capiv1.ResourceTemplate) ([]byte, error) {
 	b, err := yaml.Marshal(ct)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal resource template: %s", err)
