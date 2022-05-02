@@ -48,9 +48,9 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	core_cache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
+	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -322,13 +322,12 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
-	cacheContainer := core_cache.NewContainer(
-		log,
-		core_cache.WithSimpleCaches(
-			core_cache.WithNamespaceCache(rest),
-		),
-	)
-	coreConfig := core_core.NewCoreConfig(log, rest, cacheContainer, clusterName)
+
+	singleFetcher := fetcher.NewSingleClusterFetcher(rest)
+	clusterClientsFactory := clustersmngr.NewClientFactory(singleFetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
+	clusterClientsFactory.Start(ctx)
+
+	coreConfig := core_core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)
 
 	profileCache, err := cache.NewCache(p.profileCacheLocation)
 	if err != nil {
@@ -372,11 +371,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme, gitopsv1alpha1.AddToScheme)
 
-	singleFetcher, err := fetcher.NewSingleClusterFetcher(rest)
-	if err != nil {
-		return err
-	}
-
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithProfileHelmRepository(p.helmRepoName),
@@ -400,7 +394,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(coreConfig),
-		WithClusterFetcher(singleFetcher),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",
@@ -495,7 +488,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
 			return fmt.Errorf("failed to register core servers: %w", err)
 		}
-		grpcHttpHandler = clustersmngr.WithClustersClient(args.ClusterFetcher, grpcHttpHandler)
+		grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
 	}
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
