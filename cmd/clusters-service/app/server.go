@@ -358,7 +358,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}()
 
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
-	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme, gitopsv1alpha1.AddToScheme)
 
 	rest, clusterName, err := kube.RestConfig()
 	if err != nil {
