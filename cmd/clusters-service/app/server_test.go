@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -74,7 +74,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
-		sourcev1beta1.AddToScheme,
+		sourcev1.AddToScheme,
 	}
 	err = schemeBuilder.AddToScheme(scheme)
 	if err != nil {

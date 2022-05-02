@@ -23,7 +23,7 @@ import (
 	"syscall"
 	"time"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -288,7 +288,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
 		capiv1.AddToScheme,
-		sourcev1beta1.AddToScheme,
+		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 	}
 

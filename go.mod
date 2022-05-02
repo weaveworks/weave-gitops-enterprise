@@ -55,6 +55,7 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.2
 	github.com/xanzy/go-gitlab v0.54.3
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	google.golang.org/genproto v0.0.0-20220228195345-15d65a4533f7
 	google.golang.org/grpc v1.45.0-dev.0.20220209221444-a354b1eec350
@@ -243,7 +244,6 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect

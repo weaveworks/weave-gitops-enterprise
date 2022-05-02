@@ -19,9 +19,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 )
 
 const (
@@ -39,14 +39,14 @@ const (
 type ChartReference struct {
 	Chart     string
 	Version   string
-	SourceRef helmv2beta1.CrossNamespaceObjectReference
+	SourceRef helmv2.CrossNamespaceObjectReference
 }
 
 // HelmChartClient implements ChartClient using the Helm library packages.
 type HelmChartClient struct {
 	client.Client
 	Namespace  string
-	Repository *sourcev1beta1.HelmRepository
+	Repository *sourcev1.HelmRepository
 	CacheDir   string
 }
 
@@ -59,7 +59,7 @@ func WithCacheDir(dir string) func(*HelmChartClient) {
 }
 
 // NewHelmChartClient creates and returns a new HelmChartClient.
-func NewHelmChartClient(kc client.Client, ns string, hr *sourcev1beta1.HelmRepository, opts ...func(*HelmChartClient)) *HelmChartClient {
+func NewHelmChartClient(kc client.Client, ns string, hr *sourcev1.HelmRepository, opts ...func(*HelmChartClient)) *HelmChartClient {
 	h := &HelmChartClient{
 		Client:     kc,
 		Namespace:  ns,
@@ -129,7 +129,7 @@ func (h HelmChartClient) FileFromChart(ctx context.Context, c *ChartReference, f
 	return nil, fmt.Errorf("failed to find file: %s", filename)
 }
 
-func credsForRepository(ctx context.Context, kc client.Client, ns string, hr *sourcev1beta1.HelmRepository) (string, string, error) {
+func credsForRepository(ctx context.Context, kc client.Client, ns string, hr *sourcev1.HelmRepository) (string, string, error) {
 	var secret corev1.Secret
 	if err := kc.Get(ctx, types.NamespacedName{Name: hr.Spec.SecretRef.Name, Namespace: ns}, &secret); err != nil {
 		return "", "", fmt.Errorf("repository authentication: %w", err)
@@ -190,7 +190,7 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 //
 // For charts without a layer, these will be configured to depend on the highest
 // layer.
-func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartInstall) ([]*helmv2beta1.HelmRelease, error) {
+func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartInstall) ([]*helmv2.HelmRelease, error) {
 	layerInstalls := map[string][]ChartInstall{}
 	for _, v := range installs {
 		current, ok := layerInstalls[v.Layer]
@@ -211,30 +211,30 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 	}
 
 	layerDependencies := pairLayers(layerNames)
-	var releases []*helmv2beta1.HelmRelease
+	var releases []*helmv2.HelmRelease
 	for _, layer := range layerDependencies {
 		for _, install := range layerInstalls[layer.name] {
 			jsonValues, err := json.Marshal(install.Values)
 			if err != nil {
 				return nil, fmt.Errorf("failed to marshal values for chart %s: %w", install.Ref.Chart, err)
 			}
-			hr := helmv2beta1.HelmRelease{
+			hr := helmv2.HelmRelease{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      makeHelmReleaseName(clusterName, install.Ref.Chart),
 					Namespace: namespace,
 				},
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: helmv2beta1.GroupVersion.Identifier(),
-					Kind:       helmv2beta1.HelmReleaseKind,
+					APIVersion: helmv2.GroupVersion.Identifier(),
+					Kind:       helmv2.HelmReleaseKind,
 				},
-				Spec: helmv2beta1.HelmReleaseSpec{
-					Chart: helmv2beta1.HelmChartTemplate{
-						Spec: helmv2beta1.HelmChartTemplateSpec{
+				Spec: helmv2.HelmReleaseSpec{
+					Chart: helmv2.HelmChartTemplate{
+						Spec: helmv2.HelmChartTemplateSpec{
 							Chart:   install.Ref.Chart,
 							Version: install.Ref.Version,
-							SourceRef: helmv2beta1.CrossNamespaceObjectReference{
-								APIVersion: sourcev1beta1.GroupVersion.Identifier(),
-								Kind:       sourcev1beta1.HelmRepositoryKind,
+							SourceRef: helmv2.CrossNamespaceObjectReference{
+								APIVersion: sourcev1.GroupVersion.Identifier(),
+								Kind:       sourcev1.HelmRepositoryKind,
 								Name:       install.Ref.SourceRef.Name,
 								Namespace:  install.Ref.SourceRef.Namespace,
 							},
