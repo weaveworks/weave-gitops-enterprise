@@ -32,7 +32,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
@@ -576,7 +575,6 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
-		app.WithClusterFetcher(&clustersmngrfakes.FakeClusterFetcher{}),
 	)
 }
 

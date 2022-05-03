@@ -8,9 +8,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
-	capi_server "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -44,7 +42,7 @@ func TestListPolicies(t *testing.T) {
 						Code:      "foo",
 						CreatedAt: "0001-01-01T00:00:00Z",
 						Targets: &capiv1_proto.PolicyTargets{
-							Labels: []*capi_server.PolicyTargetLabel{
+							Labels: []*capiv1_proto.PolicyTargetLabel{
 								{
 									Values: map[string]string{"my-label": "my-value"},
 								},
@@ -57,7 +55,7 @@ func TestListPolicies(t *testing.T) {
 						Code:      "foo",
 						CreatedAt: "0001-01-01T00:00:00Z",
 						Targets: &capiv1_proto.PolicyTargets{
-							Labels: []*capi_server.PolicyTargetLabel{
+							Labels: []*capiv1_proto.PolicyTargetLabel{
 								{
 									Values: map[string]string{"my-label": "my-value"},
 								},
@@ -90,14 +88,14 @@ func TestListPolicies(t *testing.T) {
 						Severity: "high",
 						Code:     "foo",
 						Targets: &capiv1_proto.PolicyTargets{
-							Labels: []*capi_server.PolicyTargetLabel{
+							Labels: []*capiv1_proto.PolicyTargetLabel{
 								{
 									Values: map[string]string{"my-label": "my-value"},
 								},
 							},
 						},
 						CreatedAt: "0001-01-01T00:00:00Z",
-						Parameters: []*capi_server.PolicyParam{
+						Parameters: []*capiv1_proto.PolicyParam{
 							{
 								Name:  "key",
 								Type:  "string",
@@ -131,14 +129,14 @@ func TestListPolicies(t *testing.T) {
 						Severity: "high",
 						Code:     "foo",
 						Targets: &capiv1_proto.PolicyTargets{
-							Labels: []*capi_server.PolicyTargetLabel{
+							Labels: []*capiv1_proto.PolicyTargetLabel{
 								{
 									Values: map[string]string{"my-label": "my-value"},
 								},
 							},
 						},
 						CreatedAt: "0001-01-01T00:00:00Z",
-						Parameters: []*capi_server.PolicyParam{
+						Parameters: []*capiv1_proto.PolicyParam{
 							{
 								Name:  "key",
 								Type:  "integer",
@@ -172,14 +170,14 @@ func TestListPolicies(t *testing.T) {
 						Severity: "high",
 						Code:     "foo",
 						Targets: &capiv1_proto.PolicyTargets{
-							Labels: []*capi_server.PolicyTargetLabel{
+							Labels: []*capiv1_proto.PolicyTargetLabel{
 								{
 									Values: map[string]string{"my-label": "my-value"},
 								},
 							},
 						},
 						CreatedAt: "0001-01-01T00:00:00Z",
-						Parameters: []*capi_server.PolicyParam{
+						Parameters: []*capiv1_proto.PolicyParam{
 							{
 								Name:  "key",
 								Type:  "boolean",
@@ -213,14 +211,14 @@ func TestListPolicies(t *testing.T) {
 						Severity: "high",
 						Code:     "foo",
 						Targets: &capiv1_proto.PolicyTargets{
-							Labels: []*capi_server.PolicyTargetLabel{
+							Labels: []*capiv1_proto.PolicyTargetLabel{
 								{
 									Values: map[string]string{"my-label": "my-value"},
 								},
 							},
 						},
 						CreatedAt: "0001-01-01T00:00:00Z",
-						Parameters: []*capi_server.PolicyParam{
+						Parameters: []*capiv1_proto.PolicyParam{
 							{
 								Name:  "key",
 								Type:  "array",
@@ -253,7 +251,7 @@ func TestListPolicies(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil)
-			listPoliciesRequest := new(capiv1_protos.ListPoliciesRequest)
+			listPoliciesRequest := new(capiv1_proto.ListPoliciesRequest)
 			gotResponse, err := s.ListPolicies(context.Background(), listPoliciesRequest)
 			if err != nil {
 				if tt.err == nil {
@@ -305,13 +303,13 @@ func TestGetPolicy(t *testing.T) {
 			clusterState: []runtime.Object{
 				makePolicy(t),
 			},
-			expected: &capiv1_protos.GetPolicyResponse{
-				Policy: &capiv1_protos.Policy{
+			expected: &capiv1_proto.GetPolicyResponse{
+				Policy: &capiv1_proto.Policy{
 					Name:     "Missing Owner Label",
 					Severity: "high",
 					Code:     "foo",
 					Targets: &capiv1_proto.PolicyTargets{
-						Labels: []*capi_server.PolicyTargetLabel{
+						Labels: []*capiv1_proto.PolicyTargetLabel{
 							{
 								Values: map[string]string{"my-label": "my-value"},
 							},
