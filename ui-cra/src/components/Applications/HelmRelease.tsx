@@ -11,8 +11,10 @@ type Props = {
   namespace: string;
 };
 
-const WGApplicationsBucket: FC<Props> = ({ name, namespace, clusterName }) => {
+const WGApplicationsBucket: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
+
+  const { name, namespace, clusterName } = props;
   const { data } = useGetHelmRelease(name, namespace, clusterName);
   const helmRelease = data?.helmRelease;
 
@@ -28,11 +30,7 @@ const WGApplicationsBucket: FC<Props> = ({ name, namespace, clusterName }) => {
         ]}
       />
       <ContentWrapper>
-        <HelmReleaseDetail
-          helmRelease={helmRelease}
-          clusterName={clusterName}
-          name={name}
-        />
+        <HelmReleaseDetail helmRelease={helmRelease} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

@@ -10,7 +10,7 @@ type Props = {
   namespace: string;
 };
 
-const WGApplicationsBucket: FC<Props> = ({ name, namespace }) => {
+const WGApplicationsBucket: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
 
   return (
@@ -25,7 +25,7 @@ const WGApplicationsBucket: FC<Props> = ({ name, namespace }) => {
         ]}
       />
       <ContentWrapper>
-        <BucketDetail name={name} namespace={namespace} />
+        <BucketDetail {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

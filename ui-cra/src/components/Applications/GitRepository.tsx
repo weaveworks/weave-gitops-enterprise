@@ -10,7 +10,7 @@ type Props = {
   namespace: string;
 };
 
-const WGApplicationsGitRepository: FC<Props> = ({ name, namespace }) => {
+const WGApplicationsGitRepository: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
 
   return (
@@ -25,7 +25,7 @@ const WGApplicationsGitRepository: FC<Props> = ({ name, namespace }) => {
         ]}
       />
       <ContentWrapper>
-        <GitRepositoryDetail name={name} namespace={namespace} />
+        <GitRepositoryDetail {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

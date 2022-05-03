@@ -10,7 +10,7 @@ type Props = {
   namespace: string;
 };
 
-const WGApplicationsHelmRepository: FC<Props> = ({ name, namespace }) => {
+const WGApplicationsHelmRepository: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
 
   return (
@@ -25,7 +25,7 @@ const WGApplicationsHelmRepository: FC<Props> = ({ name, namespace }) => {
         ]}
       />
       <ContentWrapper>
-        <HelmRepositoryDetail name={name} namespace={namespace} />
+        <HelmRepositoryDetail {...props} />
       </ContentWrapper>
     </PageTemplate>
   );
