@@ -11,9 +11,8 @@ type Props = {
   namespace: string;
 };
 
-const WGApplicationsBucket: FC<Props> = props => {
+const WGApplicationsHelmRelease: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
-
   const { name, namespace, clusterName } = props;
   const { data } = useGetHelmRelease(name, namespace, clusterName);
   const helmRelease = data?.helmRelease;
@@ -36,4 +35,4 @@ const WGApplicationsBucket: FC<Props> = props => {
   );
 };
 
-export default WGApplicationsBucket;
+export default WGApplicationsHelmRelease;
