@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
-import useClusters from '../../contexts/Clusters';
+import useClusters, { GitopsClusterEnriched } from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
@@ -18,14 +18,25 @@ import {
   getCallbackState,
   Icon,
   IconType,
+  filterConfigForString,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { PageRoute, Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
+// import { SortType } from '@weaveworks/weave-gitops/ui/components/DataTable';
 
 interface Size {
   size?: 'small';
+}
+
+export enum SortType {
+  //sort is unused but having number as index zero makes it a falsy value thus not used as a valid sortType for selecting fields for SortableLabel
+  sort,
+  number,
+  string,
+  date,
+  bool,
 }
 
 const ActionsWrapper = styled.div<Size>`
@@ -56,6 +67,7 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
+  const [filterDialogOpen, setFilterDialog] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
   const capiClusters = useMemo(
     // @ts-ignore
@@ -108,6 +120,11 @@ const MCCP: FC = () => {
     }
     history.push(`/clusters/templates/${activeTemplate.name}/create`);
   }, [activeTemplate, history]);
+
+  const initialFilterState = {
+    ...filterConfigForString(clusters, 'name'),
+    ...filterConfigForString(clusters, 'namespace'),
+  };
 
   useEffect(() => {
     if (!callbackState) {
@@ -204,8 +221,21 @@ const MCCP: FC = () => {
               orderBy={orderBy}
               onSortChange={handleRequestSort}
               filteredClusters={clusters}
+              rows={clusters}
               count={count}
               disabled={disabled}
+              onDialogClose={() => setFilterDialog(false)}
+              filters={initialFilterState}
+              fields={[
+                {
+                  label: 'Name',
+                  value: 'name',
+                  sortType: SortType.string,
+                  sortValue: (c: GitopsClusterEnriched) => c?.name || '',
+                  textSearchable: true,
+                },
+                { label: 'Namespace', value: 'namespace' },
+              ]}
             />
           </ContentWrapper>
         </CallbackStateContextProvider>

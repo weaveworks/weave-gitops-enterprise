@@ -23,7 +23,7 @@ const Wrapper = styled.div<Size>`
   z-index: 2;
 
   .MuiListItemIcon-root {
-    min-width: 23px;
+    min-width: 30px;
   }
 `;
 
