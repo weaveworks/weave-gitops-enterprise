@@ -72,4 +72,13 @@ rules:
   - apiGroups: ["pac.weave.works"]
     resources: ["policies"]
     verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-gitopscluster-reader
+rules:
+- apiGroups: ["gitops.weave.works"]
+  resources: ["gitopsclusters"]
+  verbs: ["get", "watch", "list"]
 {{- end }}
