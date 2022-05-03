@@ -14,8 +14,12 @@ type Props = {
 const WGApplicationsHelmRelease: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
   const { name, namespace, clusterName } = props;
-  const { data } = useGetHelmRelease(name, namespace, clusterName);
+  const { data, isLoading } = useGetHelmRelease(name, namespace, clusterName);
   const helmRelease = data?.helmRelease;
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <PageTemplate documentTitle="WeGO · Helm Release">
