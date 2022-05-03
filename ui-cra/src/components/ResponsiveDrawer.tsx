@@ -268,18 +268,27 @@ const App = () => {
               path={V2Routes.GitRepo}
             />
             <Route
-              component={withSearchParams(WGApplicationsHelmRepository)}
-              exact
+              component={withSearchParams((props: any) => (
+                <CoreWrapper>
+                  <WGApplicationsHelmRepository {...props} />
+                </CoreWrapper>
+              ))}
               path={V2Routes.HelmRepo}
             />
             <Route
-              component={withSearchParams(WGApplicationsBucket)}
-              exact
+              component={withSearchParams((props: any) => (
+                <CoreWrapper>
+                  <WGApplicationsBucket {...props} />
+                </CoreWrapper>
+              ))}
               path={V2Routes.Bucket}
             />
             <Route
-              component={withSearchParams(WGApplicationsHelmRelease)}
-              exact
+              component={withSearchParams((props: any) => (
+                <CoreWrapper>
+                  <WGApplicationsHelmRelease {...props} />
+                </CoreWrapper>
+              ))}
               path={V2Routes.HelmRelease}
             />
             <Route

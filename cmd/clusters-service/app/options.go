@@ -125,12 +125,6 @@ func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
 	}
 }
 
-func WithClusterFetcher(clusterFetcher clustersmngr.ClusterFetcher) Option {
-	return func(o *Options) {
-		o.ClusterFetcher = clusterFetcher
-	}
-}
-
 // WithProfilesConfig is used to set the configuration needed to work
 // with Weave GitOps Core profiles
 func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {

@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/core/cache/cachefakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
@@ -31,6 +31,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -73,7 +74,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
-		sourcev1beta1.AddToScheme,
+		sourcev1.AddToScheme,
 	}
 	err = schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -110,7 +111,6 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
 			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
-			app.WithClusterFetcher(&clustersmngrfakes.FakeClusterFetcher{}),
 		)
 		t.Logf("%v", err)
 	}(ctx)
@@ -154,7 +154,17 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 }
 
 func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
-	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, &cachefakes.FakeContainer{}, "test")
+
+	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+
+	// A fake to support kustomizations, sorry, this is pretty frgaile and will likely break.
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	clientsPool.ClientsReturns(map[string]clustersmngr.ClusterClient{})
+
+	client := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	clientsFactory.GetImpersonatedClientReturns(client, nil)
+
+	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
 	return coreConfig
 }
 

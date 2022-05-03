@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
@@ -29,7 +29,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
-		sourcev1beta1.AddToScheme,
+		sourcev1.AddToScheme,
 		policiesv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
@@ -45,7 +45,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	return c
 }
 
-func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1beta1.HelmRepository) capiv1_protos.ClustersServiceServer {
+func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1.HelmRepository) capiv1_protos.ClustersServiceServer {
 	c := createClient(t, clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
@@ -66,21 +66,21 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 		"weaveworks-charts", t.TempDir())
 }
 
-func makeTestHelmRepository(base string, opts ...func(*sourcev1beta1.HelmRepository)) *sourcev1beta1.HelmRepository {
-	hr := &sourcev1beta1.HelmRepository{
+func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository)) *sourcev1.HelmRepository {
+	hr := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1beta1.HelmRepositoryKind,
-			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testing",
 			Namespace: "test-ns",
 		},
-		Spec: sourcev1beta1.HelmRepositorySpec{
+		Spec: sourcev1.HelmRepositorySpec{
 			URL:      base + "/charts",
 			Interval: metav1.Duration{Duration: time.Minute * 10},
 		},
-		Status: sourcev1beta1.HelmRepositoryStatus{
+		Status: sourcev1.HelmRepositoryStatus{
 			URL: base + "/index.yaml",
 		},
 	}
