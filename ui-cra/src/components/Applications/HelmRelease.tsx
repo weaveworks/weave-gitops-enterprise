@@ -13,7 +13,7 @@ type Props = {
 
 const WGApplicationsBucket: FC<Props> = ({ name, namespace, clusterName }) => {
   const applicationsCount = useApplicationsCount();
-  const { data } = useGetHelmRelease(name, namespace);
+  const { data } = useGetHelmRelease(name, namespace, clusterName);
   const helmRelease = data?.helmRelease;
 
   return (
