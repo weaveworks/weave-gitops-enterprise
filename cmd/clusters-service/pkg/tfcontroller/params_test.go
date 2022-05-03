@@ -14,15 +14,18 @@ func TestParamsFromSpec(t *testing.T) {
 		want     []Param
 	}{
 		{
-			"testdata/template1.yaml", []Param{
-				{Name: "CLUSTER_NAME", Description: "This is used for the cluster naming."},
+			"testdata/tf-controller.yaml", []Param{
+				{Name: "CLUSTER_NAME", Description: "Name of the cluster."},
+				{Name: "GIT_REPO_NAME", Description: "Name of the configuring git repository."},
+				{Name: "GIT_REPO_NAMESPACE", Description: "Namespace of the configuring git repository object."},
+				{Name: "NAMESPACE", Description: "Namespace to create the Terraform resource in."},
+				{Name: "TEMPLATE_NAME", Description: "Name of the template."},
+				{Name: "TEMPLATE_PATH", Description: "Path to the generated tf-controller templates."},
 			},
 		},
 		{
-			"testdata/template2.yaml", []Param{
-				{Name: "AWS_NODE_MACHINE_TYPE", Options: []string{"big", "small"}},
-				{Name: "AWS_SSH_KEY_NAME", Description: "A description"},
-				{Name: "CLUSTER_NAME"},
+			"testdata/tf-controller-2.yaml", []Param{
+				{Name: "CLUSTER_NAME", Description: "Name of the cluster."},
 			},
 		},
 	}

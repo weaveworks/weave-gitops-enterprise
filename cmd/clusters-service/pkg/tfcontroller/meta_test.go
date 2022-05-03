@@ -1,7 +1,6 @@
 package tfcontroller
 
 import (
-	"io/ioutil"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -9,44 +8,33 @@ import (
 )
 
 func TestParseTemplateMeta(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := mustParseFile(t, "testdata/tf-controller-multiple.yaml")
 	meta, err := ParseTemplateMeta(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	want := &TemplateMeta{
-		Name:        "cluster-template2",
-		Description: "this is a test template",
+		Name:        "sample-wge-tf-controller-template",
+		Description: "This is a sample WGE template that will be translated into a tf-controller specific template.",
 		Objects: []Object{
 			{
-				Kind:       "Cluster",
-				APIVersion: "cluster.x-k8s.io/v1alpha3",
-				Name:       "${CLUSTER_NAME}",
-				Params:     []string{"CLUSTER_NAME"},
+				Kind:       "Terraform",
+				APIVersion: "tfcontroller.contrib.fluxcd.io/v1alpha1",
+				Name:       "${TEMPLATE_NAME}-1",
+				Params:     []string{"TEMPLATE_NAME"},
 			},
 			{
-				Kind:       "AWSMachineTemplate",
-				APIVersion: "infrastructure.cluster.x-k8s.io/v1alpha3",
-				Params:     []string{"CLUSTER_NAME"},
-				Name:       "${CLUSTER_NAME}-md-0",
-			},
-			{
-				Kind:       "KubeadmControlPlane",
-				APIVersion: "controlplane.cluster.x-k8s.io/v1alpha4",
-				Name:       "${CLUSTER_NAME}-control-plane",
-				Params:     []string{"CLUSTER_NAME", "CONTROL_PLANE_MACHINE_COUNT"},
+				Kind:       "Terraform",
+				APIVersion: "tfcontroller.contrib.fluxcd.io/v1alpha1",
+				Name:       "${TEMPLATE_NAME}-2",
+				Params:     []string{"TEMPLATE_NAME"},
 			},
 		},
 		Params: []Param{
 			{
-				Name:        "CLUSTER_NAME",
-				Description: "This is used for the cluster naming.",
-				Required:    true,
-			},
-			{
-				Name:        "CONTROL_PLANE_MACHINE_COUNT",
-				Description: "How many machine replicas to setup.",
+				Name:        "TEMPLATE_NAME",
+				Description: "Name of the template.",
 				Required:    true,
 			},
 		},
@@ -63,13 +51,4 @@ func TestParseTemplateMeta_bad_parameter(t *testing.T) {
 	}
 	_, err = ParseTemplateMeta(parsed)
 	assert.EqualError(t, err, "failed to get parameters processing template: missing closing brace")
-}
-
-func readFixture(t *testing.T, fname string) []byte {
-	t.Helper()
-	b, err := ioutil.ReadFile(fname)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return b
 }

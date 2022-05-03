@@ -79,38 +79,39 @@ metadata:
 }
 
 func TestRender_InjectPruneAnnotation(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := mustParseFile(t, "testdata/tf-controller.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
-		"CLUSTER_NAME":                "testing",
-		"CONTROL_PLANE_MACHINE_COUNT": "5",
-	},
-		InjectPruneAnnotation)
+		"CLUSTER_NAME":       "testing",
+		"GIT_REPO_NAME":      "git-repo",
+		"GIT_REPO_NAMESPACE": "git-namespace",
+		"NAMESPACE":          "namespace",
+		"TEMPLATE_NAME":      "test-tf-template",
+		"TEMPLATE_PATH":      "./",
+	}, InjectPruneAnnotation)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
-metadata:
-  name: testing
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-kind: AWSMachineTemplate
+apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
-  name: testing-md-0
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
-kind: KubeadmControlPlane
-metadata:
-  annotations:
-    kustomize.toolkit.fluxcd.io/prune: disabled
-  name: testing-control-plane
+  name: test-tf-template
+  namespace: namespace
 spec:
-  replicas: 5
+  approvePlan: auto
+  interval: 1h
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: git-repo
+    namespace: git-namespace
+  vars:
+  - name: cluster_identifier
+    value: testing
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
@@ -119,8 +120,8 @@ spec:
 
 func TestInNamespace(t *testing.T) {
 	raw := []byte(`
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
+apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
   name: testing
 ---
@@ -135,8 +136,8 @@ spec:
 		t.Fatal(err)
 	}
 
-	want := `apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
+	want := `apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
   name: testing
   namespace: new-namespace
@@ -149,8 +150,8 @@ metadata:
 
 func TestInNamespacePreservesExistingNamespace(t *testing.T) {
 	raw := []byte(`
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
+apiVersion: tfcontroller.x-k8s.io/v1alpha3
+kind: Terraform
 metadata:
   name: testing
   namespace: old-namespace
@@ -160,8 +161,8 @@ metadata:
 		t.Fatal(err)
 	}
 
-	want := `apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
+	want := `apiVersion: tfcontroller.x-k8s.io/v1alpha3
+kind: Terraform
 metadata:
   name: testing
   namespace: old-namespace
@@ -172,50 +173,44 @@ metadata:
 	}
 }
 
-func TestRender_in_namespace(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+func TestRenderInNamespace(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/tf-controller-2.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
-		"CLUSTER_NAME":                "testing",
-		"CONTROL_PLANE_MACHINE_COUNT": "5",
-	},
-		InNamespace("new-test-namespace"))
+		"CLUSTER_NAME": "testing",
+	}, InNamespace("new-namespace"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
+apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
-  name: testing
-  namespace: new-test-namespace
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-kind: AWSMachineTemplate
-metadata:
-  name: testing-md-0
-  namespace: new-test-namespace
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
-kind: KubeadmControlPlane
-metadata:
-  name: testing-control-plane
-  namespace: new-test-namespace
+  name: test-template
+  namespace: new-namespace
 spec:
-  replicas: 5
+  approvePlan: auto
+  interval: 1h
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: git-repo-name
+    namespace: git-repo-namespace
+  vars:
+  - name: cluster_identifier
+    value: testing
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
 
-func TestRender_with_options(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+func TestRenderWithOptions(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/tf-controller-2.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
-		"CLUSTER_NAME":                "testing",
-		"CONTROL_PLANE_MACHINE_COUNT": "2",
+		"CLUSTER_NAME": "testing",
 	},
 		func(uns *unstructured.Unstructured) error {
 			uns.SetName("just-a-test")
@@ -231,57 +226,22 @@ func TestRender_with_options(t *testing.T) {
 	}
 
 	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
-metadata:
-  name: just-a-test
-  namespace: not-a-real-namespace
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-kind: AWSMachineTemplate
-metadata:
-  name: just-a-test
-  namespace: not-a-real-namespace
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
-kind: KubeadmControlPlane
+apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+kind: Terraform
 metadata:
   name: just-a-test
   namespace: not-a-real-namespace
 spec:
-  replicas: 2
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
-		t.Fatalf("rendering failure:\n%s", diff)
-	}
-}
-
-func TestRenderWithCRD(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template0.yaml")
-
-	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
-kind: Cluster
-metadata:
-  name: testing
-spec:
-  clusterNetwork:
-    pods:
-      cidrBlocks:
-      - 192.168.0.0/16
-  controlPlaneRef:
-    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-    kind: KubeadmControlPlane
-    name: testing-control-plane
-  infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-    kind: AWSCluster
-    name: testing
+  approvePlan: auto
+  interval: 1h
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: git-repo-name
+    namespace: git-repo-namespace
+  vars:
+  - name: cluster_identifier
+    value: testing
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
@@ -289,7 +249,7 @@ spec:
 }
 
 func TestRender_unknown_parameter(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := mustParseFile(t, "testdata/tf-controller-2.yaml")
 
 	_, err := Render(parsed.Spec, map[string]string{})
 	assert.EqualError(t, err, "processing template: value for variables [CLUSTER_NAME] is not set. Please set the value using os environment variables or the clusterctl config file")
