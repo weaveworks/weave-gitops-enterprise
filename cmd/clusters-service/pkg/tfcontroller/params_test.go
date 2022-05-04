@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 )
 
 func TestParamsFromSpec(t *testing.T) {
@@ -50,7 +50,7 @@ func TestParamsFromSpec_with_bad_template(t *testing.T) {
 	assert.EqualError(t, err, "failed to get params from template: processing template: missing closing brace")
 }
 
-func mustParseFile(t *testing.T, filename string) *apiv1.TFTemplate {
+func mustParseFile(t *testing.T, filename string) *tapiv1.TFTemplate {
 	t.Helper()
 	parsed, err := ParseFile(filename)
 	if err != nil {

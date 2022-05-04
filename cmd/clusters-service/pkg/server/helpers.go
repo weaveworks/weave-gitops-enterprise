@@ -6,15 +6,15 @@ import (
 
 	"github.com/spf13/viper"
 
-	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/tfcontroller"
 )
 
 // TODO: Refactor this to use the render outside of Capi ( It should be doing the same thing ).
 // Just pass in the namespace.
-func renderTemplateWithValues(t *apiv1.CAPITemplate, name string, values map[string]string) ([][]byte, error) {
+func renderTemplateWithValues(t *capiv1.CAPITemplate, name string, values map[string]string) ([][]byte, error) {
 	opts := []capi.RenderOptFunc{
 		capi.InNamespace(viper.GetString("capi-clusters-namespace")),
 	}
@@ -33,7 +33,7 @@ func renderTemplateWithValues(t *apiv1.CAPITemplate, name string, values map[str
 	return templateBits, nil
 }
 
-func renderTFControllerTemplateWithValues(t *apiv1.TFTemplate, name string, values map[string]string) ([][]byte, error) {
+func renderTFControllerTemplateWithValues(t *tapiv1.TFTemplate, name string, values map[string]string) ([][]byte, error) {
 	opts := []tfcontroller.RenderOptFunc{
 		tfcontroller.InNamespace(viper.GetString("tfcontroller-templates-namespace")),
 	}

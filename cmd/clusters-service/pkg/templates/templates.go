@@ -10,30 +10,31 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/tfcontroller"
 )
 
 // TemplateGetter implementations get templates by name.
 type TemplateGetter interface {
-	Get(ctx context.Context, name string) (*apiv1.CAPITemplate, error)
+	Get(ctx context.Context, name string) (*capiv1.CAPITemplate, error)
 }
 
 // TemplateLister implementations list templates from a Library.
 type TemplateLister interface {
-	List(ctx context.Context) (map[string]*apiv1.CAPITemplate, error)
+	List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error)
 }
 
 // TODO: Unify this with Templates which are the same thing.
 // TemplateGetter implementations get templates by name.
 type TFControllerTemplateGetter interface {
-	GetTFControllerTemplate(ctx context.Context, name string) (*apiv1.TFTemplate, error)
+	GetTFControllerTemplate(ctx context.Context, name string) (*tapiv1.TFTemplate, error)
 }
 
 // TemplateLister implementations list templates from a Library.
 type TFControllerTemplateLister interface {
-	ListTFControllerTemplate(ctx context.Context) (map[string]*apiv1.TFTemplate, error)
+	ListTFControllerTemplate(ctx context.Context) (map[string]*tapiv1.TFTemplate, error)
 }
 
 // Library represents a library of Templates indexed by name.
@@ -52,7 +53,7 @@ type ConfigMapLibrary struct {
 	Namespace     string
 }
 
-func (lib *ConfigMapLibrary) List(ctx context.Context) (map[string]*apiv1.CAPITemplate, error) {
+func (lib *ConfigMapLibrary) List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error) {
 	lib.Log.Info("Querying Kubernetes for configmap", "namespace", lib.Namespace, "configmapName", lib.ConfigMapName)
 
 	templateConfigMap := &v1.ConfigMap{}
@@ -74,12 +75,12 @@ func (lib *ConfigMapLibrary) List(ctx context.Context) (map[string]*apiv1.CAPITe
 	return tm, nil
 }
 
-func (lib *ConfigMapLibrary) Get(ctx context.Context, name string) (*apiv1.CAPITemplate, error) {
+func (lib *ConfigMapLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITemplate, error) {
 	allTemplates, err := lib.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	var foundTemplate *apiv1.CAPITemplate
+	var foundTemplate *capiv1.CAPITemplate
 	for _, tm := range allTemplates {
 		if tm.Name == name {
 			foundTemplate = tm
@@ -92,7 +93,7 @@ func (lib *ConfigMapLibrary) Get(ctx context.Context, name string) (*apiv1.CAPIT
 	return foundTemplate, nil
 }
 
-func (lib *ConfigMapLibrary) ListTFControllerTemplate(ctx context.Context) (map[string]*apiv1.TFTemplate, error) {
+func (lib *ConfigMapLibrary) ListTFControllerTemplate(ctx context.Context) (map[string]*tapiv1.TFTemplate, error) {
 	lib.Log.Info("Querying Kubernetes for configmap", "namespace", lib.Namespace, "configmapName", lib.ConfigMapName)
 
 	templateConfigMap := &v1.ConfigMap{}
@@ -114,12 +115,12 @@ func (lib *ConfigMapLibrary) ListTFControllerTemplate(ctx context.Context) (map[
 	return tm, nil
 }
 
-func (lib *ConfigMapLibrary) GetTFControllerTemplate(ctx context.Context, name string) (*apiv1.TFTemplate, error) {
+func (lib *ConfigMapLibrary) GetTFControllerTemplate(ctx context.Context, name string) (*tapiv1.TFTemplate, error) {
 	allTemplates, err := lib.ListTFControllerTemplate(ctx)
 	if err != nil {
 		return nil, err
 	}
-	var foundTemplate *apiv1.TFTemplate
+	var foundTemplate *tapiv1.TFTemplate
 	for _, tm := range allTemplates {
 		if tm.Name == name {
 			foundTemplate = tm
@@ -138,14 +139,14 @@ type CRDLibrary struct {
 	Namespace    string
 }
 
-func (lib *CRDLibrary) Get(ctx context.Context, name string) (*apiv1.CAPITemplate, error) {
+func (lib *CRDLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITemplate, error) {
 	lib.Log.Info("Getting client from context")
 	cl, err := lib.ClientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	capiTemplate := apiv1.CAPITemplate{}
+	capiTemplate := capiv1.CAPITemplate{}
 	lib.Log.Info("Getting capitemplate", "template", name)
 	err = cl.Get(ctx, client.ObjectKey{
 		Namespace: lib.Namespace,
@@ -160,7 +161,7 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*apiv1.CAPITemplat
 	return &capiTemplate, nil
 }
 
-func (lib *CRDLibrary) List(ctx context.Context) (map[string]*apiv1.CAPITemplate, error) {
+func (lib *CRDLibrary) List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error) {
 	lib.Log.Info("Getting client from context")
 	cl, err := lib.ClientGetter.Client(ctx)
 	if err != nil {
@@ -168,28 +169,28 @@ func (lib *CRDLibrary) List(ctx context.Context) (map[string]*apiv1.CAPITemplate
 	}
 
 	lib.Log.Info("Querying namespace for CAPITemplate resources", "namespace", lib.Namespace)
-	capiTemplateList := apiv1.CAPITemplateList{}
+	capiTemplateList := capiv1.CAPITemplateList{}
 	err = cl.List(ctx, &capiTemplateList, client.InNamespace(lib.Namespace))
 	if err != nil {
 		return nil, fmt.Errorf("error getting capitemplates: %w", err)
 	}
 	lib.Log.Info("Got capitemplates", "numberOfTemplates", len(capiTemplateList.Items))
 
-	result := map[string]*apiv1.CAPITemplate{}
+	result := map[string]*capiv1.CAPITemplate{}
 	for i, ct := range capiTemplateList.Items {
 		result[ct.ObjectMeta.Name] = &capiTemplateList.Items[i]
 	}
 	return result, nil
 }
 
-func (lib *CRDLibrary) GetTFControllerTemplate(ctx context.Context, name string) (*apiv1.TFTemplate, error) {
+func (lib *CRDLibrary) GetTFControllerTemplate(ctx context.Context, name string) (*tapiv1.TFTemplate, error) {
 	lib.Log.Info("Getting client from context")
 	cl, err := lib.ClientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	template := apiv1.TFTemplate{}
+	template := tapiv1.TFTemplate{}
 	lib.Log.Info("Getting template", "template", name)
 	err = cl.Get(ctx, client.ObjectKey{
 		Namespace: lib.Namespace,
@@ -204,7 +205,7 @@ func (lib *CRDLibrary) GetTFControllerTemplate(ctx context.Context, name string)
 	return &template, nil
 }
 
-func (lib *CRDLibrary) ListTFControllerTemplate(ctx context.Context) (map[string]*apiv1.TFTemplate, error) {
+func (lib *CRDLibrary) ListTFControllerTemplate(ctx context.Context) (map[string]*tapiv1.TFTemplate, error) {
 	lib.Log.Info("Getting client from context")
 	cl, err := lib.ClientGetter.Client(ctx)
 	if err != nil {
@@ -212,14 +213,14 @@ func (lib *CRDLibrary) ListTFControllerTemplate(ctx context.Context) (map[string
 	}
 
 	lib.Log.Info("Querying namespace for Template resources", "namespace", lib.Namespace)
-	templateList := apiv1.TFTemplateList{}
+	templateList := tapiv1.TFTemplateList{}
 	err = cl.List(ctx, &templateList, client.InNamespace(lib.Namespace))
 	if err != nil {
 		return nil, fmt.Errorf("error getting templates: %w", err)
 	}
 	lib.Log.Info("Got templates", "numberOfTemplates", len(templateList.Items))
 
-	result := map[string]*apiv1.TFTemplate{}
+	result := map[string]*tapiv1.TFTemplate{}
 	for i, ct := range templateList.Items {
 		result[ct.ObjectMeta.Name] = &templateList.Items[i]
 	}

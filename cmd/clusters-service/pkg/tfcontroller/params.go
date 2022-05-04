@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 )
 
 // Param is a parameter that can be templated into a struct.
@@ -21,7 +21,7 @@ type Param struct {
 //
 // Any fields in the templates, but not in the params will not be enriched, and
 // only the name will be returned.
-func ParamsFromSpec(s apiv1.TFTemplateSpec) ([]Param, error) {
+func ParamsFromSpec(s tapiv1.TFTemplateSpec) ([]Param, error) {
 	paramNames, err := Params(s)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get params from template: %w", err)

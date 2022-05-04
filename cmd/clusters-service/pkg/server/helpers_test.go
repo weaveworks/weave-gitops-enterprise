@@ -3,7 +3,7 @@ package server
 import (
 	"testing"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 )
 
 func TestGetProvider(t *testing.T) {

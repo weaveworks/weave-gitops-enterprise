@@ -6,13 +6,13 @@ import (
 	"os"
 	"sort"
 
-	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
 )
 
-func ParseFile(fname string) (*apiv1.TFTemplate, error) {
+func ParseFile(fname string) (*tapiv1.TFTemplate, error) {
 	b, err := os.ReadFile(fname)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read template: %w", err)
@@ -20,7 +20,7 @@ func ParseFile(fname string) (*apiv1.TFTemplate, error) {
 	return ParseBytes(b, fname)
 }
 
-func ParseFileFromFS(fsys fs.FS, fname string) (*apiv1.TFTemplate, error) {
+func ParseFileFromFS(fsys fs.FS, fname string) (*tapiv1.TFTemplate, error) {
 	b, err := fs.ReadFile(fsys, fname)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read template: %w", err)
@@ -28,8 +28,8 @@ func ParseFileFromFS(fsys fs.FS, fname string) (*apiv1.TFTemplate, error) {
 	return ParseBytes(b, fname)
 }
 
-func ParseBytes(b []byte, key string) (*apiv1.TFTemplate, error) {
-	var t apiv1.TFTemplate
+func ParseBytes(b []byte, key string) (*tapiv1.TFTemplate, error) {
+	var t tapiv1.TFTemplate
 	err := yaml.Unmarshal(b, &t)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal %s: %w", key, err)
@@ -39,8 +39,8 @@ func ParseBytes(b []byte, key string) (*apiv1.TFTemplate, error) {
 
 // ParseConfigMap parses a ConfigMap and returns a map of TFTemplates indexed by their name.
 // The name of the template is set to the key of the ConfigMap.Data map.
-func ParseConfigMap(cm corev1.ConfigMap) (map[string]*apiv1.TFTemplate, error) {
-	tm := map[string]*apiv1.TFTemplate{}
+func ParseConfigMap(cm corev1.ConfigMap) (map[string]*tapiv1.TFTemplate, error) {
+	tm := map[string]*tapiv1.TFTemplate{}
 
 	for k, v := range cm.Data {
 		t, err := ParseBytes([]byte(v), k)
@@ -53,7 +53,7 @@ func ParseConfigMap(cm corev1.ConfigMap) (map[string]*apiv1.TFTemplate, error) {
 }
 
 // Params extracts the named parameters from resource templates in a spec.
-func Params(s apiv1.TFTemplateSpec) ([]string, error) {
+func Params(s tapiv1.TFTemplateSpec) ([]string, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := map[string]bool{}
 	for _, v := range s.ResourceTemplates {

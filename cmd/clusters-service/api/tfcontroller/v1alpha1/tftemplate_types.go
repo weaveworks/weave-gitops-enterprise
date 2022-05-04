@@ -14,6 +14,14 @@ type TFTemplateSpec struct {
 	ResourceTemplates []ResourceTemplate `json:"resourcetemplates,omitempty"`
 }
 
+// Param is a parameter that can be templated into a struct.
+type TemplateParam struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	Required    bool     `json:"required,omitempty"`
+	Options     []string `json:"options,omitempty"`
+}
+
 //+kubebuilder:pruning:PreserveUnknownFields
 
 // ResourceTemplate describes a resource to create.

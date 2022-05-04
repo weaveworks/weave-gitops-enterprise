@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
@@ -20,6 +21,13 @@ type TemplateParam struct {
 	Description string   `json:"description,omitempty"`
 	Required    bool     `json:"required,omitempty"`
 	Options     []string `json:"options,omitempty"`
+}
+
+//+kubebuilder:pruning:PreserveUnknownFields
+
+// ResourceTemplate describes a resource to create.
+type ResourceTemplate struct {
+	runtime.RawExtension `json:",inline"`
 }
 
 // CAPITemplateStatus defines the observed state of CAPITemplate

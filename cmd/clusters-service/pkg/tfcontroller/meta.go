@@ -3,7 +3,7 @@ package tfcontroller
 import (
 	"fmt"
 
-	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 )
@@ -17,7 +17,7 @@ const (
 	DisplayNameAnnotation = "tfcontroller.weave.works/display-name"
 )
 
-func ParseTemplateMeta(s *apiv1.TFTemplate) (*TemplateMeta, error) {
+func ParseTemplateMeta(s *tapiv1.TFTemplate) (*TemplateMeta, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := map[string]bool{}
 	var objects []Object

@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 )
 
 func TestParseFile(t *testing.T) {
@@ -20,7 +20,7 @@ func TestParseFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := &apiv1.TFTemplate{
+	want := &tapiv1.TFTemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "TFTemplate",
 			APIVersion: "tfcontroller.weave.works/v1alpha1",
@@ -29,9 +29,9 @@ func TestParseFile(t *testing.T) {
 			Name:      "sample-wge-tf-controller-template",
 			Namespace: "default",
 		},
-		Spec: apiv1.TFTemplateSpec{
+		Spec: tapiv1.TFTemplateSpec{
 			Description: "This is a sample WGE template that will be translated into a tf-controller specific template.",
-			Params: []apiv1.TemplateParam{
+			Params: []tapiv1.TemplateParam{
 				{
 					Name:        "CLUSTER_NAME",
 					Description: "Name of the cluster.",
@@ -57,10 +57,10 @@ func TestParseFile(t *testing.T) {
 					Description: "Path to the generated tf-controller templates.",
 				},
 			},
-			ResourceTemplates: []apiv1.ResourceTemplate{},
+			ResourceTemplates: []tapiv1.ResourceTemplate{},
 		},
 	}
-	if diff := cmp.Diff(want, c, cmpopts.IgnoreFields(apiv1.TFTemplateSpec{}, "ResourceTemplates")); diff != "" {
+	if diff := cmp.Diff(want, c, cmpopts.IgnoreFields(tapiv1.TFTemplateSpec{}, "ResourceTemplates")); diff != "" {
 		t.Fatalf("failed to read the template:\n%s", diff)
 	}
 }
@@ -76,7 +76,7 @@ func TestParseFileResourceTemplate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := &apiv1.TFTemplate{
+	want := &tapiv1.TFTemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "TFTemplate",
 			APIVersion: "tfcontroller.weave.works/v1alpha1",
@@ -85,9 +85,9 @@ func TestParseFileResourceTemplate(t *testing.T) {
 			Name:      "sample-wge-tf-controller-template",
 			Namespace: "default",
 		},
-		Spec: apiv1.TFTemplateSpec{
+		Spec: tapiv1.TFTemplateSpec{
 			Description: "This is a sample WGE template that will be translated into a tf-controller specific template.",
-			Params: []apiv1.TemplateParam{
+			Params: []tapiv1.TemplateParam{
 				{
 					Name:        "CLUSTER_NAME",
 					Description: "Name of the cluster.",
@@ -113,7 +113,7 @@ func TestParseFileResourceTemplate(t *testing.T) {
 					Description: "Path to the generated tf-controller templates.",
 				},
 			},
-			ResourceTemplates: []apiv1.ResourceTemplate{
+			ResourceTemplates: []tapiv1.ResourceTemplate{
 				{
 					RawExtension: runtime.RawExtension{
 						Raw: tfControllerResultContent,
