@@ -42,6 +42,8 @@ func InNamespace(ns string) RenderOptFunc {
 
 // Render takes template Spec and vars and returns a slice of byte-slices with
 // the bodies of the rendered objects.
+// TODO: Refactor this to also work with a TF Template Spec so all the template endpoints will be able to be
+// called with tfcontroller resources.
 func Render(spec capiv1.CAPITemplateSpec, vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
 	proc := processor.NewSimpleProcessor()
 	var processed [][]byte
