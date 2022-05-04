@@ -24,6 +24,7 @@ import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
+import FilterableTable from '../Table/FilterableTable';
 
 interface Size {
   size?: 'small';
@@ -33,6 +34,13 @@ const ActionsWrapper = styled.div<Size>`
   display: flex;
   & > * {
     margin-right: ${theme.spacing.medium};
+  }
+`;
+
+const TableWrapper = styled.div`
+  div[class*='FilterDialog__SlideContainer'],
+  div[class*='SearchField'] {
+    overflow: hidden;
   }
 `;
 
@@ -205,22 +213,19 @@ const MCCP: FC = () => {
                 onFinish={() => setOpenConnectInfo(false)}
               />
             )}
-            <ClustersTable
-              order={order}
-              orderBy={orderBy}
-              onSortChange={handleRequestSort}
-              filteredClusters={clusters}
-              count={count}
-              disabled={disabled}
-              filters={initialFilterState}
-              fields={[
-                { label: 'Namespace', value: 'namespace' },
-                {
-                  label: 'Type',
-                  value: 'type',
-                },
-              ]}
-            />
+            <TableWrapper>
+              <FilterableTable
+                filters={initialFilterState}
+                rows={clusters}
+                fields={[
+                  { label: 'Namespace', value: 'namespace' },
+                  {
+                    label: 'Type',
+                    value: 'type',
+                  },
+                ]}
+              />
+            </TableWrapper>
           </ContentWrapper>
         </CallbackStateContextProvider>
       </PageTemplate>
