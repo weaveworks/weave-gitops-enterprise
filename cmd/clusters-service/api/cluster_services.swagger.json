@@ -1,10 +1,16 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "capi_server.proto",
+    "title": "cluster_services.proto",
     "version": "version not set"
   },
   "tags": [
+    {
+      "name": "TemplateService"
+    },
+    {
+      "name": "TfControllerService"
+    },
     {
       "name": "ClustersService"
     }
@@ -262,7 +268,7 @@
     },
     "/v1/templates": {
       "get": {
-        "operationId": "ClustersService_ListTemplates",
+        "operationId": "TemplateService_ListTemplates",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -286,13 +292,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "TemplateService"
         ]
       }
     },
     "/v1/templates/{templateName}": {
       "get": {
-        "operationId": "ClustersService_GetTemplate",
+        "operationId": "TemplateService_GetTemplate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -316,13 +322,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "TemplateService"
         ]
       }
     },
     "/v1/templates/{templateName}/params": {
       "get": {
-        "operationId": "ClustersService_ListTemplateParams",
+        "operationId": "TemplateService_ListTemplateParams",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -346,14 +352,14 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "TemplateService"
         ]
       }
     },
     "/v1/templates/{templateName}/profiles": {
       "get": {
         "summary": "Returns a list of profiles within that template\n`gitops get \u003ctemplate-name\u003e --list-profiles`\nThe template annotations appear in the following form\ncapi.weave.works/profile-\u003cn\u003e where n is a number",
-        "operationId": "ClustersService_ListTemplateProfiles",
+        "operationId": "TemplateService_ListTemplateProfiles",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -377,13 +383,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "TemplateService"
         ]
       }
     },
     "/v1/templates/{templateName}/render": {
       "post": {
-        "operationId": "ClustersService_RenderTemplate",
+        "operationId": "TemplateService_RenderTemplate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -426,14 +432,14 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "TemplateService"
         ]
       }
     },
     "/v1/tfcontrollers": {
       "post": {
         "summary": "Creates a pull request for a tfcontroller template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
-        "operationId": "ClustersService_CreateTfControllerPullRequest",
+        "operationId": "TfControllerService_CreateTfControllerPullRequest",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -459,7 +465,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "TfControllerService"
         ]
       }
     }

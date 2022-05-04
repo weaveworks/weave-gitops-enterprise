@@ -1,17 +1,14 @@
 syntax = "proto3";
 
-package capi_server.v1;
+package protos.v1;
 
-option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/capi_server";
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/cluster_services";
 
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
 
-// TODO: Potentially rename this
-// Refactor the Template things into a Template service which can deal with templates regardless of ClusterService
-// or TFControllerService.
-service ClustersService {
+service TemplateService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
     option (google.api.http) = {
       get : "/v1/templates"
@@ -23,7 +20,7 @@ service ClustersService {
     };
   }
   rpc ListTemplateParams(ListTemplateParamsRequest)
-      returns (ListTemplateParamsResponse) {
+          returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
       get : "/v1/templates/{template_name}/params"
     };
@@ -33,7 +30,7 @@ service ClustersService {
   // The template annotations appear in the following form
   // capi.weave.works/profile-<n> where n is a number
   rpc ListTemplateProfiles(ListTemplateProfilesRequest)
-      returns (ListTemplateProfilesResponse) {
+          returns (ListTemplateProfilesResponse) {
     option (google.api.http) = {
       get : "/v1/templates/{template_name}/profiles"
     };
@@ -44,6 +41,23 @@ service ClustersService {
       body : "*"
     };
   }
+}
+
+service TfControllerService {
+  // Creates a pull request for a tfcontroller template.
+  // The template name and values will be used to
+  // create a new branch for which a new pull request
+  // will be created.
+  rpc CreateTfControllerPullRequest(CreateTfControllerPullRequestRequest)
+          returns (CreateTfControllerPullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/tfcontrollers"
+      body : "*"
+    };
+  }
+}
+
+service ClustersService {
   rpc ListGitopsClusters(ListGitopsClustersRequest)
       returns (ListGitopsClustersResponse) {
     option (google.api.http) = {
@@ -61,19 +75,6 @@ service ClustersService {
       body : "*"
     };
   }
-  // Creates a pull request for a tfcontroller template.
-  // The template name and values will be used to
-  // create a new branch for which a new pull request
-  // will be created.
-  rpc CreateTfControllerPullRequest(CreateTfControllerPullRequestRequest)
-      returns (CreateTfControllerPullRequestResponse) {
-    option (google.api.http) = {
-      post : "/v1/tfcontrollers"
-      body : "*"
-    };
-  }
-
-
   rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
       returns (DeleteClustersPullRequestResponse) {
     option (google.api.http) = {
