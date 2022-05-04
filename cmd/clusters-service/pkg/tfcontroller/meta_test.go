@@ -21,19 +21,19 @@ func TestParseTemplateMeta(t *testing.T) {
 			{
 				Kind:       "Terraform",
 				APIVersion: "tfcontroller.contrib.fluxcd.io/v1alpha1",
-				Name:       "${TEMPLATE_NAME}-1",
-				Params:     []string{"TEMPLATE_NAME"},
+				Name:       "${RESOURCE_NAME}-1",
+				Params:     []string{"RESOURCE_NAME"},
 			},
 			{
 				Kind:       "Terraform",
 				APIVersion: "tfcontroller.contrib.fluxcd.io/v1alpha1",
-				Name:       "${TEMPLATE_NAME}-2",
-				Params:     []string{"TEMPLATE_NAME"},
+				Name:       "${RESOURCE_NAME}-2",
+				Params:     []string{"RESOURCE_NAME"},
 			},
 		},
 		Params: []Param{
 			{
-				Name:        "TEMPLATE_NAME",
+				Name:        "RESOURCE_NAME",
 				Description: "Name of the template.",
 				Required:    true,
 			},

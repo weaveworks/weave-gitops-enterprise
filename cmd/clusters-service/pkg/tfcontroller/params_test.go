@@ -19,7 +19,7 @@ func TestParamsFromSpec(t *testing.T) {
 				{Name: "GIT_REPO_NAME", Description: "Name of the configuring git repository."},
 				{Name: "GIT_REPO_NAMESPACE", Description: "Namespace of the configuring git repository object."},
 				{Name: "NAMESPACE", Description: "Namespace to create the Terraform resource in."},
-				{Name: "TEMPLATE_NAME", Description: "Name of the template."},
+				{Name: "RESOURCE_NAME", Description: "Name of the template."},
 				{Name: "TEMPLATE_PATH", Description: "Path to the generated tf-controller templates."},
 			},
 		},

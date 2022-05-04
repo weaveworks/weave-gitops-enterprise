@@ -17,7 +17,7 @@ func TestRender(t *testing.T) {
 		"GIT_REPO_NAME":      "git-repo",
 		"GIT_REPO_NAMESPACE": "git-namespace",
 		"NAMESPACE":          "namespace",
-		"TEMPLATE_NAME":      "test-tf-template",
+		"RESOURCE_NAME":      "test-tf-template",
 		"TEMPLATE_PATH":      "./",
 	})
 	if err != nil {
@@ -86,7 +86,7 @@ func TestRender_InjectPruneAnnotation(t *testing.T) {
 		"GIT_REPO_NAME":      "git-repo",
 		"GIT_REPO_NAMESPACE": "git-namespace",
 		"NAMESPACE":          "namespace",
-		"TEMPLATE_NAME":      "test-tf-template",
+		"RESOURCE_NAME":      "test-tf-template",
 		"TEMPLATE_PATH":      "./",
 	}, InjectPruneAnnotation)
 	if err != nil {

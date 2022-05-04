@@ -8,6 +8,7 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // TFTemplateSpec defines the desired state of TFTemplate
+// TODO: TemplateSpec -> Extract into a struct
 type TFTemplateSpec struct {
 	Description       string             `json:"description,omitempty"`
 	Params            []TemplateParam    `json:"params,omitempty"` // Described above

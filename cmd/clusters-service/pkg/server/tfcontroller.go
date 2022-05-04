@@ -57,9 +57,9 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 	}
 
 	// FIXME: parse and read from Cluster in yaml template
-	templateName, ok := msg.ParameterValues["TEMPLATE_NAME"]
+	templateName, ok := msg.ParameterValues["RESOURCE_NAME"]
 	if !ok {
-		return nil, fmt.Errorf("unable to find 'TEMPLATE_NAME' parameter in supplied values")
+		return nil, fmt.Errorf("unable to find 'RESOURCE_NAME' parameter in supplied values")
 	}
 	// FIXME: parse and read from Cluster in yaml template
 	templateNamespace, ok := msg.ParameterValues["NAMESPACE"]
@@ -87,13 +87,13 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 		baseBranch = msg.BaseBranch
 	}
 	if msg.HeadBranch == "" {
-		msg.HeadBranch = getHash(msg.RepositoryUrl, msg.ParameterValues["TEMPLATE_NAME"], msg.BaseBranch)
+		msg.HeadBranch = getHash(msg.RepositoryUrl, msg.ParameterValues["RESOURCE_NAME"], msg.BaseBranch)
 	}
 	if msg.Title == "" {
-		msg.Title = fmt.Sprintf("Gitops add cluster %s", msg.ParameterValues["TEMPLATE_NAME"])
+		msg.Title = fmt.Sprintf("Gitops add cluster %s", msg.ParameterValues["RESOURCE_NAME"])
 	}
 	if msg.Description == "" {
-		msg.Description = fmt.Sprintf("Pull request to create cluster %s", msg.ParameterValues["TEMPLATE_NAME"])
+		msg.Description = fmt.Sprintf("Pull request to create cluster %s", msg.ParameterValues["RESOURCE_NAME"])
 	}
 	if msg.CommitMessage == "" {
 		msg.CommitMessage = "Add Template Manifests"

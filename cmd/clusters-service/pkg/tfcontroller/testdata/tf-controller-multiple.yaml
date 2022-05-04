@@ -6,14 +6,14 @@ metadata:
 spec:
   description: This is a sample WGE template that will be translated into a tf-controller specific template.
   params:
-    - name: TEMPLATE_NAME
+    - name: RESOURCE_NAME
       description: Name of the template.
       required: true
   resourcetemplates:
     - apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
       kind: Terraform
       metadata:
-        name: ${TEMPLATE_NAME}-1
+        name: ${RESOURCE_NAME}-1
         namespace: default
       spec:
         interval: 1h
@@ -29,7 +29,7 @@ spec:
     - apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
       kind: Terraform
       metadata:
-        name: ${TEMPLATE_NAME}-2
+        name: ${RESOURCE_NAME}-2
         namespace: default
       spec:
         interval: 1h

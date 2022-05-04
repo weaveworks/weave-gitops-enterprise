@@ -8,7 +8,7 @@ spec:
   params:
     - name: CLUSTER_NAME
       description: Name of the cluster.
-    - name: TEMPLATE_NAME
+    - name: RESOURCE_NAME
       description: Name of the template.
     - name: NAMESPACE
       description: Namespace to create the Terraform resource in.
@@ -24,7 +24,7 @@ spec:
     - apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
       kind: Terraform
       metadata:
-        name: ${TEMPLATE_NAME}
+        name: ${RESOURCE_NAME}
         namespace: ${NAMESPACE}
       spec:
         interval: 1h

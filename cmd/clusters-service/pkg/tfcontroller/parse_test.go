@@ -37,7 +37,7 @@ func TestParseFile(t *testing.T) {
 					Description: "Name of the cluster.",
 				},
 				{
-					Name:        "TEMPLATE_NAME",
+					Name:        "RESOURCE_NAME",
 					Description: "Name of the template.",
 				},
 				{
@@ -93,7 +93,7 @@ func TestParseFileResourceTemplate(t *testing.T) {
 					Description: "Name of the cluster.",
 				},
 				{
-					Name:        "TEMPLATE_NAME",
+					Name:        "RESOURCE_NAME",
 					Description: "Name of the template.",
 				},
 				{
@@ -149,7 +149,7 @@ func TestParams(t *testing.T) {
 				"GIT_REPO_NAME",
 				"GIT_REPO_NAMESPACE",
 				"NAMESPACE",
-				"TEMPLATE_NAME",
+				"RESOURCE_NAME",
 				"TEMPLATE_PATH",
 			},
 		},
