@@ -16,5 +16,5 @@ else
    
    # Fix the object name prefix length to 8 characters to have it consistent across the system.
    # See https://git-scm.com/docs/git-rev-parse#Documentation/git-rev-parse.txt---shortlength
-   echo "${BRANCH_PREFIX//\//-}-$(git rev-parse --short=8 "$REF")$WORKING_SUFFIX"
+   echo "${BRANCH_PREFIX//\//-}-$(date +%s)-$(git rev-parse --short=8 "$REF")$WORKING_SUFFIX"
 fi
