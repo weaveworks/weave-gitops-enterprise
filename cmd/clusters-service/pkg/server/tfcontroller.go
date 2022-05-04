@@ -31,12 +31,12 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 		return nil, err
 	}
 
-	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
+	tmpl, err := s.templatesLibrary.GetTFControllerTemplate(ctx, msg.TemplateName)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("tfcontroller-template-namespace"), msg.ParameterValues)
+	tmplWithValues, err := renderTFControllerTemplateWithValues(tmpl, msg.TemplateName, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}

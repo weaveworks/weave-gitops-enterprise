@@ -6,19 +6,42 @@ import (
 
 	"github.com/spf13/viper"
 
+	apiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/tfcontroller"
 )
 
-func renderTemplateWithValues(t *capiv1.CAPITemplate, name, namespace string, values map[string]string) ([][]byte, error) {
+// TODO: Refactor this to use the render outside of Capi ( It should be doing the same thing ).
+// Just pass in the namespace.
+func renderTemplateWithValues(t *apiv1.CAPITemplate, name string, values map[string]string) ([][]byte, error) {
 	opts := []capi.RenderOptFunc{
-		capi.InNamespace(namespace),
+		capi.InNamespace(viper.GetString("capi-clusters-namespace")),
 	}
 	if viper.GetString("inject-prune-annotation") != "disabled" {
 		opts = append(opts, capi.InjectPruneAnnotation)
 	}
 
 	templateBits, err := capi.Render(t.Spec, values, opts...)
+	if err != nil {
+		if missing, ok := isMissingVariableError(err); ok {
+			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", name, missing)
+		}
+		return nil, fmt.Errorf("error rendering template %v, %v", name, err)
+	}
+
+	return templateBits, nil
+}
+
+func renderTFControllerTemplateWithValues(t *apiv1.TFTemplate, name string, values map[string]string) ([][]byte, error) {
+	opts := []tfcontroller.RenderOptFunc{
+		tfcontroller.InNamespace(viper.GetString("tfcontroller-templates-namespace")),
+	}
+	if viper.GetString("inject-prune-annotation") != "disabled" {
+		opts = append(opts, capi.InjectPruneAnnotation)
+	}
+
+	templateBits, err := tfcontroller.Render(t.Spec, values, opts...)
 	if err != nil {
 		if missing, ok := isMissingVariableError(err); ok {
 			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", name, missing)

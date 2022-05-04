@@ -7,8 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/spf13/viper"
-
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -80,6 +78,9 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
+// TODO: This will only render CAPI templates.... Will need to refactor it.
+// Similar the others list and get will right now only work with CAPI templates.
+// tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName) -> this get is the key.
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
 	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
 	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
@@ -87,7 +88,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, viper.GetString("capi-clusters-namespace"), msg.Values)
+	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, msg.Values)
 	if err != nil {
 		return nil, err
 	}
