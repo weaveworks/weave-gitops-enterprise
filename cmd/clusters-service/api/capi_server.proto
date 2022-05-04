@@ -8,6 +8,7 @@ import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
 
+// TODO: Potentially rename this
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
     option (google.api.http) = {
@@ -58,6 +59,19 @@ service ClustersService {
       body : "*"
     };
   }
+  // Creates a pull request for a tfcontroller template.
+  // The template name and values will be used to
+  // create a new branch for which a new pull request
+  // will be created.
+  rpc CreateTfControllerPullRequest(CreateTfControllerPullRequestRequest)
+      returns (CreateTfControllerPullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/tfcontrollers"
+      body : "*"
+    };
+  }
+
+
   rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
       returns (DeleteClustersPullRequestResponse) {
     option (google.api.http) = {
@@ -174,6 +188,31 @@ message CreatePullRequestRequest {
   string repository_api_url = 11;
 }
 message CreatePullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
+}
+
+message CreateTfControllerPullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The name of the template to create a pull request for.
+  string template_name = 6;
+  // The values that populate the template's parameters.
+  map<string, string> parameter_values = 7;
+  // The commit message
+  string commit_message = 8;
+  // The repo api url.
+  string repository_api_url = 11;
+}
+message CreateTfControllerPullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
 }

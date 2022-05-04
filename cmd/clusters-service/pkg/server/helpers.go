@@ -5,13 +5,14 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 )
 
-func renderTemplateWithValues(t *capiv1.CAPITemplate, name string, values map[string]string) ([][]byte, error) {
+func renderTemplateWithValues(t *capiv1.CAPITemplate, name, namespace string, values map[string]string) ([][]byte, error) {
 	opts := []capi.RenderOptFunc{
-		capi.InNamespace(viper.GetString("capi-clusters-namespace")),
+		capi.InNamespace(namespace),
 	}
 	if viper.GetString("inject-prune-annotation") != "disabled" {
 		opts = append(opts, capi.InjectPruneAnnotation)

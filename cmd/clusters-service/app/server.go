@@ -35,18 +35,6 @@ import (
 	"github.com/weaveworks/go-checkpoint"
 	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
-	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	core_cache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -66,6 +54,19 @@ import (
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
+	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
 const (
@@ -94,39 +95,45 @@ func EnterprisePublicRoutes() []string {
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
-	dbURI                             string
-	dbName                            string
-	dbUser                            string
-	dbPassword                        string
-	dbType                            string
-	dbBusyTimeout                     string
-	entitlementSecretName             string
-	entitlementSecretNamespace        string
-	helmRepoNamespace                 string
-	helmRepoName                      string
-	profileCacheLocation              string
-	watcherMetricsBindAddress         string
-	watcherHealthzBindAddress         string
-	watcherPort                       int
-	AgentTemplateNatsURL              string
-	AgentTemplateAlertmanagerURL      string
-	htmlRootPath                      string
-	OIDC                              OIDCAuthenticationOptions
-	gitProviderType                   string
-	gitProviderHostname               string
-	capiClustersNamespace             string
-	capiTemplatesNamespace            string
-	injectPruneAnnotation             string
-	capiTemplatesRepositoryUrl        string
-	capiRepositoryPath                string
-	capiRepositoryClustersPath        string
-	capiTemplatesRepositoryApiUrl     string
-	capiTemplatesRepositoryBaseBranch string
-	runtimeNamespace                  string
-	gitProviderToken                  string
-	TLSCert                           string
-	TLSKey                            string
-	NoTLS                             bool
+	dbURI                                     string
+	dbName                                    string
+	dbUser                                    string
+	dbPassword                                string
+	dbType                                    string
+	dbBusyTimeout                             string
+	entitlementSecretName                     string
+	entitlementSecretNamespace                string
+	helmRepoNamespace                         string
+	helmRepoName                              string
+	profileCacheLocation                      string
+	watcherMetricsBindAddress                 string
+	watcherHealthzBindAddress                 string
+	watcherPort                               int
+	AgentTemplateNatsURL                      string
+	AgentTemplateAlertmanagerURL              string
+	htmlRootPath                              string
+	OIDC                                      OIDCAuthenticationOptions
+	gitProviderType                           string
+	gitProviderHostname                       string
+	capiClustersNamespace                     string
+	capiTemplatesNamespace                    string
+	injectPruneAnnotation                     string
+	capiTemplatesRepositoryUrl                string
+	capiRepositoryPath                        string
+	capiRepositoryClustersPath                string
+	capiTemplatesRepositoryApiUrl             string
+	capiTemplatesRepositoryBaseBranch         string
+	tfcontrollerTemplatesNamespace            string
+	tfcontrollerTemplatesRepositoryUrl        string
+	tfcontrollerRepositoryPath                string
+	tfcontrollerRepositoryClustersPath        string
+	tfcontrollerTemplatesRepositoryApiUrl     string
+	tfcontrollerTemplatesRepositoryBaseBranch string
+	runtimeNamespace                          string
+	gitProviderToken                          string
+	TLSCert                                   string
+	TLSKey                                    string
+	NoTLS                                     bool
 }
 
 type OIDCAuthenticationOptions struct {
@@ -184,6 +191,15 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
 	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")
 	cmd.Flags().StringVar(&p.gitProviderToken, "git-provider-token", "", "")
+
+	// tf-controller flags
+	cmd.Flags().StringVar(&p.tfcontrollerTemplatesNamespace, "tfcontroller-templates-namespace", "", "")
+	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
+	cmd.Flags().StringVar(&p.tfcontrollerTemplatesRepositoryUrl, "tfcontroller-templates-repository-url", "", "")
+	cmd.Flags().StringVar(&p.tfcontrollerRepositoryPath, "tfcontroller-repository-path", "", "")
+	cmd.Flags().StringVar(&p.tfcontrollerRepositoryClustersPath, "tfcontroller-repository-clusters-path", "./clusters", "")
+	cmd.Flags().StringVar(&p.tfcontrollerTemplatesRepositoryApiUrl, "tfcontroller-templates-repository-api-url", "", "")
+	cmd.Flags().StringVar(&p.tfcontrollerTemplatesRepositoryBaseBranch, "tfcontroller-templates-repository-base-branch", "", "")
 
 	cmd.Flags().StringVar(&p.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")

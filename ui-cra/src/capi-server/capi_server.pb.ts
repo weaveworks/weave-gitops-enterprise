@@ -95,6 +95,22 @@ export type CreatePullRequestResponse = {
   webUrl?: string
 }
 
+export type CreateTfControllerPullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  templateName?: string
+  parameterValues?: {[key: string]: string}
+  commitMessage?: string
+  repositoryApiUrl?: string
+}
+
+export type CreateTfControllerPullRequestResponse = {
+  webUrl?: string
+}
+
 export type DeleteClustersPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
@@ -291,6 +307,9 @@ export class ClustersService {
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
     return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/clusters`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static CreateTfControllerPullRequest(req: CreateTfControllerPullRequestRequest, initReq?: fm.InitReq): Promise<CreateTfControllerPullRequestResponse> {
+    return fm.fetchReq<CreateTfControllerPullRequestRequest, CreateTfControllerPullRequestResponse>(`/v1/tfcontrollers`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static DeleteClustersPullRequest(req: DeleteClustersPullRequestRequest, initReq?: fm.InitReq): Promise<DeleteClustersPullRequestResponse> {
     return fm.fetchReq<DeleteClustersPullRequestRequest, DeleteClustersPullRequestResponse>(`/v1/clusters`, {...initReq, method: "DELETE", body: JSON.stringify(req)})

@@ -34,6 +34,11 @@ type ClustersServiceClient interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
+	// Creates a pull request for a tfcontroller template.
+	// The template name and values will be used to
+	// create a new branch for which a new pull request
+	// will be created.
+	CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error)
 	DeleteClustersPullRequest(ctx context.Context, in *DeleteClustersPullRequestRequest, opts ...grpc.CallOption) (*DeleteClustersPullRequestResponse, error)
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
 	// GetKubeconfig returns the Kubeconfig for the given
@@ -113,6 +118,15 @@ func (c *clustersServiceClient) ListGitopsClusters(ctx context.Context, in *List
 func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error) {
 	out := new(CreatePullRequestResponse)
 	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/CreatePullRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error) {
+	out := new(CreateTfControllerPullRequestResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/CreateTfControllerPullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -201,6 +215,11 @@ type ClustersServiceServer interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
+	// Creates a pull request for a tfcontroller template.
+	// The template name and values will be used to
+	// create a new branch for which a new pull request
+	// will be created.
+	CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error)
 	DeleteClustersPullRequest(context.Context, *DeleteClustersPullRequestRequest) (*DeleteClustersPullRequestResponse, error)
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
 	// GetKubeconfig returns the Kubeconfig for the given
@@ -240,6 +259,9 @@ func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *L
 }
 func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
+}
+func (UnimplementedClustersServiceServer) CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTfControllerPullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) DeleteClustersPullRequest(context.Context, *DeleteClustersPullRequestRequest) (*DeleteClustersPullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteClustersPullRequest not implemented")
@@ -397,6 +419,24 @@ func _ClustersService_CreatePullRequest_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).CreatePullRequest(ctx, req.(*CreatePullRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_CreateTfControllerPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTfControllerPullRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CreateTfControllerPullRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/CreateTfControllerPullRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CreateTfControllerPullRequest(ctx, req.(*CreateTfControllerPullRequestRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -561,6 +601,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePullRequest",
 			Handler:    _ClustersService_CreatePullRequest_Handler,
+		},
+		{
+			MethodName: "CreateTfControllerPullRequest",
+			Handler:    _ClustersService_CreateTfControllerPullRequest_Handler,
 		},
 		{
 			MethodName: "DeleteClustersPullRequest",
