@@ -1,6 +1,6 @@
-# `capi-server` API
+# `cluster-services` API
 
-The `capi-server` HTTP API is generated from this here `capi_server.proto` protobuf file.
+The `cluster-services` HTTP API is generated from this here `capi_server.proto` protobuf file.
 
 See the [API Standardisation doc](https://gist.github.com/bigkevmcd/d97ddd38c5d82430bdc85f783e26b72e) for motivation.
 

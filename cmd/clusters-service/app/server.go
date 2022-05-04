@@ -147,9 +147,9 @@ type OIDCAuthenticationOptions struct {
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	p := Params{}
 	cmd := &cobra.Command{
-		Use:          "capi-server",
+		Use:          "cluster-services",
 		Version:      fmt.Sprintf("Version: %s, Image Tag: %s", version.Version, wge_version.ImageTag),
-		Long:         "The capi-server servers and handles REST operations for CAPI templates.",
+		Long:         "The cluster-services servers and handles REST operations for templates.",
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			return initializeConfig(cmd)
