@@ -9,7 +9,7 @@ import { useCallback, useState } from 'react';
 import LoadingError from '../../LoadingError';
 import HeaderSection from './HeaderSection';
 import { useParams } from 'react-router-dom';
-import { GetPolicyResponse } from '../../../capi-server/capi_server.pb';
+import { GetPolicyResponse } from '../../../cluster-services/cluster_services.pb';
 import ParametersSection from './ParametersSection';
 
 const PolicyDetails = () => {
