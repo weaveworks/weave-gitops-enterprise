@@ -194,7 +194,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 
 	// tf-controller flags
 	cmd.Flags().StringVar(&p.tfcontrollerTemplatesNamespace, "tfcontroller-templates-namespace", "", "")
-	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
 	cmd.Flags().StringVar(&p.tfcontrollerTemplatesRepositoryUrl, "tfcontroller-templates-repository-url", "", "")
 	cmd.Flags().StringVar(&p.tfcontrollerRepositoryPath, "tfcontroller-repository-path", "", "")
 	cmd.Flags().StringVar(&p.tfcontrollerRepositoryClustersPath, "tfcontroller-repository-clusters-path", "./clusters", "")
