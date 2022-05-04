@@ -1,16 +1,13 @@
 syntax = "proto3";
 
-package capi_server.v1;
+package cluster_services.v1;
 
-option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/capi_server";
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/cluster_services";
 
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
 
-// TODO: Potentially rename this
-// Refactor the Template things into a Template service which can deal with templates regardless of ClusterService
-// or TFControllerService.
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
     option (google.api.http) = {

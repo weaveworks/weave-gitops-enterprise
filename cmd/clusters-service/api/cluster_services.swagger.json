@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "capi_server.proto",
+    "title": "cluster_services.proto",
     "version": "version not set"
   },
   "tags": [
