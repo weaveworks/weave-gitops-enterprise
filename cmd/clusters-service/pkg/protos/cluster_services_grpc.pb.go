@@ -40,7 +40,7 @@ func NewTemplateServiceClient(cc grpc.ClientConnInterface) TemplateServiceClient
 
 func (c *templateServiceClient) ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error) {
 	out := new(ListTemplatesResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.TemplateService/ListTemplates", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.TemplateService/ListTemplates", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (c *templateServiceClient) ListTemplates(ctx context.Context, in *ListTempl
 
 func (c *templateServiceClient) GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error) {
 	out := new(GetTemplateResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.TemplateService/GetTemplate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.TemplateService/GetTemplate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (c *templateServiceClient) GetTemplate(ctx context.Context, in *GetTemplate
 
 func (c *templateServiceClient) ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error) {
 	out := new(ListTemplateParamsResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.TemplateService/ListTemplateParams", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.TemplateService/ListTemplateParams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (c *templateServiceClient) ListTemplateParams(ctx context.Context, in *List
 
 func (c *templateServiceClient) ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error) {
 	out := new(ListTemplateProfilesResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.TemplateService/ListTemplateProfiles", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.TemplateService/ListTemplateProfiles", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (c *templateServiceClient) ListTemplateProfiles(ctx context.Context, in *Li
 
 func (c *templateServiceClient) RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error) {
 	out := new(RenderTemplateResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.TemplateService/RenderTemplate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.TemplateService/RenderTemplate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func _TemplateService_ListTemplates_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.TemplateService/ListTemplates",
+		FullMethod: "/cluster_services.v1.TemplateService/ListTemplates",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TemplateServiceServer).ListTemplates(ctx, req.(*ListTemplatesRequest))
@@ -159,7 +159,7 @@ func _TemplateService_GetTemplate_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.TemplateService/GetTemplate",
+		FullMethod: "/cluster_services.v1.TemplateService/GetTemplate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TemplateServiceServer).GetTemplate(ctx, req.(*GetTemplateRequest))
@@ -177,7 +177,7 @@ func _TemplateService_ListTemplateParams_Handler(srv interface{}, ctx context.Co
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.TemplateService/ListTemplateParams",
+		FullMethod: "/cluster_services.v1.TemplateService/ListTemplateParams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TemplateServiceServer).ListTemplateParams(ctx, req.(*ListTemplateParamsRequest))
@@ -195,7 +195,7 @@ func _TemplateService_ListTemplateProfiles_Handler(srv interface{}, ctx context.
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.TemplateService/ListTemplateProfiles",
+		FullMethod: "/cluster_services.v1.TemplateService/ListTemplateProfiles",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TemplateServiceServer).ListTemplateProfiles(ctx, req.(*ListTemplateProfilesRequest))
@@ -213,7 +213,7 @@ func _TemplateService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.TemplateService/RenderTemplate",
+		FullMethod: "/cluster_services.v1.TemplateService/RenderTemplate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TemplateServiceServer).RenderTemplate(ctx, req.(*RenderTemplateRequest))
@@ -225,7 +225,7 @@ func _TemplateService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var TemplateService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "protos.v1.TemplateService",
+	ServiceName: "cluster_services.v1.TemplateService",
 	HandlerType: (*TemplateServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -274,7 +274,7 @@ func NewTfControllerServiceClient(cc grpc.ClientConnInterface) TfControllerServi
 
 func (c *tfControllerServiceClient) CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error) {
 	out := new(CreateTfControllerPullRequestResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.TfControllerService/CreateTfControllerPullRequest", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.TfControllerService/CreateTfControllerPullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func _TfControllerService_CreateTfControllerPullRequest_Handler(srv interface{},
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.TfControllerService/CreateTfControllerPullRequest",
+		FullMethod: "/cluster_services.v1.TfControllerService/CreateTfControllerPullRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TfControllerServiceServer).CreateTfControllerPullRequest(ctx, req.(*CreateTfControllerPullRequestRequest))
@@ -335,7 +335,7 @@ func _TfControllerService_CreateTfControllerPullRequest_Handler(srv interface{},
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var TfControllerService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "protos.v1.TfControllerService",
+	ServiceName: "cluster_services.v1.TfControllerService",
 	HandlerType: (*TfControllerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -381,7 +381,7 @@ func NewClustersServiceClient(cc grpc.ClientConnInterface) ClustersServiceClient
 
 func (c *clustersServiceClient) ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error) {
 	out := new(ListGitopsClustersResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/ListGitopsClusters", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListGitopsClusters", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +390,7 @@ func (c *clustersServiceClient) ListGitopsClusters(ctx context.Context, in *List
 
 func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error) {
 	out := new(CreatePullRequestResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/CreatePullRequest", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreatePullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +399,7 @@ func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *Creat
 
 func (c *clustersServiceClient) DeleteClustersPullRequest(ctx context.Context, in *DeleteClustersPullRequestRequest, opts ...grpc.CallOption) (*DeleteClustersPullRequestResponse, error) {
 	out := new(DeleteClustersPullRequestResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/DeleteClustersPullRequest", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/DeleteClustersPullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +408,7 @@ func (c *clustersServiceClient) DeleteClustersPullRequest(ctx context.Context, i
 
 func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error) {
 	out := new(ListCredentialsResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/ListCredentials", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListCredentials", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +417,7 @@ func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCre
 
 func (c *clustersServiceClient) GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
 	out := new(httpbody.HttpBody)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/GetKubeconfig", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetKubeconfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +426,7 @@ func (c *clustersServiceClient) GetKubeconfig(ctx context.Context, in *GetKubeco
 
 func (c *clustersServiceClient) GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error) {
 	out := new(GetEnterpriseVersionResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/GetEnterpriseVersion", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetEnterpriseVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +435,7 @@ func (c *clustersServiceClient) GetEnterpriseVersion(ctx context.Context, in *Ge
 
 func (c *clustersServiceClient) GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
 	out := new(GetConfigResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/GetConfig", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -444,7 +444,7 @@ func (c *clustersServiceClient) GetConfig(ctx context.Context, in *GetConfigRequ
 
 func (c *clustersServiceClient) ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error) {
 	out := new(ListPoliciesResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/ListPolicies", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListPolicies", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +453,7 @@ func (c *clustersServiceClient) ListPolicies(ctx context.Context, in *ListPolici
 
 func (c *clustersServiceClient) GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error) {
 	out := new(GetPolicyResponse)
-	err := c.cc.Invoke(ctx, "/protos.v1.ClustersService/GetPolicy", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetPolicy", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -539,7 +539,7 @@ func _ClustersService_ListGitopsClusters_Handler(srv interface{}, ctx context.Co
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/ListGitopsClusters",
+		FullMethod: "/cluster_services.v1.ClustersService/ListGitopsClusters",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListGitopsClusters(ctx, req.(*ListGitopsClustersRequest))
@@ -557,7 +557,7 @@ func _ClustersService_CreatePullRequest_Handler(srv interface{}, ctx context.Con
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/CreatePullRequest",
+		FullMethod: "/cluster_services.v1.ClustersService/CreatePullRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).CreatePullRequest(ctx, req.(*CreatePullRequestRequest))
@@ -575,7 +575,7 @@ func _ClustersService_DeleteClustersPullRequest_Handler(srv interface{}, ctx con
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/DeleteClustersPullRequest",
+		FullMethod: "/cluster_services.v1.ClustersService/DeleteClustersPullRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).DeleteClustersPullRequest(ctx, req.(*DeleteClustersPullRequestRequest))
@@ -593,7 +593,7 @@ func _ClustersService_ListCredentials_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/ListCredentials",
+		FullMethod: "/cluster_services.v1.ClustersService/ListCredentials",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListCredentials(ctx, req.(*ListCredentialsRequest))
@@ -611,7 +611,7 @@ func _ClustersService_GetKubeconfig_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/GetKubeconfig",
+		FullMethod: "/cluster_services.v1.ClustersService/GetKubeconfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).GetKubeconfig(ctx, req.(*GetKubeconfigRequest))
@@ -629,7 +629,7 @@ func _ClustersService_GetEnterpriseVersion_Handler(srv interface{}, ctx context.
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/GetEnterpriseVersion",
+		FullMethod: "/cluster_services.v1.ClustersService/GetEnterpriseVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).GetEnterpriseVersion(ctx, req.(*GetEnterpriseVersionRequest))
@@ -647,7 +647,7 @@ func _ClustersService_GetConfig_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/GetConfig",
+		FullMethod: "/cluster_services.v1.ClustersService/GetConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).GetConfig(ctx, req.(*GetConfigRequest))
@@ -665,7 +665,7 @@ func _ClustersService_ListPolicies_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/ListPolicies",
+		FullMethod: "/cluster_services.v1.ClustersService/ListPolicies",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListPolicies(ctx, req.(*ListPoliciesRequest))
@@ -683,7 +683,7 @@ func _ClustersService_GetPolicy_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.v1.ClustersService/GetPolicy",
+		FullMethod: "/cluster_services.v1.ClustersService/GetPolicy",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).GetPolicy(ctx, req.(*GetPolicyRequest))
@@ -695,7 +695,7 @@ func _ClustersService_GetPolicy_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ClustersService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "protos.v1.ClustersService",
+	ServiceName: "cluster_services.v1.ClustersService",
 	HandlerType: (*ClustersServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

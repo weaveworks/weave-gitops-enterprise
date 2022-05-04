@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package protos.v1;
+package cluster_services.v1;
 
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/cluster_services";
 

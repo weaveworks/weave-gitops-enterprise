@@ -617,7 +617,7 @@ func RegisterTemplateServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.TemplateService/ListTemplates", runtime.WithHTTPPathPattern("/v1/templates"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.TemplateService/ListTemplates", runtime.WithHTTPPathPattern("/v1/templates"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -640,7 +640,7 @@ func RegisterTemplateServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.TemplateService/GetTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.TemplateService/GetTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -663,7 +663,7 @@ func RegisterTemplateServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.TemplateService/ListTemplateParams", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/params"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.TemplateService/ListTemplateParams", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/params"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -686,7 +686,7 @@ func RegisterTemplateServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.TemplateService/ListTemplateProfiles", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/profiles"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.TemplateService/ListTemplateProfiles", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/profiles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -709,7 +709,7 @@ func RegisterTemplateServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.TemplateService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/render"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.TemplateService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/render"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -741,7 +741,7 @@ func RegisterTfControllerServiceHandlerServer(ctx context.Context, mux *runtime.
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.TfControllerService/CreateTfControllerPullRequest", runtime.WithHTTPPathPattern("/v1/tfcontrollers"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.TfControllerService/CreateTfControllerPullRequest", runtime.WithHTTPPathPattern("/v1/tfcontrollers"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -773,7 +773,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/ListGitopsClusters", runtime.WithHTTPPathPattern("/v1/clusters"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListGitopsClusters", runtime.WithHTTPPathPattern("/v1/clusters"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -796,7 +796,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -819,7 +819,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/DeleteClustersPullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/DeleteClustersPullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -842,7 +842,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/ListCredentials", runtime.WithHTTPPathPattern("/v1/credentials"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListCredentials", runtime.WithHTTPPathPattern("/v1/credentials"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -865,7 +865,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/GetKubeconfig", runtime.WithHTTPPathPattern("/v1/clusters/{cluster_name}/kubeconfig"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetKubeconfig", runtime.WithHTTPPathPattern("/v1/clusters/{cluster_name}/kubeconfig"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -888,7 +888,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/GetEnterpriseVersion", runtime.WithHTTPPathPattern("/v1/enterprise/version"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetEnterpriseVersion", runtime.WithHTTPPathPattern("/v1/enterprise/version"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -911,7 +911,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/GetConfig", runtime.WithHTTPPathPattern("/v1/config"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetConfig", runtime.WithHTTPPathPattern("/v1/config"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -934,7 +934,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/ListPolicies", runtime.WithHTTPPathPattern("/v1/policies"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListPolicies", runtime.WithHTTPPathPattern("/v1/policies"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -957,7 +957,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/protos.v1.ClustersService/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1019,7 +1019,7 @@ func RegisterTemplateServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.TemplateService/ListTemplates", runtime.WithHTTPPathPattern("/v1/templates"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.TemplateService/ListTemplates", runtime.WithHTTPPathPattern("/v1/templates"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1039,7 +1039,7 @@ func RegisterTemplateServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.TemplateService/GetTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.TemplateService/GetTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1059,7 +1059,7 @@ func RegisterTemplateServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.TemplateService/ListTemplateParams", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/params"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.TemplateService/ListTemplateParams", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/params"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1079,7 +1079,7 @@ func RegisterTemplateServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.TemplateService/ListTemplateProfiles", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/profiles"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.TemplateService/ListTemplateProfiles", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/profiles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1099,7 +1099,7 @@ func RegisterTemplateServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.TemplateService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/render"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.TemplateService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/render"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1184,7 +1184,7 @@ func RegisterTfControllerServiceHandlerClient(ctx context.Context, mux *runtime.
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.TfControllerService/CreateTfControllerPullRequest", runtime.WithHTTPPathPattern("/v1/tfcontrollers"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.TfControllerService/CreateTfControllerPullRequest", runtime.WithHTTPPathPattern("/v1/tfcontrollers"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1253,7 +1253,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/ListGitopsClusters", runtime.WithHTTPPathPattern("/v1/clusters"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListGitopsClusters", runtime.WithHTTPPathPattern("/v1/clusters"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1273,7 +1273,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1293,7 +1293,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/DeleteClustersPullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/DeleteClustersPullRequest", runtime.WithHTTPPathPattern("/v1/clusters"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1313,7 +1313,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/ListCredentials", runtime.WithHTTPPathPattern("/v1/credentials"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListCredentials", runtime.WithHTTPPathPattern("/v1/credentials"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1333,7 +1333,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/GetKubeconfig", runtime.WithHTTPPathPattern("/v1/clusters/{cluster_name}/kubeconfig"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetKubeconfig", runtime.WithHTTPPathPattern("/v1/clusters/{cluster_name}/kubeconfig"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1353,7 +1353,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/GetEnterpriseVersion", runtime.WithHTTPPathPattern("/v1/enterprise/version"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetEnterpriseVersion", runtime.WithHTTPPathPattern("/v1/enterprise/version"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1373,7 +1373,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/GetConfig", runtime.WithHTTPPathPattern("/v1/config"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetConfig", runtime.WithHTTPPathPattern("/v1/config"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1393,7 +1393,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/ListPolicies", runtime.WithHTTPPathPattern("/v1/policies"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListPolicies", runtime.WithHTTPPathPattern("/v1/policies"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1413,7 +1413,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/protos.v1.ClustersService/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
