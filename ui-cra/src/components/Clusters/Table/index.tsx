@@ -35,14 +35,20 @@ import {
   IconType,
   toPairs,
 } from '@weaveworks/weave-gitops';
-// can we do this for multiple fields?
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
+import styled from 'styled-components';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
   shadows: Array(25).fill('none') as Shadows,
 });
+
+const TableWrapper = styled.div`
+  div[class*='FilterDialog__SlideContainer'] {
+    overflow: hidden;
+  }
+`;
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -77,7 +83,7 @@ const useStyles = makeStyles(() =>
 );
 
 interface Props {
-  filteredClusters: GitopsClusterEnriched[] | null;
+  filteredClusters: GitopsClusterEnriched[];
   count: number | null;
   disabled?: boolean;
   onSortChange: (order: string) => void;
@@ -86,8 +92,6 @@ interface Props {
   fields: Field[];
   filters: { [key: string]: string[] };
   dialogOpen?: boolean;
-  onDialogClose?: () => void;
-  rows: any[];
 }
 
 export const ClustersTable: FC<Props> = ({
@@ -100,8 +104,6 @@ export const ClustersTable: FC<Props> = ({
   fields,
   filters,
   dialogOpen,
-  onDialogClose,
-  rows,
 }) => {
   const classes = useStyles();
   const history = useHistory();
@@ -149,7 +151,7 @@ export const ClustersTable: FC<Props> = ({
     formState: initialFormState(filters),
     textFilters: [],
   });
-  let filtered = filterRows(rows, filterState.filters);
+  let filtered = filterRows(filteredClusters, filterState.filters);
   filtered = filterText(filtered, fields, filterState.textFilters);
   const chips = toPairs(filterState);
 
@@ -204,7 +206,7 @@ export const ClustersTable: FC<Props> = ({
           {loading ? (
             <Loader />
           ) : (
-            <>
+            <TableWrapper>
               <Flex wide align>
                 <ChipGroup
                   chips={chips}
@@ -279,13 +281,33 @@ export const ClustersTable: FC<Props> = ({
                         >
                           <ColumnHeaderTooltip
                             title={
-                              <span>
-                                Shows the status of your clusters based on Agent
-                                connection and Alertmanager alerts
-                              </span>
+                              <span>Shows the status of your clusters</span>
                             }
                           >
                             <span>Status</span>
+                          </ColumnHeaderTooltip>
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell align="left">
+                        <TableSortLabel
+                          disabled={disabled}
+                          active={orderBy === 'ClusterType'}
+                          direction={
+                            orderBy === 'ClusterType'
+                              ? (order as 'asc' | 'desc')
+                              : 'asc'
+                          }
+                          onClick={() => onSortChange('ClusterType')}
+                        >
+                          <ColumnHeaderTooltip
+                            title={
+                              <span>
+                                Shows the type of your clusters (capi /
+                                non-capi)
+                              </span>
+                            }
+                          >
+                            <span>Type</span>
                           </ColumnHeaderTooltip>
                         </TableSortLabel>
                       </TableCell>
@@ -318,7 +340,7 @@ export const ClustersTable: FC<Props> = ({
                   open={filterDialogOpen}
                 />
               </Flex>
-            </>
+            </TableWrapper>
           )}
         </Paper>
       </ThemeProvider>

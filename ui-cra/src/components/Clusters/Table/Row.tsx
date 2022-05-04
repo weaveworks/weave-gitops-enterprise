@@ -10,7 +10,7 @@ import {
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { createStyles, makeStyles, withStyles } from '@material-ui/styles';
-import Octicon, { Icon, Tools } from '@primer/octicons-react';
+import Octicon, { Icon } from '@primer/octicons-react';
 import { EKS, ExistingInfra, GKE, Kind } from '../../../utils/icons';
 import { Tooltip } from '../../Shared';
 import { CAPIClusterStatus } from '../CAPIClusterStatus';
@@ -98,7 +98,12 @@ const ClusterRow = ({
   onCheckboxClick,
 }: RowProps) => {
   const classes = useStyles();
-  const { name, status: clusterStatus, type: clusterType, updatedAt } = cluster;
+  const {
+    name,
+    status: clusterStatus,
+    type: clusterType,
+    conditions,
+  } = cluster;
   const status = getClusterStatus(clusterStatus);
   const icon = getClusterTypeIcon(clusterType);
   const [open, setOpen] = React.useState<boolean>(false);
@@ -148,25 +153,12 @@ const ClusterRow = ({
           )}
         </TableCell>
         <TableCell align="left">
-          {/* Using div instead of forwardRefs in ReadyStatus */}
-          <Tooltip
-            disabled={status !== Status.lastSeen}
-            title={statusSummary(status, updatedAt)}
-            classes={{ tooltip: classes.noMaxWidth }}
-          >
-            <div>
-              <ReadyStatus
-                updatedAt={updatedAt}
-                status={status}
-                pullRequest={cluster.pullRequest}
-                onClick={
-                  cluster.capiCluster && cluster.pullRequest?.type !== 'delete'
-                    ? () => setOpen(!open)
-                    : undefined
-                }
-              />
-            </div>
-          </Tooltip>
+          {conditions && conditions[0]?.type === 'Ready'
+            ? 'Ready'
+            : 'Not ready'}
+        </TableCell>
+        <TableCell align="left">
+          {cluster.capiClusterRef ? 'CAPI' : 'OTHER'}
         </TableCell>
       </TableRow>
       <TableRow
