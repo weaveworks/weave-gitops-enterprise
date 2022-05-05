@@ -2,11 +2,9 @@ package server
 
 import (
 	"context"
-	"fmt"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"google.golang.org/protobuf/types/known/anypb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,8 +31,8 @@ func ToClusterResponse(c *gitopsv1alpha1.GitopsCluster) *capiv1_proto.GitopsClus
 }
 
 // AddCAPIClusters returns a list of capi-cluster CRs given a list of clusters
-func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*capiv1_proto.GitopsCluster) (*anypb.Any, error) {
-	capiClusters := []string{}
+func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*capiv1_proto.GitopsCluster) ([]*capiv1_proto.CapiCluster, error) {
+	capiClusters := []*capiv1_proto.CapiCluster{}
 	capiCluster := &clusterv1.Cluster{}
 
 	for _, cluster := range clusters {
@@ -47,17 +45,27 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				return nil, err
 			}
 
-			capiClusterStr := fmt.Sprint(capiCluster)
-			capiClusters = append(capiClusters, capiClusterStr)
+			clusterStatus := &capiv1_proto.CapiClusterStatus{
+				Phase:               capiCluster.Status.Phase,
+				InfrastructureReady: capiCluster.Status.InfrastructureReady,
+				ControlPlaneReady:   capiCluster.Status.ControlPlaneReady,
+				ObservedGeneration:  capiCluster.Status.ObservedGeneration,
+				Conditions:          cluster.Conditions,
+			}
+
+			capiClusterRes := &capiv1_proto.CapiCluster{
+				Name:        capiCluster.GetName(),
+				Namespace:   capiCluster.GetNamespace(),
+				Annotations: capiCluster.GetAnnotations(),
+				Labels:      capiCluster.GetLabels(),
+				Status:      clusterStatus,
+			}
+
+			capiClusters = append(capiClusters, capiClusterRes)
 		}
 	}
 
-	value := &capiv1_proto.CapiClusterRepeatedString{Value: capiClusters}
-	capiClustersAny, err := anypb.New(value)
-	if err != nil {
-		return nil, err
-	}
-	return capiClustersAny, nil
+	return capiClusters, nil
 }
 
 func mapConditions(conditions []metav1.Condition) []*capiv1_proto.Condition {

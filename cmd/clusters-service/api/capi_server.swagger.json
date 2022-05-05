@@ -483,6 +483,59 @@
         }
       }
     },
+    "v1CapiCluster": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "$ref": "#/definitions/v1CapiClusterStatus"
+        }
+      }
+    },
+    "v1CapiClusterStatus": {
+      "type": "object",
+      "properties": {
+        "phase": {
+          "type": "string"
+        },
+        "infrastructureReady": {
+          "type": "boolean"
+        },
+        "controlPlaneInitialized": {
+          "type": "boolean"
+        },
+        "controlPlaneReady": {
+          "type": "boolean"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "observedGeneration": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -742,7 +795,10 @@
           }
         },
         "capiClusters": {
-          "$ref": "#/definitions/protobufAny"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CapiCluster"
+          }
         },
         "total": {
           "type": "integer",
