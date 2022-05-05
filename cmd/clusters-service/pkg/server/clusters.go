@@ -51,6 +51,16 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		clusters = append(clusters, ToClusterResponse(c))
 	}
 
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	capiClusters, err := AddCAPIClusters(ctx, client, clusters)
+	if err != nil {
+		return nil, err
+	}
+
 	if msg.Label != "" {
 		if !isLabelRecognised(msg.Label) {
 			return nil, fmt.Errorf("label %q is not recognised", msg.Label)
@@ -60,7 +70,10 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	}
 
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
-	return &capiv1_proto.ListGitopsClustersResponse{GitopsClusters: clusters, Total: int32(len(cl))}, err
+	return &capiv1_proto.ListGitopsClustersResponse{
+		GitopsClusters: clusters,
+		CapiClusters:   capiClusters,
+		Total:          int32(len(cl))}, err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {

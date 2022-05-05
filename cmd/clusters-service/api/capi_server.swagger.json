@@ -741,6 +741,9 @@
             "$ref": "#/definitions/v1GitopsCluster"
           }
         },
+        "capiClusters": {
+          "$ref": "#/definitions/protobufAny"
+        },
         "total": {
           "type": "integer",
           "format": "int32"

@@ -58,6 +58,7 @@ export type ListGitopsClustersRequest = {
 
 export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
+  capiClusters?: GoogleProtobufAny.Any
   total?: number
 }
 
@@ -143,6 +144,10 @@ export type GitopsCluster = {
   conditions?: Condition[]
   capiClusterRef?: GitopsClusterRef
   secretRef?: GitopsClusterRef
+}
+
+export type CapiClusterRepeatedString = {
+  value?: string[]
 }
 
 export type GitopsClusterRef = {
