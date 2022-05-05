@@ -1093,7 +1093,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
-					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico[\s\w\d./:-]*weave.works/capi: bootstrap`))
+					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/capi: bootstrap`))
 
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
