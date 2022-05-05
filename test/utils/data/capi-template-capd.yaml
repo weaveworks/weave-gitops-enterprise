@@ -32,7 +32,6 @@ spec:
         namespace: "${NAMESPACE}"
         labels:
           cni: calico
-          weave.works/capi: bootstrap
       spec:
         clusterNetwork:
           pods:

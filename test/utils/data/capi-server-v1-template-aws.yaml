@@ -15,7 +15,6 @@ spec:
       kind: GitopsCluster
       metadata:
         name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
         labels:
           weave.works/capi: bootstrap
       spec:
