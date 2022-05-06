@@ -34,7 +34,7 @@ func TestAddCAPIClusters(t *testing.T) {
 			name: "CapiClusterRef exists",
 			gitopsClusters: []*capiv1_proto.GitopsCluster{
 				{
-					Name:        "gitops-cluster",
+					Name:        "capi-cluster",
 					Namespace:   "default",
 					Annotations: map[string]string{},
 					Labels:      map[string]string{},
@@ -45,9 +45,14 @@ func TestAddCAPIClusters(t *testing.T) {
 			},
 			expected: []*capiv1_proto.CapiCluster{
 				{
-					Name:      "gitops-cluster",
+					Name:      "capi-cluster",
 					Namespace: "default",
-					Status:    &capiv1_proto.CapiClusterStatus{},
+					Annotations: map[string]string{
+						"cni": "calico",
+					},
+					Status: &capiv1_proto.CapiClusterStatus{
+						Phase: "Provisioned",
+					},
 				},
 			},
 		},
@@ -71,8 +76,12 @@ func TestAddCAPIClusters(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			c1 := makeTestCluster(func(o *clusterv1.Cluster) {
-				o.ObjectMeta.Name = "gitops-cluster"
+				o.ObjectMeta.Name = "capi-cluster"
 				o.ObjectMeta.Namespace = "default"
+				o.ObjectMeta.Annotations = map[string]string{
+					"cni": "calico",
+				}
+				o.Status.Phase = "Provisioned"
 			})
 
 			c := makeTestClient(t, c1)
