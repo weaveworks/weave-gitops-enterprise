@@ -22,12 +22,14 @@ func TestAddCAPIClusters(t *testing.T) {
 		name           string
 		gitopsClusters []*capiv1_proto.GitopsCluster
 		capiClusters   []clusterv1.Cluster
+		clusterObjects []runtime.Object
 		expected       []*capiv1_proto.GitopsCluster
 		err            error
 	}{
 		{
 			name:           "empty",
 			gitopsClusters: []*capiv1_proto.GitopsCluster{},
+			clusterObjects: []runtime.Object{},
 			expected:       []*capiv1_proto.GitopsCluster{},
 		},
 		{
@@ -42,6 +44,18 @@ func TestAddCAPIClusters(t *testing.T) {
 						Name: "dev",
 					},
 				},
+			},
+			clusterObjects: []runtime.Object{
+				makeTestCluster(func(o *clusterv1.Cluster) {
+					o.APIVersion = "clusters.cluster.x-k8s.io"
+					o.Kind = "Cluster"
+					o.ObjectMeta.Name = "capi-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.ObjectMeta.Annotations = map[string]string{
+						"cni": "calico",
+					}
+					o.Status.Phase = "Provisioned"
+				}),
 			},
 			expected: []*capiv1_proto.GitopsCluster{
 				{
@@ -86,20 +100,34 @@ func TestAddCAPIClusters(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "CapiClusterRef exists but no cluster present",
+			gitopsClusters: []*capiv1_proto.GitopsCluster{
+				{
+					Name:        "capi-cluster",
+					Namespace:   "default",
+					Annotations: map[string]string{},
+					Labels:      map[string]string{},
+					CapiClusterRef: &capiv1_proto.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+			},
+			expected: []*capiv1_proto.GitopsCluster{
+				{
+					Name:      "capi-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_proto.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			c1 := makeTestCluster(func(o *clusterv1.Cluster) {
-				o.ObjectMeta.Name = "capi-cluster"
-				o.ObjectMeta.Namespace = "default"
-				o.ObjectMeta.Annotations = map[string]string{
-					"cni": "calico",
-				}
-				o.Status.Phase = "Provisioned"
-			})
-
-			c := makeTestClient(t, c1)
+			c := makeTestClient(t, tt.clusterObjects...)
 			ctx := context.Background()
 			result, err := AddCAPIClusters(ctx, c, tt.gitopsClusters)
 			if err != nil {
@@ -134,8 +162,8 @@ func makeTestClient(t *testing.T, clusterState ...runtime.Object) client.Client 
 func makeTestCluster(opts ...func(*clusterv1.Cluster)) *clusterv1.Cluster {
 	c := &clusterv1.Cluster{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "clusters.cluster.x-k8s.io",
-			Kind:       "Cluster",
+			APIVersion: "gitops.weave.works/v1alpha1",
+			Kind:       "GitopsCluster",
 		},
 		Spec: clusterv1.ClusterSpec{},
 	}

@@ -42,7 +42,10 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				Name:      cluster.GetName(),
 				Namespace: cluster.GetNamespace(),
 			}, capiCluster)
-			if err != nil && !errors.IsNotFound(err) {
+			if err != nil {
+				if errors.IsNotFound(err) {
+					continue
+				}
 				return nil, fmt.Errorf("failed to get capi-cluster: %w", err)
 			}
 
