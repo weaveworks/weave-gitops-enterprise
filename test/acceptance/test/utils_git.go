@@ -321,7 +321,7 @@ func mergePullRequest(gp GitProviderEnv, repoAbsolutePath string, prLink string)
 		err := or.PullRequests().Merge(ctx, prNumber, gitprovider.MergeMethodMerge, "merge for test")
 		g.Expect(err).ShouldNot(HaveOccurred())
 
-	}, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
+	}, ASSERTION_1MINUTE_TIME_OUT).Should(Succeed())
 
 }
 

@@ -66,15 +66,19 @@ func waitForResourceState(state string, statusCondition string, resourceName str
 	Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("%s resource has failed to become %s.", resourceName, state))
 }
 
-func verifyCoreControllers(namespace string) {
+func verifyFluxControllers(namespace string) {
 	Expect(waitForResource("deploy", "helm-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", "kustomize-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", "notification-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", "source-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
+}
+
+func verifyCoreControllers(namespace string) {
+	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops core controllers to be ready", func() {
-		waitForResourceState("Ready", "true", "pod", namespace, "app!=wego-app", "", ASSERTION_3MINUTE_TIME_OUT)
+		waitForResourceState("Ready", "true", "pod", namespace, "app.kubernetes.io/name=weave-gitops", "", ASSERTION_3MINUTE_TIME_OUT)
 	})
 }
 
@@ -85,7 +89,7 @@ func verifyEnterpriseControllers(releaseName string, mccpPrefix, namespace strin
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
 	By("And I wait for the gitops enterprise controllers to be ready", func() {
-		waitForResourceState("Ready", "true", "pod", namespace, "app!=wego-app", "", ASSERTION_3MINUTE_TIME_OUT)
+		waitForResourceState("Ready", "true", "pod", namespace, "", "", ASSERTION_3MINUTE_TIME_OUT)
 	})
 }
 
@@ -142,7 +146,7 @@ func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestR
 		deleteGitopsDeploySecret(gitopsNamespace)
 		deleteGitopsGitRepository(gitopsNamespace)
 		_, _ = runCommandAndReturnStringOutput(cmdInstall, ASSERTION_5MINUTE_TIME_OUT)
-		verifyCoreControllers(gitopsNamespace)
+		verifyFluxControllers(gitopsNamespace)
 
 		// Check if GitRepository resource is Ready
 		logger.Tracef("Waiting for GitRepositories 'Ready' state in namespace: %s", gitopsNamespace)
