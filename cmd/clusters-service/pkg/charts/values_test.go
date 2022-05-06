@@ -9,10 +9,9 @@ import (
 	"testing"
 	"time"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	fluxmeta "github.com/fluxcd/pkg/apis/meta"
-	"github.com/fluxcd/pkg/runtime/dependency"
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"
@@ -59,7 +58,7 @@ func TestValuesForChart_basic_auth_via_Secret(t *testing.T) {
 	ts := httptest.NewServer(basicAuthHandler(t, makeServeMux(t), "test", "password"))
 	defer ts.Close()
 
-	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
+	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
 		hr.Spec.SecretRef = &fluxmeta.LocalObjectReference{
 			Name: testSecretName,
 		}
@@ -92,7 +91,7 @@ func TestUpdateCache_with_missing_missing_secret_for_auth(t *testing.T) {
 	fc := makeTestClient(t)
 	ts := httptest.NewServer(basicAuthHandler(t, makeServeMux(t), "test", "password"))
 	defer ts.Close()
-	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
+	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
 		hr.Spec.SecretRef = &fluxmeta.LocalObjectReference{
 			Name: testSecretName,
 		}
@@ -197,51 +196,51 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 		"testing": "value",
 		"allowed": false,
 	}
-	dependsOn := func(name string) func(hr *helmv2beta1.HelmRelease) {
-		return func(hr *helmv2beta1.HelmRelease) {
+	dependsOn := func(name string) func(hr *helmv2.HelmRelease) {
+		return func(hr *helmv2.HelmRelease) {
 			hr.Spec.DependsOn = append(hr.Spec.DependsOn,
-				dependency.CrossNamespaceDependencyReference{Name: name})
+				fluxmeta.NamespacedObjectReference{Name: name})
 		}
 	}
-	layerLabel := func(name string) func(hr *helmv2beta1.HelmRelease) {
-		return func(hr *helmv2beta1.HelmRelease) {
+	layerLabel := func(name string) func(hr *helmv2.HelmRelease) {
+		return func(hr *helmv2.HelmRelease) {
 			hr.ObjectMeta.Labels = map[string]string{
 				LayerLabel: name,
 			}
 		}
 	}
 
-	hr := makeTestHelmRepository("https://example.com/charts", func(h *sourcev1beta1.HelmRepository) {
+	hr := makeTestHelmRepository("https://example.com/charts", func(h *sourcev1.HelmRepository) {
 		h.ObjectMeta.Namespace = "helm-repo-ns"
 	})
 	layeredTests := []struct {
 		name     string
 		installs []ChartInstall
-		want     []*helmv2beta1.HelmRelease
+		want     []*helmv2.HelmRelease
 	}{
 		{
 			name:     "install with no layers",
 			installs: []ChartInstall{{Layer: "", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
-			want:     []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", hr.GetName(), hr.GetNamespace(), "test-chart", "0.0.1")},
+			want:     []*helmv2.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", hr.GetName(), hr.GetNamespace(), "test-chart", "0.0.1")},
 		},
 		{
 			name:     "install with values",
 			installs: []ChartInstall{{Layer: "", Values: testValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
-			want: []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", func(hr *helmv2beta1.HelmRelease) {
+			want: []*helmv2.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", func(hr *helmv2.HelmRelease) {
 				hr.Spec.Values = &apiextensionsv1.JSON{Raw: []byte(`{"allowed":false,"testing":"value"}`)}
 			})},
 		},
 		{
 			name:     "install with one layer",
 			installs: []ChartInstall{{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
-			want:     []*helmv2beta1.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", layerLabel("layer-0"))},
+			want:     []*helmv2.HelmRelease{makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", layerLabel("layer-0"))},
 		},
 		{
 			name: "install with two layers",
 			installs: []ChartInstall{
 				{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("other-chart", "0.0.1", hr)}},
-			want: []*helmv2beta1.HelmRelease{
+			want: []*helmv2.HelmRelease{
 				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1", dependsOn("test-cluster-test-chart"), layerLabel("layer-1")),
 				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", layerLabel("layer-0"))},
 		},
@@ -251,7 +250,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("other-chart", "0.0.1", hr)},
 				{Layer: "layer-0", Values: emptyValues, Ref: makeTestChartReference("new-chart", "0.0.2", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)}},
-			want: []*helmv2beta1.HelmRelease{
+			want: []*helmv2.HelmRelease{
 				makeTestHelmRelease("test-cluster-new-chart", "testing", hr.GetNamespace(), "new-chart", "0.0.2", layerLabel("layer-0")),
 				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1", layerLabel("layer-0")),
 				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1",
@@ -264,7 +263,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 			installs: []ChartInstall{
 				{Layer: "", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr)},
 				{Layer: "layer-1", Values: emptyValues, Ref: makeTestChartReference("other-chart", "0.0.1", hr)}},
-			want: []*helmv2beta1.HelmRelease{
+			want: []*helmv2.HelmRelease{
 				makeTestHelmRelease("test-cluster-other-chart", "testing", hr.GetNamespace(), "other-chart", "0.0.1", layerLabel("layer-1")),
 				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", dependsOn("test-cluster-other-chart")),
 			},
@@ -284,7 +283,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 	}
 }
 
-func makeTestChartReference(name, version string, hr *sourcev1beta1.HelmRepository) ChartReference {
+func makeTestChartReference(name, version string, hr *sourcev1.HelmRepository) ChartReference {
 	return ChartReference{
 		Chart:     name,
 		Version:   version,
@@ -309,8 +308,8 @@ func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
 	return mux
 }
 
-func referenceForRepository(s *sourcev1beta1.HelmRepository) helmv2beta1.CrossNamespaceObjectReference {
-	return helmv2beta1.CrossNamespaceObjectReference{
+func referenceForRepository(s *sourcev1.HelmRepository) helmv2.CrossNamespaceObjectReference {
+	return helmv2.CrossNamespaceObjectReference{
 		APIVersion: s.TypeMeta.APIVersion,
 		Kind:       s.TypeMeta.Kind,
 		Name:       s.ObjectMeta.Name,
@@ -395,7 +394,7 @@ func makeTestSecret(user, pass string) *corev1.Secret {
 	}
 }
 
-func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepository) *HelmChartClient {
+func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1.HelmRepository) *HelmChartClient {
 	t.Helper()
 	tempDir, err := ioutil.TempDir("", "prefix")
 	if err != nil {
@@ -413,24 +412,24 @@ func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta1.HelmRepos
 	return cc
 }
 
-func makeTestHelmRelease(name, repoName, repoNS, chart, version string, opts ...func(*helmv2beta1.HelmRelease)) *helmv2beta1.HelmRelease {
-	hr := &helmv2beta1.HelmRelease{
+func makeTestHelmRelease(name, repoName, repoNS, chart, version string, opts ...func(*helmv2.HelmRelease)) *helmv2.HelmRelease {
+	hr := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: repoNS,
 		},
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: helmv2beta1.GroupVersion.Identifier(),
-			Kind:       helmv2beta1.HelmReleaseKind,
+			APIVersion: helmv2.GroupVersion.Identifier(),
+			Kind:       helmv2.HelmReleaseKind,
 		},
-		Spec: helmv2beta1.HelmReleaseSpec{
-			Chart: helmv2beta1.HelmChartTemplate{
-				Spec: helmv2beta1.HelmChartTemplateSpec{
+		Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   chart,
 					Version: version,
-					SourceRef: helmv2beta1.CrossNamespaceObjectReference{
-						APIVersion: sourcev1beta1.GroupVersion.Identifier(),
-						Kind:       sourcev1beta1.HelmRepositoryKind,
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						APIVersion: sourcev1.GroupVersion.Identifier(),
+						Kind:       sourcev1.HelmRepositoryKind,
 						Name:       repoName,
 						Namespace:  repoNS,
 					},

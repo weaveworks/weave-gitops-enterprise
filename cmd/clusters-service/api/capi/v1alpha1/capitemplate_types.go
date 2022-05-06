@@ -8,7 +8,6 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // CAPITemplateSpec defines the desired state of CAPITemplate
-// TODO: Combine with the TFTemplate so we can return both in a Get/List call.
 type CAPITemplateSpec struct {
 	Description       string             `json:"description,omitempty"`
 	Params            []TemplateParam    `json:"params,omitempty"` // Described above
@@ -38,7 +37,6 @@ type CAPITemplateStatus struct {
 //+kubebuilder:subresource:status
 
 // CAPITemplate is the Schema for the capitemplates API
-// TODO: Extract : Template
 type CAPITemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
