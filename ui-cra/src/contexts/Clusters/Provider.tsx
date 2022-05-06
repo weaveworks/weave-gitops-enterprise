@@ -81,7 +81,7 @@ const ClustersProvider: FC = ({ children }) => {
     [setNotifications],
   );
 
-  const { error, data } = useQuery<
+  const { error, data, isLoading } = useQuery<
     { data: { gitopsClusters: GitopsClusterEnriched[]; total: number } },
     Error
   >('clusters', () => fetchClusters(), {
@@ -111,6 +111,7 @@ const ClustersProvider: FC = ({ children }) => {
     <Clusters.Provider
       value={{
         clusters,
+        isLoading,
         disabled,
         count,
         loading,

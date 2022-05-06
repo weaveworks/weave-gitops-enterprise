@@ -24,7 +24,7 @@ const WGApplicationsHelmChart: FC<Props> = props => {
           },
         ]}
       />
-      <ContentWrapper type="WG">
+      <ContentWrapper>
         <HelmChartDetail {...props} />
       </ContentWrapper>
     </PageTemplate>

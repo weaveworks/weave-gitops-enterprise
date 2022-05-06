@@ -4,12 +4,11 @@ import useClusters, { GitopsClusterEnriched } from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-// import { ClustersTable } from './Table';
 import { Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { contentCss, ContentWrapper, Title } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import {
   Button,
@@ -21,6 +20,8 @@ import {
   filterConfigForString,
   FilterableTable,
   filterConfigForStatus,
+  LoadingPage,
+  KubeStatusIndicator,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -40,10 +41,15 @@ const ActionsWrapper = styled.div<Size>`
 `;
 
 const TableWrapper = styled.div`
+  margin-top: 24px;
   div[class*='FilterDialog__SlideContainer'],
   div[class*='SearchField'] {
     overflow: hidden;
   }
+`;
+
+const LoadingWrapper = styled.div`
+  ${contentCss};
 `;
 
 const random = Math.random().toString(36).substring(7);
@@ -55,16 +61,8 @@ export const PRdefaults = {
 };
 
 const MCCP: FC = () => {
-  const {
-    clusters,
-    count,
-    disabled,
-    handleRequestSort,
-    order,
-    orderBy,
-    selectedClusters,
-    setSelectedClusters,
-  } = useClusters();
+  const { clusters, isLoading, count, selectedClusters, setSelectedClusters } =
+    useClusters();
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
@@ -122,8 +120,9 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   const initialFilterState = {
-    ...filterConfigForString(clusters, 'type'),
+    // ...filterConfigForString(clusters, 'type'),
     ...filterConfigForString(clusters, 'namespace'),
+    // ...filterConfigForString(clusters, 'status'),
     ...filterConfigForStatus(clusters),
   };
 
@@ -152,10 +151,6 @@ const MCCP: FC = () => {
     selectedClusters,
     repositoryURL,
   ]);
-
-  console.log(clusters);
-
-  // Selection of clusters
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
@@ -268,9 +263,10 @@ const MCCP: FC = () => {
                 onFinish={() => setOpenConnectInfo(false)}
               />
             )}
-            {clusters && (
+            {!isLoading ? (
               <TableWrapper>
                 <FilterableTable
+                  key={clusters.length}
                   filters={initialFilterState}
                   rows={clusters}
                   fields={[
@@ -307,9 +303,20 @@ const MCCP: FC = () => {
                       value: 'type',
                     },
                     { label: 'Namespace', value: 'namespace' },
+                    {
+                      label: 'Status',
+                      value: (c: GitopsClusterEnriched) =>
+                        c.conditions && c.conditions.length > 0 ? (
+                          <KubeStatusIndicator conditions={c.conditions} />
+                        ) : null,
+                    },
                   ]}
                 />
               </TableWrapper>
+            ) : (
+              <LoadingWrapper>
+                <LoadingPage />
+              </LoadingWrapper>
             )}
           </ContentWrapper>
         </CallbackStateContextProvider>

@@ -25,6 +25,7 @@ export interface DeleteClusterPRRequest {
 }
 interface ClustersContext {
   clusters: GitopsClusterEnriched[] | [];
+  isLoading: boolean;
   count: number | null;
   disabled: boolean;
   loading: boolean;
