@@ -47,8 +47,6 @@ func TestAddCAPIClusters(t *testing.T) {
 			},
 			clusterObjects: []runtime.Object{
 				makeTestCluster(func(o *clusterv1.Cluster) {
-					o.APIVersion = "clusters.cluster.x-k8s.io"
-					o.Kind = "Cluster"
 					o.ObjectMeta.Name = "capi-cluster"
 					o.ObjectMeta.Namespace = "default"
 					o.ObjectMeta.Annotations = map[string]string{
@@ -162,8 +160,8 @@ func makeTestClient(t *testing.T, clusterState ...runtime.Object) client.Client 
 func makeTestCluster(opts ...func(*clusterv1.Cluster)) *clusterv1.Cluster {
 	c := &clusterv1.Cluster{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "gitops.weave.works/v1alpha1",
-			Kind:       "GitopsCluster",
+			APIVersion: "clusters.cluster.x-k8s.io",
+			Kind:       "Cluster",
 		},
 		Spec: clusterv1.ClusterSpec{},
 	}
