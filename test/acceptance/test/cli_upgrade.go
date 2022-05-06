@@ -20,8 +20,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 		UI_NODEPORT := "30081"
 		NATS_NODEPORT := "31491"
-		var capi_endpoint_url string
-		var test_ui_url string
+		var upgrade_capi_endpoint_url string
+		var upgrade_test_ui_url string
 		var stdOut string
 		var stdErr string
 
@@ -91,6 +91,10 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				deleteClusters("kind", []string{kind_upgrade_cluster_name})
 
+				// Login to management cluster console, in case it has been logged out
+				InitializeWebdriver(test_ui_url)
+				loginUser()
+
 			})
 
 			It("@upgrade @git Verify wego core can be upgraded to wego enterprise", func() {
@@ -151,7 +155,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.7.0-rc.1"
+				version := "0.8.0-rc.1"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := publicIP + ":" + NATS_NODEPORT
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
@@ -190,8 +194,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
 					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					if serviceType == "NodePort" {
-						capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
-						test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
+						upgrade_capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
+						upgrade_test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
 					} else {
 						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s svc/clusters-service 8000:80", GITOPS_DEFAULT_NAMESPACE)
 
@@ -202,10 +206,10 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 							_ = session.Command.Wait()
 						}()
 
-						test_ui_url = "http://localhost:8000"
-						capi_endpoint_url = "http://localhost:8000"
+						upgrade_test_ui_url = "http://localhost:8000"
+						upgrade_capi_endpoint_url = "http://localhost:8000"
 					}
-					InitializeWebdriver(test_ui_url)
+					InitializeWebdriver(upgrade_test_ui_url)
 
 					By(fmt.Sprintf("Login as a %s user", userCredentials.UserType), func() {
 						loginUser() // Login to the weaveworks enterprise
@@ -213,15 +217,15 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And the Cluster service is healthy", func() {
-					CheckClusterService(capi_endpoint_url)
+					CheckClusterService(upgrade_capi_endpoint_url)
 				})
 
 				// FIXME: CLI checks are disabled due to authentication not being supported
 				// By("Then I should run enterprise CLI commands", func() {
 				// 	testGetCommand := func(subCommand string) {
-				// 		logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, capi_endpoint_url)
+				// 		logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, upgrade_capi_endpoint_url)
 
-				// 		cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, subCommand, capi_endpoint_url)
+				// 		cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, subCommand, upgrade_capi_endpoint_url)
 				// 		stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				// 		Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
 				// 		Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
