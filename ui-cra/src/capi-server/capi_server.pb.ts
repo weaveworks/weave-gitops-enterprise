@@ -58,7 +58,6 @@ export type ListGitopsClustersRequest = {
 
 export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
-  capiClusters?: CapiCluster[]
   total?: number
 }
 
@@ -144,6 +143,7 @@ export type GitopsCluster = {
   conditions?: Condition[]
   capiClusterRef?: GitopsClusterRef
   secretRef?: GitopsClusterRef
+  capiCluster?: CapiCluster
 }
 
 export type CapiCluster = {

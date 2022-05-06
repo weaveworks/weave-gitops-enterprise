@@ -22,13 +22,13 @@ func TestAddCAPIClusters(t *testing.T) {
 		name           string
 		gitopsClusters []*capiv1_proto.GitopsCluster
 		capiClusters   []clusterv1.Cluster
-		expected       []*capiv1_proto.CapiCluster
+		expected       []*capiv1_proto.GitopsCluster
 		err            error
 	}{
 		{
 			name:           "empty",
 			gitopsClusters: []*capiv1_proto.GitopsCluster{},
-			expected:       []*capiv1_proto.CapiCluster{},
+			expected:       []*capiv1_proto.GitopsCluster{},
 		},
 		{
 			name: "CapiClusterRef exists",
@@ -43,15 +43,22 @@ func TestAddCAPIClusters(t *testing.T) {
 					},
 				},
 			},
-			expected: []*capiv1_proto.CapiCluster{
+			expected: []*capiv1_proto.GitopsCluster{
 				{
 					Name:      "capi-cluster",
 					Namespace: "default",
-					Annotations: map[string]string{
-						"cni": "calico",
+					CapiClusterRef: &capiv1_proto.GitopsClusterRef{
+						Name: "dev",
 					},
-					Status: &capiv1_proto.CapiClusterStatus{
-						Phase: "Provisioned",
+					CapiCluster: &capiv1_proto.CapiCluster{
+						Name:      "capi-cluster",
+						Namespace: "default",
+						Annotations: map[string]string{
+							"cni": "calico",
+						},
+						Status: &capiv1_proto.CapiClusterStatus{
+							Phase: "Provisioned",
+						},
 					},
 				},
 			},
@@ -69,7 +76,15 @@ func TestAddCAPIClusters(t *testing.T) {
 					},
 				},
 			},
-			expected: []*capiv1_proto.CapiCluster{},
+			expected: []*capiv1_proto.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					SecretRef: &capiv1_proto.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+			},
 		},
 	}
 

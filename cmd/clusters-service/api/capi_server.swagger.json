@@ -759,6 +759,9 @@
         },
         "secretRef": {
           "$ref": "#/definitions/v1GitopsClusterRef"
+        },
+        "capiCluster": {
+          "$ref": "#/definitions/v1CapiCluster"
         }
       }
     },
@@ -792,12 +795,6 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1GitopsCluster"
-          }
-        },
-        "capiClusters": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1CapiCluster"
           }
         },
         "total": {

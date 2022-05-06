@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -31,8 +32,7 @@ func ToClusterResponse(c *gitopsv1alpha1.GitopsCluster) *capiv1_proto.GitopsClus
 }
 
 // AddCAPIClusters returns a list of capi-cluster CRs given a list of clusters
-func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*capiv1_proto.GitopsCluster) ([]*capiv1_proto.CapiCluster, error) {
-	capiClusters := []*capiv1_proto.CapiCluster{}
+func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*capiv1_proto.GitopsCluster) ([]*capiv1_proto.GitopsCluster, error) {
 	capiCluster := &clusterv1.Cluster{}
 
 	for _, cluster := range clusters {
@@ -42,7 +42,7 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				Namespace: cluster.GetNamespace(),
 			}, capiCluster)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to get capi-cluster: %w", err)
 			}
 
 			clusterStatus := &capiv1_proto.CapiClusterStatus{
@@ -50,7 +50,7 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				InfrastructureReady: capiCluster.Status.InfrastructureReady,
 				ControlPlaneReady:   capiCluster.Status.ControlPlaneReady,
 				ObservedGeneration:  capiCluster.Status.ObservedGeneration,
-				Conditions:          cluster.Conditions,
+				Conditions:          mapCapiConditions(capiCluster.Status.Conditions),
 			}
 
 			capiClusterRes := &capiv1_proto.CapiCluster{
@@ -61,11 +61,11 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				Status:      clusterStatus,
 			}
 
-			capiClusters = append(capiClusters, capiClusterRes)
+			cluster.CapiCluster = capiClusterRes
 		}
 	}
 
-	return capiClusters, nil
+	return clusters, nil
 }
 
 func mapConditions(conditions []metav1.Condition) []*capiv1_proto.Condition {
@@ -74,6 +74,22 @@ func mapConditions(conditions []metav1.Condition) []*capiv1_proto.Condition {
 	for _, c := range conditions {
 		out = append(out, &capiv1_proto.Condition{
 			Type:      c.Type,
+			Status:    string(c.Status),
+			Reason:    c.Reason,
+			Message:   c.Message,
+			Timestamp: c.LastTransitionTime.String(),
+		})
+	}
+
+	return out
+}
+
+func mapCapiConditions(conditions []clusterv1.Condition) []*capiv1_proto.Condition {
+	out := []*capiv1_proto.Condition{}
+
+	for _, c := range conditions {
+		out = append(out, &capiv1_proto.Condition{
+			Type:      string(c.Type),
 			Status:    string(c.Status),
 			Reason:    c.Reason,
 			Message:   c.Message,

@@ -56,7 +56,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		return nil, err
 	}
 
-	capiClusters, err := AddCAPIClusters(ctx, client, clusters)
+	clusters, err = AddCAPIClusters(ctx, client, clusters)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,6 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
 	return &capiv1_proto.ListGitopsClustersResponse{
 		GitopsClusters: clusters,
-		CapiClusters:   capiClusters,
 		Total:          int32(len(cl))}, err
 }
 
