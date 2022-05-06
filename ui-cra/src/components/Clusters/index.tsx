@@ -4,7 +4,7 @@ import useClusters, { GitopsClusterEnriched } from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ClustersTable } from './Table';
+// import { ClustersTable } from './Table';
 import { Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { useHistory } from 'react-router-dom';
@@ -19,12 +19,14 @@ import {
   Icon,
   IconType,
   filterConfigForString,
+  FilterableTable,
+  filterConfigForStatus,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
-import FilterableTable from '../Table/FilterableTable';
+import { Checkbox, withStyles } from '@material-ui/core';
 
 interface Size {
   size?: 'small';
@@ -61,6 +63,7 @@ const MCCP: FC = () => {
     order,
     orderBy,
     selectedClusters,
+    setSelectedClusters,
   } = useClusters();
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
@@ -119,8 +122,9 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   const initialFilterState = {
-    ...filterConfigForString(clusters, 'namespace'),
     ...filterConfigForString(clusters, 'type'),
+    ...filterConfigForString(clusters, 'namespace'),
+    ...filterConfigForStatus(clusters),
   };
 
   useEffect(() => {
@@ -148,6 +152,57 @@ const MCCP: FC = () => {
     selectedClusters,
     repositoryURL,
   ]);
+
+  console.log(clusters);
+
+  // Selection of clusters
+
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const newSelected =
+        clusters.map((cluster: GitopsClusterEnriched) => cluster.name || '') ||
+        [];
+      setSelectedClusters(newSelected);
+      return;
+    }
+    setSelectedClusters([]);
+  };
+
+  const handleClick = (event: React.MouseEvent<unknown>, name?: string) => {
+    const selectedIndex = selectedClusters.indexOf(name || '');
+    let newSelected: string[] = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selectedClusters, name || '');
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selectedClusters.slice(1));
+    } else if (selectedIndex === selectedClusters.length - 1) {
+      newSelected = newSelected.concat(selectedClusters.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selectedClusters.slice(0, selectedIndex),
+        selectedClusters.slice(selectedIndex + 1),
+      );
+    }
+    setSelectedClusters(newSelected);
+  };
+
+  const numSelected = selectedClusters.length;
+  const rowCount = clusters.length || 0;
+
+  const IndividualCheckbox = withStyles({
+    root: {
+      color: theme.colors.primary,
+      '&$checked': {
+        color: theme.colors.primary,
+      },
+      '&$disabled': {
+        color: theme.colors.neutral20,
+      },
+    },
+    checked: {},
+    disabled: {},
+  })(Checkbox);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -213,19 +268,49 @@ const MCCP: FC = () => {
                 onFinish={() => setOpenConnectInfo(false)}
               />
             )}
-            <TableWrapper>
-              <FilterableTable
-                filters={initialFilterState}
-                rows={clusters}
-                fields={[
-                  { label: 'Namespace', value: 'namespace' },
-                  {
-                    label: 'Type',
-                    value: 'type',
-                  },
-                ]}
-              />
-            </TableWrapper>
+            {clusters && (
+              <TableWrapper>
+                <FilterableTable
+                  filters={initialFilterState}
+                  rows={clusters}
+                  fields={[
+                    {
+                      label: () => (
+                        <Checkbox
+                          indeterminate={
+                            numSelected > 0 && numSelected < rowCount
+                          }
+                          checked={rowCount > 0 && numSelected === rowCount}
+                          onChange={handleSelectAllClick}
+                          inputProps={{ 'aria-label': 'select all rows' }}
+                          style={{
+                            color: theme.colors.primary,
+                          }}
+                        />
+                      ),
+                      value: (c: GitopsClusterEnriched) => (
+                        <IndividualCheckbox
+                          checked={
+                            selectedClusters.indexOf(c.name || '') !== -1
+                          }
+                          // inputProps={{ 'aria-labelledby': labelId }}
+                          onClick={(event: any) => handleClick(event, c.name)}
+                        />
+                      ),
+                    },
+                    {
+                      label: 'Name',
+                      value: 'name',
+                    },
+                    {
+                      label: 'Type',
+                      value: 'type',
+                    },
+                    { label: 'Namespace', value: 'namespace' },
+                  ]}
+                />
+              </TableWrapper>
+            )}
           </ContentWrapper>
         </CallbackStateContextProvider>
       </PageTemplate>
