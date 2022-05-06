@@ -6,6 +6,7 @@ import (
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,7 +42,7 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				Name:      cluster.GetName(),
 				Namespace: cluster.GetNamespace(),
 			}, capiCluster)
-			if err != nil {
+			if err != nil && !errors.IsNotFound(err) {
 				return nil, fmt.Errorf("failed to get capi-cluster: %w", err)
 			}
 
