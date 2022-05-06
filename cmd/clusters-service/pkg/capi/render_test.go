@@ -92,6 +92,11 @@ kind: Cluster
 metadata:
   name: testing
 ---
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  name: testing-gitops
+---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
