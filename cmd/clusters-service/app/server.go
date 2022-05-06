@@ -56,6 +56,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -302,6 +303,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
 		capiv1.AddToScheme,
+		tapiv1.AddToScheme,
 		sourcev1beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 	}
