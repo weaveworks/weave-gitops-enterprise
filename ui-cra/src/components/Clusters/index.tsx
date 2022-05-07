@@ -27,7 +27,11 @@ import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
-import { Checkbox, withStyles } from '@material-ui/core';
+import { Checkbox, Collapse, IconButton, withStyles } from '@material-ui/core';
+import _ from 'lodash';
+import { CAPIClusterStatus } from './CAPIClusterStatus';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 
 interface Size {
   size?: 'small';
@@ -41,15 +45,27 @@ const ActionsWrapper = styled.div<Size>`
 `;
 
 const TableWrapper = styled.div`
-  margin-top: 24px;
+  margin-top: ${theme.spacing.medium};
+  overflow: hidden;
   div[class*='FilterDialog__SlideContainer'],
   div[class*='SearchField'] {
     overflow: hidden;
+  }
+  div[class*='FilterDialog'] {
+    .Mui-checked {
+      color: ${theme.colors.primary};
+    }
   }
 `;
 
 const LoadingWrapper = styled.div`
   ${contentCss};
+`;
+
+const NameCapiClusterWrapper = styled.div`
+  div[class*='MuiPaper-elevation'] {
+    box-shadow: none;
+  }
 `;
 
 const random = Math.random().toString(36).substring(7);
@@ -67,8 +83,8 @@ const MCCP: FC = () => {
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
+  const [openCapiStatus, setOpenCapiStatus] = React.useState<boolean>(false);
   const capiClusters = useMemo(
-    // @ts-ignore
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
   );
@@ -120,9 +136,7 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   const initialFilterState = {
-    // ...filterConfigForString(clusters, 'type'),
     ...filterConfigForString(clusters, 'namespace'),
-    // ...filterConfigForString(clusters, 'status'),
     ...filterConfigForStatus(clusters),
   };
 
@@ -296,11 +310,40 @@ const MCCP: FC = () => {
                     },
                     {
                       label: 'Name',
-                      value: 'name',
+                      value: (c: GitopsClusterEnriched) => (
+                        <NameCapiClusterWrapper data-cluster-name={c.name}>
+                          <>
+                            <IconButton
+                              aria-label="expand row"
+                              size="small"
+                              disabled={!c.capiCluster}
+                              onClick={() => setOpenCapiStatus(!openCapiStatus)}
+                            >
+                              {openCapiStatus ? (
+                                <KeyboardArrowUpIcon />
+                              ) : (
+                                <KeyboardArrowDownIcon />
+                              )}
+                            </IconButton>
+                            {c.name}
+                          </>
+                          <Collapse
+                            in={openCapiStatus}
+                            timeout="auto"
+                            unmountOnExit
+                          >
+                            <CAPIClusterStatus
+                              clusterName={c.name}
+                              status={c.capiCluster?.status}
+                            />
+                          </Collapse>
+                        </NameCapiClusterWrapper>
+                      ),
                     },
                     {
                       label: 'Type',
-                      value: 'type',
+                      value: (c: GitopsClusterEnriched) =>
+                        c.capiCluster ? 'capi' : 'other',
                     },
                     { label: 'Namespace', value: 'namespace' },
                     {
