@@ -16,6 +16,10 @@ spec:
       kind: Cluster
       metadata:
         name: "${CLUSTER_NAME}"
+    - apiVersion: gitops.weave.works/v1alpha1
+      kind: GitopsCluster
+      metadata:
+        name: "${CLUSTER_NAME}-gitops"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
       kind: AWSMachineTemplate
       metadata:
