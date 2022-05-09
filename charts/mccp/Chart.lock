@@ -1,6 +1,9 @@
 dependencies:
-  - name: nats
-    repository: https://charts.bitnami.com/bitnami
-    version: 6.1.2
-digest: sha256:6e5bf9e81d09538eec7358e3c6bc9cb28d164a603b924a120d3354e39d0e69b8
-generated: "2022-01-10T18:43:19.941657Z"
+- name: cluster-controller
+  repository: file://../cluster-controller
+  version: 1.0.0
+- name: nats
+  repository: https://charts.bitnami.com/bitnami
+  version: 6.1.2
+digest: sha256:120b970aadafa3c905c1d46e6703c444d2481d104a36ebce797fbd3c5ed6e150
+generated: "2022-04-27T16:49:43.008183+02:00"

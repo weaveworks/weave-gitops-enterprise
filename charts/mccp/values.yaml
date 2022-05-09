@@ -84,6 +84,8 @@ clusterBootstrapController:
 rbac:
   userRoles:
     create: true
+  adminUserRoleBindings:
+    create: true
 
 service:
   type: ClusterIP
@@ -102,3 +104,6 @@ service:
   loadBalancerSourceRanges: []
   externalTrafficPolicy: ""
   healthCheckNodePort: 0
+
+cluster-controller:
+  enabled: false

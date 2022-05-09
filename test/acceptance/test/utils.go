@@ -79,9 +79,10 @@ func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 
 // Describes all the CLI acceptance tests
 func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
-	DescribeCliHelp()
-	DescribeCliGet(gitopsTestRunner)
-	DescribeCliAddDelete(gitopsTestRunner)
+	// FIXME: CLI acceptances are disabled due to authentication not being supported
+	// DescribeCliHelp()
+	// DescribeCliGet(gitopsTestRunner)
+	// DescribeCliAddDelete(gitopsTestRunner)
 	DescribeCliUpgrade(gitopsTestRunner)
 }
 

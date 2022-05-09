@@ -203,24 +203,22 @@ open "https://github.com/weaveworks/weave-gitops/tree/v${WG_VERSION}/manifests/c
 
 ## Demo clusters
 
-We have 5 demo clusters currently that we use to demonstrate our work and test new features.
+We have 3 demo clusters currently that we use to demonstrate our work and test new features.
 
 |                    UI                |                       GitOps                        |  CAPI  |
 |--------------------------------------|-----------------------------------------------------|--------|
 | http://34.67.250.163:30080           | https://github.com/wkp-example-org/capd-demo-simon  |  CAPD  |
 | https://demo-01.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-01      |  CAPG  |
 | https://demo-02.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-02          |  CAPG  |
-| https://demo-03.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-03      |  CAPG  |
-| https://demo-04.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-04          |   -    |
 
 ---
 **CAPI NAME COLLISION WARNING**
 
-`demo-01`, `demo-02` and `demo-03` are currently deployed on the same [GCP project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so there may be collisions when creating CAPI clusters if they share the same name. Therefore avoid using common names like `test` and prefer to prefix them with your name i.e. `bob-test-2` instead.
+`demo-01` and `demo-02` are currently deployed on the same [GCP project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so there may be collisions when creating CAPI clusters if they share the same name. Therefore avoid using common names like `test` and prefer to prefix them with your name i.e. `bob-test-2` instead.
 
 ---
 
-`demo-01` is always up to date with the current version of main. `demo-02` should be manually updated to the latest release of Weave GitOps Enterprise to test release upgrades. Other clusters may also need to be updated manually to a newer version. The following sections describe how to get kubectl access to each of those clusters and how to update them to a newer version of Weave GitOps Enterprise.
+`demo-01` is automatically updated to the latest version of main. `demo-02` is manually updated to the latest release of Weave GitOps Enterprise. The following sections describe how to get kubectl access to each of those clusters and how to update them to a newer version of Weave GitOps Enterprise.
 
 #### 34.67.250.163
 
@@ -265,26 +263,6 @@ Install and configure the gcloud CLI if needed. Then run:
 
 ```sh
 gcloud container clusters get-credentials demo-02 --region europe-north1-a
-```
-
-#### demo-03
-
-Requires: gcloud CLI >= 352.0.0
-
-Install and configure the gcloud CLI if needed. Then run:
-
-```sh
-gcloud container clusters get-credentials demo-03 --region europe-north1-a
-```
-
-#### demo-04
-
-Requires: aws CLI >= 2.5.2
-
-Install and configure the aws CLI if needed. Then run:
-
-```sh
-aws eks --region eu-west-1 update-kubeconfig --name demo-04
 ```
 
 ### How to update to a new version
@@ -384,4 +362,24 @@ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keyc
 
 ```
 clusters-service <OTHER_ARGS...> --tls-cert-file cert.pem --tls-private-key key.pem
+```
+
+## How to get a kubeconfig for an AKS cluster
+
+Requires: azure CLI >= 2.36.0
+
+Install and configure the azure CLI if needed. Then run:
+
+```sh
+az aks get-credentials --name <cluster-name> --resource-group <resource-group> --admin
+```
+
+## How to get a kubeconfig for an EKS cluster
+
+Requires: aws CLI >= 2.5.2
+
+Install and configure the aws CLI if needed. Then run:
+
+```sh
+aws eks --region <aws-region> update-kubeconfig --name <cluster-name>
 ```
