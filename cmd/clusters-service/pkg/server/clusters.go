@@ -126,13 +126,17 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	path := getClusterManifestPath(clusterName)
+	commonKustomization, err := getCommonKustomization(clusterName)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get common kustomization for %s: %s", clusterName, err)
+	}
 	content := string(tmplWithValuesAndCredentials[:])
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &path,
 			Content: &content,
 		},
-		getCommonKustomization(clusterName),
+		*commonKustomization,
 	}
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
@@ -414,14 +418,17 @@ func getCommonKustomization(clusterName string) (*gitprovider.CommitFile, error)
 	commonKustomizationPath := getCommonKustomizationPath(clusterName)
 	commonKustomization := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "common-kustomization",
+			Name:      "clusters-bases-kustomization",
 			Namespace: "flux-system",
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
 				Kind: "GitRepository",
 			},
-			Path: "./common",
+			Path: filepath.Join(
+				viper.GetString("capi-repository-clusters-path"),
+				"bases",
+			),
 		},
 	}
 	b, err := yaml.Marshal(commonKustomization)
@@ -594,7 +601,7 @@ func getCommonKustomizationPath(clusterName string) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterName,
-		"common-kustomization.yaml",
+		"clusters-bases-kustomization.yaml",
 	)
 }
 
