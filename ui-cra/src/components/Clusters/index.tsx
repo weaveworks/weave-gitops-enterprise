@@ -56,8 +56,9 @@ const TableWrapper = styled.div`
     }
   }
   th[class*='MuiTableCell-head']:first-of-type {
-    padding-left: 16px;
+    padding-left: ${theme.spacing.base};
   }
+  max-width: calc(100vw - 220px);
 `;
 
 const LoadingWrapper = styled.div`
