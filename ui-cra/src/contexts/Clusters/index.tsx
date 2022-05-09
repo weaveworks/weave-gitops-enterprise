@@ -10,9 +10,6 @@ export interface GitopsClusterEnriched extends GitopsCluster {
   };
   type: string;
   updatedAt: string;
-  capiCluster: {
-    status: string;
-  };
 }
 
 export interface DeleteClusterPRRequest {
