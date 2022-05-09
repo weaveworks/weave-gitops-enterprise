@@ -306,7 +306,6 @@ const MCCP: FC = () => {
                           checked={
                             selectedClusters.indexOf(c.name || '') !== -1
                           }
-                          // inputProps={{ 'aria-labelledby': labelId }}
                           onClick={(event: any) => handleClick(event, c.name)}
                         />
                       ),
@@ -353,7 +352,10 @@ const MCCP: FC = () => {
                       label: 'Status',
                       value: (c: GitopsClusterEnriched) =>
                         c.conditions && c.conditions.length > 0 ? (
-                          <KubeStatusIndicator conditions={c.conditions} />
+                          <KubeStatusIndicator
+                            short
+                            conditions={c.conditions}
+                          />
                         ) : null,
                     },
                   ]}

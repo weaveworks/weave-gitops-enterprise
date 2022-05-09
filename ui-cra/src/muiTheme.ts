@@ -62,9 +62,6 @@ export const muiTheme = createTheme({
       head: {
         color: weaveTheme.colors.neutral30,
       },
-      root: {
-        borderBottom: 'none',
-      },
     },
     MuiTablePagination: {
       select: {
