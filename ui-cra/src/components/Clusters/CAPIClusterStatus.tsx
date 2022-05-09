@@ -108,6 +108,7 @@ const statusRenderers: { [key: string]: StatusRenderer } = {
 export const CAPIClusterStatus: FC<{
   clusterName?: string;
   status?: CAPICluster['status'];
+  className?: string;
 }> = ({ clusterName, status }) => {
   const classes = useStyles();
   const { getKubeconfig } = useClusters();

@@ -22,13 +22,14 @@ import {
   filterConfigForStatus,
   LoadingPage,
   KubeStatusIndicator,
+  SortType,
+  statusSortHelper,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
 import { Checkbox, Collapse, IconButton, withStyles } from '@material-ui/core';
-import _ from 'lodash';
 import { CAPIClusterStatus } from './CAPIClusterStatus';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
@@ -288,7 +289,8 @@ const MCCP: FC = () => {
                   rows={clusters}
                   fields={[
                     {
-                      label: () => (
+                      label: 'checkbox',
+                      labelRenderer: () => (
                         <Checkbox
                           indeterminate={
                             numSelected > 0 && numSelected < rowCount
@@ -335,19 +337,25 @@ const MCCP: FC = () => {
                             unmountOnExit
                           >
                             <CAPIClusterStatus
+                              className="capi-status"
                               clusterName={c.name}
                               status={c.capiCluster?.status}
                             />
                           </Collapse>
                         </NameCapiClusterWrapper>
                       ),
+                      sortValue: ({ name }) => name,
+                      textSearchable: true,
                     },
                     {
                       label: 'Type',
                       value: (c: GitopsClusterEnriched) =>
                         c.capiCluster ? 'capi' : 'other',
                     },
-                    { label: 'Namespace', value: 'namespace' },
+                    {
+                      label: 'Namespace',
+                      value: 'namespace',
+                    },
                     {
                       label: 'Status',
                       value: (c: GitopsClusterEnriched) =>
@@ -357,6 +365,8 @@ const MCCP: FC = () => {
                             conditions={c.conditions}
                           />
                         ) : null,
+                      sortType: SortType.number,
+                      sortValue: statusSortHelper,
                     },
                   ]}
                 />
