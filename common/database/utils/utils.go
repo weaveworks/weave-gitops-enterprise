@@ -9,10 +9,11 @@ import (
 	"gorm.io/gorm/logger"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 )
 
 // DB ref contains a pointer to the MCCP database
@@ -100,6 +101,7 @@ func MigrateTables(db *gorm.DB) error {
 		&models.Cluster{},
 		&models.ClusterStatus{},
 		&models.ClusterInfo{},
+		&models.TFController{},
 		&models.NodeInfo{},
 		&models.Alert{},
 		&models.Workspace{},
@@ -156,6 +158,7 @@ func HasAllTables(db *gorm.DB) bool {
 	if db.Migrator().HasTable(&models.Event{}) &&
 		db.Migrator().HasTable(&models.Cluster{}) &&
 		db.Migrator().HasTable(&models.ClusterInfo{}) &&
+		db.Migrator().HasTable(&models.TFController{}) &&
 		db.Migrator().HasTable(&models.NodeInfo{}) &&
 		db.Migrator().HasTable(&models.Alert{}) &&
 		db.Migrator().HasTable(&models.FluxInfo{}) &&
