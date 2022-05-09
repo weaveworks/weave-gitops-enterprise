@@ -21,6 +21,8 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
     message,
     description,
     violatingEntity,
+    entity,
+    namespace,
   } = violation || {};
 
   return (
@@ -44,7 +46,10 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
         <div className={classes.cardTitle}>Category:</div>
         <span className={classes.body1}>{category}</span>
       </div>
-
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+        <div className={classes.cardTitle}>Application:</div>
+        <span className={classes.body1}>{`${namespace}/${entity}`}</span>
+      </div>
       <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Description:</div>
@@ -78,7 +83,7 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
               height: '450px',
             }}
           >
-            {violatingEntity}
+            {JSON.parse( JSON.stringify(violatingEntity, null, 2))}
           </SyntaxHighlighter>
         </div>
       </div>

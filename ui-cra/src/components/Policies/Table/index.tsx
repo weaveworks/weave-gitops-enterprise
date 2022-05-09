@@ -6,7 +6,6 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
-import { createStyles, makeStyles } from '@material-ui/styles';
 import { FC } from 'react';
 import { ColumnHeaderTooltip } from '../../Shared';
 import { muiTheme } from '../../../muiTheme';
@@ -14,7 +13,7 @@ import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import { Policy } from '../../../capi-server/capi_server.pb';
 import PolicyRow from './Row';
-import { PolicyStyles } from '../PolicyStyles';
+import { usePolicyStyle } from '../PolicyStyles';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -26,7 +25,7 @@ interface Props {
 }
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
-  const classes = PolicyStyles.useStyles();
+  const classes = usePolicyStyle();
 
   return (
     <div className={`${classes.root}`} id="policies-list">
