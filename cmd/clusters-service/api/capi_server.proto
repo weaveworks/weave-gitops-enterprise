@@ -236,6 +236,24 @@ message GitopsCluster {
   repeated Condition conditions = 6;
   GitopsClusterRef capiClusterRef = 7;
   GitopsClusterRef secretRef = 8;
+  CapiCluster capi_cluster = 9;
+}
+
+message CapiCluster {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> annotations = 3;
+  map<string, string> labels = 4;
+  CapiClusterStatus status = 5;
+}
+
+message CapiClusterStatus {
+  string phase = 1;
+  bool infrastructureReady = 2;
+  bool controlPlaneInitialized = 3;
+  bool controlPlaneReady = 4;
+  repeated Condition conditions = 5;
+  int64 observedGeneration = 6;
 }
 
 message GitopsClusterRef { string name = 1; }

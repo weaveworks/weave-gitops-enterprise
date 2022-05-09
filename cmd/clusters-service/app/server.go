@@ -65,6 +65,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -358,7 +359,12 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}()
 
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
-	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme, gitopsv1alpha1.AddToScheme)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
+		capiv1.AddToScheme,
+		policiesv1.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
+		clusterv1.AddToScheme,
+	)
 
 	rest, clusterName, err := kube.RestConfig()
 	if err != nil {
