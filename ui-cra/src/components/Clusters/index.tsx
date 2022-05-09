@@ -46,7 +46,6 @@ const ActionsWrapper = styled.div<Size>`
 
 const TableWrapper = styled.div`
   margin-top: ${theme.spacing.medium};
-  overflow: hidden;
   div[class*='FilterDialog__SlideContainer'],
   div[class*='SearchField'] {
     overflow: hidden;
@@ -55,6 +54,9 @@ const TableWrapper = styled.div`
     .Mui-checked {
       color: ${theme.colors.primary};
     }
+  }
+  th[class*='MuiTableCell-head']:first-of-type {
+    padding-left: 16px;
   }
 `;
 
