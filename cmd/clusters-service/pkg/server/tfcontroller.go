@@ -10,14 +10,11 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
-	"gorm.io/gorm"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_proto.CreateTfControllerPullRequestRequest) (*capiv1_proto.CreateTfControllerPullRequestResponse, error) {
@@ -61,13 +58,13 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 	if !ok {
 		return nil, fmt.Errorf("unable to find 'RESOURCE_NAME' parameter in supplied values")
 	}
-	// FIXME: parse and read from Cluster in yaml template
-	templateNamespace, ok := msg.ParameterValues["NAMESPACE"]
-	if !ok {
-		s.log.Info("Couldn't find NAMESPACE param in request, using 'default'.")
-		// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
-		templateNamespace = "default"
-	}
+	//// FIXME: parse and read from Cluster in yaml template
+	//templateNamespace, ok := msg.ParameterValues["NAMESPACE"]
+	//if !ok {
+	//	s.log.Info("Couldn't find NAMESPACE param in request, using 'default'.")
+	//	// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
+	//	templateNamespace = "default"
+	//}
 
 	path := getTfControllerManifestPath(templateName)
 	content := string(tmplWithValuesAndCredentials[:])
@@ -103,64 +100,25 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
 	}
 
-	var pullRequestURL string
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		t, err := common_utils.Generate()
-		if err != nil {
-			return fmt.Errorf("error generating token for new cluster: %v", err)
-		}
-
-		c := &models.TFController{
-			Name:                  templateName,
-			TFControllerName:      templateName,
-			TFControllerNamespace: templateNamespace,
-			Token:                 t,
-		}
-		if err := tx.Create(c).Error; err != nil {
-			return err
-		}
-
-		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
-		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider:       *gp,
-			RepositoryURL:     repositoryURL,
-			ReposistoryAPIURL: msg.RepositoryApiUrl,
-			HeadBranch:        msg.HeadBranch,
-			BaseBranch:        baseBranch,
-			Title:             msg.Title,
-			Description:       msg.Description,
-			CommitMessage:     msg.CommitMessage,
-			Files:             files,
-		})
-		if err != nil {
-			s.log.Error(err, "Failed to create pull request")
-			return err
-		}
-
-		// Create the PR, this shouldn't fail, but if it does it will rollback the Cluster but not the delete the PR
-		pullRequestURL = res.WebURL
-		pr := &models.PullRequest{
-			URL:  pullRequestURL,
-			Type: "create",
-		}
-		if err := tx.Create(pr).Error; err != nil {
-			return err
-		}
-
-		c.PullRequests = append(c.PullRequests, pr)
-		if err := tx.Save(c).Error; err != nil {
-			return err
-		}
-
-		return nil
+	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider:       *gp,
+		RepositoryURL:     repositoryURL,
+		ReposistoryAPIURL: msg.RepositoryApiUrl,
+		HeadBranch:        msg.HeadBranch,
+		BaseBranch:        baseBranch,
+		Title:             msg.Title,
+		Description:       msg.Description,
+		CommitMessage:     msg.CommitMessage,
+		Files:             files,
 	})
-
 	if err != nil {
-		return nil, fmt.Errorf("unable to create pull request and cluster rows for %q: %w", msg.TemplateName, err)
+		s.log.Error(err, "Failed to create pull request")
+		return nil, err
 	}
 
 	return &capiv1_proto.CreateTfControllerPullRequestResponse{
-		WebUrl: pullRequestURL,
+		WebUrl: res.WebURL,
 	}, nil
 }
 

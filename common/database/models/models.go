@@ -91,17 +91,6 @@ type Cluster struct {
 	PullRequests  []*PullRequest `gorm:"many2many:cluster_pull_requests;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
-// TFController table. Stores tfcontroller configuration.
-type TFController struct {
-	Model
-	Token                 string `gorm:"uniqueIndex"`
-	Name                  string `gorm:"uniqueIndex"`
-	IngressURL            string
-	TFControllerName      string         `gorm:"column:tfcontroller_name"`
-	TFControllerNamespace string         `gorm:"column:tfcontroller_namespace"`
-	PullRequests          []*PullRequest `gorm:"many2many:cluster_pull_requests;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-}
-
 // ClusterStatus table. Used to sort cluster status by importance.
 type ClusterStatus struct {
 	ID     uint   `gorm:"primarykey"`
