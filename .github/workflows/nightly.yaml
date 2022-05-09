@@ -42,8 +42,6 @@ jobs:
       eks-leaf-kubeconfig: "/tmp/eks-leaf-kubeconfig"
       artifacts-base-dir: "/tmp/acceptance-test-eks-github"
     secrets:
-      BUILD_BOT_USER: wge-build-bot
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
       WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
@@ -81,9 +79,7 @@ jobs:
       database-type: postgres
       gce-leaf-kubeconfig: "/tmp/gce-leaf-kubeconfig"
       artifacts-base-dir: "/tmp/acceptance-test-gke-gitlab"
-    secrets:
-      BUILD_BOT_USER: wge-build-bot
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+    secrets:      
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
       WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
