@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 )
@@ -41,7 +43,7 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 		})
 	}
 
-	enriched, err := ParamsFromSpec(s.Spec)
+	enriched, err := templates.ParamsFromSpec(s.Spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse parameters from the spec: %w", err)
 	}
@@ -66,8 +68,8 @@ type Object struct {
 // TemplateMeta contains all the objects extracted from a CAPITemplate along
 // with the parameters.
 type TemplateMeta struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
-	Params      []Param  `json:"params,omitempty"`
-	Objects     []Object `json:"objects,omitempty"`
+	Name        string            `json:"name"`
+	Description string            `json:"description,omitempty"`
+	Params      []templates.Param `json:"params,omitempty"`
+	Objects     []Object          `json:"objects,omitempty"`
 }

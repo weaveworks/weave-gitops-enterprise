@@ -12,8 +12,6 @@ import (
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/tfcontroller"
 )
 
 // TemplateGetter implementations get templates by name.
@@ -26,13 +24,12 @@ type TemplateLister interface {
 	List(ctx context.Context) (map[string]*capiv1.CAPITemplate, error)
 }
 
-// TODO: Unify this with Templates which are the same thing.
-// TemplateGetter implementations get templates by name.
+// TFControllerTemplateGetter implementations get templates by name.
 type TFControllerTemplateGetter interface {
 	GetTFControllerTemplate(ctx context.Context, name string) (*tapiv1.TFTemplate, error)
 }
 
-// TemplateLister implementations list templates from a Library.
+// TFControllerTemplateLister implementations list templates from a Library.
 type TFControllerTemplateLister interface {
 	ListTFControllerTemplate(ctx context.Context) (map[string]*tapiv1.TFTemplate, error)
 }
@@ -68,11 +65,15 @@ func (lib *ConfigMapLibrary) List(ctx context.Context) (map[string]*capiv1.CAPIT
 	}
 	lib.Log.Info("Got template configmap", "configmap", templateConfigMap)
 
-	tm, err := capi.ParseConfigMap(*templateConfigMap)
+	tm, err := ParseConfigMap(*templateConfigMap)
 	if errors.IsNotFound(err) {
 		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %w", err)
 	}
-	return tm, nil
+	capiConfig := make(map[string]*capiv1.CAPITemplate)
+	for k, v := range tm {
+		capiConfig[k] = &capiv1.CAPITemplate{Template: *v}
+	}
+	return capiConfig, nil
 }
 
 func (lib *ConfigMapLibrary) Get(ctx context.Context, name string) (*capiv1.CAPITemplate, error) {
@@ -108,11 +109,15 @@ func (lib *ConfigMapLibrary) ListTFControllerTemplate(ctx context.Context) (map[
 	}
 	lib.Log.Info("Got template configmap", "configmap", templateConfigMap)
 
-	tm, err := tfcontroller.ParseConfigMap(*templateConfigMap)
+	tm, err := ParseConfigMap(*templateConfigMap)
 	if errors.IsNotFound(err) {
 		return nil, fmt.Errorf("error parsing CAPI templates from configmap: %w", err)
 	}
-	return tm, nil
+	tfTemplateConfig := make(map[string]*tapiv1.TFTemplate)
+	for k, v := range tm {
+		tfTemplateConfig[k] = &tapiv1.TFTemplate{Template: *v}
+	}
+	return tfTemplateConfig, nil
 }
 
 func (lib *ConfigMapLibrary) GetTFControllerTemplate(ctx context.Context, name string) (*tapiv1.TFTemplate, error) {

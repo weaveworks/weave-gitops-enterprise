@@ -1,11 +1,13 @@
 package capi
 
 import (
-	"io/ioutil"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 func TestParseTemplateMeta(t *testing.T) {
@@ -38,7 +40,7 @@ func TestParseTemplateMeta(t *testing.T) {
 				Params:     []string{"CLUSTER_NAME", "CONTROL_PLANE_MACHINE_COUNT"},
 			},
 		},
-		Params: []Param{
+		Params: []templates.Param{
 			{
 				Name:        "CLUSTER_NAME",
 				Description: "This is used for the cluster naming.",
@@ -57,19 +59,19 @@ func TestParseTemplateMeta(t *testing.T) {
 }
 
 func TestParseTemplateMeta_bad_parameter(t *testing.T) {
-	parsed, err := ParseBytes([]byte("spec:\n  resourcetemplates:\n   - apiVersion: ${CLUSTER_NAME"), "testing.yaml")
+	parsed, err := templates.ParseBytes([]byte("spec:\n  resourcetemplates:\n   - apiVersion: ${CLUSTER_NAME"), "testing.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ParseTemplateMeta(parsed)
+	_, err = ParseTemplateMeta(&capiv1.CAPITemplate{Template: *parsed})
 	assert.EqualError(t, err, "failed to get parameters processing template: missing closing brace")
 }
 
-func readFixture(t *testing.T, fname string) []byte {
+func mustParseFile(t *testing.T, filename string) *capiv1.CAPITemplate {
 	t.Helper()
-	b, err := ioutil.ReadFile(fname)
+	parsed, err := templates.ParseFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return b
+	return &capiv1.CAPITemplate{Template: *parsed}
 }
