@@ -59,7 +59,6 @@ function setup {
   kubectl create namespace flux-system
 
   # Create secrete for git provider authentication
-  gitopsArgs=()
   if [ ${GIT_PROVIDER} == "github" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
     GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
@@ -88,9 +87,7 @@ function setup {
       --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
       --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET" \
       --from-literal="GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" \
-      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES"
-      
-      gitopsArgs+=( --git-host-types=${GITOPS_GIT_HOST_TYPES} )
+      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES"      
     fi
 
     flux bootstrap gitlab \
@@ -216,15 +213,16 @@ function reset {
   kubectl delete service postgres
   # Delete namespaces and their respective resources
   kubectl delete namespaces wkp-agent
-  # Delete wego system from the management cluster
-  $GITOPS_BIN_PATH flux uninstall --silent
-  $GITOPS_BIN_PATH flux uninstall --namespace flux-system --silent
+  # Delete flux system from the management cluster
+  flux uninstall --silent
   # Delete any orphan resources
   kubectl delete CAPITemplate --all
   kubectl delete ClusterBootstrapConfig --all
   kubectl delete secret my-pat
   kubectl delete ClusterResourceSet --all
   kubectl delete configmap calico-crs-configmap
+  kubectl delete rolebinding read-templates
+  kubectl delete rolebinding clusters-service-secrets-role
 }
 
 function reset_controllers {

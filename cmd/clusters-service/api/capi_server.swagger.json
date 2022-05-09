@@ -547,6 +547,80 @@
         }
       }
     },
+    "v1CapiCluster": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "$ref": "#/definitions/v1CapiClusterStatus"
+        }
+      }
+    },
+    "v1CapiClusterStatus": {
+      "type": "object",
+      "properties": {
+        "phase": {
+          "type": "string"
+        },
+        "infrastructureReady": {
+          "type": "boolean"
+        },
+        "controlPlaneInitialized": {
+          "type": "boolean"
+        },
+        "controlPlaneReady": {
+          "type": "boolean"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "observedGeneration": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1Condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      },
+      "title": "kubernetes status condition field\nXXX: is dup'd in core, can we share?"
+    },
     "v1CreatePullRequestRequest": {
       "type": "object",
       "properties": {
@@ -731,7 +805,7 @@
         "name": {
           "type": "string"
         },
-        "type": {
+        "namespace": {
           "type": "string"
         },
         "annotations": {
@@ -746,7 +820,27 @@
             "type": "string"
           }
         },
-        "error": {
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "capiClusterRef": {
+          "$ref": "#/definitions/v1GitopsClusterRef"
+        },
+        "secretRef": {
+          "$ref": "#/definitions/v1GitopsClusterRef"
+        },
+        "capiCluster": {
+          "$ref": "#/definitions/v1CapiCluster"
+        }
+      }
+    },
+    "v1GitopsClusterRef": {
+      "type": "object",
+      "properties": {
+        "name": {
           "type": "string"
         }
       }
@@ -952,7 +1046,7 @@
         },
         "value": {
           "$ref": "#/definitions/protobufAny",
-          "title": "value is a generic value that can be a string, int, bool and array of strings"
+          "title": "value is a generic value that can be a string, int, bool and array of\nstrings"
         },
         "required": {
           "type": "boolean"

@@ -159,12 +159,44 @@ export type GetKubeconfigResponse = {
   kubeconfig?: string
 }
 
+export type Condition = {
+  type?: string
+  status?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+}
+
 export type GitopsCluster = {
   name?: string
-  type?: string
+  namespace?: string
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
-  error?: string
+  conditions?: Condition[]
+  capiClusterRef?: GitopsClusterRef
+  secretRef?: GitopsClusterRef
+  capiCluster?: CapiCluster
+}
+
+export type CapiCluster = {
+  name?: string
+  namespace?: string
+  annotations?: {[key: string]: string}
+  labels?: {[key: string]: string}
+  status?: CapiClusterStatus
+}
+
+export type CapiClusterStatus = {
+  phase?: string
+  infrastructureReady?: boolean
+  controlPlaneInitialized?: boolean
+  controlPlaneReady?: boolean
+  conditions?: Condition[]
+  observedGeneration?: string
+}
+
+export type GitopsClusterRef = {
+  name?: string
 }
 
 export type Credential = {
