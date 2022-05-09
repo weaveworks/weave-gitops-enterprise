@@ -162,6 +162,22 @@ metadata:
 `,
 				},
 				{
+					Path: "clusters/dev/clusters-bases-kustomization.yaml",
+					Content: `metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 0s
+  path: clusters/bases
+  prune: false
+  sourceRef:
+    kind: GitRepository
+    name: ""
+status: {}
+`,
+				},
+				{
 					Path: "clusters/dev/profiles.yaml",
 					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
