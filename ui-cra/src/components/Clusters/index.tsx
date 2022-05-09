@@ -337,7 +337,6 @@ const MCCP: FC = () => {
                             unmountOnExit
                           >
                             <CAPIClusterStatus
-                              className="capi-status"
                               clusterName={c.name}
                               status={c.capiCluster?.status}
                             />
