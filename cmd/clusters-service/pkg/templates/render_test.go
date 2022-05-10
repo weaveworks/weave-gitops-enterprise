@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-func TestRender(t *testing.T) {
+func TestCAPIRender(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
@@ -37,6 +37,44 @@ metadata:
   name: testing-control-plane
 spec:
   replicas: 5
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
+func TestTerraformRender(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/tf-controller.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME":       "testing",
+		"GIT_REPO_NAME":      "git-repo",
+		"GIT_REPO_NAMESPACE": "git-namespace",
+		"NAMESPACE":          "namespace",
+		"RESOURCE_NAME":      "test-tf-template",
+		"TEMPLATE_PATH":      "./",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: test-tf-template
+  namespace: namespace
+spec:
+  approvePlan: auto
+  interval: 1h
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: git-repo
+    namespace: git-namespace
+  vars:
+  - name: cluster_identifier
+    value: testing
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
@@ -140,6 +178,39 @@ metadata:
 
 	if diff := cmp.Diff(want, string(updated)); diff != "" {
 		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}
+
+func TestInNamespaceTerraform(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/tf-controller-2.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME": "testing",
+	}, InNamespace("new-namespace"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: test-template
+  namespace: new-namespace
+spec:
+  approvePlan: auto
+  interval: 1h
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: git-repo-name
+    namespace: git-repo-namespace
+  vars:
+  - name: cluster_identifier
+    value: testing
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
 

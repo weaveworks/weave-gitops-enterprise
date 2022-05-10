@@ -32,22 +32,30 @@ type Library interface {
 }
 
 type ConfigMapLibrary struct {
-	Log           logr.Logger
-	Client        client.Client
-	ConfigMapName string
-	Namespace     string
+	Log                 logr.Logger
+	Client              client.Client
+	ConfigMapName       string
+	CAPINamespace       string
+	TFTemplateNamespace string
 }
 
 func (lib *ConfigMapLibrary) List(ctx context.Context, templateKind string) (map[string]*templates.Template, error) {
-	lib.Log.Info("Querying Kubernetes for configmap", "namespace", lib.Namespace, "configmapName", lib.ConfigMapName, "kind", templateKind)
+	var namespace string
+	switch templateKind {
+	case capiv1.Kind:
+		namespace = lib.CAPINamespace
+	case tapiv1.Kind:
+		namespace = lib.TFTemplateNamespace
+	}
+	lib.Log.Info("Querying Kubernetes for configmap", "namespace", namespace, "configmapName", lib.ConfigMapName, "kind", templateKind)
 
 	templateConfigMap := &v1.ConfigMap{}
 	err := lib.Client.Get(ctx, client.ObjectKey{
-		Namespace: lib.Namespace,
+		Namespace: namespace,
 		Name:      lib.ConfigMapName,
 	}, templateConfigMap)
 	if errors.IsNotFound(err) {
-		return nil, fmt.Errorf("configmap %s not found in %s namespace: %w", lib.ConfigMapName, lib.Namespace, err)
+		return nil, fmt.Errorf("configmap %s not found in %s namespace: %w", lib.ConfigMapName, namespace, err)
 	} else if err != nil {
 		return nil, fmt.Errorf("error getting configmap: %w", err)
 	}
@@ -78,15 +86,23 @@ func (lib *ConfigMapLibrary) Get(ctx context.Context, name, templateKind string)
 		}
 	}
 	if t == nil {
-		return nil, fmt.Errorf("terraform template %s not found in configmap %s/%s", name, lib.Namespace, lib.ConfigMapName)
+		var namespace string
+		switch templateKind {
+		case capiv1.Kind:
+			namespace = lib.CAPINamespace
+		case tapiv1.Kind:
+			namespace = lib.TFTemplateNamespace
+		}
+		return nil, fmt.Errorf("terraform template %s not found in configmap %s/%s", name, namespace, lib.ConfigMapName)
 	}
 	return t, nil
 }
 
 type CRDLibrary struct {
-	Log          logr.Logger
-	ClientGetter kube.ClientGetter
-	Namespace    string
+	Log                 logr.Logger
+	ClientGetter        kube.ClientGetter
+	CAPINamespace       string
+	TFTemplateNamespace string
 }
 
 func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (*templates.Template, error) {
@@ -102,12 +118,12 @@ func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (*tem
 		var t capiv1.CAPITemplate
 		lib.Log.Info("Getting capitemplate", "template", name)
 		err = cl.Get(ctx, client.ObjectKey{
-			Namespace: lib.Namespace,
+			Namespace: lib.CAPINamespace,
 			Name:      name,
 		}, &t)
 		if err != nil {
 			lib.Log.Error(err, "Failed to get capitemplate", "template", name)
-			return nil, fmt.Errorf("error getting capitemplate %s/%s: %w", lib.Namespace, name, err)
+			return nil, fmt.Errorf("error getting capitemplate %s/%s: %w", lib.CAPINamespace, name, err)
 		}
 		lib.Log.Info("Got capitemplate", "template", name)
 		result = &t.Template
@@ -115,12 +131,12 @@ func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (*tem
 		var t tapiv1.TFTemplate
 		lib.Log.Info("Getting tftemplate", "template", name)
 		err = cl.Get(ctx, client.ObjectKey{
-			Namespace: lib.Namespace,
+			Namespace: lib.TFTemplateNamespace,
 			Name:      name,
 		}, &t)
 		if err != nil {
 			lib.Log.Error(err, "Failed to get tftemplate", "template", name)
-			return nil, fmt.Errorf("error getting tftemplate %s/%s: %w", lib.Namespace, name, err)
+			return nil, fmt.Errorf("error getting tftemplate %s/%s: %w", lib.TFTemplateNamespace, name, err)
 		}
 		lib.Log.Info("Got tftemplate", "template", name)
 		result = &t.Template
@@ -139,9 +155,9 @@ func (lib *CRDLibrary) List(ctx context.Context, templateKind string) (map[strin
 	result := make(map[string]*templates.Template)
 	switch templateKind {
 	case capiv1.Kind:
-		lib.Log.Info("Querying namespace for CAPITemplate resources", "namespace", lib.Namespace)
+		lib.Log.Info("Querying namespace for CAPITemplate resources", "namespace", lib.CAPINamespace)
 		capiTemplateList := capiv1.CAPITemplateList{}
-		err = cl.List(ctx, &capiTemplateList, client.InNamespace(lib.Namespace))
+		err = cl.List(ctx, &capiTemplateList, client.InNamespace(lib.CAPINamespace))
 		if err != nil {
 			return nil, fmt.Errorf("error getting capitemplates: %w", err)
 		}
@@ -150,9 +166,9 @@ func (lib *CRDLibrary) List(ctx context.Context, templateKind string) (map[strin
 			result[ct.ObjectMeta.Name] = &capiTemplateList.Items[i].Template
 		}
 	case tapiv1.Kind:
-		lib.Log.Info("Querying namespace for TFTemplate resources", "namespace", lib.Namespace)
+		lib.Log.Info("Querying namespace for TFTemplate resources", "namespace", lib.TFTemplateNamespace)
 		tfTemplateList := tapiv1.TFTemplateList{}
-		err = cl.List(ctx, &tfTemplateList, client.InNamespace(lib.Namespace))
+		err = cl.List(ctx, &tfTemplateList, client.InNamespace(lib.TFTemplateNamespace))
 		if err != nil {
 			return nil, fmt.Errorf("error getting tftemplates: %w", err)
 		}

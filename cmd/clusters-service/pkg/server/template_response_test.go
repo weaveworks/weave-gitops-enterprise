@@ -41,7 +41,7 @@ metadata:
 		},
 		{
 			name: "Params and Objects",
-			value: makeTemplate(t, func(ct *capiv1.CAPITemplate) {
+			value: makeCapiTemplate(t, func(ct *capiv1.CAPITemplate) {
 				ct.ObjectMeta.Name = "cluster-template-1"
 				ct.Spec.Description = "this is test template 1"
 				ct.Spec.ResourceTemplates = []apitemplates.ResourceTemplate{
@@ -126,7 +126,7 @@ metadata:
 }
 
 func makeErrorTemplate(t *testing.T, rawData string) string {
-	return makeTemplate(t, func(ct *capiv1.CAPITemplate) {
+	return makeCapiTemplate(t, func(ct *capiv1.CAPITemplate) {
 		ct.ObjectMeta.Name = "cluster-template-1"
 		ct.Spec.Description = ""
 		ct.Spec.ResourceTemplates = []apitemplates.ResourceTemplate{

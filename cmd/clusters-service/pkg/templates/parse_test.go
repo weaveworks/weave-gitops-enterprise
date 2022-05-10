@@ -1,8 +1,10 @@
 package templates
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -10,10 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 )
 
 func TestParseFile(t *testing.T) {
@@ -128,6 +132,71 @@ func TestParseConfigMap(t *testing.T) {
 	}
 	if diff := cmp.Diff(want, tm, cmpopts.IgnoreFields(templates.TemplateSpec{}, "ResourceTemplates")); diff != "" {
 		t.Fatalf("failed to read the template from the configmap:\n%s", diff)
+	}
+}
+
+func TestParseFileResourceTemplate(t *testing.T) {
+	c, err := ParseFile("testdata/tf-controller.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tfControllerResultContent, err := os.ReadFile(filepath.Join("testdata", "tf-controller-result.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	tfControllerResultContent = bytes.TrimSuffix(tfControllerResultContent, []byte("\n"))
+
+	want := &tapiv1.TFTemplate{
+		Template: templates.Template{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "TFTemplate",
+				APIVersion: "tfcontroller.weave.works/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "sample-wge-tf-controller-template",
+				Namespace: "default",
+			},
+			Spec: templates.TemplateSpec{
+				Description: "This is a sample WGE template that will be translated into a tf-controller specific template.",
+				Params: []templates.TemplateParam{
+					{
+						Name:        "CLUSTER_NAME",
+						Description: "Name of the cluster.",
+					},
+					{
+						Name:        "RESOURCE_NAME",
+						Description: "Name of the template.",
+					},
+					{
+						Name:        "NAMESPACE",
+						Description: "Namespace to create the Terraform resource in.",
+					},
+					{
+						Name:        "GIT_REPO_NAMESPACE",
+						Description: "Namespace of the configuring git repository object.",
+					},
+					{
+						Name:        "GIT_REPO_NAME",
+						Description: "Name of the configuring git repository.",
+					},
+					{
+						Name:        "TEMPLATE_PATH",
+						Description: "Path to the generated tf-controller templates.",
+					},
+				},
+				ResourceTemplates: []templates.ResourceTemplate{
+					{
+						RawExtension: runtime.RawExtension{
+							Raw: tfControllerResultContent,
+						},
+					},
+				},
+			},
+		},
+	}
+	if diff := cmp.Diff(want, &tapiv1.TFTemplate{Template: *c}); diff != "" {
+		t.Fatalf("failed to read the template:\n%s", diff)
 	}
 }
 

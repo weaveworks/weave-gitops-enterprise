@@ -21,6 +21,7 @@ import (
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -55,10 +56,11 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 		logr.Discard(),
 		nil,
 		&templates.ConfigMapLibrary{
-			Log:           logr.Discard(),
-			Client:        c,
-			ConfigMapName: configMapName,
-			Namespace:     namespace,
+			Log:                 logr.Discard(),
+			Client:              c,
+			ConfigMapName:       configMapName,
+			CAPINamespace:       namespace,
+			TFTemplateNamespace: namespace,
 		},
 		provider,
 		kubefakes.NewFakeClientGetter(c),
@@ -92,21 +94,21 @@ func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository))
 	return hr
 }
 
-func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {
+func makeTemplateConfigMap(name string, s ...string) *corev1.ConfigMap {
 	data := make(map[string]string)
 	for i := 0; i < len(s); i += 2 {
 		data[s[i]] = s[i+1]
 	}
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "capi-templates",
+			Name:      name,
 			Namespace: "default",
 		},
 		Data: data,
 	}
 }
 
-func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
+func makeCapiTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
 	{
@@ -134,6 +136,54 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 					{
 						Name:        "CLUSTER_NAME",
 						Description: "This is used for the cluster naming.",
+					},
+				},
+				ResourceTemplates: []apitemplates.ResourceTemplate{
+					{
+						RawExtension: rawExtension(basicRaw),
+					},
+				},
+			},
+		},
+	}
+	for _, o := range opts {
+		o(ct)
+	}
+	b, err := yaml.Marshal(ct)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+func makeTerraformTemplate(t *testing.T, opts ...func(template *tapiv1.TFTemplate)) string {
+	t.Helper()
+	basicRaw := `
+	{
+		"apiVersion":"fooversion",
+		"kind":"fookind",
+		"metadata":{
+		   "name":"${RESOURCE_NAME}",
+		   "annotations":{
+			  "tfcontroller.weave.works/display-name":"ClusterName"
+		   }
+		}
+	 }`
+	ct := &tapiv1.TFTemplate{
+		Template: apitemplates.Template{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       tapiv1.Kind,
+				APIVersion: "tfcontroller.weave.works/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "terraform-template-1",
+			},
+			Spec: apitemplates.TemplateSpec{
+				Description: "this is test template 1",
+				Params: []apitemplates.TemplateParam{
+					{
+						Name:        "RESOURCE_NAME",
+						Description: "This is used for the resource naming.",
 					},
 				},
 				ResourceTemplates: []apitemplates.ResourceTemplate{
