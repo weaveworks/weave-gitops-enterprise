@@ -346,14 +346,14 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteFile([]string{kubeconfigPath})
 				repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
 
-				logger.Info("Connecting cluster to itself")
-				leaf := LeafSpec{
-					Status:          "Ready",
-					IsWKP:           false,
-					AlertManagerURL: "",
-					KubeconfigPath:  "",
-				}
-				connectACluster(webDriver, gitopsTestRunner, leaf)
+				// logger.Info("Connecting cluster to itself")
+				// leaf := LeafSpec{
+				// 	Status:          "Ready",
+				// 	IsWKP:           false,
+				// 	AlertManagerURL: "",
+				// 	KubeconfigPath:  "",
+				// }
+				// connectACluster(webDriver, gitopsTestRunner, leaf)
 			})
 
 			JustAfterEach(func() {
