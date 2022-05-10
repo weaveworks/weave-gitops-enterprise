@@ -14,7 +14,7 @@ type ClusterInformation struct {
 	ShowStatusDetail *agouti.Selection
 	Name             *agouti.Selection
 	// Icon             *agouti.Selection
-	Status           *agouti.Selection
+	Status *agouti.Selection
 	// EditCluster      *agouti.Selection
 }
 
@@ -84,7 +84,7 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
 		Name:             cluster.FindByXPath(`td[2]`),
 		// Icon:             cluster.FindByXPath(`td[3]`).Find(`svg`),
-		Status:           cluster.FindByXPath(`td[5]`),
+		Status: cluster.FindByXPath(`td[5]`),
 		// EditCluster:      cluster.FindByXPath(`td[5]`).Find("button"),
 	}
 }
@@ -141,25 +141,25 @@ func AlertsFiringInAlertsWidget(clustersPage *ClustersPage) []*AlertInformation 
 //GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
-		ClusterCount:                          webDriver.Find(`.count-header .section-header-count`),
-		ConnectClusterButton:                  webDriver.Find(`#connect-cluster`),
-		PRDeleteClusterButton:                 webDriver.Find(`#delete-cluster`),
-		NoFiringAlertMessage:                  webDriver.Find(`#firing-alerts caption`),
-		FiringAlertsSection:                   webDriver.Find(`#firing-alerts`),
-		FiringAlertsHeader:                    webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[1]/div`),
-		FiringAlertsNavCtl:                    webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[2]/div/p/span/span[2]`),
-		FiringAlertsPerPage:                   webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[3]`),
-		FiringAlerts:                          webDriver.All(`#firing-alerts tbody tr`),
-		ClustersListSection:                   webDriver.Find(`#clusters-list`),
-		ClustersListHeader:                    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead`),
-		HeaderCheckbox:                        webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[1]/span`),
-		HeaderName:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
-		HeaderIcon:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
-		HeaderStatus:                          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
+		ClusterCount:          webDriver.Find(`.count-header .section-header-count`),
+		ConnectClusterButton:  webDriver.Find(`#connect-cluster`),
+		PRDeleteClusterButton: webDriver.Find(`#delete-cluster`),
+		NoFiringAlertMessage:  webDriver.Find(`#firing-alerts caption`),
+		FiringAlertsSection:   webDriver.Find(`#firing-alerts`),
+		FiringAlertsHeader:    webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[1]/div`),
+		FiringAlertsNavCtl:    webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[2]/div/p/span/span[2]`),
+		FiringAlertsPerPage:   webDriver.FindByXPath(`//*[@id="firing-alerts"]/div/div/div[3]`),
+		FiringAlerts:          webDriver.All(`#firing-alerts tbody tr`),
+		ClustersListSection:   webDriver.Find(`#clusters-list`),
+		ClustersListHeader:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead`),
+		HeaderCheckbox:        webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[1]/span`),
+		HeaderName:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
+		HeaderIcon:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
+		HeaderStatus:          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
 		// NoClusterConfigured:                   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
-		ClustersList:                          webDriver.Find(`#clusters-list > div > div[2] > div[1] > div[1] > table > tbody`),
-		Tooltip:                               webDriver.Find(`div[role="tooltip"]`),
-		SupportEmailLink:                      webDriver.FindByLink(`support@weave.works`),
+		ClustersList:     webDriver.Find(`#clusters-list > div > div[2] > div[1] > div[1] > table > tbody`),
+		Tooltip:          webDriver.Find(`div[role="tooltip"]`),
+		SupportEmailLink: webDriver.FindByLink(`support@weave.works`),
 		// ClustersListPaginationNext:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[3]`),
 		// ClustersListPaginationPrevious:        webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[2]`),
 		// ClustersListPaginationLast:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[4]`),
