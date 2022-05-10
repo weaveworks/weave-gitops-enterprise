@@ -30,7 +30,7 @@ func TestGetConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.SetDefault("capi-templates-repository-url", tt.value)
 
-			s := createServer(t, nil, "", "", nil, nil, "", nil)
+			s := createServer(t, nil, "", "", nil, nil, "", nil, nil)
 
 			res, _ := s.GetConfig(context.Background(), &capiv1_protos.GetConfigRequest{})
 

@@ -65,6 +65,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -468,6 +469,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
+	clientset, err := kubernetes.NewForConfig(config.GetConfigOrDie())
+	if err != nil {
+		return errors.New("failed to create clientset")
+	}
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		args.Log,
@@ -480,6 +485,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.CAPIClustersNamespace,
 		args.ProfileHelmRepository,
 		args.HelmRepositoryCacheDirectory,
+		clientset,
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
 		return fmt.Errorf("failed to register clusters service handler server: %w", err)
