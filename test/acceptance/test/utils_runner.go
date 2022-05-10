@@ -15,12 +15,13 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/types"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 )
 
 // Interface that can be implemented either with:
@@ -167,7 +168,7 @@ func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, te
 	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
 	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := capi.ParseFile(fileName)
+			template, err := templates.ParseFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
 			err = b.Client.Create(context.Background(), template)
 			Expect(err).To(BeNil(), "Failed to create CAPITemplate template files")
@@ -180,7 +181,7 @@ func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, te
 func (b DatabaseGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	By("Delete CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := capi.ParseFile(fileName)
+			template, err := templates.ParseFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
 			err = b.Client.Delete(context.Background(), template)
 			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
