@@ -22,6 +22,9 @@ const WGApplicationsBucket: FC<Props> = props => {
             url: '/applications',
             count: applicationsCount,
           },
+          {
+            label: 'Bucket',
+          },
         ]}
       />
       <ContentWrapper>

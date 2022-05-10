@@ -22,6 +22,9 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
             url: '/applications',
             count: applicationsCount,
           },
+          {
+            label: 'HelmRepository',
+          },
         ]}
       />
       <ContentWrapper>

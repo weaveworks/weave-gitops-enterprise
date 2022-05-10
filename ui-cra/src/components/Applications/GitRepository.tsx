@@ -22,6 +22,9 @@ const WGApplicationsGitRepository: FC<Props> = props => {
             url: '/applications',
             count: applicationsCount,
           },
+          {
+            label: 'GitRepository',
+          },
         ]}
       />
       <ContentWrapper>

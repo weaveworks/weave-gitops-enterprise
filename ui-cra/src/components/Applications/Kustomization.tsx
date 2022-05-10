@@ -34,6 +34,7 @@ const WGApplicationsKustomization: FC<Props> = ({
   const applicationsCount = useApplicationsCount();
   const { data } = useGetKustomization(name, namespace, clusterName);
   const kustomization = data?.kustomization;
+  console.log('kustomization', data);
 
   return (
     <PageTemplate documentTitle="WeGO · Kustomization">
@@ -43,6 +44,9 @@ const WGApplicationsKustomization: FC<Props> = ({
             label: 'Sources',
             url: '/sections',
             count: applicationsCount,
+          },
+          {
+            label: `${namespace}`,
           },
         ]}
       />
