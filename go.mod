@@ -41,6 +41,7 @@ require (
 require (
 	github.com/fluxcd/go-git-providers v0.5.4
 	github.com/fluxcd/helm-controller/api v0.20.1
+	github.com/fluxcd/kustomize-controller/api v0.24.4
 	github.com/fluxcd/pkg/apis/meta v0.12.2
 	github.com/fluxcd/source-controller/api v0.24.3
 	github.com/golang/protobuf v1.5.2
@@ -62,6 +63,7 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
+	gotest.tools v2.2.0+incompatible
 	helm.sh/helm/v3 v3.8.2
 	k8s.io/apiextensions-apiserver v0.23.5
 	k8s.io/helm v2.17.0+incompatible
@@ -118,7 +120,6 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/fluxcd/kustomize-controller/api v0.24.4 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.0.3 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.3.3 // indirect
 	github.com/fluxcd/pkg/runtime v0.14.1 // indirect

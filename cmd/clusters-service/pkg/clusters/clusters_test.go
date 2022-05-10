@@ -2,6 +2,7 @@ package clusters
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -10,6 +11,7 @@ import (
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -56,7 +58,7 @@ func TestListClusterFromCRDs(t *testing.T) {
 		}
 	})
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
-	result, err := lib.List(context.Background())
+	result, _, err := lib.List(context.Background(), client.ListOptions{})
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
@@ -67,6 +69,32 @@ func TestListClusterFromCRDs(t *testing.T) {
 	if diff := cmp.Diff(want, result); diff != "" {
 		t.Fatalf("On no, diff clusters: %v", diff)
 	}
+}
+
+func TestListClusterFromCRDs_Pagination(t *testing.T) {
+	clusters := []runtime.Object{}
+	for i := 1; i <= 25; i++ {
+		c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+			o.ObjectMeta.Name = fmt.Sprintf("gitops-cluster-%d", i)
+			o.ObjectMeta.Namespace = "default"
+			o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+				Name: "dev",
+			}
+		})
+		clusters = append(clusters, c1)
+	}
+
+	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, clusters...))}
+	opts := client.ListOptions{
+		Limit: 10,
+	}
+	result, nextPageToken, err := lib.List(context.Background(), opts)
+	if err != nil {
+		t.Fatalf("On no, error: %v", err)
+	}
+	fmt.Println(nextPageToken)
+	fmt.Println(result["gitops-cluster-13"].GetObjectMeta())
+	assert.Equal(t, 10, len(result))
 }
 
 func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {

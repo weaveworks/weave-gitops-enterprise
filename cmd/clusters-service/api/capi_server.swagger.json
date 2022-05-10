@@ -39,6 +39,19 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -800,6 +813,9 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
         }
       }
     },
