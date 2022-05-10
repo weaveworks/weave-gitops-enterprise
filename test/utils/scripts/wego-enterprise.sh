@@ -161,6 +161,18 @@ function setup {
 
   helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
 
+  helm repo add profiles-catalog https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+  helm repo add cert-manager https://charts.jetstack.io
+  helm repo update 
+
+  # Install cert-manager for tls certificate creation
+  helm upgrade --install \
+    cert-manager cert-manager/cert-manager \
+    --namespace cert-manager --create-namespace \
+    --version v1.8.0 \
+    --set installCRDs=true
+  kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
+
   # Install RBAC for user authentication
    kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
 
@@ -172,6 +184,13 @@ function setup {
     export EXP_CLUSTER_RESOURCE_SET=true
     clusterctl init --infrastructure docker    
   fi
+
+  # Install policy agent to enforce rego policies - (Installing policy agent after capd because capd violates some of thge policies and failed to install)
+  helm upgrade --install weave-policy-agent profiles-catalog/weave-policy-agent \
+    --version 0.2.x \
+    --set accountId=weaveworks \
+    --set clusterId=${MANAGEMENT_CLUSTER_CNAME}
+  kubectl wait --for=condition=Ready --timeout=120s -n policy-system --all pod
 
   # Install resources for bootstrapping and CNI
   kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
