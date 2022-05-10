@@ -14,10 +14,11 @@ import (
 // RenderOptFunc is a functional option for Rendering templates.
 type RenderOptFunc func(uns *unstructured.Unstructured) error
 
-// InjectPruneAnnotation injects an annotation on everything but Cluster objects
+// InjectPruneAnnotation injects an annotation on everything
+// but Cluster and GitopsCluster objects
 // to instruct flux *not* to prune these objects.
 func InjectPruneAnnotation(uns *unstructured.Unstructured) error {
-	if uns.GetKind() != "Cluster" {
+	if uns.GetKind() != "Cluster" && uns.GetKind() != "GitopsCluster" {
 		ann := uns.GetAnnotations()
 		if ann == nil {
 			ann = make(map[string]string)

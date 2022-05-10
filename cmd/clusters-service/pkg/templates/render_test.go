@@ -26,6 +26,11 @@ kind: Cluster
 metadata:
   name: testing
 ---
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  name: testing-gitops
+---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
@@ -91,6 +96,11 @@ apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: testing
+---
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  name: testing-gitops
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
@@ -187,6 +197,12 @@ metadata:
   name: testing
   namespace: new-test-namespace
 ---
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  name: testing-gitops
+  namespace: new-test-namespace
+---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
@@ -229,6 +245,12 @@ func TestRender_with_options(t *testing.T) {
 	want := `---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
+metadata:
+  name: just-a-test
+  namespace: not-a-real-namespace
+---
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
 metadata:
   name: just-a-test
   namespace: not-a-real-namespace
