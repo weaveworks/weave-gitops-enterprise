@@ -259,8 +259,8 @@ github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5/go.mod h1:/iP1
 github.com/checkpoint-restore/go-criu/v4 v4.1.0/go.mod h1:xUQBLp4RLc5zJtWY++yjOoMoB5lihDt7fai+75m+rGw=
 github.com/checkpoint-restore/go-criu/v5 v5.0.0/go.mod h1:cfwC0EG7HMUenopBsUf9d89JlCLQIfgVcNsNN0t6T2M=
 github.com/checkpoint-restore/go-criu/v5 v5.3.0/go.mod h1:E/eQpaFtUKGOOSEBZgmKAcn+zUUwWxqcaKZlF54wK8E=
-github.com/cheshir/ttlcache v1.0.0 h1:SAjXm+6LdzJxzeNK5qIUq8e+nOI3DQgpe6KZiOx7oJA=
-github.com/cheshir/ttlcache v1.0.0/go.mod h1:B9qWHhPE7FnRG2HNiPajGzOFX9NYcObDTkg3Ixh9Fzk=
+github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789 h1:eWRC5oPQ3G4BtSv0hsHTB777h7iCZct8RCm6jrsozsg=
+github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789/go.mod h1:B9qWHhPE7FnRG2HNiPajGzOFX9NYcObDTkg3Ixh9Fzk=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
@@ -1675,8 +1675,8 @@ github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQ
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/policy-agent/api v1.0.2 h1:2F1bLVLuV0BV1Dl59trq9x3IRxy1SS4P9FHzOTwgKd0=
 github.com/weaveworks/policy-agent/api v1.0.2/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
-github.com/weaveworks/weave-gitops v0.8.0 h1:QhRsjElfoe2dhNrfXEk993Uon3LSVEpBRozofcpqvzI=
-github.com/weaveworks/weave-gitops v0.8.0/go.mod h1:vCywkLJqGM1dl8e7U4pOUo+SqD1JxUSSWIwep1t6vr4=
+github.com/weaveworks/weave-gitops v0.8.1-rc.1 h1:hRsok1xewaj0Z7qGM/RF3cboVuC0D9JT739ANpg1lbE=
+github.com/weaveworks/weave-gitops v0.8.1-rc.1/go.mod h1:VnhiCllR0AN7bxNd7Tz7jDZ4M3G6wG3jLxZst7/zjjM=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/willf/bitset v1.1.11-0.20200630133818-d5bec3311243/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
