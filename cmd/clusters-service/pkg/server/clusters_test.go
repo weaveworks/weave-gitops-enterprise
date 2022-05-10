@@ -40,6 +40,7 @@ import (
 func TestCreatePullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
 	viper.SetDefault("capi-repository-clusters-path", "clusters")
+	viper.SetDefault("add-bases-kustomization", "enabled")
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
@@ -163,17 +164,19 @@ metadata:
 				},
 				{
 					Path: "clusters/dev/clusters-bases-kustomization.yaml",
-					Content: `metadata:
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
   creationTimestamp: null
   name: clusters-bases-kustomization
   namespace: flux-system
 spec:
-  interval: 0s
+  interval: 10m0s
   path: clusters/bases
-  prune: false
+  prune: true
   sourceRef:
     kind: GitRepository
-    name: ""
+    name: flux-system
 status: {}
 `,
 				},

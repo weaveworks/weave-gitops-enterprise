@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -125,18 +126,21 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		clusterNamespace = "default"
 	}
 
-	path := getClusterManifestPath(clusterName)
-	commonKustomization, err := getCommonKustomization(clusterName)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get common kustomization for %s: %s", clusterName, err)
-	}
 	content := string(tmplWithValuesAndCredentials[:])
+	path := getClusterManifestPath(clusterName)
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &path,
 			Content: &content,
 		},
-		*commonKustomization,
+	}
+
+	if viper.GetString("add-bases-kustomization") == "enabled" {
+		commonKustomization, err := getCommonKustomization(clusterName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", clusterName, err)
+		}
+		files = append(files, *commonKustomization)
 	}
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
@@ -417,6 +421,10 @@ func getCommonKustomization(clusterName string) (*gitprovider.CommitFile, error)
 
 	commonKustomizationPath := getCommonKustomizationPath(clusterName)
 	commonKustomization := &kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.Identifier(),
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "clusters-bases-kustomization",
 			Namespace: "flux-system",
@@ -424,7 +432,10 @@ func getCommonKustomization(clusterName string) (*gitprovider.CommitFile, error)
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
 				Kind: "GitRepository",
+				Name: "flux-system",
 			},
+			Interval: metav1.Duration{Duration: time.Minute * 10},
+			Prune:    true,
 			Path: filepath.Join(
 				viper.GetString("capi-repository-clusters-path"),
 				"bases",
@@ -433,7 +444,7 @@ func getCommonKustomization(clusterName string) (*gitprovider.CommitFile, error)
 	}
 	b, err := yaml.Marshal(commonKustomization)
 	if err != nil {
-		return nil, fmt.Errorf("Error marshalling common kustomization, %w", err)
+		return nil, fmt.Errorf("error marshalling common kustomization, %w", err)
 	}
 	commonKustomizationString := string(b)
 	file := &gitprovider.CommitFile{

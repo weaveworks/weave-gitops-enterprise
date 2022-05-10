@@ -42,6 +42,7 @@ config:
     templates:
       namespace: default
       injectPruneAnnotation: enabled
+      addBasesKustomization: enabled
     clusters:
       namespace: default
     repositoryURL: ""
