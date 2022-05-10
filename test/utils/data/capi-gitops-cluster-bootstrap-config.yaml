@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
         - image: ghcr.io/fluxcd/flux-cli:v0.29.5
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           name: flux-bootstrap
           resources: {}
           volumeMounts:
