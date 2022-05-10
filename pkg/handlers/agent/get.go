@@ -93,6 +93,7 @@ spec:
       containers:
       - name: agent
         image: weaveworks/wkp-agent:{{ .ImageTag }}
+        imagePullPolicy: IfNotPresent
         args:
         - watch
         - --nats-url={{ .NatsURL }}
@@ -104,6 +105,7 @@ spec:
               key: token
       - name: alertmanager-agent
         image: weaveworks/wkp-agent:{{ .ImageTag }}
+        imagePullPolicy: IfNotPresent
         args:
         - agent-server
         - --nats-url={{ .NatsURL }}
