@@ -1687,6 +1687,8 @@ github.com/weaveworks/weave-gitops v0.7.0-rc9.0.20220510203856-c66a5a437077 h1:d
 github.com/weaveworks/weave-gitops v0.7.0-rc9.0.20220510203856-c66a5a437077/go.mod h1:VnhiCllR0AN7bxNd7Tz7jDZ4M3G6wG3jLxZst7/zjjM=
 github.com/weaveworks/weave-gitops v0.7.0-rc9.0.20220510211903-63a0d79f2435 h1:UTKZlVNjPsYlfLk4sB3dP+mDSmA6IOFqIa5grNpuflo=
 github.com/weaveworks/weave-gitops v0.7.0-rc9.0.20220510211903-63a0d79f2435/go.mod h1:VnhiCllR0AN7bxNd7Tz7jDZ4M3G6wG3jLxZst7/zjjM=
+github.com/weaveworks/weave-gitops v0.7.0-rc9.0.20220510215551-898b61262b43 h1:sXJ2kRlqSaE+K5XuxiNZK068XhjUkKysWRmGNMj3Gu8=
+github.com/weaveworks/weave-gitops v0.7.0-rc9.0.20220510215551-898b61262b43/go.mod h1:VnhiCllR0AN7bxNd7Tz7jDZ4M3G6wG3jLxZst7/zjjM=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/willf/bitset v1.1.11-0.20200630133818-d5bec3311243/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
