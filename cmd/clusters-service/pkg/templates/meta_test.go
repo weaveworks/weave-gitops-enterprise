@@ -62,6 +62,12 @@ func TestParseTemplateCAPIMeta(t *testing.T) {
 				Params:     []string{"CLUSTER_NAME"},
 			},
 			{
+				Kind:       "GitopsCluster",
+				APIVersion: "gitops.weave.works/v1alpha1",
+				Name:       "${CLUSTER_NAME}-gitops",
+				Params:     []string{"CLUSTER_NAME"},
+			},
+			{
 				Kind:       "AWSMachineTemplate",
 				APIVersion: "infrastructure.cluster.x-k8s.io/v1alpha3",
 				Params:     []string{"CLUSTER_NAME"},
