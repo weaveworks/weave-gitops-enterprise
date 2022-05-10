@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -122,7 +123,9 @@ func TestListTemplates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, nil, "", nil)
 
-			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
+			listTemplatesRequest := &capiv1_protos.ListTemplatesRequest{
+				TemplateKind: capiv1.Kind,
+			}
 
 			listTemplatesResponse, err := s.ListTemplates(context.Background(), listTemplatesRequest)
 			if err != nil {
@@ -485,7 +488,7 @@ func TestRenderTemplate(t *testing.T) {
 					makeTemplate(t, func(ct *capiv1.CAPITemplate) {
 						ct.ObjectMeta.Name = "cluster-template-1"
 						ct.Spec.Description = "this is test template 1"
-						ct.Spec.ResourceTemplates = []capiv1.ResourceTemplate{
+						ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
 							{
 								RawExtension: rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -674,7 +677,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 		}
 	  }`
 	return makeTemplate(t, append(opts, func(c *capiv1.CAPITemplate) {
-		c.Spec.ResourceTemplates = []capiv1.ResourceTemplate{
+		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
 			{
 				RawExtension: rawExtension(basicRaw),
 			},

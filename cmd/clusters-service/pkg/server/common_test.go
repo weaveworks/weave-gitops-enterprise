@@ -106,7 +106,6 @@ func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {
 	}
 }
 
-// TODO: FIX ME
 func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
