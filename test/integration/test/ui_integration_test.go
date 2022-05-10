@@ -87,23 +87,23 @@ func createAlert(db *gorm.DB, token, name, severity, message string, fireFor tim
 	})
 }
 
-func AssertClusterOrder(clustersPage *pages.ClustersPage, clusterNames []string) {
-	getClusterNames := func() []string {
-		names := []string{}
-		elements := clustersPage.ClustersList.All("tr.summary")
-		count, err := elements.Count()
-		Expect(err).NotTo(HaveOccurred())
-		for i := 0; i < count; i++ {
-			el := elements.At(i).Find("td:nth-child(2)")
-			name, err := el.Text()
-			Expect(err).NotTo(HaveOccurred())
-			names = append(names, name)
-		}
-		return names
-	}
+// func AssertClusterOrder(clustersPage *pages.ClustersPage, clusterNames []string) {
+// 	getClusterNames := func() []string {
+// 		names := []string{}
+// 		elements := clustersPage.ClustersList.All("tr.summary")
+// 		count, err := elements.Count()
+// 		Expect(err).NotTo(HaveOccurred())
+// 		for i := 0; i < count; i++ {
+// 			el := elements.At(i).Find("td:nth-child(2)")
+// 			name, err := el.Text()
+// 			Expect(err).NotTo(HaveOccurred())
+// 			names = append(names, name)
+// 		}
+// 		return names
+// 	}
 
-	Eventually(getClusterNames, acceptancetest.ASSERTION_10SECONDS_TIME_OUT).Should(Equal(clusterNames))
-}
+// 	Eventually(getClusterNames, acceptancetest.ASSERTION_10SECONDS_TIME_OUT).Should(Equal(clusterNames))
+// }
 
 func AssertAlertsOrder(clustersPage *pages.ClustersPage, alertNames []string) {
 	getAlertNames := func() []string {
@@ -157,12 +157,12 @@ func createCluster(db *gorm.DB, name string, clusterType string, status string) 
 	}
 }
 
-func AssertTooltipContains(page *pages.ClustersPage, element *agouti.Selection, text string) {
-	Eventually(element).Should(BeFound())
-	Expect(element.MouseToElement()).Should(Succeed())
-	Eventually(page.Tooltip).Should(BeFound())
-	Eventually(page.Tooltip, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(MatchText(text))
-}
+// func AssertTooltipContains(page *pages.ClustersPage, element *agouti.Selection, text string) {
+// 	Eventually(element).Should(BeFound())
+// 	Expect(element.MouseToElement()).Should(Succeed())
+// 	Eventually(page.Tooltip).Should(BeFound())
+// 	Eventually(page.Tooltip, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(MatchText(text))
+// }
 
 // func AssertClusterIconIsDisplayed(icon *agouti.Selection, shouldBeFound bool) {
 // 	if shouldBeFound {
@@ -247,42 +247,42 @@ var _ = Describe("Integration suite", func() {
 		resetDb(db)
 	})
 
-	Describe("Tooltips!", func() {
-		Describe("The column header tooltips", func() {
-			It("should show a tooltip containing 'name' on mouse over", func() {
-				AssertTooltipContains(page, page.HeaderName, "Name")
-			})
-			It("should show a tooltip containing 'status' on mouse over", func() {
-				AssertTooltipContains(page, page.HeaderStatus, "status")
-			})
-		})
+	// Describe("Tooltips!", func() {
+	// 	Describe("The column header tooltips", func() {
+	// 		It("should show a tooltip containing 'name' on mouse over", func() {
+	// 			AssertTooltipContains(page, page.HeaderName, "Name")
+	// 		})
+	// 		It("should show a tooltip containing 'status' on mouse over", func() {
+	// 			AssertTooltipContains(page, page.HeaderStatus, "status")
+	// 		})
+	// 	})
 
-		Describe("Cluster row tooltips", func() {
-			var cluster *pages.ClusterInformation
+	// 	Describe("Cluster row tooltips", func() {
+	// 		var cluster *pages.ClusterInformation
 
-			BeforeEach(func() {
-				name := "ewq"
-				createCluster(db, name, "", "Last seen")
-				db.Create(&models.NodeInfo{
-					ClusterInfoUID: types.UID(name),
-					ClusterToken:   name,
-					Name:           "cp-1",
-					IsControlPlane: true,
-					KubeletVersion: "v1.19",
-				})
-				db.Create(&models.Workspace{
-					ClusterToken: name,
-					Name:         "app-dev",
-					Namespace:    "wkp-workspaces",
-				})
-				cluster = pages.FindClusterInList(page, name)
-			})
+	// 		BeforeEach(func() {
+	// 			name := "ewq"
+	// 			createCluster(db, name, "", "Last seen")
+	// 			db.Create(&models.NodeInfo{
+	// 				ClusterInfoUID: types.UID(name),
+	// 				ClusterToken:   name,
+	// 				Name:           "cp-1",
+	// 				IsControlPlane: true,
+	// 				KubeletVersion: "v1.19",
+	// 			})
+	// 			db.Create(&models.Workspace{
+	// 				ClusterToken: name,
+	// 				Name:         "app-dev",
+	// 				Namespace:    "wkp-workspaces",
+	// 			})
+	// 			cluster = pages.FindClusterInList(page, name)
+	// 		})
 
-			It("should show a tooltip on status column cluster w/ last seen", func() {
-				AssertTooltipContains(page, cluster.Status, "Last seen")
-			})
-		})
-	})
+	// 		It("should show a tooltip on status column cluster w/ last seen", func() {
+	// 			AssertTooltipContains(page, cluster.Status, "Last seen")
+	// 		})
+	// 	})
+	// })
 
 	// Describe("Cluster type icons!", func() {
 	// 	var kindCluster *pages.ClusterInformation
@@ -314,73 +314,73 @@ var _ = Describe("Integration suite", func() {
 	// 	})
 	// })
 
-	Describe("Sorting clusters!", func() {
-		BeforeEach(func() {
-			// Create some stuff in the db
-			createCluster(db, "cluster-1-ready", "", "Ready")
-			createCluster(db, "cluster-2-critical", "", "Critical")
-			createCluster(db, "cluster-3-alerting", "", "Alerting")
-			createCluster(db, "cluster-4-not-connected", "", "Not Connected")
-			createCluster(db, "cluster-5-last-seen", "", "Last seen")
-		})
+	// Describe("Sorting clusters!", func() {
+	// 	BeforeEach(func() {
+	// 		// Create some stuff in the db
+	// 		createCluster(db, "cluster-1-ready", "", "Ready")
+	// 		createCluster(db, "cluster-2-critical", "", "Critical")
+	// 		createCluster(db, "cluster-3-alerting", "", "Alerting")
+	// 		createCluster(db, "cluster-4-not-connected", "", "Not Connected")
+	// 		createCluster(db, "cluster-5-last-seen", "", "Last seen")
+	// 	})
 
-		Describe("How clicking on the headers should sort things", func() {
-			It("Should have some items in the table", func() {
-				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
-			})
+	// 	Describe("How clicking on the headers should sort things", func() {
+	// 		It("Should have some items in the table", func() {
+	// 			Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
+	// 		})
 
-			It("Should sort the cluster by status initially", func() {
-				AssertClusterOrder(page, []string{
-					"cluster-2-critical",
-					"cluster-3-alerting",
-					"cluster-5-last-seen",
-					"cluster-1-ready",
-					"cluster-4-not-connected",
-				})
-			})
+	// 		It("Should sort the cluster by status initially", func() {
+	// 			AssertClusterOrder(page, []string{
+	// 				"cluster-2-critical",
+	// 				"cluster-3-alerting",
+	// 				"cluster-5-last-seen",
+	// 				"cluster-1-ready",
+	// 				"cluster-4-not-connected",
+	// 			})
+	// 		})
 
-			It("should reverse the order when I click on the status header", func() {
-				Expect(page.HeaderStatus.Click()).Should(Succeed())
-				AssertClusterOrder(page, []string{
-					"cluster-4-not-connected",
-					"cluster-1-ready",
-					"cluster-5-last-seen",
-					"cluster-3-alerting",
-					"cluster-2-critical",
-				})
-			})
+	// 		It("should reverse the order when I click on the status header", func() {
+	// 			Expect(page.HeaderStatus.Click()).Should(Succeed())
+	// 			AssertClusterOrder(page, []string{
+	// 				"cluster-4-not-connected",
+	// 				"cluster-1-ready",
+	// 				"cluster-5-last-seen",
+	// 				"cluster-3-alerting",
+	// 				"cluster-2-critical",
+	// 			})
+	// 		})
 
-			It("It should sort by name asc when you click on the name header", func() {
-				Expect(page.HeaderName.Click()).Should(Succeed())
-				AssertClusterOrder(page, []string{
-					"cluster-1-ready",
-					"cluster-2-critical",
-					"cluster-3-alerting",
-					"cluster-4-not-connected",
-					"cluster-5-last-seen",
-				})
-			})
+	// 		It("It should sort by name asc when you click on the name header", func() {
+	// 			Expect(page.HeaderName.Click()).Should(Succeed())
+	// 			AssertClusterOrder(page, []string{
+	// 				"cluster-1-ready",
+	// 				"cluster-2-critical",
+	// 				"cluster-3-alerting",
+	// 				"cluster-4-not-connected",
+	// 				"cluster-5-last-seen",
+	// 			})
+	// 		})
 
-			It("It should sort by name desc when you click on the name header again", func() {
-				Expect(page.HeaderName.Click()).Should(Succeed())
-				AssertClusterOrder(page, []string{
-					"cluster-1-ready",
-					"cluster-2-critical",
-					"cluster-3-alerting",
-					"cluster-4-not-connected",
-					"cluster-5-last-seen",
-				})
-				Expect(page.HeaderName.Click()).Should(Succeed())
-				AssertClusterOrder(page, []string{
-					"cluster-5-last-seen",
-					"cluster-4-not-connected",
-					"cluster-3-alerting",
-					"cluster-2-critical",
-					"cluster-1-ready",
-				})
-			})
-		})
-	})
+	// 		It("It should sort by name desc when you click on the name header again", func() {
+	// 			Expect(page.HeaderName.Click()).Should(Succeed())
+	// 			AssertClusterOrder(page, []string{
+	// 				"cluster-1-ready",
+	// 				"cluster-2-critical",
+	// 				"cluster-3-alerting",
+	// 				"cluster-4-not-connected",
+	// 				"cluster-5-last-seen",
+	// 			})
+	// 			Expect(page.HeaderName.Click()).Should(Succeed())
+	// 			AssertClusterOrder(page, []string{
+	// 				"cluster-5-last-seen",
+	// 				"cluster-4-not-connected",
+	// 				"cluster-3-alerting",
+	// 				"cluster-2-critical",
+	// 				"cluster-1-ready",
+	// 			})
+	// 		})
+	// 	})
+	// })
 
 	// Describe("Pagination", func() {
 	// 	BeforeEach(func() {
