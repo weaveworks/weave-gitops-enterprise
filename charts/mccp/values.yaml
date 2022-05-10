@@ -107,4 +107,4 @@ service:
   healthCheckNodePort: 0
 
 cluster-controller:
-  enabled: false
+  enabled: true
