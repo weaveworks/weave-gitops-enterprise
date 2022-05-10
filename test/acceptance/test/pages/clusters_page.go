@@ -157,7 +157,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderIcon:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
 		HeaderStatus:                          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
 		// NoClusterConfigured:                   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
-		ClustersList:                          webDriver.Find(`#clusters-list > div > table > tbody`),
+		ClustersList:                          webDriver.Find(`#clusters-list > div > div[2] > div[1] > div[1] > table > tbody`),
 		Tooltip:                               webDriver.Find(`div[role="tooltip"]`),
 		SupportEmailLink:                      webDriver.FindByLink(`support@weave.works`),
 		// ClustersListPaginationNext:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[3]`),

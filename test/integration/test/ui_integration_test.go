@@ -164,50 +164,50 @@ func AssertTooltipContains(page *pages.ClustersPage, element *agouti.Selection, 
 	Eventually(page.Tooltip, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(MatchText(text))
 }
 
-func AssertClusterIconIsDisplayed(icon *agouti.Selection, shouldBeFound bool) {
-	if shouldBeFound {
-		Eventually(icon, acceptancetest.ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
-	} else {
-		Eventually(icon, acceptancetest.ASSERTION_1MINUTE_TIME_OUT).ShouldNot(BeFound())
-	}
-}
+// func AssertClusterIconIsDisplayed(icon *agouti.Selection, shouldBeFound bool) {
+// 	if shouldBeFound {
+// 		Eventually(icon, acceptancetest.ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+// 	} else {
+// 		Eventually(icon, acceptancetest.ASSERTION_1MINUTE_TIME_OUT).ShouldNot(BeFound())
+// 	}
+// }
 
-func createNodeInfo(db *gorm.DB, clusterName, name, version string, isControlPlane bool) {
-	var cluster models.Cluster
-	var clusterInfo models.ClusterInfo
-	db.Where("Name = ?", clusterName).First(&cluster)
-	db.Where("cluster_token = ?", cluster.Token).First(&clusterInfo)
+// func createNodeInfo(db *gorm.DB, clusterName, name, version string, isControlPlane bool) {
+// 	var cluster models.Cluster
+// 	var clusterInfo models.ClusterInfo
+// 	db.Where("Name = ?", clusterName).First(&cluster)
+// 	db.Where("cluster_token = ?", cluster.Token).First(&clusterInfo)
 
-	db.Create(&models.NodeInfo{
-		ClusterToken:   cluster.Token,
-		ClusterInfoUID: types.UID(clusterName),
-		Name:           name,
-		IsControlPlane: isControlPlane,
-		KubeletVersion: version,
-	})
-}
+// 	db.Create(&models.NodeInfo{
+// 		ClusterToken:   cluster.Token,
+// 		ClusterInfoUID: types.UID(clusterName),
+// 		Name:           name,
+// 		IsControlPlane: isControlPlane,
+// 		KubeletVersion: version,
+// 	})
+// }
 
 func AssertRowCellContains(element *agouti.Selection, text string) {
 	Eventually(element).Should(BeFound())
 	Eventually(element, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText(text))
 }
 
-func createFluxInfo(db *gorm.DB, clusterName, name, namespace, repoURL, repoBranch string) {
-	image := "docker.io/fluxcd/flux:v0.8.1"
+// func createFluxInfo(db *gorm.DB, clusterName, name, namespace, repoURL, repoBranch string) {
+// 	image := "docker.io/fluxcd/flux:v0.8.1"
 
-	var cluster models.Cluster
-	db.Where("Name = ?", clusterName).First(&cluster)
+// 	var cluster models.Cluster
+// 	db.Where("Name = ?", clusterName).First(&cluster)
 
-	db.Create(&models.FluxInfo{
-		ClusterToken: cluster.Token,
-		Name:         name,
-		Namespace:    namespace,
-		Args:         "",
-		Image:        image,
-		RepoURL:      repoURL,
-		RepoBranch:   repoBranch,
-	})
-}
+// 	db.Create(&models.FluxInfo{
+// 		ClusterToken: cluster.Token,
+// 		Name:         name,
+// 		Namespace:    namespace,
+// 		Args:         "",
+// 		Image:        image,
+// 		RepoURL:      repoURL,
+// 		RepoBranch:   repoBranch,
+// 	})
+// }
 
 var intWebDriver *agouti.Page
 
