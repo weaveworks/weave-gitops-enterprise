@@ -282,7 +282,7 @@ const MCCP: FC = () => {
               />
             )}
             {!isLoading ? (
-              <TableWrapper>
+              <TableWrapper id="clusters-list">
                 <FilterableTable
                   key={clusters.length}
                   filters={initialFilterState}

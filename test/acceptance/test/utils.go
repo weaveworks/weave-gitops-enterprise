@@ -122,13 +122,13 @@ func getCheckoutRepoPath() string {
 	return repoDir[1]
 }
 
-func enterpriseChartVersion() string {
-	version := GetEnv("ENTERPRISE_CHART_VERSION", "")
-	if version == "" {
-		version, _ = runCommandAndReturnStringOutput(`git describe --always --abbrev=7 | sed 's/^[^0-9]*//'`)
-	}
-	return version
-}
+// func enterpriseChartVersion() string {
+// 	version := GetEnv("ENTERPRISE_CHART_VERSION", "")
+// 	if version == "" {
+// 		version, _ = runCommandAndReturnStringOutput(`git describe --always --abbrev=7 | sed 's/^[^0-9]*//'`)
+// 	}
+// 	return version
+// }
 
 func SetupTestEnvironment() {
 	selenium_service_url = "http://localhost:4444/wd/hub"

@@ -10,7 +10,6 @@ import (
 	"path"
 	"path/filepath"
 	os_runtime "runtime"
-	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -285,35 +284,35 @@ var _ = Describe("Integration suite", func() {
 		})
 	})
 
-	Describe("Cluster type icons!", func() {
-		var kindCluster *pages.ClusterInformation
-		var gkeCluster *pages.ClusterInformation
-		var awsCluster *pages.ClusterInformation
-		var eiCluster *pages.ClusterInformation
-		var unknownCluster *pages.ClusterInformation
+	// Describe("Cluster type icons!", func() {
+	// 	var kindCluster *pages.ClusterInformation
+	// 	var gkeCluster *pages.ClusterInformation
+	// 	var awsCluster *pages.ClusterInformation
+	// 	var eiCluster *pages.ClusterInformation
+	// 	var unknownCluster *pages.ClusterInformation
 
-		BeforeEach(func() {
-			createCluster(db, "kind", "kind", "Last seen")
-			createCluster(db, "gke", "gke", "Last seen")
-			createCluster(db, "aws", "aws", "Last seen")
-			createCluster(db, "existingInfra", "existingInfra", "Last seen")
-			createCluster(db, "unknown", "unknown", "Last seen")
-		})
+	// 	BeforeEach(func() {
+	// 		createCluster(db, "kind", "kind", "Last seen")
+	// 		createCluster(db, "gke", "gke", "Last seen")
+	// 		createCluster(db, "aws", "aws", "Last seen")
+	// 		createCluster(db, "existingInfra", "existingInfra", "Last seen")
+	// 		createCluster(db, "unknown", "unknown", "Last seen")
+	// 	})
 
-		It("should show the corresponding cluster type icon if exists", func() {
-			kindCluster = pages.FindClusterInList(page, "kind")
-			gkeCluster = pages.FindClusterInList(page, "gke")
-			awsCluster = pages.FindClusterInList(page, "aws")
-			eiCluster = pages.FindClusterInList(page, "existingInfra")
-			unknownCluster = pages.FindClusterInList(page, "unknown")
+	// 	It("should show the corresponding cluster type icon if exists", func() {
+	// 		kindCluster = pages.FindClusterInList(page, "kind")
+	// 		gkeCluster = pages.FindClusterInList(page, "gke")
+	// 		awsCluster = pages.FindClusterInList(page, "aws")
+	// 		eiCluster = pages.FindClusterInList(page, "existingInfra")
+	// 		unknownCluster = pages.FindClusterInList(page, "unknown")
 
-			AssertClusterIconIsDisplayed(kindCluster.Icon, true)
-			AssertClusterIconIsDisplayed(gkeCluster.Icon, true)
-			AssertClusterIconIsDisplayed(awsCluster.Icon, true)
-			AssertClusterIconIsDisplayed(eiCluster.Icon, true)
-			AssertClusterIconIsDisplayed(unknownCluster.Icon, false)
-		})
-	})
+	// 		AssertClusterIconIsDisplayed(kindCluster.Icon, true)
+	// 		AssertClusterIconIsDisplayed(gkeCluster.Icon, true)
+	// 		AssertClusterIconIsDisplayed(awsCluster.Icon, true)
+	// 		AssertClusterIconIsDisplayed(eiCluster.Icon, true)
+	// 		AssertClusterIconIsDisplayed(unknownCluster.Icon, false)
+	// 	})
+	// })
 
 	Describe("Sorting clusters!", func() {
 		BeforeEach(func() {
@@ -383,112 +382,112 @@ var _ = Describe("Integration suite", func() {
 		})
 	})
 
-	Describe("Pagination", func() {
-		BeforeEach(func() {
-			for i := 1; i < 16; i++ {
-				createCluster(db, "cluster"+strconv.Itoa(i), "", "Ready")
-			}
-		})
+	// Describe("Pagination", func() {
+	// 	BeforeEach(func() {
+	// 		for i := 1; i < 16; i++ {
+	// 			createCluster(db, "cluster"+strconv.Itoa(i), "", "Ready")
+	// 		}
+	// 	})
 
-		Describe("How clicking the pagination controls should filter clusters", func() {
-			It("Should have 10 clusters to begin with", func() {
-				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
-			})
+	// 	Describe("How clicking the pagination controls should filter clusters", func() {
+	// 		It("Should have 10 clusters to begin with", func() {
+	// 			Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
+	// 		})
 
-			It("Should get the next 5 clusters when I click on the forward pagination control", func() {
-				// wait for the next button to be on the page and click it
-				Eventually(page.ClustersListPaginationNext).Should(BeFound())
-				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
-			})
+	// 		It("Should get the next 5 clusters when I click on the forward pagination control", func() {
+	// 			// wait for the next button to be on the page and click it
+	// 			Eventually(page.ClustersListPaginationNext).Should(BeFound())
+	// 			Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
+	// 			Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
+	// 		})
 
-			It("Should get the previous 10 clusters when I click on the previous pagination control", func() {
-				// wait for the next button to be on the page and click it
-				Eventually(page.ClustersListPaginationNext).Should(BeFound())
-				Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
-				// wait for the back button to be on the page and click it
-				Eventually(page.ClustersListPaginationPrevious).Should(BeFound())
-				Expect(page.ClustersListPaginationPrevious.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
-			})
+	// 		It("Should get the previous 10 clusters when I click on the previous pagination control", func() {
+	// 			// wait for the next button to be on the page and click it
+	// 			Eventually(page.ClustersListPaginationNext).Should(BeFound())
+	// 			Expect(page.ClustersListPaginationNext.Click()).Should(Succeed())
+	// 			// wait for the back button to be on the page and click it
+	// 			Eventually(page.ClustersListPaginationPrevious).Should(BeFound())
+	// 			Expect(page.ClustersListPaginationPrevious.Click()).Should(Succeed())
+	// 			Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
+	// 		})
 
-			It("Should go to the last page when I click on the last page control", func() {
-				// wait for the last page button to be on the page and click it
-				Eventually(page.ClustersListPaginationLast).Should(BeFound())
-				Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
-			})
+	// 		It("Should go to the last page when I click on the last page control", func() {
+	// 			// wait for the last page button to be on the page and click it
+	// 			Eventually(page.ClustersListPaginationLast).Should(BeFound())
+	// 			Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
+	// 			Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(5))
+	// 		})
 
-			It("Should go to the first page when I click on the first page control", func() {
-				// wait for the last page button to be on the page and click it
-				Eventually(page.ClustersListPaginationLast).Should(BeFound())
-				Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
-				// wait for the first page button to be on the page and click it
-				Eventually(page.ClustersListPaginationFirst).Should(BeFound())
-				Expect(page.ClustersListPaginationFirst.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
-			})
+	// 		It("Should go to the first page when I click on the first page control", func() {
+	// 			// wait for the last page button to be on the page and click it
+	// 			Eventually(page.ClustersListPaginationLast).Should(BeFound())
+	// 			Expect(page.ClustersListPaginationLast.Click()).Should(Succeed())
+	// 			// wait for the first page button to be on the page and click it
+	// 			Eventually(page.ClustersListPaginationFirst).Should(BeFound())
+	// 			Expect(page.ClustersListPaginationFirst.Click()).Should(Succeed())
+	// 			Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(10))
+	// 		})
 
-			It("Should update the list of clusters on the page if the 20 clusters per page option is clicked", func() {
-				Eventually(page.ClustersListPaginationPerPageDropdown).Should(BeFound())
-				Expect(page.ClustersListPaginationPerPageDropdown.Click()).Should(Succeed())
-				Expect(page.ClustersListPaginationPerPageDropdownSecond.Click()).Should(Succeed())
-				Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(15))
-			})
-		})
-	})
+	// 		It("Should update the list of clusters on the page if the 20 clusters per page option is clicked", func() {
+	// 			Eventually(page.ClustersListPaginationPerPageDropdown).Should(BeFound())
+	// 			Expect(page.ClustersListPaginationPerPageDropdown.Click()).Should(Succeed())
+	// 			Expect(page.ClustersListPaginationPerPageDropdownSecond.Click()).Should(Succeed())
+	// 			Eventually(page.ClustersList.All("tr.summary")).Should(HaveCount(15))
+	// 		})
+	// 	})
+	// })
 
-	Describe("Version(Nodes)", func() {
-		BeforeEach(func() {
-			// Similar control planes, different worker nodes
-			createCluster(db, "cluster-1", "", "Last seen")
-			createNodeInfo(db, "cluster-1", "cp-1", "v1.19.7", true)
-			createNodeInfo(db, "cluster-1", "cp-2", "v1.19.7", true)
-			createNodeInfo(db, "cluster-1", "worker-1", "v1.19.4", false)
-			createNodeInfo(db, "cluster-1", "worker-2", "v1.19.4", false)
+	// Describe("Version(Nodes)", func() {
+	// 	BeforeEach(func() {
+	// 		// Similar control planes, different worker nodes
+	// 		createCluster(db, "cluster-1", "", "Last seen")
+	// 		createNodeInfo(db, "cluster-1", "cp-1", "v1.19.7", true)
+	// 		createNodeInfo(db, "cluster-1", "cp-2", "v1.19.7", true)
+	// 		createNodeInfo(db, "cluster-1", "worker-1", "v1.19.4", false)
+	// 		createNodeInfo(db, "cluster-1", "worker-2", "v1.19.4", false)
 
-			// Different control planes and similar worker nodes
-			createCluster(db, "cluster-2", "", "Last seen")
-			createNodeInfo(db, "cluster-2", "cp-1", "v1.19.7", true)
-			createNodeInfo(db, "cluster-2", "cp-2", "v1.19.4", true)
-			createNodeInfo(db, "cluster-2", "worker-1", "v1.19.4", false)
-			createNodeInfo(db, "cluster-2", "worker-2", "v1.19.4", false)
+	// 		// Different control planes and similar worker nodes
+	// 		createCluster(db, "cluster-2", "", "Last seen")
+	// 		createNodeInfo(db, "cluster-2", "cp-1", "v1.19.7", true)
+	// 		createNodeInfo(db, "cluster-2", "cp-2", "v1.19.4", true)
+	// 		createNodeInfo(db, "cluster-2", "worker-1", "v1.19.4", false)
+	// 		createNodeInfo(db, "cluster-2", "worker-2", "v1.19.4", false)
 
-			// Similar control planes and worker nodes
-			createCluster(db, "cluster-3", "", "Last seen")
-			createNodeInfo(db, "cluster-3", "cp-1", "v1.19.7", true)
-			createNodeInfo(db, "cluster-3", "worker-1", "v1.19.7", false)
-			createNodeInfo(db, "cluster-3", "worker-2", "v1.19.7", false)
+	// 		// Similar control planes and worker nodes
+	// 		createCluster(db, "cluster-3", "", "Last seen")
+	// 		createNodeInfo(db, "cluster-3", "cp-1", "v1.19.7", true)
+	// 		createNodeInfo(db, "cluster-3", "worker-1", "v1.19.7", false)
+	// 		createNodeInfo(db, "cluster-3", "worker-2", "v1.19.7", false)
 
-			// Similar worker nodes
-			createCluster(db, "cluster-4", "", "Last seen")
-			createNodeInfo(db, "cluster-4", "worker-1", "v1.19.7", false)
-			createNodeInfo(db, "cluster-4", "worker-2", "v1.19.7", false)
+	// 		// Similar worker nodes
+	// 		createCluster(db, "cluster-4", "", "Last seen")
+	// 		createNodeInfo(db, "cluster-4", "worker-1", "v1.19.7", false)
+	// 		createNodeInfo(db, "cluster-4", "worker-2", "v1.19.7", false)
 
-			// Different worker nodes
-			createCluster(db, "cluster-5", "", "Last seen")
-			createNodeInfo(db, "cluster-5", "worker-1", "v1.19.7", false)
-			createNodeInfo(db, "cluster-5", "worker-2", "v1.19.7", false)
-			createNodeInfo(db, "cluster-5", "worker-3", "v1.19.4", false)
-		})
-	})
+	// 		// Different worker nodes
+	// 		createCluster(db, "cluster-5", "", "Last seen")
+	// 		createNodeInfo(db, "cluster-5", "worker-1", "v1.19.7", false)
+	// 		createNodeInfo(db, "cluster-5", "worker-2", "v1.19.7", false)
+	// 		createNodeInfo(db, "cluster-5", "worker-3", "v1.19.4", false)
+	// 	})
+	// })
 
-	Describe("View git repo", func() {
+	// Describe("View git repo", func() {
 
-		BeforeEach(func() {
-			// No flux instance installed
-			createCluster(db, "no-flux-cluster", "", "Last seen")
+	// 	BeforeEach(func() {
+	// 		// No flux instance installed
+	// 		createCluster(db, "no-flux-cluster", "", "Last seen")
 
-			// One flux instance installed
-			createCluster(db, "one-flux-cluster", "", "Last seen")
-			createFluxInfo(db, "one-flux-cluster", "flux-1", "default", "git@github.com:weaveworks/fluxes-1.git", "master")
+	// 		// One flux instance installed
+	// 		createCluster(db, "one-flux-cluster", "", "Last seen")
+	// 		createFluxInfo(db, "one-flux-cluster", "flux-1", "default", "git@github.com:weaveworks/fluxes-1.git", "master")
 
-			// More than one flux instance installed
-			createCluster(db, "two-flux-cluster", "", "Last seen")
-			createFluxInfo(db, "two-flux-cluster", "flux-3", "wkp-flux", "git@github.com:weaveworks/fluxes-2.git", "main")
-			createFluxInfo(db, "two-flux-cluster", "flux-4", "kube-system", "git@github.com:weaveworks/fluxes-3.git", "dev")
-		})
-	})
+	// 		// More than one flux instance installed
+	// 		createCluster(db, "two-flux-cluster", "", "Last seen")
+	// 		createFluxInfo(db, "two-flux-cluster", "flux-3", "wkp-flux", "git@github.com:weaveworks/fluxes-2.git", "main")
+	// 		createFluxInfo(db, "two-flux-cluster", "flux-4", "kube-system", "git@github.com:weaveworks/fluxes-3.git", "dev")
+	// 	})
+	// })
 
 	Describe("The alerts widget!", func() {
 		clusterName := "my-cluster"

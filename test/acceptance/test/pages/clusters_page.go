@@ -13,9 +13,9 @@ type ClusterInformation struct {
 	Checkbox         *agouti.Selection
 	ShowStatusDetail *agouti.Selection
 	Name             *agouti.Selection
-	Icon             *agouti.Selection
+	// Icon             *agouti.Selection
 	Status           *agouti.Selection
-	EditCluster      *agouti.Selection
+	// EditCluster      *agouti.Selection
 }
 
 type ClusterStatus struct {
@@ -73,7 +73,7 @@ type ClustersPage struct {
 
 // This function waits for cluster to appear in the cluste table (become visible)
 func (c ClustersPage) WaitForClusterToAppear(webDriver *agouti.Page, clusterName string) {
-	Eventually(webDriver.Find(fmt.Sprintf(`#clusters-list > div > table > tbody > tr.summary[data-cluster-name="%s"]`, clusterName))).Should(BeFound())
+	Eventually(webDriver.Find(fmt.Sprintf(`#clusters-list > div > div[2] > div[1] > div[1] > table > tbody > tr.summary[data-cluster-name="%s"]`, clusterName))).Should(BeFound())
 }
 
 // FindClusterInList finds the cluster with given name
@@ -83,9 +83,9 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		Checkbox:         cluster.FindByXPath(`td[1]`),
 		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
 		Name:             cluster.FindByXPath(`td[2]`),
-		Icon:             cluster.FindByXPath(`td[3]`).Find(`svg`),
-		Status:           cluster.FindByXPath(`td[4]`),
-		EditCluster:      cluster.FindByXPath(`td[5]`).Find("button"),
+		// Icon:             cluster.FindByXPath(`td[3]`).Find(`svg`),
+		Status:           cluster.FindByXPath(`td[5]`),
+		// EditCluster:      cluster.FindByXPath(`td[5]`).Find("button"),
 	}
 }
 
@@ -156,16 +156,16 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderName:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[2]/span`),
 		HeaderIcon:                            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[3]/span`),
 		HeaderStatus:                          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/thead/tr/th[4]/span`),
-		NoClusterConfigured:                   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
+		// NoClusterConfigured:                   webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/caption`),
 		ClustersList:                          webDriver.Find(`#clusters-list > div > table > tbody`),
 		Tooltip:                               webDriver.Find(`div[role="tooltip"]`),
 		SupportEmailLink:                      webDriver.FindByLink(`support@weave.works`),
-		ClustersListPaginationNext:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[3]`),
-		ClustersListPaginationPrevious:        webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[2]`),
-		ClustersListPaginationLast:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[4]`),
-		ClustersListPaginationFirst:           webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[1]`),
-		ClustersListPaginationPerPageDropdown: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/div`),
-		ClustersListPaginationPerPageDropdownSecond: webDriver.FindByXPath(`//*[@id="menu-"]/div[3]/ul/li[2]`),
+		// ClustersListPaginationNext:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[3]`),
+		// ClustersListPaginationPrevious:        webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[2]`),
+		// ClustersListPaginationLast:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[4]`),
+		// ClustersListPaginationFirst:           webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[3]/button[1]`),
+		// ClustersListPaginationPerPageDropdown: webDriver.FindByXPath(`//*[@id="clusters-list"]/div/table/tfoot/tr/td/div/div[2]/div`),
+		// ClustersListPaginationPerPageDropdownSecond: webDriver.FindByXPath(`//*[@id="menu-"]/div[3]/ul/li[2]`),
 		MessageBar: webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
 		Version:    webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
