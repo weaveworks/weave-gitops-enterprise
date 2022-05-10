@@ -5,6 +5,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"gorm.io/gorm"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -38,9 +39,10 @@ type server struct {
 	ns                        string // The namespace where cluster objects reside
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
+	kubernetsClient           kubernetes.Interface
 }
 
-func NewClusterServer(log logr.Logger, clustersLibrary clusters.Library, templatesLibrary templates.Library, provider git.Provider, clientGetter kube.ClientGetter, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
+func NewClusterServer(log logr.Logger, clustersLibrary clusters.Library, templatesLibrary templates.Library, provider git.Provider, clientGetter kube.ClientGetter, discoveryClient discovery.DiscoveryInterface, db *gorm.DB, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string, kubernetsClient kubernetes.Interface) capiv1_proto.ClustersServiceServer {
 	return &server{
 		log:                       log,
 		clustersLibrary:           clustersLibrary,
@@ -52,5 +54,6 @@ func NewClusterServer(log logr.Logger, clustersLibrary clusters.Library, templat
 		ns:                        ns,
 		profileHelmRepositoryName: profileHelmRepositoryName,
 		helmRepositoryCacheDir:    helmRepositoryCacheDir,
+		kubernetsClient:           kubernetsClient,
 	}
 }

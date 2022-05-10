@@ -8,26 +8,19 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.ListPolicyValidationsRequest) (*capiv1_proto.ListPolicyValidationsResponse, error) {
-	config := ctrl.GetConfigOrDie()
-	clientset := kubernetes.NewForConfigOrDie(config)
-
 	policyviolationlist := capiv1_proto.ListPolicyValidationsResponse{}
-
-	events, err := clientset.CoreV1().Events(v1.NamespaceAll).
+	events, err := s.kubernetsClient.CoreV1().Events(v1.NamespaceAll).
 		List(ctx, metav1.ListOptions{
 			LabelSelector: "pac.weave.works/type=Admission",
 			FieldSelector: "type=Warning",
 		})
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting events: %v", err)
 	}
-
 	for _, item := range events.Items {
 		// TODO: filter by cluster_id
 		// if m.ClusterId != "" && m.ClusterId != getAnnotation(item.GetAnnotations(), "cluster_id")
@@ -39,17 +32,13 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 }
 
 func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPolicyValidationRequest) (*capiv1_proto.GetPolicyValidationResponse, error) {
-	config := ctrl.GetConfigOrDie()
-	clientset := kubernetes.NewForConfigOrDie(config)
-
-	events, err := clientset.CoreV1().Events(v1.NamespaceAll).
+	events, err := s.kubernetsClient.CoreV1().Events(v1.NamespaceAll).
 		List(ctx, metav1.ListOptions{
 			LabelSelector: "pac.weave.works/type=Admission, pac.weave.works/id=" + m.ViolationId,
 			FieldSelector: "type=Warning",
 		})
-
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting events: %v", err)
 	}
 	if len(events.Items) == 0 {
 		return nil, fmt.Errorf("no policy violation found with id %s", m.ViolationId)
