@@ -13,6 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 )
 
@@ -56,11 +57,11 @@ func TestGetTemplateFromCAPICRDs(t *testing.T) {
 	t1 := mustParseCAPITemplate(t, testdata1)
 	t2 := mustParseCAPITemplate(t, testdata2)
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, t1, t2))}
-	result, err := lib.Get(context.Background(), "cluster-template2")
+	result, err := lib.Get(context.Background(), "cluster-template2", capiv1.Kind)
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
-	if diff := cmp.Diff(t2, result); diff != "" {
+	if diff := cmp.Diff(&t2.Template, result); diff != "" {
 		t.Fatalf("On no, diff templates: %v", diff)
 	}
 }
@@ -69,13 +70,13 @@ func TestListTemplateFromCAPICRDs(t *testing.T) {
 	t1 := mustParseCAPITemplate(t, testdata1)
 	t2 := mustParseCAPITemplate(t, testdata2)
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, t1, t2))}
-	result, err := lib.List(context.Background())
+	result, err := lib.List(context.Background(), capiv1.Kind)
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
-	want := map[string]*capiv1.CAPITemplate{
-		"cluster-template":  t1,
-		"cluster-template2": t2,
+	want := map[string]*templates.Template{
+		"cluster-template":  &t1.Template,
+		"cluster-template2": &t2.Template,
 	}
 	if diff := cmp.Diff(want, result); diff != "" {
 		t.Fatalf("On no, diff templates: %v", diff)

@@ -11,10 +11,11 @@ import (
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
 
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_proto.CreateTfControllerPullRequestRequest) (*capiv1_proto.CreateTfControllerPullRequestResponse, error) {
@@ -28,17 +29,17 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 		return nil, err
 	}
 
-	tmpl, err := s.templatesLibrary.GetTFControllerTemplate(ctx, msg.TemplateName)
+	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, tapiv1.Kind)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTFControllerTemplateWithValues(tmpl, msg.TemplateName, msg.ParameterValues)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("tfcontroller-templates-namespace"), msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
 
-	err = capi.ValidateRenderedTemplates(tmplWithValues)
+	err = templates.ValidateRenderedTemplates(tmplWithValues)
 	if err != nil {
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}

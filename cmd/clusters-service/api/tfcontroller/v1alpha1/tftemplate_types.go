@@ -6,6 +6,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
+const Kind = "TFTemplate"
+
 //+kubebuilder:object:root=true
 
 // TFTemplate is the Schema for the TFTemplates API

@@ -9,6 +9,7 @@ import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
 import * as GoogleProtobufAny from "./google/protobuf/any.pb"
 export type ListTemplatesRequest = {
   provider?: string
+  templateKind?: string
 }
 
 export type ListTemplatesResponse = {
@@ -18,6 +19,7 @@ export type ListTemplatesResponse = {
 
 export type GetTemplateRequest = {
   templateName?: string
+  templateKind?: string
 }
 
 export type GetTemplateResponse = {
@@ -26,6 +28,7 @@ export type GetTemplateResponse = {
 
 export type ListTemplateParamsRequest = {
   templateName?: string
+  templateKind?: string
 }
 
 export type ListTemplateParamsResponse = {
@@ -35,6 +38,7 @@ export type ListTemplateParamsResponse = {
 
 export type ListTemplateProfilesRequest = {
   templateName?: string
+  templateKind?: string
 }
 
 export type ListTemplateProfilesResponse = {
@@ -46,6 +50,7 @@ export type RenderTemplateRequest = {
   templateName?: string
   values?: {[key: string]: string}
   credentials?: Credential
+  templateKind?: string
 }
 
 export type RenderTemplateResponse = {
@@ -199,6 +204,7 @@ export type Template = {
   objects?: TemplateObject[]
   error?: string
   annotations?: {[key: string]: string}
+  templateKind?: string
 }
 
 export type Parameter = {

@@ -120,22 +120,34 @@ service ClustersService {
   }
 }
 
-message ListTemplatesRequest { string provider = 1; }
+message ListTemplatesRequest {
+  string provider = 1;
+  string template_kind = 2;
+}
 message ListTemplatesResponse {
   repeated Template templates = 1;
   int32 total = 2;
 }
 
-message GetTemplateRequest { string template_name = 1; }
+message GetTemplateRequest {
+  string template_name = 1;
+  string template_kind = 2;
+}
 message GetTemplateResponse { Template template = 1; }
 
-message ListTemplateParamsRequest { string template_name = 1; }
+message ListTemplateParamsRequest {
+  string template_name = 1;
+  string template_kind = 2;
+}
 message ListTemplateParamsResponse {
   repeated Parameter parameters = 1;
   repeated TemplateObject objects = 2;
 }
 
-message ListTemplateProfilesRequest { string template_name = 1; }
+message ListTemplateProfilesRequest {
+  string template_name = 1;
+  string template_kind = 2;
+}
 message ListTemplateProfilesResponse {
   repeated TemplateProfile profiles = 1;
   repeated TemplateObject objects = 2;
@@ -145,6 +157,7 @@ message RenderTemplateRequest {
   string template_name = 1;
   map<string, string> values = 2;
   Credential credentials = 3;
+  string template_kind = 4;
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
@@ -312,6 +325,7 @@ message Template {
   repeated TemplateObject objects = 5;
   string error = 6;
   map<string, string> annotations = 7;
+  string template_kind = 8;
 }
 
 message Parameter {

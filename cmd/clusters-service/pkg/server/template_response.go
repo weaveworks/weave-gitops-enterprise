@@ -4,19 +4,28 @@ import (
 	"fmt"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
-func ToTemplateResponse(t *capiv1.CAPITemplate) *capiv1_proto.Template {
+func ToTemplateResponse(t *apitemplates.Template) *capiv1_proto.Template {
+	var annotation string
+	switch t.Kind {
+	case capiv1.Kind:
+		annotation = templates.CAPIDisplayNameAnnotation
+	case tapiv1.Kind:
+		annotation = templates.TFControllerDisplayNameAnnotation
+	}
 	res := &capiv1_proto.Template{
 		Name:        t.GetName(),
 		Description: t.Spec.Description,
-		Provider:    getProvider(t),
+		Provider:    getProvider(t, annotation),
 		Annotations: t.Annotations,
 	}
 
-	meta, err := capi.ParseTemplateMeta(t)
+	meta, err := templates.ParseTemplateMeta(t, annotation)
 	if err != nil {
 		res.Error = fmt.Sprintf("Couldn't load template body: %s", err.Error())
 		return res

@@ -6,23 +6,21 @@ import (
 
 	"github.com/spf13/viper"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/tfcontroller"
+	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 // TODO: Refactor this to use the render outside of Capi ( It should be doing the same thing ).
 // Just pass in the namespace.
-func renderTemplateWithValues(t *capiv1.CAPITemplate, name string, values map[string]string) ([][]byte, error) {
-	opts := []capi.RenderOptFunc{
-		capi.InNamespace(viper.GetString("capi-clusters-namespace")),
+func renderTemplateWithValues(t *apitemplates.Template, name, namespace string, values map[string]string) ([][]byte, error) {
+	opts := []templates.RenderOptFunc{
+		templates.InNamespace(namespace),
 	}
 	if viper.GetString("inject-prune-annotation") != "disabled" {
-		opts = append(opts, capi.InjectPruneAnnotation)
+		opts = append(opts, templates.InjectPruneAnnotation)
 	}
 
-	templateBits, err := capi.Render(t.Spec, values, opts...)
+	templateBits, err := templates.Render(t.Spec, values, opts...)
 	if err != nil {
 		if missing, ok := isMissingVariableError(err); ok {
 			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", name, missing)
@@ -33,27 +31,8 @@ func renderTemplateWithValues(t *capiv1.CAPITemplate, name string, values map[st
 	return templateBits, nil
 }
 
-func renderTFControllerTemplateWithValues(t *tapiv1.TFTemplate, name string, values map[string]string) ([][]byte, error) {
-	opts := []tfcontroller.RenderOptFunc{
-		tfcontroller.InNamespace(viper.GetString("tfcontroller-templates-namespace")),
-	}
-	if viper.GetString("inject-prune-annotation") != "disabled" {
-		opts = append(opts, capi.InjectPruneAnnotation)
-	}
-
-	templateBits, err := tfcontroller.Render(t.Spec, values, opts...)
-	if err != nil {
-		if missing, ok := isMissingVariableError(err); ok {
-			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", name, missing)
-		}
-		return nil, fmt.Errorf("error rendering template %v, %v", name, err)
-	}
-
-	return templateBits, nil
-}
-
-func getProvider(t *capiv1.CAPITemplate) string {
-	meta, err := capi.ParseTemplateMeta(t)
+func getProvider(t *apitemplates.Template, annotation string) string {
+	meta, err := templates.ParseTemplateMeta(t, annotation)
 
 	if err != nil {
 		return ""

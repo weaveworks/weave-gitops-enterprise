@@ -6,6 +6,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
+const Kind = "CAPITemplate"
+
 //+kubebuilder:object:root=true
 
 // CAPITemplate is the Schema for the capitemplates API

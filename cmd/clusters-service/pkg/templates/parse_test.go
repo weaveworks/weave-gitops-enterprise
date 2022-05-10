@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
@@ -23,7 +24,7 @@ func TestParseFile(t *testing.T) {
 
 	want := &templates.Template{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "CAPITemplate",
+			Kind:       capiv1.Kind,
 			APIVersion: "capi.weave.works/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
@@ -58,7 +59,7 @@ func TestParseFileFromFS(t *testing.T) {
 
 	want := &templates.Template{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "CAPITemplate",
+			Kind:       capiv1.Kind,
 			APIVersion: "capi.weave.works/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
@@ -107,7 +108,7 @@ func TestParseConfigMap(t *testing.T) {
 	want := map[string]*templates.Template{
 		"cluster-template": {
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "CAPITemplate",
+				Kind:       capiv1.Kind,
 				APIVersion: "capi.weave.works/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{

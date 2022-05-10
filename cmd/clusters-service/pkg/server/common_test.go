@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -105,6 +106,7 @@ func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {
 	}
 }
 
+// TODO: FIX ME
 func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
@@ -119,24 +121,26 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		}
 	 }`
 	ct := &capiv1.CAPITemplate{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "CAPITemplate",
-			APIVersion: "capi.weave.works/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "cluster-template-1",
-		},
-		Spec: capiv1.CAPITemplateSpec{
-			Description: "this is test template 1",
-			Params: []capiv1.TemplateParam{
-				{
-					Name:        "CLUSTER_NAME",
-					Description: "This is used for the cluster naming.",
-				},
+		Template: apitemplates.Template{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       capiv1.Kind,
+				APIVersion: "capi.weave.works/v1alpha1",
 			},
-			ResourceTemplates: []capiv1.ResourceTemplate{
-				{
-					RawExtension: rawExtension(basicRaw),
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "cluster-template-1",
+			},
+			Spec: apitemplates.TemplateSpec{
+				Description: "this is test template 1",
+				Params: []apitemplates.TemplateParam{
+					{
+						Name:        "CLUSTER_NAME",
+						Description: "This is used for the cluster naming.",
+					},
+				},
+				ResourceTemplates: []apitemplates.ResourceTemplate{
+					{
+						RawExtension: rawExtension(basicRaw),
+					},
 				},
 			},
 		},

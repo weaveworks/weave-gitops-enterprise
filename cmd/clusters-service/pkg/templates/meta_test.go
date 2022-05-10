@@ -1,4 +1,4 @@
-package tfcontroller
+package templates
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 
 func TestParseTemplateMeta(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/tf-controller-multiple.yaml")
-	meta, err := ParseTemplateMeta(parsed)
+	meta, err := ParseTemplateMeta(parsed, TFControllerDisplayNameAnnotation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,6 +49,6 @@ func TestParseTemplateMeta_bad_parameter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ParseTemplateMeta(parsed)
+	_, err = ParseTemplateMeta(parsed, TFControllerDisplayNameAnnotation)
 	assert.EqualError(t, err, "failed to get parameters processing template: missing closing brace")
 }

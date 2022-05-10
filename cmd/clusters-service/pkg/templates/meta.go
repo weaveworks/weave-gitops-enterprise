@@ -1,10 +1,9 @@
-package capi
+package templates
 
 import (
 	"fmt"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
@@ -15,11 +14,12 @@ import (
 // by each of the objects.
 
 const (
-	// DisplayNameAnnotation is the annotation used for labeling template resources
-	DisplayNameAnnotation = "capi.weave.works/display-name"
+	// DisplayNameAnnotation is the annotation used for labeling template resources used by tf-controller
+	TFControllerDisplayNameAnnotation = "tfcontroller.weave.works/display-name"
+	CAPIDisplayNameAnnotation         = "capi.weave.works/display-name"
 )
 
-func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
+func ParseTemplateMeta(s *apitemplates.Template, annotation string) (*TemplateMeta, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := map[string]bool{}
 	var objects []Object
@@ -39,11 +39,11 @@ func ParseTemplateMeta(s *capiv1.CAPITemplate) (*TemplateMeta, error) {
 			Kind:       uv.GetKind(),
 			APIVersion: uv.GetAPIVersion(),
 			Params:     tv, Name: uv.GetName(),
-			DisplayName: uv.GetAnnotations()[DisplayNameAnnotation],
+			DisplayName: uv.GetAnnotations()[annotation],
 		})
 	}
 
-	enriched, err := templates.ParamsFromSpec(s.Spec)
+	enriched, err := ParamsFromSpec(s.Spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse parameters from the spec: %w", err)
 	}
@@ -65,11 +65,11 @@ type Object struct {
 	DisplayName string   `json:"displayName"`
 }
 
-// TemplateMeta contains all the objects extracted from a CAPITemplate along
+// TemplateMeta contains all the objects extracted from a TFTemplate along
 // with the parameters.
 type TemplateMeta struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description,omitempty"`
-	Params      []templates.Param `json:"params,omitempty"`
-	Objects     []Object          `json:"objects,omitempty"`
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	Params      []Param  `json:"params,omitempty"`
+	Objects     []Object `json:"objects,omitempty"`
 }

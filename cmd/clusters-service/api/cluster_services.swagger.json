@@ -283,6 +283,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -312,6 +318,12 @@
             "name": "templateName",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -343,6 +355,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -373,6 +391,12 @@
             "name": "templateName",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -420,6 +444,9 @@
                 },
                 "credentials": {
                   "$ref": "#/definitions/v1Credential"
+                },
+                "templateKind": {
+                  "type": "string"
                 }
               }
             }
@@ -1135,6 +1162,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "templateKind": {
+          "type": "string"
         }
       }
     },
