@@ -24,7 +24,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.1
-	github.com/weaveworks/weave-gitops v0.7.0-rc9.0.20220510200524-190f82d80736
+	github.com/weaveworks/weave-gitops v0.7.0-rc9.0.20220510203856-c66a5a437077
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
