@@ -229,7 +229,38 @@
         ]
       }
     },
-    "/v1/policies/violations": {
+    "/v1/policies/{policyName}": {
+      "get": {
+        "summary": "GetPolicy gets a policy on the management cluster by name",
+        "operationId": "ClustersService_GetPolicy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "policyName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/policyviolations": {
       "post": {
         "summary": "ListPolicyValidation list policy violations available on the management cluster",
         "operationId": "ClustersService_ListPolicyValidations",
@@ -262,7 +293,7 @@
         ]
       }
     },
-    "/v1/policies/violations/{violationId}": {
+    "/v1/policyviolations/{violationId}": {
       "get": {
         "summary": "GetPolicyValidations gets a policy violation on the management cluster by id",
         "operationId": "ClustersService_GetPolicyValidation",
@@ -283,37 +314,6 @@
         "parameters": [
           {
             "name": "violationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/policies/{policyName}": {
-      "get": {
-        "summary": "GetPolicy gets a policy on the management cluster by name",
-        "operationId": "ClustersService_GetPolicy",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetPolicyResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "policyName",
             "in": "path",
             "required": true,
             "type": "string"

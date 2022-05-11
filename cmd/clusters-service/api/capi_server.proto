@@ -109,7 +109,7 @@ service ClustersService {
   // ListPolicyValidation list policy violations available on the management cluster
   rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
     option (google.api.http) = {
-      post : "/v1/policies/violations"
+      post : "/v1/policyviolations"
       body : "*"
     };
   }
@@ -117,7 +117,7 @@ service ClustersService {
   // GetPolicyValidations gets a policy violation on the management cluster by id
   rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
     option (google.api.http) = {
-      get : "/v1/policies/violations/{violation_id}"
+      get : "/v1/policyviolations/{violation_id}"
     };
   }
 }

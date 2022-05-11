@@ -991,7 +991,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/capi_server.v1.ClustersService/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policies/violations"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/capi_server.v1.ClustersService/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyviolations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1014,7 +1014,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/capi_server.v1.ClustersService/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policies/violations/{violation_id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/capi_server.v1.ClustersService/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyviolations/{violation_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1356,7 +1356,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/capi_server.v1.ClustersService/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policies/violations"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/capi_server.v1.ClustersService/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyviolations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1376,7 +1376,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/capi_server.v1.ClustersService/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policies/violations/{violation_id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/capi_server.v1.ClustersService/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyviolations/{violation_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1424,9 +1424,9 @@ var (
 
 	pattern_ClustersService_GetPolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "policy_name"}, ""))
 
-	pattern_ClustersService_ListPolicyValidations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "policies", "violations"}, ""))
+	pattern_ClustersService_ListPolicyValidations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policyviolations"}, ""))
 
-	pattern_ClustersService_GetPolicyValidation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "policies", "violations", "violation_id"}, ""))
+	pattern_ClustersService_GetPolicyValidation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policyviolations", "violation_id"}, ""))
 )
 
 var (
