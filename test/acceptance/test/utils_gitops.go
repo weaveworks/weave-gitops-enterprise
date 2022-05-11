@@ -104,8 +104,8 @@ func CheckClusterService(capiEndpointURL string) {
 		stdOut, _ := runCommandAndReturnStringOutput(
 			fmt.Sprintf(
 				// insecure for self-signed tls
-				`curl --insecure  -d '{"username":"admin","password":"%s"}' -H "Content-Type: application/json" -X POST %s/oauth2/sign_in -c -`,
-				adminPassword, capiEndpointURL,
+				`curl --insecure  -d '{"username":"%s","password":"%s"}' -H "Content-Type: application/json" -X POST %s/oauth2/sign_in -c -`,
+				AdminUserName, adminPassword, capiEndpointURL,
 			),
 			ASSERTION_1MINUTE_TIME_OUT,
 		)
