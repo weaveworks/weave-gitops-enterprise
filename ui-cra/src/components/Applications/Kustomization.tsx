@@ -40,12 +40,12 @@ const WGApplicationsKustomization: FC<Props> = ({
       <SectionHeader
         path={[
           {
-            label: 'Sources',
-            url: '/sections',
+            label: 'Applications',
+            url: '/applications',
             count: applicationsCount,
           },
           {
-            label: `${namespace}`,
+            label: `${name}`,
           },
         ]}
       />

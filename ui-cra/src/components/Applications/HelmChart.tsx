@@ -3,7 +3,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { HelmChartDetail } from '@weaveworks/weave-gitops';
+import { HelmChartDetail, useListSources } from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
@@ -12,6 +12,7 @@ type Props = {
 
 const WGApplicationsHelmChart: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
+  const { data: sources } = useListSources();
 
   return (
     <PageTemplate documentTitle="WeGO · Helm Chart">
@@ -23,7 +24,12 @@ const WGApplicationsHelmChart: FC<Props> = props => {
             count: applicationsCount,
           },
           {
-            label: 'HelmChart',
+            label: 'Sources',
+            url: '/sources',
+            count: sources?.length,
+          },
+          {
+            label: `${props.name}`,
           },
         ]}
       />

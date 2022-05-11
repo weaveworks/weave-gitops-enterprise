@@ -35,7 +35,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
             count: applicationsCount,
           },
           {
-            label: 'HelmRelease',
+            label: `${name}`,
           },
         ]}
       />
