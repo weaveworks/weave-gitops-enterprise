@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
 import { GitRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
 
@@ -34,6 +34,7 @@ const WGApplicationsGitRepository: FC<Props> = props => {
         ]}
       />
       <ContentWrapper>
+        <Title>{props.name}</Title>
         <GitRepositoryDetail {...props} />
       </ContentWrapper>
     </PageTemplate>
