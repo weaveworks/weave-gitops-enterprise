@@ -16,13 +16,13 @@ export class PolicyService {
 
   // TODO payload should be a ClusterId
   static listPolicyViolations = () => {
-    return request('POST', `${this.policiesUrl}/violations`, {
+    return request('POST', `/v1/policyviolations`, {
       cache: 'no-store',
     });
   };
 
   static getPolicyViolationById = (id: string) => {
-    return request('GET', `${this.policiesUrl}/violations/${id}`, {
+    return request('GET', `/v1/policyviolations/${id}`, {
       cache: 'no-store',
     });
   };
