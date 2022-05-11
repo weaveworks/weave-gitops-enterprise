@@ -45,7 +45,14 @@ func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) 
 		return clusters, nil
 	}
 
-	return append(clusters, res...), nil
+	allClusters := append(clusters, res...)
+	clusterNames := []string{}
+	for _, c := range allClusters {
+		clusterNames = append(clusterNames, c.Name)
+	}
+	f.log.Info("Found clusters", "clusters", clusterNames)
+
+	return allClusters, nil
 }
 
 func (f *multiClusterFetcher) self() mngr.Cluster {
