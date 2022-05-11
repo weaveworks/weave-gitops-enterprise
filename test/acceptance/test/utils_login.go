@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	AdminUserName    = "admin"
+	AdminUserName    = "wego-admin"
 	ClusterUserLogin = "cluster-user"
 	OidcUserLogin    = "oidc"
 )

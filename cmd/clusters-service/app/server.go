@@ -40,6 +40,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
@@ -520,14 +521,16 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	// FIXME: This is a bit dangerous but required so that we can start the EE server w/ a fake kube client
-	// (Which isn't supported by the core handler right now)
-	if args.CoreServerConfig.RestCfg != nil {
-		if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
-			return fmt.Errorf("failed to register core servers: %w", err)
-		}
-		grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
+	appsServer, err := core_core.NewCoreServer(args.CoreServerConfig, core_core.WithClientGetter(args.ClientGetter))
+	if err != nil {
+		return fmt.Errorf("unable to create new kube client: %w", err)
 	}
+
+	if err = core_core_proto.RegisterCoreHandlerServer(ctx, grpcMux, appsServer); err != nil {
+		return fmt.Errorf("could not register new app server: %w", err)
+	}
+
+	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
