@@ -511,11 +511,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
 
-	// FIXME: This is a bit dangerous but required so that we can start the EE server w/ a fake kube client
-	// (Which isn't supported by the core handler right now)
-	if args.CoreServerConfig.RestCfg != nil {
-		grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
-	}
+	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
