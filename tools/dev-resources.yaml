@@ -26,7 +26,7 @@ spec:
   interval: 1m
   values:
     accountId: "weaveworks"
-    clusterId: "demo-01"
+    clusterId: "tilt-cluster"
 ---
 # Create user - username: dev, password: dev
 apiVersion: v1
@@ -36,7 +36,7 @@ metadata:
   namespace: flux-system
 type: Opaque
 data:
-  username: ZGV2
+  username: d2Vnby1hZG1pbg==
   password: JDJ5JDEwJHBjeTlGVjBXTVFaVUhGRGN1ZDhKdWVjSXhsVVMvRWg5WC5paXRadEpFWVlIVWhLeXpsSllt
 ---
 # Create CAPI Template - grabbed straight from manual

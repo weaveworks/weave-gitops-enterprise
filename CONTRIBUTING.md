@@ -63,6 +63,11 @@ You must also update your `~/.gitconfig` with:
     insteadOf = https://github.com/
 ```
 
+You will also be using your personal GitHub account to host GitOps repositories. Therefore it is useful to export your GitHub username as well:
+```bash
+export GITHUB_USER=your_username
+```
+
 Finally, make sure you can access https://github.com/weaveworks/weave-gitops-enterprise-credentials
 
 ## Building the project
@@ -189,60 +194,41 @@ When you push your changes to a remote branch (even before creating a PR for it)
     flux create source helm weave-gitops-enterprise-charts --url=https://charts.dev.wkp.weave.works/charts-v3 --namespace=flux-system --secret-ref=weave-gitops-enterprise-credentials
     flux create hr weave-gitops-enterprise --namespace=flux-system --interval=10m --source=HelmRepository/weave-gitops-enterprise-charts --chart=mccp --chart-version=<chart-version-with-commit-SHA> --values values.yaml
 
-## Run local development environment
+## Run a local development environment
 To run a local development environment, you need to install the following tools:
  * [docker](https://www.docker.com)
  * [kind](https://kind.sigs.k8s.io/)
  * [tilt](https://tilt.dev/)
+ * [flux](https://fluxcd.io/docs/installation/)
  * [clusterctl](https://cluster-api.sigs.k8s.io/user/quick-start.html#install-clusterctl)
 
 ### Preparation
-
-In order for the CAPI pieces of gitops enterprise to work, you need to
-provision your kind cluster to let you do that. If you're not interested
-in CAPI functionality, you can skip this step and just use any old cluster.
-```
-cat > kind-cluster-with-extramounts.yaml <<EOF
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  extraMounts:
-  - hostPath: /var/run/docker.sock
-    containerPath: /var/run/docker.sock
-EOF
-
-kind create cluster --name kind --config=kind-cluster-with-extramounts.yaml
-
-EXP_CLUSTER_RESOURCE_SET=true clusterctl init --infrastructure docker
+Run the following command to get a Kind cluster ready for Tilt:
+```sh
+./tools/reboot.sh
 ```
 
-Now, bootstrap flux onto your cluster:
-```
-flux bootstrap github --owner=$GITHUB_USER --repository=fleet-infra --branch=main --path=./clusters/tilt-cluster --personal
-```
-In order to tell enterprise to write to this repository, create the file
-`tools/dev-values-local.yaml' with content such as:
-
-```
-config.capi.repositoryURL: "https://github.com/$GITHUB_USER/fleet-infra.git"
-```
+This will recreate a local Kind cluster, install CAPD and setup Flux to reconcile from a GitOps repository in your personal GitHub account. It will also create a file containing local settings such as your GitOps repository that the enterprise Helm chart will use in the next step.
 
 ### Start environment
 To start the development environment, run
-```
+```sh
 tilt up
 ```
-and your system should build and start.
-
+and your system should build and start. The first time you run this, it will take ~20-30 mins (depending on your connection speed) to build all the containers and deploy them to your local cluster. This is because the docker builds have to download all the Go modules/JS libraries from scratch, use the Tilt UI to check progress.
 
 When `chart-mccp-cluster-service` has become green, you should be able
 to access your cluster at
 [https://localhost:8000](https://localhost:8000). The login is
-username `dev` and password `dev`.
+username `wego-dev` and password `dev`.
 
 Any change you make to local code will trigger tilt to rebuild and
 restart the pods running in your system.
+
+**THINGS TO WATCH OUT FOR**
+
+- If a change in your local settings results in a ConfigMap update, you will need to restart the `clusters-service` pod in order for the pod to read the updated ConfigMap.
+- Every time you restart `clusters-service` it will generate new self-signed certificates, therefore you will need to reload the UI and accept the new certificate. Check for TLS certificate errors in the `chart-mccp-cluster-service` logs and if necessary re-trigger an update to rebuild it.
 
 ### Faster frontend development
 Especially for frontend development, the time it takes for the pod to
