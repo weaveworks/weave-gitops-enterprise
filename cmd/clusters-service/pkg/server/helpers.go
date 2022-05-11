@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
-// Just pass in the namespace.
 func renderTemplateWithValues(t *apitemplates.Template, name, namespace string, values map[string]string) ([][]byte, error) {
 	opts := []templates.RenderOptFunc{
 		templates.InNamespace(namespace),
