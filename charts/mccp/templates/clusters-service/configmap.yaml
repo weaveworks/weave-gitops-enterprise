@@ -10,6 +10,7 @@ data:
   CAPI_CLUSTERS_NAMESPACE: {{ .Values.config.capi.clusters.namespace }}
   CAPI_TEMPLATES_NAMESPACE: {{ .Values.config.capi.templates.namespace }}
   INJECT_PRUNE_ANNOTATION: {{ .Values.config.capi.templates.injectPruneAnnotation }}
+  ADD_BASES_KUSTOMIZATION: {{ .Values.config.capi.templates.addBasesKustomization }}
   CAPI_TEMPLATES_REPOSITORY_URL: {{ .Values.config.capi.repositoryURL | quote }}
   CAPI_REPOSITORY_PATH: {{ .Values.config.capi.repositoryPath | quote }}
   CAPI_REPOSITORY_CLUSTERS_PATH: {{ .Values.config.capi.repositoryClustersPath | quote }}
