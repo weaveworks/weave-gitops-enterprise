@@ -109,7 +109,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					bootstrapAndVerifyFlux(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 					logger.Info("Installing Weave gitops...")
 					_ = runCommandPassThrough("sh", "-c", "helm repo add ww-gitops https://helm.gitops.weave.works && helm repo update")
-					wegoInstallCmd := fmt.Sprintf("helm install weave-gitops ww-gitops/weave-gitops --namespace %s --set 'adminUser.create=true' --set 'adminUser.username=admin' --set 'adminUser.passwordHash=%s'", GITOPS_DEFAULT_NAMESPACE, GetEnv("CLUSTER_ADMIN_PASSWORD_HASH", ""))
+					wegoInstallCmd := fmt.Sprintf("helm install weave-gitops ww-gitops/weave-gitops --namespace %s --set 'adminUser.create=true' --set 'adminUser.username=%s' --set 'adminUser.passwordHash=%s'", GITOPS_DEFAULT_NAMESPACE, AdminUserName, GetEnv("CLUSTER_ADMIN_PASSWORD_HASH", ""))
 					logger.Info("Weave gitops install command: " + wegoInstallCmd)
 					_ = runCommandPassThrough("sh", "-c", wegoInstallCmd)
 
