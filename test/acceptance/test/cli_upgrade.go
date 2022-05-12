@@ -235,7 +235,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				// 	testGetCommand("credentials")
 				// 	testGetCommand("clusters")
 				// })
-				
+
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
