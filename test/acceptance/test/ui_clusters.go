@@ -61,7 +61,6 @@ func deleteClusterEntry(webDriver *agouti.Page, clusterNames []string) {
 			Eventually(clustersPage.SupportEmailLink).Should(BeVisible())
 			Eventually(clustersPage.ClusterCount).Should(MatchText(`[0-9]+`))
 			Eventually(clustersPage.ClustersListSection).Should(BeFound())
-			pages.ScrollWindow(webDriver, WINDOW_SIZE_X, WINDOW_SIZE_Y)
 		})
 
 		By("And when I click edit cluster I should see disconnect cluster tab", func() {
@@ -252,7 +251,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			Expect(webDriver.Navigate(test_ui_url)).To(Succeed())
 		})
 
-		It("@integration Verify Weave Gitops Enterprise version", func() {
+		It("Verify Weave Gitops Enterprise version", Label("integration"), func() {
 			By("And I verify the version", func() {
 				clustersPage := pages.GetClustersPage(webDriver)
 				Eventually(clustersPage.Version).Should(BeFound())
@@ -610,11 +609,11 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			deleteClusterEntry(webDriver, []string{clusterName})
 		})
 
-		It("@gce Verify user can connect a GCE cluster", func() {
+		It("Verify user can connect a GCE cluster", Label("gce"), func() {
 			connectACluster(webDriver, gitopsTestRunner, leaves["gce"])
 		})
 
-		It("@eks Verify user can connect an EKS cluster", func() {
+		It("Verify user can connect an EKS cluster", Label("eks"), func() {
 			connectACluster(webDriver, gitopsTestRunner, leaves["eks"])
 		})
 	})
