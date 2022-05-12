@@ -5,9 +5,8 @@ import React, { FC, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
-import ErrorIcon from '../../assets/img/error-icon.svg';
-import SuccessIcon from '../../assets/img/success-icon.svg';
 import useNotifications from '../../contexts/Notifications';
+import AssetIcon, { IconType } from '../AssetIcon';
 
 const ToastContainerWrapper = styled.div`
   .Toastify__toast-container {
@@ -46,9 +45,9 @@ const Notifications: FC = () => {
         <div className={classes.mainWrapper}>
           <div>
             {notification?.variant === 'danger' ? (
-              <ErrorIcon className={classes.icon} />
+              <AssetIcon className={classes.icon} icon={IconType.error} />
             ) : (
-              <SuccessIcon className={classes.icon} />
+              <AssetIcon className={classes.icon} icon={IconType.success} />
             )}
           </div>
           <div>
