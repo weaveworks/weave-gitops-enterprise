@@ -17,6 +17,7 @@ const proxyConfig = {
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
+    outDir: 'build',
     commonjsOptions: {
       ignoreTryCatch: false,
     },

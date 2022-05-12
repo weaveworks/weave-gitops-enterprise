@@ -1,8 +1,8 @@
+import { theme } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
+import WarningIcon from '../../assets/img/warning-icon.svg';
 import useVersions from '../../contexts/Versions';
-import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 import { Tooltip } from '../Shared';
 
 const xs = theme.spacing.xs;
