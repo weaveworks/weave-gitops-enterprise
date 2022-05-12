@@ -1,4 +1,4 @@
-.PHONY: all install clean images lint unit-tests check ui-build-for-tests update-mccp-chart-values ui-audit
+.PHONY: all install clean images lint unit-tests check ui-build-for-tests update-mccp-chart-values ui-audit ui-dev-core
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -153,6 +153,11 @@ ui-cra/build:
 ui-audit:
 	# Check js packages for any high or critical vulnerabilities
 	cd ui-cra && yarn audit --level high; if [ $$? -gt 7 ]; then echo "Failed yarn audit"; exit 1; fi
+
+ui-core-lib:
+	cd ui-cra && \
+	rm -rf node_modules/@weaveworks/weave-gitops/ && \
+	yarn add ../../weave-gitops/dist
 
 lint:
 	bin/go-lint
