@@ -16,6 +16,11 @@ const proxyConfig = {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    commonjsOptions: {
+      ignoreTryCatch: false,
+    },
+  },
   optimizeDeps: {
     esbuildOptions: {
       target: 'es2020',
