@@ -53,6 +53,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
@@ -119,6 +120,7 @@ type Params struct {
 	capiClustersNamespace             string
 	capiTemplatesNamespace            string
 	injectPruneAnnotation             string
+	addBasesKustomization             string
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
 	capiRepositoryClustersPath        string
@@ -179,6 +181,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "", "")
 	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
+	cmd.Flags().StringVar(&p.addBasesKustomization, "add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
 	cmd.Flags().StringVar(&p.capiRepositoryPath, "capi-repository-path", "", "")
 	cmd.Flags().StringVar(&p.capiRepositoryClustersPath, "capi-repository-clusters-path", "./clusters", "")
@@ -499,14 +502,16 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	// FIXME: This is a bit dangerous but required so that we can start the EE server w/ a fake kube client
-	// (Which isn't supported by the core handler right now)
-	if args.CoreServerConfig.RestCfg != nil {
-		if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
-			return fmt.Errorf("failed to register core servers: %w", err)
-		}
-		grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
+	appsServer, err := core_core.NewCoreServer(args.CoreServerConfig, core_core.WithClientGetter(args.ClientGetter))
+	if err != nil {
+		return fmt.Errorf("unable to create new kube client: %w", err)
 	}
+
+	if err = core_core_proto.RegisterCoreHandlerServer(ctx, grpcMux, appsServer); err != nil {
+		return fmt.Errorf("could not register new app server: %w", err)
+	}
+
+	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
