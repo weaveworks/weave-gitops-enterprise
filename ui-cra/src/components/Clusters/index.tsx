@@ -349,7 +349,7 @@ const MCCP: FC = () => {
                     {
                       label: 'Type',
                       value: (c: GitopsClusterEnriched) =>
-                        c.capiCluster ? 'capi' : 'other',
+                        c.capiClusterRef ? 'capi' : 'other',
                     },
                     {
                       label: 'Namespace',

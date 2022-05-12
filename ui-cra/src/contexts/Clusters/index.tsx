@@ -1,13 +1,7 @@
 import { createContext, Dispatch, useContext } from 'react';
 import { GitopsCluster } from '../../capi-server/capi_server.pb';
-import { ClusterStatus } from '../../types/kubernetes';
 
 export interface GitopsClusterEnriched extends GitopsCluster {
-  status: ClusterStatus;
-  pullRequest: {
-    type: string;
-    url: string;
-  };
   type: string;
   updatedAt: string;
 }
