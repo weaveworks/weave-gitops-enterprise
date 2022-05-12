@@ -235,17 +235,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				// 	testGetCommand("credentials")
 				// 	testGetCommand("clusters")
 				// })
-
-				By("And I can connect cluster to itself", func() {
-					// leaf := LeafSpec{
-					// 	Status:          "Ready",
-					// 	IsWKP:           false,
-					// 	AlertManagerURL: "",
-					// 	KubeconfigPath:  "",
-					// }
-					// connectACluster(webDriver, gitopsTestRunner, leaf)
-				})
-
+				
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})

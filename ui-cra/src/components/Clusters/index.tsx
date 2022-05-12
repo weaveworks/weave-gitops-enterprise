@@ -87,7 +87,7 @@ const MCCP: FC = () => {
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
-  const [openCapiStatus, setOpenCapiStatus] = React.useState<boolean>(false);
+  const [openCapiStatus, setOpenCapiStatus] = React.useState<any>({});
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
@@ -321,9 +321,14 @@ const MCCP: FC = () => {
                               aria-label="expand row"
                               size="small"
                               disabled={!c.capiCluster}
-                              onClick={() => setOpenCapiStatus(!openCapiStatus)}
+                              onClick={() =>
+                                setOpenCapiStatus((prev: any) => ({
+                                  ...prev,
+                                  [c.name]: !prev[c.name],
+                                }))
+                              }
                             >
-                              {openCapiStatus ? (
+                              {openCapiStatus[c.name] ? (
                                 <KeyboardArrowUpIcon />
                               ) : (
                                 <KeyboardArrowDownIcon />
@@ -332,7 +337,7 @@ const MCCP: FC = () => {
                             {c.name}
                           </>
                           <Collapse
-                            in={openCapiStatus}
+                            in={openCapiStatus[c.name]}
                             timeout="auto"
                             unmountOnExit
                           >
