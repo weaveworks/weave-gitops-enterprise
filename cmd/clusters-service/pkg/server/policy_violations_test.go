@@ -9,9 +9,7 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"google.golang.org/protobuf/testing/protocmp"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	fakeclientset "k8s.io/client-go/kubernetes/fake"
 )
 
 func TestGetPolicyViolation(t *testing.T) {
@@ -19,7 +17,6 @@ func TestGetPolicyViolation(t *testing.T) {
 		name         string
 		ViolationId  string
 		clusterState []runtime.Object
-		event        *corev1.Event
 		err          error
 		expected     *capiv1_proto.GetPolicyValidationResponse
 	}{
@@ -29,7 +26,6 @@ func TestGetPolicyViolation(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeEvent(t),
 			},
-			event: makeEvent(t),
 			expected: &capiv1_proto.GetPolicyValidationResponse{
 				Violation: &capiv1_proto.PolicyValidation{
 					Id:              "weave.policies.missing-app-label",
@@ -54,7 +50,6 @@ func TestGetPolicyViolation(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeEvent(t),
 			},
-			event: makeEvent(t),
 			expected: &capiv1_proto.GetPolicyValidationResponse{
 				Violation: &capiv1_proto.PolicyValidation{
 					Id:              "weave.policies.missing-app-label",
@@ -77,14 +72,8 @@ func TestGetPolicyViolation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clientSet := fakeclientset.NewSimpleClientset()
-			_, err := clientSet.CoreV1().Events("default").Create(context.Background(), tt.event, v1.CreateOptions{})
 
-			if err != nil {
-				t.Fatalf("failed to create Policy violation Event to kubernets :\n%s", err)
-			}
-
-			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil, clientSet)
+			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil)
 
 			policyViolation, err := s.GetPolicyValidation(context.Background(), &capiv1_proto.GetPolicyValidationRequest{
 				ViolationId: tt.ViolationId,
@@ -114,9 +103,8 @@ func TestListPolicyValidations(t *testing.T) {
 		expected     *capiv1_proto.ListPolicyValidationsResponse
 	}{
 		{
-			name:         "get policy violation",
-			clusterState: []runtime.Object{},
-			events: []*corev1.Event{
+			name: "get policy violation",
+			clusterState: []runtime.Object{
 				makeEvent(t),
 				makeEvent(t, func(e *corev1.Event) {
 					e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
@@ -158,17 +146,7 @@ func TestListPolicyValidations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clientSet := fakeclientset.NewSimpleClientset()
-
-			for _, event := range tt.events {
-				_, err := clientSet.CoreV1().Events(event.InvolvedObject.Namespace).Create(context.Background(), event, v1.CreateOptions{})
-				if err != nil {
-					t.Fatalf("failed to create Policy violation Event to kubernets :\n%s", err)
-				}
-			}
-
-			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil, clientSet)
-
+			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil)
 			policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{})
 			if err != nil {
 				if tt.err == nil {
