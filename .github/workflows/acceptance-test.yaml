@@ -20,10 +20,10 @@ on:
         description: "The maximum number of minutes to let a job run before GitHub automatically cancels it"
         required: true
         type: number
-      focus-or-skip:
-        description: "Which regexps to select and filter -- eg: --focus=@smoke or --skip='@smoke|@integration'"
+      label-filter:
+        description: "Which tests to filter -- eg: --label-filter='smoke' or --label-filter='@smoke && !integration'"
         required: true
-        type: string
+        type: string 
       kubectl-version:
         description: "Version of kubectl"
         required: true
@@ -368,7 +368,7 @@ jobs:
           echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV
 
           cd test/acceptance/test/
-          go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
+          go test ${{ inputs.label-filter }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
       - name: Store test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
