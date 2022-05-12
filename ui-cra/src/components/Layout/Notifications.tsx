@@ -74,7 +74,7 @@ const Notifications: FC = () => {
     <ToastContainerWrapper>
       <ToastContainer
         position="bottom-center"
-        autoClose={10000}
+        autoClose={20000}
         hideProgressBar
         newestOnTop={true}
         closeOnClick

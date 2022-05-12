@@ -59,6 +59,13 @@ const TableWrapper = styled.div`
   th[class*='MuiTableCell-head']:first-of-type {
     padding-left: ${theme.spacing.base};
   }
+  td[class*='MuiTableCell-root'] {
+    padding-top: ${theme.spacing.small};
+    padding-bottom: ${theme.spacing.small};
+  }
+  // tr[class*='MuiTableRow-root']:first-of-type {
+  //   width: 20px;
+  // }
   max-width: calc(100vw - 220px);
 `;
 
@@ -350,6 +357,7 @@ const MCCP: FC = () => {
                       ),
                       sortValue: ({ name }) => name,
                       textSearchable: true,
+                      maxWidth: 500,
                     },
                     {
                       label: 'Type',

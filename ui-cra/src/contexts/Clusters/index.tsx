@@ -20,16 +20,12 @@ interface ClustersContext {
   count: number | null;
   disabled: boolean;
   loading: boolean;
-  handleRequestSort: (property: string) => void;
-  order: string;
-  orderBy: string;
   selectedClusters: string[];
   setSelectedClusters: Dispatch<React.SetStateAction<string[] | []>>;
   deleteCreatedClusters: (
     data: DeleteClusterPRRequest,
     token: string,
   ) => Promise<any>;
-  deleteConnectedClusters: (clusters: number[]) => void;
   getKubeconfig: (clusterName: string, fileName: string) => void;
 }
 
