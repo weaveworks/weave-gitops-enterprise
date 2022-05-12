@@ -158,7 +158,7 @@ lint:
 	bin/go-lint
 
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
-	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -a -o $@ ./cmd/clusters-service
+	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
@@ -175,7 +175,7 @@ unit-tests: $(GENERATED)
 	cd cmd/clusters-service && go test -v ./...
 
 ui-build-for-tests:
-	# Github actions npm is slow sometimes, hence increasing the network-timeout 
+	# Github actions npm is slow sometimes, hence increasing the network-timeout
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install && yarn build
 
 clean:
