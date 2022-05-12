@@ -88,12 +88,10 @@ func TestListClusterFromCRDs_Pagination(t *testing.T) {
 	opts := client.ListOptions{
 		Limit: 10,
 	}
-	result, nextPageToken, err := lib.List(context.Background(), opts)
+	result, _, err := lib.List(context.Background(), opts)
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
-	fmt.Println(nextPageToken)
-	fmt.Println(result["gitops-cluster-13"].GetObjectMeta())
 	assert.Equal(t, 10, len(result))
 }
 
