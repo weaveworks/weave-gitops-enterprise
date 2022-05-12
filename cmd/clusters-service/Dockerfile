@@ -1,3 +1,5 @@
+# syntax = docker/dockerfile:1.3
+
 FROM golang:1.17 AS build
 
 WORKDIR /app
@@ -16,7 +18,8 @@ COPY pkg /app/pkg
 
 ARG version
 ARG image_tag
-RUN make cmd/clusters-service/clusters-service WEAVE_GITOPS_VERSION=${version} IMAGE_TAG=${image_tag}
+RUN --mount=type=cache,target=/root/.cache/go-build \
+      make cmd/clusters-service/clusters-service WEAVE_GITOPS_VERSION=${version} IMAGE_TAG=${image_tag}
 
 FROM docker.io/governmentpaas/git-ssh
 
