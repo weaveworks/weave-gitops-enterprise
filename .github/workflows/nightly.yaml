@@ -30,7 +30,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      focus-or-skip: "-ginkgo.skip='@gce|@capd'"
+      label-filter: "-ginkgo.label-filter='!(capd, gce)'"
       kubectl-version: "v1.22.0"
       login_user_type: "oidc"
       git-provider: github
@@ -68,7 +68,7 @@ jobs:
       runs-on: macOS-latest
       os-name: darwin
       timeout-minutes: 90
-      focus-or-skip: "-ginkgo.skip='@gce|@eks|@capd|@upgrade'"
+      label-filter: "-ginkgo.label-filter='!(upgrade, capd, gce, eks)'"
       kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab
