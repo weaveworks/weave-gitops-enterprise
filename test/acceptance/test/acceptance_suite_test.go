@@ -20,6 +20,7 @@ func GomegaFail(message string, callerSkip ...int) {
 	}
 
 	// Show management cluster pods etc.
+	DumpBrowserLogs(true, true)
 	ShowItems("")
 	DumpClusterInfo(randID)
 	DumpConfigRepo(randID)
