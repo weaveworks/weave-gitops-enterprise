@@ -12,7 +12,7 @@ type ClusterInformation struct {
 	Checkbox         *agouti.Selection
 	ShowStatusDetail *agouti.Selection
 	Name             *agouti.Selection
-	Status *agouti.Selection
+	Status           *agouti.Selection
 }
 
 type ClusterStatus struct {
@@ -32,22 +32,22 @@ type DeletePullRequestPopup struct {
 
 //ClustersPage elements
 type ClustersPage struct {
-	ClusterCount                                *agouti.Selection
-	ConnectClusterButton                        *agouti.Selection
-	PRDeleteClusterButton                       *agouti.Selection
-	ClustersListSection                         *agouti.Selection
-	ClustersListHeader                          *agouti.Selection
-	FiringAlertsPerPage                         *agouti.Selection
-	FiringAlerts                                *agouti.MultiSelection
-	HeaderCheckbox                              *agouti.Selection
-	HeaderName                                  *agouti.Selection
-	HeaderIcon                                  *agouti.Selection
-	HeaderStatus                                *agouti.Selection
-	ClustersList                                *agouti.Selection
-	Tooltip                                     *agouti.Selection
-	SupportEmailLink                            *agouti.Selection
-	MessageBar                                  *agouti.Selection
-	Version                                     *agouti.Selection
+	ClusterCount          *agouti.Selection
+	ConnectClusterButton  *agouti.Selection
+	PRDeleteClusterButton *agouti.Selection
+	ClustersListSection   *agouti.Selection
+	ClustersListHeader    *agouti.Selection
+	FiringAlertsPerPage   *agouti.Selection
+	FiringAlerts          *agouti.MultiSelection
+	HeaderCheckbox        *agouti.Selection
+	HeaderName            *agouti.Selection
+	HeaderIcon            *agouti.Selection
+	HeaderStatus          *agouti.Selection
+	ClustersList          *agouti.Selection
+	Tooltip               *agouti.Selection
+	SupportEmailLink      *agouti.Selection
+	MessageBar            *agouti.Selection
+	Version               *agouti.Selection
 }
 
 // This function waits for cluster to appear in the cluste table (become visible)
@@ -62,7 +62,7 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		Checkbox:         cluster.FindByXPath(`td[1]`),
 		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
 		Name:             cluster.FindByXPath(`td[2]`),
-		Status: cluster.FindByXPath(`td[5]`),
+		Status:           cluster.FindByXPath(`td[5]`),
 	}
 }
 
@@ -101,11 +101,11 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		HeaderName:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/div[2]/div[1]/div[1]/table/thead/tr/th[2]/span`),
 		HeaderIcon:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/div[2]/div[1]/div[1]/table/thead/tr/th[3]/span`),
 		HeaderStatus:          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/div[2]/div[1]/div[1]/table/thead/tr/th[4]/span`),
-		ClustersList:     webDriver.Find(`#clusters-list > div > div[2] > div[1] > div[1] > table > tbody`),
-		Tooltip:          webDriver.Find(`div[role="tooltip"]`),
-		SupportEmailLink: webDriver.FindByLink(`support@weave.works`),
-		MessageBar: webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
-		Version:    webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
+		ClustersList:          webDriver.Find(`#clusters-list > div > div[2] > div[1] > div[1] > table > tbody`),
+		Tooltip:               webDriver.Find(`div[role="tooltip"]`),
+		SupportEmailLink:      webDriver.FindByLink(`support@weave.works`),
+		MessageBar:            webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
+		Version:               webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
 
 	return &clustersPage
