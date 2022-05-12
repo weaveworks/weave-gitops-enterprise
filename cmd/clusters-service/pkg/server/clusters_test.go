@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -40,6 +40,7 @@ import (
 func TestCreatePullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
 	viper.SetDefault("capi-repository-clusters-path", "clusters")
+	viper.SetDefault("add-bases-kustomization", "enabled")
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
@@ -162,8 +163,26 @@ metadata:
 `,
 				},
 				{
+					Path: "clusters/dev/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`,
+				},
+				{
 					Path: "clusters/dev/profiles.yaml",
-					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta1
+					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -185,7 +204,7 @@ spec:
     spec:
       chart: demo-profile
       sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
         kind: HelmRepository
         name: weaveworks-charts
         namespace: default
@@ -206,7 +225,7 @@ status: {}
 			viper.SetDefault("runtime-namespace", "default")
 			// setup
 			ts := httptest.NewServer(makeServeMux(t))
-			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta1.HelmRepository) {
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
 				hr.Name = "weaveworks-charts"
 				hr.Namespace = "default"
 			})
@@ -599,7 +618,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta1
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -621,7 +640,7 @@ spec:
     spec:
       chart: foo
       sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
         kind: HelmRepository
         name: testing
         namespace: test-ns
@@ -658,7 +677,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta1
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -682,7 +701,7 @@ spec:
     spec:
       chart: bar
       sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
         kind: HelmRepository
         name: testing
         namespace: test-ns
@@ -703,7 +722,7 @@ spec:
     spec:
       chart: foo
       sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
         kind: HelmRepository
         name: testing
         namespace: test-ns

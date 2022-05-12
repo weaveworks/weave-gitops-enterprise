@@ -2,6 +2,52 @@
 
 A guide to making it easier to develop `weave-gitops-enterprise`. If you came here expecting but not finding an answer please make an issue to help improve these docs!
 
+## Tooling
+You will need the following tools installed on your local workstation:
+- Go 1.17 
+  
+  `brew install go@1.17`
+- Kubectl 1.23
+  
+  `brew install kubectl@1.23`
+- Helm 3.8.2
+  
+  `brew install helm`
+- Kind 0.12.0 for creating a local Kubernetes cluster
+  
+  `brew install kind`
+- Flux 0.29.5 for setting up Flux on a cluster
+  
+  `brew install fluxcd/tap/flux`
+- Buf 1.4.0 for generating code from protobuf definitions
+  
+  `brew install bufbuild/buf/buf`
+- clusterctl 1.1.3 for installing CAPI components on the cluster
+  
+  `brew install clusterctl`
+
+## The big picture
+Weave GitOps Enterprise (WGE) currently consists of the following components:
+- clusters-service
+  The API of WGE. This is the component that backend engineers will be changing most often. Uses the [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) to convert our gRPC service definitions to HTTP endpoints.
+- ui-server
+  The UI of WGE. This is the component that frontend engineers will be changing most often. Built in React and uses yarn as the package manager.
+- [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller)
+  Allows for custom Jobs to be executed on newly provisioned CAPI clusters. Most often, this will be used to install CNI which CAPI does not install. Without this controller, newly provisioned clusters would not be ready to be used by end users. Because it also references the CAPI CRD, it requires CAPI tooling to be installed first.
+- [cluster-controller](https://github.com/weaveworks/cluster-controller)
+  Defines the CRD for declaring leaf clusters. A leaf cluster is a cluster that the management cluster can query via a kubeconfig. This controller ensures that kubeconfig secrets have been supplied for leaf clusters. Because it also references the CAPI CRD, it requires CAPI tooling to be installed first.
+- event-writer **Soon to be deprecated**
+  
+  Subscribes to a NATS queue and listens for messages sent by the wkp-agent. These messages carry cluster information about leaf clusters which is then written to a file-based SQLite db.
+- wkp-agent **Soon to be deprecated**
+  
+  Agent installed by end users to management cluster and leaf clusters with the purpose of reporting back cluster information to management cluster.
+
+As part of the chart, other dependencies also get installed:
+- NATS **Soon to be deprecated**
+  
+  Agents running on the management cluster or on leaf clusters send events to a NATS queue. event-writer receives these events from the queue and does its thing.
+
 ## One-time setup
 You need a github Personal Access Token to build the service. This
 token needs at least the `repo` and `read:packages`
@@ -21,17 +67,128 @@ Finally, make sure you can access https://github.com/weaveworks/weave-gitops-ent
 
 ## Building the project
 
-
-To build all binaries and containers use the following command:
+To build all containers use the following command:
 
 ```bash
 # Builds everything - make sure you exported GITHUB_TOKEN as shown in
 # the one-time setup
 make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
-
-# Builds just the binaries
-make binaries
 ```
+
+
+## Common dev workflows
+The following sections suggest some common dev workflows.
+
+### How to do local dev on the API
+
+Most of the code for the API is under `./cmd/clusters-service`. There's a Makefile in that directory with some helpful targets so when working on the API make sure to run these from that location instead of root. The following commands assume execution from `./cmd/clusters-service`.
+
+To install gRPC tooling run:
+```sh
+make install
+```
+
+The API endpoints are defined as gRPC definitions in `./cmd/clusters-service/api/capi_server.proto`. Therefore if you need to add or update an endpoint you need to first define it in there. For example the following endpoint is used to return the version of WGE.
+
+```proto
+// GetEnterpriseVersion returns the WeGO Enterprise version
+rpc GetEnterpriseVersion(GetEnterpriseVersionRequest)
+  returns (GetEnterpriseVersionResponse){
+    option (google.api.http) = {
+      get: "/v1/enterprise/version"
+  };
+}
+```
+
+After making a change in the protobuf definition, you will need to run `make generate` to regenerate the code.
+
+To run the service locally,  run:
+```sh
+export CAPI_CLUSTERS_NAMESPACE=default
+go run main.go
+```
+
+You can execute HTTP requests to the API by pointing to an endpoint, for example:
+```sh
+curl --insecure https://localhost:8000/v1/enterprise/version
+```
+The --insecure flag is needed because the service will generate self-signed untrusted certificates by default.
+
+To run all unit tests before pushing run:
+```sh
+make unit-tests
+```
+
+To run all tests, including integration tests run:
+```sh
+make test
+```
+
+### How to do local dev on the controllers
+When working on controllers it's often easier to run them locally against kind clusters to avoid causing issues on shared clusters (i.e. demo-01) that may be used by other engineers. To install the CRDs on your local kind cluster run:
+
+```sh
+make install
+```
+
+To run the controller locally run:
+```sh
+make run
+```
+
+To run all tests before pushing run:
+```sh
+make test
+```
+
+### How to install everything from your working branch on a cluster
+When you push your changes to a remote branch (even before creating a PR for it), CI will kick off a build that runs a quick suite of tests and then builds your containers and creates a new Helm chart tagged with the most recent commit. This Helm chart includes all the changes from your branch and can be used to deploy WGE as a whole to a cluster.
+
+1. Find the version of the Helm chart you need to deploy:
+   ```sh
+   # Add the Helm repo locally (needs to happen only once)
+   helm repo add weave-gitops-enterprise-charts https://charts.dev.wkp.weave.works/charts-v3 --username wge --password gitops
+   _"weave-gitops-enterprise-charts" has been added to your repositories_
+   # Search the Helm repo for the commit SHA that corresponds to your most recent commit
+   helm repo update > /dev/null 2>&1 && helm search repo weave-gitops-enterprise-charts --devel --versions | grep <commit-SHA>
+   weave-gitops-enterprise-charts/mccp      <chart-version-with-commit-SHA>     1.16.0          A Helm chart for Kubernetes
+   ```
+   
+2.  Create a new kind cluster and install flux
+    ```sh
+    cat > kind-cluster-with-extramounts.yaml <<EOF
+    kind: Cluster
+    apiVersion: kind.x-k8s.io/v1alpha4
+    nodes:
+    - role: control-plane
+      extraMounts:
+      - hostPath: /var/run/docker.sock
+        containerPath: /var/run/docker.sock
+    EOF
+    
+    kind create cluster --name kind --config=kind-cluster-with-extramounts.yaml
+    export GITHUB_TOKEN=<your-GH-token>
+    flux bootstrap github --owner=<your-GH-username> --repository=config --personal=true --path=clusters/kind
+    ```
+
+3.  Install CAPI
+    ```sh
+    clusterctl init --infrastructure docker
+    ```
+
+4.  Install WGE
+    ```sh
+    cat > values.yaml <<EOF
+    tls:
+      enabled: true
+    config:
+      capi:
+        repositoryURL: <your config repo URL>
+    EOF
+   
+    kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
+    flux create source helm weave-gitops-enterprise-charts --url=https://charts.dev.wkp.weave.works/charts-v3 --namespace=flux-system --secret-ref=weave-gitops-enterprise-credentials
+    flux create hr weave-gitops-enterprise --namespace=flux-system --interval=10m --source=HelmRepository/weave-gitops-enterprise-charts --chart=mccp --chart-version=<chart-version-with-commit-SHA> --values values.yaml
 
 ## Thing to explore in the future
 
@@ -144,20 +301,20 @@ yarn start
 
 Open up http://localhost:3000. Changes to code will be hot-reloaded.
 
-### UI against a local clusters-service
+### How to do local dev on the UI
 
-When you need to develop the UI against new features that haven't made to the test cluster yet you can run your own clusters-service locally and point the UI dev server at it with:
+The easiest way to dev on the UI is to use an existing cluster. [demo-01](https://demo-01.wge.dev.weave.works/) is kept automatically up to date with every change that lands on main. To use it run the following command:
 
-```bash
-CAPI_SERVER_HOST=http://localhost:8000 yarn start
+```sh
+PROXY_HOST=https://demo-01.wge.dev.weave.works/ yarn start
 ```
 
-### UI against a remote server
+The username/password used to login are stored in [1Password](https://start.1password.com/open/i?a=ALD7KP6DEJGYREYHXRNYI3F7KY&v=xdzphlycic6bzwggrot2y73jaa&i=jz6ytgxay7ktq5vg6w2wlu3m2i&h=weaveworks.1password.com).
 
-If you need to use a remote server, set the `CAPI_SERVER_HOST` env var to the server's address before running `yarn start`:
+If you need to develop the UI against new features that haven't made to the test cluster yet, you can run your own clusters-service locally and point the UI dev server at it with:
 
-```bash
-CAPI_SERVER_HOST=http://34.67.250.163:30080 yarn start
+```sh
+PROXY_HOST=http://localhost:8000 yarn start
 ```
 
 ### Testing changes to an unreleased weave-gitops locally
@@ -203,24 +360,22 @@ open "https://github.com/weaveworks/weave-gitops/tree/v${WG_VERSION}/manifests/c
 
 ## Demo clusters
 
-We have 5 demo clusters currently that we use to demonstrate our work and test new features.
+We have 3 demo clusters currently that we use to demonstrate our work and test new features.
 
 |                    UI                |                       GitOps                        |  CAPI  |
 |--------------------------------------|-----------------------------------------------------|--------|
 | http://34.67.250.163:30080           | https://github.com/wkp-example-org/capd-demo-simon  |  CAPD  |
 | https://demo-01.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-01      |  CAPG  |
 | https://demo-02.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-02          |  CAPG  |
-| https://demo-03.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-03      |  CAPG  |
-| https://demo-04.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-04          |   -    |
 
 ---
 **CAPI NAME COLLISION WARNING**
 
-`demo-01`, `demo-02` and `demo-03` are currently deployed on the same [GCP project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so there may be collisions when creating CAPI clusters if they share the same name. Therefore avoid using common names like `test` and prefer to prefix them with your name i.e. `bob-test-2` instead.
+`demo-01` and `demo-02` are currently deployed on the same [GCP project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so there may be collisions when creating CAPI clusters if they share the same name. Therefore avoid using common names like `test` and prefer to prefix them with your name i.e. `bob-test-2` instead.
 
 ---
 
-`demo-01` is always up to date with the current version of main. `demo-02` should be manually updated to the latest release of Weave GitOps Enterprise to test release upgrades. Other clusters may also need to be updated manually to a newer version. The following sections describe how to get kubectl access to each of those clusters and how to update them to a newer version of Weave GitOps Enterprise.
+`demo-01` is automatically updated to the latest version of main. `demo-02` is manually updated to the latest release of Weave GitOps Enterprise. The following sections describe how to get kubectl access to each of those clusters and how to update them to a newer version of Weave GitOps Enterprise.
 
 #### 34.67.250.163
 
@@ -265,26 +420,6 @@ Install and configure the gcloud CLI if needed. Then run:
 
 ```sh
 gcloud container clusters get-credentials demo-02 --region europe-north1-a
-```
-
-#### demo-03
-
-Requires: gcloud CLI >= 352.0.0
-
-Install and configure the gcloud CLI if needed. Then run:
-
-```sh
-gcloud container clusters get-credentials demo-03 --region europe-north1-a
-```
-
-#### demo-04
-
-Requires: aws CLI >= 2.5.2
-
-Install and configure the aws CLI if needed. Then run:
-
-```sh
-aws eks --region eu-west-1 update-kubeconfig --name demo-04
 ```
 
 ### How to update to a new version
@@ -384,4 +519,24 @@ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keyc
 
 ```
 clusters-service <OTHER_ARGS...> --tls-cert-file cert.pem --tls-private-key key.pem
+```
+
+## How to get a kubeconfig for an AKS cluster
+
+Requires: azure CLI >= 2.36.0
+
+Install and configure the azure CLI if needed. Then run:
+
+```sh
+az aks get-credentials --name <cluster-name> --resource-group <resource-group> --admin
+```
+
+## How to get a kubeconfig for an EKS cluster
+
+Requires: aws CLI >= 2.5.2
+
+Install and configure the aws CLI if needed. Then run:
+
+```sh
+aws eks --region <aws-region> update-kubeconfig --name <cluster-name>
 ```

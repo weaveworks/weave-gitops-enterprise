@@ -5,23 +5,23 @@ metadata:
   name: gitops-apps-reader
 rules:
   - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list"]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
   - apiGroups: ["apps"]
-    resources: ["deployments", "replicasets", "pods"]
-    verbs: ["get", "list", "watch"]
+    resources: [ "deployments", "replicasets"]
+    verbs: [ "get", "list" ]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: ["kustomizations"]
-    verbs: ["get", "list", "patch"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list", "patch" ]
   - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: ["helmreleases"]
-    verbs: ["get", "list"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    verbs: [ "get", "list", "patch" ]
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: ["buckets", "helmcharts", "gitrepositories", "helmrepositories"]
-    verbs: ["get", "list", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -72,4 +72,22 @@ rules:
   - apiGroups: ["pac.weave.works"]
     resources: ["policies"]
     verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-gitopsclusters-reader
+rules:
+- apiGroups: ["gitops.weave.works"]
+  resources: ["gitopsclusters"]
+  verbs: ["get", "watch", "list"]
 {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-capicluster-reader
+rules:
+- apiGroups: ["cluster.x-k8s.io"]
+  resources: ["clusters"]
+  verbs: ["get", "list", "watch"]

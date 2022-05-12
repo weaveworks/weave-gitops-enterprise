@@ -208,7 +208,7 @@ jobs:
           make ui-build-for-tests
 
           cd test/integration/test
-          go test -v -ginkgo.v -run TestMccpUI -ginkgo.skip='@integration|@gce|@eks|@application|@upgrade' -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
+          go test -v -ginkgo.v -run TestMccpUI -ginkgo.label-filter='!(integration, gce, eks, application, upgrade)'  -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
       - name: Store integration test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
@@ -230,7 +230,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
-      focus-or-skip: "-ginkgo.focus='@smoke'"
+      label-filter: "-ginkgo.label-filter='smoke'"
       kubectl-version: "v1.21.1"
       login_user_type: "oidc"
       git-provider: github
@@ -241,8 +241,6 @@ jobs:
       database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-github"
     secrets:
-      BUILD_BOT_USER: wge-build-bot
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
       WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
@@ -260,7 +258,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
-      focus-or-skip: "-ginkgo.focus='@smoke'"
+      label-filter: "-ginkgo.label-filter='smoke'"
       kubectl-version: "v1.22.0"
       login_user_type: "cluster-user"
       git-provider: gitlab
@@ -271,8 +269,6 @@ jobs:
       database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-gitlab"
     secrets:
-      BUILD_BOT_USER: wge-build-bot
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
       WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
@@ -292,7 +288,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
-      focus-or-skip: "-ginkgo.focus='@smoke'"
+      label-filter: "-ginkgo.label-filter='smoke'"
       kubectl-version: "v1.23.3"
       login_user_type: "oidc"
       git-provider: gitlab
@@ -303,8 +299,6 @@ jobs:
       database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-gitlab-on-prem"
     secrets:
-      BUILD_BOT_USER: wge-build-bot
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
       WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
@@ -330,7 +324,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      focus-or-skip: "-ginkgo.skip='@upgrade|@smoke|@gce|@eks'"
+      label-filter: "-ginkgo.label-filter='!(upgrade, smoke, gce, eks)'"
       kubectl-version: "v1.23.3"
       login_user_type: "oidc"
       git-provider: github
@@ -341,8 +335,6 @@ jobs:
       database-type: sqlite
       artifacts-base-dir: "/tmp/acceptance-test-github"
     secrets:
-      BUILD_BOT_USER: wge-build-bot
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
       WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
@@ -352,3 +344,4 @@ jobs:
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
+

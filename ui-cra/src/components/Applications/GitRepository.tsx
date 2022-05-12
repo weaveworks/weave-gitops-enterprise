@@ -1,17 +1,18 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { GitRepositoryDetail } from '@weaveworks/weave-gitops';
+import { GitRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
   namespace: string;
 };
 
-const WGApplicationsGitRepository: FC<Props> = ({ name, namespace }) => {
+const WGApplicationsGitRepository: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
+  const { data: sources } = useListSources();
 
   return (
     <PageTemplate documentTitle="WeGO · Git Repository">
@@ -22,10 +23,19 @@ const WGApplicationsGitRepository: FC<Props> = ({ name, namespace }) => {
             url: '/applications',
             count: applicationsCount,
           },
+          {
+            label: 'Sources',
+            url: '/sources',
+            count: sources?.length,
+          },
+          {
+            label: `${props.name}`,
+          },
         ]}
       />
       <ContentWrapper>
-        <GitRepositoryDetail name={name} namespace={namespace} />
+        <Title>{props.name}</Title>
+        <GitRepositoryDetail {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

@@ -20,8 +20,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 		UI_NODEPORT := "30081"
 		NATS_NODEPORT := "31491"
-		var capi_endpoint_url string
-		var test_ui_url string
+		var upgrade_capi_endpoint_url string
+		var upgrade_test_ui_url string
 		var stdOut string
 		var stdErr string
 
@@ -31,13 +31,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When gitops upgrade command is available", func() {
 			It("Verify gitops upgrade command in --dry-run mode", func() {
-				repositoryURL := fmt.Sprintf(`(https://|ssh://git@)%s/%s/%s.git`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
+				repositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 				natsURL := "192.168.10.20:" + NATS_NODEPORT
 				prBranch := "wego-enterprise-dry-run"
-				version := "1.4.09"
+				version := "1.4.20"
 
 				By("And I run gitops upgrade command", func() {
-					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s' --set 'nginx-ingress-controller.service.type=NodePort' --set 'nginx-ingress-controller.service.nodePorts.http=%s' --dry-run", gitops_bin_path, version, prBranch, natsURL, NATS_NODEPORT, UI_NODEPORT)
+					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/my-cluster/clusters --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s' --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --dry-run", gitops_bin_path, version, prBranch, repositoryURL, natsURL, NATS_NODEPORT, UI_NODEPORT)
 					logger.Infof("Upgrade command: '%s'", upgradeCommand)
 					stdOut, stdErr = runCommandAndReturnStringOutput(upgradeCommand)
 					Expect(stdErr).Should(BeEmpty())
@@ -49,7 +49,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("And verify kind 'HelmRelease' in upgrade manifest", func() {
 					Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*sourceRef:[\s]*kind: HelmRepository[\s]*name: weave-gitops-enterprise-charts[\s\w\d./:-]*version: %s`, version)))
-					Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d.@/:-]*nginx-ingress-controller[\s\w\d.@/:-]*nodePorts:[\s]*http: %s`, UI_NODEPORT)))
+					Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d.@/:-]*service[\s\w\d.@/:-]*nodePorts:[\s]*https: %s`, UI_NODEPORT)))
 					Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*natsURL: %s`, natsURL)))
 					Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*repositoryURL: %s`, repositoryURL)))
 				})
@@ -91,9 +91,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				deleteClusters("kind", []string{kind_upgrade_cluster_name})
 
+				// Login to management cluster console, in case it has been logged out
+				InitializeWebdriver(test_ui_url)
+				loginUser()
+
 			})
 
-			It("@upgrade @git Verify wego core can be upgraded to wego enterprise", func() {
+			It("Verify wego core can be upgraded to wego enterprise", Label("upgrade", "git"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("When I create a private repository for cluster configs", func() {
@@ -101,8 +105,15 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("When I install gitops/wego to my active cluster", func() {
-					// FIXME
-					// bootstrapAndVerifyFlux(GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+					logger.Info("Bootstrapping the cluster to install flux")
+					bootstrapAndVerifyFlux(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+					logger.Info("Installing Weave gitops...")
+					_ = runCommandPassThrough("sh", "-c", "helm repo add ww-gitops https://helm.gitops.weave.works && helm repo update")
+					wegoInstallCmd := fmt.Sprintf("helm install weave-gitops ww-gitops/weave-gitops --namespace %s --set 'adminUser.create=true' --set 'adminUser.username=%s' --set 'adminUser.passwordHash=%s'", GITOPS_DEFAULT_NAMESPACE, AdminUserName, GetEnv("CLUSTER_ADMIN_PASSWORD_HASH", ""))
+					logger.Info("Weave gitops install command: " + wegoInstallCmd)
+					_ = runCommandPassThrough("sh", "-c", wegoInstallCmd)
+
+					verifyCoreControllers(GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("And I install Profile (HelmRepository chart)", func() {
@@ -111,6 +122,11 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I install the entitlement for cluster upgrade", func() {
 					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
+				})
+
+				By("And secure access to dashboard for dex users", func() {
+					logger.Info("Create client credential secret for OIDC (dex)")
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl create secret generic client-credentials --namespace %s --from-literal=clientID=%s --from-literal=clientSecret=%s", GITOPS_DEFAULT_NAMESPACE, GetEnv("DEX_CLIENT_ID", ""), GetEnv("DEX_CLIENT_SECRET", "")))
 				})
 
 				By("And I install the git repository secret for cluster service", func() {
@@ -139,16 +155,16 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.0.19"
+				version := "0.8.0-rc.1"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := publicIP + ":" + NATS_NODEPORT
-					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is nopt supported for capi cluster PR creation.
-					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s' --set 'nginx-ingress-controller.service.type=NodePort' --set 'nginx-ingress-controller.service.nodePorts.http=%s' ",
-						gitops_bin_path, version, prBranch, getGitRepositoryURL(repoAbsolutePath), gitProviderEnv.Type, gitProviderEnv.Hostname, natsURL, NATS_NODEPORT, UI_NODEPORT)
+					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
+					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is not supported for capi cluster PR creation.
+					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/my-cluster/clusters  --set 'config.capi.repositoryPath=./clusters/capi/clusters' --set 'config.capi.repositoryClustersPath=./clusters'  --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set 'agentTemplate.natsURL=%s' --set 'nats.client.service.nodePort=%s' --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --set config.oidc.enabled=true --set config.oidc.clientCredentialsSecret=client-credentials --set config.oidc.issuerURL=https://dex-01.wge.dev.weave.works --set config.oidc.redirectURL=https://weave.gitops.upgrade.enterprise.com:%s/oauth2/callback ",
+						gitops_bin_path, version, prBranch, gitRepositoryURL, gitRepositoryURL, gitProviderEnv.Type, gitProviderEnv.Hostname, natsURL, NATS_NODEPORT, UI_NODEPORT, UI_NODEPORT)
 
 					if gitProviderEnv.HostTypes != "" {
-						upgradeCommand += fmt.Sprintf(` --git-host-types="%s" --set "config.extraVolumes[0].name=ssh-config" --set "config.extraVolumes[0].configMap.name=ssh-config" --set "config.extraVolumeMounts[0].name=ssh-config" --set "config.extraVolumeMounts[0].mountPath=/root/.ssh"`,
-							gitProviderEnv.HostTypes)
+						upgradeCommand += ` --set "config.extraVolumes[0].name=ssh-config" --set "config.extraVolumes[0].configMap.name=ssh-config" --set "config.extraVolumeMounts[0].name=ssh-config" --set "config.extraVolumeMounts[0].mountPath=/root/.ssh"`
 					}
 
 					logger.Infof("Upgrade command: '%s'", upgradeCommand)
@@ -171,13 +187,15 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					verifyEnterpriseControllers("weave-gitops-enterprise", "mccp-", GITOPS_DEFAULT_NAMESPACE)
 				})
 
+				By("And I should install rolebindings for default enterprise roles'", func() {
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "rbac-auth.yaml")), "Failed to install rolbindings for enterprise default roles")
+				})
+
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
-					// Temporary FIX: Since v0.0.19 uses nginx-ingress-controller, we need to check for ingress service type
-					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service weave-gitops-enterprise-nginx-ingress-controller -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
-					// serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
+					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					if serviceType == "NodePort" {
-						capi_endpoint_url = fmt.Sprintf(`http://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
-						test_ui_url = fmt.Sprintf(`http://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
+						upgrade_capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
+						upgrade_test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
 					} else {
 						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s svc/clusters-service 8000:80", GITOPS_DEFAULT_NAMESPACE)
 
@@ -188,30 +206,35 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 							_ = session.Command.Wait()
 						}()
 
-						test_ui_url = "http://localhost:8000"
-						capi_endpoint_url = "http://localhost:8000"
+						upgrade_test_ui_url = "http://localhost:8000"
+						upgrade_capi_endpoint_url = "http://localhost:8000"
 					}
-					InitializeWebdriver(test_ui_url)
+					InitializeWebdriver(upgrade_test_ui_url)
+
+					By(fmt.Sprintf("Login as a %s user", userCredentials.UserType), func() {
+						loginUser() // Login to the weaveworks enterprise
+					})
 				})
 
 				By("And the Cluster service is healthy", func() {
-					CheckClusterService(capi_endpoint_url)
+					CheckClusterService(upgrade_capi_endpoint_url)
 				})
 
-				By("Then I should run enterprise CLI commands", func() {
-					testGetCommand := func(subCommand string) {
-						logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, capi_endpoint_url)
+				// FIXME: CLI checks are disabled due to authentication not being supported
+				// By("Then I should run enterprise CLI commands", func() {
+				// 	testGetCommand := func(subCommand string) {
+				// 		logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, upgrade_capi_endpoint_url)
 
-						cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, subCommand, capi_endpoint_url)
-						stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-						Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
-						Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
-					}
+				// 		cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, subCommand, upgrade_capi_endpoint_url)
+				// 		stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
+				// 		Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
+				// 		Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
+				// 	}
 
-					testGetCommand("templates")
-					testGetCommand("credentials")
-					testGetCommand("clusters")
-				})
+				// 	testGetCommand("templates")
+				// 	testGetCommand("credentials")
+				// 	testGetCommand("clusters")
+				// })
 
 				By("And I can connect cluster to itself", func() {
 					leaf := LeafSpec{
@@ -273,6 +296,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, paramSection)
 				pages.ScrollWindow(webDriver, 0, 4000)
 				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
+
 				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 				pages.ScrollWindow(webDriver, 0, 4000)
 
@@ -349,7 +373,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				By("And the manifests are present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/.weave-gitops/apps/capi/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})

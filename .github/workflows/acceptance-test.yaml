@@ -20,10 +20,10 @@ on:
         description: "The maximum number of minutes to let a job run before GitHub automatically cancels it"
         required: true
         type: number
-      focus-or-skip:
-        description: "Which regexps to select and filter -- eg: --focus=@smoke or --skip='@smoke|@integration'"
+      label-filter:
+        description: "Which tests to filter -- eg: --label-filter='smoke' or --label-filter='@smoke && !integration'"
         required: true
-        type: string
+        type: string 
       kubectl-version:
         description: "Version of kubectl"
         required: true
@@ -70,10 +70,7 @@ on:
         description: "GCE leaf cluster kubeconfig path (for connect cluster tests)"
         required: false
         type: string
-    secrets:
-      BUILD_BOT_USER:
-        description: "Build bot user name"
-        required: true
+    secrets:      
       WGE_CLUSTER_ADMIN_PASSWORD:
         description: "Cluster user admin password"
         required: true
@@ -82,10 +79,7 @@ on:
         required: true
       WGE_DEX_CLIENT_SECRET:
         description: "client credential secret for OIDC (dex)"
-        required: true
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN:
-        description: "Build obt personal access token"
-        required: true
+        required: true      
       WGE_GIT_PROVIDER_PRIVATE_KEY:
         description: "Key for accessing git provider e.g. github or gitlab"
         required: false
@@ -191,13 +185,8 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17.x
-      - name: Configure git for private modules
-        env:
-          GITHUB_BUILD_USERNAME: ${{ secrets.BUILD_BOT_USER }}
-          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.0.2
         with:
           fetch-depth: 0
       - name: Go Build Cache
@@ -226,7 +215,7 @@ jobs:
           eksctl get clusters
       - name: Install flux
         run: |
-          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.28.5/flux_0.28.5_linux_amd64.tar.gz | tar xz -C /tmp
+          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.29.5/flux_0.29.5_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp
           sudo mv /tmp/flux /usr/local/bin
           flux version --client
       - name: Install aws-iam-authenticator
@@ -379,7 +368,7 @@ jobs:
           echo "ACCEPTANCE_TEST_ARTIFACT_NAME=$ACCEPTANCE_TEST_ARTIFACT_NAME" >> $GITHUB_ENV
 
           cd test/acceptance/test/
-          go test ${{ inputs.focus-or-skip }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
+          go test ${{ inputs.label-filter }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
       - name: Store test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v2

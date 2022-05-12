@@ -20,6 +20,7 @@ func GomegaFail(message string, callerSkip ...int) {
 	}
 
 	// Show management cluster pods etc.
+	DumpBrowserLogs(true, true)
 	ShowItems("")
 	DumpClusterInfo(randID)
 	DumpConfigRepo(randID)
@@ -40,8 +41,7 @@ func TestAcceptance(t *testing.T) {
 	// Runs the UI tests
 	DescribeSpecsUi(RealGitopsTestRunner{})
 	// Runs the CLI tests
-	// FIXME: CLI acceptances are disabled due to authentication not being supported
-	// DescribeSpecsCli(RealGitopsTestRunner{})
+	DescribeSpecsCli(RealGitopsTestRunner{})
 
 	RunSpecs(t, "Weave GitOps Enterprise Acceptance Tests")
 

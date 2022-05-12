@@ -10,10 +10,12 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
@@ -23,7 +25,8 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	wegomodels "github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
+
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -50,6 +53,16 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		clusters = append(clusters, ToClusterResponse(c))
 	}
 
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	clusters, err = AddCAPIClusters(ctx, client, clusters)
+	if err != nil {
+		return nil, err
+	}
+
 	if msg.Label != "" {
 		if !isLabelRecognised(msg.Label) {
 			return nil, fmt.Errorf("label %q is not recognised", msg.Label)
@@ -59,7 +72,9 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	}
 
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
-	return &capiv1_proto.ListGitopsClustersResponse{GitopsClusters: clusters, Total: int32(len(cl))}, err
+	return &capiv1_proto.ListGitopsClustersResponse{
+		GitopsClusters: clusters,
+		Total:          int32(len(cl))}, err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
@@ -111,13 +126,21 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		clusterNamespace = "default"
 	}
 
-	path := getClusterManifestPath(clusterName)
 	content := string(tmplWithValuesAndCredentials[:])
+	path := getClusterManifestPath(clusterName)
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &path,
 			Content: &content,
 		},
+	}
+
+	if viper.GetString("add-bases-kustomization") == "enabled" {
+		commonKustomization, err := getCommonKustomization(clusterName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", clusterName, err)
+		}
+		files = append(files, *commonKustomization)
 	}
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
@@ -394,6 +417,43 @@ func getToken(ctx context.Context) (string, string, error) {
 	return providerToken.AccessToken, "oauth2", nil
 }
 
+func getCommonKustomization(clusterName string) (*gitprovider.CommitFile, error) {
+
+	commonKustomizationPath := getCommonKustomizationPath(clusterName)
+	commonKustomization := &kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "clusters-bases-kustomization",
+			Namespace: "flux-system",
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind: "GitRepository",
+				Name: "flux-system",
+			},
+			Interval: metav1.Duration{Duration: time.Minute * 10},
+			Prune:    true,
+			Path: filepath.Join(
+				viper.GetString("capi-repository-clusters-path"),
+				"bases",
+			),
+		},
+	}
+	b, err := yaml.Marshal(commonKustomization)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling common kustomization, %w", err)
+	}
+	commonKustomizationString := string(b)
+	file := &gitprovider.CommitFile{
+		Path:    &commonKustomizationPath,
+		Content: &commonKustomizationString,
+	}
+	return file, nil
+}
+
 func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
 	token, tokenType, err := getToken(ctx)
 	if err != nil {
@@ -408,7 +468,7 @@ func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
 	}, nil
 }
 
-func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*helmv2beta1.HelmRelease) ([]byte, error) {
+func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease) ([]byte, error) {
 	out := [][]byte{}
 	// Add HelmRepository object
 	b, err := yaml.Marshal(helmRepo)
@@ -433,7 +493,7 @@ func createProfileYAML(helmRepo *sourcev1beta1.HelmRepository, helmReleases []*h
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
 func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
-	helmRepo := &sourcev1beta1.HelmRepository{}
+	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Name:      helmRepoName,
 		Namespace: helmRepoNamespace,
@@ -441,10 +501,10 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	if err != nil {
 		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 	}
-	helmRepoTemplate := &sourcev1beta1.HelmRepository{
+	helmRepoTemplate := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1beta1.HelmRepositoryKind,
-			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      helmRepoName,
@@ -453,7 +513,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 		Spec: helmRepo.Spec,
 	}
 
-	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
+	sourceRef := helmv2.CrossNamespaceObjectReference{
 		APIVersion: helmRepo.TypeMeta.APIVersion,
 		Kind:       helmRepo.TypeMeta.Kind,
 		Name:       helmRepo.ObjectMeta.Name,
@@ -486,7 +546,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			Ref: charts.ChartReference{
 				Chart:   v.Name,
 				Version: v.Version,
-				SourceRef: helmv2beta1.CrossNamespaceObjectReference{
+				SourceRef: helmv2.CrossNamespaceObjectReference{
 					Name:      helmRepo.GetName(),
 					Namespace: helmRepo.GetNamespace(),
 					Kind:      "HelmRepository",
@@ -548,16 +608,24 @@ func getClusterManifestPath(clusterName string) string {
 	)
 }
 
+func getCommonKustomizationPath(clusterName string) string {
+	return filepath.Join(
+		viper.GetString("capi-repository-clusters-path"),
+		clusterName,
+		"clusters-bases-kustomization.yaml",
+	)
+}
+
 func getClusterProfilesPath(clusterName string) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterName,
-		wegomodels.WegoProfilesPath,
+		profiles.ManifestFileName,
 	)
 }
 
 // getProfileLatestVersion returns the default profile values if not given
-func getDefaultValues(ctx context.Context, kubeClient client.Client, name, version, helmRepositoryCacheDir string, sourceRef helmv2beta1.CrossNamespaceObjectReference, helmRepo *sourcev1beta1.HelmRepository) (string, error) {
+func getDefaultValues(ctx context.Context, kubeClient client.Client, name, version, helmRepositoryCacheDir string, sourceRef helmv2.CrossNamespaceObjectReference, helmRepo *sourcev1.HelmRepository) (string, error) {
 	ref := &charts.ChartReference{Chart: name, Version: version, SourceRef: sourceRef}
 	cc := charts.NewHelmChartClient(kubeClient, viper.GetString("runtime-namespace"), helmRepo, charts.WithCacheDir(helmRepositoryCacheDir))
 	if err := cc.UpdateCache(ctx); err != nil {
@@ -574,7 +642,7 @@ func getDefaultValues(ctx context.Context, kubeClient client.Client, name, versi
 }
 
 // getProfileLatestVersion returns the latest profile version if not given
-func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev1beta1.HelmRepository) (string, error) {
+func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev1.HelmRepository) (string, error) {
 	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
 	version := ""
 	if err != nil {

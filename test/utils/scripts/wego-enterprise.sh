@@ -59,7 +59,6 @@ function setup {
   kubectl create namespace flux-system
 
   # Create secrete for git provider authentication
-  gitopsArgs=()
   if [ ${GIT_PROVIDER} == "github" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY"
     GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITHUB_ORG/$CLUSTER_REPOSITORY.git
@@ -88,9 +87,7 @@ function setup {
       --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
       --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET" \
       --from-literal="GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" \
-      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES"
-      
-      gitopsArgs+=( --git-host-types=${GITOPS_GIT_HOST_TYPES} )
+      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES"      
     fi
 
     flux bootstrap gitlab \
@@ -104,7 +101,7 @@ function setup {
   # Create admin cluster user secret
   kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
-  --from-literal=username=admin \
+  --from-literal=username=wego-admin \
   --from-literal=password=${CLUSTER_ADMIN_PASSWORD_HASH}
   
   #  Create client credential secret for OIDC (dex)
@@ -126,8 +123,8 @@ function setup {
   helmArgs=()
   helmArgs+=( --set "nats.client.service.nodePort=${NATS_NODEPORT}" )
   helmArgs+=( --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" )
-  helmArgs+=( --set "service.nodePorts.https=${UI_NODEPORT}" )
-  helmArgs+=( --set "service.type=NodePort" )
+  helmArgs+=( --set "service.ports.https=8000" )
+  helmArgs+=( --set "service.targetPorts.https=8000" )
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
@@ -135,6 +132,7 @@ function setup {
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
+   helmArgs+=( --set "tls.enabled=false" )
   helmArgs+=( --set "config.oidc.enabled=true" )
   helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
@@ -164,6 +162,36 @@ function setup {
 
   helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
 
+  helm repo add profiles-catalog https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+  helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+  helm repo add cert-manager https://charts.jetstack.io
+  helm repo update 
+
+  # Install cert-manager for tls certificate creation
+  helm upgrade --install \
+    cert-manager cert-manager/cert-manager \
+    --namespace cert-manager --create-namespace \
+    --version v1.8.0 \
+    --set installCRDs=true
+  kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
+
+  # Install ingress-nginx for tls termination 
+  helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+    --namespace ingress-nginx --create-namespace \
+    --version 4.0.18 \
+    --set controller.service.type=NodePort \
+    --set controller.service.nodePorts.https=${UI_NODEPORT}
+  kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
+  
+  cat ${args[1]}/test/utils/data/certificate-issuer.yaml | \
+      sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
+      kubectl apply -f -
+  kubectl wait --for=condition=Ready --timeout=60s -n flux-system --all certificate
+
+  cat ${args[1]}/test/utils/data/ingress.yaml | \
+      sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
+      kubectl apply -f -
+
   # Install RBAC for user authentication
    kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
 
@@ -175,6 +203,13 @@ function setup {
     export EXP_CLUSTER_RESOURCE_SET=true
     clusterctl init --infrastructure docker    
   fi
+
+  # Install policy agent to enforce rego policies - (Installing policy agent after capd because capd violates some of thge policies and failed to install)
+  helm upgrade --install weave-policy-agent profiles-catalog/weave-policy-agent \
+    --version 0.2.x \
+    --set accountId=weaveworks \
+    --set clusterId=${MANAGEMENT_CLUSTER_CNAME}
+  kubectl wait --for=condition=Ready --timeout=120s -n policy-system --all pod
 
   # Install resources for bootstrapping and CNI
   kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
@@ -216,15 +251,16 @@ function reset {
   kubectl delete service postgres
   # Delete namespaces and their respective resources
   kubectl delete namespaces wkp-agent
-  # Delete wego system from the management cluster
-  $GITOPS_BIN_PATH flux uninstall --silent
-  $GITOPS_BIN_PATH flux uninstall --namespace flux-system --silent
+  # Delete flux system from the management cluster
+  flux uninstall --silent
   # Delete any orphan resources
   kubectl delete CAPITemplate --all
   kubectl delete ClusterBootstrapConfig --all
   kubectl delete secret my-pat
   kubectl delete ClusterResourceSet --all
   kubectl delete configmap calico-crs-configmap
+  kubectl delete rolebinding read-templates
+  kubectl delete rolebinding clusters-service-secrets-role
 }
 
 function reset_controllers {

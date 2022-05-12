@@ -84,7 +84,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      focus-or-skip: "-ginkgo.skip='@gce|@eks'"
+      label-filter: "-ginkgo.label-filter='!(gce, eks)'"
       kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab
@@ -95,8 +95,6 @@ jobs:
       database-type: sqlite
       artifacts-base-dir: "/tmp/acceptance-test-gitlab-on-prem"
     secrets:
-      BUILD_BOT_USER: wge-build-bot
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
       WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}

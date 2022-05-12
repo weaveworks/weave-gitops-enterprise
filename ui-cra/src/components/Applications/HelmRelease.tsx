@@ -1,19 +1,28 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { HelmReleaseDetail, useGetHelmRelease } from '@weaveworks/weave-gitops';
+import {
+  HelmReleaseDetail,
+  LoadingPage,
+  useGetHelmRelease,
+} from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
   clusterName: string;
   namespace: string;
-}
+};
 
-const WGApplicationsBucket: FC<Props> = ({ name, clusterName }) => {
+const WGApplicationsHelmRelease: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
-  const { data } = useGetHelmRelease(name);
+  const { name, namespace, clusterName } = props;
+  const { data, isLoading, error } = useGetHelmRelease(
+    name,
+    namespace,
+    clusterName,
+  );
   const helmRelease = data?.helmRelease;
 
   return (
@@ -25,13 +34,21 @@ const WGApplicationsBucket: FC<Props> = ({ name, clusterName }) => {
             url: '/applications',
             count: applicationsCount,
           },
+          {
+            label: `${name}`,
+          },
         ]}
       />
-      <ContentWrapper type="WG">
-        <HelmReleaseDetail helmRelease={helmRelease} clusterName={clusterName} name={name} />
+      <ContentWrapper>
+        <Title>{name}</Title>
+        {error && <h3>{error.message}</h3>}
+        {isLoading && <LoadingPage />}
+        {!error && !isLoading && (
+          <HelmReleaseDetail helmRelease={helmRelease} {...props} />
+        )}
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationsBucket;
+export default WGApplicationsHelmRelease;

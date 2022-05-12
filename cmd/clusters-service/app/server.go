@@ -23,7 +23,7 @@ import (
 	"syscall"
 	"time"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
@@ -44,14 +44,16 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	core_cache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
@@ -64,6 +66,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -117,6 +120,7 @@ type Params struct {
 	capiClustersNamespace             string
 	capiTemplatesNamespace            string
 	injectPruneAnnotation             string
+	addBasesKustomization             string
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
 	capiRepositoryClustersPath        string
@@ -177,6 +181,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "", "")
 	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
+	cmd.Flags().StringVar(&p.addBasesKustomization, "add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
 	cmd.Flags().StringVar(&p.capiRepositoryPath, "capi-repository-path", "", "")
 	cmd.Flags().StringVar(&p.capiRepositoryClustersPath, "capi-repository-clusters-path", "./clusters", "")
@@ -287,7 +292,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
 		capiv1.AddToScheme,
-		sourcev1beta1.AddToScheme,
+		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 	}
 
@@ -316,16 +321,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
-
-	rest, clusterName, err := kube.RestConfig()
-	if err != nil {
-		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
-	}
-	cacheContainer, err := core_cache.NewContainer(ctx, rest, log)
-	if err != nil {
-		return fmt.Errorf("could not create cache container: %w", err)
-	}
-	coreConfig := core_core.NewCoreConfig(log, rest, cacheContainer, clusterName)
 
 	profileCache, err := cache.NewCache(p.profileCacheLocation)
 	if err != nil {
@@ -367,12 +362,29 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}()
 
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
-	clientGetter := kube.NewDefaultClientGetter(configGetter, "", capiv1.AddToScheme, policiesv1.AddToScheme, gitopsv1alpha1.AddToScheme)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
+		capiv1.AddToScheme,
+		policiesv1.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
+		clusterv1.AddToScheme,
+	)
 
-	fetcher, err := clustersmngr.NewSingleClusterFetcher(rest)
+	rest, clusterName, err := kube.RestConfig()
+	if err != nil {
+		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
+	}
+
+	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.capiTemplatesNamespace)
 	if err != nil {
 		return err
 	}
+
+	clusterClientsFactory := clustersmngr.NewClientFactory(
+		mcf,
+		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
+		log,
+	)
+	clusterClientsFactory.Start(ctx)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
@@ -396,8 +408,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			Namespace:    p.capiTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
-		WithCoreConfig(coreConfig),
-		WithClusterFetcher(fetcher),
+		WithCoreConfig(core_core.NewCoreConfig(
+			log, rest, clusterName, clusterClientsFactory,
+		)),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",
@@ -449,6 +462,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.ClientGetter == nil {
 		return errors.New("kubernetes client getter is not set")
 	}
+	if args.CoreServerConfig.ClientsFactory == nil {
+		return errors.New("clients factory is not set")
+	}
 	if (AuthEnabled() && args.OIDC == OIDCAuthenticationOptions{}) {
 		return errors.New("OIDC configuration is not set")
 	}
@@ -486,14 +502,16 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	// FIXME: This is a bit dangerous but required so that we can start the EE server w/ a fake kube client
-	// (Which isn't supported by the core handler right now)
-	if args.CoreServerConfig.RestCfg != nil {
-		if err := core_core.Hydrate(ctx, grpcMux, args.CoreServerConfig); err != nil {
-			return fmt.Errorf("failed to register core servers: %w", err)
-		}
-		grpcHttpHandler = clustersmngr.WithClustersClient(args.ClusterFetcher, grpcHttpHandler)
+	appsServer, err := core_core.NewCoreServer(args.CoreServerConfig, core_core.WithClientGetter(args.ClientGetter))
+	if err != nil {
+		return fmt.Errorf("unable to create new kube client: %w", err)
 	}
+
+	if err = core_core_proto.RegisterCoreHandlerServer(ctx, grpcMux, appsServer); err != nil {
+		return fmt.Errorf("could not register new app server: %w", err)
+	}
+
+	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
 
 	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
 
