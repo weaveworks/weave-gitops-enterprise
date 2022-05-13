@@ -231,7 +231,7 @@ status: {}
 			})
 			tt.clusterState = append(tt.clusterState, hr)
 			db := createDatabase(t)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, db, "", hr, nil)
+			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, db, "", hr)
 
 			// request
 			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
@@ -351,7 +351,7 @@ func TestGetKubeconfig(t *testing.T) {
 
 			db := createDatabase(t)
 			gp := NewFakeGitProvider("", nil, nil)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace, nil, nil)
+			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace, nil)
 
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
 
@@ -424,7 +424,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			db := createDatabase(t)
-			s := createServer(t, []runtime.Object{}, "capi-templates", "default", tt.provider, db, "", nil, nil)
+			s := createServer(t, []runtime.Object{}, "capi-templates", "default", tt.provider, db, "", nil)
 			for _, o := range tt.dbState {
 				db.Create(o)
 			}

@@ -250,7 +250,7 @@ func TestListPolicies(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil, nil)
+			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil)
 			listPoliciesRequest := new(capiv1_proto.ListPoliciesRequest)
 			gotResponse, err := s.ListPolicies(context.Background(), listPoliciesRequest)
 			if err != nil {
@@ -327,7 +327,7 @@ func TestGetPolicy(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil, nil)
+			s := createServer(t, tt.clusterState, "policies", "default", nil, nil, "", nil)
 			gotResponse, err := s.GetPolicy(context.Background(), &capiv1_proto.GetPolicyRequest{PolicyName: tt.policy_name})
 			if err != nil {
 				if tt.err == nil {

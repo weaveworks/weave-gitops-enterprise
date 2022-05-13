@@ -11,7 +11,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/kubernetes"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -46,7 +45,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	return c
 }
 
-func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1.HelmRepository, kubernetsClient kubernetes.Interface) capiv1_protos.ClustersServiceServer {
+func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1.HelmRepository) capiv1_protos.ClustersServiceServer {
 	c := createClient(t, clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
@@ -65,7 +64,6 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 		db,
 		ns,
 		"weaveworks-charts", t.TempDir(),
-		kubernetsClient,
 	)
 }
 
