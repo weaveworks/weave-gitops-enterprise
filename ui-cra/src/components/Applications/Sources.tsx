@@ -7,14 +7,21 @@ import {
   SourcesTable,
   useListSources,
 } from '@weaveworks/weave-gitops';
+import { useApplicationsCount } from './utils';
 
 const WGApplicationsSources: FC = () => {
   const { data: sources, isLoading } = useListSources();
+  const applicationsCount = useApplicationsCount();
 
   return (
     <PageTemplate documentTitle="WeGO · Application Sources">
       <SectionHeader
         path={[
+          {
+            label: 'Applications',
+            url: '/applications',
+            count: applicationsCount,
+          },
           {
             label: 'Sources',
             url: '/sources',
