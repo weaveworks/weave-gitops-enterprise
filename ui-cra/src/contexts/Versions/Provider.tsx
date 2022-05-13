@@ -23,7 +23,9 @@ const VersionsProvider: FC = ({ children }) => {
         setEntitlement(res.entitlement);
       })
       .catch(err =>
-        setNotifications([{ message: err.message, variant: 'danger' }]),
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
       );
   }, [setNotifications]);
 
@@ -33,7 +35,9 @@ const VersionsProvider: FC = ({ children }) => {
     })
       .then(res => setRepositoryURL(res.repositoryURL))
       .catch(err =>
-        setNotifications([{ message: err.message, variant: 'danger' }]),
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
       );
   }, [setNotifications]);
 

@@ -60,11 +60,11 @@ const Notifications: FC = () => {
               {notification?.variant === 'danger' ? 'Error' : 'Success'}
               :&nbsp;
             </strong>
-            {notification?.message}
+            {notification.message.text} {notification.message.component}
           </div>
         </div>,
         {
-          toastId: notification?.message,
+          toastId: notification?.message.text,
         },
       ),
     );

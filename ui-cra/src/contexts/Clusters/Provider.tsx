@@ -46,7 +46,9 @@ const ClustersProvider: FC = ({ children }) => {
       })
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
+          setNotifications([
+            { message: { text: err.message }, variant: 'danger' },
+          ]),
         );
     },
     [setNotifications],
@@ -68,12 +70,12 @@ const ClustersProvider: FC = ({ children }) => {
     if (
       error &&
       notifications?.some(
-        notification => error.message === notification.message,
+        notification => error.message === notification.message.text,
       ) === false
     ) {
       setNotifications([
         ...notifications,
-        { message: error.message, variant: 'danger' },
+        { message: { text: error.message }, variant: 'danger' },
       ]);
     }
   }, [data, error, notifications, setNotifications]);

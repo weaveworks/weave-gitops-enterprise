@@ -141,7 +141,9 @@ const ProfilesProvider: FC = ({ children }) => {
           setProfilesWithValues(profiles);
         })
         .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
+          setNotifications([
+            { message: { text: err.message }, variant: 'danger' },
+          ]),
         );
     },
     [getProfileYaml, setNotifications],
@@ -160,7 +162,9 @@ const ProfilesProvider: FC = ({ children }) => {
         getProfileValues(res.profiles);
       })
       .catch(err =>
-        setNotifications([{ message: err.message, variant: 'danger' }]),
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
       )
       .finally(() => setLoading(false));
   }, [setNotifications, getProfileValues]);
