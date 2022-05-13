@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import svgrPlugin from 'vite-plugin-svgr';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const DEFAULT_PROXY_HOST = 'http://34.67.250.163:30080/';
 const proxyHost = process.env.PROXY_HOST || DEFAULT_PROXY_HOST;
@@ -40,6 +41,15 @@ export default defineConfig({
       svgrOptions: {
         // ...svgr options (https://react-svgr.com/docs/options/)
       },
+    }),
+    // Needed to see the svg's during dev
+    viteStaticCopy({
+      targets: [
+        {
+          src: './node_modules/@weaveworks/weave-gitops/*.svg',
+          dest: 'node_modules/.vite/deps',
+        },
+      ],
     }),
   ],
 });
