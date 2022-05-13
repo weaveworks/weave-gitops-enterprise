@@ -50,7 +50,7 @@ As part of the chart, other dependencies also get installed:
 
 ## One-time setup
 You need a github Personal Access Token to build the service. This
-token needs at least the `repo` and `read:packages`
+token needs at least the `repo`, `read:packages` and `delete_repo`
 permissions. You can create one
 [here](https://github.com/settings/tokens), and export it as:
 ```bash
@@ -198,12 +198,16 @@ When you push your changes to a remote branch (even before creating a PR for it)
 To run a local development environment, you need to install the following tools:
  * [docker](https://www.docker.com)
  * [kind](https://kind.sigs.k8s.io/)
- * [tilt](https://tilt.dev/)
- * [flux](https://fluxcd.io/docs/installation/)
  * [clusterctl](https://cluster-api.sigs.k8s.io/user/quick-start.html#install-clusterctl)
+ * [gh](https://cli.github.com/)
+ * [flux](https://fluxcd.io/docs/installation/)
+ * [tilt](https://tilt.dev/)
 
 ### Preparation
-Run the following command to get a Kind cluster ready for Tilt:
+
+> :warning: The following script will **delete** a local Kind cluster named `wge-dev` and a remote repository named `wge-dev` in your personal GitHub account, if either of them exists. Take a look at the script to understand what it does and how to customize the cluster/repository names. 
+
+Run the following script to get a Kind cluster ready for Tilt:
 ```sh
 ./tools/reboot.sh
 ```
@@ -215,7 +219,7 @@ To start the development environment, run
 ```sh
 tilt up
 ```
-and your system should build and start. The first time you run this, it will take ~20-30 mins (depending on your connection speed) to build all the containers and deploy them to your local cluster. This is because the docker builds have to download all the Go modules/JS libraries from scratch, use the Tilt UI to check progress.
+and your system should build and start. The first time you run this, it will take ~10 mins (depending on your connection speed) to build all the containers and deploy them to your local cluster. This is because the docker builds have to download all the Go modules/JS libraries from scratch, use the Tilt UI to check progress. Subsequent runs should be a lot faster.
 
 When `chart-mccp-cluster-service` has become green, you should be able
 to access your cluster at

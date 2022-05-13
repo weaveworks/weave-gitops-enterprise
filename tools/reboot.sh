@@ -4,10 +4,11 @@
 # Adapted from the original script in the Weave GitOps repository.
 #
 # WARN: This script is designed to be "turn it off and on again". It will delete
-# the given kind cluster (if it exists) and recreate, installing everything from
-# scratch.
+# the given kind cluster (if it exists) and its GitOps repository and recreate them 
+# both, installing everything from scratch.
 
 export KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-wge-dev}"
+export GITHUB_REPO="${GITHUB_REPO:-wge-dev}"
 
 do_kind() {
     kind delete cluster --name "$KIND_CLUSTER_NAME"
@@ -19,7 +20,8 @@ do_capi(){
 }
 
 do_flux(){
-    flux bootstrap github --owner="$GITHUB_USER" --repository=fleet-infra --branch=main --path=./clusters/management --personal
+    gh repo delete "$GITHUB_USER/$GITHUB_REPO" --confirm
+    flux bootstrap github --owner="$GITHUB_USER" --repository="$GITHUB_REPO" --branch=main --path=./clusters/management --personal
 }
 
 create_local_values_file(){
