@@ -9,7 +9,7 @@ const VersionsProvider: FC = ({ children }) => {
   const [versions, setVersions] = useState<VersionData>({
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   });
-  const [repositoryURL, setRepositoryURL] = useState<string>('');
+  const [repositoryURL, setRepositoryURL] = useState<string | null>(null);
   const { setNotifications } = useNotifications();
 
   const history = useHistory();

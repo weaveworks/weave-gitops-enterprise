@@ -24,6 +24,7 @@ import {
   KubeStatusIndicator,
   SortType,
   statusSortHelper,
+  applicationsClient,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -94,6 +95,7 @@ const MCCP: FC = () => {
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
+  const [repoLink, setRepoLink] = useState<string>('');
   const [openCapiStatus, setOpenCapiStatus] = React.useState<any>({});
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
@@ -108,7 +110,7 @@ const MCCP: FC = () => {
   const authRedirectPage = `/clusters`;
 
   interface FormData {
-    url: string;
+    url: string | null;
     branchName: string;
     pullRequestTitle: string;
     commitMessage: string;
@@ -224,6 +226,17 @@ const MCCP: FC = () => {
     disabled: {},
   })(Checkbox);
 
+  useEffect(() => {
+    repositoryURL &&
+      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+        if (res.provider === 'GitHub') {
+          setRepoLink(repositoryURL + `/pulls`);
+        } else if (res.provider === 'GitLab') {
+          setRepoLink(repositoryURL + `/-/merge_requests`);
+        }
+      });
+  }, [repositoryURL]);
+
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Clusters">
@@ -239,55 +252,78 @@ const MCCP: FC = () => {
           />
           <ContentWrapper>
             <Title>Connected clusters dashboard</Title>
-            <ActionsWrapper>
-              <Button
-                id="create-cluster"
-                startIcon={<Icon type={IconType.AddIcon} size="base" />}
-                onClick={handleAddCluster}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <ActionsWrapper>
+                <Button
+                  id="create-cluster"
+                  startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                  onClick={handleAddCluster}
+                >
+                  CREATE A CLUSTER
+                </Button>
+                <Button
+                  id="connect-cluster"
+                  startIcon={
+                    <Icon type={IconType.ArrowUpwardIcon} size="base" />
+                  }
+                  onClick={() => setOpenConnectInfo(true)}
+                >
+                  CONNECT A CLUSTER
+                </Button>
+                <Tooltip
+                  title="No CAPI clusters selected"
+                  placement="top"
+                  disabled={selectedCapiClusters.length !== 0}
+                >
+                  <div>
+                    <Button
+                      id="delete-cluster"
+                      startIcon={
+                        <Icon type={IconType.DeleteIcon} size="base" />
+                      }
+                      onClick={() => {
+                        setNotifications([]);
+                        setOpenDeletePR(true);
+                      }}
+                      color="secondary"
+                      disabled={selectedCapiClusters.length === 0}
+                    >
+                      CREATE A PR TO DELETE CLUSTERS
+                    </Button>
+                  </div>
+                </Tooltip>
+                {openDeletePR && (
+                  <DeleteClusterDialog
+                    formData={formData}
+                    setFormData={setFormData}
+                    selectedCapiClusters={selectedCapiClusters}
+                    setOpenDeletePR={setOpenDeletePR}
+                  />
+                )}
+                {openConnectInfo && (
+                  <ConnectClusterDialog
+                    onFinish={() => setOpenConnectInfo(false)}
+                  />
+                )}
+              </ActionsWrapper>
+              <a
+                style={{
+                  color: theme.colors.primary,
+                  padding: theme.spacing.small,
+                }}
+                href={repoLink}
+                target="_blank"
+                rel="noopener noreferrer"
               >
-                CREATE A CLUSTER
-              </Button>
-              <Button
-                id="connect-cluster"
-                startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
-                onClick={() => setOpenConnectInfo(true)}
-              >
-                CONNECT A CLUSTER
-              </Button>
-              <Tooltip
-                title="No CAPI clusters selected"
-                placement="top"
-                disabled={selectedCapiClusters.length !== 0}
-              >
-                <div>
-                  <Button
-                    id="delete-cluster"
-                    startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
-                    onClick={() => {
-                      setNotifications([]);
-                      setOpenDeletePR(true);
-                    }}
-                    color="secondary"
-                    disabled={selectedCapiClusters.length === 0}
-                  >
-                    CREATE A PR TO DELETE CLUSTERS
-                  </Button>
-                </div>
-              </Tooltip>
-              {openDeletePR && (
-                <DeleteClusterDialog
-                  formData={formData}
-                  setFormData={setFormData}
-                  selectedCapiClusters={selectedCapiClusters}
-                  setOpenDeletePR={setOpenDeletePR}
-                />
-              )}
-            </ActionsWrapper>
-            {openConnectInfo && (
-              <ConnectClusterDialog
-                onFinish={() => setOpenConnectInfo(false)}
-              />
-            )}
+                View open Pull Requests
+              </a>
+            </div>
             {!isLoading ? (
               <TableWrapper id="clusters-list">
                 <FilterableTable
