@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -113,7 +113,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	switch msg.GetTemplateKind() {
 	case capiv1.Kind:
 		namespace = viper.GetString("capi-clusters-namespace")
-	case tapiv1.Kind:
+	case gapiv1.Kind:
 		namespace = viper.GetString("tfcontroller-template-namespace")
 	}
 	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, namespace, msg.Values)

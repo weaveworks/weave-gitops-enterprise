@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
-	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
@@ -15,7 +15,7 @@ func ToTemplateResponse(t *apitemplates.Template) *capiv1_proto.Template {
 	switch t.Kind {
 	case capiv1.Kind:
 		annotation = templates.CAPIDisplayNameAnnotation
-	case tapiv1.Kind:
+	case gapiv1.Kind:
 		annotation = templates.TFControllerDisplayNameAnnotation
 	}
 	res := &capiv1_proto.Template{

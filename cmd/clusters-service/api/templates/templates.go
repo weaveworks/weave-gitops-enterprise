@@ -1,4 +1,5 @@
 //+kubebuilder:object:generate=true
+//+kubebuilder:skip
 package templates
 
 import (
@@ -40,6 +41,7 @@ type TemplateParam struct {
 //+kubebuilder:pruning:PreserveUnknownFields
 
 // ResourceTemplate describes a resource to create.
+//+kubebuilder:skipversion
 type ResourceTemplate struct {
 	runtime.RawExtension `json:",inline"`
 }

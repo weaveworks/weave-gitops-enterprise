@@ -20,8 +20,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
-	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -156,7 +156,7 @@ func makeCapiTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	return string(b)
 }
 
-func makeTerraformTemplate(t *testing.T, opts ...func(template *tapiv1.TFTemplate)) string {
+func makeTerraformTemplate(t *testing.T, opts ...func(template *gapiv1.GitOpsTemplate)) string {
 	t.Helper()
 	basicRaw := `
 	{
@@ -169,10 +169,10 @@ func makeTerraformTemplate(t *testing.T, opts ...func(template *tapiv1.TFTemplat
 		   }
 		}
 	 }`
-	ct := &tapiv1.TFTemplate{
+	ct := &gapiv1.GitOpsTemplate{
 		Template: apitemplates.Template{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       tapiv1.Kind,
+				Kind:       gapiv1.Kind,
 				APIVersion: "tfcontroller.weave.works/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{

@@ -16,8 +16,8 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
-	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 )
 
 func TestParseFile(t *testing.T) {
@@ -147,7 +147,7 @@ func TestParseFileResourceTemplate(t *testing.T) {
 	}
 	tfControllerResultContent = bytes.TrimSuffix(tfControllerResultContent, []byte("\n"))
 
-	want := &tapiv1.TFTemplate{
+	want := &gapiv1.GitOpsTemplate{
 		Template: templates.Template{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "TFTemplate",
@@ -195,7 +195,7 @@ func TestParseFileResourceTemplate(t *testing.T) {
 			},
 		},
 	}
-	if diff := cmp.Diff(want, &tapiv1.TFTemplate{Template: *c}); diff != "" {
+	if diff := cmp.Diff(want, &gapiv1.GitOpsTemplate{Template: *c}); diff != "" {
 		t.Fatalf("failed to read the template:\n%s", diff)
 	}
 }

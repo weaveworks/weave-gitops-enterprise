@@ -11,8 +11,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
-	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 )
 
 // TemplateGetter implementations get templates by name.
@@ -44,7 +44,7 @@ func (lib *ConfigMapLibrary) List(ctx context.Context, templateKind string) (map
 	switch templateKind {
 	case capiv1.Kind:
 		namespace = lib.CAPINamespace
-	case tapiv1.Kind:
+	case gapiv1.Kind:
 		namespace = lib.TFTemplateNamespace
 	}
 	lib.Log.Info("Querying Kubernetes for configmap", "namespace", namespace, "configmapName", lib.ConfigMapName, "kind", templateKind)
@@ -90,7 +90,7 @@ func (lib *ConfigMapLibrary) Get(ctx context.Context, name, templateKind string)
 		switch templateKind {
 		case capiv1.Kind:
 			namespace = lib.CAPINamespace
-		case tapiv1.Kind:
+		case gapiv1.Kind:
 			namespace = lib.TFTemplateNamespace
 		}
 		return nil, fmt.Errorf("terraform template %s not found in configmap %s/%s", name, namespace, lib.ConfigMapName)
@@ -127,8 +127,8 @@ func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (*tem
 		}
 		lib.Log.Info("Got capitemplate", "template", name)
 		result = &t.Template
-	case tapiv1.Kind:
-		var t tapiv1.TFTemplate
+	case gapiv1.Kind:
+		var t gapiv1.GitOpsTemplate
 		lib.Log.Info("Getting tftemplate", "template", name)
 		err = cl.Get(ctx, client.ObjectKey{
 			Namespace: lib.TFTemplateNamespace,
@@ -165,9 +165,9 @@ func (lib *CRDLibrary) List(ctx context.Context, templateKind string) (map[strin
 		for i, ct := range capiTemplateList.Items {
 			result[ct.ObjectMeta.Name] = &capiTemplateList.Items[i].Template
 		}
-	case tapiv1.Kind:
+	case gapiv1.Kind:
 		lib.Log.Info("Querying namespace for TFTemplate resources", "namespace", lib.TFTemplateNamespace)
-		tfTemplateList := tapiv1.TFTemplateList{}
+		tfTemplateList := gapiv1.GitOpsTemplateList{}
 		err = cl.List(ctx, &tfTemplateList, client.InNamespace(lib.TFTemplateNamespace))
 		if err != nil {
 			return nil, fmt.Errorf("error getting tftemplates: %w", err)

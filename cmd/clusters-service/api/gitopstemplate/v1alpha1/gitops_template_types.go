@@ -6,24 +6,24 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
-const Kind = "TFTemplate"
+const Kind = "GitOpsTemplate"
 
 //+kubebuilder:object:root=true
 
-// TFTemplate is the Schema for the TFTemplates API
-type TFTemplate struct {
+// GitOpsTemplate is the Schema for the GitOpsTemplate API
+type GitOpsTemplate struct {
 	templates.Template
 }
 
 //+kubebuilder:object:root=true
 
-// TFTemplateList contains a list of TFTemplate
-type TFTemplateList struct {
+// GitOpsTemplateList contains a list of GitOpsTemplate
+type GitOpsTemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []TFTemplate `json:"items"`
+	Items           []GitOpsTemplate `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&TFTemplate{}, &TFTemplateList{})
+	SchemeBuilder.Register(&GitOpsTemplate{}, &GitOpsTemplateList{})
 }

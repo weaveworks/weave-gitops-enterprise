@@ -58,7 +58,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -308,7 +308,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
 		capiv1.AddToScheme,
-		tapiv1.AddToScheme,
+		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 	}
@@ -384,7 +384,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		policiesv1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
-		tapiv1.AddToScheme,
+		gapiv1.AddToScheme,
 	)
 
 	rest, clusterName, err := kube.RestConfig()

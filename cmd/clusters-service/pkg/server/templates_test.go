@@ -15,8 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
-	tapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/tfcontroller/v1alpha1"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -195,7 +195,7 @@ func TestListTerraformTemplates(t *testing.T) {
 		{
 			name: "2 templates",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template2", makeTerraformTemplate(t, func(ct *tapiv1.TFTemplate) {
+				makeTemplateConfigMap("terraform-templates", "template2", makeTerraformTemplate(t, func(ct *gapiv1.GitOpsTemplate) {
 					ct.ObjectMeta.Name = "terraform-template-2"
 					ct.Spec.Description = "this is test template 2"
 				}), "template1", makeTerraformTemplate(t)),
@@ -250,7 +250,7 @@ func TestListTerraformTemplates(t *testing.T) {
 			s := createServer(t, tt.clusterState, "terraform-templates", "default", nil, nil, "", nil)
 
 			listTemplatesRequest := &capiv1_protos.ListTemplatesRequest{
-				TemplateKind: tapiv1.Kind,
+				TemplateKind: gapiv1.Kind,
 			}
 
 			listTemplatesResponse, err := s.ListTemplates(context.Background(), listTemplatesRequest)
@@ -811,7 +811,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 	})...)
 }
 
-func makeTerraformTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(template *tapiv1.TFTemplate)) string {
+func makeTerraformTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(template *gapiv1.GitOpsTemplate)) string {
 	t.Helper()
 	basicRaw := `
 	{
@@ -821,7 +821,7 @@ func makeTerraformTemplateWithProvider(t *testing.T, clusterKind string, opts ..
 		  "name": "${RESOURCE_NAME}"
 		}
 	  }`
-	return makeTerraformTemplate(t, append(opts, func(c *tapiv1.TFTemplate) {
+	return makeTerraformTemplate(t, append(opts, func(c *gapiv1.GitOpsTemplate) {
 		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
 			{
 				RawExtension: rawExtension(basicRaw),
