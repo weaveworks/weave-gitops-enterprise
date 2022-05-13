@@ -12,8 +12,8 @@ import {
   FeatureFlagsContextProvider,
   AppContextProvider,
 } from '@weaveworks/weave-gitops';
-import ProximaNova from './fonts/proximanova-regular.woff';
-import RobotoMono from './fonts/roboto-mono-regular.woff';
+import ProximaNova from 'url:./fonts/proximanova-regular.woff';
+import RobotoMono from 'url:./fonts/roboto-mono-regular.woff';
 import Background from './assets/img/background.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
 
