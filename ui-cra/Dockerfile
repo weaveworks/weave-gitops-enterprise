@@ -10,7 +10,8 @@ ARG GITHUB_TOKEN
 RUN make node_modules
 
 COPY --chown=node:node . /home/node
-RUN make build
+ARG version
+RUN make build VERSION=${version}
 
 FROM alpine:3.9
 RUN apk add --no-cache bash openssh-client
@@ -20,7 +21,6 @@ COPY --from=build /home/node/build /html
 
 ARG now
 ARG revision
-ARG version
 LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.title="ui-server" \
       org.opencontainers.image.source="https://github.com/weaveworks/weave-gitops-enterprise" \
