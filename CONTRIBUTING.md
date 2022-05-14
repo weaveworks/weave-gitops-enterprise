@@ -233,6 +233,7 @@ restart the pods running in your system.
 
 - If a change in your local settings results in a ConfigMap update, you will need to restart the `clusters-service` pod in order for the pod to read the updated ConfigMap.
 - Every time you restart `clusters-service` it will generate new self-signed certificates, therefore you will need to reload the UI and accept the new certificate. Check for TLS certificate errors in the `chart-mccp-cluster-service` logs and if necessary re-trigger an update to rebuild it.
+- The `wkp-agent` image tag is currently hard-coded to `v0.8.0-rc.1` and by default Tilt won't build/deploy it. The benefit of that is the ability to easily install it on your local Kind cluster and view CAPI status for any clusters you create.
 
 ### Faster frontend development
 Especially for frontend development, the time it takes for the pod to
