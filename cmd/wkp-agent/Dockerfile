@@ -22,7 +22,6 @@ FROM docker.io/governmentpaas/git-ssh
 
 ARG now
 ARG revision
-ARG version
 LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.created="${now}" \
       org.opencontainers.image.description="The Weave GitOps Enterprise WKP Agent" \
