@@ -46,9 +46,9 @@ type ClustersServiceClient interface {
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	// GetPolicy gets a policy on the management cluster by name
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
-	// ListPolicyValidation list policy violations available on the management cluster
+	// ListPolicyValidations list policy validations available on the management cluster
 	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
-	// GetPolicyValidations gets a policy violation on the management cluster by id
+	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 }
 
@@ -235,9 +235,9 @@ type ClustersServiceServer interface {
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
 	// GetPolicy gets a policy on the management cluster by name
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
-	// ListPolicyValidation list policy violations available on the management cluster
+	// ListPolicyValidations list policy validations available on the management cluster
 	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
-	// GetPolicyValidations gets a policy violation on the management cluster by id
+	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
