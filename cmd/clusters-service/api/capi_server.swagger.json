@@ -262,7 +262,7 @@
     },
     "/v1/policyviolations": {
       "post": {
-        "summary": "ListPolicyValidation list policy violations available on the management cluster",
+        "summary": "ListPolicyValidations list policy validations available on the management cluster",
         "operationId": "ClustersService_ListPolicyValidations",
         "responses": {
           "200": {
@@ -295,7 +295,7 @@
     },
     "/v1/policyviolations/{violationId}": {
       "get": {
-        "summary": "GetPolicyValidations gets a policy violation on the management cluster by id",
+        "summary": "GetPolicyValidation gets a policy validations on the management cluster by id",
         "operationId": "ClustersService_GetPolicyValidation",
         "responses": {
           "200": {
