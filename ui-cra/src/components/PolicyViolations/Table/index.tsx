@@ -11,9 +11,9 @@ import { ColumnHeaderTooltip } from '../../Shared';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
-import { Policy } from '../../../capi-server/capi_server.pb';
-import PolicyRow from './Row';
-import { usePolicyStyle } from '../PolicyStyles';
+import { PolicyValidation } from '../../../capi-server/capi_server.pb';
+import PolicyViolationRow from './Row';
+import { usePolicyStyle } from '../../Policies/PolicyStyles';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -21,41 +21,46 @@ const localMuiTheme = createTheme({
 });
 
 interface Props {
-  policies: Policy[] | undefined;
+  violations: PolicyValidation[] | undefined;
 }
 
-export const PolicyTable: FC<Props> = ({ policies }) => {
+export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
   const classes = usePolicyStyle();
-
   return (
-    <div className={`${classes.root}`} id="policies-list">
+    <div className={`${classes.root}`} id="policies-violations-list">
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
           <Table className={classes.table} size="small">
-            {policies?.length === 0 ? (
-              <caption>No policies configured</caption>
+            {violations?.length === 0 ? (
+              <caption>No Violations configured</caption>
             ) : null}
             <TableHead className={classes.tableHead}>
               <TableRow>
                 <TableCell align="left">
                   <ColumnHeaderTooltip title="Name configured in management UI">
-                    <span className={classes.headerCell}>Policy Name</span>
+                    <span className={classes.headerCell}>Message</span>
                   </ColumnHeaderTooltip>
                 </TableCell>
-                <TableCell align="left">
-                  <span className={classes.headerCell}>Category</span>
-                </TableCell>
+
                 <TableCell align="left">
                   <span className={classes.headerCell}>Severity</span>
                 </TableCell>
                 <TableCell align="left">
-                  <span className={classes.headerCell}>Age</span>
+                  <span className={classes.headerCell}>Violation Time</span>
+                </TableCell>
+                <TableCell align="left">
+                  <span className={classes.headerCell}>Application</span>
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {policies?.map((policy: Policy) => {
-                return <PolicyRow policy={policy} key={policy.name} />;
+              {violations?.map((violation: PolicyValidation) => {
+                return (
+                  <PolicyViolationRow
+                    violation={violation}
+                    key={violation.id}
+                  />
+                );
               })}
             </TableBody>
           </Table>
