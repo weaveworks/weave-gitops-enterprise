@@ -13,7 +13,7 @@ controllerManager:
   manager:
     image:
       repository: docker.io/weaveworks/cluster-controller
-      tag: 4ca70be
+      tag: v1.1.0
     resources:
       limits:
         cpu: 500m
@@ -36,8 +36,8 @@ managerConfig:
       port: 9443
 metricsService:
   ports:
-    - name: https
-      port: 8443
-      protocol: TCP
-      targetPort: https
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
   type: ClusterIP
