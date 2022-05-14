@@ -54,8 +54,12 @@ docker_build(
    build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')}
 )
 
-# TODO: this will replace the wkp-agent image if you uncomment it, so it starts properly.
-# However, it isn't installed by default - you need to create it in the UI first.
+# By default, the wkp-agent uses a pre-built image from Dockerhub. In the unlikely
+# event that you will need to iterate on it, uncomment the following function 
+# to deploy it to your local cluster. You will also need to remove the 
+# `agentTemplate.customTag` value from your local Helm values config otherwise
+# it will continue using the pre-built image. 
+# The agent isn't installed by default - you need to create it in the UI first.
 #docker_build(
 #   'weaveworks/wkp-agent',
 #   '.',
