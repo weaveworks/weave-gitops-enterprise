@@ -13,7 +13,6 @@ const CLUSTERS_POLL_INTERVAL = 5000;
 
 const ClustersProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [disabled, setDisabled] = useState<boolean>(false);
   const [clusters, setClusters] = useState<GitopsClusterEnriched[]>([]);
   const [count, setCount] = useState<number | null>(null);
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
@@ -24,7 +23,7 @@ const ClustersProvider: FC = ({ children }) => {
   const fetchClusters = () =>
     requestWithCountHeader('GET', clustersBaseUrl, {
       cache: 'no-store',
-    }).finally(() => setDisabled(false));
+    });
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
@@ -85,7 +84,6 @@ const ClustersProvider: FC = ({ children }) => {
       value={{
         clusters,
         isLoading,
-        disabled,
         count,
         loading,
         selectedClusters,
