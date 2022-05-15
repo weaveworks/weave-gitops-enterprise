@@ -64,9 +64,9 @@ const TableWrapper = styled.div`
     padding-top: ${theme.spacing.small};
     padding-bottom: ${theme.spacing.small};
   }
-  // tr[class*='MuiTableRow-root']:first-of-type {
-  //   width: 20px;
-  // }
+  td:first-of-type {
+    text-overflow: clip;
+  }
   max-width: calc(100vw - 220px);
 `;
 
@@ -354,6 +354,7 @@ const MCCP: FC = () => {
                           onClick={(event: any) => handleClick(event, c.name)}
                         />
                       ),
+                      maxWidth: 20,
                     },
                     {
                       label: 'Name',
