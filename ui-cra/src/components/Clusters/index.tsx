@@ -182,31 +182,26 @@ const MCCP: FC = () => {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const newSelected =
-        clusters.map((cluster: GitopsClusterEnriched) => cluster.name || '') ||
-        [];
+        clusters.map((cluster: GitopsClusterEnriched) => cluster.name) || [];
       setSelectedClusters(newSelected);
       return;
     }
     setSelectedClusters([]);
   };
 
-  const handleClick = (event: React.MouseEvent<unknown>, name?: string) => {
-    const selectedIndex = selectedClusters.indexOf(name || '');
-    let newSelected: string[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selectedClusters, name || '');
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selectedClusters.slice(1));
-    } else if (selectedIndex === selectedClusters.length - 1) {
-      newSelected = newSelected.concat(selectedClusters.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selectedClusters.slice(0, selectedIndex),
-        selectedClusters.slice(selectedIndex + 1),
+  const handleIndividualClick = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (event.target.checked === true) {
+      setSelectedClusters((prevState: string[]) => [
+        ...prevState,
+        event.target.name,
+      ]);
+    } else {
+      setSelectedClusters((prevState: string[]) =>
+        prevState.filter(cls => event.target.name !== cls),
       );
     }
-    setSelectedClusters(newSelected);
   };
 
   const numSelected = selectedClusters.length;
@@ -348,10 +343,9 @@ const MCCP: FC = () => {
                       ),
                       value: (c: GitopsClusterEnriched) => (
                         <IndividualCheckbox
-                          checked={
-                            selectedClusters.indexOf(c.name || '') !== -1
-                          }
-                          onClick={(event: any) => handleClick(event, c.name)}
+                          checked={selectedClusters.indexOf(c.name) !== -1}
+                          onChange={handleIndividualClick}
+                          name={c.name}
                         />
                       ),
                       maxWidth: 20,
