@@ -1,35 +1,31 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: cluster-template-development-{{.Count}}
+  name: capg-template-development-{{.Count}}
   namespace: default
 spec:
-  description: This is the std. CAPD template {{.Count}}
+  description: This is the std. CAPG template {{.Count}}
   params:
     - name: CLUSTER_NAME
-      required: true
       description: This is used for the cluster naming.
     - name: NAMESPACE
-      description: Namespace to create the cluster in
-    - name: KUBERNETES_VERSION
-      description: Kubernetes version to use for the cluster
-      options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
+      description: Namespace to create the cluster in.
+    - name: GCP_REGION
+      description: AWS Region to create cluster
+      options: ["us-central1", "us-east1", "us-west1", "europe-north1", "europe-west1", "europe-west2"]
+    - name: GCP_CONTROL_PLANE_MACHINE_TYPE
+      description: Control plane machine instane type.
+      options: ["n1-standard-1", "n1-standard-2", "n1-standard-4", "n1-standard-8", "n1-standard-16"]
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: Number of control planes
-      options: ["1", "2", "3"]
+      options: ["1", "2", "3", "4", "5"]
+    - name: GCP_NODE_MACHINE_TYPE
+      description: Node machine instane type.
+      options: ["n1-standard-1", "n1-standard-2", "n1-standard-4", "n1-standard-8", "n1-standard-16"]
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
+      options: ["1", "2", "3", "4", "5", "6", "7"]
   resourcetemplates:
-    - apiVersion: gitops.weave.works/v1alpha1
-      kind: GitopsCluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
-        labels:
-          weave.works/capi: bootstrap
-      spec:
-        capiClusterRef:
-          name: "${CLUSTER_NAME}"
     - apiVersion: cluster.x-k8s.io/v1beta1
       kind: Cluster
       metadata:
@@ -37,41 +33,30 @@ spec:
         namespace: "${NAMESPACE}"
         labels:
           cni: calico
+          weave.works/capi: bootstrap
       spec:
         clusterNetwork:
           pods:
             cidrBlocks:
             - 192.168.0.0/16
-          serviceDomain: cluster.local
-          services:
-            cidrBlocks:
-            - 10.128.0.0/12
         controlPlaneRef:
           apiVersion: controlplane.cluster.x-k8s.io/v1beta1
           kind: KubeadmControlPlane
           name: "${CLUSTER_NAME}-control-plane"
-          namespace: "${NAMESPACE}"
         infrastructureRef:
           apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-          kind: DockerCluster
+          kind: GCPCluster
           name: "${CLUSTER_NAME}"
-          namespace: "${NAMESPACE}"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: DockerCluster
+      kind: GCPCluster
       metadata:
         name: "${CLUSTER_NAME}"
         namespace: "${NAMESPACE}"
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: DockerMachineTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-        namespace: "${NAMESPACE}"
       spec:
-        template:
-          spec:
-            extraMounts:
-            - containerPath: /var/run/docker.sock
-              hostPath: /var/run/docker.sock
+        network:
+          name: default
+        project: wks-tests
+        region: "${GCP_REGION}"
     - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
       kind: KubeadmControlPlane
       metadata:
@@ -81,54 +66,40 @@ spec:
         kubeadmConfigSpec:
           clusterConfiguration:
             apiServer:
-              certSANs:
-              - localhost
-              - 127.0.0.1
-              - 0.0.0.0
+              extraArgs:
+                cloud-provider: gce
+              timeoutForControlPlane: 20m
             controllerManager:
               extraArgs:
-                enable-hostpath-provisioner: "true"
+                allocate-node-cidrs: "false"
+                cloud-provider: gce
           initConfiguration:
             nodeRegistration:
-              criSocket: /var/run/containerd/containerd.sock
               kubeletExtraArgs:
-                cgroup-driver: cgroupfs
-                eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+                cloud-provider: gce
+              name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
           joinConfiguration:
             nodeRegistration:
-              criSocket: /var/run/containerd/containerd.sock
               kubeletExtraArgs:
-                cgroup-driver: cgroupfs
-                eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+                cloud-provider: gce
+              name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
         machineTemplate:
           infrastructureRef:
             apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-            kind: DockerMachineTemplate
+            kind: GCPMachineTemplate
             name: "${CLUSTER_NAME}-control-plane"
-            namespace: "${NAMESPACE}"
         replicas: "${CONTROL_PLANE_MACHINE_COUNT}"
-        version: "${KUBERNETES_VERSION}"
+        version: v1.21.10
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: DockerMachineTemplate
+      kind: GCPMachineTemplate
       metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
-      spec:
-        template:
-          spec: {}
-    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-      kind: KubeadmConfigTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
+        name: "${CLUSTER_NAME}-control-plane"
         namespace: "${NAMESPACE}"
       spec:
         template:
           spec:
-            joinConfiguration:
-              nodeRegistration:
-                kubeletExtraArgs:
-                  cgroup-driver: cgroupfs
-                  eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+            image: https://www.googleapis.com/compute/v1/projects/wks-tests/global/images/cluster-api-ubuntu-1804-v1-21-10-1652195823
+            instanceType: "${GCP_CONTROL_PLANE_MACHINE_TYPE}"
     - apiVersion: cluster.x-k8s.io/v1beta1
       kind: MachineDeployment
       metadata:
@@ -146,11 +117,33 @@ spec:
                 apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
                 kind: KubeadmConfigTemplate
                 name: "${CLUSTER_NAME}-md-0"
-                namespace: "${NAMESPACE}"
             clusterName: "${CLUSTER_NAME}"
+            failureDomain: "${GCP_REGION}-a"
             infrastructureRef:
               apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-              kind: DockerMachineTemplate
+              kind: GCPMachineTemplate
               name: "${CLUSTER_NAME}-md-0"
-              namespace: "${NAMESPACE}"
-            version: "${KUBERNETES_VERSION}"
+            version: v1.21.10
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: GCPMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            image: https://www.googleapis.com/compute/v1/projects/wks-tests/global/images/cluster-api-ubuntu-1804-v1-21-10-1652195823
+            instanceType: "${GCP_NODE_MACHINE_TYPE}"
+    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+      kind: KubeadmConfigTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            joinConfiguration:
+              nodeRegistration:
+                kubeletExtraArgs:
+                  cloud-provider: gce
+                name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'

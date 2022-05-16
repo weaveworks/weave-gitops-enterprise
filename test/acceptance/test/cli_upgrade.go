@@ -260,7 +260,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
-				k8Version := "1.22.0"
+				k8Version := "1.23.3"
+				controlPlaneMachineCount := "3"
+				workerMachineCount := "3"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.GitopsCluster"] = []TemplateField{
@@ -277,9 +279,21 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				}
 				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "",
+						Option: controlPlaneMachineCount,
+					},
+					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
 						Option: k8Version,
+					},
+				}
+				paramSection["8.MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  workerMachineCount,
+						Option: "",
 					},
 				}
 

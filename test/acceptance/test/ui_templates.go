@@ -508,6 +508,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
 				k8Version := "1.22.0"
+				controlPlaneMachineCount := "3"
+				workerMachineCount := "3"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.GitopsCluster"] = []TemplateField{
@@ -524,9 +526,21 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "",
+						Option: controlPlaneMachineCount,
+					},
+					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
 						Option: k8Version,
+					},
+				}
+				paramSection["7.MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  workerMachineCount,
+						Option: "",
 					},
 				}
 
@@ -621,6 +635,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				clusterName := "quick-capd-cluster2"
 				namespace := "quick-capi"
 				k8Version := "1.22.0"
+				controlPlaneMachineCount := "2"
+				workerMachineCount := "2"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.GitopsCluster"] = []TemplateField{
@@ -637,9 +653,21 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "",
+						Option: controlPlaneMachineCount,
+					},
+					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
 						Option: k8Version,
+					},
+				}
+				paramSection["7.MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  workerMachineCount,
+						Option: "",
 					},
 				}
 
@@ -823,7 +851,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, paramSection)
 
 				By("Then I should see PR preview containing identity reference added in the template", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					Eventually(createPage.PreviewPR.Click).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
