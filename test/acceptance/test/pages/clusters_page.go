@@ -44,7 +44,7 @@ type ClustersPage struct {
 func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterInformation {
 	cluster := clustersPage.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
 	return &ClusterInformation{
-		Checkbox:         cluster.FindByXPath(`td[1]`),
+		Checkbox:         cluster.FindByXPath(`td[1]`).Find("input"),
 		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
 		Name:             cluster.FindByXPath(`td[2]`),
 		Status:           cluster.FindByXPath(`td[5]`),
