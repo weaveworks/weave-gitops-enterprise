@@ -15,6 +15,16 @@ spec:
       description: Kubernetes version to use for the cluster
       options: ["1.19.11", "1.21.1", "1.22.0", "1.23.0"]
   resourcetemplates:
+    - apiVersion: gitops.weave.works/v1alpha1
+      kind: GitopsCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+        labels:
+          weave.works/capi: bootstrap
+      spec:
+        capiClusterRef:
+          name: "${CLUSTER_NAME}"
     - apiVersion: cluster.x-k8s.io/v1beta1
       kind: Cluster
       metadata:
@@ -22,7 +32,6 @@ spec:
         namespace: "${NAMESPACE}"
         labels:
           cni: calico
-          weave.works/capi: bootstrap
       spec:
         clusterNetwork:
           pods:
