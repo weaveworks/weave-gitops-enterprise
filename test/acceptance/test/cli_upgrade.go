@@ -155,7 +155,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.8.0-rc.1"
+				version := "0.8.1-rc.1"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := publicIP + ":" + NATS_NODEPORT
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
@@ -273,7 +273,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				k8Version := "1.22.0"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -285,7 +285,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
