@@ -28,7 +28,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When Capi Templates are available in the cluster", func() {
 
-			It("@git Verify gitops can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
+			It("Verify gitops can set template parameters by specifying multiple parameters --set key=value --set key=value", Label("git"), func() {
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
 				k8version := "1.19.7"
@@ -57,7 +57,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("@git Verify gitops can set template parameters by separate values with commas key1=val1,key2=val2", func() {
+			It("Verify gitops can set template parameters by separate values with commas key1=val1,key2=val2", Label("git"), func() {
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
 				k8version := "1.19.7"
@@ -87,7 +87,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("@git Verify gitops reports an error when trying to create pull request with missing --from-template argument", func() {
+			It("Verify gitops reports an error when trying to create pull request with missing --from-template argument", Label("git"), func() {
 				// Parameter values
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
@@ -125,7 +125,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				cleanGitRepository("management")
 			})
 
-			It("@smoke @git Verify gitops can create pull requests to management cluster", func() {
+			It("Verify gitops can create pull requests to management cluster", Label("smoke, git"), func() {
 				// CAPD Parameter values
 				capdClusterName := "my-capd-cluster2"
 				capdNamespace := "gitops-dev"
@@ -223,7 +223,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("@git Verify giops can not create pull request to management cluster using existing branch", func() {
+			It("Verify giops can not create pull request to management cluster using existing branch", Label("git"), func() {
 				branchName := "cli-test-branch"
 				By("And create new git repository branch", func() {
 					createGitRepoBranch(repoAbsolutePath, branchName)
@@ -261,7 +261,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteIPCredentials("AZURE")
 			})
 
-			It("@git Verify gitops can use the matching selected credential for cluster creation", func() {
+			It("Verify gitops can use the matching selected credential for cluster creation", Label("git"), func() {
 				By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
@@ -298,7 +298,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("@git Verify gitops restrict user from using wrong credentials for infrastructure provider", func() {
+			It("Verify gitops restrict user from using wrong credentials for infrastructure provider", Label("git"), func() {
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 				})
@@ -355,7 +355,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				removeGitopsCapiClusters(capdClusterNames)
 			})
 
-			It("@git @capd Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("capd", "git"), func() {
 				By("Wait for cluster-service to cache profiles", func() {
 					Expect(waitForProfiles(context.Background(), ASSERTION_30SECONDS_TIME_OUT)).To(Succeed())
 				})

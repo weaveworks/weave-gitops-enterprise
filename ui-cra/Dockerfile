@@ -1,12 +1,26 @@
+FROM node:14-bullseye AS build
+USER node
+WORKDIR /home/node
+COPY --chown=node:node package.json /home/node
+COPY --chown=node:node .npmrc /home/node
+COPY --chown=node:node yarn.lock /home/node
+COPY --chown=node:node Makefile /home/node
+
+ARG GITHUB_TOKEN
+RUN make node_modules
+
+COPY --chown=node:node . /home/node
+ARG version
+RUN make build VERSION=${version}
+
 FROM alpine:3.9
 RUN apk add --no-cache bash openssh-client
 
 WORKDIR /
-COPY build /html
+COPY --from=build /home/node/build /html
 
 ARG now
 ARG revision
-ARG version
 LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.title="ui-server" \
       org.opencontainers.image.source="https://github.com/weaveworks/weave-gitops-enterprise" \

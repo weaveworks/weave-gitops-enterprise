@@ -139,7 +139,7 @@ func renderTemplate(token, imageTag, natsURL, alertmanagerURL string) (string, e
 }
 
 // NewGetHandler returns a YAMLStream given a token
-func NewGetHandler(db *gorm.DB, defaultNatsURL, defaultAlertmanagerURL string) func(w http.ResponseWriter, r *http.Request) {
+func NewGetHandler(db *gorm.DB, defaultNatsURL, defaultAlertmanagerURL, customImageTag string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/yaml")
 
@@ -165,7 +165,12 @@ func NewGetHandler(db *gorm.DB, defaultNatsURL, defaultAlertmanagerURL string) f
 		if alertmanagerURL == "" {
 			alertmanagerURL = defaultAlertmanagerURL
 		}
-		stream, err := renderTemplate(token, version.ImageTag, defaultNatsURL, alertmanagerURL)
+
+		agentImageTag := version.ImageTag
+		if customImageTag != "" {
+			agentImageTag = customImageTag
+		}
+		stream, err := renderTemplate(token, agentImageTag, defaultNatsURL, alertmanagerURL)
 		if err != nil {
 			common.WriteError(w, err, 500)
 			return

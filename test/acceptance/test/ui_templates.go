@@ -79,7 +79,7 @@ func setParameterValues(createPage *pages.CreateCluster, paramSection map[string
 	for section, parameters := range paramSection {
 		By(fmt.Sprintf("And set template section %s parameter values", section), func() {
 			templateSection := createPage.GetTemplateSection(webDriver, section)
-			Expect(templateSection.Name).Should(HaveText(section))
+			Eventually(templateSection.Name).Should(HaveText(section))
 
 			if len(parameters) == 0 {
 				Expect(len(templateSection.Fields)).To(BeNumerically("==", 0), fmt.Sprintf("No form fields should be visible for section %s", section))
@@ -427,15 +427,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				sshKey := "abcdef1234567890"
 				k8Version := "1.19.7"
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
 					},
 				}
-				paramSection["2.AWSManagedCluster"] = nil
-				paramSection["3.AWSManagedControlPlane"] = []TemplateField{
+				paramSection["2.Cluster"] = nil
+				paramSection["3.AWSManagedCluster"] = nil
+				paramSection["4.AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  region,
@@ -452,7 +453,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.AWSFargateProfile"] = nil
+				paramSection["5.AWSFargateProfile"] = nil
 
 				setParameterValues(createPage, paramSection)
 
@@ -479,7 +480,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				cleanGitRepository(clusterPath)
 			})
 
-			It("@integration @git Verify pull request can be created for capi template to the management cluster", func() {
+			It("Verify pull request can be created for capi template to the management cluster", Label("integration", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("Apply/Install CAPITemplate", func() {
@@ -509,7 +510,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				k8Version := "1.22.0"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -521,7 +522,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
@@ -588,7 +589,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("@integration @git Verify pull request can not be created by using exiting repository branch", func() {
+			It("Verify pull request can not be created by using exiting repository branch", Label("integration", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				branchName := "ui-test-branch"
@@ -623,7 +624,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				k8Version := "1.22.0"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -635,7 +636,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
@@ -679,7 +680,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
-			It("@integration @git Verify no credentials exists in management cluster", func() {
+			It("Verify no credentials exists in management cluster", Label("integration", "git"), func() {
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
@@ -714,7 +715,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteIPCredentials("AZURE")
 			})
 
-			It("@integration @git Verify matching selected credential can be used for cluster creation", func() {
+			It("Verify matching selected credential can be used for cluster creation", Label("integration", "git"), func() {
 				By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
@@ -757,14 +758,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				awsNodeMAchineType := "t3.micro"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  awsClusterName,
 						Option: "",
 					},
 				}
-				paramSection["2.AWSCluster"] = []TemplateField{
+				paramSection["2.Cluster"] = nil
+				paramSection["3.AWSCluster"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  awsRegion,
@@ -782,7 +784,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["3.KubeadmControlPlane"] = []TemplateField{
+				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -795,7 +797,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["4.AWSMachineTemplate"] = []TemplateField{
+				paramSection["5.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  awsControlMAchineType,
@@ -803,7 +805,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["5.MachineDeployment"] = []TemplateField{
+				paramSection["6.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -811,7 +813,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["6.AWSMachineTemplate"] = []TemplateField{
+				paramSection["7.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_NODE_MACHINE_TYPE",
 						Value:  awsNodeMAchineType,
@@ -840,7 +842,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteIPCredentials("AWS")
 			})
 
-			It("@integration @git Verify user can not use wrong credentials for infrastructure provider", func() {
+			It("Verify user can not use wrong credentials for infrastructure provider", Label("integration", "git"), func() {
 				By("Apply/Install CAPITemplates", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 				})
@@ -878,7 +880,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				azureNodeMAchineType := "Standard_D4_v4"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  azureClusterName,
@@ -891,7 +893,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["3.KubeadmControlPlane"] = []TemplateField{
+				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -904,7 +906,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["4.AzureMachineTemplate"] = []TemplateField{
+				paramSection["5.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  "",
@@ -912,7 +914,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["5.MachineDeployment"] = []TemplateField{
+				paramSection["6.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -920,7 +922,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["6.AzureMachineTemplate"] = []TemplateField{
+				paramSection["7.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
 						Value:  "",
@@ -969,7 +971,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				removeGitopsCapiClusters([]string{capdClusterName})
 			})
 
-			It("@smoke @integration @capd @git Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
+			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				By("Wait for cluster-service to cache profiles", func() {
@@ -1005,7 +1007,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				workerMachineCount := "1"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -1017,7 +1019,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "",
@@ -1029,7 +1031,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: k8Version,
 					},
 				}
-				paramSection["7.MachineDeployment"] = []TemplateField{
+				paramSection["8.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
@@ -1084,7 +1086,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
-					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico[\s\w\d./:-]*weave.works/capi: bootstrap`))
+					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/capi: bootstrap`))
 
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
@@ -1249,7 +1252,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 
-			It("@integration Verify cluster service acknowledges the entitlement presences", func() {
+			It("Verify cluster service acknowledges the entitlement presences", Label("integration"), func() {
 
 				By("When I delete the entitlement", func() {
 					Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to delete entitlement secret")
