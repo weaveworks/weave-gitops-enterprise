@@ -35,24 +35,11 @@ type ClustersPage struct {
 	ClusterCount          *agouti.Selection
 	ConnectClusterButton  *agouti.Selection
 	PRDeleteClusterButton *agouti.Selection
-	ClustersListSection   *agouti.Selection
-	ClustersListHeader    *agouti.Selection
-	FiringAlertsPerPage   *agouti.Selection
-	FiringAlerts          *agouti.MultiSelection
-	HeaderCheckbox        *agouti.Selection
-	HeaderName            *agouti.Selection
-	HeaderIcon            *agouti.Selection
-	HeaderStatus          *agouti.Selection
 	ClustersList          *agouti.Selection
 	Tooltip               *agouti.Selection
 	SupportEmailLink      *agouti.Selection
 	MessageBar            *agouti.Selection
 	Version               *agouti.Selection
-}
-
-// This function waits for cluster to appear in the cluste table (become visible)
-func (c ClustersPage) WaitForClusterToAppear(webDriver *agouti.Page, clusterName string) {
-	Eventually(webDriver.Find(fmt.Sprintf(`#clusters-list > div > div[2] > div[1] > div[1] > table > tbody > tr.summary[data-cluster-name="%s"]`, clusterName))).Should(BeFound())
 }
 
 // FindClusterInList finds the cluster with given name
@@ -95,13 +82,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		ClusterCount:          webDriver.Find(`.count-header .section-header-count`),
 		ConnectClusterButton:  webDriver.Find(`#connect-cluster`),
 		PRDeleteClusterButton: webDriver.Find(`#delete-cluster`),
-		ClustersListSection:   webDriver.Find(`#clusters-list`),
-		ClustersListHeader:    webDriver.FindByXPath(`//*[@id="clusters-list"]/div/div[2]/div[1]/div[1]/table/thead`),
-		HeaderCheckbox:        webDriver.FindByXPath(`//*[@id="clusters-list"]/div/div[2]/div[1]/div[1]/table/thead/tr/th[1]/span`),
-		HeaderName:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/div[2]/div[1]/div[1]/table/thead/tr/th[2]/span`),
-		HeaderIcon:            webDriver.FindByXPath(`//*[@id="clusters-list"]/div/div[2]/div[1]/div[1]/table/thead/tr/th[3]/span`),
-		HeaderStatus:          webDriver.FindByXPath(`//*[@id="clusters-list"]/div/div[2]/div[1]/div[1]/table/thead/tr/th[4]/span`),
-		ClustersList:          webDriver.Find(`#clusters-list > div > div[2] > div[1] > div[1] > table > tbody`),
+		ClustersList:          webDriver.Find(`#clusters-list table tbody`),
 		Tooltip:               webDriver.Find(`div[role="tooltip"]`),
 		SupportEmailLink:      webDriver.FindByLink(`support@weave.works`),
 		MessageBar:            webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
