@@ -1,0 +1,19 @@
+---
+images:
+  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.1.0
+
+dbConfig:
+  sqliteConfig:
+    persistentVolumeClaim:
+      enabled: true
+
+NATS_AUTH_TOKEN: incredibly-secure-token
+nats:
+  auth:
+    token: incredibly-secure-token
+
+agentTemplate:
+  natsURL: 'chart-nats-client.flux-system:4222'
+
+cluster-controller:
+  enabled: true

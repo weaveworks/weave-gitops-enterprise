@@ -98,6 +98,7 @@ export const Navigation: FC = () => {
             Clusters
           </NavItem>
           <NavItem to="/clusters/templates">Templates</NavItem>
+          <NavItem to="/clusters/violations">Violation Log</NavItem>
         </Box>
         <Box className={classes.section}>
           <NavItem className={classes.bold} to={V2Routes.Automations}>

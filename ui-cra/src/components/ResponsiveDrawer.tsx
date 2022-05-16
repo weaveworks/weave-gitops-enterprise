@@ -53,6 +53,8 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import Policies from './Policies';
 import _ from 'lodash';
 import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
+import PoliciesViolations from './PolicyViolations';
+import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -232,6 +234,16 @@ const App = () => {
               component={TemplatesDashboard}
               exact
               path="/clusters/templates"
+            />
+            <Route
+              component={PoliciesViolations}
+              exact
+              path="/clusters/violations"
+            />
+            <Route
+              component={PolicyViolationDetails}
+              exact
+              path="/clusters/violations/:id"
             />
             <Route
               component={() => (

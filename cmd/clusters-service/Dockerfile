@@ -1,8 +1,30 @@
+# syntax = docker/dockerfile:1.3
+
+FROM golang:1.17 AS build
+
+WORKDIR /app
+COPY Makefile /app/
+COPY go.* /app/
+COPY common/go.* /app/common/
+
+ENV GITHUB_BUILD_USERNAME=wge-build-bot
+ARG GITHUB_BUILD_TOKEN
+RUN git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+RUN go mod download
+
+COPY cmd/clusters-service /app/cmd/clusters-service
+COPY common /app/common
+COPY pkg /app/pkg
+
+ARG version
+ARG image_tag
+RUN --mount=type=cache,target=/root/.cache/go-build \
+      make cmd/clusters-service/clusters-service WEAVE_GITOPS_VERSION=${version} IMAGE_TAG=${image_tag}
+
 FROM docker.io/governmentpaas/git-ssh
 
 ARG now
 ARG revision
-ARG version
 LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.created="${now}" \
       org.opencontainers.image.description="The Weave GitOps Enterprise Clusters Service" \
@@ -21,7 +43,7 @@ RUN bash /tmp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /tmp/known_hosts.sh
 
 RUN apk add --no-cache ca-certificates tini
 
-COPY cmd/clusters-service/clusters-service /usr/local/bin
+COPY --from=build /app/cmd/clusters-service/clusters-service /usr/local/bin
 
 RUN addgroup -S clusters-service && adduser -S clusters-service -G clusters-service
 

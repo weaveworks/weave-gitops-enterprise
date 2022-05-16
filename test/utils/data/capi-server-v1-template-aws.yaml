@@ -11,6 +11,15 @@ spec:
       options: []
       required: true
   resourcetemplates:
+    - apiVersion: gitops.weave.works/v1alpha1
+      kind: GitopsCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        labels:
+          weave.works/capi: bootstrap
+      spec:
+        capiClusterRef:
+          name: "${CLUSTER_NAME}"
     - apiVersion: cluster.x-k8s.io/v1alpha4
       kind: Cluster
       metadata:
