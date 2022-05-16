@@ -25,10 +25,7 @@ As part of the chart, other dependencies also get installed:
   Agents running on the management cluster or on leaf clusters send events to a NATS queue. event-writer receives these events from the queue and does its thing.
 
 ## One-time setup
-You need a github Personal Access Token to build the service. This
-token needs at least the `repo`, `read:packages` and `delete_repo`
-permissions. You can create one
-[here](https://github.com/settings/tokens), and export it as:
+You need a github Personal Access Token to build the service. This token needs at least the `repo` and `read:packages` permissions. If you want to be able to delete the GitOps repo every time you recreate your local Kind cluster, add the `delete_repo` permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1.  You can create a token [here](https://github.com/settings/tokens), and export it as:
 ```bash
 export GITHUB_TOKEN=your_token
 ```
