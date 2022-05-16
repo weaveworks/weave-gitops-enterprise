@@ -566,12 +566,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				var prUrl string
-				clustersPage := pages.GetClustersPage(webDriver)
-				By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
-					// FIXME: replace with find and click on the toast instead
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText("Creation PR"))
-					anchor := clusterInfo.Status.Find("a")
+				gitops := pages.GetGitOps(webDriver)
+				By("Then I should see see a toast with a link to the PR", func() {
+					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+					anchor := gitops.PRLinkBar.Find("a")
 					Eventually(anchor).Should(BeFound())
 					prUrl, _ = anchor.Attribute("href")
 				})
@@ -1119,12 +1117,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				clustersPage := pages.GetClustersPage(webDriver)
-				// FIXME: remove. Cluster doesn't have creation pr anymore
-				//
-				// By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
-				// 	clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-				// 	Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText("Creation PR"))
-				// })
 
 				By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
