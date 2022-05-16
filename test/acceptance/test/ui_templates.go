@@ -1183,11 +1183,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
 				})
 
-				By(fmt.Sprintf("Then I should see the '%s' cluster status changes to Deletion PR", clusterName), func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(HaveText("Deletion PR"))
-				})
-
 				var deletePRUrl string
 				By("And I should veriyfy the delete pull request in the cluster config repository", func() {
 					deletePRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
