@@ -70,7 +70,7 @@ const TableWrapper = styled.div<{ statusExpanded: boolean }>`
     width: 650px;
   }
   tr {
-    vertical alignment: ${props => (props.statusExpanded ? 'top' : 'center')}
+    vertical-align: ${props => (props.statusExpanded ? 'top' : 'center')};
   }
   max-width: calc(100vw - 220px);
 `;
