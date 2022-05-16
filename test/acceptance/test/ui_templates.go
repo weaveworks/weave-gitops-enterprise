@@ -427,15 +427,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				sshKey := "abcdef1234567890"
 				k8Version := "1.19.7"
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
 					},
 				}
-				paramSection["2.AWSManagedCluster"] = nil
-				paramSection["3.AWSManagedControlPlane"] = []TemplateField{
+				paramSection["2.Cluster"] = nil
+				paramSection["3.AWSManagedCluster"] = nil
+				paramSection["4.AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  region,
@@ -452,7 +453,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.AWSFargateProfile"] = nil
+				paramSection["5.AWSFargateProfile"] = nil
 
 				setParameterValues(createPage, paramSection)
 
@@ -509,7 +510,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				k8Version := "1.22.0"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -521,7 +522,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
@@ -623,7 +624,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				k8Version := "1.22.0"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -635,7 +636,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
@@ -757,14 +758,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				awsNodeMAchineType := "t3.micro"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  awsClusterName,
 						Option: "",
 					},
 				}
-				paramSection["2.AWSCluster"] = []TemplateField{
+				paramSection["2.Cluster"] = nil
+				paramSection["3.AWSCluster"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  awsRegion,
@@ -782,7 +784,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["3.KubeadmControlPlane"] = []TemplateField{
+				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -795,7 +797,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["4.AWSMachineTemplate"] = []TemplateField{
+				paramSection["5.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  awsControlMAchineType,
@@ -803,7 +805,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["5.MachineDeployment"] = []TemplateField{
+				paramSection["6.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -811,7 +813,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["6.AWSMachineTemplate"] = []TemplateField{
+				paramSection["7.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_NODE_MACHINE_TYPE",
 						Value:  awsNodeMAchineType,
@@ -878,7 +880,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				azureNodeMAchineType := "Standard_D4_v4"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  azureClusterName,
@@ -891,7 +893,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["3.KubeadmControlPlane"] = []TemplateField{
+				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -904,7 +906,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["4.AzureMachineTemplate"] = []TemplateField{
+				paramSection["5.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  "",
@@ -912,7 +914,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["5.MachineDeployment"] = []TemplateField{
+				paramSection["6.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
@@ -920,7 +922,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				paramSection["6.AzureMachineTemplate"] = []TemplateField{
+				paramSection["7.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
 						Value:  "",
@@ -1012,7 +1014,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				workerMachineCount := "1"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -1024,7 +1026,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "",
@@ -1036,7 +1038,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: k8Version,
 					},
 				}
-				paramSection["7.MachineDeployment"] = []TemplateField{
+				paramSection["8.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
@@ -1091,7 +1093,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
-					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico[\s\w\d./:-]*weave.works/capi: bootstrap`))
+					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/capi: bootstrap`))
 
 					Eventually(preview.Close.Click).Should(Succeed())
 				})

@@ -1,10 +1,53 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: profiles-catalog
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-policy-agent
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: weave-policy-agent
+      sourceRef:
+        kind: HelmRepository
+        name: profiles-catalog
+        namespace: flux-system
+      version: 0.2.x
+  targetNamespace: policy-system
+  releaseName: weave-policy-agent
+  interval: 1m
+  values:
+    accountId: "weaveworks"
+    clusterId: "tilt-cluster"
+---
+# Create user - username: wego-admin, password: dev
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-user-auth
+  namespace: flux-system
+type: Opaque
+data:
+  username: d2Vnby1hZG1pbg==
+  password: JDJ5JDEwJHBjeTlGVjBXTVFaVUhGRGN1ZDhKdWVjSXhsVVMvRWg5WC5paXRadEpFWVlIVWhLeXpsSllt
+---
+# Create CAPI Template - grabbed straight from manual
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: cluster-template-development-{{.Count}}
+  name: cluster-template-development
   namespace: default
 spec:
-  description: This is the std. CAPD template{{.Count}}
+  description: A simple CAPD template
   params:
     - name: CLUSTER_NAME
       required: true
@@ -13,7 +56,12 @@ spec:
       description: Namespace to create the cluster in
     - name: KUBERNETES_VERSION
       description: Kubernetes version to use for the cluster
-      options: ["1.19.11", "1.21.1", "1.22.0", "1.23.0"]
+      options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
+    - name: CONTROL_PLANE_MACHINE_COUNT
+      description: Number of control planes
+      options: ["1", "2", "3"]
+    - name: WORKER_MACHINE_COUNT
+      description: Number of control planes
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
@@ -32,15 +80,16 @@ spec:
         namespace: "${NAMESPACE}"
         labels:
           cni: calico
+          weave.works/capi: bootstrap
       spec:
         clusterNetwork:
           pods:
             cidrBlocks:
-            - 192.168.0.0/16
+              - 192.168.0.0/16
           serviceDomain: cluster.local
           services:
             cidrBlocks:
-            - 10.128.0.0/12
+              - 10.128.0.0/12
         controlPlaneRef:
           apiVersion: controlplane.cluster.x-k8s.io/v1beta1
           kind: KubeadmControlPlane
@@ -65,8 +114,8 @@ spec:
         template:
           spec:
             extraMounts:
-            - containerPath: /var/run/docker.sock
-              hostPath: /var/run/docker.sock
+              - containerPath: /var/run/docker.sock
+                hostPath: /var/run/docker.sock
     - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
       kind: KubeadmControlPlane
       metadata:
@@ -77,8 +126,9 @@ spec:
           clusterConfiguration:
             apiServer:
               certSANs:
-              - localhost
-              - 127.0.0.1
+                - localhost
+                - 127.0.0.1
+                - 0.0.0.0
             controllerManager:
               extraArgs:
                 enable-hostpath-provisioner: "true"
@@ -100,7 +150,7 @@ spec:
             kind: DockerMachineTemplate
             name: "${CLUSTER_NAME}-control-plane"
             namespace: "${NAMESPACE}"
-        replicas: 1
+        replicas: "${CONTROL_PLANE_MACHINE_COUNT}"
         version: "${KUBERNETES_VERSION}"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
       kind: DockerMachineTemplate
@@ -130,7 +180,7 @@ spec:
         namespace: "${NAMESPACE}"
       spec:
         clusterName: "${CLUSTER_NAME}"
-        replicas: 1
+        replicas: "${WORKER_MACHINE_COUNT}"
         selector:
           matchLabels: null
         template:

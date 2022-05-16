@@ -105,6 +105,21 @@ service ClustersService {
       get : "/v1/policies/{policy_name}"
     };
   }
+
+  // ListPolicyValidations list policy validations available on the management cluster
+  rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
+    option (google.api.http) = {
+      post : "/v1/policyviolations"
+      body : "*"
+    };
+  }
+
+  // GetPolicyValidation gets a policy validations on the management cluster by id
+  rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
+    option (google.api.http) = {
+      get : "/v1/policyviolations/{violation_id}"
+    };
+  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -147,6 +162,34 @@ message GetPolicyResponse { Policy policy = 1; }
 message ListPoliciesResponse {
   repeated Policy policies = 1;
   int32 total = 2;
+}
+
+
+
+message ListPolicyValidationsRequest{
+  string cluster_id = 1;
+}
+message ListPolicyValidationsResponse {
+  repeated PolicyValidation violations = 1;
+  int32 total = 2;
+}
+
+message GetPolicyValidationRequest{ string violation_id = 1; }
+message GetPolicyValidationResponse{ PolicyValidation violation = 1; }
+
+message PolicyValidation{
+  string id = 1;
+  string message = 2;
+  string cluster_id = 3;
+  string category = 4;
+  string severity = 5;
+  string created_at = 6;
+  string entity=7;
+  string namespace=8;
+  string violating_entity=9;
+  string description=10;
+  string how_to_solve=11;
+  string name=12;
 }
 
 message CreatePullRequestRequest {
