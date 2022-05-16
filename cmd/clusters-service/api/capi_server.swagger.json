@@ -260,6 +260,70 @@
         ]
       }
     },
+    "/v1/policyviolations": {
+      "post": {
+        "summary": "ListPolicyValidations list policy validations available on the management cluster",
+        "operationId": "ClustersService_ListPolicyValidations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyValidationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyValidationsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/policyviolations/{violationId}": {
+      "get": {
+        "summary": "GetPolicyValidation gets a policy validations on the management cluster by id",
+        "operationId": "ClustersService_GetPolicyValidation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyValidationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "violationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates": {
       "get": {
         "operationId": "ClustersService_ListTemplates",
@@ -719,6 +783,14 @@
         }
       }
     },
+    "v1GetPolicyValidationResponse": {
+      "type": "object",
+      "properties": {
+        "violation": {
+          "$ref": "#/definitions/v1PolicyValidation"
+        }
+      }
+    },
     "v1GetTemplateResponse": {
       "type": "object",
       "properties": {
@@ -810,6 +882,29 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Policy"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListPolicyValidationsRequest": {
+      "type": "object",
+      "properties": {
+        "clusterId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListPolicyValidationsResponse": {
+      "type": "object",
+      "properties": {
+        "violations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidation"
           }
         },
         "total": {
@@ -989,6 +1084,47 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v1PolicyValidation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "clusterId": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "entity": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "violatingEntity": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "howToSolve": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
