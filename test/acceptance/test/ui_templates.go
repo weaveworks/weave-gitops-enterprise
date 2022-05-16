@@ -1139,13 +1139,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-					// FIXME: Should just be in the list at all now.
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText("Cluster found"))
+					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(BeFound())
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					// FIXME: selector here might have changed?
 					Expect(clusterInfo.ShowStatusDetail.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
@@ -1173,7 +1171,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
 
-					// FIXME: selector might have changed
 					Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(BeFound())
 					Expect(clustersPage.PRDeleteClusterButton.Click()).To(Succeed())
 
