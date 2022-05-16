@@ -567,7 +567,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				var prUrl string
 				gitops := pages.GetGitOps(webDriver)
-				By("Then I should see see a toast with a link to the PR", func() {
+				By("Then I should see see a toast with a link to the creation PR", func() {
 					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 					anchor := gitops.PRLinkBar.Find("a")
 					Eventually(anchor).Should(BeFound())
@@ -1118,6 +1118,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				clustersPage := pages.GetClustersPage(webDriver)
 
+				By("Then I should see see a toast with a link to the creation PR", func() {
+					gitops := pages.GetGitOps(webDriver)
+					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+				})
+
 				By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
@@ -1173,6 +1178,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(deletePR.GitCredentials).Should(BeVisible())
 
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
+				})
+
+				By("Then I should see see a toast with a link to the deletion PR", func() {
+					gitops := pages.GetGitOps(webDriver)
+					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
 
 				var deletePRUrl string
