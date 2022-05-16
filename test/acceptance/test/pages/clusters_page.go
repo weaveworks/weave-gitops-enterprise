@@ -3,9 +3,7 @@ package pages
 import (
 	"fmt"
 
-	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
 )
 
 type ClusterInformation struct {
