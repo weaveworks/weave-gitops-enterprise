@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This is a deliberately opinionated script for developing Weave GitOps Enterprise.
 # Adapted from the original script in the Weave GitOps repository.
@@ -9,6 +9,7 @@
 
 export KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-wge-dev}"
 export GITHUB_REPO="${GITHUB_REPO:-wge-dev}"
+export DELETE_GITOPS_DEV_REPO="${DELETE_GITOPS_DEV_REPO:-0}"
 
 do_kind() {
     kind delete cluster --name "$KIND_CLUSTER_NAME"
@@ -20,7 +21,10 @@ do_capi(){
 }
 
 do_flux(){
-    gh repo delete "$GITHUB_USER/$GITHUB_REPO" --confirm
+    if [ "$DELETE_GITOPS_DEV_REPO" == "1" ];
+    then
+        gh repo delete "$GITHUB_USER/$GITHUB_REPO" --confirm
+    fi
     flux bootstrap github --owner="$GITHUB_USER" --repository="$GITHUB_REPO" --branch=main --path=./clusters/management --personal
 }
 
