@@ -166,11 +166,9 @@ func NewGetHandler(db *gorm.DB, defaultNatsURL, defaultAlertmanagerURL, customIm
 			alertmanagerURL = defaultAlertmanagerURL
 		}
 
-		var agentImageTag string
+		agentImageTag := version.ImageTag
 		if customImageTag != "" {
 			agentImageTag = customImageTag
-		} else {
-			agentImageTag = version.ImageTag
 		}
 		stream, err := renderTemplate(token, agentImageTag, defaultNatsURL, alertmanagerURL)
 		if err != nil {
