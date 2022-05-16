@@ -37,7 +37,6 @@ type GitopsTestRunner interface {
 	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
-	AddWorkspace(env []string, clusterName string) error
 	CreateApplyCapitemplates(templateCount int, templateFile string) []string
 	DeleteApplyCapiTemplates(templateFiles []string)
 	CreateIPCredentials(infrastructureProvider string)
@@ -144,19 +143,6 @@ func (b DatabaseGitopsTestRunner) FireAlert(name, severity, message string, fire
 		Severity:     severity,
 		StartsAt:     time.Now().UTC().Add(fireFor * -1),
 		EndsAt:       time.Now().UTC().Add(fireFor),
-	})
-
-	return nil
-}
-
-func (b DatabaseGitopsTestRunner) AddWorkspace(env []string, clusterName string) error {
-	var firstCluster models.Cluster
-	b.DB.Where("Name = ?", clusterName).First(&firstCluster)
-
-	b.DB.Create(&models.Workspace{
-		ClusterToken: firstCluster.Token,
-		Name:         "mccp-devs-workspace",
-		Namespace:    "wkp-workspace",
 	})
 
 	return nil
@@ -314,10 +300,6 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 	}
 
 	return nil
-}
-
-func (b RealGitopsTestRunner) AddWorkspace(env []string, clusterName string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
 }
 
 // This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability

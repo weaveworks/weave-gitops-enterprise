@@ -536,7 +536,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: k8Version,
 					},
 				}
-				paramSection["7.MachineDeployment"] = []TemplateField{
+				paramSection["8.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
@@ -663,7 +663,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: k8Version,
 					},
 				}
-				paramSection["7.MachineDeployment"] = []TemplateField{
+				paramSection["8.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
