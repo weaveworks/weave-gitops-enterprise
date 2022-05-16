@@ -73,7 +73,7 @@ and your system should build and start. The first time you run this, it will tak
 When `chart-mccp-cluster-service` has become green, you should be able
 to access your cluster at
 [https://localhost:8000](https://localhost:8000). The login is
-username `wego-dev` and password `dev`.
+username `wego-admin` and password `dev`.
 
 Any change you make to local code will trigger tilt to rebuild and restart the pods running in your system.
 
