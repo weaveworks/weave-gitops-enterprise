@@ -67,7 +67,8 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 		dc,
 		db,
 		ns,
-		"weaveworks-charts", t.TempDir())
+		"weaveworks-charts", t.TempDir(),
+	)
 }
 
 func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository)) *sourcev1.HelmRepository {
@@ -233,4 +234,41 @@ func makePolicy(t *testing.T, opts ...func(p *policiesv1.Policy)) *policiesv1.Po
 		o(policy)
 	}
 	return policy
+}
+
+func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
+	t.Helper()
+	event := &corev1.Event{
+		InvolvedObject: corev1.ObjectReference{
+			APIVersion:      "v1",
+			Kind:            "Deployment",
+			Name:            "my-deployment",
+			Namespace:       "default",
+			ResourceVersion: "1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				"policy_name":     "Missing app Label",
+				"cluster_id":      "cluster-1",
+				"category":        "Access Control",
+				"severity":        "high",
+				"description":     "Missing app label",
+				"how_to_solve":    "how_to_solve",
+				"entity_manifest": `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
+			},
+			Labels: map[string]string{
+				"pac.weave.works/type": "Admission",
+				"pac.weave.works/id":   "weave.policies.missing-app-label",
+			},
+			Name:      "Missing app Label - fake-event-1",
+			Namespace: "default",
+		},
+		Message: "Policy event",
+		Reason:  "PolicyViolation",
+		Type:    "Warning",
+	}
+	for _, o := range opts {
+		o(event)
+	}
+	return event
 }

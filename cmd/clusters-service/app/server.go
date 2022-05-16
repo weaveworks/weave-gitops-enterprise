@@ -115,6 +115,7 @@ type Params struct {
 	watcherPort                               int
 	AgentTemplateNatsURL                      string
 	AgentTemplateAlertmanagerURL              string
+	AgentTemplateTag                          string
 	htmlRootPath                              string
 	OIDC                                      OIDCAuthenticationOptions
 	gitProviderType                           string
@@ -183,6 +184,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.flux-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&p.AgentTemplateTag, "agent-template-tag", "", "Override the image tag of the agent")
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
@@ -443,7 +445,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		),
 		WithCAPIClustersNamespace(ns),
 		WithHelmRepositoryCacheDirectory(tempDir),
-		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL),
+		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL, p.AgentTemplateTag),
 		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
 		WithOIDCConfig(p.OIDC),
@@ -532,7 +534,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
 
-	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
+	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.AgentTemplateTag, args.Database)
 
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
@@ -815,10 +817,10 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	}
 }
 
-func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) http.Handler {
+func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL, agentTemplateTag string, db *gorm.DB) http.Handler {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
+	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL, agentTemplateTag)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")

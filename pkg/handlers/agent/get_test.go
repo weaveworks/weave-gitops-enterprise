@@ -55,7 +55,7 @@ func executeGet(t *testing.T, db *gorm.DB, natsURL, alertmanagerURL, url string)
 	req, err := http.NewRequest("GET", url, nil)
 	require.Nil(t, err)
 	rec := httptest.NewRecorder()
-	handler := http.HandlerFunc(NewGetHandler(db, natsURL, alertmanagerURL))
+	handler := http.HandlerFunc(NewGetHandler(db, natsURL, alertmanagerURL, ""))
 	handler.ServeHTTP(rec, req)
 	return rec
 }

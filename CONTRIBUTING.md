@@ -2,34 +2,10 @@
 
 A guide to making it easier to develop `weave-gitops-enterprise`. If you came here expecting but not finding an answer please make an issue to help improve these docs!
 
-## Tooling
-You will need the following tools installed on your local workstation:
-- Go 1.17 
-  
-  `brew install go@1.17`
-- Kubectl 1.23
-  
-  `brew install kubectl@1.23`
-- Helm 3.8.2
-  
-  `brew install helm`
-- Kind 0.12.0 for creating a local Kubernetes cluster
-  
-  `brew install kind`
-- Flux 0.29.5 for setting up Flux on a cluster
-  
-  `brew install fluxcd/tap/flux`
-- Buf 1.4.0 for generating code from protobuf definitions
-  
-  `brew install bufbuild/buf/buf`
-- clusterctl 1.1.3 for installing CAPI components on the cluster
-  
-  `brew install clusterctl`
-
 ## The big picture
-Weave GitOps Enterprise (WGE) currently consists of the following components:
+Weave GitOps Enterprise (WGE) is packaged as a Helm chart and currently consists of the following components:
 - clusters-service
-  The API of WGE. This is the component that backend engineers will be changing most often. Uses the [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) to convert our gRPC service definitions to HTTP endpoints.
+  The API of WGE. This is the component that backend engineers will be changing most often. Uses the [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway) to convert our gRPC service definitions to HTTP endpoints. Also imports API handlers from other projects (Weave GitOps among others) and exposes them to consumers.
 - ui-server
   The UI of WGE. This is the component that frontend engineers will be changing most often. Built in React and uses yarn as the package manager.
 - [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller)
@@ -49,10 +25,7 @@ As part of the chart, other dependencies also get installed:
   Agents running on the management cluster or on leaf clusters send events to a NATS queue. event-writer receives these events from the queue and does its thing.
 
 ## One-time setup
-You need a github Personal Access Token to build the service. This
-token needs at least the `repo` and `read:packages`
-permissions. You can create one
-[here](https://github.com/settings/tokens), and export it as:
+You need a github Personal Access Token to build the service. This token needs at least the `repo` and `read:packages` permissions. If you want to be able to delete the GitOps repo every time you recreate your local Kind cluster, add the `delete_repo` permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1.  You can create a token [here](https://github.com/settings/tokens), and export it as:
 ```bash
 export GITHUB_TOKEN=your_token
 ```
@@ -63,7 +36,64 @@ You must also update your `~/.gitconfig` with:
     insteadOf = https://github.com/
 ```
 
+You will also be using your personal GitHub account to host GitOps repositories. Therefore you need to export your GitHub username as well:
+```bash
+export GITHUB_USER=your_username
+```
+
 Finally, make sure you can access https://github.com/weaveworks/weave-gitops-enterprise-credentials
+
+## Run a local development environment
+To run a local development environment, you need to install the following tools:
+ * [docker](https://www.docker.com)
+ * [kind](https://kind.sigs.k8s.io/)
+ * [clusterctl](https://cluster-api.sigs.k8s.io/user/quick-start.html#install-clusterctl)
+ * [gh](https://cli.github.com/)
+ * [flux](https://fluxcd.io/docs/installation/)
+ * [tilt](https://tilt.dev/)
+
+### Preparation
+
+> :warning: The following script will **delete** a local Kind cluster named `wge-dev` and a remote repository named `wge-dev` in your personal GitHub account, if either of them exists. Take a look at the script to understand what it does and how to customize the cluster/repository names. 
+
+Run the following script to get a Kind cluster ready for Tilt:
+```sh
+./tools/reboot.sh
+```
+
+This will recreate a local Kind cluster, install CAPD and setup Flux to reconcile from a GitOps repository in your personal GitHub account. It will also create a file containing local settings such as your GitOps repository that the enterprise Helm chart will use in the next step.
+
+### Start environment
+To start the development environment, run
+```sh
+tilt up
+```
+and your system should build and start. The first time you run this, it will take ~10 mins (depending on your connection speed) to build all the containers and deploy them to your local cluster. This is because the docker builds have to download all the Go modules/JS libraries from scratch, use the Tilt UI to check progress. Subsequent runs should be a lot faster.
+
+When `chart-mccp-cluster-service` has become green, you should be able
+to access your cluster at
+[https://localhost:8000](https://localhost:8000). The login is
+username `wego-dev` and password `dev`.
+
+Any change you make to local code will trigger tilt to rebuild and restart the pods running in your system.
+
+**THINGS TO WATCH OUT FOR**
+
+- If a change in your local settings results in a ConfigMap update, you will need to restart the `clusters-service` pod in order for the pod to read the updated ConfigMap.
+- Every time you restart `clusters-service` it will generate new self-signed certificates, therefore you will need to reload the UI and accept the new certificate. Check for TLS certificate errors in the `chart-mccp-cluster-service` logs and if necessary re-trigger an update to rebuild it.
+- The `wkp-agent` image tag is currently hard-coded to `v0.8.0-rc.1` and by default Tilt won't build/deploy it. The benefit of that is the ability to easily install it on your local Kind cluster and view CAPI status for any clusters you create.
+
+### Faster frontend development
+Especially for frontend development, the time it takes for the pod to restart can be annoying. To spin up a local development frontend against your development cluster, run:
+```
+cd ui-cra
+yarn
+PROXY_HOST=https://localhost:8000 yarn start
+```
+
+Now you have a separate frontend running on
+[http://localhost:3000](http://localhost:3000) with in-process reload.
+
 
 ## Building the project
 
@@ -75,9 +105,16 @@ To build all containers use the following command:
 make GITHUB_BUILD_TOKEN=${GITHUB_TOKEN}
 ```
 
-
 ## Common dev workflows
 The following sections suggest some common dev workflows.
+
+### Tooling
+Before you start working on the code, you need to install the following tools:
+* [Go](https://go.dev/dl/) (1.17) for backend development
+* [Node.js](https://nodejs.org/en/download/releases/) (14) for frontend development
+* [kubectl](https://kubernetes.io/docs/tasks/tools/) for interacting with Kubernetes clusters
+* [Helm](https://helm.sh/docs/intro/install/) for working with Helm charts
+* [Buf](https://docs.buf.build/installation) for generating code from protobuf definitions
 
 ### How to do local dev on the API
 
@@ -190,10 +227,7 @@ When you push your changes to a remote branch (even before creating a PR for it)
     flux create source helm weave-gitops-enterprise-charts --url=https://charts.dev.wkp.weave.works/charts-v3 --namespace=flux-system --secret-ref=weave-gitops-enterprise-credentials
     flux create hr weave-gitops-enterprise --namespace=flux-system --interval=10m --source=HelmRepository/weave-gitops-enterprise-charts --chart=mccp --chart-version=<chart-version-with-commit-SHA> --values values.yaml
 
-## Thing to explore in the future
 
-- **tilt files** for faster feedback loops when interactively developing kubernetes services.
-- ??
 
 ## How to change the code
 
@@ -410,7 +444,7 @@ Install and configure the gcloud CLI if needed. Then run:
 
 ```sh
 gcloud container clusters get-credentials demo-01 --region europe-north1-a
-```   
+```
 
 #### demo-02
 
@@ -483,7 +517,7 @@ helm repo add wkp https://charts.dev.wkp.weave.works/charts-v3 \
 ```sh
 helm repo update && helm search repo wkp --devel --versions | grep e4e540d
 ```
-where `e4e540d` is your commit sha. This will return `wkp/mccp  	0.0.17-88-ge4e540d 	1.16.0     	A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
+where `e4e540d` is your commit sha. This will return `wkp/mccp      0.0.17-88-ge4e540d      1.16.0          A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
 
 
 ## How to inspect/modify the `sqlite` database of a running cluster
