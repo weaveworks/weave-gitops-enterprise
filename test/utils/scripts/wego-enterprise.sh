@@ -204,7 +204,7 @@ function setup {
     clusterctl init --infrastructure docker    
   fi
 
-  # Install policy agent to enforce rego policies - (Installing policy agent after capd because capd violates some of thge policies and failed to install)
+  # Install policy agent to enforce rego policies - (Installing policy agent after capi because capi violates some of thge policies and failed to install)
   helm upgrade --install weave-policy-agent profiles-catalog/weave-policy-agent \
     --version 0.2.x \
     --set accountId=weaveworks \
@@ -261,6 +261,9 @@ function reset {
   kubectl delete configmap calico-crs-configmap
   kubectl delete rolebinding read-templates
   kubectl delete rolebinding clusters-service-secrets-role
+  # Delete policy agent
+  kubectl delete ValidatingWebhookConfiguration policy-agent
+  kubectl delete namespaces policy-system  
 }
 
 function reset_controllers {
