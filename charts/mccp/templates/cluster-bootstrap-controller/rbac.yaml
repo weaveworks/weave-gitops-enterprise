@@ -98,6 +98,30 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - gitops.weave.works
+  resources:
+  - gitopsclusters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - gitops.weave.works
+  resources:
+  - gitopsclusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gitops.weave.works
+  resources:
+  - gitopsclusters
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
