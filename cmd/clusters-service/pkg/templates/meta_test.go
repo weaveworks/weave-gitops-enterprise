@@ -8,8 +8,8 @@ import (
 )
 
 func TestParseTemplateTerraformMeta(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/tf-controller-multiple.yaml")
-	meta, err := ParseTemplateMeta(parsed, TFControllerDisplayNameAnnotation)
+	parsed := mustParseFile(t, "testdata/cluster-template-multiple.yaml")
+	meta, err := ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,6 +103,6 @@ func TestParseTemplateMeta_bad_parameter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ParseTemplateMeta(parsed, TFControllerDisplayNameAnnotation)
+	_, err = ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
 	assert.EqualError(t, err, "failed to get parameters processing template: missing closing brace")
 }

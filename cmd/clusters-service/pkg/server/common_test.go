@@ -157,7 +157,7 @@ func makeCapiTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	return string(b)
 }
 
-func makeTerraformTemplate(t *testing.T, opts ...func(template *gapiv1.GitOpsTemplate)) string {
+func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemplate)) string {
 	t.Helper()
 	basicRaw := `
 	{
@@ -166,7 +166,7 @@ func makeTerraformTemplate(t *testing.T, opts ...func(template *gapiv1.GitOpsTem
 		"metadata":{
 		   "name":"${RESOURCE_NAME}",
 		   "annotations":{
-			  "tfcontroller.weave.works/display-name":"ClusterName"
+			  "clustertemplates.weave.works/display-name":"ClusterName"
 		   }
 		}
 	 }`
@@ -174,10 +174,10 @@ func makeTerraformTemplate(t *testing.T, opts ...func(template *gapiv1.GitOpsTem
 		Template: apitemplates.Template{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       gapiv1.Kind,
-				APIVersion: "tfcontroller.weave.works/v1alpha1",
+				APIVersion: "clustertemplates.weave.works/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "terraform-template-1",
+				Name: "cluster-template-1",
 			},
 			Spec: apitemplates.TemplateSpec{
 				Description: "this is test template 1",

@@ -1,4 +1,4 @@
-apiVersion: tfcontroller.weave.works/v1alpha1
+apiVersion: clustertemplates.weave.works/v1alpha1
 kind: GitOpsTemplate
 metadata:
   name: sample-wge-tf-controller-template

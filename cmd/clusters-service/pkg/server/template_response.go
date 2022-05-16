@@ -16,7 +16,7 @@ func ToTemplateResponse(t *apitemplates.Template) *capiv1_proto.Template {
 	case capiv1.Kind:
 		annotation = templates.CAPIDisplayNameAnnotation
 	case gapiv1.Kind:
-		annotation = templates.TFControllerDisplayNameAnnotation
+		annotation = templates.GitOpsTemplateNameAnnotation
 	}
 	res := &capiv1_proto.Template{
 		Name:        t.GetName(),

@@ -17,7 +17,7 @@ import (
 )
 
 func TestCreateTerraformPullRequest(t *testing.T) {
-	viper.SetDefault("terraform-repository-path", "clusters/my-cluster/tftemplates")
+	viper.SetDefault("terraform-repository-path", "clusters/my-cluster/cluster-templates")
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
@@ -38,10 +38,10 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		{
 			name: "name validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template1", makeTerraformTemplate(t)),
+				makeTemplateConfigMap("terraform-templates", "template1", makeClusterTemplates(t)),
 			},
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
-				TemplateName: "terraform-template-1",
+				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"RESOURCE_NAME": "foo bar bad name",
 					"NAMESPACE":     "default",
@@ -53,17 +53,17 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				CommitMessage: "Add cluster manifest",
 			},
-			err:    errors.New(`validation error rendering template terraform-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
+			err:    errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 			dbRows: 0,
 		},
 		{
 			name: "pull request failed",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template1", makeTerraformTemplate(t)),
+				makeTemplateConfigMap("terraform-templates", "template1", makeClusterTemplates(t)),
 			},
 			provider: NewFakeGitProvider("", nil, errors.New("oops")),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
-				TemplateName: "terraform-template-1",
+				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"RESOURCE_NAME": "foo",
 					"NAMESPACE":     "default",
@@ -81,11 +81,11 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		{
 			name: "create pull request",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template1", makeTerraformTemplate(t)),
+				makeTemplateConfigMap("terraform-templates", "template1", makeClusterTemplates(t)),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
-				TemplateName: "terraform-template-1",
+				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"RESOURCE_NAME": "foo",
 					"NAMESPACE":     "default",

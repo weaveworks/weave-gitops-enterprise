@@ -48,8 +48,8 @@ spec:
 	}
 }
 
-func TestTerraformRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/tf-controller.yaml")
+func TestGitopsRender(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/cluster-template.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
 		"CLUSTER_NAME":       "testing",
@@ -191,8 +191,8 @@ metadata:
 	}
 }
 
-func TestInNamespaceTerraform(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/tf-controller-2.yaml")
+func TestInNamespaceGitOps(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/cluster-template-2.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
 		"CLUSTER_NAME": "testing",

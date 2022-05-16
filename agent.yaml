@@ -1,0 +1,99 @@
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wkp-agent
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    name: wkp-agent
+  name: wkp-agent
+  namespace: wkp-agent
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    name: wkp-agent
+  name: wkp-agent
+rules:
+  - apiGroups: ['*']
+    resources: ['*']
+    verbs: ["get", "watch", "list"]
+  - nonResourceURLs: ['*']
+    verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    name: wkp-agent
+  name: wkp-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: wkp-agent
+subjects:
+  - kind: ServiceAccount
+    name: wkp-agent
+    namespace: wkp-agent
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wkp-agent-token
+  namespace: wkp-agent
+type: Opaque
+data:
+  token: bnczcnlyOHo4dHlzbW9jbXpwdHB0d2p3YW9hMWR3dGY=
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wkp-agent
+  namespace: wkp-agent
+spec:
+  selector:
+    matchLabels:
+      app: wkp-agent
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wkp-agent
+    spec:
+      serviceAccountName: wkp-agent
+      containers:
+      - name: agent
+        image: weaveworks/wkp-agent:v0.8.0-rc.1
+        imagePullPolicy: Always
+        args:
+        - watch
+        - --nats-url=nats://incredibly-secure-token@chart-nats-client.flux-system:4222
+        env:
+        - name: WKP_AGENT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: wkp-agent-token
+              key: token
+      - name: alertmanager-agent
+        image: weaveworks/wkp-agent:v0.8.0-rc.1
+        imagePullPolicy: Always
+        args:
+        - agent-server
+        - --nats-url=nats://incredibly-secure-token@chart-nats-client.flux-system:4222
+        - --alertmanager-url=http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2
+        env:
+        - name: WKP_AGENT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: wkp-agent-token
+              key: token

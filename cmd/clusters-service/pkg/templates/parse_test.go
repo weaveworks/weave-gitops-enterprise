@@ -136,12 +136,12 @@ func TestParseConfigMap(t *testing.T) {
 }
 
 func TestParseFileResourceTemplate(t *testing.T) {
-	c, err := ParseFile("testdata/tf-controller.yaml")
+	c, err := ParseFile("testdata/cluster-template.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	tfControllerResultContent, err := os.ReadFile(filepath.Join("testdata", "tf-controller-result.json"))
+	tfControllerResultContent, err := os.ReadFile(filepath.Join("testdata", "cluster-template-result.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,8 +150,8 @@ func TestParseFileResourceTemplate(t *testing.T) {
 	want := &gapiv1.GitOpsTemplate{
 		Template: templates.Template{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "TFTemplate",
-				APIVersion: "tfcontroller.weave.works/v1alpha1",
+				Kind:       "GitOpsTemplate",
+				APIVersion: "clustertemplates.weave.works/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-wge-tf-controller-template",

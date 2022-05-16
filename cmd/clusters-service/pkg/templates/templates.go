@@ -129,16 +129,16 @@ func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (*tem
 		result = &t.Template
 	case gapiv1.Kind:
 		var t gapiv1.GitOpsTemplate
-		lib.Log.Info("Getting tftemplate", "template", name)
+		lib.Log.Info("Getting gitops template", "template", name)
 		err = cl.Get(ctx, client.ObjectKey{
 			Namespace: lib.GitOpsTemplateNamespace,
 			Name:      name,
 		}, &t)
 		if err != nil {
-			lib.Log.Error(err, "Failed to get tftemplate", "template", name)
-			return nil, fmt.Errorf("error getting tftemplate %s/%s: %w", lib.GitOpsTemplateNamespace, name, err)
+			lib.Log.Error(err, "Failed to get gitops template", "template", name)
+			return nil, fmt.Errorf("error getting gitops template %s/%s: %w", lib.GitOpsTemplateNamespace, name, err)
 		}
-		lib.Log.Info("Got tftemplate", "template", name)
+		lib.Log.Info("Got gitops template", "template", name)
 		result = &t.Template
 	}
 
@@ -166,15 +166,15 @@ func (lib *CRDLibrary) List(ctx context.Context, templateKind string) (map[strin
 			result[ct.ObjectMeta.Name] = &capiTemplateList.Items[i].Template
 		}
 	case gapiv1.Kind:
-		lib.Log.Info("Querying namespace for TFTemplate resources", "namespace", lib.GitOpsTemplateNamespace)
-		tfTemplateList := gapiv1.GitOpsTemplateList{}
-		err = cl.List(ctx, &tfTemplateList, client.InNamespace(lib.GitOpsTemplateNamespace))
+		lib.Log.Info("Querying namespace for GitOpsTemplate resources", "namespace", lib.GitOpsTemplateNamespace)
+		list := gapiv1.GitOpsTemplateList{}
+		err = cl.List(ctx, &list, client.InNamespace(lib.GitOpsTemplateNamespace))
 		if err != nil {
-			return nil, fmt.Errorf("error getting tftemplates: %w", err)
+			return nil, fmt.Errorf("error getting gitops templates: %w", err)
 		}
-		lib.Log.Info("Got tftemplates", "numberOfTemplates", len(tfTemplateList.Items))
-		for i, ct := range tfTemplateList.Items {
-			result[ct.ObjectMeta.Name] = &tfTemplateList.Items[i].Template
+		lib.Log.Info("Got gitops templates", "numberOfTemplates", len(list.Items))
+		for i, ct := range list.Items {
+			result[ct.ObjectMeta.Name] = &list.Items[i].Template
 		}
 	}
 	return result, nil

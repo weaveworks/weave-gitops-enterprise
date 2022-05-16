@@ -145,7 +145,7 @@ func TestListTemplates(t *testing.T) {
 	}
 }
 
-func TestListTerraformTemplates(t *testing.T) {
+func TestListClusterTemplates(t *testing.T) {
 	testCases := []struct {
 		name             string
 		clusterState     []runtime.Object
@@ -155,24 +155,24 @@ func TestListTerraformTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no configmap",
-			err:      errors.New("configmap terraform-templates not found in default namespace: configmaps \"terraform-templates\" not found"),
+			err:      errors.New("configmap cluster-templates not found in default namespace: configmaps \"cluster-templates\" not found"),
 			expected: []*capiv1_protos.Template{},
 		},
 		{
 			name: "no templates",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates"),
+				makeTemplateConfigMap("cluster-templates"),
 			},
 			expected: []*capiv1_protos.Template{},
 		},
 		{
 			name: "1 template",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template1", makeTerraformTemplateWithProvider(t, "AWSCluster")),
+				makeTemplateConfigMap("cluster-templates", "template1", makeClusterTemplateWithProvider(t, "AWSCluster")),
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "terraform-template-1",
+					Name:        "cluster-template-1",
 					Description: "this is test template 1",
 					Provider:    "aws",
 					Objects: []*capiv1_protos.TemplateObject{
@@ -195,14 +195,14 @@ func TestListTerraformTemplates(t *testing.T) {
 		{
 			name: "2 templates",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template2", makeTerraformTemplate(t, func(ct *gapiv1.GitOpsTemplate) {
-					ct.ObjectMeta.Name = "terraform-template-2"
+				makeTemplateConfigMap("cluster-templates", "template2", makeClusterTemplates(t, func(ct *gapiv1.GitOpsTemplate) {
+					ct.ObjectMeta.Name = "cluster-template-2"
 					ct.Spec.Description = "this is test template 2"
-				}), "template1", makeTerraformTemplate(t)),
+				}), "template1", makeClusterTemplates(t)),
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "terraform-template-1",
+					Name:        "cluster-template-1",
 					Description: "this is test template 1",
 					Provider:    "",
 					Objects: []*capiv1_protos.TemplateObject{
@@ -222,7 +222,7 @@ func TestListTerraformTemplates(t *testing.T) {
 					},
 				},
 				{
-					Name:        "terraform-template-2",
+					Name:        "cluster-template-2",
 					Description: "this is test template 2",
 					Provider:    "",
 					Objects: []*capiv1_protos.TemplateObject{
@@ -247,7 +247,7 @@ func TestListTerraformTemplates(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "terraform-templates", "default", nil, nil, "", nil)
+			s := createServer(t, tt.clusterState, "cluster-templates", "default", nil, nil, "", nil)
 
 			listTemplatesRequest := &capiv1_protos.ListTemplatesRequest{
 				TemplateKind: gapiv1.Kind,
@@ -811,7 +811,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 	})...)
 }
 
-func makeTerraformTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(template *gapiv1.GitOpsTemplate)) string {
+func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(template *gapiv1.GitOpsTemplate)) string {
 	t.Helper()
 	basicRaw := `
 	{
@@ -821,7 +821,7 @@ func makeTerraformTemplateWithProvider(t *testing.T, clusterKind string, opts ..
 		  "name": "${RESOURCE_NAME}"
 		}
 	  }`
-	return makeTerraformTemplate(t, append(opts, func(c *gapiv1.GitOpsTemplate) {
+	return makeClusterTemplates(t, append(opts, func(c *gapiv1.GitOpsTemplate) {
 		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
 			{
 				RawExtension: rawExtension(basicRaw),

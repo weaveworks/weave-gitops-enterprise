@@ -14,9 +14,9 @@ import (
 // by each of the objects.
 
 const (
-	// DisplayNameAnnotation is the annotation used for labeling template resources used by tf-controller
-	TFControllerDisplayNameAnnotation = "tfcontroller.weave.works/display-name"
-	CAPIDisplayNameAnnotation         = "capi.weave.works/display-name"
+	// DisplayNameAnnotation is the annotation used for labeling template resources
+	GitOpsTemplateNameAnnotation = "clustertemplates.weave.works/display-name"
+	CAPIDisplayNameAnnotation    = "capi.weave.works/display-name"
 )
 
 func ParseTemplateMeta(s *apitemplates.Template, annotation string) (*TemplateMeta, error) {
