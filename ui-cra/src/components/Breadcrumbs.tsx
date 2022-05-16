@@ -5,7 +5,7 @@ import { transparentize } from 'polished';
 import React, { FC } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import BreadcrumbDivider from '../assets/img/breadcrumb-divider.svg';
+import { ReactComponent as BreadcrumbDivider } from '../assets/img/breadcrumb-divider.svg';
 
 interface Size {
   size?: 'small';

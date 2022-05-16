@@ -23,12 +23,12 @@ import {
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import _ from 'lodash';
 import qs from 'query-string';
-import { default as React, default as React } from 'react';
+import { default as React } from 'react';
 import Lottie from 'react-lottie-player';
 import { Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
 import error404 from '../assets/img/error404.json';
-import MenuIcon from '../assets/img/menu-burger.svg';
+import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import TemplatesProvider from '../contexts/Templates/Provider';

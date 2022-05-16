@@ -5,8 +5,8 @@ import React, { FC, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
-import ErrorIcon from '../../assets/img/error-icon.svg';
-import SuccessIcon from '../../assets/img/success-icon.svg';
+import { ReactComponent as ErrorIcon } from '../../assets/img/error-icon.svg';
+import { ReactComponent as SuccessIcon } from '../../assets/img/success-icon.svg';
 import useNotifications from '../../contexts/Notifications';
 
 const ToastContainerWrapper = styled.div`

@@ -1,7 +1,7 @@
 import { theme } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
-import WarningIcon from '../../assets/img/warning-icon.svg';
+import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 import useVersions from '../../contexts/Versions';
 import { Tooltip } from '../Shared';
 
