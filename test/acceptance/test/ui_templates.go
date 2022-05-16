@@ -568,6 +568,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				var prUrl string
 				clustersPage := pages.GetClustersPage(webDriver)
 				By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
+					// FIXME: replace with find and click on the toast instead
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText("Creation PR"))
 					anchor := clusterInfo.Status.Find("a")
@@ -1118,10 +1119,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				clustersPage := pages.GetClustersPage(webDriver)
-				By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText("Creation PR"))
-				})
+				// FIXME: remove. Cluster doesn't have creation pr anymore
+				//
+				// By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
+				// 	clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+				// 	Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText("Creation PR"))
+				// })
 
 				By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
@@ -1136,11 +1139,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
+					// FIXME: Should just be in the list at all now.
 					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText("Cluster found"))
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					// FIXME: selector here might have changed?
 					Expect(clusterInfo.ShowStatusDetail.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
@@ -1168,6 +1173,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
 
+					// FIXME: selector might have changed
 					Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(BeFound())
 					Expect(clustersPage.PRDeleteClusterButton.Click()).To(Succeed())
 
