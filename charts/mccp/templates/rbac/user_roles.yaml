@@ -40,8 +40,8 @@ rules:
   - apiGroups: ["capi.weave.works"]
     resources: ["capitemplates"]
     verbs: ["get", "watch", "list"]
-  - apiGroups: ["tfcontroller.weave.works"]
-    resources: ["tftemplates"]
+  - apiGroups: ["clustertemplates.weave.works"]
+    resources: ["gitopstemplates"]
     verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

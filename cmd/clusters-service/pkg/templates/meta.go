@@ -65,7 +65,7 @@ type Object struct {
 	DisplayName string   `json:"displayName"`
 }
 
-// TemplateMeta contains all the objects extracted from a TFTemplate along
+// TemplateMeta contains all the objects
 // with the parameters.
 type TemplateMeta struct {
 	Name        string   `json:"name"`

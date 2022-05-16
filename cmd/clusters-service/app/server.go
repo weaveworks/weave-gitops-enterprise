@@ -421,10 +421,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			Namespace:    p.capiClustersNamespace,
 		}),
 		WithTemplateLibrary(&templates.CRDLibrary{
-			Log:                 log,
-			ClientGetter:        clientGetter,
-			CAPINamespace:       p.capiTemplatesNamespace,
-			TFTemplateNamespace: p.tfcontrollerTemplatesNamespace,
+			Log:                     log,
+			ClientGetter:            clientGetter,
+			CAPINamespace:           p.capiTemplatesNamespace,
+			GitOpsTemplateNamespace: p.tfcontrollerTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(core_core.NewCoreConfig(
