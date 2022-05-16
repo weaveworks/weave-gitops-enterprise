@@ -29,7 +29,7 @@ spec:
     accountId: "weaveworks"
     clusterId: "tilt-cluster"
 ---
-# Create user - username: dev, password: dev
+# Create user - username: wego-admin, password: dev
 apiVersion: v1
 kind: Secret
 metadata:
