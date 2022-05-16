@@ -131,5 +131,11 @@ export const localEEMuiTheme = createTheme({
         minWidth: '155px',
       },
     },
+    MuiCheckbox: {
+      root: {
+        ...muiTheme.overrides?.MuiCheckbox?.root,
+        padding: 0,
+      },
+    },
   },
 });

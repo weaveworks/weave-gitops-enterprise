@@ -46,7 +46,7 @@ const ActionsWrapper = styled.div<Size>`
   }
 `;
 
-const TableWrapper = styled.div`
+const TableWrapper = styled.div<{ statusExpanded: boolean }>`
   margin-top: ${theme.spacing.medium};
   div[class*='FilterDialog__SlideContainer'],
   div[class*='SearchField'] {
@@ -57,15 +57,20 @@ const TableWrapper = styled.div`
       color: ${theme.colors.primary};
     }
   }
-  th[class*='MuiTableCell-head']:first-of-type {
-    padding-left: ${theme.spacing.base};
-  }
-  td[class*='MuiTableCell-root'] {
-    padding-top: ${theme.spacing.small};
-    padding-bottom: ${theme.spacing.small};
+  thead {
+    th:first-of-type {
+      padding: ${theme.spacing.base};
+    }
   }
   td:first-of-type {
     text-overflow: clip;
+    width: 25px;
+  }
+  td:nth-child(2) {
+    width: 650px;
+  }
+  tr {
+    vertical alignment: ${props => (props.statusExpanded ? 'top' : 'center')}
   }
   max-width: calc(100vw - 220px);
 `;
@@ -320,7 +325,7 @@ const MCCP: FC = () => {
               </a>
             </div>
             {!isLoading ? (
-              <TableWrapper id="clusters-list">
+              <TableWrapper id="clusters-list" statusExpanded={openCapiStatus}>
                 <FilterableTable
                   key={clusters.length}
                   filters={initialFilterState}
@@ -348,7 +353,7 @@ const MCCP: FC = () => {
                           name={c.name}
                         />
                       ),
-                      maxWidth: 20,
+                      maxWidth: 25,
                     },
                     {
                       label: 'Name',
@@ -388,7 +393,7 @@ const MCCP: FC = () => {
                       ),
                       sortValue: ({ name }) => name,
                       textSearchable: true,
-                      maxWidth: 500,
+                      maxWidth: 650,
                     },
                     {
                       label: 'Type',
