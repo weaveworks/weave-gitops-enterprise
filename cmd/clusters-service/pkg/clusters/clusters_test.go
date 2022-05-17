@@ -79,7 +79,6 @@ func TestListClusterFromCRDs_Pagination(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer testEnv.Stop()
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
@@ -119,6 +118,11 @@ func TestListClusterFromCRDs_Pagination(t *testing.T) {
 		t.Fatalf("On no, error: %v", err)
 	}
 	assert.Equal(t, 10, len(result))
+
+	err = testEnv.Stop()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
