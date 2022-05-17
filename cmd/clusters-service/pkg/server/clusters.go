@@ -40,6 +40,11 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const (
+	capiClusterRef string = "CAPICluster"
+	secretRef      string = "Secret"
+)
+
 var labels = []string{}
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
@@ -702,9 +707,10 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) []*c
 	clusters := []*capiv1_proto.GitopsCluster{}
 
 	for _, c := range cl {
-		if strings.EqualFold(refType, "capicluster") && c.CapiClusterRef != nil {
+		if refType == capiClusterRef && c.CapiClusterRef != nil {
 			clusters = append(clusters, c)
-		} else if strings.EqualFold(refType, "secret") && c.SecretRef != nil {
+		}
+		if refType == secretRef && c.SecretRef != nil {
 			clusters = append(clusters, c)
 		}
 	}
