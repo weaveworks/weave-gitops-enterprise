@@ -16,6 +16,7 @@ import {
   getProviderToken,
   Icon,
   IconType,
+  theme,
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
@@ -89,17 +90,30 @@ export const DeleteClusterDialog: FC<Props> = ({
       },
       getProviderToken(formData.provider as GitProvider),
     )
-      .then(() => {
+      .then(response => {
         cleanUp();
         setNotifications([
           {
-            message: `PR created successfully`,
+            message: {
+              component: (
+                <a
+                  style={{ color: theme.colors.primary }}
+                  href={response.webUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  PR created successfully.
+                </a>
+              ),
+            },
             variant: 'success',
           },
         ]);
       })
       .catch(error => {
-        setNotifications([{ message: error.message, variant: 'danger' }]);
+        setNotifications([
+          { message: { text: error.message }, variant: 'danger' },
+        ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }

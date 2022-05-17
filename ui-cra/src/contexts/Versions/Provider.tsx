@@ -9,7 +9,7 @@ const VersionsProvider: FC = ({ children }) => {
   const [versions, setVersions] = useState<VersionData>({
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   });
-  const [repositoryURL, setRepositoryURL] = useState<string>('');
+  const [repositoryURL, setRepositoryURL] = useState<string | null>(null);
   const { setNotifications } = useNotifications();
 
   const history = useHistory();
@@ -23,7 +23,9 @@ const VersionsProvider: FC = ({ children }) => {
         setEntitlement(res.entitlement);
       })
       .catch(err =>
-        setNotifications([{ message: err.message, variant: 'danger' }]),
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
       );
   }, [setNotifications]);
 
@@ -33,7 +35,9 @@ const VersionsProvider: FC = ({ children }) => {
     })
       .then(res => setRepositoryURL(res.repositoryURL))
       .catch(err =>
-        setNotifications([{ message: err.message, variant: 'danger' }]),
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
       );
   }, [setNotifications]);
 

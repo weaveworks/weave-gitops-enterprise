@@ -2309,10 +2309,10 @@
     "@typescript-eslint/types" "5.13.0"
     eslint-visitor-keys "^3.0.0"
 
-"@weaveworks/weave-gitops@0.8.0":
-  version "0.8.0"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.8.0/452d5ecd75e71cf243d7992a2c080d374b0157c66c8b008f82d40ef33ce910f9#609dd6aca4ec813f2ce3984fa0cc74fda276d70b"
-  integrity sha512-bM7NS8tpdZlBlCTsj3puBkE7YL9QsJhs8WCZ0hjwG/g5vIAreZKQpC1KX8TYb/6+ompHacJ5Ba0TIOJXM54V/w==
+"@weaveworks/weave-gitops@0.8.1-rc.1":
+  version "0.8.1-rc.1"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.8.1-rc.1/603e895b50c3e5b69ed7e3347ccc40c39436e8ba518646492f5a6af2f5c4fd7f#69dc2cd2d28d51ec5cc55ad04075978819603bac"
+  integrity sha512-5yAMMXXR8v7XU821QkWn1joJUmg8IVXeSUXM0G5cJkZ1r9bGpUQFlXlBJf+ZNK4SrfUY3tM5/xt8dJvWKe4bzw==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"

@@ -83,3 +83,7 @@ export type ChildrenOccurences = {
   groupVisible: boolean;
   count: number;
 };
+
+export interface CAPICluster {
+  status: any;
+}
