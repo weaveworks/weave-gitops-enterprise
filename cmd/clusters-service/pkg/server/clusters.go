@@ -71,6 +71,10 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		clusters = filterClustersByLabel(clusters, msg.Label)
 	}
 
+	if msg.RefType != "" {
+		clusters = filterClustersByType(clusters, msg.RefType)
+	}
+
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
 	return &capiv1_proto.ListGitopsClustersResponse{
 		GitopsClusters: clusters,
@@ -688,6 +692,20 @@ func filterClustersByLabel(cl []*capiv1_proto.GitopsCluster, label string) []*ca
 			if strings.EqualFold(l, label) {
 				clusters = append(clusters, c)
 			}
+		}
+	}
+
+	return clusters
+}
+
+func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) []*capiv1_proto.GitopsCluster {
+	clusters := []*capiv1_proto.GitopsCluster{}
+
+	for _, c := range cl {
+		if strings.ToLower(refType) == "capicluster" && c.CapiClusterRef != nil {
+			clusters = append(clusters, c)
+		} else if strings.ToLower(refType) == "secret" && c.SecretRef != nil {
+			clusters = append(clusters, c)
 		}
 	}
 

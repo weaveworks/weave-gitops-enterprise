@@ -150,7 +150,10 @@ message RenderTemplateRequest {
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
-message ListGitopsClustersRequest { string label = 1; }
+message ListGitopsClustersRequest {
+  string label = 1;
+  string ref_type = 2;
+}
 message ListGitopsClustersResponse {
   repeated GitopsCluster gitops_clusters = 1;
   int32 total = 2;
