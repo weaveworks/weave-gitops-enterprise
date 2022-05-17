@@ -61,7 +61,7 @@
     "mini-css-extract-plugin": "~2.4.5"
   },
   "scripts": {
-    "dev": "vite",
+    "start": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
