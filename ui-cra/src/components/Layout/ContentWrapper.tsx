@@ -101,7 +101,7 @@ export const ContentWrapper: FC<{
           title={`Server Version ${versions?.capiServer}`}
           placement="top"
         >
-          <div>Weave GitOps Enterprise </div>
+          <div>Weave GitOps Enterprise {import.meta.env.VITE_APP_VERSION}</div>
         </Tooltip>
       </HelpLinkWrapper>
     </div>
