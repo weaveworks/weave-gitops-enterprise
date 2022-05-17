@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
 func TestGetClusterFromCRDs(t *testing.T) {
@@ -72,7 +73,30 @@ func TestListClusterFromCRDs(t *testing.T) {
 }
 
 func TestListClusterFromCRDs_Pagination(t *testing.T) {
-	clusters := []runtime.Object{}
+	testEnv := &envtest.Environment{}
+	testEnv.ControlPlane.GetAPIServer().Configure().Append("--authorization-mode=RBAC")
+	testCfg, err := testEnv.Start()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer testEnv.Stop()
+
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		corev1.AddToScheme,
+		capiv1.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
+	}
+	err = schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cl, err := client.New(testCfg, client.Options{Scheme: scheme})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	for i := 1; i <= 25; i++ {
 		c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 			o.ObjectMeta.Name = fmt.Sprintf("gitops-cluster-%d", i)
@@ -81,10 +105,12 @@ func TestListClusterFromCRDs_Pagination(t *testing.T) {
 				Name: "dev",
 			}
 		})
-		clusters = append(clusters, c1)
+		if err := cl.Create(context.TODO(), c1); err != nil {
+			t.Fatalf("failed to write cluster: %s", err)
+		}
 	}
 
-	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, clusters...))}
+	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(cl)}
 	opts := client.ListOptions{
 		Limit: 10,
 	}
