@@ -7,7 +7,6 @@ IMAGE_PREFIX := docker.io/weaveworks/weave-gitops-enterprise-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
 VERSION=$(shell git describe --always --match "v*" --abbrev=7)
-CALENDAR_VERSION=$(shell date +"%Y-%m")
 WEAVE_GITOPS_VERSION=$(shell git describe --always --match "v*" --abbrev=7 | sed 's/^[^0-9]*//')
 TIME_NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 CURRENT_DIR := $(shell pwd)
@@ -54,11 +53,12 @@ cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
 
 # Takes precedence over the more general rule above
 # The only difference is the build context
-cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/clusters-service
+cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/*
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
 		--file cmd/clusters-service/Dockerfile \
@@ -67,27 +67,27 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 	touch $@
 
 WKP_AGENT := docker.io/weaveworks/wkp-agent
-cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/wkp-agent
+cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/*
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(WKP_AGENT) \
 		--file cmd/wkp-agent/Dockerfile \
-		$(@D)/
+		.
 	$(SUDO) docker tag $(WKP_AGENT) $(WKP_AGENT):$(IMAGE_TAG)
 	touch $@
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
-ui-cra/.uptodate: ui-cra/build
+ui-cra/.uptodate: ui-cra/*
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
-		--build-arg=image_tag=$(IMAGE_TAG) \
 		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_TOKEN=$(GITHUB_BUILD_TOKEN) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(UI_SERVER) \
-		--file ui-cra/Dockerfile \
 		$(@D)/
 	$(SUDO) docker tag $(UI_SERVER) $(UI_SERVER):$(IMAGE_TAG)
 	touch $@
@@ -146,9 +146,9 @@ godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFi
 cmd/wkp-agent/wkp-agent:
 	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
 
+.PHONY: ui-cra/build
 ui-cra/build:
-	# Github actions npm is slow sometimes, hence increasing the network-timeout
-	yarn config set network-timeout 300000 && cd ui-cra && yarn install --prod --frozen-lockfile && REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
+	make build VERSION=$(VERSION) -C ui-cra
 
 ui-audit:
 	# Check js packages for any high or critical vulnerabilities
@@ -157,8 +157,8 @@ ui-audit:
 lint:
 	bin/go-lint
 
-cmd/clusters-service/clusters-service:
-	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -a -o $@ ./cmd/clusters-service
+cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
+	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
@@ -175,7 +175,7 @@ unit-tests: $(GENERATED)
 	cd cmd/clusters-service && go test -v ./...
 
 ui-build-for-tests:
-	# Github actions npm is slow sometimes, hence increasing the network-timeout 
+	# Github actions npm is slow sometimes, hence increasing the network-timeout
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install && yarn build
 
 clean:

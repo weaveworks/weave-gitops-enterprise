@@ -37,6 +37,7 @@ type Options struct {
 	EntitlementSecretKey         client.ObjectKey
 	AgentTemplateNatsURL         string
 	AgentTemplateAlertmanagerURL string
+	AgentTemplateTag             string
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
 	OIDC                         OIDCAuthenticationOptions
@@ -176,10 +177,11 @@ func WithHelmRepositoryCacheDirectory(cacheDir string) Option {
 
 // WithAgentTemplate is used to set the url
 // for template nats and template alert manager
-func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL string) Option {
+func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL, agentTemplateTag string) Option {
 	return func(o *Options) {
 		o.AgentTemplateNatsURL = agentTemplateNatsURL
 		o.AgentTemplateAlertmanagerURL = agentTemplateAlertmanagerURL
+		o.AgentTemplateTag = agentTemplateTag
 	}
 }
 
