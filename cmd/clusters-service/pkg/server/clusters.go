@@ -78,7 +78,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
 	return &capiv1_proto.ListGitopsClustersResponse{
 		GitopsClusters: clusters,
-		NextPageToken:  nextPageToken,
+		NxtPageToken:  nextPageToken,
 		Total:          int32(len(cl))}, err
 }
 
