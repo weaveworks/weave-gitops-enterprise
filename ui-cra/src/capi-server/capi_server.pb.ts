@@ -61,7 +61,7 @@ export type ListGitopsClustersRequest = {
 export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
   total?: number
-  nxtPageToken?: string
+  nextPageToken?: string
 }
 
 export type GetPolicyRequest = {

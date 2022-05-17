@@ -886,7 +886,7 @@
           "type": "integer",
           "format": "int32"
         },
-        "nxtPageToken": {
+        "nextPageToken": {
           "type": "string"
         }
       }
