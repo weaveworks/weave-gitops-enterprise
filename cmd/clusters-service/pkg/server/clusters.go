@@ -702,9 +702,9 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) []*c
 	clusters := []*capiv1_proto.GitopsCluster{}
 
 	for _, c := range cl {
-		if strings.ToLower(refType) == "capicluster" && c.CapiClusterRef != nil {
+		if strings.EqualFold(refType, "capicluster") && c.CapiClusterRef != nil {
 			clusters = append(clusters, c)
-		} else if strings.ToLower(refType) == "secret" && c.SecretRef != nil {
+		} else if strings.EqualFold(refType, "secret") && c.SecretRef != nil {
 			clusters = append(clusters, c)
 		}
 	}
