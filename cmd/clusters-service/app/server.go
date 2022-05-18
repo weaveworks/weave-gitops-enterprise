@@ -515,14 +515,14 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := http.NewServeMux()
 
-	_, err2 := url.Parse(args.OIDC.IssuerURL)
-	if err2 != nil {
-		return fmt.Errorf("invalid issuer URL: %w", err)
+	_, issuerURLerr := url.Parse(args.OIDC.IssuerURL)
+	if issuerURLerr  != nil {
+		return fmt.Errorf("invalid issuer URL: %w", issuerURLerr)
 	}
 
-	_, err = url.Parse(args.OIDC.RedirectURL)
-	if err != nil {
-		return fmt.Errorf("invalid redirect URL: %w", err)
+	_, redirectURLerr := url.Parse(args.OIDC.RedirectURL)
+	if redirectURLerr != nil {
+		return fmt.Errorf("invalid redirect URL: %w", redirectURLerr)
 	}
 
 	tsv, err := auth.NewHMACTokenSignerVerifier(args.OIDC.TokenDuration)
