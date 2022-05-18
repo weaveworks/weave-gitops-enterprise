@@ -4,14 +4,13 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 // @ts-ignore
 import svgrPlugin from 'vite-plugin-svgr';
 
-const DEFAULT_PROXY_HOST = 'http://34.67.250.163:30080/';
+const DEFAULT_PROXY_HOST = 'https://demo-01.wge.dev.weave.works/';
 const proxyHost = process.env.PROXY_HOST || DEFAULT_PROXY_HOST;
-const capiServerHost = process.env.CAPI_SERVER_HOST || proxyHost;
 // Localhost is running tls by default now
 const secure = process.env.PROXY_SECURE === 'true';
 
 const proxyConfig = {
-  target: capiServerHost,
+  target: proxyHost,
   changeOrigin: true,
   secure,
 };
@@ -21,6 +20,8 @@ export default defineConfig({
   build: {
     outDir: 'build',
     commonjsOptions: {
+      // Fix for some old libs like dagre
+      // https://github.com/vitejs/vite/issues/5759#issuecomment-1034461225
       ignoreTryCatch: false,
     },
   },
@@ -44,6 +45,7 @@ export default defineConfig({
       },
     }),
     // Needed to see the svg's during dev
+    // TODO: open issue on vite an explore options
     viteStaticCopy({
       targets: [
         {
