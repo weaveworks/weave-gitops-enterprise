@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -189,20 +190,30 @@ func deleteGitopsDeploySecret(nameSpace string) {
 }
 
 func clusterWorkloadNonePublicIP(clusterKind string) string {
-	var expernal_ip string
+	var locahost_ip string
+
 	if clusterKind == "EKS" || clusterKind == "GKE" {
 		node_name, _ := runCommandAndReturnStringOutput(`kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1`)
 		worker_name := strings.Split(node_name, "/")[1]
-		expernal_ip, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='%s')].status.addresses[?(@.type=='ExternalIP')].address}"`, worker_name))
+		locahost_ip, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='%s')].status.addresses[?(@.type=='ExternalIP')].address}"`, worker_name))
 	} else {
-		switch runtime.GOOS {
-		case "darwin":
-			expernal_ip, _ = runCommandAndReturnStringOutput(`ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:`)
-		case "linux":
-			expernal_ip, _ = runCommandAndReturnStringOutput(`ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:`)
+		var netwok_if string
+		for i := 1; i < 10; i++ {
+			switch runtime.GOOS {
+			case "darwin":
+				netwok_if = "en" + strconv.Itoa(i)
+			case "linux":
+				netwok_if = "eth" + strconv.Itoa(i)
+			}
+			locahost_ip, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`ifconfig %s | grep -i MASK | awk '{print $2}' | cut -f2 -d: | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`, netwok_if))
+			if locahost_ip == "" {
+				continue
+			} else {
+				break
+			}
 		}
 	}
-	return expernal_ip
+	return locahost_ip
 }
 
 func createCluster(clusterType string, clusterName string, configFile string) {

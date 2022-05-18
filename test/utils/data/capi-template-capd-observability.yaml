@@ -6,7 +6,7 @@ metadata:
   annotations:
     capi.weave.works/profile-0: '{"name": "observability", "version": "0.0.1" }'
 spec:
-  description: This is the std. CAPD template{{.Count}}
+  description: This is the std. CAPD template {{.Count}}
   params:
     - name: CLUSTER_NAME
       required: true
