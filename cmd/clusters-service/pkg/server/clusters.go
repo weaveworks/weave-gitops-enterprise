@@ -36,6 +36,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/chartutil"
+	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -177,6 +178,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			clusterName,
 			client,
 			msg.Values,
+			msg.ParameterValues,
 		)
 		if err != nil {
 			return nil, err
@@ -492,7 +494,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues, parameterValues map[string]string) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Name:      helmRepoName,
@@ -538,7 +540,12 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			}
 		}
 
-		parsed, err := parseValues(v.Values)
+		rendered, err := renderValues(v.Values, parameterValues)
+		if err != nil {
+			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+		}
+
+		parsed, err := parseValues(rendered)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -658,14 +665,30 @@ func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev
 	return version, nil
 }
 
-func parseValues(s string) (map[string]interface{}, error) {
-	decoded, err := base64.StdEncoding.DecodeString(s)
+func renderValues(profileValues string, parameterValues map[string]string) ([]byte, error) {
+	decoded, err := base64.StdEncoding.DecodeString(profileValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
 	}
 
+	proc := processor.NewSimpleProcessor()
+
+	rendered, err := proc.Process([]byte(decoded), func(n string) (string, error) {
+		if s, ok := parameterValues[n]; ok {
+			return s, nil
+		}
+		return "", fmt.Errorf("variable %s not found", n)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to process template values: %w", err)
+	}
+
+	return rendered, nil
+}
+
+func parseValues(v []byte) (map[string]interface{}, error) {
 	vals := map[string]interface{}{}
-	if err := yaml.Unmarshal(decoded, &vals); err != nil {
+	if err := yaml.Unmarshal(v, &vals); err != nil {
 		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
 	}
 	return vals, nil
