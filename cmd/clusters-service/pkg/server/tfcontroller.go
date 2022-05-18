@@ -46,12 +46,12 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
-		return nil, err
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to get client: %s", err)
 	}
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, nil, msg.TemplateName)
 	if err != nil {
-		return nil, err
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to gather credentials for template: %s", err)
 	}
 
 	// FIXME: parse and read from Cluster in yaml template
@@ -94,7 +94,6 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		return nil, grpcStatus.Errorf(codes.Internal, "failed to access repo %s: %s", repositoryURL, err)
 	}
 
-	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
