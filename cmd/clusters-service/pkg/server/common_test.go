@@ -6,7 +6,6 @@ import (
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
-	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -48,7 +47,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	return c
 }
 
-func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, db *gorm.DB, ns string, hr *sourcev1.HelmRepository) capiv1_protos.ClustersServiceServer {
+func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, ns string, hr *sourcev1.HelmRepository) capiv1_protos.ClustersServiceServer {
 	c := createClient(t, clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
@@ -64,7 +63,6 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 		provider,
 		kubefakes.NewFakeClientGetter(c),
 		dc,
-		db,
 		ns,
 		"weaveworks-charts", t.TempDir(),
 	)

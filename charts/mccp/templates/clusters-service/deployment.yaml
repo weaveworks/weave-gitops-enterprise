@@ -31,40 +31,17 @@ spec:
         - name: clusters-service
           image: {{ .Values.images.clustersService }}
           imagePullPolicy: IfNotPresent
-          args:
-          # NATS_AUTH_TOKEN comes from nats-env-vars-secret
-          - --agent-template-nats-url={{ .Values.agentTemplate.natsScheme }}://$(NATS_AUTH_TOKEN)@{{ .Values.agentTemplate.natsURL }}
           envFrom:
           - configMapRef:
               name: {{ include "mccp.fullname" . }}-cluster-service
           - secretRef:
               name: git-provider-credentials
               optional: true
-          - secretRef:
-              name: nats-env-vars-secret
           env:
             - name: RUNTIME_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: DB_URI
-              value: {{ .Values.dbConfig.databaseURI }}
-            - name: DB_TYPE
-              value: {{ .Values.dbConfig.databaseType }}
-            - name: DB_NAME
-              value: {{ .Values.dbConfig.postgresConfig.databaseName }}
-            {{- if eq .Values.dbConfig.databaseType "postgres" }}
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: mccp-db-credentials
-                  key: username
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mccp-db-credentials
-                  key: password
-            {{- end }}
             {{- if .Values.config.oidc.enabled }}
             - name: OIDC_CLIENT_ID
               valueFrom:
@@ -84,10 +61,6 @@ spec:
             - name: clusters-service-tls-volume
               mountPath: /etc/clusters-service-tls
             {{- end }}
-            {{- if eq .Values.dbConfig.databaseType "sqlite" }}
-            - name: database-volume
-              mountPath: /var/database
-            {{- end }}
             {{- if .Values.config.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
@@ -99,13 +72,6 @@ spec:
       {{- end }}
       - name: ui-server-volume
         emptyDir: {}
-      {{- if eq .Values.dbConfig.databaseType "sqlite" }}
-      - name: database-volume
-        {{- if .Values.dbConfig.sqliteConfig.persistentVolumeClaim.enabled }}
-        persistentVolumeClaim:
-          claimName: {{ .Values.dbConfig.sqliteConfig.persistentVolumeClaim.existingClaimName | default "wge-volume" }}
-        {{- end }}
-      {{- end }}
       {{- if .Values.config.extraVolumes }}
       {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumes  "context" $) | nindent 6 }}
       {{- end }}

@@ -12,19 +12,6 @@
 # Recovery files from vim
 *.swp
 
-# Ignore generated binaries
-/cmd/k8s-krb5-server/server
-/cmd/mock-authz-server/server
-/cmd/mock-https-authz-server/server
-/cmd/policy/policy
-/cmd/update-manifest/update-manifest
-/cmd/wk/wk
-/cmd/wks-ci/checks/policy/policy
-/cmd/wks-ci/wks-ci
-/cmd/wks-controller/controller
-/cmd/wks-entitle/wks-entitle
-/cmd/wkp-agent/wkp-agent
-
 node_modules
 
 # Ignore binary dependencies
