@@ -16,6 +16,95 @@
     "application/json"
   ],
   "paths": {
+    "/v1/canary/gates": {
+      "post": {
+        "summary": "CanaryGates updates the canary gate to open or close",
+        "operationId": "ClustersService_CanaryGates",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CanaryGatesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CanaryGatesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/canary/hooks/{hookType}": {
+      "post": {
+        "summary": "CanaryHooks receives webhook calls from flagger",
+        "operationId": "ClustersService_CanaryHooks",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CanaryHooksResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hookType",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "namespace": {
+                  "type": "string"
+                },
+                "phase": {
+                  "type": "string"
+                },
+                "metadata": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/clusters": {
       "get": {
         "operationId": "ClustersService_ListGitopsClusters",
@@ -496,6 +585,14 @@
     }
   },
   "definitions": {
+    "CanaryGatesRequestAction": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "CLOSE"
+      ],
+      "default": "OPEN"
+    },
     "apiHttpBody": {
       "type": "object",
       "properties": {
@@ -546,6 +643,26 @@
           }
         }
       }
+    },
+    "v1CanaryGatesRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "action": {
+          "$ref": "#/definitions/CanaryGatesRequestAction"
+        }
+      }
+    },
+    "v1CanaryGatesResponse": {
+      "type": "object"
+    },
+    "v1CanaryHooksResponse": {
+      "type": "object"
     },
     "v1CapiCluster": {
       "type": "object",

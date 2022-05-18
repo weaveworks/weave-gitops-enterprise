@@ -120,6 +120,22 @@ service ClustersService {
       get : "/v1/policyviolations/{violation_id}"
     };
   }
+
+  // CanaryHooks receives webhook calls from flagger
+  rpc CanaryHooks(CanaryHooksRequest) returns (CanaryHooksResponse) {
+    option (google.api.http) = {
+      post : "/v1/canary/hooks/{hook_type}"
+      body : "*"
+    };
+  }
+
+  // CanaryGates updates the canary gate to open or close
+  rpc CanaryGates(CanaryGatesRequest) returns (CanaryGatesResponse) {
+    option (google.api.http) = {
+      post : "/v1/canary/gates"
+      body : "*"
+    };
+  }
 }
 
 message ListTemplatesRequest { string provider = 1; }
@@ -260,6 +276,27 @@ message GetKubeconfigResponse {
   // The Kubeconfig of the workload cluster.
   string kubeconfig = 1;
 }
+
+
+message CanaryHooksRequest {
+  string name = 1;
+  string namespace = 2;
+  string phase = 3;
+  map<string, string> metadata = 4;
+  string hook_type = 5;
+}
+message CanaryHooksResponse {}
+
+message CanaryGatesRequest {
+  string name = 1;
+  string namespace = 2;
+  enum Action {
+    OPEN = 0;
+    CLOSE = 1;
+  }
+  Action action = 3;
+}
+message CanaryGatesResponse {}
 
 // kubernetes status condition field
 // XXX: is dup'd in core, can we share?

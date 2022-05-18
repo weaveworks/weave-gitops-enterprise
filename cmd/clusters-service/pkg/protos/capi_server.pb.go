@@ -23,6 +23,52 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type CanaryGatesRequest_Action int32
+
+const (
+	CanaryGatesRequest_OPEN  CanaryGatesRequest_Action = 0
+	CanaryGatesRequest_CLOSE CanaryGatesRequest_Action = 1
+)
+
+// Enum value maps for CanaryGatesRequest_Action.
+var (
+	CanaryGatesRequest_Action_name = map[int32]string{
+		0: "OPEN",
+		1: "CLOSE",
+	}
+	CanaryGatesRequest_Action_value = map[string]int32{
+		"OPEN":  0,
+		"CLOSE": 1,
+	}
+)
+
+func (x CanaryGatesRequest_Action) Enum() *CanaryGatesRequest_Action {
+	p := new(CanaryGatesRequest_Action)
+	*p = x
+	return p
+}
+
+func (x CanaryGatesRequest_Action) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CanaryGatesRequest_Action) Descriptor() protoreflect.EnumDescriptor {
+	return file_capi_server_proto_enumTypes[0].Descriptor()
+}
+
+func (CanaryGatesRequest_Action) Type() protoreflect.EnumType {
+	return &file_capi_server_proto_enumTypes[0]
+}
+
+func (x CanaryGatesRequest_Action) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CanaryGatesRequest_Action.Descriptor instead.
+func (CanaryGatesRequest_Action) EnumDescriptor() ([]byte, []int) {
+	return file_capi_server_proto_rawDescGZIP(), []int{31, 0}
+}
+
 type ListTemplatesRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1696,6 +1742,224 @@ func (x *GetKubeconfigResponse) GetKubeconfig() string {
 	return ""
 }
 
+type CanaryHooksRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name      string            `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace string            `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Phase     string            `protobuf:"bytes,3,opt,name=phase,proto3" json:"phase,omitempty"`
+	Metadata  map[string]string `protobuf:"bytes,4,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	HookType  string            `protobuf:"bytes,5,opt,name=hook_type,json=hookType,proto3" json:"hook_type,omitempty"`
+}
+
+func (x *CanaryHooksRequest) Reset() {
+	*x = CanaryHooksRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_capi_server_proto_msgTypes[29]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CanaryHooksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CanaryHooksRequest) ProtoMessage() {}
+
+func (x *CanaryHooksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_capi_server_proto_msgTypes[29]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CanaryHooksRequest.ProtoReflect.Descriptor instead.
+func (*CanaryHooksRequest) Descriptor() ([]byte, []int) {
+	return file_capi_server_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *CanaryHooksRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CanaryHooksRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *CanaryHooksRequest) GetPhase() string {
+	if x != nil {
+		return x.Phase
+	}
+	return ""
+}
+
+func (x *CanaryHooksRequest) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *CanaryHooksRequest) GetHookType() string {
+	if x != nil {
+		return x.HookType
+	}
+	return ""
+}
+
+type CanaryHooksResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *CanaryHooksResponse) Reset() {
+	*x = CanaryHooksResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_capi_server_proto_msgTypes[30]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CanaryHooksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CanaryHooksResponse) ProtoMessage() {}
+
+func (x *CanaryHooksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_capi_server_proto_msgTypes[30]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CanaryHooksResponse.ProtoReflect.Descriptor instead.
+func (*CanaryHooksResponse) Descriptor() ([]byte, []int) {
+	return file_capi_server_proto_rawDescGZIP(), []int{30}
+}
+
+type CanaryGatesRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name      string                    `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace string                    `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Action    CanaryGatesRequest_Action `protobuf:"varint,3,opt,name=action,proto3,enum=capi_server.v1.CanaryGatesRequest_Action" json:"action,omitempty"`
+}
+
+func (x *CanaryGatesRequest) Reset() {
+	*x = CanaryGatesRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_capi_server_proto_msgTypes[31]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CanaryGatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CanaryGatesRequest) ProtoMessage() {}
+
+func (x *CanaryGatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_capi_server_proto_msgTypes[31]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CanaryGatesRequest.ProtoReflect.Descriptor instead.
+func (*CanaryGatesRequest) Descriptor() ([]byte, []int) {
+	return file_capi_server_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *CanaryGatesRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CanaryGatesRequest) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *CanaryGatesRequest) GetAction() CanaryGatesRequest_Action {
+	if x != nil {
+		return x.Action
+	}
+	return CanaryGatesRequest_OPEN
+}
+
+type CanaryGatesResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *CanaryGatesResponse) Reset() {
+	*x = CanaryGatesResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_capi_server_proto_msgTypes[32]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CanaryGatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CanaryGatesResponse) ProtoMessage() {}
+
+func (x *CanaryGatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_capi_server_proto_msgTypes[32]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CanaryGatesResponse.ProtoReflect.Descriptor instead.
+func (*CanaryGatesResponse) Descriptor() ([]byte, []int) {
+	return file_capi_server_proto_rawDescGZIP(), []int{32}
+}
+
 // kubernetes status condition field
 // XXX: is dup'd in core, can we share?
 type Condition struct {
@@ -1713,7 +1977,7 @@ type Condition struct {
 func (x *Condition) Reset() {
 	*x = Condition{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[29]
+		mi := &file_capi_server_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1726,7 +1990,7 @@ func (x *Condition) String() string {
 func (*Condition) ProtoMessage() {}
 
 func (x *Condition) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[29]
+	mi := &file_capi_server_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1739,7 +2003,7 @@ func (x *Condition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Condition.ProtoReflect.Descriptor instead.
 func (*Condition) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{29}
+	return file_capi_server_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *Condition) GetType() string {
@@ -1795,7 +2059,7 @@ type GitopsCluster struct {
 func (x *GitopsCluster) Reset() {
 	*x = GitopsCluster{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[30]
+		mi := &file_capi_server_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1808,7 +2072,7 @@ func (x *GitopsCluster) String() string {
 func (*GitopsCluster) ProtoMessage() {}
 
 func (x *GitopsCluster) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[30]
+	mi := &file_capi_server_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1821,7 +2085,7 @@ func (x *GitopsCluster) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitopsCluster.ProtoReflect.Descriptor instead.
 func (*GitopsCluster) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{30}
+	return file_capi_server_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GitopsCluster) GetName() string {
@@ -1895,7 +2159,7 @@ type CapiCluster struct {
 func (x *CapiCluster) Reset() {
 	*x = CapiCluster{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[31]
+		mi := &file_capi_server_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1908,7 +2172,7 @@ func (x *CapiCluster) String() string {
 func (*CapiCluster) ProtoMessage() {}
 
 func (x *CapiCluster) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[31]
+	mi := &file_capi_server_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1921,7 +2185,7 @@ func (x *CapiCluster) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CapiCluster.ProtoReflect.Descriptor instead.
 func (*CapiCluster) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{31}
+	return file_capi_server_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *CapiCluster) GetName() string {
@@ -1975,7 +2239,7 @@ type CapiClusterStatus struct {
 func (x *CapiClusterStatus) Reset() {
 	*x = CapiClusterStatus{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[32]
+		mi := &file_capi_server_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1988,7 +2252,7 @@ func (x *CapiClusterStatus) String() string {
 func (*CapiClusterStatus) ProtoMessage() {}
 
 func (x *CapiClusterStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[32]
+	mi := &file_capi_server_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2001,7 +2265,7 @@ func (x *CapiClusterStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CapiClusterStatus.ProtoReflect.Descriptor instead.
 func (*CapiClusterStatus) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{32}
+	return file_capi_server_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *CapiClusterStatus) GetPhase() string {
@@ -2057,7 +2321,7 @@ type GitopsClusterRef struct {
 func (x *GitopsClusterRef) Reset() {
 	*x = GitopsClusterRef{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[33]
+		mi := &file_capi_server_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2070,7 +2334,7 @@ func (x *GitopsClusterRef) String() string {
 func (*GitopsClusterRef) ProtoMessage() {}
 
 func (x *GitopsClusterRef) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[33]
+	mi := &file_capi_server_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2083,7 +2347,7 @@ func (x *GitopsClusterRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitopsClusterRef.ProtoReflect.Descriptor instead.
 func (*GitopsClusterRef) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{33}
+	return file_capi_server_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GitopsClusterRef) GetName() string {
@@ -2108,7 +2372,7 @@ type Credential struct {
 func (x *Credential) Reset() {
 	*x = Credential{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[34]
+		mi := &file_capi_server_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2121,7 +2385,7 @@ func (x *Credential) String() string {
 func (*Credential) ProtoMessage() {}
 
 func (x *Credential) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[34]
+	mi := &file_capi_server_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2134,7 +2398,7 @@ func (x *Credential) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Credential.ProtoReflect.Descriptor instead.
 func (*Credential) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{34}
+	return file_capi_server_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *Credential) GetGroup() string {
@@ -2189,7 +2453,7 @@ type Template struct {
 func (x *Template) Reset() {
 	*x = Template{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[35]
+		mi := &file_capi_server_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2202,7 +2466,7 @@ func (x *Template) String() string {
 func (*Template) ProtoMessage() {}
 
 func (x *Template) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[35]
+	mi := &file_capi_server_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2215,7 +2479,7 @@ func (x *Template) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Template.ProtoReflect.Descriptor instead.
 func (*Template) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{35}
+	return file_capi_server_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *Template) GetName() string {
@@ -2281,7 +2545,7 @@ type Parameter struct {
 func (x *Parameter) Reset() {
 	*x = Parameter{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[36]
+		mi := &file_capi_server_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2294,7 +2558,7 @@ func (x *Parameter) String() string {
 func (*Parameter) ProtoMessage() {}
 
 func (x *Parameter) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[36]
+	mi := &file_capi_server_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2307,7 +2571,7 @@ func (x *Parameter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Parameter.ProtoReflect.Descriptor instead.
 func (*Parameter) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{36}
+	return file_capi_server_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *Parameter) GetName() string {
@@ -2350,7 +2614,7 @@ type TemplateProfile struct {
 func (x *TemplateProfile) Reset() {
 	*x = TemplateProfile{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[37]
+		mi := &file_capi_server_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2363,7 +2627,7 @@ func (x *TemplateProfile) String() string {
 func (*TemplateProfile) ProtoMessage() {}
 
 func (x *TemplateProfile) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[37]
+	mi := &file_capi_server_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2376,7 +2640,7 @@ func (x *TemplateProfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TemplateProfile.ProtoReflect.Descriptor instead.
 func (*TemplateProfile) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{37}
+	return file_capi_server_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *TemplateProfile) GetName() string {
@@ -2408,7 +2672,7 @@ type TemplateObject struct {
 func (x *TemplateObject) Reset() {
 	*x = TemplateObject{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[38]
+		mi := &file_capi_server_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2421,7 +2685,7 @@ func (x *TemplateObject) String() string {
 func (*TemplateObject) ProtoMessage() {}
 
 func (x *TemplateObject) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[38]
+	mi := &file_capi_server_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2434,7 +2698,7 @@ func (x *TemplateObject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TemplateObject.ProtoReflect.Descriptor instead.
 func (*TemplateObject) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{38}
+	return file_capi_server_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *TemplateObject) GetKind() string {
@@ -2481,7 +2745,7 @@ type GetEnterpriseVersionRequest struct {
 func (x *GetEnterpriseVersionRequest) Reset() {
 	*x = GetEnterpriseVersionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[39]
+		mi := &file_capi_server_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2494,7 +2758,7 @@ func (x *GetEnterpriseVersionRequest) String() string {
 func (*GetEnterpriseVersionRequest) ProtoMessage() {}
 
 func (x *GetEnterpriseVersionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[39]
+	mi := &file_capi_server_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2507,7 +2771,7 @@ func (x *GetEnterpriseVersionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnterpriseVersionRequest.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseVersionRequest) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{39}
+	return file_capi_server_proto_rawDescGZIP(), []int{43}
 }
 
 type GetEnterpriseVersionResponse struct {
@@ -2522,7 +2786,7 @@ type GetEnterpriseVersionResponse struct {
 func (x *GetEnterpriseVersionResponse) Reset() {
 	*x = GetEnterpriseVersionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[40]
+		mi := &file_capi_server_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2535,7 +2799,7 @@ func (x *GetEnterpriseVersionResponse) String() string {
 func (*GetEnterpriseVersionResponse) ProtoMessage() {}
 
 func (x *GetEnterpriseVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[40]
+	mi := &file_capi_server_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2548,7 +2812,7 @@ func (x *GetEnterpriseVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnterpriseVersionResponse.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseVersionResponse) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{40}
+	return file_capi_server_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetEnterpriseVersionResponse) GetVersion() string {
@@ -2571,7 +2835,7 @@ type Maintainer struct {
 func (x *Maintainer) Reset() {
 	*x = Maintainer{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[41]
+		mi := &file_capi_server_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2584,7 +2848,7 @@ func (x *Maintainer) String() string {
 func (*Maintainer) ProtoMessage() {}
 
 func (x *Maintainer) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[41]
+	mi := &file_capi_server_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2597,7 +2861,7 @@ func (x *Maintainer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Maintainer.ProtoReflect.Descriptor instead.
 func (*Maintainer) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{41}
+	return file_capi_server_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *Maintainer) GetName() string {
@@ -2633,7 +2897,7 @@ type HelmRepository struct {
 func (x *HelmRepository) Reset() {
 	*x = HelmRepository{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[42]
+		mi := &file_capi_server_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2646,7 +2910,7 @@ func (x *HelmRepository) String() string {
 func (*HelmRepository) ProtoMessage() {}
 
 func (x *HelmRepository) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[42]
+	mi := &file_capi_server_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2659,7 +2923,7 @@ func (x *HelmRepository) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelmRepository.ProtoReflect.Descriptor instead.
 func (*HelmRepository) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{42}
+	return file_capi_server_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *HelmRepository) GetName() string {
@@ -2697,7 +2961,7 @@ type Profile struct {
 func (x *Profile) Reset() {
 	*x = Profile{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[43]
+		mi := &file_capi_server_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2710,7 +2974,7 @@ func (x *Profile) String() string {
 func (*Profile) ProtoMessage() {}
 
 func (x *Profile) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[43]
+	mi := &file_capi_server_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2723,7 +2987,7 @@ func (x *Profile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Profile.ProtoReflect.Descriptor instead.
 func (*Profile) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{43}
+	return file_capi_server_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *Profile) GetName() string {
@@ -2817,7 +3081,7 @@ type ProfileValues struct {
 func (x *ProfileValues) Reset() {
 	*x = ProfileValues{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[44]
+		mi := &file_capi_server_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2830,7 +3094,7 @@ func (x *ProfileValues) String() string {
 func (*ProfileValues) ProtoMessage() {}
 
 func (x *ProfileValues) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[44]
+	mi := &file_capi_server_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2843,7 +3107,7 @@ func (x *ProfileValues) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProfileValues.ProtoReflect.Descriptor instead.
 func (*ProfileValues) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{44}
+	return file_capi_server_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ProfileValues) GetName() string {
@@ -2883,7 +3147,7 @@ type GetConfigRequest struct {
 func (x *GetConfigRequest) Reset() {
 	*x = GetConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[45]
+		mi := &file_capi_server_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2896,7 +3160,7 @@ func (x *GetConfigRequest) String() string {
 func (*GetConfigRequest) ProtoMessage() {}
 
 func (x *GetConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[45]
+	mi := &file_capi_server_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2909,7 +3173,7 @@ func (x *GetConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetConfigRequest) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{45}
+	return file_capi_server_proto_rawDescGZIP(), []int{49}
 }
 
 type GetConfigResponse struct {
@@ -2923,7 +3187,7 @@ type GetConfigResponse struct {
 func (x *GetConfigResponse) Reset() {
 	*x = GetConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[46]
+		mi := &file_capi_server_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2936,7 +3200,7 @@ func (x *GetConfigResponse) String() string {
 func (*GetConfigResponse) ProtoMessage() {}
 
 func (x *GetConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[46]
+	mi := &file_capi_server_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2949,7 +3213,7 @@ func (x *GetConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConfigResponse.ProtoReflect.Descriptor instead.
 func (*GetConfigResponse) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{46}
+	return file_capi_server_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GetConfigResponse) GetRepositoryURL() string {
@@ -2970,7 +3234,7 @@ type PolicyParamRepeatedString struct {
 func (x *PolicyParamRepeatedString) Reset() {
 	*x = PolicyParamRepeatedString{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[47]
+		mi := &file_capi_server_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2983,7 +3247,7 @@ func (x *PolicyParamRepeatedString) String() string {
 func (*PolicyParamRepeatedString) ProtoMessage() {}
 
 func (x *PolicyParamRepeatedString) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[47]
+	mi := &file_capi_server_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2996,7 +3260,7 @@ func (x *PolicyParamRepeatedString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyParamRepeatedString.ProtoReflect.Descriptor instead.
 func (*PolicyParamRepeatedString) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{47}
+	return file_capi_server_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *PolicyParamRepeatedString) GetValue() []string {
@@ -3022,7 +3286,7 @@ type PolicyParam struct {
 func (x *PolicyParam) Reset() {
 	*x = PolicyParam{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[48]
+		mi := &file_capi_server_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3035,7 +3299,7 @@ func (x *PolicyParam) String() string {
 func (*PolicyParam) ProtoMessage() {}
 
 func (x *PolicyParam) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[48]
+	mi := &file_capi_server_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3048,7 +3312,7 @@ func (x *PolicyParam) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyParam.ProtoReflect.Descriptor instead.
 func (*PolicyParam) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{48}
+	return file_capi_server_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *PolicyParam) GetName() string {
@@ -3090,7 +3354,7 @@ type PolicyTargetLabel struct {
 func (x *PolicyTargetLabel) Reset() {
 	*x = PolicyTargetLabel{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[49]
+		mi := &file_capi_server_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3103,7 +3367,7 @@ func (x *PolicyTargetLabel) String() string {
 func (*PolicyTargetLabel) ProtoMessage() {}
 
 func (x *PolicyTargetLabel) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[49]
+	mi := &file_capi_server_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3116,7 +3380,7 @@ func (x *PolicyTargetLabel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyTargetLabel.ProtoReflect.Descriptor instead.
 func (*PolicyTargetLabel) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{49}
+	return file_capi_server_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *PolicyTargetLabel) GetValues() map[string]string {
@@ -3139,7 +3403,7 @@ type PolicyTargets struct {
 func (x *PolicyTargets) Reset() {
 	*x = PolicyTargets{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[50]
+		mi := &file_capi_server_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3152,7 +3416,7 @@ func (x *PolicyTargets) String() string {
 func (*PolicyTargets) ProtoMessage() {}
 
 func (x *PolicyTargets) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[50]
+	mi := &file_capi_server_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3165,7 +3429,7 @@ func (x *PolicyTargets) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyTargets.ProtoReflect.Descriptor instead.
 func (*PolicyTargets) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{50}
+	return file_capi_server_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *PolicyTargets) GetKinds() []string {
@@ -3212,7 +3476,7 @@ type Policy struct {
 func (x *Policy) Reset() {
 	*x = Policy{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_capi_server_proto_msgTypes[51]
+		mi := &file_capi_server_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3225,7 +3489,7 @@ func (x *Policy) String() string {
 func (*Policy) ProtoMessage() {}
 
 func (x *Policy) ProtoReflect() protoreflect.Message {
-	mi := &file_capi_server_proto_msgTypes[51]
+	mi := &file_capi_server_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3238,7 +3502,7 @@ func (x *Policy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Policy.ProtoReflect.Descriptor instead.
 func (*Policy) Descriptor() ([]byte, []int) {
-	return file_capi_server_proto_rawDescGZIP(), []int{51}
+	return file_capi_server_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *Policy) GetName() string {
@@ -3563,7 +3827,37 @@ var file_capi_server_proto_rawDesc = []byte{
 	0x37, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x4b, 0x75, 0x62, 0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
 	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x6b, 0x75, 0x62, 0x65,
 	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6b, 0x75,
-	0x62, 0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x87, 0x01, 0x0a, 0x09, 0x43, 0x6f, 0x6e,
+	0x62, 0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x84, 0x02, 0x0a, 0x12, 0x43, 0x61, 0x6e,
+	0x61, 0x72, 0x79, 0x48, 0x6f, 0x6f, 0x6b, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x68, 0x61, 0x73, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x70, 0x68, 0x61, 0x73, 0x65, 0x12, 0x4c, 0x0a, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64,
+	0x61, 0x74, 0x61, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x30, 0x2e, 0x63, 0x61, 0x70, 0x69,
+	0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x61, 0x6e, 0x61, 0x72,
+	0x79, 0x48, 0x6f, 0x6f, 0x6b, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x4d, 0x65,
+	0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x08, 0x6d, 0x65, 0x74,
+	0x61, 0x64, 0x61, 0x74, 0x61, 0x12, 0x1b, 0x0a, 0x09, 0x68, 0x6f, 0x6f, 0x6b, 0x5f, 0x74, 0x79,
+	0x70, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x68, 0x6f, 0x6f, 0x6b, 0x54, 0x79,
+	0x70, 0x65, 0x1a, 0x3b, 0x0a, 0x0d, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x45, 0x6e,
+	0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22,
+	0x15, 0x0a, 0x13, 0x43, 0x61, 0x6e, 0x61, 0x72, 0x79, 0x48, 0x6f, 0x6f, 0x6b, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0xa8, 0x01, 0x0a, 0x12, 0x43, 0x61, 0x6e, 0x61, 0x72,
+	0x79, 0x47, 0x61, 0x74, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d,
+	0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12,
+	0x41, 0x0a, 0x06, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32,
+	0x29, 0x2e, 0x63, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x2e, 0x43, 0x61, 0x6e, 0x61, 0x72, 0x79, 0x47, 0x61, 0x74, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x2e, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x06, 0x61, 0x63, 0x74, 0x69,
+	0x6f, 0x6e, 0x22, 0x1d, 0x0a, 0x06, 0x41, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x08, 0x0a, 0x04,
+	0x4f, 0x50, 0x45, 0x4e, 0x10, 0x00, 0x12, 0x09, 0x0a, 0x05, 0x43, 0x4c, 0x4f, 0x53, 0x45, 0x10,
+	0x01, 0x22, 0x15, 0x0a, 0x13, 0x43, 0x61, 0x6e, 0x61, 0x72, 0x79, 0x47, 0x61, 0x74, 0x65, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x87, 0x01, 0x0a, 0x09, 0x43, 0x6f, 0x6e,
 	0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74,
 	0x61, 0x74, 0x75, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74,
@@ -3822,7 +4116,7 @@ var file_capi_server_proto_rawDesc = []byte{
 	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x54, 0x61, 0x72, 0x67, 0x65,
 	0x74, 0x73, 0x52, 0x07, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x73, 0x12, 0x1d, 0x0a, 0x0a, 0x63,
 	0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x32, 0x8d, 0x11, 0x0a, 0x0f, 0x43,
+	0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x32, 0x83, 0x13, 0x0a, 0x0f, 0x43,
 	0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x73, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x73,
 	0x0a, 0x0d, 0x4c, 0x69, 0x73, 0x74, 0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x73, 0x12,
 	0x24, 0x2e, 0x63, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31,
@@ -3959,13 +4253,28 @@ var file_capi_server_proto_rawDesc = []byte{
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2b, 0x82,
 	0xd3, 0xe4, 0x93, 0x02, 0x25, 0x12, 0x23, 0x2f, 0x76, 0x31, 0x2f, 0x70, 0x6f, 0x6c, 0x69, 0x63,
 	0x79, 0x76, 0x69, 0x6f, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2f, 0x7b, 0x76, 0x69, 0x6f,
-	0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x7d, 0x42, 0x56, 0x5a, 0x54, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f,
-	0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73,
-	0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x63, 0x6d, 0x64, 0x2f,
-	0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x73, 0x2d, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
-	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x72, 0x76,
-	0x65, 0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x7d, 0x12, 0x7f, 0x0a, 0x0b, 0x43, 0x61,
+	0x6e, 0x61, 0x72, 0x79, 0x48, 0x6f, 0x6f, 0x6b, 0x73, 0x12, 0x22, 0x2e, 0x63, 0x61, 0x70, 0x69,
+	0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x61, 0x6e, 0x61, 0x72,
+	0x79, 0x48, 0x6f, 0x6f, 0x6b, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e,
+	0x63, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43,
+	0x61, 0x6e, 0x61, 0x72, 0x79, 0x48, 0x6f, 0x6f, 0x6b, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x27, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x21, 0x22, 0x1c, 0x2f, 0x76, 0x31, 0x2f,
+	0x63, 0x61, 0x6e, 0x61, 0x72, 0x79, 0x2f, 0x68, 0x6f, 0x6f, 0x6b, 0x73, 0x2f, 0x7b, 0x68, 0x6f,
+	0x6f, 0x6b, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x7d, 0x3a, 0x01, 0x2a, 0x12, 0x73, 0x0a, 0x0b, 0x43,
+	0x61, 0x6e, 0x61, 0x72, 0x79, 0x47, 0x61, 0x74, 0x65, 0x73, 0x12, 0x22, 0x2e, 0x63, 0x61, 0x70,
+	0x69, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x61, 0x6e, 0x61,
+	0x72, 0x79, 0x47, 0x61, 0x74, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23,
+	0x2e, 0x63, 0x61, 0x70, 0x69, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e,
+	0x43, 0x61, 0x6e, 0x61, 0x72, 0x79, 0x47, 0x61, 0x74, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x1b, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x15, 0x22, 0x10, 0x2f, 0x76, 0x31,
+	0x2f, 0x63, 0x61, 0x6e, 0x61, 0x72, 0x79, 0x2f, 0x67, 0x61, 0x74, 0x65, 0x73, 0x3a, 0x01, 0x2a,
+	0x42, 0x56, 0x5a, 0x54, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77,
+	0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d,
+	0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73,
+	0x65, 0x2f, 0x63, 0x6d, 0x64, 0x2f, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x73, 0x2d, 0x73,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x63, 0x61, 0x70,
+	0x69, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3980,149 +4289,162 @@ func file_capi_server_proto_rawDescGZIP() []byte {
 	return file_capi_server_proto_rawDescData
 }
 
-var file_capi_server_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
+var file_capi_server_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_capi_server_proto_msgTypes = make([]protoimpl.MessageInfo, 66)
 var file_capi_server_proto_goTypes = []interface{}{
-	(*ListTemplatesRequest)(nil),              // 0: capi_server.v1.ListTemplatesRequest
-	(*ListTemplatesResponse)(nil),             // 1: capi_server.v1.ListTemplatesResponse
-	(*GetTemplateRequest)(nil),                // 2: capi_server.v1.GetTemplateRequest
-	(*GetTemplateResponse)(nil),               // 3: capi_server.v1.GetTemplateResponse
-	(*ListTemplateParamsRequest)(nil),         // 4: capi_server.v1.ListTemplateParamsRequest
-	(*ListTemplateParamsResponse)(nil),        // 5: capi_server.v1.ListTemplateParamsResponse
-	(*ListTemplateProfilesRequest)(nil),       // 6: capi_server.v1.ListTemplateProfilesRequest
-	(*ListTemplateProfilesResponse)(nil),      // 7: capi_server.v1.ListTemplateProfilesResponse
-	(*RenderTemplateRequest)(nil),             // 8: capi_server.v1.RenderTemplateRequest
-	(*RenderTemplateResponse)(nil),            // 9: capi_server.v1.RenderTemplateResponse
-	(*ListGitopsClustersRequest)(nil),         // 10: capi_server.v1.ListGitopsClustersRequest
-	(*ListGitopsClustersResponse)(nil),        // 11: capi_server.v1.ListGitopsClustersResponse
-	(*GetPolicyRequest)(nil),                  // 12: capi_server.v1.GetPolicyRequest
-	(*ListPoliciesRequest)(nil),               // 13: capi_server.v1.ListPoliciesRequest
-	(*GetPolicyResponse)(nil),                 // 14: capi_server.v1.GetPolicyResponse
-	(*ListPoliciesResponse)(nil),              // 15: capi_server.v1.ListPoliciesResponse
-	(*ListPolicyValidationsRequest)(nil),      // 16: capi_server.v1.ListPolicyValidationsRequest
-	(*ListPolicyValidationsResponse)(nil),     // 17: capi_server.v1.ListPolicyValidationsResponse
-	(*GetPolicyValidationRequest)(nil),        // 18: capi_server.v1.GetPolicyValidationRequest
-	(*GetPolicyValidationResponse)(nil),       // 19: capi_server.v1.GetPolicyValidationResponse
-	(*PolicyValidation)(nil),                  // 20: capi_server.v1.PolicyValidation
-	(*CreatePullRequestRequest)(nil),          // 21: capi_server.v1.CreatePullRequestRequest
-	(*CreatePullRequestResponse)(nil),         // 22: capi_server.v1.CreatePullRequestResponse
-	(*DeleteClustersPullRequestRequest)(nil),  // 23: capi_server.v1.DeleteClustersPullRequestRequest
-	(*DeleteClustersPullRequestResponse)(nil), // 24: capi_server.v1.DeleteClustersPullRequestResponse
-	(*ListCredentialsRequest)(nil),            // 25: capi_server.v1.ListCredentialsRequest
-	(*ListCredentialsResponse)(nil),           // 26: capi_server.v1.ListCredentialsResponse
-	(*GetKubeconfigRequest)(nil),              // 27: capi_server.v1.GetKubeconfigRequest
-	(*GetKubeconfigResponse)(nil),             // 28: capi_server.v1.GetKubeconfigResponse
-	(*Condition)(nil),                         // 29: capi_server.v1.Condition
-	(*GitopsCluster)(nil),                     // 30: capi_server.v1.GitopsCluster
-	(*CapiCluster)(nil),                       // 31: capi_server.v1.CapiCluster
-	(*CapiClusterStatus)(nil),                 // 32: capi_server.v1.CapiClusterStatus
-	(*GitopsClusterRef)(nil),                  // 33: capi_server.v1.GitopsClusterRef
-	(*Credential)(nil),                        // 34: capi_server.v1.Credential
-	(*Template)(nil),                          // 35: capi_server.v1.Template
-	(*Parameter)(nil),                         // 36: capi_server.v1.Parameter
-	(*TemplateProfile)(nil),                   // 37: capi_server.v1.TemplateProfile
-	(*TemplateObject)(nil),                    // 38: capi_server.v1.TemplateObject
-	(*GetEnterpriseVersionRequest)(nil),       // 39: capi_server.v1.GetEnterpriseVersionRequest
-	(*GetEnterpriseVersionResponse)(nil),      // 40: capi_server.v1.GetEnterpriseVersionResponse
-	(*Maintainer)(nil),                        // 41: capi_server.v1.Maintainer
-	(*HelmRepository)(nil),                    // 42: capi_server.v1.HelmRepository
-	(*Profile)(nil),                           // 43: capi_server.v1.Profile
-	(*ProfileValues)(nil),                     // 44: capi_server.v1.ProfileValues
-	(*GetConfigRequest)(nil),                  // 45: capi_server.v1.GetConfigRequest
-	(*GetConfigResponse)(nil),                 // 46: capi_server.v1.GetConfigResponse
-	(*PolicyParamRepeatedString)(nil),         // 47: capi_server.v1.PolicyParamRepeatedString
-	(*PolicyParam)(nil),                       // 48: capi_server.v1.PolicyParam
-	(*PolicyTargetLabel)(nil),                 // 49: capi_server.v1.PolicyTargetLabel
-	(*PolicyTargets)(nil),                     // 50: capi_server.v1.PolicyTargets
-	(*Policy)(nil),                            // 51: capi_server.v1.Policy
-	nil,                                       // 52: capi_server.v1.RenderTemplateRequest.ValuesEntry
-	nil,                                       // 53: capi_server.v1.CreatePullRequestRequest.ParameterValuesEntry
-	nil,                                       // 54: capi_server.v1.GitopsCluster.AnnotationsEntry
-	nil,                                       // 55: capi_server.v1.GitopsCluster.LabelsEntry
-	nil,                                       // 56: capi_server.v1.CapiCluster.AnnotationsEntry
-	nil,                                       // 57: capi_server.v1.CapiCluster.LabelsEntry
-	nil,                                       // 58: capi_server.v1.Template.AnnotationsEntry
-	nil,                                       // 59: capi_server.v1.Profile.AnnotationsEntry
-	nil,                                       // 60: capi_server.v1.PolicyTargetLabel.ValuesEntry
-	(*anypb.Any)(nil),                         // 61: google.protobuf.Any
-	(*httpbody.HttpBody)(nil),                 // 62: google.api.HttpBody
+	(CanaryGatesRequest_Action)(0),            // 0: capi_server.v1.CanaryGatesRequest.Action
+	(*ListTemplatesRequest)(nil),              // 1: capi_server.v1.ListTemplatesRequest
+	(*ListTemplatesResponse)(nil),             // 2: capi_server.v1.ListTemplatesResponse
+	(*GetTemplateRequest)(nil),                // 3: capi_server.v1.GetTemplateRequest
+	(*GetTemplateResponse)(nil),               // 4: capi_server.v1.GetTemplateResponse
+	(*ListTemplateParamsRequest)(nil),         // 5: capi_server.v1.ListTemplateParamsRequest
+	(*ListTemplateParamsResponse)(nil),        // 6: capi_server.v1.ListTemplateParamsResponse
+	(*ListTemplateProfilesRequest)(nil),       // 7: capi_server.v1.ListTemplateProfilesRequest
+	(*ListTemplateProfilesResponse)(nil),      // 8: capi_server.v1.ListTemplateProfilesResponse
+	(*RenderTemplateRequest)(nil),             // 9: capi_server.v1.RenderTemplateRequest
+	(*RenderTemplateResponse)(nil),            // 10: capi_server.v1.RenderTemplateResponse
+	(*ListGitopsClustersRequest)(nil),         // 11: capi_server.v1.ListGitopsClustersRequest
+	(*ListGitopsClustersResponse)(nil),        // 12: capi_server.v1.ListGitopsClustersResponse
+	(*GetPolicyRequest)(nil),                  // 13: capi_server.v1.GetPolicyRequest
+	(*ListPoliciesRequest)(nil),               // 14: capi_server.v1.ListPoliciesRequest
+	(*GetPolicyResponse)(nil),                 // 15: capi_server.v1.GetPolicyResponse
+	(*ListPoliciesResponse)(nil),              // 16: capi_server.v1.ListPoliciesResponse
+	(*ListPolicyValidationsRequest)(nil),      // 17: capi_server.v1.ListPolicyValidationsRequest
+	(*ListPolicyValidationsResponse)(nil),     // 18: capi_server.v1.ListPolicyValidationsResponse
+	(*GetPolicyValidationRequest)(nil),        // 19: capi_server.v1.GetPolicyValidationRequest
+	(*GetPolicyValidationResponse)(nil),       // 20: capi_server.v1.GetPolicyValidationResponse
+	(*PolicyValidation)(nil),                  // 21: capi_server.v1.PolicyValidation
+	(*CreatePullRequestRequest)(nil),          // 22: capi_server.v1.CreatePullRequestRequest
+	(*CreatePullRequestResponse)(nil),         // 23: capi_server.v1.CreatePullRequestResponse
+	(*DeleteClustersPullRequestRequest)(nil),  // 24: capi_server.v1.DeleteClustersPullRequestRequest
+	(*DeleteClustersPullRequestResponse)(nil), // 25: capi_server.v1.DeleteClustersPullRequestResponse
+	(*ListCredentialsRequest)(nil),            // 26: capi_server.v1.ListCredentialsRequest
+	(*ListCredentialsResponse)(nil),           // 27: capi_server.v1.ListCredentialsResponse
+	(*GetKubeconfigRequest)(nil),              // 28: capi_server.v1.GetKubeconfigRequest
+	(*GetKubeconfigResponse)(nil),             // 29: capi_server.v1.GetKubeconfigResponse
+	(*CanaryHooksRequest)(nil),                // 30: capi_server.v1.CanaryHooksRequest
+	(*CanaryHooksResponse)(nil),               // 31: capi_server.v1.CanaryHooksResponse
+	(*CanaryGatesRequest)(nil),                // 32: capi_server.v1.CanaryGatesRequest
+	(*CanaryGatesResponse)(nil),               // 33: capi_server.v1.CanaryGatesResponse
+	(*Condition)(nil),                         // 34: capi_server.v1.Condition
+	(*GitopsCluster)(nil),                     // 35: capi_server.v1.GitopsCluster
+	(*CapiCluster)(nil),                       // 36: capi_server.v1.CapiCluster
+	(*CapiClusterStatus)(nil),                 // 37: capi_server.v1.CapiClusterStatus
+	(*GitopsClusterRef)(nil),                  // 38: capi_server.v1.GitopsClusterRef
+	(*Credential)(nil),                        // 39: capi_server.v1.Credential
+	(*Template)(nil),                          // 40: capi_server.v1.Template
+	(*Parameter)(nil),                         // 41: capi_server.v1.Parameter
+	(*TemplateProfile)(nil),                   // 42: capi_server.v1.TemplateProfile
+	(*TemplateObject)(nil),                    // 43: capi_server.v1.TemplateObject
+	(*GetEnterpriseVersionRequest)(nil),       // 44: capi_server.v1.GetEnterpriseVersionRequest
+	(*GetEnterpriseVersionResponse)(nil),      // 45: capi_server.v1.GetEnterpriseVersionResponse
+	(*Maintainer)(nil),                        // 46: capi_server.v1.Maintainer
+	(*HelmRepository)(nil),                    // 47: capi_server.v1.HelmRepository
+	(*Profile)(nil),                           // 48: capi_server.v1.Profile
+	(*ProfileValues)(nil),                     // 49: capi_server.v1.ProfileValues
+	(*GetConfigRequest)(nil),                  // 50: capi_server.v1.GetConfigRequest
+	(*GetConfigResponse)(nil),                 // 51: capi_server.v1.GetConfigResponse
+	(*PolicyParamRepeatedString)(nil),         // 52: capi_server.v1.PolicyParamRepeatedString
+	(*PolicyParam)(nil),                       // 53: capi_server.v1.PolicyParam
+	(*PolicyTargetLabel)(nil),                 // 54: capi_server.v1.PolicyTargetLabel
+	(*PolicyTargets)(nil),                     // 55: capi_server.v1.PolicyTargets
+	(*Policy)(nil),                            // 56: capi_server.v1.Policy
+	nil,                                       // 57: capi_server.v1.RenderTemplateRequest.ValuesEntry
+	nil,                                       // 58: capi_server.v1.CreatePullRequestRequest.ParameterValuesEntry
+	nil,                                       // 59: capi_server.v1.CanaryHooksRequest.MetadataEntry
+	nil,                                       // 60: capi_server.v1.GitopsCluster.AnnotationsEntry
+	nil,                                       // 61: capi_server.v1.GitopsCluster.LabelsEntry
+	nil,                                       // 62: capi_server.v1.CapiCluster.AnnotationsEntry
+	nil,                                       // 63: capi_server.v1.CapiCluster.LabelsEntry
+	nil,                                       // 64: capi_server.v1.Template.AnnotationsEntry
+	nil,                                       // 65: capi_server.v1.Profile.AnnotationsEntry
+	nil,                                       // 66: capi_server.v1.PolicyTargetLabel.ValuesEntry
+	(*anypb.Any)(nil),                         // 67: google.protobuf.Any
+	(*httpbody.HttpBody)(nil),                 // 68: google.api.HttpBody
 }
 var file_capi_server_proto_depIdxs = []int32{
-	35, // 0: capi_server.v1.ListTemplatesResponse.templates:type_name -> capi_server.v1.Template
-	35, // 1: capi_server.v1.GetTemplateResponse.template:type_name -> capi_server.v1.Template
-	36, // 2: capi_server.v1.ListTemplateParamsResponse.parameters:type_name -> capi_server.v1.Parameter
-	38, // 3: capi_server.v1.ListTemplateParamsResponse.objects:type_name -> capi_server.v1.TemplateObject
-	37, // 4: capi_server.v1.ListTemplateProfilesResponse.profiles:type_name -> capi_server.v1.TemplateProfile
-	38, // 5: capi_server.v1.ListTemplateProfilesResponse.objects:type_name -> capi_server.v1.TemplateObject
-	52, // 6: capi_server.v1.RenderTemplateRequest.values:type_name -> capi_server.v1.RenderTemplateRequest.ValuesEntry
-	34, // 7: capi_server.v1.RenderTemplateRequest.credentials:type_name -> capi_server.v1.Credential
-	30, // 8: capi_server.v1.ListGitopsClustersResponse.gitops_clusters:type_name -> capi_server.v1.GitopsCluster
-	51, // 9: capi_server.v1.GetPolicyResponse.policy:type_name -> capi_server.v1.Policy
-	51, // 10: capi_server.v1.ListPoliciesResponse.policies:type_name -> capi_server.v1.Policy
-	20, // 11: capi_server.v1.ListPolicyValidationsResponse.violations:type_name -> capi_server.v1.PolicyValidation
-	20, // 12: capi_server.v1.GetPolicyValidationResponse.violation:type_name -> capi_server.v1.PolicyValidation
-	53, // 13: capi_server.v1.CreatePullRequestRequest.parameter_values:type_name -> capi_server.v1.CreatePullRequestRequest.ParameterValuesEntry
-	34, // 14: capi_server.v1.CreatePullRequestRequest.credentials:type_name -> capi_server.v1.Credential
-	44, // 15: capi_server.v1.CreatePullRequestRequest.values:type_name -> capi_server.v1.ProfileValues
-	34, // 16: capi_server.v1.DeleteClustersPullRequestRequest.credentials:type_name -> capi_server.v1.Credential
-	34, // 17: capi_server.v1.ListCredentialsResponse.credentials:type_name -> capi_server.v1.Credential
-	54, // 18: capi_server.v1.GitopsCluster.annotations:type_name -> capi_server.v1.GitopsCluster.AnnotationsEntry
-	55, // 19: capi_server.v1.GitopsCluster.labels:type_name -> capi_server.v1.GitopsCluster.LabelsEntry
-	29, // 20: capi_server.v1.GitopsCluster.conditions:type_name -> capi_server.v1.Condition
-	33, // 21: capi_server.v1.GitopsCluster.capiClusterRef:type_name -> capi_server.v1.GitopsClusterRef
-	33, // 22: capi_server.v1.GitopsCluster.secretRef:type_name -> capi_server.v1.GitopsClusterRef
-	31, // 23: capi_server.v1.GitopsCluster.capi_cluster:type_name -> capi_server.v1.CapiCluster
-	56, // 24: capi_server.v1.CapiCluster.annotations:type_name -> capi_server.v1.CapiCluster.AnnotationsEntry
-	57, // 25: capi_server.v1.CapiCluster.labels:type_name -> capi_server.v1.CapiCluster.LabelsEntry
-	32, // 26: capi_server.v1.CapiCluster.status:type_name -> capi_server.v1.CapiClusterStatus
-	29, // 27: capi_server.v1.CapiClusterStatus.conditions:type_name -> capi_server.v1.Condition
-	36, // 28: capi_server.v1.Template.parameters:type_name -> capi_server.v1.Parameter
-	38, // 29: capi_server.v1.Template.objects:type_name -> capi_server.v1.TemplateObject
-	58, // 30: capi_server.v1.Template.annotations:type_name -> capi_server.v1.Template.AnnotationsEntry
-	41, // 31: capi_server.v1.Profile.maintainers:type_name -> capi_server.v1.Maintainer
-	59, // 32: capi_server.v1.Profile.annotations:type_name -> capi_server.v1.Profile.AnnotationsEntry
-	42, // 33: capi_server.v1.Profile.helm_repository:type_name -> capi_server.v1.HelmRepository
-	61, // 34: capi_server.v1.PolicyParam.value:type_name -> google.protobuf.Any
-	60, // 35: capi_server.v1.PolicyTargetLabel.values:type_name -> capi_server.v1.PolicyTargetLabel.ValuesEntry
-	49, // 36: capi_server.v1.PolicyTargets.labels:type_name -> capi_server.v1.PolicyTargetLabel
-	48, // 37: capi_server.v1.Policy.parameters:type_name -> capi_server.v1.PolicyParam
-	50, // 38: capi_server.v1.Policy.targets:type_name -> capi_server.v1.PolicyTargets
-	0,  // 39: capi_server.v1.ClustersService.ListTemplates:input_type -> capi_server.v1.ListTemplatesRequest
-	2,  // 40: capi_server.v1.ClustersService.GetTemplate:input_type -> capi_server.v1.GetTemplateRequest
-	4,  // 41: capi_server.v1.ClustersService.ListTemplateParams:input_type -> capi_server.v1.ListTemplateParamsRequest
-	6,  // 42: capi_server.v1.ClustersService.ListTemplateProfiles:input_type -> capi_server.v1.ListTemplateProfilesRequest
-	8,  // 43: capi_server.v1.ClustersService.RenderTemplate:input_type -> capi_server.v1.RenderTemplateRequest
-	10, // 44: capi_server.v1.ClustersService.ListGitopsClusters:input_type -> capi_server.v1.ListGitopsClustersRequest
-	21, // 45: capi_server.v1.ClustersService.CreatePullRequest:input_type -> capi_server.v1.CreatePullRequestRequest
-	23, // 46: capi_server.v1.ClustersService.DeleteClustersPullRequest:input_type -> capi_server.v1.DeleteClustersPullRequestRequest
-	25, // 47: capi_server.v1.ClustersService.ListCredentials:input_type -> capi_server.v1.ListCredentialsRequest
-	27, // 48: capi_server.v1.ClustersService.GetKubeconfig:input_type -> capi_server.v1.GetKubeconfigRequest
-	39, // 49: capi_server.v1.ClustersService.GetEnterpriseVersion:input_type -> capi_server.v1.GetEnterpriseVersionRequest
-	45, // 50: capi_server.v1.ClustersService.GetConfig:input_type -> capi_server.v1.GetConfigRequest
-	13, // 51: capi_server.v1.ClustersService.ListPolicies:input_type -> capi_server.v1.ListPoliciesRequest
-	12, // 52: capi_server.v1.ClustersService.GetPolicy:input_type -> capi_server.v1.GetPolicyRequest
-	16, // 53: capi_server.v1.ClustersService.ListPolicyValidations:input_type -> capi_server.v1.ListPolicyValidationsRequest
-	18, // 54: capi_server.v1.ClustersService.GetPolicyValidation:input_type -> capi_server.v1.GetPolicyValidationRequest
-	1,  // 55: capi_server.v1.ClustersService.ListTemplates:output_type -> capi_server.v1.ListTemplatesResponse
-	3,  // 56: capi_server.v1.ClustersService.GetTemplate:output_type -> capi_server.v1.GetTemplateResponse
-	5,  // 57: capi_server.v1.ClustersService.ListTemplateParams:output_type -> capi_server.v1.ListTemplateParamsResponse
-	7,  // 58: capi_server.v1.ClustersService.ListTemplateProfiles:output_type -> capi_server.v1.ListTemplateProfilesResponse
-	9,  // 59: capi_server.v1.ClustersService.RenderTemplate:output_type -> capi_server.v1.RenderTemplateResponse
-	11, // 60: capi_server.v1.ClustersService.ListGitopsClusters:output_type -> capi_server.v1.ListGitopsClustersResponse
-	22, // 61: capi_server.v1.ClustersService.CreatePullRequest:output_type -> capi_server.v1.CreatePullRequestResponse
-	24, // 62: capi_server.v1.ClustersService.DeleteClustersPullRequest:output_type -> capi_server.v1.DeleteClustersPullRequestResponse
-	26, // 63: capi_server.v1.ClustersService.ListCredentials:output_type -> capi_server.v1.ListCredentialsResponse
-	62, // 64: capi_server.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
-	40, // 65: capi_server.v1.ClustersService.GetEnterpriseVersion:output_type -> capi_server.v1.GetEnterpriseVersionResponse
-	46, // 66: capi_server.v1.ClustersService.GetConfig:output_type -> capi_server.v1.GetConfigResponse
-	15, // 67: capi_server.v1.ClustersService.ListPolicies:output_type -> capi_server.v1.ListPoliciesResponse
-	14, // 68: capi_server.v1.ClustersService.GetPolicy:output_type -> capi_server.v1.GetPolicyResponse
-	17, // 69: capi_server.v1.ClustersService.ListPolicyValidations:output_type -> capi_server.v1.ListPolicyValidationsResponse
-	19, // 70: capi_server.v1.ClustersService.GetPolicyValidation:output_type -> capi_server.v1.GetPolicyValidationResponse
-	55, // [55:71] is the sub-list for method output_type
-	39, // [39:55] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	40, // 0: capi_server.v1.ListTemplatesResponse.templates:type_name -> capi_server.v1.Template
+	40, // 1: capi_server.v1.GetTemplateResponse.template:type_name -> capi_server.v1.Template
+	41, // 2: capi_server.v1.ListTemplateParamsResponse.parameters:type_name -> capi_server.v1.Parameter
+	43, // 3: capi_server.v1.ListTemplateParamsResponse.objects:type_name -> capi_server.v1.TemplateObject
+	42, // 4: capi_server.v1.ListTemplateProfilesResponse.profiles:type_name -> capi_server.v1.TemplateProfile
+	43, // 5: capi_server.v1.ListTemplateProfilesResponse.objects:type_name -> capi_server.v1.TemplateObject
+	57, // 6: capi_server.v1.RenderTemplateRequest.values:type_name -> capi_server.v1.RenderTemplateRequest.ValuesEntry
+	39, // 7: capi_server.v1.RenderTemplateRequest.credentials:type_name -> capi_server.v1.Credential
+	35, // 8: capi_server.v1.ListGitopsClustersResponse.gitops_clusters:type_name -> capi_server.v1.GitopsCluster
+	56, // 9: capi_server.v1.GetPolicyResponse.policy:type_name -> capi_server.v1.Policy
+	56, // 10: capi_server.v1.ListPoliciesResponse.policies:type_name -> capi_server.v1.Policy
+	21, // 11: capi_server.v1.ListPolicyValidationsResponse.violations:type_name -> capi_server.v1.PolicyValidation
+	21, // 12: capi_server.v1.GetPolicyValidationResponse.violation:type_name -> capi_server.v1.PolicyValidation
+	58, // 13: capi_server.v1.CreatePullRequestRequest.parameter_values:type_name -> capi_server.v1.CreatePullRequestRequest.ParameterValuesEntry
+	39, // 14: capi_server.v1.CreatePullRequestRequest.credentials:type_name -> capi_server.v1.Credential
+	49, // 15: capi_server.v1.CreatePullRequestRequest.values:type_name -> capi_server.v1.ProfileValues
+	39, // 16: capi_server.v1.DeleteClustersPullRequestRequest.credentials:type_name -> capi_server.v1.Credential
+	39, // 17: capi_server.v1.ListCredentialsResponse.credentials:type_name -> capi_server.v1.Credential
+	59, // 18: capi_server.v1.CanaryHooksRequest.metadata:type_name -> capi_server.v1.CanaryHooksRequest.MetadataEntry
+	0,  // 19: capi_server.v1.CanaryGatesRequest.action:type_name -> capi_server.v1.CanaryGatesRequest.Action
+	60, // 20: capi_server.v1.GitopsCluster.annotations:type_name -> capi_server.v1.GitopsCluster.AnnotationsEntry
+	61, // 21: capi_server.v1.GitopsCluster.labels:type_name -> capi_server.v1.GitopsCluster.LabelsEntry
+	34, // 22: capi_server.v1.GitopsCluster.conditions:type_name -> capi_server.v1.Condition
+	38, // 23: capi_server.v1.GitopsCluster.capiClusterRef:type_name -> capi_server.v1.GitopsClusterRef
+	38, // 24: capi_server.v1.GitopsCluster.secretRef:type_name -> capi_server.v1.GitopsClusterRef
+	36, // 25: capi_server.v1.GitopsCluster.capi_cluster:type_name -> capi_server.v1.CapiCluster
+	62, // 26: capi_server.v1.CapiCluster.annotations:type_name -> capi_server.v1.CapiCluster.AnnotationsEntry
+	63, // 27: capi_server.v1.CapiCluster.labels:type_name -> capi_server.v1.CapiCluster.LabelsEntry
+	37, // 28: capi_server.v1.CapiCluster.status:type_name -> capi_server.v1.CapiClusterStatus
+	34, // 29: capi_server.v1.CapiClusterStatus.conditions:type_name -> capi_server.v1.Condition
+	41, // 30: capi_server.v1.Template.parameters:type_name -> capi_server.v1.Parameter
+	43, // 31: capi_server.v1.Template.objects:type_name -> capi_server.v1.TemplateObject
+	64, // 32: capi_server.v1.Template.annotations:type_name -> capi_server.v1.Template.AnnotationsEntry
+	46, // 33: capi_server.v1.Profile.maintainers:type_name -> capi_server.v1.Maintainer
+	65, // 34: capi_server.v1.Profile.annotations:type_name -> capi_server.v1.Profile.AnnotationsEntry
+	47, // 35: capi_server.v1.Profile.helm_repository:type_name -> capi_server.v1.HelmRepository
+	67, // 36: capi_server.v1.PolicyParam.value:type_name -> google.protobuf.Any
+	66, // 37: capi_server.v1.PolicyTargetLabel.values:type_name -> capi_server.v1.PolicyTargetLabel.ValuesEntry
+	54, // 38: capi_server.v1.PolicyTargets.labels:type_name -> capi_server.v1.PolicyTargetLabel
+	53, // 39: capi_server.v1.Policy.parameters:type_name -> capi_server.v1.PolicyParam
+	55, // 40: capi_server.v1.Policy.targets:type_name -> capi_server.v1.PolicyTargets
+	1,  // 41: capi_server.v1.ClustersService.ListTemplates:input_type -> capi_server.v1.ListTemplatesRequest
+	3,  // 42: capi_server.v1.ClustersService.GetTemplate:input_type -> capi_server.v1.GetTemplateRequest
+	5,  // 43: capi_server.v1.ClustersService.ListTemplateParams:input_type -> capi_server.v1.ListTemplateParamsRequest
+	7,  // 44: capi_server.v1.ClustersService.ListTemplateProfiles:input_type -> capi_server.v1.ListTemplateProfilesRequest
+	9,  // 45: capi_server.v1.ClustersService.RenderTemplate:input_type -> capi_server.v1.RenderTemplateRequest
+	11, // 46: capi_server.v1.ClustersService.ListGitopsClusters:input_type -> capi_server.v1.ListGitopsClustersRequest
+	22, // 47: capi_server.v1.ClustersService.CreatePullRequest:input_type -> capi_server.v1.CreatePullRequestRequest
+	24, // 48: capi_server.v1.ClustersService.DeleteClustersPullRequest:input_type -> capi_server.v1.DeleteClustersPullRequestRequest
+	26, // 49: capi_server.v1.ClustersService.ListCredentials:input_type -> capi_server.v1.ListCredentialsRequest
+	28, // 50: capi_server.v1.ClustersService.GetKubeconfig:input_type -> capi_server.v1.GetKubeconfigRequest
+	44, // 51: capi_server.v1.ClustersService.GetEnterpriseVersion:input_type -> capi_server.v1.GetEnterpriseVersionRequest
+	50, // 52: capi_server.v1.ClustersService.GetConfig:input_type -> capi_server.v1.GetConfigRequest
+	14, // 53: capi_server.v1.ClustersService.ListPolicies:input_type -> capi_server.v1.ListPoliciesRequest
+	13, // 54: capi_server.v1.ClustersService.GetPolicy:input_type -> capi_server.v1.GetPolicyRequest
+	17, // 55: capi_server.v1.ClustersService.ListPolicyValidations:input_type -> capi_server.v1.ListPolicyValidationsRequest
+	19, // 56: capi_server.v1.ClustersService.GetPolicyValidation:input_type -> capi_server.v1.GetPolicyValidationRequest
+	30, // 57: capi_server.v1.ClustersService.CanaryHooks:input_type -> capi_server.v1.CanaryHooksRequest
+	32, // 58: capi_server.v1.ClustersService.CanaryGates:input_type -> capi_server.v1.CanaryGatesRequest
+	2,  // 59: capi_server.v1.ClustersService.ListTemplates:output_type -> capi_server.v1.ListTemplatesResponse
+	4,  // 60: capi_server.v1.ClustersService.GetTemplate:output_type -> capi_server.v1.GetTemplateResponse
+	6,  // 61: capi_server.v1.ClustersService.ListTemplateParams:output_type -> capi_server.v1.ListTemplateParamsResponse
+	8,  // 62: capi_server.v1.ClustersService.ListTemplateProfiles:output_type -> capi_server.v1.ListTemplateProfilesResponse
+	10, // 63: capi_server.v1.ClustersService.RenderTemplate:output_type -> capi_server.v1.RenderTemplateResponse
+	12, // 64: capi_server.v1.ClustersService.ListGitopsClusters:output_type -> capi_server.v1.ListGitopsClustersResponse
+	23, // 65: capi_server.v1.ClustersService.CreatePullRequest:output_type -> capi_server.v1.CreatePullRequestResponse
+	25, // 66: capi_server.v1.ClustersService.DeleteClustersPullRequest:output_type -> capi_server.v1.DeleteClustersPullRequestResponse
+	27, // 67: capi_server.v1.ClustersService.ListCredentials:output_type -> capi_server.v1.ListCredentialsResponse
+	68, // 68: capi_server.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
+	45, // 69: capi_server.v1.ClustersService.GetEnterpriseVersion:output_type -> capi_server.v1.GetEnterpriseVersionResponse
+	51, // 70: capi_server.v1.ClustersService.GetConfig:output_type -> capi_server.v1.GetConfigResponse
+	16, // 71: capi_server.v1.ClustersService.ListPolicies:output_type -> capi_server.v1.ListPoliciesResponse
+	15, // 72: capi_server.v1.ClustersService.GetPolicy:output_type -> capi_server.v1.GetPolicyResponse
+	18, // 73: capi_server.v1.ClustersService.ListPolicyValidations:output_type -> capi_server.v1.ListPolicyValidationsResponse
+	20, // 74: capi_server.v1.ClustersService.GetPolicyValidation:output_type -> capi_server.v1.GetPolicyValidationResponse
+	31, // 75: capi_server.v1.ClustersService.CanaryHooks:output_type -> capi_server.v1.CanaryHooksResponse
+	33, // 76: capi_server.v1.ClustersService.CanaryGates:output_type -> capi_server.v1.CanaryGatesResponse
+	59, // [59:77] is the sub-list for method output_type
+	41, // [41:59] is the sub-list for method input_type
+	41, // [41:41] is the sub-list for extension type_name
+	41, // [41:41] is the sub-list for extension extendee
+	0,  // [0:41] is the sub-list for field type_name
 }
 
 func init() { file_capi_server_proto_init() }
@@ -4480,7 +4802,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Condition); i {
+			switch v := v.(*CanaryHooksRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4492,7 +4814,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GitopsCluster); i {
+			switch v := v.(*CanaryHooksResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4504,7 +4826,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CapiCluster); i {
+			switch v := v.(*CanaryGatesRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4516,7 +4838,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CapiClusterStatus); i {
+			switch v := v.(*CanaryGatesResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4528,7 +4850,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GitopsClusterRef); i {
+			switch v := v.(*Condition); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4540,7 +4862,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Credential); i {
+			switch v := v.(*GitopsCluster); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4552,7 +4874,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Template); i {
+			switch v := v.(*CapiCluster); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4564,7 +4886,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Parameter); i {
+			switch v := v.(*CapiClusterStatus); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4576,7 +4898,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TemplateProfile); i {
+			switch v := v.(*GitopsClusterRef); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4588,7 +4910,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TemplateObject); i {
+			switch v := v.(*Credential); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4600,7 +4922,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetEnterpriseVersionRequest); i {
+			switch v := v.(*Template); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4612,7 +4934,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetEnterpriseVersionResponse); i {
+			switch v := v.(*Parameter); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4624,7 +4946,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Maintainer); i {
+			switch v := v.(*TemplateProfile); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4636,7 +4958,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HelmRepository); i {
+			switch v := v.(*TemplateObject); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4648,7 +4970,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Profile); i {
+			switch v := v.(*GetEnterpriseVersionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4660,7 +4982,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ProfileValues); i {
+			switch v := v.(*GetEnterpriseVersionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4672,7 +4994,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetConfigRequest); i {
+			switch v := v.(*Maintainer); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4684,7 +5006,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetConfigResponse); i {
+			switch v := v.(*HelmRepository); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4696,7 +5018,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyParamRepeatedString); i {
+			switch v := v.(*Profile); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4708,7 +5030,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyParam); i {
+			switch v := v.(*ProfileValues); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4720,7 +5042,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyTargetLabel); i {
+			switch v := v.(*GetConfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4732,7 +5054,7 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyTargets); i {
+			switch v := v.(*GetConfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4744,6 +5066,54 @@ func file_capi_server_proto_init() {
 			}
 		}
 		file_capi_server_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PolicyParamRepeatedString); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_capi_server_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PolicyParam); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_capi_server_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PolicyTargetLabel); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_capi_server_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PolicyTargets); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_capi_server_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Policy); i {
 			case 0:
 				return &v.state
@@ -4761,13 +5131,14 @@ func file_capi_server_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_capi_server_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   61,
+			NumEnums:      1,
+			NumMessages:   66,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_capi_server_proto_goTypes,
 		DependencyIndexes: file_capi_server_proto_depIdxs,
+		EnumInfos:         file_capi_server_proto_enumTypes,
 		MessageInfos:      file_capi_server_proto_msgTypes,
 	}.Build()
 	File_capi_server_proto = out.File

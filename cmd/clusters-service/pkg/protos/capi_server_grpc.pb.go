@@ -50,6 +50,10 @@ type ClustersServiceClient interface {
 	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
 	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
+	// CanaryHooks receives webhook calls from flagger
+	CanaryHooks(ctx context.Context, in *CanaryHooksRequest, opts ...grpc.CallOption) (*CanaryHooksResponse, error)
+	// CanaryGates updates the canary gate to open or close
+	CanaryGates(ctx context.Context, in *CanaryGatesRequest, opts ...grpc.CallOption) (*CanaryGatesResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -204,6 +208,24 @@ func (c *clustersServiceClient) GetPolicyValidation(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *clustersServiceClient) CanaryHooks(ctx context.Context, in *CanaryHooksRequest, opts ...grpc.CallOption) (*CanaryHooksResponse, error) {
+	out := new(CanaryHooksResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/CanaryHooks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) CanaryGates(ctx context.Context, in *CanaryGatesRequest, opts ...grpc.CallOption) (*CanaryGatesResponse, error) {
+	out := new(CanaryGatesResponse)
+	err := c.cc.Invoke(ctx, "/capi_server.v1.ClustersService/CanaryGates", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -239,6 +261,10 @@ type ClustersServiceServer interface {
 	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
 	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
+	// CanaryHooks receives webhook calls from flagger
+	CanaryHooks(context.Context, *CanaryHooksRequest) (*CanaryHooksResponse, error)
+	// CanaryGates updates the canary gate to open or close
+	CanaryGates(context.Context, *CanaryGatesRequest) (*CanaryGatesResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -293,6 +319,12 @@ func (UnimplementedClustersServiceServer) ListPolicyValidations(context.Context,
 }
 func (UnimplementedClustersServiceServer) GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyValidation not implemented")
+}
+func (UnimplementedClustersServiceServer) CanaryHooks(context.Context, *CanaryHooksRequest) (*CanaryHooksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CanaryHooks not implemented")
+}
+func (UnimplementedClustersServiceServer) CanaryGates(context.Context, *CanaryGatesRequest) (*CanaryGatesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CanaryGates not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -595,6 +627,42 @@ func _ClustersService_GetPolicyValidation_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_CanaryHooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CanaryHooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CanaryHooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/CanaryHooks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CanaryHooks(ctx, req.(*CanaryHooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_CanaryGates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CanaryGatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CanaryGates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/capi_server.v1.ClustersService/CanaryGates",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CanaryGates(ctx, req.(*CanaryGatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -665,6 +733,14 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPolicyValidation",
 			Handler:    _ClustersService_GetPolicyValidation_Handler,
+		},
+		{
+			MethodName: "CanaryHooks",
+			Handler:    _ClustersService_CanaryHooks_Handler,
+		},
+		{
+			MethodName: "CanaryGates",
+			Handler:    _ClustersService_CanaryGates_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
