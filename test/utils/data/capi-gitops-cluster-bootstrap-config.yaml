@@ -9,6 +9,7 @@ spec:
       weave.works/capi: bootstrap
   jobTemplate:
     generateName: "run-gitops-{{ .ObjectMeta.Name }}"
+    # requiredClusterReady: true
     spec:
       containers:
         - image: ghcr.io/fluxcd/flux-cli:v0.29.5
