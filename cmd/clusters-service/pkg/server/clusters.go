@@ -77,6 +77,9 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	}
 
 	if msg.RefType != "" {
+		if msg.RefType != capiClusterRef && msg.RefType != secretRef {
+			return nil, fmt.Errorf("reference type %q is not recognised", msg.RefType)
+		}
 		clusters = filterClustersByType(clusters, msg.RefType)
 	}
 
