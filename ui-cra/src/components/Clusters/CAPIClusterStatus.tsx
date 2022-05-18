@@ -14,9 +14,9 @@ import {
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { CAPICluster } from '../../types/kubernetes';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import useClusters from './../../contexts/Clusters';
+import { CAPICluster } from '../../types/custom';
 
 // styles
 

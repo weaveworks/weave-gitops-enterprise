@@ -56,6 +56,7 @@ type GitOps struct {
 	GitCredentials *agouti.Selection
 	CreatePR       *agouti.Selection
 	SuccessBar     *agouti.Selection
+	PRLinkBar      *agouti.Selection
 	ErrorBar       *agouti.Selection
 }
 
@@ -186,6 +187,7 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 		GitCredentials: webDriver.Find(`div.auth-message`),
 		CreatePR:       webDriver.FindByButton(`CREATE PULL REQUEST`),
 		SuccessBar:     webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Success")]/parent::div`),
+		PRLinkBar:      webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "PR created")]/parent::div`),
 		ErrorBar:       webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Error")]/parent::div`),
 	}
 }

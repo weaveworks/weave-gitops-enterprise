@@ -1,11 +1,9 @@
 import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
-import AlertsProvider from '../contexts/Alerts/Provider';
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
 import { Navigation } from './Navigation';
-import { AlertsDashboard } from './Alerts';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
 import Hidden from '@material-ui/core/Hidden';
@@ -177,7 +175,6 @@ const App = () => {
         NotificationsProvider,
         TemplatesProvider,
         ClustersProvider,
-        AlertsProvider,
         VersionsProvider,
       ]}
     >
@@ -251,7 +248,6 @@ const App = () => {
               exact
               path="/clusters/violations/:id"
             />
-            <Route component={AlertsDashboard} exact path="/clusters/alerts" />
             <Route
               component={() => (
                 <CoreWrapper>

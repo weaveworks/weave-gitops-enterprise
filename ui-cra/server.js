@@ -19,7 +19,6 @@ app.use(
     '/application_detail',
     '/application_remove',
     '/sign_in',
-    '/alerts',
     '/oauth',
   ],
   (req, res, next) => {

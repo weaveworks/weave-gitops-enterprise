@@ -93,9 +93,6 @@ export const Navigation: FC = () => {
           <NavItem className={classes.subItem} to="/clusters/templates">
             Templates
           </NavItem>
-          <NavItem className={classes.subItem} to="/clusters/alerts" exact>
-            Alerts
-          </NavItem>
           <NavItem className={classes.subItem} to="/clusters/violations">
             Violation Log
           </NavItem>
