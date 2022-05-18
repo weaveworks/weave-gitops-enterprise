@@ -21,12 +21,12 @@ import (
 func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.CreateTfControllerPullRequestRequest) (*proto.CreateTfControllerPullRequestResponse, error) {
 	gp, err := getGitProvider(ctx)
 	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to create an authenticated provider: %s", err.Error())
 	}
 
 	if err := validateCreateTfControllerPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
-		return nil, grpcStatus.Errorf(codes.InvalidArgument, "validation error: %s", err.Error())
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "validation error on the message: %s", err.Error())
 	}
 
 	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, gapiv1.Kind)
@@ -46,7 +46,7 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to get client: %s", err)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to construct kubernetes client: %s", err)
 	}
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, nil, msg.TemplateName)
@@ -54,10 +54,9 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		return nil, grpcStatus.Errorf(codes.Internal, "failed to gather credentials for template: %s", err)
 	}
 
-	// FIXME: parse and read from Cluster in yaml template
 	templateName, ok := msg.ParameterValues["RESOURCE_NAME"]
 	if !ok {
-		return nil, grpcStatus.Errorf(codes.Internal, "unable to find 'RESOURCE_NAME' parameter in supplied values")
+		return nil, grpcStatus.Errorf(codes.Internal, "unable to find required 'RESOURCE_NAME' parameter in supplied values")
 	}
 
 	path := getTfControllerManifestPath(templateName)
@@ -91,7 +90,7 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to access repo %s: %s", repositoryURL, err)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to access repository under %s: %s", repositoryURL, err)
 	}
 
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
@@ -107,7 +106,7 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 	})
 	if err != nil {
 		s.log.Error(err, "Failed to create pull request")
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to create pull request %s", err)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to write files and create a pull request %s", err)
 	}
 
 	return &proto.CreateTfControllerPullRequestResponse{

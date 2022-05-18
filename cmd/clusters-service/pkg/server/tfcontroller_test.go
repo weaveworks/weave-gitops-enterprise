@@ -32,7 +32,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		{
 			name:   "validation errors",
 			req:    &capiv1_protos.CreateTfControllerPullRequestRequest{},
-			err:    errors.New("rpc error: code = InvalidArgument desc = validation error: 2 errors occurred:\ntemplate name must be specified\nparameter values must be specified"),
+			err:    errors.New("rpc error: code = InvalidArgument desc = validation error on the message: 2 errors occurred:\ntemplate name must be specified\nparameter values must be specified"),
 			dbRows: 0,
 		},
 		{
@@ -76,7 +76,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 				CommitMessage: "Add terraform template",
 			},
 			dbRows: 0,
-			err:    errors.New(`rpc error: code = Internal desc = failed to access repo https://github.com/org/repo.git: oops`),
+			err:    errors.New(`rpc error: code = Internal desc = failed to access repository under https://github.com/org/repo.git: oops`),
 		},
 		{
 			name: "create pull request",
