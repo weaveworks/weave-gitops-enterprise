@@ -36,7 +36,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/chartutil"
-	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -540,12 +539,17 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			}
 		}
 
-		rendered, err := renderValues(v.Values, parameterValues)
+		decoded, err := base64.StdEncoding.DecodeString(v.Values)
+		if err != nil {
+			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+		}
+
+		data, err := capi.ProcessTemplate(decoded, parameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
 
-		parsed, err := parseValues(rendered)
+		parsed, err := parseValues(data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -663,27 +667,6 @@ func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev
 	}
 
 	return version, nil
-}
-
-func renderValues(profileValues string, parameterValues map[string]string) ([]byte, error) {
-	decoded, err := base64.StdEncoding.DecodeString(profileValues)
-	if err != nil {
-		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
-	}
-
-	proc := processor.NewSimpleProcessor()
-
-	rendered, err := proc.Process([]byte(decoded), func(n string) (string, error) {
-		if s, ok := parameterValues[n]; ok {
-			return s, nil
-		}
-		return "", fmt.Errorf("variable %s not found", n)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to process template values: %w", err)
-	}
-
-	return rendered, nil
 }
 
 func parseValues(v []byte) (map[string]interface{}, error) {
