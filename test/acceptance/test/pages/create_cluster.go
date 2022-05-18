@@ -159,7 +159,7 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
-	Eventually(webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]`)).Should(BeVisible())
+	Eventually(webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]`), 30*time.Second).Should(BeVisible())
 	return Preview{
 		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
 		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  textarea:first-child`),
