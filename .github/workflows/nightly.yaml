@@ -38,7 +38,6 @@ jobs:
       cluster_resource_set: false
       management-cluster-kind: eks
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: postgres
       eks-leaf-kubeconfig: "/tmp/eks-leaf-kubeconfig"
       artifacts-base-dir: "/tmp/acceptance-test-eks-github"
     secrets:
@@ -76,10 +75,9 @@ jobs:
       cluster_resource_set: false
       management-cluster-kind: gke
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: postgres
       gce-leaf-kubeconfig: "/tmp/gce-leaf-kubeconfig"
       artifacts-base-dir: "/tmp/acceptance-test-gke-gitlab"
-    secrets:      
+    secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
       WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}

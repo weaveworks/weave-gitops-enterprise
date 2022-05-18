@@ -28,6 +28,3 @@ dependencies:
     version: "1.0.0"
     repository: "file://../cluster-controller"
     condition: cluster-controller.enabled
-  - name: nats
-    version: "6.1.2"
-    repository: "https://charts.bitnami.com/bitnami"

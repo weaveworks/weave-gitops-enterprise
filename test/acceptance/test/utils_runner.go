@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"text/template"
@@ -16,10 +15,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	"gorm.io/datatypes"
-	"gorm.io/gorm"
-	"k8s.io/apimachinery/pkg/types"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -34,7 +29,6 @@ type GitopsTestRunner interface {
 	KubectlApplyInsecure(env []string, manifest string) error
 	KubectlDelete(env []string, manifest string) error
 	KubectlDeleteInsecure(env []string, manifest string) error
-	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
 	CreateApplyCapitemplates(templateCount int, templateFile string) []string
@@ -44,26 +38,20 @@ type GitopsTestRunner interface {
 	RestartDeploymentPods(appName string, namespace string) error
 }
 
-// "DB" backend that creates/delete rows
-
 type DatabaseGitopsTestRunner struct {
-	DB     *gorm.DB
 	Client goclient.Client
 }
 
 func (b DatabaseGitopsTestRunner) TimeTravelToLastSeen() error {
-	oneMinuteAgo := time.Now().UTC().Add(time.Minute * -2)
-	b.DB.Exec("update cluster_info set updated_at = ?", oneMinuteAgo)
 	return nil
 }
 
 func (b DatabaseGitopsTestRunner) TimeTravelToAlertsResolved() error {
-	b.DB.Where("1 = 1").Delete(&models.Alert{})
 	return nil
 }
 
 func (b DatabaseGitopsTestRunner) ResetControllers(controllers string) {
-	b.DB.Where("1 = 1").Delete(&models.Cluster{})
+
 }
 
 func (b DatabaseGitopsTestRunner) VerifyWegoPodsRunning() {
@@ -71,34 +59,9 @@ func (b DatabaseGitopsTestRunner) VerifyWegoPodsRunning() {
 }
 
 func (b DatabaseGitopsTestRunner) KubectlApply(env []string, manifest string) error {
-	u, err := url.Parse(manifest)
-	if err != nil {
-		return err
-	}
-	token := u.Query()["token"][0]
-
-	b.DB.Create(&models.ClusterInfo{
-		UID:          types.UID(RandString(10)),
-		ClusterToken: token,
-		UpdatedAt:    time.Now().UTC(),
-	})
-	b.DB.Create(&models.GitCommit{
-		ClusterToken: token,
-		Sha:          "abcdef123456",
-		AuthorName:   "Alice",
-		AuthorEmail:  "alice@acme.org",
-		AuthorDate:   time.Now().UTC().Add(time.Hour * -1),
-		Message:      "Fixed it",
-	})
-	b.DB.Create(&models.FluxInfo{
-		ClusterToken: token,
-		Name:         "flux",
-		Namespace:    "wkp-flux",
-		RepoURL:      "git@github.com:wkp/my-cluster",
-		RepoBranch:   "main",
-	})
 	return nil
 }
+
 func (b DatabaseGitopsTestRunner) KubectlApplyInsecure(env []string, manifest string) error {
 	return b.KubectlApply(env, manifest)
 }
@@ -115,36 +78,7 @@ func (b DatabaseGitopsTestRunner) KubectlDeleteInsecure(env []string, tokenURL s
 	return b.KubectlDelete(env, tokenURL)
 }
 
-func (b DatabaseGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
-	// No more cluster_infos will be created anyway..
-	return nil
-}
-
 func (b DatabaseGitopsTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
-	var firstCluster models.Cluster
-	b.DB.Last(&firstCluster)
-
-	//
-	// FIXME: we shouldn't need this. The UI should stop showing the alerts after 30s anyway
-	// But its not filtering on endsAt right now.
-	//
-	go func() {
-		time.Sleep(fireFor)
-		b.DB.Where("1 = 1").Delete(&models.Alert{})
-	}()
-
-	labels := fmt.Sprintf(`{ "alertname": "%s", "severity": "%s" }`, name, severity)
-	annotations := fmt.Sprintf(`{ "message": "%s" }`, message)
-	b.DB.Create(&models.Alert{
-		ClusterToken: firstCluster.Token,
-		UpdatedAt:    time.Now().UTC(),
-		Labels:       datatypes.JSON(labels),
-		Annotations:  datatypes.JSON(annotations),
-		Severity:     severity,
-		StartsAt:     time.Now().UTC().Add(fireFor * -1),
-		EndsAt:       time.Now().UTC().Add(fireFor),
-	})
-
 	return nil
 }
 
@@ -230,10 +164,6 @@ func (b RealGitopsTestRunner) KubectlDeleteInsecure(env []string, url string) er
 		return fmt.Errorf("failed to curl manifest: %w", err)
 	}
 	return b.KubectlDelete(env, "/tmp/manifest.yaml")
-}
-
-func (b RealGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
 }
 
 func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {

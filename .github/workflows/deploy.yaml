@@ -26,46 +26,45 @@ jobs:
       WGE_COVERALLS_TOKEN: ${{ secrets.WGE_COVERALLS_TOKEN }}
       ARTEFACTS_BASE_DIR: /tmp/workspace/test
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.18.x
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Configure git for private modules
-      env:
-        GITHUB_BUILD_USERNAME: wge-build-bot
-        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-    - name: Install dependencies
-      run: |
-        go mod download
-        go install github.com/wadey/gocovmerge@latest
-        go install github.com/jstemmer/go-junit-report@latest
-        npm install -g junit-report-merger
-    - name: Install goveralls
-      env:
-        GO111MODULE: off
-      run: go get github.com/mattn/goveralls
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18.x
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: wge-build-bot
+          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Install dependencies
+        run: |
+          go mod download
+          go install github.com/wadey/gocovmerge@latest
+          go install github.com/jstemmer/go-junit-report@latest
+          npm install -g junit-report-merger
+      - name: Install goveralls
+        env:
+          GO111MODULE: off
+        run: go get github.com/mattn/goveralls
 
-    - name: Run unit tests
-      run: |
-        go version
-        mkdir -p ${{ env.ARTEFACTS_BASE_DIR }}
+      - name: Run unit tests
+        run: |
+          go version
+          mkdir -p ${{ env.ARTEFACTS_BASE_DIR }}
 
-        WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
-        cd ${{ github.workspace }}/cmd/event-writer && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/event-writer-results.xml
-        cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
-        cd ${{ github.workspace }}/cmd/clusters-service && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/clusters-service-results.xml
+          WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
+          cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
+          cd ${{ github.workspace }}/cmd/clusters-service && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/clusters-service-results.xml
 
-        cd ${{ github.workspace }}
-        # Merge all coverage results
-        gocovmerge .coverprofile cmd/event-writer/.coverprofile common/.coverprofile  cmd/clusters-service/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles    
-        # Merge all junit test results
-        jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
-    - name: Store unit test coverage results
-      uses: actions/upload-artifact@v2
-      with:
+          cd ${{ github.workspace }}
+          # Merge all coverage results
+          gocovmerge .coverprofile common/.coverprofile  cmd/clusters-service/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles    
+          # Merge all junit test results
+          jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
+      - name: Store unit test coverage results
+        uses: actions/upload-artifact@v2
+        with:
           name: unit-tests-artifacts
           path: |
             ${{ env.ARTEFACTS_BASE_DIR }}
@@ -76,7 +75,7 @@ jobs:
     with:
       runs-on: ubuntu-latest
       ref: main
-  
+
   acceptance-tests-gitlab-on-prem:
     needs: [build, coverage, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
@@ -92,7 +91,6 @@ jobs:
       cluster_resource_set: true
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: sqlite
       artifacts-base-dir: "/tmp/acceptance-test-gitlab-on-prem"
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"

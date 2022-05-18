@@ -12,17 +12,6 @@ Weave GitOps Enterprise (WGE) is packaged as a Helm chart and currently consists
   Allows for custom Jobs to be executed on newly provisioned CAPI clusters. Most often, this will be used to install CNI which CAPI does not install. Without this controller, newly provisioned clusters would not be ready to be used by end users. Because it also references the CAPI CRD, it requires CAPI tooling to be installed first.
 - [cluster-controller](https://github.com/weaveworks/cluster-controller)
   Defines the CRD for declaring leaf clusters. A leaf cluster is a cluster that the management cluster can query via a kubeconfig. This controller ensures that kubeconfig secrets have been supplied for leaf clusters. Because it also references the CAPI CRD, it requires CAPI tooling to be installed first.
-- event-writer **Soon to be deprecated**
-  
-  Subscribes to a NATS queue and listens for messages sent by the wkp-agent. These messages carry cluster information about leaf clusters which is then written to a file-based SQLite db.
-- wkp-agent **Soon to be deprecated**
-  
-  Agent installed by end users to management cluster and leaf clusters with the purpose of reporting back cluster information to management cluster.
-
-As part of the chart, other dependencies also get installed:
-- NATS **Soon to be deprecated**
-  
-  Agents running on the management cluster or on leaf clusters send events to a NATS queue. event-writer receives these events from the queue and does its thing.
 
 ## One-time setup
 You need a github Personal Access Token to build the service. This token needs at least the `repo` and `read:packages` permissions. If you want to be able to delete the GitOps repo every time you recreate your local Kind cluster, add the `delete_repo` permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1.  You can create a token [here](https://github.com/settings/tokens), and export it as:
@@ -81,7 +70,6 @@ Any change you make to local code will trigger tilt to rebuild and restart the p
 
 - If a change in your local settings results in a ConfigMap update, you will need to restart the `clusters-service` pod in order for the pod to read the updated ConfigMap.
 - Every time you restart `clusters-service` it will generate new self-signed certificates, therefore you will need to reload the UI and accept the new certificate. Check for TLS certificate errors in the `chart-mccp-cluster-service` logs and if necessary re-trigger an update to rebuild it.
-- The `wkp-agent` image tag is currently hard-coded to `v0.8.0-rc.1` and by default Tilt won't build/deploy it. The benefit of that is the ability to easily install it on your local Kind cluster and view CAPI status for any clusters you create.
 
 ### Faster frontend development
 Especially for frontend development, the time it takes for the pod to restart can be annoying. To spin up a local development frontend against your development cluster, run:
@@ -244,33 +232,12 @@ Sometimes it's nice to demo / experiment with the service(s) you're changing loc
 
 ### The `clusters-service`
 
-_Note: the following instructions will use a new local database, you can probably reconcile the internal cluster database with the local one with some fancy fs mounting, tbd..._
-
 To have entitlements, create a cluster and point your `kubectl` to it. It doesn't matter what kind of cluster you create.
 Integration tests have a config located [here](../test/integration/test/kind-config.yaml) for inspiration.
 
 The `clusters-service` requires the presence of a valid entitlement secret for it to work. Make sure an entitlement secret has been added to the cluster and that the `clusters-service` has been configured to look for it using the correct namespace/name. By default, entitlement secrets are named `weave-gitops-enterprise-credentials` and are added to the `flux-system` namespace. If that's not the case, you will need to point the service to the right place by explicitly specifying the relevant environment variables (example below).
 
 An existing entitlement secret that you can use can be found [here](../test/utils/scripts/entitlement-secret.yaml). Alternatively, you can generate your own entitlement secret by using the `wge-credentials` binary.
-
-#### Create a local database (optional):
-
-```bash
-$ (cd cmd/event-writer && go run main.go database create --db-type sqlite --db-uri file:///tmp/wge.db)
-INFO[0000] created all database tables
-
-# inspect db
-$ sqlite3 /tmp/wge.db
-SQLite version 3.28.0 2019-04-15 14:49:49
-Enter ".help" for usage hints.
-
-sqlite> .tables
-alerts                 cluster_statuses       git_commits
-capi_clusters          clusters               node_info
-cluster_info           events                 pull_requests
-cluster_pull_requests  flux_info              workspaces
-sqlite>
-```
 
 #### Port forward the source-controller to access profiles (optional):
 
@@ -306,7 +273,7 @@ export WEAVE_GITOPS_FLUX_BIN_PATH=`which flux`
 SOURCE_CONTROLLER_LOCALHOST=localhost:8080
 
 # Run the server configured using lots of env vars
-DB_URI=/tmp/wge.db CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=flux-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
+CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=flux-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
 ```
 
 You can query the local capi-server:
@@ -518,24 +485,6 @@ helm repo add wkp https://charts.dev.wkp.weave.works/charts-v3 \
 helm repo update && helm search repo wkp --devel --versions | grep e4e540d
 ```
 where `e4e540d` is your commit sha. This will return `wkp/mccp      0.0.17-88-ge4e540d      1.16.0          A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
-
-
-## How to inspect/modify the `sqlite` database of a running cluster
-
-Copy the database to your local machine and inspect using sqlite
-
-```bash
-kubectl cp mccp/mccp-cluster-service-79854d9fcb-bwvp7:/var/database/mccp.db mccp.db
-sqlite mccp.db
-```
-
-Or, we can inspect _and modify_ the database in the cluster with
-
-```bash
-kubectl exec -ti -n mccp mccp-cluster-service-79854d9fcb-bwvp7 -- /bin/sh
-apk add sqlite3
-sqlite /var/database/mccp.db
-```
 
 ## How to make a self-signed cert that works in chrome!
 

@@ -10,7 +10,6 @@ import (
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
-	"gorm.io/gorm"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -19,7 +18,6 @@ import (
 // in RunInProcessGateway.
 type Options struct {
 	Log                          logr.Logger
-	Database                     *gorm.DB
 	KubernetesClient             client.Client
 	DiscoveryClient              discovery.DiscoveryInterface
 	ClustersLibrary              clusters.Library
@@ -35,9 +33,6 @@ type Options struct {
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	EntitlementSecretKey         client.ObjectKey
-	AgentTemplateNatsURL         string
-	AgentTemplateAlertmanagerURL string
-	AgentTemplateTag             string
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
 	OIDC                         OIDCAuthenticationOptions
@@ -52,13 +47,6 @@ type Option func(*Options)
 func WithLog(log logr.Logger) Option {
 	return func(o *Options) {
 		o.Log = log
-	}
-}
-
-// WithDatabase is used to set a database.
-func WithDatabase(database *gorm.DB) Option {
-	return func(o *Options) {
-		o.Database = database
 	}
 }
 
@@ -172,16 +160,6 @@ func WithEntitlementSecretKey(key client.ObjectKey) Option {
 func WithHelmRepositoryCacheDirectory(cacheDir string) Option {
 	return func(o *Options) {
 		o.HelmRepositoryCacheDirectory = cacheDir
-	}
-}
-
-// WithAgentTemplate is used to set the url
-// for template nats and template alert manager
-func WithAgentTemplate(agentTemplateNatsURL, agentTemplateAlertmanagerURL, agentTemplateTag string) Option {
-	return func(o *Options) {
-		o.AgentTemplateNatsURL = agentTemplateNatsURL
-		o.AgentTemplateAlertmanagerURL = agentTemplateAlertmanagerURL
-		o.AgentTemplateTag = agentTemplateTag
 	}
 }
 

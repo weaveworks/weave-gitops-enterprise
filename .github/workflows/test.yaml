@@ -150,7 +150,6 @@ jobs:
       - name: Run integration tests
         run: |
           go version
-          go test -v ./test/integration/test -run TestAgent
 
           cd cmd/clusters-service
           go test -v ./... -tags=integration
@@ -238,7 +237,6 @@ jobs:
       cluster_resource_set: true
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-github"
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
@@ -266,7 +264,6 @@ jobs:
       cluster_resource_set: true
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-gitlab"
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
@@ -296,7 +293,6 @@ jobs:
       cluster_resource_set: true
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-gitlab-on-prem"
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
@@ -332,7 +328,6 @@ jobs:
       cluster_resource_set: true
       management-cluster-kind: kind
       gitops-bin-path: /usr/local/bin/gitops
-      database-type: sqlite
       artifacts-base-dir: "/tmp/acceptance-test-github"
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
@@ -344,4 +339,3 @@ jobs:
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
-

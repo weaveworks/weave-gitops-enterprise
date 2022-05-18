@@ -3,7 +3,6 @@ package test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -22,11 +21,12 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	gitopsv1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
@@ -36,7 +36,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
-	"gorm.io/gorm"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,9 +55,6 @@ import (
 const capiServerPort = "8000"
 const uiURL = "http://localhost:5000"
 const seleniumURL = "http://localhost:4444/wd/hub"
-
-var db *gorm.DB
-var dbURI string
 
 const entitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
 
@@ -97,8 +93,14 @@ func ListenAndServe(ctx context.Context, srv *http.Server) error {
 	return listenError
 }
 
-func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface, db *gorm.DB) error {
-	library := &templates.CRDLibrary{
+func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {
+	templatesLibrary := &templates.CRDLibrary{
+		Log:          logr.Discard(),
+		ClientGetter: kubefakes.NewFakeClientGetter(cl),
+		Namespace:    "default",
+	}
+
+	clustersLibrary := &clusters.CRDLibrary{
 		Log:          logr.Discard(),
 		ClientGetter: kubefakes.NewFakeClientGetter(cl),
 		Namespace:    "default",
@@ -124,10 +126,10 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
 		app.WithCAPIClustersNamespace("default"),
 		app.WithEntitlementSecretKey(client.ObjectKey{Name: "entitlement", Namespace: "default"}),
-		app.WithTemplateLibrary(library),
+		app.WithTemplateLibrary(templatesLibrary),
+		app.WithClustersLibrary(clustersLibrary),
 		app.WithKubernetesClient(cl),
 		app.WithDiscoveryClient(discoveryClient),
-		app.WithDatabase(db),
 		app.WithApplicationsConfig(fakeAppsConfig),
 		app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
@@ -159,18 +161,6 @@ func RunUIServer(ctx context.Context) {
 	if err != nil {
 		log.Println("waiting on cmd:", err)
 	}
-}
-
-func GetDB(t *testing.T) (*gorm.DB, string) {
-	f, err := ioutil.TempFile("", "mccpdb")
-	log.Infof("db at %v", f.Name())
-	dbURI := f.Name()
-	require.NoError(t, err)
-	db, err := utils.OpenDebug(dbURI, false)
-	require.NoError(t, err)
-	err = utils.MigrateTables(db)
-	require.NoError(t, err)
-	return db, dbURI
 }
 
 func waitFor200(ctx context.Context, url string, timeout time.Duration) error {
@@ -207,13 +197,12 @@ func gomegaFail(message string, callerSkip ...int) {
 //
 
 func TestMccpUI(t *testing.T) {
-	db, dbURI = GetDB(t)
-
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		appsv1.AddToScheme,
 		capiv1.AddToScheme,
 		corev1.AddToScheme,
+		gitopsv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	assert.NoError(t, err)
@@ -247,13 +236,13 @@ func TestMccpUI(t *testing.T) {
 	}()
 	wg.Add(1)
 	go func() {
-		err := RunCAPIServer(t, ctx, cl, discoveryClient, db)
+		err := RunCAPIServer(t, ctx, cl, discoveryClient)
 		require.NoError(t, err)
 		wg.Done()
 	}()
 
 	// Test ui is proxying through to cluster-service
-	err = waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
+	err = waitFor200(ctx, uiURL+"/v1/templates", time.Second*30)
 	require.NoError(t, err)
 
 	//
@@ -270,7 +259,7 @@ func TestMccpUI(t *testing.T) {
 	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
 
 	// Load up the acceptance suite suite
-	mccpRunner := acceptancetest.DatabaseGitopsTestRunner{DB: db, Client: cl}
+	mccpRunner := acceptancetest.DatabaseGitopsTestRunner{Client: cl}
 
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
 	acceptancetest.SetDefaultUIURL(uiURL)
