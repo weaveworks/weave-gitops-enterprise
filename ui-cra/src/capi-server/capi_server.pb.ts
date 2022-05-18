@@ -166,7 +166,7 @@ export type Condition = {
 };
 
 export type GitopsCluster = {
-  name: string;
+  name?: string;
   namespace?: string;
   annotations?: { [key: string]: string };
   labels?: { [key: string]: string };
