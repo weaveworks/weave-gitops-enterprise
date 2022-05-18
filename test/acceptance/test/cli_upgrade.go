@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
 	. "github.com/onsi/ginkgo/v2"
@@ -358,24 +359,20 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
 
-				var prUrl string
-				clustersPage := pages.GetClustersPage(webDriver)
-				By("Then I should see cluster appears in the cluster dashboard with the expected status", func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(HaveText("Creation PR"))
-					anchor := clusterInfo.Status.Find("a")
-					Eventually(anchor).Should(BeFound())
-					prUrl, _ = anchor.Attribute("href")
+				By("Then I should see see a toast with a link to the creation PR", func() {
+					// FIXME: uncomment when GitopsCluster is available in the latest enterprise release
+					time.Sleep(10 * time.Second)
+					// gitops := pages.GetGitOps(webDriver)
+					// Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
 
 				var createPRUrl string
-				By("And I should veriyfy the pull request in the cluster config repository", func() {
+				By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
-					Expect(createPRUrl).Should(Equal(prUrl))
+					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
 				By("And the manifests are present in the cluster config repository", func() {
-					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
 					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
