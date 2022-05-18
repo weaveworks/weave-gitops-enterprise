@@ -224,6 +224,27 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "ClustersService"
         ]
@@ -252,6 +273,12 @@
             "name": "policyName",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -1000,6 +1027,9 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
         }
       }
     },
@@ -1075,6 +1105,18 @@
         }
       }
     },
+    "v1Pagination": {
+      "type": "object",
+      "properties": {
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageToken": {
+          "type": "string"
+        }
+      }
+    },
     "v1Parameter": {
       "type": "object",
       "properties": {
@@ -1125,10 +1167,10 @@
         "severity": {
           "type": "string"
         },
-        "controls": {
+        "standards": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/v1PolicyStandard"
           }
         },
         "gitCommit": {
@@ -1144,6 +1186,9 @@
           "$ref": "#/definitions/v1PolicyTargets"
         },
         "createdAt": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -1163,6 +1208,20 @@
         },
         "required": {
           "type": "boolean"
+        }
+      }
+    },
+    "v1PolicyStandard": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
