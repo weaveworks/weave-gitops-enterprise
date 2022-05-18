@@ -516,7 +516,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	mux := http.NewServeMux()
 
 	_, issuerURLerr := url.Parse(args.OIDC.IssuerURL)
-	if issuerURLerr  != nil {
+	if issuerURLerr != nil {
 		return fmt.Errorf("invalid issuer URL: %w", issuerURLerr)
 	}
 
