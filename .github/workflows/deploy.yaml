@@ -40,8 +40,8 @@ jobs:
     - name: Install dependencies
       run: |
         go mod download
-        go get github.com/wadey/gocovmerge
-        go get -u github.com/jstemmer/go-junit-report
+        go install github.com/wadey/gocovmerge@latest
+        go install github.com/jstemmer/go-junit-report@latest
         npm install -g junit-report-merger
     - name: Install goveralls
       env:
