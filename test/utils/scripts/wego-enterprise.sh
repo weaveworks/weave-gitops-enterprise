@@ -10,6 +10,27 @@ fi
 
 set -x 
 
+function get-localhost-ip {
+  local  __resultvar=$1
+  local $interface
+  local locahost_ip
+  for i in {0..10}
+  do
+    if [ "$(uname -s)" == "Linux" ]; then
+      interface=eth$i
+    elif [ "$(uname -s)" == "Darwin" ]; then
+      interface=en$i
+    fi
+    locahost_ip=$(ifconfig $interface | grep -i MASK | awk '{print $2}' | cut -f2 -d: | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+    if [ -z $locahost_ip ]; then
+      continue
+    else          
+      break
+    fi
+  done  
+  eval $__resultvar="'$locahost_ip'"
+}
+
 function setup {
   if [ ${#args[@]} -ne 2 ]
   then
@@ -17,11 +38,7 @@ function setup {
     exit 1
   fi
 
-  if [ "$(uname -s)" == "Linux" ]; then
-      LOCALHOST_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
-    elif [ "$(uname -s)" == "Darwin" ]; then
-      LOCALHOST_IP=$(ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
-    fi
+  get-localhost-ip LOCALHOST_IP
 
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
     WORKER_NAME=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
@@ -195,12 +212,24 @@ function setup {
   # Install RBAC for user authentication
    kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
 
+  # enable cluster resource sets
+  export EXP_CLUSTER_RESOURCE_SET=true
   # Install capi infrastructure provider
-  if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
-    echo "Capi infrastructure provider support is not implemented"
+  if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ]; then
+    aws cloudformation describe-stacks --stack-name wge-capi-cluster-api-provider-aws-sigs-k8s-io --region us-east-1
+    if [ $? -ne 0 ]; then
+      clusterawsadm bootstrap iam create-cloudformation-stack --config aws_bootstrap_config.yaml --region=us-east-1
+    fi
+    export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-as-profile --region=us-east-1)
+    aws ec2 describe-key-pairs --key-name weave-gitops-pesto --region=us-east-1
+    if [ $? -ne 0 ]; then
+      aws ec2 create-key-pair --key-name weave-gitops-pesto --region us-east-1 --output text > ~/.ssh/weave-gitops-pesto.pem
+    fi
+    clusterctl init --infrastructure aws
+  elif [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
+    export GCP_B64ENCODED_CREDENTIALS=$( echo ${GCP_SA_KEY} | base64 | tr -d '\n' )
+    clusterctl init --infrastructure gcp
   else
-    # enable cluster resource sets
-    export EXP_CLUSTER_RESOURCE_SET=true
     clusterctl init --infrastructure docker    
   fi
 
