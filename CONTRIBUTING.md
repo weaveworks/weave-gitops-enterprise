@@ -379,17 +379,11 @@ yarn add ../../weave-gitops/dist
 export WG_VERSION=0.2.4
 
 # 1.update the backend golang code
-cd cmd/clusters-service
 go get -d github.com/weaveworks/weave-gitops@$WG_VERSION
-go mod tidy -compat=1.17
-cd ../..
-go mod tidy -compat=1.17
+go mod tidy
 
 # 2. Update the frontend typescript/javascript code
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
-
-# 3. Update the crds by copying all the files across to `./charts/mccp/crds`
-open "https://github.com/weaveworks/weave-gitops/tree/v${WG_VERSION}/manifests/crds"
 ```
 
 ## Demo clusters
