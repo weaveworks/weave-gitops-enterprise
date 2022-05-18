@@ -65,8 +65,6 @@ spec:
                   name: mccp-db-credentials
                   key: password
             {{- end }}
-            - name: WEAVE_GITOPS_AUTH_ENABLED
-              value: "true"
             {{- if .Values.config.oidc.enabled }}
             - name: OIDC_CLIENT_ID
               valueFrom:
