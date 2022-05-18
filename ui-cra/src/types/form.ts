@@ -1,10 +1,10 @@
 import React from 'react';
-import { Cluster } from './kubernetes';
+import { GitopsCluster } from '../cluster-services/cluster_services.pb';
 
 export interface FormState {
   activeIndex: number;
   numberOfItems: number;
-  cluster: Cluster;
+  cluster: GitopsCluster;
   error: string;
 }
 
