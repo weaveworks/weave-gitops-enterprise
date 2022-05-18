@@ -41,7 +41,7 @@ jobs:
       run: |
         go mod download
         go install github.com/wadey/gocovmerge@latest
-        go install -u github.com/jstemmer/go-junit-report@latest
+        go install github.com/jstemmer/go-junit-report@latest
         npm install -g junit-report-merger
     - name: Install goveralls
       env:
