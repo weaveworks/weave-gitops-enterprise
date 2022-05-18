@@ -32,30 +32,22 @@ type Library interface {
 }
 
 type ConfigMapLibrary struct {
-	Log                     logr.Logger
-	Client                  client.Client
-	ConfigMapName           string
-	CAPINamespace           string
-	GitOpsTemplateNamespace string
+	Log           logr.Logger
+	Client        client.Client
+	ConfigMapName string
+	CAPINamespace string
 }
 
 func (lib *ConfigMapLibrary) List(ctx context.Context, templateKind string) (map[string]*templates.Template, error) {
-	var namespace string
-	switch templateKind {
-	case capiv1.Kind:
-		namespace = lib.CAPINamespace
-	case gapiv1.Kind:
-		namespace = lib.GitOpsTemplateNamespace
-	}
-	lib.Log.Info("Querying Kubernetes for configmap", "namespace", namespace, "configmapName", lib.ConfigMapName, "kind", templateKind)
+	lib.Log.Info("Querying Kubernetes for configmap", "namespace", lib.CAPINamespace, "configmapName", lib.ConfigMapName, "kind", templateKind)
 
 	templateConfigMap := &v1.ConfigMap{}
 	err := lib.Client.Get(ctx, client.ObjectKey{
-		Namespace: namespace,
+		Namespace: lib.CAPINamespace,
 		Name:      lib.ConfigMapName,
 	}, templateConfigMap)
 	if errors.IsNotFound(err) {
-		return nil, fmt.Errorf("configmap %s not found in %s namespace: %w", lib.ConfigMapName, namespace, err)
+		return nil, fmt.Errorf("configmap %s not found in %s namespace: %w", lib.ConfigMapName, lib.CAPINamespace, err)
 	} else if err != nil {
 		return nil, fmt.Errorf("error getting configmap: %w", err)
 	}
@@ -86,23 +78,15 @@ func (lib *ConfigMapLibrary) Get(ctx context.Context, name, templateKind string)
 		}
 	}
 	if t == nil {
-		var namespace string
-		switch templateKind {
-		case capiv1.Kind:
-			namespace = lib.CAPINamespace
-		case gapiv1.Kind:
-			namespace = lib.GitOpsTemplateNamespace
-		}
-		return nil, fmt.Errorf("terraform template %s not found in configmap %s/%s", name, namespace, lib.ConfigMapName)
+		return nil, fmt.Errorf("terraform template %s not found in configmap %s/%s", name, lib.CAPINamespace, lib.ConfigMapName)
 	}
 	return t, nil
 }
 
 type CRDLibrary struct {
-	Log                     logr.Logger
-	ClientGetter            kube.ClientGetter
-	CAPINamespace           string
-	GitOpsTemplateNamespace string
+	Log           logr.Logger
+	ClientGetter  kube.ClientGetter
+	CAPINamespace string
 }
 
 func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (*templates.Template, error) {
@@ -131,12 +115,12 @@ func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (*tem
 		var t gapiv1.GitOpsTemplate
 		lib.Log.Info("Getting gitops template", "template", name)
 		err = cl.Get(ctx, client.ObjectKey{
-			Namespace: lib.GitOpsTemplateNamespace,
+			Namespace: lib.CAPINamespace,
 			Name:      name,
 		}, &t)
 		if err != nil {
 			lib.Log.Error(err, "Failed to get gitops template", "template", name)
-			return nil, fmt.Errorf("error getting gitops template %s/%s: %w", lib.GitOpsTemplateNamespace, name, err)
+			return nil, fmt.Errorf("error getting gitops template %s/%s: %w", lib.CAPINamespace, name, err)
 		}
 		lib.Log.Info("Got gitops template", "template", name)
 		result = &t.Template
@@ -166,9 +150,9 @@ func (lib *CRDLibrary) List(ctx context.Context, templateKind string) (map[strin
 			result[ct.ObjectMeta.Name] = &capiTemplateList.Items[i].Template
 		}
 	case gapiv1.Kind:
-		lib.Log.Info("Querying namespace for GitOpsTemplate resources", "namespace", lib.GitOpsTemplateNamespace)
+		lib.Log.Info("Querying namespace for GitOpsTemplate resources", "namespace", lib.CAPINamespace)
 		list := gapiv1.GitOpsTemplateList{}
-		err = cl.List(ctx, &list, client.InNamespace(lib.GitOpsTemplateNamespace))
+		err = cl.List(ctx, &list, client.InNamespace(lib.CAPINamespace))
 		if err != nil {
 			return nil, fmt.Errorf("error getting gitops templates: %w", err)
 		}

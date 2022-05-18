@@ -14,11 +14,11 @@ import (
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
-func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_proto.CreateTfControllerPullRequestRequest) (*capiv1_proto.CreateTfControllerPullRequestResponse, error) {
+func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.CreateTfControllerPullRequestRequest) (*proto.CreateTfControllerPullRequestResponse, error) {
 	gp, err := getGitProvider(ctx)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
@@ -26,22 +26,22 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 
 	if err := validateCreateTfControllerPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
-		return nil, err
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "validation error: %s", err.Error())
 	}
 
 	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, gapiv1.Kind)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
+		return nil, grpcStatus.Errorf(codes.Internal, "unable to get template %q: %s", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("cluster-templates-namespace"), msg.ParameterValues)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-templates-namespace"), msg.ParameterValues)
 	if err != nil {
-		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to render template with parameter values: %s", err)
 	}
 
 	err = templates.ValidateRenderedTemplates(tmplWithValues)
 	if err != nil {
-		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
+		return nil, grpcStatus.Errorf(codes.Internal, "validation error rendering template %v, %s", msg.TemplateName, err)
 	}
 
 	client, err := s.clientGetter.Client(ctx)
@@ -57,15 +57,8 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 	// FIXME: parse and read from Cluster in yaml template
 	templateName, ok := msg.ParameterValues["RESOURCE_NAME"]
 	if !ok {
-		return nil, fmt.Errorf("unable to find 'RESOURCE_NAME' parameter in supplied values")
+		return nil, grpcStatus.Errorf(codes.Internal, "unable to find 'RESOURCE_NAME' parameter in supplied values")
 	}
-	//// FIXME: parse and read from Cluster in yaml template
-	//templateNamespace, ok := msg.ParameterValues["NAMESPACE"]
-	//if !ok {
-	//	s.log.Info("Couldn't find NAMESPACE param in request, using 'default'.")
-	//	// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
-	//	templateNamespace = "default"
-	//}
 
 	path := getTfControllerManifestPath(templateName)
 	content := string(tmplWithValuesAndCredentials[:])
@@ -98,7 +91,7 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to access repo %s: %s", repositoryURL, err)
 	}
 
 	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
@@ -115,15 +108,15 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *capiv1_
 	})
 	if err != nil {
 		s.log.Error(err, "Failed to create pull request")
-		return nil, err
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to create pull request %s", err)
 	}
 
-	return &capiv1_proto.CreateTfControllerPullRequestResponse{
+	return &proto.CreateTfControllerPullRequestResponse{
 		WebUrl: res.WebURL,
 	}, nil
 }
 
-func validateCreateTfControllerPR(msg *capiv1_proto.CreateTfControllerPullRequestRequest) error {
+func validateCreateTfControllerPR(msg *proto.CreateTfControllerPullRequestRequest) error {
 	var err error
 
 	if msg.TemplateName == "" {

@@ -99,47 +99,41 @@ func EnterprisePublicRoutes() []string {
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
-	dbURI                                string
-	dbName                               string
-	dbUser                               string
-	dbPassword                           string
-	dbType                               string
-	dbBusyTimeout                        string
-	entitlementSecretName                string
-	entitlementSecretNamespace           string
-	helmRepoNamespace                    string
-	helmRepoName                         string
-	profileCacheLocation                 string
-	watcherMetricsBindAddress            string
-	watcherHealthzBindAddress            string
-	watcherPort                          int
-	AgentTemplateNatsURL                 string
-	AgentTemplateAlertmanagerURL         string
-	AgentTemplateTag                     string
-	htmlRootPath                         string
-	OIDC                                 OIDCAuthenticationOptions
-	gitProviderType                      string
-	gitProviderHostname                  string
-	capiClustersNamespace                string
-	capiTemplatesNamespace               string
-	injectPruneAnnotation                string
-	addBasesKustomization                string
-	capiTemplatesRepositoryUrl           string
-	capiRepositoryPath                   string
-	capiRepositoryClustersPath           string
-	capiTemplatesRepositoryApiUrl        string
-	capiTemplatesRepositoryBaseBranch    string
-	clusterTemplatesNamespace            string
-	clusterTemplatesRepositoryUrl        string
-	clusterRepositoryPath                string
-	clusterRepositoryClustersPath        string
-	clusterTemplatesRepositoryApiUrl     string
-	clusterTemplatesRepositoryBaseBranch string
-	runtimeNamespace                     string
-	gitProviderToken                     string
-	TLSCert                              string
-	TLSKey                               string
-	NoTLS                                bool
+	dbURI                             string
+	dbName                            string
+	dbUser                            string
+	dbPassword                        string
+	dbType                            string
+	dbBusyTimeout                     string
+	entitlementSecretName             string
+	entitlementSecretNamespace        string
+	helmRepoNamespace                 string
+	helmRepoName                      string
+	profileCacheLocation              string
+	watcherMetricsBindAddress         string
+	watcherHealthzBindAddress         string
+	watcherPort                       int
+	AgentTemplateNatsURL              string
+	AgentTemplateAlertmanagerURL      string
+	AgentTemplateTag                  string
+	htmlRootPath                      string
+	OIDC                              OIDCAuthenticationOptions
+	gitProviderType                   string
+	gitProviderHostname               string
+	capiClustersNamespace             string
+	capiTemplatesNamespace            string
+	injectPruneAnnotation             string
+	addBasesKustomization             string
+	capiTemplatesRepositoryUrl        string
+	capiRepositoryPath                string
+	capiRepositoryClustersPath        string
+	capiTemplatesRepositoryApiUrl     string
+	capiTemplatesRepositoryBaseBranch string
+	runtimeNamespace                  string
+	gitProviderToken                  string
+	TLSCert                           string
+	TLSKey                            string
+	NoTLS                             bool
 }
 
 type OIDCAuthenticationOptions struct {
@@ -199,15 +193,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
 	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")
 	cmd.Flags().StringVar(&p.gitProviderToken, "git-provider-token", "", "")
-
-	// cluster-templates flags
-	cmd.Flags().StringVar(&p.clusterTemplatesNamespace, "cluster-templates-namespace", "", "")
-	cmd.Flags().StringVar(&p.clusterTemplatesRepositoryUrl, "cluster-templates-repository-url", "", "")
-	cmd.Flags().StringVar(&p.clusterRepositoryPath, "cluster-templates-repository-path", "", "")
-	cmd.Flags().StringVar(&p.clusterRepositoryClustersPath, "cluster-templates-repository-clusters-path", "./cluster-templates", "")
-	cmd.Flags().StringVar(&p.clusterTemplatesRepositoryApiUrl, "cluster-templates-repository-api-url", "", "")
-	cmd.Flags().StringVar(&p.clusterTemplatesRepositoryBaseBranch, "cluster-templates-repository-base-branch", "", "")
-
 	cmd.Flags().StringVar(&p.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&p.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
@@ -423,10 +408,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			Namespace:    p.capiClustersNamespace,
 		}),
 		WithTemplateLibrary(&templates.CRDLibrary{
-			Log:                     log,
-			ClientGetter:            clientGetter,
-			CAPINamespace:           p.capiTemplatesNamespace,
-			GitOpsTemplateNamespace: p.clusterTemplatesNamespace,
+			Log:           log,
+			ClientGetter:  clientGetter,
+			CAPINamespace: p.capiTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(core_core.NewCoreConfig(

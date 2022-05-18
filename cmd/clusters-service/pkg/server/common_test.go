@@ -56,11 +56,10 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 		logr.Discard(),
 		nil,
 		&templates.ConfigMapLibrary{
-			Log:                     logr.Discard(),
-			Client:                  c,
-			ConfigMapName:           configMapName,
-			CAPINamespace:           namespace,
-			GitOpsTemplateNamespace: namespace,
+			Log:           logr.Discard(),
+			Client:        c,
+			ConfigMapName: configMapName,
+			CAPINamespace: namespace,
 		},
 		provider,
 		kubefakes.NewFakeClientGetter(c),
@@ -109,7 +108,7 @@ func makeTemplateConfigMap(name string, s ...string) *corev1.ConfigMap {
 	}
 }
 
-func makeCapiTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
+func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
 	{
