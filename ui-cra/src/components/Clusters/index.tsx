@@ -187,7 +187,7 @@ const MCCP: FC = () => {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const newSelected =
-        clusters.map((cluster: GitopsClusterEnriched) => cluster.name) || [];
+        clusters.map((cluster: GitopsClusterEnriched) => cluster.name || '') || [];
       setSelectedClusters(newSelected);
       return;
     }
@@ -348,7 +348,7 @@ const MCCP: FC = () => {
                       ),
                       value: (c: GitopsClusterEnriched) => (
                         <IndividualCheckbox
-                          checked={selectedClusters.indexOf(c.name) !== -1}
+                          checked={selectedClusters.indexOf(c.name ? c.name : '') !== -1}
                           onChange={handleIndividualClick}
                           name={c.name}
                         />
@@ -367,11 +367,11 @@ const MCCP: FC = () => {
                               onClick={() =>
                                 setOpenCapiStatus((prev: any) => ({
                                   ...prev,
-                                  [c.name]: !prev[c.name],
+                                  [c.name ? c.name : '']: !prev[c.name ? c.name : ''],
                                 }))
                               }
                             >
-                              {openCapiStatus[c.name] ? (
+                              {openCapiStatus[c.name ? c.name : ''] ? (
                                 <KeyboardArrowUpIcon />
                               ) : (
                                 <KeyboardArrowDownIcon />
@@ -380,12 +380,12 @@ const MCCP: FC = () => {
                             {c.name}
                           </>
                           <Collapse
-                            in={openCapiStatus[c.name]}
+                            in={openCapiStatus[c.name ? c.name : '']}
                             timeout="auto"
                             unmountOnExit
                           >
                             <CAPIClusterStatus
-                              clusterName={c.name}
+                              clusterName={c.name ? c.name : ''}
                               status={c.capiCluster?.status}
                             />
                           </Collapse>
