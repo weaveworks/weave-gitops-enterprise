@@ -77,10 +77,10 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	}
 
 	if msg.RefType != "" {
-		if msg.RefType != capiClusterRef && msg.RefType != secretRef {
-			return nil, fmt.Errorf("reference type %q is not recognised", msg.RefType)
+		clusters, err = filterClustersByType(clusters, msg.RefType)
+		if err != nil {
+			return nil, err
 		}
-		clusters = filterClustersByType(clusters, msg.RefType)
 	}
 
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
@@ -706,17 +706,23 @@ func filterClustersByLabel(cl []*capiv1_proto.GitopsCluster, label string) []*ca
 	return clusters
 }
 
-func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) []*capiv1_proto.GitopsCluster {
+func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*capiv1_proto.GitopsCluster, error) {
 	clusters := []*capiv1_proto.GitopsCluster{}
 
 	for _, c := range cl {
-		if refType == capiClusterRef && c.CapiClusterRef != nil {
-			clusters = append(clusters, c)
-		}
-		if refType == secretRef && c.SecretRef != nil {
-			clusters = append(clusters, c)
+		switch refType {
+		case capiClusterRef:
+			if c.CapiClusterRef != nil {
+				clusters = append(clusters, c)
+			}
+		case secretRef:
+			if c.SecretRef != nil {
+				clusters = append(clusters, c)
+			}
+		default:
+			return nil, fmt.Errorf("reference type %q is not recognised", refType)
 		}
 	}
 
-	return clusters
+	return clusters, nil
 }
