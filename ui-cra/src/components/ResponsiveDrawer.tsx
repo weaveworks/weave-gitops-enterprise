@@ -23,7 +23,7 @@ import {
   OAuthCallback,
   SignIn,
   V2Routes,
-  useFeatureFlags,
+  // useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
@@ -341,13 +341,13 @@ const App = () => {
 };
 
 const ResponsiveDrawer = () => {
-  const flags = useFeatureFlags();
+  // const flags = useFeatureFlags();
 
   // FIXME: hack for "isLoading"
-  const flagsIsLoading = _.isEmpty(flags);
-  if (flagsIsLoading) {
-    return null;
-  }
+  // const flagsIsLoading = _.isEmpty(flags);
+  // if (flagsIsLoading) {
+  //   return null;
+  // }
 
   return (
     <AuthContextProvider>

@@ -4,7 +4,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyViolationsTable } from './Table';
-import { PolicyService } from '../Policies/PolicyService';
+// import { PolicyService } from '../Policies/PolicyService';
 import { useCallback, useContext, useState } from 'react';
 import { ListPolicyValidationsResponse } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
@@ -30,7 +30,7 @@ const PoliciesViolations = () => {
       });
     // TODO : Add pagination support for policy violations list API
     // Debendency: payload
-  }, []);
+  }, [api]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
