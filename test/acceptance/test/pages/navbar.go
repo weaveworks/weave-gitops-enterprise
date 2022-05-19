@@ -13,7 +13,6 @@ type NavbarwebDriver struct {
 	Title        *agouti.Selection
 	Clusters     *agouti.Selection
 	Templates    *agouti.Selection
-	Alerts       *agouti.Selection
 	Applications *agouti.Selection
 }
 
@@ -23,7 +22,6 @@ func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 		Title:        webDriver.Find(`nav a[title="Home"]`),
 		Clusters:     webDriver.Find(`nav a[href="/clusters"]`),
 		Templates:    webDriver.Find(`nav a[href="/clusters/templates"]`),
-		Alerts:       webDriver.Find(`nav a[href="/clusters/alerts"]`),
 		Applications: webDriver.Find(`nav a[href="/applications"]`),
 	}
 
@@ -40,8 +38,6 @@ func NavigateToPage(webDriver *agouti.Page, page string) {
 			Eventually(navbarPage.Clusters.Click).Should(Succeed())
 		case "Templates":
 			Eventually(navbarPage.Templates.Click).Should(Succeed())
-		case "Alerts":
-			Eventually(navbarPage.Alerts.Click).Should(Succeed())
 		case "Applications":
 			Eventually(navbarPage.Applications.Click).Should(Succeed())
 		}

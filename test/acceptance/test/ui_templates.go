@@ -508,6 +508,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
 				k8Version := "1.22.0"
+				controlPlaneMachineCount := "3"
+				workerMachineCount := "3"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.GitopsCluster"] = []TemplateField{
@@ -524,9 +526,21 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "",
+						Option: controlPlaneMachineCount,
+					},
+					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
 						Option: k8Version,
+					},
+				}
+				paramSection["8.MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  workerMachineCount,
+						Option: "",
 					},
 				}
 
@@ -566,11 +580,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				var prUrl string
-				clustersPage := pages.GetClustersPage(webDriver)
-				By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText("Creation PR"))
-					anchor := clusterInfo.Status.Find("a")
+				gitops := pages.GetGitOps(webDriver)
+				By("Then I should see see a toast with a link to the creation PR", func() {
+					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+					anchor := gitops.PRLinkBar.Find("a")
 					Eventually(anchor).Should(BeFound())
 					prUrl, _ = anchor.Attribute("href")
 				})
@@ -622,6 +635,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				clusterName := "quick-capd-cluster2"
 				namespace := "quick-capi"
 				k8Version := "1.22.0"
+				controlPlaneMachineCount := "2"
+				workerMachineCount := "2"
 
 				paramSection := make(map[string][]TemplateField)
 				paramSection["1.GitopsCluster"] = []TemplateField{
@@ -638,9 +653,21 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "",
+						Option: controlPlaneMachineCount,
+					},
+					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
 						Option: k8Version,
+					},
+				}
+				paramSection["8.MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  workerMachineCount,
+						Option: "",
 					},
 				}
 
@@ -824,7 +851,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, paramSection)
 
 				By("Then I should see PR preview containing identity reference added in the template", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					Eventually(createPage.PreviewPR.Click).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
@@ -960,13 +987,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 
 				logger.Info("Connecting cluster to itself")
-				leaf := LeafSpec{
-					Status:          "Ready",
-					IsWKP:           false,
-					AlertManagerURL: "",
-					KubeconfigPath:  "",
-				}
-				connectACluster(webDriver, gitopsTestRunner, leaf)
 			})
 
 			JustAfterEach(func() {
@@ -1125,9 +1145,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				clustersPage := pages.GetClustersPage(webDriver)
-				By("Then I should see cluster appears in the cluster dashboard with 'Creation PR' status", func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(HaveText("Creation PR"))
+
+				By("Then I should see see a toast with a link to the creation PR", func() {
+					gitops := pages.GetGitOps(webDriver)
+					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
 
 				By("Then I should merge the pull request to start cluster provisioning", func() {
@@ -1143,7 +1164,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText("Cluster found"))
+					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(BeFound())
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
@@ -1187,9 +1208,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
 				})
 
-				By(fmt.Sprintf("Then I should see the '%s' cluster status changes to Deletion PR", clusterName), func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(HaveText("Deletion PR"))
+				By("Then I should see see a toast with a link to the deletion PR", func() {
+					gitops := pages.GetGitOps(webDriver)
+					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
 
 				var deletePRUrl string

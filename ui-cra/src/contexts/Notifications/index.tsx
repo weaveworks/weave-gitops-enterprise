@@ -1,7 +1,7 @@
 import { createContext, Dispatch, useContext } from 'react';
 
 export interface NotificationData {
-  message: string;
+  message: { text?: string; component?: JSX.Element };
   variant: 'success' | 'danger';
 }
 

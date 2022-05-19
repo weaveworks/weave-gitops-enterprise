@@ -1,10 +1,10 @@
 import React from 'react';
-import { Cluster } from './kubernetes';
+import { GitopsCluster } from '../capi-server/capi_server.pb';
 
 export interface FormState {
   activeIndex: number;
   numberOfItems: number;
-  cluster: Cluster;
+  cluster: GitopsCluster;
   error: string;
 }
 

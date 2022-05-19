@@ -28,7 +28,9 @@ const TemplatesProvider: FC = ({ children }) => {
       })
         .then(data => setPRPreview(data.renderedTemplate))
         .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
+          setNotifications([
+            { message: { text: err.message }, variant: 'danger' },
+          ]),
         )
         .finally(() => setLoading(false));
     },
@@ -50,7 +52,9 @@ const TemplatesProvider: FC = ({ children }) => {
     })
       .then(res => setTemplates(res.templates))
       .catch(err =>
-        setNotifications([{ message: err.message, variant: 'danger' }]),
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
       )
       .finally(() => setLoading(false));
   }, [setNotifications]);

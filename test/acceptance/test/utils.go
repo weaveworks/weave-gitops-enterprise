@@ -72,7 +72,7 @@ var seededRand *rand.Rand = rand.New(
 
 // Describes all the UI acceptance tests
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
-	DescribeClusters(gitopsTestRunner)
+	// DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
 }
 
@@ -119,14 +119,6 @@ func getCheckoutRepoPath() string {
 	Expect(len(repoDir)).Should(Equal(2))
 
 	return repoDir[1]
-}
-
-func enterpriseChartVersion() string {
-	version := GetEnv("ENTERPRISE_CHART_VERSION", "")
-	if version == "" {
-		version, _ = runCommandAndReturnStringOutput(`git describe --always --abbrev=7 | sed 's/^[^0-9]*//'`)
-	}
-	return version
 }
 
 func SetupTestEnvironment() {
