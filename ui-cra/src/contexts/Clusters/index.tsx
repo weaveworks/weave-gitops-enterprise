@@ -1,10 +1,5 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { GitopsCluster } from '../../capi-server/capi_server.pb';
-
-export interface GitopsClusterEnriched extends GitopsCluster {
-  type: string;
-  updatedAt: string;
-}
+import { GitopsClusterEnriched } from '../../types/custom';
 
 export interface DeleteClusterPRRequest {
   clusterNames: string[];

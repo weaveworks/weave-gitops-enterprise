@@ -27,7 +27,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
       - name: Configure git for private modules
         env:
           GITHUB_BUILD_USERNAME: wge-build-bot
@@ -61,7 +61,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
       - name: Configure git for private modules
         env:
           GITHUB_BUILD_USERNAME: wge-build-bot
@@ -119,7 +119,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
       - name: Configure git for private modules
         env:
           GITHUB_BUILD_USERNAME: wge-build-bot
@@ -172,7 +172,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
       - name: Configure git for private modules
         env:
           GITHUB_BUILD_USERNAME: wge-build-bot

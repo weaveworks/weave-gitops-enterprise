@@ -110,7 +110,7 @@ The following sections suggest some common dev workflows.
 
 ### Tooling
 Before you start working on the code, you need to install the following tools:
-* [Go](https://go.dev/dl/) (1.17) for backend development
+* [Go](https://go.dev/dl/) (1.18) for backend development
 * [Node.js](https://nodejs.org/en/download/releases/) (14) for frontend development
 * [kubectl](https://kubernetes.io/docs/tasks/tools/) for interacting with Kubernetes clusters
 * [Helm](https://helm.sh/docs/intro/install/) for working with Helm charts
