@@ -1,10 +1,15 @@
-import React, { FC, Props } from 'react';
+import React from 'react';
 import { EnterpriseClientContext } from './index';
 import { UnAuthrizedInterceptor } from '@weaveworks/weave-gitops';
 import { ClustersService } from '../../capi-server/capi_server.pb';
 
-const EnterpriseClientProvider: FC = ({ api, children }: Props) => {
-  const wrapped = UnAuthrizedInterceptor(ClustersService) as any;
+type Props = {
+  api: typeof ClustersService;
+  children: any;
+};
+
+const EnterpriseClientProvider = ({ api, children }: Props) => {
+  const wrapped = UnAuthrizedInterceptor(api) as any;
   return (
     <EnterpriseClientContext.Provider value={{ api: wrapped }}>
       {children}
