@@ -1193,6 +1193,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
+					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
 
