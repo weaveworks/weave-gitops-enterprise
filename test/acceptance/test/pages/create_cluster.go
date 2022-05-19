@@ -56,6 +56,7 @@ type GitOps struct {
 	GitCredentials *agouti.Selection
 	CreatePR       *agouti.Selection
 	SuccessBar     *agouti.Selection
+	PRLinkBar      *agouti.Selection
 	ErrorBar       *agouti.Selection
 }
 
@@ -158,7 +159,7 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
-	Eventually(webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]`)).Should(BeVisible())
+	Eventually(webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]`), 30*time.Second).Should(BeVisible())
 	return Preview{
 		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
 		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  textarea:first-child`),
@@ -186,6 +187,7 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 		GitCredentials: webDriver.Find(`div.auth-message`),
 		CreatePR:       webDriver.FindByButton(`CREATE PULL REQUEST`),
 		SuccessBar:     webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Success")]/parent::div`),
+		PRLinkBar:      webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "PR created")]/parent::div`),
 		ErrorBar:       webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Error")]/parent::div`),
 	}
 }

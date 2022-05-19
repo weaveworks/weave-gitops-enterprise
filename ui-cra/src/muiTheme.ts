@@ -62,9 +62,6 @@ export const muiTheme = createTheme({
       head: {
         color: weaveTheme.colors.neutral30,
       },
-      root: {
-        borderBottom: 'none',
-      },
     },
     MuiTablePagination: {
       select: {
@@ -132,6 +129,12 @@ export const localEEMuiTheme = createTheme({
       select: {
         ...muiTheme.overrides?.MuiSelect?.select,
         minWidth: '155px',
+      },
+    },
+    MuiCheckbox: {
+      root: {
+        ...muiTheme.overrides?.MuiCheckbox?.root,
+        padding: 0,
       },
     },
   },

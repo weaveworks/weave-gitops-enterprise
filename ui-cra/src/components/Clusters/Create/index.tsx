@@ -223,12 +223,31 @@ const AddCluster: FC = () => {
         },
         getProviderToken(formData.provider as GitProvider),
       )
-        .then(() => {
+        .then(response => {
           setPRPreview(null);
           history.push('/clusters');
+          setNotifications([
+            {
+              message: {
+                component: (
+                  <a
+                    style={{ color: weaveTheme.colors.primary }}
+                    href={response.webUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    PR created successfully.
+                  </a>
+                ),
+              },
+              variant: 'success',
+            },
+          ]);
         })
         .catch(error => {
-          setNotifications([{ message: error.message, variant: 'danger' }]);
+          setNotifications([
+            { message: { text: error.message }, variant: 'danger' },
+          ]);
           if (isUnauthenticated(error.code)) {
             removeToken(formData.provider);
           }

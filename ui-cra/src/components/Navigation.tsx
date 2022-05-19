@@ -98,9 +98,6 @@ export const Navigation: FC = () => {
             Clusters
           </NavItem>
           <NavItem to="/clusters/templates">Templates</NavItem>
-          <NavItem to="/clusters/alerts" exact>
-            Alerts
-          </NavItem>
           <NavItem to="/clusters/violations">Violation Log</NavItem>
         </Box>
         <Box className={classes.section}>
