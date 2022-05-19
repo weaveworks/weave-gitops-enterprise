@@ -57,6 +57,9 @@ import _ from 'lodash';
 import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
+// import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import { ClustersService } from '../capi-server/capi_server.pb';
+import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -352,25 +355,27 @@ const ResponsiveDrawer = () => {
 
   return (
     <AuthContextProvider>
-      <CoreClientContextProvider api={coreClient}>
-        <Switch>
-          <Route
-            component={() => (
-              <SignInWrapper>
-                <SignIn />
-              </SignInWrapper>
-            )}
-            exact={true}
-            path="/sign_in"
-          />
-          <Route path="*">
-            {/* Check we've got a logged in user otherwise redirect back to signin */}
-            <AuthCheck>
-              <App />
-            </AuthCheck>
-          </Route>
-        </Switch>
-      </CoreClientContextProvider>
+      <EnterpriseClientProvider api={ClustersService}>
+        <CoreClientContextProvider api={coreClient}>
+          <Switch>
+            <Route
+              component={() => (
+                <SignInWrapper>
+                  <SignIn />
+                </SignInWrapper>
+              )}
+              exact={true}
+              path="/sign_in"
+            />
+            <Route path="*">
+              {/* Check we've got a logged in user otherwise redirect back to signin */}
+              <AuthCheck>
+                <App />
+              </AuthCheck>
+            </Route>
+          </Switch>
+        </CoreClientContextProvider>
+      </EnterpriseClientProvider>
     </AuthContextProvider>
   );
 };
