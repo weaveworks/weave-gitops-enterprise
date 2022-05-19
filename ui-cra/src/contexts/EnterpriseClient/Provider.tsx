@@ -9,7 +9,7 @@ type Props = {
 };
 
 const EnterpriseClientProvider = ({ api, children }: Props) => {
-  const wrapped = UnAuthrizedInterceptor(api) as any;
+  const wrapped = UnAuthrizedInterceptor(api) as typeof ClustersService;
   return (
     <EnterpriseClientContext.Provider value={{ api: wrapped }}>
       {children}
