@@ -9,8 +9,6 @@ import { useCallback, useContext, useState } from 'react';
 import { ListPoliciesResponse } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
 import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
-// import { CoreClientContext } from '@weaveworks/weave-gitops';
-// import { CoreClientContext } from '@weaveworks/weave-gitops/ui/contexts/CoreClientContext';
 
 const Policies = () => {
   const [count, setCount] = useState<number>(0);
@@ -26,7 +24,7 @@ const Policies = () => {
   // I used callback here because I need to pass the payload to the API call as well as the setter function to update the payload in the state object (payload)
   // I could have used useState and setState but I wanted to keep the code as simple as possible.
   const fetchPoliciesAPI = useCallback(() => {
-    return api.ListPolicies().then((res: ListPoliciesResponse | any) => {
+    return api.ListPolicies({}).then((res: ListPoliciesResponse | any) => {
       // PolicyService.listPolicies({}).then(
       // (res: ListPoliciesResponse | any) => {
       !!res && setCount(res.total);

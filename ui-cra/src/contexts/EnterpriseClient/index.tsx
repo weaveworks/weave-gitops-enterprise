@@ -6,7 +6,7 @@ export type EnterpriseClientContextType = {
 };
 
 export const EnterpriseClientContext =
-  createContext<EnterpriseClientContextType | null>(null);
+  createContext<EnterpriseClientContextType>({ api: ClustersService });
 
 export default () =>
   useContext(EnterpriseClientContext) as EnterpriseClientContextType;
