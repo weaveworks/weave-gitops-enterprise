@@ -53,7 +53,7 @@ export type RenderTemplateResponse = {
 }
 
 export type ListGitopsClustersRequest = {
-  label?: string
+  label?: strin
   refType?: string
 }
 

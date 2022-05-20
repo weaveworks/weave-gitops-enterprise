@@ -1,6 +1,6 @@
 module github.com/weaveworks/weave-gitops-enterprise/common
 
-go 1.17
+go 1.18
 
 require (
 	github.com/cloudevents/sdk-go/v2 v2.3.1
