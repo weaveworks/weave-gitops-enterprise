@@ -45,7 +45,6 @@ func InNamespace(ns string) RenderOptFunc {
 // Render takes template Spec and vars and returns a slice of byte-slices with
 // the bodies of the rendered objects.
 func Render(spec templates.TemplateSpec, vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
-	proc := processor.NewSimpleProcessor()
 	var processed [][]byte
 	for _, v := range spec.ResourceTemplates {
 		b, err := yaml.JSONToYAML(v.RawExtension.Raw)
@@ -53,12 +52,7 @@ func Render(spec templates.TemplateSpec, vars map[string]string, opts ...RenderO
 			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
 		}
 
-		data, err := proc.Process(b, func(n string) (string, error) {
-			if s, ok := vars[n]; ok {
-				return s, nil
-			}
-			return "", fmt.Errorf("variable %s not found", n)
-		})
+		data, err := ProcessTemplate(b, vars)
 		if err != nil {
 			return nil, fmt.Errorf("processing template: %w", err)
 		}
@@ -70,6 +64,24 @@ func Render(spec templates.TemplateSpec, vars map[string]string, opts ...RenderO
 		processed = append(processed, data)
 	}
 	return processed, nil
+}
+
+// ProcessTemplate receives a template and a map of values, and substitutes
+// the template variables with concrete values.
+func ProcessTemplate(template []byte, values map[string]string) ([]byte, error) {
+	proc := processor.NewSimpleProcessor()
+
+	rendered, err := proc.Process([]byte(template), func(n string) (string, error) {
+		if s, ok := values[n]; ok {
+			return s, nil
+		}
+		return "", fmt.Errorf("variable %s not found", n)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to process template values: %w", err)
+	}
+
+	return rendered, nil
 }
 
 func processUnstructured(b []byte, opts ...RenderOptFunc) ([]byte, error) {

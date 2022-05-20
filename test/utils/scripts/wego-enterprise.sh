@@ -215,7 +215,7 @@ function setup {
   # enable cluster resource sets
   export EXP_CLUSTER_RESOURCE_SET=true
   # Install capi infrastructure provider
-  if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ]; then
+  if [ "$CAPI_PROVIDER" == "capa" ]; then
     aws cloudformation describe-stacks --stack-name wge-capi-cluster-api-provider-aws-sigs-k8s-io --region us-east-1
     if [ $? -ne 0 ]; then
       clusterawsadm bootstrap iam create-cloudformation-stack --config aws_bootstrap_config.yaml --region=us-east-1
@@ -226,7 +226,7 @@ function setup {
       aws ec2 create-key-pair --key-name weave-gitops-pesto --region us-east-1 --output text > ~/.ssh/weave-gitops-pesto.pem
     fi
     clusterctl init --infrastructure aws
-  elif [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
+  elif [ "$CAPI_PROVIDER" == "capg" ]; then
     export GCP_B64ENCODED_CREDENTIALS=$( echo ${GCP_SA_KEY} | base64 | tr -d '\n' )
     clusterctl init --infrastructure gcp
   else
@@ -278,8 +278,6 @@ function reset {
   # Delete postgres db 
   kubectl delete deployment postgres
   kubectl delete service postgres
-  # Delete namespaces and their respective resources
-  kubectl delete namespaces wkp-agent
   # Delete flux system from the management cluster
   flux uninstall --silent
   # Delete any orphan resources
@@ -288,11 +286,19 @@ function reset {
   kubectl delete secret my-pat
   kubectl delete ClusterResourceSet --all
   kubectl delete configmap calico-crs-configmap
-  kubectl delete rolebinding read-templates
-  kubectl delete rolebinding clusters-service-secrets-role
+  kubectl delete ClusterRoleBinding clusters-service-impersonator
+  kubectl delete ClusterRole clusters-service-impersonator-role 
   # Delete policy agent
   kubectl delete ValidatingWebhookConfiguration policy-agent
   kubectl delete namespaces policy-system  
+  # Delete capi provider
+  if [ "$CAPI_PROVIDER" == "capa" ]; then
+    clusterctl delete --infrastructure aws
+  elif [ "$CAPI_PROVIDER" == "capg" ]; then
+    clusterctl delete --infrastructure gcp
+  else
+    clusterctl delete --infrastructure docker    
+  fi
 }
 
 function reset_controllers {
