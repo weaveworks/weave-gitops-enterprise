@@ -1,10 +1,5 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
-
-export interface GitopsClusterEnriched extends GitopsCluster {
-  type: string;
-  updatedAt: string;
-}
+import { GitopsClusterEnriched } from '../../types/custom';
 
 export interface DeleteClusterPRRequest {
   clusterNames: string[];

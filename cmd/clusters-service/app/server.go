@@ -74,8 +74,6 @@ import (
 )
 
 const (
-	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
-
 	defaultConfigFilename = "config"
 
 	// Allowed login requests per second
@@ -88,10 +86,6 @@ var (
 	ErrNoClientSecret = errors.New("the OIDC client secret flag (--oidc-client-secret) has not been set")
 	ErrNoRedirectURL  = errors.New("the OIDC redirect URL flag (--oidc-redirect-url) has not been set")
 )
-
-func AuthEnabled() bool {
-	return os.Getenv(AuthEnabledFeatureFlag) == "true"
-}
 
 func EnterprisePublicRoutes() []string {
 	return append(core.PublicRoutes, "/gitops/api/agent.yaml")
@@ -197,13 +191,11 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&p.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
-	if AuthEnabled() {
-		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
-		cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
-		cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
-		cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
-		cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
-	}
+	cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+	cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
+	cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+	cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
+	cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
 	return cmd
 }
@@ -470,7 +462,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.CoreServerConfig.ClientsFactory == nil {
 		return errors.New("clients factory is not set")
 	}
-	if (AuthEnabled() && args.OIDC == OIDCAuthenticationOptions{}) {
+	// TokenDuration at least should be set
+	if (args.OIDC == OIDCAuthenticationOptions{}) {
 		return errors.New("OIDC configuration is not set")
 	}
 
@@ -526,54 +519,52 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := http.NewServeMux()
 
-	if AuthEnabled() {
-		_, err := url.Parse(args.OIDC.IssuerURL)
-		if err != nil {
-			return fmt.Errorf("invalid issuer URL: %w", err)
-		}
-
-		_, err = url.Parse(args.OIDC.RedirectURL)
-		if err != nil {
-			return fmt.Errorf("invalid redirect URL: %w", err)
-		}
-
-		tsv, err := auth.NewHMACTokenSignerVerifier(args.OIDC.TokenDuration)
-		if err != nil {
-			return fmt.Errorf("could not create HMAC token signer: %w", err)
-		}
-
-		authServerConfig, err := auth.NewAuthServerConfig(
-			args.Log,
-			auth.OIDCConfig{
-				IssuerURL:     args.OIDC.IssuerURL,
-				ClientID:      args.OIDC.ClientID,
-				ClientSecret:  args.OIDC.ClientSecret,
-				RedirectURL:   args.OIDC.RedirectURL,
-				TokenDuration: args.OIDC.TokenDuration,
-			},
-			args.KubernetesClient,
-			tsv,
-		)
-		if err != nil {
-			return fmt.Errorf("could not create auth server: %w", err)
-		}
-		srv, err := auth.NewAuthServer(
-			ctx,
-			authServerConfig,
-		)
-		if err != nil {
-			return fmt.Errorf("could not create auth server: %w", err)
-		}
-
-		args.Log.Info("Registering callback route")
-		if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
-			return fmt.Errorf("failed to register auth routes: %w", err)
-		}
-
-		// Secure `/v1` and `/gitops/api` API routes
-		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes())
-		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv, EnterprisePublicRoutes())
+	_, err = url.Parse(args.OIDC.IssuerURL)
+	if err != nil {
+		return fmt.Errorf("invalid issuer URL: %w", err)
 	}
+
+	_, err = url.Parse(args.OIDC.RedirectURL)
+	if err != nil {
+		return fmt.Errorf("invalid redirect URL: %w", err)
+	}
+
+	tsv, err := auth.NewHMACTokenSignerVerifier(args.OIDC.TokenDuration)
+	if err != nil {
+		return fmt.Errorf("could not create HMAC token signer: %w", err)
+	}
+
+	authServerConfig, err := auth.NewAuthServerConfig(
+		args.Log,
+		auth.OIDCConfig{
+			IssuerURL:     args.OIDC.IssuerURL,
+			ClientID:      args.OIDC.ClientID,
+			ClientSecret:  args.OIDC.ClientSecret,
+			RedirectURL:   args.OIDC.RedirectURL,
+			TokenDuration: args.OIDC.TokenDuration,
+		},
+		args.KubernetesClient,
+		tsv,
+	)
+	if err != nil {
+		return fmt.Errorf("could not create auth server: %w", err)
+	}
+	srv, err := auth.NewAuthServer(
+		ctx,
+		authServerConfig,
+	)
+	if err != nil {
+		return fmt.Errorf("could not create auth server: %w", err)
+	}
+
+	args.Log.Info("Registering callback route")
+	if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
+		return fmt.Errorf("failed to register auth routes: %w", err)
+	}
+
+	// Secure `/v1` and `/gitops/api` API routes
+	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes())
+	gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv, EnterprisePublicRoutes())
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)

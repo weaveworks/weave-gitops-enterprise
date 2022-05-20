@@ -45,9 +45,6 @@ import (
 var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
 
 func TestWeaveGitOpsHandlers(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
 	ctx := context.Background()
 	defer ctx.Done()
 
@@ -217,9 +214,6 @@ func createSecret(s string) *corev1.Secret {
 }
 
 func TestNoIssuerURL(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
 	tempDir, err := os.MkdirTemp("", "*")
 	require.NoError(t, err)
 	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
@@ -233,9 +227,6 @@ func TestNoIssuerURL(t *testing.T) {
 }
 
 func TestNoClientID(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
 	tempDir, err := os.MkdirTemp("", "*")
 	require.NoError(t, err)
 	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
@@ -249,9 +240,6 @@ func TestNoClientID(t *testing.T) {
 }
 
 func TestNoClientSecret(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
 	tempDir, err := os.MkdirTemp("", "*")
 	require.NoError(t, err)
 	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
@@ -266,9 +254,6 @@ func TestNoClientSecret(t *testing.T) {
 }
 
 func TestNoRedirectURL(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
 	tempDir, err := os.MkdirTemp("", "*")
 	require.NoError(t, err)
 	defer os.Remove(tempDir)

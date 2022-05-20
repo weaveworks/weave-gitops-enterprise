@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
-import useClusters, { GitopsClusterEnriched } from '../../contexts/Clusters';
+import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
@@ -17,9 +17,9 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  filterConfigForString,
+  // filterConfigForString,
   FilterableTable,
-  filterConfigForStatus,
+  // filterConfigForStatus,
   LoadingPage,
   KubeStatusIndicator,
   SortType,
@@ -34,6 +34,7 @@ import { Checkbox, Collapse, IconButton, withStyles } from '@material-ui/core';
 import { CAPIClusterStatus } from './CAPIClusterStatus';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
+import { GitopsClusterEnriched } from '../../types/custom';
 
 interface Size {
   size?: 'small';
@@ -154,8 +155,8 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   const initialFilterState = {
-    ...filterConfigForString(clusters, 'namespace'),
-    ...filterConfigForStatus(clusters),
+    // ...filterConfigForString(clusters, 'namespace'),
+    // ...filterConfigForStatus(clusters),
   };
 
   useEffect(() => {

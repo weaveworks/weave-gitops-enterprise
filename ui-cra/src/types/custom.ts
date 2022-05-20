@@ -1,3 +1,5 @@
+import { GitopsCluster } from '../cluster-services/cluster_services.pb';
+
 export type Param = {
   name: string;
   description?: string;
@@ -86,4 +88,10 @@ export type ChildrenOccurences = {
 
 export interface CAPICluster {
   status: any;
+}
+
+export interface GitopsClusterEnriched extends GitopsCluster {
+  name: string;
+  type: string;
+  updatedAt: string;
 }

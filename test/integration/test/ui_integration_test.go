@@ -63,6 +63,10 @@ var dbURI string
 
 const entitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
 
+// "super secret password"
+const passwordValue = "super secret password"
+const passwordHash = "$2a$10$m1A6CstgCbYrkNyPA8rF1egTaY2Qg8lpbv3zvyrpp.rcWWhJBIStu"
+
 func AssertRowCellContains(element *agouti.Selection, text string) {
 	Eventually(element).Should(BeFound())
 	Eventually(element, acceptancetest.ASSERTION_1SECOND_TIME_OUT).Should(HaveText(text))
@@ -134,6 +138,11 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
 		app.WithCoreConfig(core_core.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", &clustersmngrfakes.FakeClientsFactory{})),
+		app.WithOIDCConfig(
+			app.OIDCAuthenticationOptions{
+				TokenDuration: time.Hour,
+			},
+		),
 	)
 }
 
@@ -220,7 +229,7 @@ func TestMccpUI(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Add entitlement secret
-	sec := &corev1.Secret{
+	entitlementSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "entitlement",
 			Namespace: "default",
@@ -229,9 +238,21 @@ func TestMccpUI(t *testing.T) {
 		Data: map[string][]byte{"entitlement": []byte(entitlement)},
 	}
 
+	authSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-user-auth",
+			Namespace: "flux-system",
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: map[string][]byte{
+			"username": []byte("wego-admin"),
+			"password": []byte(passwordHash),
+		},
+	}
+
 	cl := fake.NewClientBuilder().
 		WithScheme(scheme).
-		WithRuntimeObjects(sec).
+		WithRuntimeObjects(entitlementSecret, authSecret).
 		Build()
 
 	discoveryClient := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
@@ -254,7 +275,7 @@ func TestMccpUI(t *testing.T) {
 	}()
 
 	// Test ui is proxying through to cluster-service
-	err = waitFor200(ctx, uiURL+"/gitops/api/clusters", time.Second*30)
+	err = waitFor200(ctx, uiURL+"/v1/featureflags", time.Second*30)
 	require.NoError(t, err)
 
 	//
@@ -280,6 +301,13 @@ func TestMccpUI(t *testing.T) {
 	BeforeSuite(func() {
 		acceptancetest.InitializeLogger("ui-integration-tests.log") // Initilaize the global logger and tee Ginkgowriter
 		acceptancetest.InitializeWebdriver(uiURL)                   // Initilize web driver for whole test suite run
+		By("Logging in", func() {
+			acceptancetest.LoginUserFlow(acceptancetest.UserCredentials{
+				UserType:     acceptancetest.ClusterUserLogin,
+				UserName:     acceptancetest.AdminUserName,
+				UserPassword: passwordValue,
+			})
+		})
 	})
 
 	AfterSuite(func() {
