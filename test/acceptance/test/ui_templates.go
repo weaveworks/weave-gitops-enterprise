@@ -1165,6 +1165,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("Then I should see cluster status changes to 'Cluster found'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(BeFound())
+					TakeScreenShot("found-cluster")
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
@@ -1173,7 +1174,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
 
+					i := 1
+					TakeScreenShot(fmt.Sprintf("poll-kubeconfig-%v", i))
 					fileErr := func() error {
+						i += 1
+						TakeScreenShot(fmt.Sprintf("poll-kubeconfig-%v", i))
 						Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
 						_, err := os.Stat(downloadedKubeconfigPath)
 						return err
@@ -1193,6 +1198,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
+					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
 
