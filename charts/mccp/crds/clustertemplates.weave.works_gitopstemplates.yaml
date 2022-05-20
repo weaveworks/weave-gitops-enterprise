@@ -10,8 +10,8 @@ metadata:
 spec:
   group: clustertemplates.weave.works
   names:
-    kind: GitOpsTemplate
-    listKind: GitOpsTemplateList
+    kind: GitopsTemplate
+    listKind: GitopsTemplateList
     plural: gitopstemplates
     singular: gitopstemplate
   scope: Namespaced
@@ -19,7 +19,7 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: GitOpsTemplate is the Schema for the GitOpsTemplates API
+        description: GitopsTemplate is the Schema for the GitopsTemplates API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,7 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: GitOpsTemplateSpec defines the desired state of GitOpsTemplate
+            description: GitopsTemplateSpec defines the desired state of GitopsTemplate
             properties:
               description:
                 type: string
@@ -64,7 +64,7 @@ spec:
                 type: array
             type: object
           status:
-            description: GitOpsTemplateStatus defines the observed state of GitOpsTemplate
+            description: GitopsTemplateStatus defines the observed state of GitopsTemplate
             type: object
         type: object
     served: true

@@ -150,7 +150,7 @@ func (lib *CRDLibrary) List(ctx context.Context, templateKind string) (map[strin
 			result[ct.ObjectMeta.Name] = &capiTemplateList.Items[i].Template
 		}
 	case gapiv1.Kind:
-		lib.Log.Info("Querying namespace for GitOpsTemplate resources", "namespace", lib.CAPINamespace)
+		lib.Log.Info("Querying namespace for GitopsTemplate resources", "namespace", lib.CAPINamespace)
 		list := gapiv1.GitOpsTemplateList{}
 		err = cl.List(ctx, &list, client.InNamespace(lib.CAPINamespace))
 		if err != nil {

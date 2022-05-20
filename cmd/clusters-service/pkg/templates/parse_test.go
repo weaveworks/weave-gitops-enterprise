@@ -150,7 +150,7 @@ func TestParseFileResourceTemplate(t *testing.T) {
 	want := &gapiv1.GitOpsTemplate{
 		Template: templates.Template{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "GitOpsTemplate",
+				Kind:       "GitopsTemplate",
 				APIVersion: "clustertemplates.weave.works/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
