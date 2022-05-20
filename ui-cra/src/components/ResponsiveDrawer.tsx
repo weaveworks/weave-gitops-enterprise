@@ -1,11 +1,9 @@
 import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
-import AlertsProvider from '../contexts/Alerts/Provider';
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
 import { Navigation } from './Navigation';
-import { AlertsDashboard } from './Alerts';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
 import Hidden from '@material-ui/core/Hidden';
@@ -25,7 +23,6 @@ import {
   OAuthCallback,
   SignIn,
   V2Routes,
-  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
@@ -53,8 +50,9 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 import Policies from './Policies';
-import _ from 'lodash';
 import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
+import PoliciesViolations from './PolicyViolations';
+import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -172,7 +170,6 @@ const App = () => {
         NotificationsProvider,
         TemplatesProvider,
         ClustersProvider,
-        AlertsProvider,
         VersionsProvider,
       ]}
     >
@@ -236,7 +233,16 @@ const App = () => {
               exact
               path="/clusters/templates"
             />
-            <Route component={AlertsDashboard} exact path="/clusters/alerts" />
+            <Route
+              component={PoliciesViolations}
+              exact
+              path="/clusters/violations"
+            />
+            <Route
+              component={PolicyViolationDetails}
+              exact
+              path="/clusters/violations/:id"
+            />
             <Route
               component={() => (
                 <CoreWrapper>
@@ -330,14 +336,6 @@ const App = () => {
 };
 
 const ResponsiveDrawer = () => {
-  const flags = useFeatureFlags();
-
-  // FIXME: hack for "isLoading"
-  const flagsIsLoading = _.isEmpty(flags);
-  if (flagsIsLoading) {
-    return null;
-  }
-
   return (
     <AuthContextProvider>
       <CoreClientContextProvider api={coreClient}>

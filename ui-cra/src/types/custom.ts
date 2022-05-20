@@ -1,3 +1,5 @@
+import { GitopsCluster } from '../capi-server/capi_server.pb';
+
 export type Param = {
   name: string;
   description?: string;
@@ -83,3 +85,13 @@ export type ChildrenOccurences = {
   groupVisible: boolean;
   count: number;
 };
+
+export interface CAPICluster {
+  status: any;
+}
+
+export interface GitopsClusterEnriched extends GitopsCluster {
+  name: string;
+  type: string;
+  updatedAt: string;
+}

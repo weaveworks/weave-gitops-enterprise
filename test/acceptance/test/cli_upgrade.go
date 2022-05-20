@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
 	. "github.com/onsi/ginkgo/v2"
@@ -155,7 +156,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.8.0-rc.1"
+				version := "0.8.1-rc.1"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					natsURL := publicIP + ":" + NATS_NODEPORT
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
@@ -236,16 +237,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				// 	testGetCommand("clusters")
 				// })
 
-				By("And I can connect cluster to itself", func() {
-					leaf := LeafSpec{
-						Status:          "Ready",
-						IsWKP:           false,
-						AlertManagerURL: "",
-						KubeconfigPath:  "",
-					}
-					connectACluster(webDriver, gitopsTestRunner, leaf)
-				})
-
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
@@ -270,10 +261,12 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "quick-capd-cluster"
 				namespace := "quick-capi"
-				k8Version := "1.22.0"
+				k8Version := "1.23.3"
+				controlPlaneMachineCount := "3"
+				workerMachineCount := "3"
 
 				paramSection := make(map[string][]TemplateField)
-				paramSection["1.Cluster"] = []TemplateField{
+				paramSection["1.GitopsCluster"] = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -285,11 +278,23 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
+				paramSection["5.KubeadmControlPlane"] = []TemplateField{
+					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "",
+						Option: controlPlaneMachineCount,
+					},
 					{
 						Name:   "KUBERNETES_VERSION",
 						Value:  "",
 						Option: k8Version,
+					},
+				}
+				paramSection["8.MachineDeployment"] = []TemplateField{
+					{
+						Name:   "WORKER_MACHINE_COUNT",
+						Value:  workerMachineCount,
+						Option: "",
 					},
 				}
 
@@ -354,24 +359,20 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
 
-				var prUrl string
-				clustersPage := pages.GetClustersPage(webDriver)
-				By("Then I should see cluster appears in the cluster dashboard with the expected status", func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(HaveText("Creation PR"))
-					anchor := clusterInfo.Status.Find("a")
-					Eventually(anchor).Should(BeFound())
-					prUrl, _ = anchor.Attribute("href")
+				By("Then I should see see a toast with a link to the creation PR", func() {
+					// FIXME: uncomment when GitopsCluster is available in the latest enterprise release
+					time.Sleep(10 * time.Second)
+					// gitops := pages.GetGitOps(webDriver)
+					// Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
 
 				var createPRUrl string
-				By("And I should veriyfy the pull request in the cluster config repository", func() {
+				By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
-					Expect(createPRUrl).Should(Equal(prUrl))
+					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
 				By("And the manifests are present in the cluster config repository", func() {
-					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
 					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")

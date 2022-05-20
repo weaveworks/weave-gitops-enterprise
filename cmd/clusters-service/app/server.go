@@ -72,8 +72,6 @@ import (
 )
 
 const (
-	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
-
 	defaultConfigFilename = "config"
 
 	// Allowed login requests per second
@@ -86,10 +84,6 @@ var (
 	ErrNoClientSecret = errors.New("the OIDC client secret flag (--oidc-client-secret) has not been set")
 	ErrNoRedirectURL  = errors.New("the OIDC redirect URL flag (--oidc-redirect-url) has not been set")
 )
-
-func AuthEnabled() bool {
-	return os.Getenv(AuthEnabledFeatureFlag) == "true"
-}
 
 func EnterprisePublicRoutes() []string {
 	return append(core.PublicRoutes, "/gitops/api/agent.yaml")
@@ -113,6 +107,7 @@ type Params struct {
 	watcherPort                       int
 	AgentTemplateNatsURL              string
 	AgentTemplateAlertmanagerURL      string
+	AgentTemplateTag                  string
 	htmlRootPath                      string
 	OIDC                              OIDCAuthenticationOptions
 	gitProviderType                   string
@@ -175,6 +170,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
 	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.flux-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
+	cmd.Flags().StringVar(&p.AgentTemplateTag, "agent-template-tag", "", "Override the image tag of the agent")
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
@@ -194,13 +190,11 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&p.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
-	if AuthEnabled() {
-		cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
-		cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
-		cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
-		cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
-		cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
-	}
+	cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+	cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
+	cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+	cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
+	cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
 	return cmd
 }
@@ -424,7 +418,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		),
 		WithCAPIClustersNamespace(ns),
 		WithHelmRepositoryCacheDirectory(tempDir),
-		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL),
+		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL, p.AgentTemplateTag),
 		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
 		WithOIDCConfig(p.OIDC),
@@ -465,7 +459,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.CoreServerConfig.ClientsFactory == nil {
 		return errors.New("clients factory is not set")
 	}
-	if (AuthEnabled() && args.OIDC == OIDCAuthenticationOptions{}) {
+	// TokenDuration at least should be set
+	if (args.OIDC == OIDCAuthenticationOptions{}) {
 		return errors.New("OIDC configuration is not set")
 	}
 
@@ -513,7 +508,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
 
-	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.Database)
+	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.AgentTemplateTag, args.Database)
 
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
@@ -521,54 +516,52 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := http.NewServeMux()
 
-	if AuthEnabled() {
-		_, err := url.Parse(args.OIDC.IssuerURL)
-		if err != nil {
-			return fmt.Errorf("invalid issuer URL: %w", err)
-		}
-
-		_, err = url.Parse(args.OIDC.RedirectURL)
-		if err != nil {
-			return fmt.Errorf("invalid redirect URL: %w", err)
-		}
-
-		tsv, err := auth.NewHMACTokenSignerVerifier(args.OIDC.TokenDuration)
-		if err != nil {
-			return fmt.Errorf("could not create HMAC token signer: %w", err)
-		}
-
-		authServerConfig, err := auth.NewAuthServerConfig(
-			args.Log,
-			auth.OIDCConfig{
-				IssuerURL:     args.OIDC.IssuerURL,
-				ClientID:      args.OIDC.ClientID,
-				ClientSecret:  args.OIDC.ClientSecret,
-				RedirectURL:   args.OIDC.RedirectURL,
-				TokenDuration: args.OIDC.TokenDuration,
-			},
-			args.KubernetesClient,
-			tsv,
-		)
-		if err != nil {
-			return fmt.Errorf("could not create auth server: %w", err)
-		}
-		srv, err := auth.NewAuthServer(
-			ctx,
-			authServerConfig,
-		)
-		if err != nil {
-			return fmt.Errorf("could not create auth server: %w", err)
-		}
-
-		args.Log.Info("Registering callback route")
-		if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
-			return fmt.Errorf("failed to register auth routes: %w", err)
-		}
-
-		// Secure `/v1` and `/gitops/api` API routes
-		grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes())
-		gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv, EnterprisePublicRoutes())
+	_, err = url.Parse(args.OIDC.IssuerURL)
+	if err != nil {
+		return fmt.Errorf("invalid issuer URL: %w", err)
 	}
+
+	_, err = url.Parse(args.OIDC.RedirectURL)
+	if err != nil {
+		return fmt.Errorf("invalid redirect URL: %w", err)
+	}
+
+	tsv, err := auth.NewHMACTokenSignerVerifier(args.OIDC.TokenDuration)
+	if err != nil {
+		return fmt.Errorf("could not create HMAC token signer: %w", err)
+	}
+
+	authServerConfig, err := auth.NewAuthServerConfig(
+		args.Log,
+		auth.OIDCConfig{
+			IssuerURL:     args.OIDC.IssuerURL,
+			ClientID:      args.OIDC.ClientID,
+			ClientSecret:  args.OIDC.ClientSecret,
+			RedirectURL:   args.OIDC.RedirectURL,
+			TokenDuration: args.OIDC.TokenDuration,
+		},
+		args.KubernetesClient,
+		tsv,
+	)
+	if err != nil {
+		return fmt.Errorf("could not create auth server: %w", err)
+	}
+	srv, err := auth.NewAuthServer(
+		ctx,
+		authServerConfig,
+	)
+	if err != nil {
+		return fmt.Errorf("could not create auth server: %w", err)
+	}
+
+	args.Log.Info("Registering callback route")
+	if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
+		return fmt.Errorf("failed to register auth routes: %w", err)
+	}
+
+	// Secure `/v1` and `/gitops/api` API routes
+	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes())
+	gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv, EnterprisePublicRoutes())
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
@@ -796,10 +789,10 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	}
 }
 
-func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL string, db *gorm.DB) http.Handler {
+func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL, agentTemplateTag string, db *gorm.DB) http.Handler {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL)).Methods("GET")
+	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL, agentTemplateTag)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
 	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")

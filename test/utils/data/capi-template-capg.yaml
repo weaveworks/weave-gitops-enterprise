@@ -1,0 +1,158 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: capg-template-development-{{.Count}}
+  namespace: default
+spec:
+  description: This is the std. CAPG template {{.Count}}
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+    - name: NAMESPACE
+      description: Namespace to create the cluster in.
+    - name: GCP_REGION
+      description: AWS Region to create cluster
+      options: ["us-central1", "us-east1", "us-west1", "europe-north1", "europe-west1", "europe-west2"]
+    - name: GCP_CONTROL_PLANE_MACHINE_TYPE
+      description: Control plane machine instane type.
+      options: ["n1-standard-1", "n1-standard-2", "n1-standard-4", "n1-standard-8", "n1-standard-16"]
+    - name: CONTROL_PLANE_MACHINE_COUNT
+      description: Number of control planes
+      options: ["1", "2", "3", "4", "5"]
+    - name: GCP_NODE_MACHINE_TYPE
+      description: Node machine instane type.
+      options: ["n1-standard-1", "n1-standard-2", "n1-standard-4", "n1-standard-8", "n1-standard-16"]
+    - name: WORKER_MACHINE_COUNT
+      description: Number of control planes
+      options: ["1", "2", "3", "4", "5", "6", "7"]
+  resourcetemplates:
+    - apiVersion: gitops.weave.works/v1alpha1
+      kind: GitopsCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+        labels:
+          weave.works/capi: bootstrap
+      spec:
+        capiClusterRef:
+          name: "${CLUSTER_NAME}"
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      kind: Cluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+        labels:
+          cni: calico
+      spec:
+        clusterNetwork:
+          pods:
+            cidrBlocks:
+            - 192.168.0.0/16
+        controlPlaneRef:
+          apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+          kind: KubeadmControlPlane
+          name: "${CLUSTER_NAME}-control-plane"
+        infrastructureRef:
+          apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+          kind: GCPCluster
+          name: "${CLUSTER_NAME}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: GCPCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+      spec:
+        network:
+          name: default
+        project: wks-tests
+        region: "${GCP_REGION}"
+    - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+      kind: KubeadmControlPlane
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+        namespace: "${NAMESPACE}"
+      spec:
+        kubeadmConfigSpec:
+          clusterConfiguration:
+            apiServer:
+              extraArgs:
+                cloud-provider: gce
+              timeoutForControlPlane: 20m
+            controllerManager:
+              extraArgs:
+                allocate-node-cidrs: "false"
+                cloud-provider: gce
+          initConfiguration:
+            nodeRegistration:
+              kubeletExtraArgs:
+                cloud-provider: gce
+              name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
+          joinConfiguration:
+            nodeRegistration:
+              kubeletExtraArgs:
+                cloud-provider: gce
+              name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
+        machineTemplate:
+          infrastructureRef:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: GCPMachineTemplate
+            name: "${CLUSTER_NAME}-control-plane"
+        replicas: "${CONTROL_PLANE_MACHINE_COUNT}"
+        version: v1.21.10
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: GCPMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            image: https://www.googleapis.com/compute/v1/projects/wks-tests/global/images/cluster-api-ubuntu-1804-v1-21-10-1652195823
+            instanceType: "${GCP_CONTROL_PLANE_MACHINE_TYPE}"
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      kind: MachineDeployment
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        clusterName: "${CLUSTER_NAME}"
+        replicas: "${WORKER_MACHINE_COUNT}"
+        selector:
+          matchLabels: null
+        template:
+          spec:
+            bootstrap:
+              configRef:
+                apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+                kind: KubeadmConfigTemplate
+                name: "${CLUSTER_NAME}-md-0"
+            clusterName: "${CLUSTER_NAME}"
+            failureDomain: "${GCP_REGION}-a"
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+              kind: GCPMachineTemplate
+              name: "${CLUSTER_NAME}-md-0"
+            version: v1.21.10
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: GCPMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            image: https://www.googleapis.com/compute/v1/projects/wks-tests/global/images/cluster-api-ubuntu-1804-v1-21-10-1652195823
+            instanceType: "${GCP_NODE_MACHINE_TYPE}"
+    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+      kind: KubeadmConfigTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            joinConfiguration:
+              nodeRegistration:
+                kubeletExtraArgs:
+                  cloud-provider: gce
+                name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'

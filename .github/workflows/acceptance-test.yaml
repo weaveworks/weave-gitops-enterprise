@@ -48,6 +48,11 @@ on:
         description: "Type of management cluster e.g. kind, eks or gke"
         required: true
         type: string
+      capi_provider:
+        description: "Capi provider e.g. capd, capa or capg"
+        default: "capd"
+        required: false
+        type: string
       gitops-bin-path:
         description: "Path to gitops binary"
         default: "/usr/local/bin/gitops"
@@ -161,6 +166,7 @@ env:
   MANAGEMENT_CLUSTER_CNAME: weave.gitops.enterprise.com
   UPGRADE_MANAGEMENT_CLUSTER_CNAME: weave.gitops.upgrade.enterprise.com
   MANAGEMENT_CLUSTER_KIND: ${{ inputs.management-cluster-kind }}
+  CAPI_PROVIDER: ${{ inputs.capi_provider }}
   GITOPS_BIN_PATH: ${{ inputs.gitops-bin-path }}
   ACCEPTANCE_TESTS_DATABASE_TYPE: ${{ inputs.database-type }}
   EKS_LEAF_KUBECONFIG: ${{ inputs.eks-leaf-kubeconfig }}
@@ -184,7 +190,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
       - name: Checkout code
         uses: actions/checkout@v3.0.2
         with:

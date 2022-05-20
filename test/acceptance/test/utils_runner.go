@@ -37,7 +37,6 @@ type GitopsTestRunner interface {
 	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
-	AddWorkspace(env []string, clusterName string) error
 	CreateApplyCapitemplates(templateCount int, templateFile string) []string
 	DeleteApplyCapiTemplates(templateFiles []string)
 	CreateIPCredentials(infrastructureProvider string)
@@ -144,19 +143,6 @@ func (b DatabaseGitopsTestRunner) FireAlert(name, severity, message string, fire
 		Severity:     severity,
 		StartsAt:     time.Now().UTC().Add(fireFor * -1),
 		EndsAt:       time.Now().UTC().Add(fireFor),
-	})
-
-	return nil
-}
-
-func (b DatabaseGitopsTestRunner) AddWorkspace(env []string, clusterName string) error {
-	var firstCluster models.Cluster
-	b.DB.Where("Name = ?", clusterName).First(&firstCluster)
-
-	b.DB.Create(&models.Workspace{
-		ClusterToken: firstCluster.Token,
-		Name:         "mccp-devs-workspace",
-		Namespace:    "wkp-workspace",
 	})
 
 	return nil
@@ -316,10 +302,6 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 	return nil
 }
 
-func (b RealGitopsTestRunner) AddWorkspace(env []string, clusterName string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "apply", "-f", "../../utils/data/mccp-workspace.yaml")
-}
-
 // This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability
 func (b RealGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
@@ -362,17 +344,21 @@ func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace st
 func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string) {
 	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
-		By("Install AWSClusterStaticIdentity CRD", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
-		})
+		// CAPA installs the AWS identity crds
+		if capi_provider != "capa" {
+			By("Install AWSClusterStaticIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
 
-		By("Install AWSClusterRoleIdentity CRD", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
-		})
+			By("Install AWSClusterRoleIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
+		}
 
 		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
+			_, _ = runCommandAndReturnStringOutput("kubectl create namespace capa-system")
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 
@@ -393,9 +379,13 @@ func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string)
 	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
 		By("Delete AWS identities and CRD", func() {
+			// Identity crds are installed as part of CAPA installation
 			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/aws_cluster_credentials.yaml", testDataPath))
-			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
-			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+			if capi_provider != "capa" {
+				_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl delete namespace capa-system")
+			}
 		})
 
 	} else if infrastructureProvider == "AZURE" {

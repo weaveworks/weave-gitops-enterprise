@@ -6,51 +6,26 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
-import { createStyles, makeStyles } from '@material-ui/styles';
 import { FC } from 'react';
 import { ColumnHeaderTooltip } from '../../Shared';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import { Policy } from '../../../capi-server/capi_server.pb';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import PolicyRow from './Row';
+import { usePolicyStyle } from '../PolicyStyles';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
   shadows: Array(25).fill('none') as Shadows,
 });
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    headerCell: {
-      color: weaveTheme.colors.neutral30,
-      fontWeight: 700,
-    },
-    paper: {
-      marginBottom: 10,
-      marginTop: 10,
-      overflowX: 'auto',
-      width: '100%',
-    },
-    root: {
-      width: '100%',
-    },
-    table: {
-      whiteSpace: 'nowrap',
-    },
-    tableHead: {
-      borderBottom: `1px solid ${weaveTheme.colors.neutral20}`,
-    },
-  }),
-);
-
 interface Props {
   policies: Policy[] | undefined;
 }
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
-  const classes = useStyles();
+  const classes = usePolicyStyle();
 
   return (
     <div className={`${classes.root}`} id="policies-list">

@@ -1,5 +1,5 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { Cluster } from '../../types/kubernetes';
+import { GitopsClusterEnriched } from '../../types/custom';
 
 export interface DeleteClusterPRRequest {
   clusterNames: string[];
@@ -10,21 +10,16 @@ export interface DeleteClusterPRRequest {
   repositoryUrl?: string;
 }
 interface ClustersContext {
-  clusters: Cluster[] | [];
+  clusters: GitopsClusterEnriched[] | [];
+  isLoading: boolean;
   count: number | null;
-  disabled: boolean;
   loading: boolean;
-  handleRequestSort: (property: string) => void;
-  handleSetPageParams: (page: number, perPage: number) => void;
-  order: string;
-  orderBy: string;
   selectedClusters: string[];
   setSelectedClusters: Dispatch<React.SetStateAction<string[] | []>>;
   deleteCreatedClusters: (
     data: DeleteClusterPRRequest,
     token: string,
   ) => Promise<any>;
-  deleteConnectedClusters: (clusters: number[]) => void;
   getKubeconfig: (clusterName: string, fileName: string) => void;
 }
 

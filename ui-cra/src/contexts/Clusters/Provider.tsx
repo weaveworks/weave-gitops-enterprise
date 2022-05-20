@@ -1,55 +1,26 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
-import { Cluster } from '../../types/kubernetes';
 import { request, requestWithCountHeader } from '../../utils/request';
 import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
+import { GitopsClusterEnriched } from '../../types/custom';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
 const ClustersProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [disabled, setDisabled] = useState<boolean>(false);
-  const [clusters, setClusters] = useState<Cluster[]>([]);
-  const [order, setOrder] = useState<string>('asc');
-  const [orderBy, setOrderBy] = useState<string>('ClusterStatus');
-  const [pageParams, setPageParams] = useState<{
-    page: number;
-    perPage: number;
-  }>({
-    page: 0,
-    perPage: 10,
-  });
+  const [clusters, setClusters] = useState<GitopsClusterEnriched[]>([]);
   const [count, setCount] = useState<number | null>(null);
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
   const { notifications, setNotifications } = useNotifications();
 
-  const handleRequestSort = (property: string) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-    setDisabled(true);
-  };
+  const clustersBaseUrl = '/v1/clusters';
 
-  const handleSetPageParams = (page: number, perPage: number) => {
-    setPageParams({ page, perPage });
-    setDisabled(true);
-  };
-
-  const clustersBaseUrl = '/gitops/api/clusters';
-
-  const fetchClusters = (pageParams: { page: number; perPage: number }) =>
-    requestWithCountHeader(
-      'GET',
-      clustersBaseUrl +
-        `?sortBy=${orderBy}&order=${order.toUpperCase()}&page=${
-          pageParams.page + 1
-        }&per_page=${pageParams.perPage}`,
-      {
-        cache: 'no-store',
-      },
-    ).finally(() => setDisabled(false));
+  const fetchClusters = () =>
+    requestWithCountHeader('GET', clustersBaseUrl, {
+      cache: 'no-store',
+    });
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
@@ -62,26 +33,6 @@ const ClustersProvider: FC = ({ children }) => {
     [],
   );
 
-  const deleteConnectedClusters = useCallback(
-    ({ ...data }) => {
-      setLoading(true);
-      request('DELETE', `/gitops/api/clusters/${[...data.clusters]}`)
-        .then(() =>
-          setNotifications([
-            {
-              message: 'Cluster successfully removed from the MCCP',
-              variant: 'success',
-            },
-          ]),
-        )
-        .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
-        )
-        .finally(() => setLoading(false));
-    },
-    [setNotifications],
-  );
-
   const getKubeconfig = useCallback(
     (clusterName: string, filename: string) => {
       request('GET', `v1/clusters/${clusterName}/kubeconfig`, {
@@ -91,34 +42,36 @@ const ClustersProvider: FC = ({ children }) => {
       })
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
-          setNotifications([{ message: err.message, variant: 'danger' }]),
+          setNotifications([
+            { message: { text: err.message }, variant: 'danger' },
+          ]),
         );
     },
     [setNotifications],
   );
 
-  const { error, data } = useQuery<
-    { data: { clusters: Cluster[] }; total: number },
+  const { error, data, isLoading } = useQuery<
+    { data: { gitopsClusters: GitopsClusterEnriched[]; total: number } },
     Error
-  >(['clusters', pageParams], () => fetchClusters(pageParams), {
+  >('clusters', () => fetchClusters(), {
     keepPreviousData: true,
     refetchInterval: CLUSTERS_POLL_INTERVAL,
   });
 
   useEffect(() => {
     if (data) {
-      setClusters(data.data.clusters);
-      setCount(data.total);
+      setClusters(data.data.gitopsClusters);
+      setCount(data.data.total);
     }
     if (
       error &&
       notifications?.some(
-        notification => error.message === notification.message,
+        notification => error.message === notification.message.text,
       ) === false
     ) {
       setNotifications([
         ...notifications,
-        { message: error.message, variant: 'danger' },
+        { message: { text: error.message }, variant: 'danger' },
       ]);
     }
   }, [data, error, notifications, setNotifications]);
@@ -127,17 +80,12 @@ const ClustersProvider: FC = ({ children }) => {
     <Clusters.Provider
       value={{
         clusters,
-        disabled,
+        isLoading,
         count,
         loading,
-        handleRequestSort,
-        handleSetPageParams,
-        order,
-        orderBy,
         selectedClusters,
         setSelectedClusters,
         deleteCreatedClusters,
-        deleteConnectedClusters,
         getKubeconfig,
       }}
     >
