@@ -55,7 +55,7 @@ var _ = BeforeSuite(func() {
 	InitializeWebdriver(test_ui_url)                        // Initilize web driver for whole test suite run
 
 	By(fmt.Sprintf("Login as a %s user", userCredentials.UserType), func() {
-		loginUser() // Login to the weaveworks enterprise
+		LoginUser() // Login to the weaveworks enterprise
 	})
 
 	CheckClusterService(capi_endpoint_url) // Cluster service should be running before running any test for enterprise

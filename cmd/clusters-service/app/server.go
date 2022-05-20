@@ -459,6 +459,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.CoreServerConfig.ClientsFactory == nil {
 		return errors.New("clients factory is not set")
 	}
+	// TokenDuration at least should be set
 	if (args.OIDC == OIDCAuthenticationOptions{}) {
 		return errors.New("OIDC configuration is not set")
 	}
@@ -515,14 +516,14 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux := http.NewServeMux()
 
-	_, issuerURLerr := url.Parse(args.OIDC.IssuerURL)
-	if issuerURLerr != nil {
-		return fmt.Errorf("invalid issuer URL: %w", issuerURLerr)
+	_, err = url.Parse(args.OIDC.IssuerURL)
+	if err != nil {
+		return fmt.Errorf("invalid issuer URL: %w", err)
 	}
 
-	_, redirectURLerr := url.Parse(args.OIDC.RedirectURL)
-	if redirectURLerr != nil {
-		return fmt.Errorf("invalid redirect URL: %w", redirectURLerr)
+	_, err = url.Parse(args.OIDC.RedirectURL)
+	if err != nil {
+		return fmt.Errorf("invalid redirect URL: %w", err)
 	}
 
 	tsv, err := auth.NewHMACTokenSignerVerifier(args.OIDC.TokenDuration)
