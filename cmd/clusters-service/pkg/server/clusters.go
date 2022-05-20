@@ -544,7 +544,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
 		}
 
-		data, err := capi.ProcessTemplate(decoded, parameterValues)
+		data, err := templates.ProcessTemplate(decoded, parameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
