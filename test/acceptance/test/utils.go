@@ -211,6 +211,7 @@ func InitializeWebdriver(wgeURL string) {
 		}
 
 	} else {
+		logger.Info("Clearing cookies")
 		// Clear localstorage, cookie etc
 		Expect(webDriver.Reset()).To(Succeed())
 	}
