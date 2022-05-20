@@ -91,6 +91,7 @@ jobs:
       git-provider_hostname: gitlab.git.dev.weave.works
       cluster_resource_set: true
       management-cluster-kind: kind
+      capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
       artifacts-base-dir: "/tmp/acceptance-test-gitlab-on-prem"
