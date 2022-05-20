@@ -23,7 +23,6 @@ import {
   OAuthCallback,
   SignIn,
   V2Routes,
-  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
@@ -51,7 +50,6 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 import Policies from './Policies';
-import _ from 'lodash';
 import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
@@ -338,14 +336,6 @@ const App = () => {
 };
 
 const ResponsiveDrawer = () => {
-  const flags = useFeatureFlags();
-
-  // FIXME: hack for "isLoading"
-  const flagsIsLoading = _.isEmpty(flags);
-  if (flagsIsLoading) {
-    return null;
-  }
-
   return (
     <AuthContextProvider>
       <CoreClientContextProvider api={coreClient}>
