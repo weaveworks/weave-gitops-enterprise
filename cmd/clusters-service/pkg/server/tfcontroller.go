@@ -68,11 +68,11 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		},
 	}
 
-	repositoryURL := viper.GetString("tfcontroller-templates-repository-url")
+	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
 		repositoryURL = msg.RepositoryUrl
 	}
-	baseBranch := viper.GetString("tfcontroller-templates-repository-base-branch")
+	baseBranch := viper.GetString("capi-templates-repository-base-branch")
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
 	}
@@ -130,7 +130,7 @@ func validateCreateTfControllerPR(msg *proto.CreateTfControllerPullRequestReques
 
 func getTfControllerManifestPath(templateName string) string {
 	return filepath.Join(
-		viper.GetString("tfcontroller-repository-path"),
+		viper.GetString("capi-repository-path"),
 		fmt.Sprintf("%s.yaml", templateName),
 	)
 }
