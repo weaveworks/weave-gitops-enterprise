@@ -37,6 +37,7 @@ jobs:
       git-provider_hostname: github.com
       cluster_resource_set: false
       management-cluster-kind: eks
+      capi_provider: capa
       gitops-bin-path: /usr/local/bin/gitops
       database-type: postgres
       eks-leaf-kubeconfig: "/tmp/eks-leaf-kubeconfig"
@@ -75,6 +76,7 @@ jobs:
       git-provider_hostname: gitlab.com
       cluster_resource_set: false
       management-cluster-kind: gke
+      capi_provider: capg
       gitops-bin-path: /usr/local/bin/gitops
       database-type: postgres
       gce-leaf-kubeconfig: "/tmp/gce-leaf-kubeconfig"
