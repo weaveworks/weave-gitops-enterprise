@@ -9,7 +9,6 @@ import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import {
   theme,
   applicationsClient,
-  FeatureFlagsContextProvider,
   AppContextProvider,
 } from '@weaveworks/weave-gitops';
 import ProximaNova from './fonts/proximanova-regular.woff';
@@ -70,9 +69,7 @@ const App: FC = () => {
           <BrowserRouter basename={process.env.PUBLIC_URL}>
             <GlobalStyle />
             <AppContextProvider applicationsClient={applicationsClient}>
-              <FeatureFlagsContextProvider>
-                <ResponsiveDrawer />
-              </FeatureFlagsContextProvider>
+              <ResponsiveDrawer />
             </AppContextProvider>
           </BrowserRouter>
         </QueryClientProvider>
