@@ -2,7 +2,6 @@ package clusters
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -11,13 +10,11 @@ import (
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"gotest.tools/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
 func TestGetClusterFromCRDs(t *testing.T) {
@@ -69,59 +66,6 @@ func TestListClusterFromCRDs(t *testing.T) {
 	}
 	if diff := cmp.Diff(want, result); diff != "" {
 		t.Fatalf("On no, diff clusters: %v", diff)
-	}
-}
-
-func TestListClusterFromCRDs_Pagination(t *testing.T) {
-	testEnv := &envtest.Environment{}
-	testEnv.ControlPlane.GetAPIServer().Configure().Append("--authorization-mode=RBAC")
-	testCfg, err := testEnv.Start()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		corev1.AddToScheme,
-		capiv1.AddToScheme,
-		gitopsv1alpha1.AddToScheme,
-	}
-	err = schemeBuilder.AddToScheme(scheme)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cl, err := client.New(testCfg, client.Options{Scheme: scheme})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for i := 1; i <= 25; i++ {
-		c1 := makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
-			o.ObjectMeta.Name = fmt.Sprintf("gitops-cluster-%d", i)
-			o.ObjectMeta.Namespace = "default"
-			o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
-				Name: "dev",
-			}
-		})
-		if err := cl.Create(context.TODO(), c1); err != nil {
-			t.Fatalf("failed to write cluster: %s", err)
-		}
-	}
-
-	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(cl)}
-	opts := client.ListOptions{
-		Limit: 10,
-	}
-	result, _, err := lib.List(context.Background(), opts)
-	if err != nil {
-		t.Fatalf("On no, error: %v", err)
-	}
-	assert.Equal(t, 10, len(result))
-
-	err = testEnv.Stop()
-	if err != nil {
-		t.Fatal(err)
 	}
 }
 
