@@ -182,6 +182,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			clusterName,
 			client,
 			msg.Values,
+			msg.ParameterValues,
 		)
 		if err != nil {
 			return nil, err
@@ -497,7 +498,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues, parameterValues map[string]string) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Name:      helmRepoName,
@@ -543,7 +544,17 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			}
 		}
 
-		parsed, err := parseValues(v.Values)
+		decoded, err := base64.StdEncoding.DecodeString(v.Values)
+		if err != nil {
+			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+		}
+
+		data, err := capi.ProcessTemplate(decoded, parameterValues)
+		if err != nil {
+			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+		}
+
+		parsed, err := parseValues(data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -663,14 +674,9 @@ func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev
 	return version, nil
 }
 
-func parseValues(s string) (map[string]interface{}, error) {
-	decoded, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
-	}
-
+func parseValues(v []byte) (map[string]interface{}, error) {
 	vals := map[string]interface{}{}
-	if err := yaml.Unmarshal(decoded, &vals); err != nil {
+	if err := yaml.Unmarshal(v, &vals); err != nil {
 		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
 	}
 	return vals, nil
