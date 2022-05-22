@@ -23,7 +23,6 @@ import {
   OAuthCallback,
   SignIn,
   V2Routes,
-  // useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
@@ -340,14 +339,6 @@ const App = () => {
 };
 
 const ResponsiveDrawer = () => {
-  // const flags = useFeatureFlags();
-
-  // FIXME: hack for "isLoading"
-  // const flagsIsLoading = _.isEmpty(flags);
-  // if (flagsIsLoading) {
-  //   return null;
-  // }
-
   return (
     <AuthContextProvider>
       <EnterpriseClientProvider api={ClustersService}>

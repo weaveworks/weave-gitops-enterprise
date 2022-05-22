@@ -1,10 +1,6 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import {
-  // useFeatureFlags,
-  theme,
-  UserSettings,
-} from '@weaveworks/weave-gitops';
+import { theme, UserSettings } from '@weaveworks/weave-gitops';
 import { Breadcrumb, Breadcrumbs } from '../Breadcrumbs';
 
 interface Size {
@@ -43,14 +39,21 @@ export const SectionHeader: FC<Props> = ({
   className,
   path,
 }) => {
+<<<<<<< HEAD
   // const flags = useFeatureFlags();
+=======
+>>>>>>> main
   return (
     <Wrapper className={className} size={size}>
       {path ? <Breadcrumbs path={path} /> : null}
       {children}
+<<<<<<< HEAD
       {/* {flags.WEAVE_GITOPS_AUTH_ENABLED ?  */}
       <UserSettings />
       {/* : null */}
+=======
+      <UserSettings />
+>>>>>>> main
     </Wrapper>
   );
 };

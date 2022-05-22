@@ -310,7 +310,7 @@ func TestRender_unknown_parameter(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
 	_, err := Render(parsed.Spec, map[string]string{})
-	assert.EqualError(t, err, "processing template: value for variables [CLUSTER_NAME] is not set. Please set the value using os environment variables or the clusterctl config file")
+	assert.ErrorContains(t, err, "value for variables [CLUSTER_NAME] is not set")
 }
 
 func writeMultiDoc(t *testing.T, objs [][]byte) string {

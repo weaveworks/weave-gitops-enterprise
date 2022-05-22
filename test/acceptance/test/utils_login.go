@@ -38,16 +38,20 @@ func initUserCredentials() UserCredentials {
 }
 
 func loginUser() {
+	LoginUserFlow(userCredentials)
+}
+
+func LoginUserFlow(uc UserCredentials) {
 	loginPage := pages.GetLoginPage(webDriver)
 
 	if pages.ElementExist(loginPage.LoginOIDC, 10) {
 		Eventually(loginPage.LoginOIDC).Should(BeVisible())
 
-		switch userCredentials.UserType {
+		switch uc.UserType {
 		case ClusterUserLogin:
 			// Login via cluster user account
-			Expect(loginPage.Username.SendKeys(userCredentials.UserName)).To(Succeed())
-			Expect(loginPage.Password.SendKeys(userCredentials.UserPassword)).To(Succeed())
+			Expect(loginPage.Username.SendKeys(uc.UserName)).To(Succeed())
+			Expect(loginPage.Password.SendKeys(uc.UserPassword)).To(Succeed())
 			Expect(loginPage.Continue.Click()).To(Succeed())
 		case OidcUserLogin:
 			// Login via OIDC provider
@@ -62,8 +66,8 @@ func loginUser() {
 
 				if pages.ElementExist(authenticate.Username) {
 					Eventually(authenticate.Username).Should(BeVisible())
-					Expect(authenticate.Username.SendKeys(userCredentials.UserName)).To(Succeed())
-					Expect(authenticate.Password.SendKeys(userCredentials.UserPassword)).To(Succeed())
+					Expect(authenticate.Username.SendKeys(uc.UserName)).To(Succeed())
+					Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(Succeed())
 					Expect(authenticate.Signin.Click()).To(Succeed())
 				}
 
@@ -86,8 +90,8 @@ func loginUser() {
 				}
 				if pages.ElementExist(authenticate.Username) {
 					Eventually(authenticate.Username).Should(BeVisible())
-					Expect(authenticate.Username.SendKeys(userCredentials.UserName)).To(Succeed())
-					Expect(authenticate.Password.SendKeys(userCredentials.UserPassword)).To(Succeed())
+					Expect(authenticate.Username.SendKeys(uc.UserName)).To(Succeed())
+					Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(Succeed())
 					Expect(authenticate.Signin.Click()).To(Succeed())
 				}
 				Eventually(dexLogin.GrantAccess.Click).Should(Succeed())
@@ -95,14 +99,14 @@ func loginUser() {
 				Expect(fmt.Errorf("error: Provided oidc issuer '%s' is not supported", gitProviderEnv.Type))
 			}
 		default:
-			Expect(fmt.Errorf("error: Provided login type '%s' is not supported", userCredentials.UserType))
+			Expect(fmt.Errorf("error: Provided login type '%s' is not supported", uc.UserType))
 		}
 
 		Eventually(loginPage.AccountSettings.Click).Should(Succeed())
 		account := pages.GetAccount(webDriver)
 		Eventually(account.User.Click).Should(Succeed())
 	} else {
-		logger.Infof("%s user already logged in", userCredentials.UserType)
+		logger.Infof("%s user already logged in", uc.UserType)
 	}
 }
 
