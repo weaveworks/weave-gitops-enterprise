@@ -4,14 +4,13 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyViolationsTable } from './Table';
-// import { PolicyService } from '../Policies/PolicyService';
 import { useCallback, useContext, useState } from 'react';
 import { ListPolicyValidationsResponse } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
 import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
 
 const PoliciesViolations = () => {
-  const [count, setCount] = useState<number>(0);
+  const [count, setCount] = useState<number | undefined>(0);
   const { api } = useContext(EnterpriseClientContext);
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 20, clusterId:'' });
@@ -20,11 +19,10 @@ const PoliciesViolations = () => {
   // const updatePayload = (payload: any) => {
   //   setPayload(payload);
   // };
-  // PolicyService.listPolicyViolations();
   const fetchPolicyViolationsAPI = useCallback(() => {
     return api
       .ListPolicyValidations({})
-      .then((res: ListPolicyValidationsResponse | any) => {
+      .then((res) => {
         !!res && setCount(res.total);
         return res;
       });
