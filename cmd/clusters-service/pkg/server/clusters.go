@@ -24,7 +24,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	grpcStatus "google.golang.org/grpc/status"
-	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/chartutil"
@@ -36,8 +35,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 var labels = []string{}
@@ -118,13 +115,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if !ok {
 		return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' parameter in supplied values")
 	}
-	// FIXME: parse and read from Cluster in yaml template
-	clusterNamespace, ok := msg.ParameterValues["NAMESPACE"]
-	if !ok {
-		s.log.Info("Couldn't find NAMESPACE param in request, using 'default'.")
-		// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
-		clusterNamespace = "default"
-	}
 
 	content := string(tmplWithValuesAndCredentials[:])
 	path := getClusterManifestPath(clusterName)
@@ -185,64 +175,24 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		files = append(files, *profilesFile)
 	}
 
-	var pullRequestURL string
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		t, err := common_utils.Generate()
-		if err != nil {
-			return fmt.Errorf("error generating token for new cluster: %v", err)
-		}
-
-		c := &models.Cluster{
-			Name:          clusterName,
-			CAPIName:      clusterName,
-			CAPINamespace: clusterNamespace,
-			Token:         t,
-		}
-		if err := tx.Create(c).Error; err != nil {
-			return err
-		}
-
-		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
-		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider:       *gp,
-			RepositoryURL:     repositoryURL,
-			ReposistoryAPIURL: msg.RepositoryApiUrl,
-			HeadBranch:        msg.HeadBranch,
-			BaseBranch:        baseBranch,
-			Title:             msg.Title,
-			Description:       msg.Description,
-			CommitMessage:     msg.CommitMessage,
-			Files:             files,
-		})
-		if err != nil {
-			s.log.Error(err, "Failed to create pull request")
-			return err
-		}
-
-		// Create the PR, this shouldn't fail, but if it does it will rollback the Cluster but not the delete the PR
-		pullRequestURL = res.WebURL
-		pr := &models.PullRequest{
-			URL:  pullRequestURL,
-			Type: "create",
-		}
-		if err := tx.Create(pr).Error; err != nil {
-			return err
-		}
-
-		c.PullRequests = append(c.PullRequests, pr)
-		if err := tx.Save(c).Error; err != nil {
-			return err
-		}
-
-		return nil
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider:       *gp,
+		RepositoryURL:     repositoryURL,
+		ReposistoryAPIURL: msg.RepositoryApiUrl,
+		HeadBranch:        msg.HeadBranch,
+		BaseBranch:        baseBranch,
+		Title:             msg.Title,
+		Description:       msg.Description,
+		CommitMessage:     msg.CommitMessage,
+		Files:             files,
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to create pull request and cluster rows for %q: %w", msg.TemplateName, err)
+		return nil, fmt.Errorf("unable to create pull request for %q: %w", msg.TemplateName, err)
 	}
 
 	return &capiv1_proto.CreatePullRequestResponse{
-		WebUrl: pullRequestURL,
+		WebUrl: res.WebURL,
 	}, nil
 }
 
@@ -293,9 +243,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
 	}
 
-	var pullRequestURL string
-
-	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
@@ -312,36 +259,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, err
 	}
 
-	pullRequestURL = res.WebURL
-
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		pr := &models.PullRequest{
-			URL:  pullRequestURL,
-			Type: "delete",
-		}
-		if err := tx.Create(pr).Error; err != nil {
-			return err
-		}
-
-		for _, clusterName := range msg.ClusterNames {
-			var cluster models.Cluster
-			if err := tx.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
-				return err
-			}
-
-			cluster.PullRequests = append(cluster.PullRequests, pr)
-			if err := tx.Save(cluster).Error; err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
-		WebUrl: pullRequestURL,
+		WebUrl: res.WebURL,
 	}, nil
 }
 

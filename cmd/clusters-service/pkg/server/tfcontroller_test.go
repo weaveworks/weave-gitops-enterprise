@@ -112,8 +112,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 				hr.Namespace = "default"
 			})
 			tt.clusterState = append(tt.clusterState, hr)
-			db := createDatabase(t)
-			s := createServer(t, tt.clusterState, "terraform-templates", "default", tt.provider, db, "", hr)
+			s := createServer(t, tt.clusterState, "terraform-templates", "default", tt.provider, "", hr)
 
 			// request
 			createPullRequestResponse, err := s.CreateTfControllerPullRequest(context.Background(), tt.req)
