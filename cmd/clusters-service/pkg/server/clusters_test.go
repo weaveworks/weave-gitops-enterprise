@@ -787,6 +787,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
 			},
 		},
+		map[string]string{},
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -824,6 +825,65 @@ status: {}
 	assert.Equal(t, expected, *file.Content)
 }
 
+func TestGenerateProfileFiles_with_templates(t *testing.T) {
+	c := createClient(t, makeTestHelmRepository("base"))
+	params := map[string]string{
+		"CLUSTER_NAME": "test-cluster-name",
+		"NAMESPACE":    "default",
+	}
+
+	file, err := generateProfileFiles(
+		context.TODO(),
+		"testing",
+		"test-ns",
+		"",
+		"cluster-foo",
+		c,
+		[]*capiv1_protos.ProfileValues{
+			{
+				Name:    "foo",
+				Version: "0.0.1",
+				Values:  base64.StdEncoding.EncodeToString([]byte("foo: ${CLUSTER_NAME}")),
+			},
+		},
+		params,
+	)
+	assert.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cluster-foo-foo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  interval: 1m0s
+  values:
+    foo: test-cluster-name
+status: {}
+`
+	assert.Equal(t, expected, *file.Content)
+}
+
 func TestGenerateProfileFilesWithLayers(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
@@ -846,6 +906,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
 			},
 		},
+		map[string]string{},
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2

@@ -568,7 +568,7 @@ func TestRenderTemplate_MissingVariables(t *testing.T) {
 	}
 
 	_, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
-	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1 due to missing variables: [CLUSTER_NAME]"); diff != "" {
+	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1, processing template: failed to process template values: value for variables [CLUSTER_NAME] is not set. Please set the value using os environment variables or the clusterctl config file"); diff != "" {
 		t.Fatalf("got the wrong error:\n%s", diff)
 	}
 }
