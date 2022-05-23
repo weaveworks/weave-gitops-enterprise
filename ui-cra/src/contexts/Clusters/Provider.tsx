@@ -30,14 +30,14 @@ const ClustersProvider: FC = ({ children }) => {
     //   cache: 'no-store',
     // });
     api.ListGitopsClusters({}).then(res => {
-      processResponse(res).then((body: any) => ({
-        data: body,
-        total: Number(processCountHeader(res)),
-      }));
+      return {
+        data: res,
+      };
+      // return processResponse(res).then((body: any) => ({
+      //   data: body,
+      //   total: Number(processCountHeader(res)),
+      // }));
     });
-  // requestWithCountHeader('GET', clustersBaseUrl, {
-  //   cache: 'no-store',
-  // }
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
