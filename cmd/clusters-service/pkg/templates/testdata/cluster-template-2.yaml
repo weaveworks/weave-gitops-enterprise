@@ -1,0 +1,26 @@
+apiVersion: clustertemplates.weave.works/v1alpha1
+kind: GitopsTemplate
+metadata:
+  name: tf-controller-2
+  namespace: default
+spec:
+  description: This is a sample WGE template that will be translated into a tf-controller specific template.
+  params:
+    - name: CLUSTER_NAME
+      description: Name of the cluster.
+  resourcetemplates:
+    - apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+      kind: Terraform
+      metadata:
+        name: test-template
+      spec:
+        interval: 1h
+        path: ./
+        approvePlan: "auto"
+        vars:
+          - name: cluster_identifier
+            value: ${CLUSTER_NAME}
+        sourceRef:
+          kind: GitRepository
+          name: git-repo-name
+          namespace: git-repo-namespace

@@ -18,26 +18,23 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
-
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	grpcStatus "google.golang.org/grpc/status"
-	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/chartutil"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
+
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 var labels = []string{}
@@ -88,17 +85,17 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
+	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, "CAPITemplate")
 	if err != nil {
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, msg.ParameterValues)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-clusters-namespace"), msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
 
-	err = capi.ValidateRenderedTemplates(tmplWithValues)
+	err = templates.ValidateRenderedTemplates(tmplWithValues)
 	if err != nil {
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
@@ -117,13 +114,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
 	if !ok {
 		return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' parameter in supplied values")
-	}
-	// FIXME: parse and read from Cluster in yaml template
-	clusterNamespace, ok := msg.ParameterValues["NAMESPACE"]
-	if !ok {
-		s.log.Info("Couldn't find NAMESPACE param in request, using 'default'.")
-		// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
-		clusterNamespace = "default"
 	}
 
 	content := string(tmplWithValuesAndCredentials[:])
@@ -177,6 +167,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			clusterName,
 			client,
 			msg.Values,
+			msg.ParameterValues,
 		)
 		if err != nil {
 			return nil, err
@@ -184,64 +175,24 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		files = append(files, *profilesFile)
 	}
 
-	var pullRequestURL string
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		t, err := common_utils.Generate()
-		if err != nil {
-			return fmt.Errorf("error generating token for new cluster: %v", err)
-		}
-
-		c := &models.Cluster{
-			Name:          clusterName,
-			CAPIName:      clusterName,
-			CAPINamespace: clusterNamespace,
-			Token:         t,
-		}
-		if err := tx.Create(c).Error; err != nil {
-			return err
-		}
-
-		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
-		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider:       *gp,
-			RepositoryURL:     repositoryURL,
-			ReposistoryAPIURL: msg.RepositoryApiUrl,
-			HeadBranch:        msg.HeadBranch,
-			BaseBranch:        baseBranch,
-			Title:             msg.Title,
-			Description:       msg.Description,
-			CommitMessage:     msg.CommitMessage,
-			Files:             files,
-		})
-		if err != nil {
-			s.log.Error(err, "Failed to create pull request")
-			return err
-		}
-
-		// Create the PR, this shouldn't fail, but if it does it will rollback the Cluster but not the delete the PR
-		pullRequestURL = res.WebURL
-		pr := &models.PullRequest{
-			URL:  pullRequestURL,
-			Type: "create",
-		}
-		if err := tx.Create(pr).Error; err != nil {
-			return err
-		}
-
-		c.PullRequests = append(c.PullRequests, pr)
-		if err := tx.Save(c).Error; err != nil {
-			return err
-		}
-
-		return nil
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider:       *gp,
+		RepositoryURL:     repositoryURL,
+		ReposistoryAPIURL: msg.RepositoryApiUrl,
+		HeadBranch:        msg.HeadBranch,
+		BaseBranch:        baseBranch,
+		Title:             msg.Title,
+		Description:       msg.Description,
+		CommitMessage:     msg.CommitMessage,
+		Files:             files,
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to create pull request and cluster rows for %q: %w", msg.TemplateName, err)
+		return nil, fmt.Errorf("unable to create pull request for %q: %w", msg.TemplateName, err)
 	}
 
 	return &capiv1_proto.CreatePullRequestResponse{
-		WebUrl: pullRequestURL,
+		WebUrl: res.WebURL,
 	}, nil
 }
 
@@ -292,9 +243,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
 	}
 
-	var pullRequestURL string
-
-	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
@@ -311,36 +259,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, err
 	}
 
-	pullRequestURL = res.WebURL
-
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		pr := &models.PullRequest{
-			URL:  pullRequestURL,
-			Type: "delete",
-		}
-		if err := tx.Create(pr).Error; err != nil {
-			return err
-		}
-
-		for _, clusterName := range msg.ClusterNames {
-			var cluster models.Cluster
-			if err := tx.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
-				return err
-			}
-
-			cluster.PullRequests = append(cluster.PullRequests, pr)
-			if err := tx.Save(cluster).Error; err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
-		WebUrl: pullRequestURL,
+		WebUrl: res.WebURL,
 	}, nil
 }
 
@@ -492,7 +412,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues, parameterValues map[string]string) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Name:      helmRepoName,
@@ -538,7 +458,17 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			}
 		}
 
-		parsed, err := parseValues(v.Values)
+		decoded, err := base64.StdEncoding.DecodeString(v.Values)
+		if err != nil {
+			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+		}
+
+		data, err := templates.ProcessTemplate(decoded, parameterValues)
+		if err != nil {
+			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+		}
+
+		parsed, err := parseValues(data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -658,14 +588,9 @@ func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev
 	return version, nil
 }
 
-func parseValues(s string) (map[string]interface{}, error) {
-	decoded, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
-	}
-
+func parseValues(v []byte) (map[string]interface{}, error) {
 	vals := map[string]interface{}{}
-	if err := yaml.Unmarshal(decoded, &vals); err != nil {
+	if err := yaml.Unmarshal(v, &vals); err != nil {
 		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
 	}
 	return vals, nil

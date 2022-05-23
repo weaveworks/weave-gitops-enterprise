@@ -84,7 +84,6 @@ func verifyCoreControllers(namespace string) {
 
 func verifyEnterpriseControllers(releaseName string, mccpPrefix, namespace string) {
 	// SOMETIMES (?) (with helm install ./local-path), the mccpPrefix is skipped
-	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"event-writer", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"cluster-service", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
 
@@ -186,23 +185,6 @@ func deleteGitopsDeploySecret(nameSpace string) {
 	By("And I delete deploy key secret", func() {
 		_, _ = runCommandAndReturnStringOutput(cmd)
 	})
-}
-
-func clusterWorkloadNonePublicIP(clusterKind string) string {
-	var expernal_ip string
-	if clusterKind == "EKS" || clusterKind == "GKE" {
-		node_name, _ := runCommandAndReturnStringOutput(`kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1`)
-		worker_name := strings.Split(node_name, "/")[1]
-		expernal_ip, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='%s')].status.addresses[?(@.type=='ExternalIP')].address}"`, worker_name))
-	} else {
-		switch runtime.GOOS {
-		case "darwin":
-			expernal_ip, _ = runCommandAndReturnStringOutput(`ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:`)
-		case "linux":
-			expernal_ip, _ = runCommandAndReturnStringOutput(`ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:`)
-		}
-	}
-	return expernal_ip
 }
 
 func createCluster(clusterType string, clusterName string, configFile string) {

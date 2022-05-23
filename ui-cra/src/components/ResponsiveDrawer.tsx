@@ -337,14 +337,6 @@ const App = () => {
 };
 
 const ResponsiveDrawer = () => {
-  const flags = useFeatureFlags();
-
-  // FIXME: hack for "isLoading"
-  const flagsIsLoading = _.isEmpty(flags);
-  if (flagsIsLoading) {
-    return null;
-  }
-
   return (
     <AuthContextProvider>
       <CoreClientContextProvider api={coreClient}>

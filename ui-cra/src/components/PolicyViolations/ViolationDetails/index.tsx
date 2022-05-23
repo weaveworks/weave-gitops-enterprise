@@ -7,7 +7,7 @@ import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useState } from 'react';
 import LoadingError from '../../LoadingError';
 import { useParams } from 'react-router-dom';
-import { GetPolicyValidationResponse } from '../../../capi-server/capi_server.pb';
+import { GetPolicyValidationResponse } from '../../../cluster-services/cluster_services.pb';
 import { PolicyService } from '../../Policies/PolicyService';
 import ViolationDetails from './ViolationDetails';
 

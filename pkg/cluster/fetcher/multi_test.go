@@ -9,7 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	corev1 "k8s.io/api/core/v1"

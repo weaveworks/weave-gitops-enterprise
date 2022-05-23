@@ -1,13 +1,10 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { request, requestWithCountHeader } from '../../utils/request';
-import {
-  Clusters,
-  DeleteClusterPRRequest,
-  GitopsClusterEnriched,
-} from './index';
+import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
+import { GitopsClusterEnriched } from '../../types/custom';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 

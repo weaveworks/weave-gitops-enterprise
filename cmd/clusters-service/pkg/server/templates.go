@@ -7,18 +7,24 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
+	"github.com/spf13/viper"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
-	tl, err := s.templatesLibrary.List(ctx)
+	// Default to CAPI kind to ease transition
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
+	}
+	tl, err := s.templatesLibrary.List(ctx, msg.TemplateKind)
 	if err != nil {
 		return nil, err
 	}
 	templates := []*capiv1_proto.Template{}
-
 	for _, t := range tl {
 		templates = append(templates, ToTemplateResponse(t))
 	}
@@ -36,7 +42,11 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
-	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
+	// Default to CAPI kind to ease transition
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
+	}
+	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -48,7 +58,11 @@ func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateR
 }
 
 func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListTemplateParamsRequest) (*capiv1_proto.ListTemplateParamsResponse, error) {
-	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
+	// Default to CAPI kind to ease transition
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
+	}
+	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -61,7 +75,11 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 }
 
 func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.ListTemplateProfilesRequest) (*capiv1_proto.ListTemplateProfilesResponse, error) {
-	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
+	// Default to CAPI kind to ease transition
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
+	}
+	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -78,20 +96,24 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
+// Similar the others list and get will right now only work with CAPI templates.
+// tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName) -> this get is the key.
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
+	// Default to CAPI kind to ease transition
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
+	}
 	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
-	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
+	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-
-	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, msg.Values)
+	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, viper.GetString("capi-clusters-namespace"), msg.Values)
 	if err != nil {
 		return nil, err
 	}
 
-	err = capi.ValidateRenderedTemplates(templateBits)
-	if err != nil {
+	if err = templates.ValidateRenderedTemplates(templateBits); err != nil {
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 

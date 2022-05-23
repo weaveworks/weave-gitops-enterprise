@@ -6,7 +6,7 @@ import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { PolicyService } from './PolicyService';
 import { useCallback, useState } from 'react';
-import { ListPoliciesResponse } from '../../capi-server/capi_server.pb';
+import { ListPoliciesResponse } from '../../cluster-services/cluster_services.pb';
 import LoadingError from '../LoadingError';
 
 const Policies = () => {

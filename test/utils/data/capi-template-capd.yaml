@@ -4,7 +4,7 @@ metadata:
   name: cluster-template-development-{{.Count}}
   namespace: default
 spec:
-  description: This is the std. CAPD template{{.Count}}
+  description: This is the std. CAPD template {{.Count}}
   params:
     - name: CLUSTER_NAME
       required: true
@@ -13,7 +13,12 @@ spec:
       description: Namespace to create the cluster in
     - name: KUBERNETES_VERSION
       description: Kubernetes version to use for the cluster
-      options: ["1.19.11", "1.21.1", "1.22.0", "1.23.0"]
+      options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
+    - name: CONTROL_PLANE_MACHINE_COUNT
+      description: Number of control planes
+      options: ["1", "2", "3"]
+    - name: WORKER_MACHINE_COUNT
+      description: Number of control planes
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
@@ -79,6 +84,7 @@ spec:
               certSANs:
               - localhost
               - 127.0.0.1
+              - 0.0.0.0
             controllerManager:
               extraArgs:
                 enable-hostpath-provisioner: "true"
@@ -100,7 +106,7 @@ spec:
             kind: DockerMachineTemplate
             name: "${CLUSTER_NAME}-control-plane"
             namespace: "${NAMESPACE}"
-        replicas: 1
+        replicas: "${CONTROL_PLANE_MACHINE_COUNT}"
         version: "${KUBERNETES_VERSION}"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
       kind: DockerMachineTemplate
@@ -130,7 +136,7 @@ spec:
         namespace: "${NAMESPACE}"
       spec:
         clusterName: "${CLUSTER_NAME}"
-        replicas: 1
+        replicas: "${WORKER_MACHINE_COUNT}"
         selector:
           matchLabels: null
         template:

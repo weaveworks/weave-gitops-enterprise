@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
 	"text/template"
 	"time"
@@ -21,8 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
@@ -33,8 +30,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 )
 
 func TestCreatePullRequest(t *testing.T) {
@@ -50,18 +45,16 @@ func TestCreatePullRequest(t *testing.T) {
 		expected       string
 		committedFiles []CommittedFile
 		err            error
-		dbRows         int
 	}{
 		{
-			name:   "validation errors",
-			req:    &capiv1_protos.CreatePullRequestRequest{},
-			err:    errors.New("2 errors occurred:\ntemplate name must be specified\nparameter values must be specified"),
-			dbRows: 0,
+			name: "validation errors",
+			req:  &capiv1_protos.CreatePullRequestRequest{},
+			err:  errors.New("2 errors occurred:\ntemplate name must be specified\nparameter values must be specified"),
 		},
 		{
 			name: "name validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
 			},
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
@@ -76,13 +69,12 @@ func TestCreatePullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				CommitMessage: "Add cluster manifest",
 			},
-			err:    errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
-			dbRows: 0,
+			err: errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 		},
 		{
 			name: "pull request failed",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
 			},
 			provider: NewFakeGitProvider("", nil, errors.New("oops")),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -98,13 +90,12 @@ func TestCreatePullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				CommitMessage: "Add cluster manifest",
 			},
-			dbRows: 0,
-			err:    errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
+			err: errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
 		},
 		{
 			name: "create pull request",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -120,13 +111,12 @@ func TestCreatePullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				CommitMessage: "Add cluster manifest",
 			},
-			dbRows:   1,
 			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
 			name: "default profile values",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("template1", makeTemplate(t)),
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -149,7 +139,6 @@ func TestCreatePullRequest(t *testing.T) {
 					},
 				},
 			},
-			dbRows: 1,
 			committedFiles: []CommittedFile{
 				{
 					Path: "clusters/my-cluster/clusters/dev.yaml",
@@ -230,8 +219,7 @@ status: {}
 				hr.Namespace = "default"
 			})
 			tt.clusterState = append(tt.clusterState, hr)
-			db := createDatabase(t)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, db, "", hr)
+			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, "", hr)
 
 			// request
 			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
@@ -252,16 +240,6 @@ status: {}
 				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
-			}
-
-			// Check the db looks good
-			var clusters []models.Cluster
-			tx := db.Find(&clusters)
-			if tx.Error != nil {
-				t.Fatalf("error querying db:\n%v", tx.Error)
-			}
-			if diff := cmp.Diff(len(clusters), tt.dbRows); diff != "" {
-				t.Fatalf("Rows mismatch:\n%s\nwas: %d", diff, len(clusters))
 			}
 		})
 	}
@@ -349,9 +327,8 @@ func TestGetKubeconfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.SetDefault("capi-clusters-namespace", tt.clusterObjectsNamespace)
 
-			db := createDatabase(t)
 			gp := NewFakeGitProvider("", nil, nil)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, db, tt.clusterObjectsNamespace, nil)
+			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, tt.clusterObjectsNamespace, nil)
 
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
 
@@ -374,7 +351,6 @@ func TestGetKubeconfig(t *testing.T) {
 func TestDeleteClustersPullRequest(t *testing.T) {
 	testCases := []struct {
 		name     string
-		dbState  []interface{}
 		provider git.Provider
 		req      *capiv1_protos.DeleteClustersPullRequestRequest
 		expected string
@@ -385,27 +361,25 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 			req:  &capiv1_protos.DeleteClustersPullRequestRequest{},
 			err:  errors.New("at least one cluster name must be specified"),
 		},
+		//
+		// -- FIXME: consider checking the contents of git before trying to delete
+		//
+		// {
+		// 	name:     "cluster does not exist",
+		// 	provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+		// 	req: &capiv1_protos.DeleteClustersPullRequestRequest{
+		// 		ClusterNames:  []string{"foo"},
+		// 		RepositoryUrl: "https://github.com/org/repo.git",
+		// 		HeadBranch:    "feature-02",
+		// 		BaseBranch:    "feature-01",
+		// 		Title:         "Delete Cluster",
+		// 		Description:   "Deletes a cluster",
+		// 		CommitMessage: "Remove cluster manifest",
+		// 	},
+		// },
+		//
 		{
-			name:     "cluster does not exist",
-			dbState:  []interface{}{},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
-			req: &capiv1_protos.DeleteClustersPullRequestRequest{
-				ClusterNames:  []string{"foo"},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-02",
-				BaseBranch:    "feature-01",
-				Title:         "Delete Cluster",
-				Description:   "Deletes a cluster",
-				CommitMessage: "Remove cluster manifest",
-			},
-			err: gorm.ErrRecordNotFound,
-		},
-		{
-			name: "create delete pull request",
-			dbState: []interface{}{
-				&models.Cluster{Name: "foo", Token: "foo-token"},
-				&models.Cluster{Name: "bar", Token: "bar-token"},
-			},
+			name:     "create delete pull request",
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNames:  []string{"foo", "bar"},
@@ -423,11 +397,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			db := createDatabase(t)
-			s := createServer(t, []runtime.Object{}, "capi-templates", "default", tt.provider, db, "", nil)
-			for _, o := range tt.dbState {
-				db.Create(o)
-			}
+			s := createServer(t, []runtime.Object{}, "capi-templates", "default", tt.provider, "", nil)
 
 			// delete request
 			deletePullRequestResponse, err := s.DeleteClustersPullRequest(context.Background(), tt.req)
@@ -444,32 +414,9 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				if diff := cmp.Diff(tt.expected, deletePullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
-
-				var clusters []models.Cluster
-				db.Preload(clause.Associations).Find(&clusters)
-				for _, cluster := range clusters {
-					if len(cluster.PullRequests) != 1 {
-						t.Fatalf("got the wrong number of pull requests:%d", len(cluster.PullRequests))
-					}
-					if cluster.PullRequests[0].Type != "delete" {
-						t.Fatalf("got the wrong type of pull request:%s", cluster.PullRequests[0].Type)
-					}
-				}
 			}
 		})
 	}
-}
-
-func createDatabase(t *testing.T) *gorm.DB {
-	db, err := utils.OpenDebug("", os.Getenv("DEBUG_SERVER_DB") == "true")
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = utils.MigrateTables(db)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return db
 }
 
 func makeNamespace(n string) *corev1.Namespace {
@@ -616,6 +563,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
 			},
 		},
+		map[string]string{},
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -653,6 +601,65 @@ status: {}
 	assert.Equal(t, expected, *file.Content)
 }
 
+func TestGenerateProfileFiles_with_templates(t *testing.T) {
+	c := createClient(t, makeTestHelmRepository("base"))
+	params := map[string]string{
+		"CLUSTER_NAME": "test-cluster-name",
+		"NAMESPACE":    "default",
+	}
+
+	file, err := generateProfileFiles(
+		context.TODO(),
+		"testing",
+		"test-ns",
+		"",
+		"cluster-foo",
+		c,
+		[]*capiv1_protos.ProfileValues{
+			{
+				Name:    "foo",
+				Version: "0.0.1",
+				Values:  base64.StdEncoding.EncodeToString([]byte("foo: ${CLUSTER_NAME}")),
+			},
+		},
+		params,
+	)
+	assert.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cluster-foo-foo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  interval: 1m0s
+  values:
+    foo: test-cluster-name
+status: {}
+`
+	assert.Equal(t, expected, *file.Content)
+}
+
 func TestGenerateProfileFilesWithLayers(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
@@ -675,6 +682,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
 			},
 		},
+		map[string]string{},
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2

@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
-import useClusters, { GitopsClusterEnriched } from '../../contexts/Clusters';
+import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
@@ -17,9 +17,9 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  filterConfigForString,
+  // filterConfigForString,
   FilterableTable,
-  filterConfigForStatus,
+  // filterConfigForStatus,
   LoadingPage,
   KubeStatusIndicator,
   SortType,
@@ -34,6 +34,7 @@ import { Checkbox, Collapse, IconButton, withStyles } from '@material-ui/core';
 import { CAPIClusterStatus } from './CAPIClusterStatus';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
+import { GitopsClusterEnriched } from '../../types/custom';
 
 interface Size {
   size?: 'small';
@@ -154,8 +155,8 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   const initialFilterState = {
-    ...filterConfigForString(clusters, 'namespace'),
-    ...filterConfigForStatus(clusters),
+    // ...filterConfigForString(clusters, 'namespace'),
+    // ...filterConfigForStatus(clusters),
   };
 
   useEffect(() => {
@@ -187,7 +188,7 @@ const MCCP: FC = () => {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const newSelected =
-        clusters.map((cluster: GitopsClusterEnriched) => cluster.name) || [];
+        clusters.map((cluster: GitopsClusterEnriched) => cluster.name || '') || [];
       setSelectedClusters(newSelected);
       return;
     }
@@ -348,7 +349,7 @@ const MCCP: FC = () => {
                       ),
                       value: (c: GitopsClusterEnriched) => (
                         <IndividualCheckbox
-                          checked={selectedClusters.indexOf(c.name) !== -1}
+                          checked={selectedClusters.indexOf(c.name ? c.name : '') !== -1}
                           onChange={handleIndividualClick}
                           name={c.name}
                         />
@@ -367,11 +368,11 @@ const MCCP: FC = () => {
                               onClick={() =>
                                 setOpenCapiStatus((prev: any) => ({
                                   ...prev,
-                                  [c.name]: !prev[c.name],
+                                  [c.name ? c.name : '']: !prev[c.name ? c.name : ''],
                                 }))
                               }
                             >
-                              {openCapiStatus[c.name] ? (
+                              {openCapiStatus[c.name ? c.name : ''] ? (
                                 <KeyboardArrowUpIcon />
                               ) : (
                                 <KeyboardArrowDownIcon />
@@ -380,12 +381,12 @@ const MCCP: FC = () => {
                             {c.name}
                           </>
                           <Collapse
-                            in={openCapiStatus[c.name]}
+                            in={openCapiStatus[c.name ? c.name : '']}
                             timeout="auto"
                             unmountOnExit
                           >
                             <CAPIClusterStatus
-                              clusterName={c.name}
+                              clusterName={c.name ? c.name : ''}
                               status={c.capiCluster?.status}
                             />
                           </Collapse>

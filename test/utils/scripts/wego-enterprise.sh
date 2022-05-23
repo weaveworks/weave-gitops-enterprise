@@ -10,6 +10,27 @@ fi
 
 set -x 
 
+function get-localhost-ip {
+  local  __resultvar=$1
+  local $interface
+  local locahost_ip
+  for i in {0..10}
+  do
+    if [ "$(uname -s)" == "Linux" ]; then
+      interface=eth$i
+    elif [ "$(uname -s)" == "Darwin" ]; then
+      interface=en$i
+    fi
+    locahost_ip=$(ifconfig $interface | grep -i MASK | awk '{print $2}' | cut -f2 -d: | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+    if [ -z $locahost_ip ]; then
+      continue
+    else          
+      break
+    fi
+  done  
+  eval $__resultvar="'$locahost_ip'"
+}
+
 function setup {
   if [ ${#args[@]} -ne 2 ]
   then
@@ -17,23 +38,17 @@ function setup {
     exit 1
   fi
 
-  if [ "$(uname -s)" == "Linux" ]; then
-      LOCALHOST_IP=$(ifconfig eth0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
-    elif [ "$(uname -s)" == "Darwin" ]; then
-      LOCALHOST_IP=$(ifconfig en0 | grep -i MASK | awk '{print $2}' | cut -f2 -d:)
-    fi
+  get-localhost-ip LOCALHOST_IP
 
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
     WORKER_NAME=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
     WORKER_NODE_EXTERNAL_IP=$(kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='${WORKER_NAME}')].status.addresses[?(@.type=='ExternalIP')].address}")
 
-    # Configure inbound NATS and UI node ports
+    # Configure inbound UI node ports
     if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ]; then
       INSTANCE_SECURITY_GROUP=$(aws ec2 describe-instances --filter "Name=ip-address,Values=${WORKER_NODE_EXTERNAL_IP}" --query 'Reservations[*].Instances[*].NetworkInterfaces[0].Groups[0].{sg:GroupId}' --output text)
-      aws ec2 authorize-security-group-ingress --group-id ${INSTANCE_SECURITY_GROUP}  --ip-permissions FromPort=${NATS_NODEPORT},ToPort=${NATS_NODEPORT},IpProtocol=tcp,IpRanges='[{CidrIp=0.0.0.0/0}]',Ipv6Ranges='[{CidrIpv6=::/0}]'
       aws ec2 authorize-security-group-ingress --group-id ${INSTANCE_SECURITY_GROUP}  --ip-permissions FromPort=${UI_NODEPORT},ToPort=${UI_NODEPORT},IpProtocol=tcp,IpRanges='[{CidrIp=0.0.0.0/0}]',Ipv6Ranges='[{CidrIpv6=::/0}]'
     else
-      gcloud compute firewall-rules create nats-node-port --allow tcp:${NATS_NODEPORT}
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
     fi
   elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
@@ -121,8 +136,6 @@ function setup {
 
   # Install weave gitops enterprise controllers
   helmArgs=()
-  helmArgs+=( --set "nats.client.service.nodePort=${NATS_NODEPORT}" )
-  helmArgs+=( --set "agentTemplate.natsURL=${WORKER_NODE_EXTERNAL_IP}:${NATS_NODEPORT}" )
   helmArgs+=( --set "service.ports.https=8000" )
   helmArgs+=( --set "service.targetPorts.https=8000" )
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
@@ -137,18 +150,6 @@ function setup {
   helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
   helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
-
-  if [ ${ACCEPTANCE_TESTS_DATABASE_TYPE} == "postgres" ]; then
-    # Create postgres DB
-    kubectl apply -f ${args[1]}/test/utils/data/postgres-manifests.yaml
-    kubectl wait --for=condition=available --timeout=600s deployment/postgres
-    POSTGRES_CLUSTER_IP=$(kubectl get service postgres -ojsonpath={.spec.clusterIP})
-    kubectl create secret generic mccp-db-credentials --namespace flux-system --from-literal=username=postgres --from-literal=password=password
-    
-    helmArgs+=( --set "dbConfig.databaseType=postgres" )
-    helmArgs+=( --set "postgresConfig.databaseName=postgres" )
-    helmArgs+=( --set "dbConfig.databaseURI=${POSTGRES_CLUSTER_IP}" )
-  fi
 
   if [ ! -z $GITOPS_GIT_HOST_TYPES ]; then
     helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
@@ -195,12 +196,24 @@ function setup {
   # Install RBAC for user authentication
    kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
 
+  # enable cluster resource sets
+  export EXP_CLUSTER_RESOURCE_SET=true
   # Install capi infrastructure provider
-  if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
-    echo "Capi infrastructure provider support is not implemented"
+  if [ "$CAPI_PROVIDER" == "capa" ]; then
+    aws cloudformation describe-stacks --stack-name wge-capi-cluster-api-provider-aws-sigs-k8s-io --region us-east-1
+    if [ $? -ne 0 ]; then
+      clusterawsadm bootstrap iam create-cloudformation-stack --config aws_bootstrap_config.yaml --region=us-east-1
+    fi
+    export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-as-profile --region=us-east-1)
+    aws ec2 describe-key-pairs --key-name weave-gitops-pesto --region=us-east-1
+    if [ $? -ne 0 ]; then
+      aws ec2 create-key-pair --key-name weave-gitops-pesto --region us-east-1 --output text > ~/.ssh/weave-gitops-pesto.pem
+    fi
+    clusterctl init --infrastructure aws
+  elif [ "$CAPI_PROVIDER" == "capg" ]; then
+    export GCP_B64ENCODED_CREDENTIALS=$( echo ${GCP_SA_KEY} | base64 | tr -d '\n' )
+    clusterctl init --infrastructure gcp
   else
-    # enable cluster resource sets
-    export EXP_CLUSTER_RESOURCE_SET=true
     clusterctl init --infrastructure docker    
   fi
 
@@ -246,11 +259,6 @@ function setup {
 }
 
 function reset {
-  # Delete postgres db 
-  kubectl delete deployment postgres
-  kubectl delete service postgres
-  # Delete namespaces and their respective resources
-  kubectl delete namespaces wkp-agent
   # Delete flux system from the management cluster
   flux uninstall --silent
   # Delete any orphan resources
@@ -259,11 +267,19 @@ function reset {
   kubectl delete secret my-pat
   kubectl delete ClusterResourceSet --all
   kubectl delete configmap calico-crs-configmap
-  kubectl delete rolebinding read-templates
-  kubectl delete rolebinding clusters-service-secrets-role
+  kubectl delete ClusterRoleBinding clusters-service-impersonator
+  kubectl delete ClusterRole clusters-service-impersonator-role 
   # Delete policy agent
   kubectl delete ValidatingWebhookConfiguration policy-agent
   kubectl delete namespaces policy-system  
+  # Delete capi provider
+  if [ "$CAPI_PROVIDER" == "capa" ]; then
+    clusterctl delete --infrastructure aws
+  elif [ "$CAPI_PROVIDER" == "capg" ]; then
+    clusterctl delete --infrastructure gcp
+  else
+    clusterctl delete --infrastructure docker    
+  fi
 }
 
 function reset_controllers {
@@ -275,8 +291,6 @@ function reset_controllers {
     
     controllerNames=()
     if [ ${args[1]} == "enterprise" ] || [ ${args[1]} == "all" ]; then
-      EVENT_WRITER_POD=$(kubectl get pods -n flux-system|grep event-writer|tr -s ' '|cut -f1 -d ' ')
-
       # Sometime due to the test conditions the cluster service pod is in transition state i.e. one terminating and the new one is being created at the same time.
       # Under such state we have two cluster srvice pods momentarily 
       counter=10
@@ -292,9 +306,7 @@ function reset_controllers {
               break
           fi        
       done
-      controllerNames+=" ${EVENT_WRITER_POD}"
       controllerNames+=" ${CLUSTER_SERVICE_POD}"
-      kubectl exec -n flux-system $EVENT_WRITER_POD -- rm /var/database/mccp.db
     fi
 
     if [ ${args[1]} == "core" ] || [ ${args[1]} == "all" ]; then
