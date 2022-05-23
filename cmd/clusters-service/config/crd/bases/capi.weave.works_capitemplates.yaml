@@ -58,7 +58,7 @@ spec:
                 type: array
               resourcetemplates:
                 items:
-                  description: CAPIResourceTemplate describes a resource to create.
+                  description: ResourceTemplate describes a resource to create.
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
                 type: array

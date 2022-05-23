@@ -11,7 +11,7 @@ import { ColumnHeaderTooltip } from '../../Shared';
 import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
-import { PolicyValidation } from '../../../capi-server/capi_server.pb';
+import { PolicyValidation } from '../../../cluster-services/cluster_services.pb';
 import PolicyViolationRow from './Row';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
 

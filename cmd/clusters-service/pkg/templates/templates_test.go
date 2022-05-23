@@ -6,13 +6,15 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
 const testdata1 = `
@@ -38,6 +40,7 @@ func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
+		gapiv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -50,41 +53,41 @@ func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		Build()
 }
 
-func TestGetTemplateFromCRDs(t *testing.T) {
-	t1 := mustParseTemplate(t, testdata1)
-	t2 := mustParseTemplate(t, testdata2)
+func TestGetTemplateFromCAPICRDs(t *testing.T) {
+	t1 := mustParseCAPITemplate(t, testdata1)
+	t2 := mustParseCAPITemplate(t, testdata2)
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, t1, t2))}
-	result, err := lib.Get(context.Background(), "cluster-template2")
+	result, err := lib.Get(context.Background(), "cluster-template2", capiv1.Kind)
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
-	if diff := cmp.Diff(t2, result); diff != "" {
+	if diff := cmp.Diff(&t2.Template, result); diff != "" {
 		t.Fatalf("On no, diff templates: %v", diff)
 	}
 }
 
-func TestListTemplateFromCRDs(t *testing.T) {
-	t1 := mustParseTemplate(t, testdata1)
-	t2 := mustParseTemplate(t, testdata2)
+func TestListTemplateFromCAPICRDs(t *testing.T) {
+	t1 := mustParseCAPITemplate(t, testdata1)
+	t2 := mustParseCAPITemplate(t, testdata2)
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, t1, t2))}
-	result, err := lib.List(context.Background())
+	result, err := lib.List(context.Background(), capiv1.Kind)
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
-	want := map[string]*capiv1.CAPITemplate{
-		"cluster-template":  t1,
-		"cluster-template2": t2,
+	want := map[string]*templates.Template{
+		"cluster-template":  &t1.Template,
+		"cluster-template2": &t2.Template,
 	}
 	if diff := cmp.Diff(want, result); diff != "" {
 		t.Fatalf("On no, diff templates: %v", diff)
 	}
 }
 
-func mustParseTemplate(t *testing.T, data string) *capiv1.CAPITemplate {
+func mustParseCAPITemplate(t *testing.T, data string) *capiv1.CAPITemplate {
 	t.Helper()
-	parsed, err := capi.ParseBytes([]byte(data), "a-key")
+	parsed, err := ParseBytes([]byte(data), "a-key")
 	if err != nil {
 		t.Fatal(err)
 	}
-	return parsed
+	return &capiv1.CAPITemplate{Template: *parsed}
 }

@@ -192,7 +192,7 @@ func InitializeWebdriver(wgeURL string) {
 			a["enableNetwork"] = true
 			chromeDriver := agouti.ChromeDriver(
 				agouti.ChromeOptions("w3c", false),
-				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "window-size=1800,2500", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
+				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
 				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
 			err = chromeDriver.Start()
 			Expect(err).NotTo(HaveOccurred())
@@ -203,12 +203,15 @@ func InitializeWebdriver(wgeURL string) {
 			webDriver, err = agouti.NewPage(selenium_service_url, agouti.Debug, agouti.Desired(agouti.Capabilities{
 				"acceptInsecureCerts": true,
 				"chromeOptions": map[string]interface{}{
-					"args":            []string{"--disable-gpu", "--no-sandbox", "window-size=1800,2500", "--disable-blink-features=AutomationControlled"},
+					"args":            []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
 					"w3c":             false,
 					"excludeSwitches": []string{"enable-automation"},
 				}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
+
+		err = webDriver.Size(1800, 2500)
+		Expect(err).NotTo(HaveOccurred(), "Failed to resize browser window")
 
 	} else {
 		logger.Info("Clearing cookies")
