@@ -5,7 +5,7 @@ import (
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
-	templates2 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	apitemplate "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 func TestGetProvider(t *testing.T) {
@@ -217,8 +217,8 @@ func TestGetProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.provider != getProvider(&tt.template.Template, templates2.CAPIDisplayNameAnnotation) {
-				t.Fatalf("expected %s but got %s", tt.provider, getProvider(&tt.template.Template, templates2.CAPIDisplayNameAnnotation))
+			if tt.provider != getProvider(&tt.template.Template, apitemplate.CAPIDisplayNameAnnotation) {
+				t.Fatalf("expected %s but got %s", tt.provider, getProvider(&tt.template.Template, apitemplate.CAPIDisplayNameAnnotation))
 			}
 		})
 	}
