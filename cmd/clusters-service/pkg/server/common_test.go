@@ -17,11 +17,14 @@ import (
 	"sigs.k8s.io/yaml"
 
 	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 )
 
 func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -56,7 +59,7 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 			Log:           logr.Discard(),
 			Client:        c,
 			ConfigMapName: configMapName,
-			Namespace:     namespace,
+			CAPINamespace: namespace,
 		},
 		provider,
 		kubefakes.NewFakeClientGetter(c),
@@ -91,21 +94,21 @@ func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository))
 	return hr
 }
 
-func makeTemplateConfigMap(s ...string) *corev1.ConfigMap {
+func makeTemplateConfigMap(name string, s ...string) *corev1.ConfigMap {
 	data := make(map[string]string)
 	for i := 0; i < len(s); i += 2 {
 		data[s[i]] = s[i+1]
 	}
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "capi-templates",
+			Name:      name,
 			Namespace: "default",
 		},
 		Data: data,
 	}
 }
 
-func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
+func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	t.Helper()
 	basicRaw := `
 	{
@@ -119,24 +122,74 @@ func makeTemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		}
 	 }`
 	ct := &capiv1.CAPITemplate{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "CAPITemplate",
-			APIVersion: "capi.weave.works/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "cluster-template-1",
-		},
-		Spec: capiv1.CAPITemplateSpec{
-			Description: "this is test template 1",
-			Params: []capiv1.TemplateParam{
-				{
-					Name:        "CLUSTER_NAME",
-					Description: "This is used for the cluster naming.",
+		Template: apitemplates.Template{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       capiv1.Kind,
+				APIVersion: "capi.weave.works/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "cluster-template-1",
+			},
+			Spec: apitemplates.TemplateSpec{
+				Description: "this is test template 1",
+				Params: []apitemplates.TemplateParam{
+					{
+						Name:        "CLUSTER_NAME",
+						Description: "This is used for the cluster naming.",
+					},
+				},
+				ResourceTemplates: []apitemplates.ResourceTemplate{
+					{
+						RawExtension: rawExtension(basicRaw),
+					},
 				},
 			},
-			ResourceTemplates: []capiv1.CAPIResourceTemplate{
-				{
-					RawExtension: rawExtension(basicRaw),
+		},
+	}
+	for _, o := range opts {
+		o(ct)
+	}
+	b, err := yaml.Marshal(ct)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemplate)) string {
+	t.Helper()
+	basicRaw := `
+	{
+		"apiVersion":"fooversion",
+		"kind":"fookind",
+		"metadata":{
+		   "name":"${RESOURCE_NAME}",
+		   "annotations":{
+			  "clustertemplates.weave.works/display-name":"ClusterName"
+		   }
+		}
+	 }`
+	ct := &gapiv1.GitOpsTemplate{
+		Template: apitemplates.Template{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       gapiv1.Kind,
+				APIVersion: "clustertemplates.weave.works/v1alpha1",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "cluster-template-1",
+			},
+			Spec: apitemplates.TemplateSpec{
+				Description: "this is test template 1",
+				Params: []apitemplates.TemplateParam{
+					{
+						Name:        "RESOURCE_NAME",
+						Description: "This is used for the resource naming.",
+					},
+				},
+				ResourceTemplates: []apitemplates.ResourceTemplate{
+					{
+						RawExtension: rawExtension(basicRaw),
+					},
 				},
 			},
 		},

@@ -4,10 +4,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"google.golang.org/protobuf/testing/protocmp"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 func TestToTemplate(t *testing.T) {
@@ -39,10 +41,10 @@ metadata:
 		},
 		{
 			name: "Params and Objects",
-			value: makeTemplate(t, func(ct *capiv1.CAPITemplate) {
+			value: makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 				ct.ObjectMeta.Name = "cluster-template-1"
 				ct.Spec.Description = "this is test template 1"
-				ct.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+				ct.Spec.ResourceTemplates = []apitemplates.ResourceTemplate{
 					{
 						RawExtension: rawExtension(`{
 							"apiVersion": "fooversion",
@@ -124,10 +126,10 @@ metadata:
 }
 
 func makeErrorTemplate(t *testing.T, rawData string) string {
-	return makeTemplate(t, func(ct *capiv1.CAPITemplate) {
+	return makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 		ct.ObjectMeta.Name = "cluster-template-1"
 		ct.Spec.Description = ""
-		ct.Spec.ResourceTemplates = []capiv1.CAPIResourceTemplate{
+		ct.Spec.ResourceTemplates = []apitemplates.ResourceTemplate{
 			{
 				RawExtension: rawExtension(rawData),
 			},
@@ -135,9 +137,9 @@ func makeErrorTemplate(t *testing.T, rawData string) string {
 	})
 }
 
-func mustParseBytes(t *testing.T, data string) *capiv1.CAPITemplate {
+func mustParseBytes(t *testing.T, data string) *apitemplates.Template {
 	t.Helper()
-	parsed, err := capi.ParseBytes([]byte(data), "no-key-provided")
+	parsed, err := templates.ParseBytes([]byte(data), "no-key-provided")
 	if err != nil {
 		t.Fatal(err)
 	}

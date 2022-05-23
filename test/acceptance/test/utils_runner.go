@@ -15,12 +15,14 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/types"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
 )
 
 // Interface that can be implemented either with:
@@ -150,12 +152,15 @@ func (b DatabaseGitopsTestRunner) FireAlert(name, severity, message string, fire
 
 func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
-	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
+	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files by database test runner")
 	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := capi.ParseFile(fileName)
+			template, err := templates.ParseFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
-			err = b.Client.Create(context.Background(), template)
+			capiTemplate := &capiv1.CAPITemplate{
+				Template: *template,
+			}
+			err = b.Client.Create(context.Background(), capiTemplate)
 			Expect(err).To(BeNil(), "Failed to create CAPITemplate template files")
 		}
 	})
@@ -166,9 +171,12 @@ func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, te
 func (b DatabaseGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	By("Delete CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := capi.ParseFile(fileName)
+			template, err := templates.ParseFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
-			err = b.Client.Delete(context.Background(), template)
+			capiTemplate := &capiv1.CAPITemplate{
+				Template: *template,
+			}
+			err = b.Client.Delete(context.Background(), capiTemplate)
 			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
 		}
 	})
@@ -305,7 +313,7 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 // This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability
 func (b RealGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
-	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
+	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files by real test runner")
 
 	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
@@ -425,8 +433,7 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 		}
 		templateFiles = append(templateFiles, f.Name())
 
-		err = t.Execute(f, input)
-		if err != nil {
+		if err = t.Execute(f, input); err != nil {
 			logger.Infoln("Executing template:", err)
 		}
 
