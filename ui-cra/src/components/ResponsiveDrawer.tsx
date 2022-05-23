@@ -53,7 +53,6 @@ import Policies from './Policies';
 import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
-// import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import { ClustersService } from '../capi-server/capi_server.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 
