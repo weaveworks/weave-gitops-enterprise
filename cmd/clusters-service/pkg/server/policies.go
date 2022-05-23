@@ -137,8 +137,17 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 		opts = append(opts, client.Limit(m.Pagination.PageSize))
 		opts = append(opts, client.Continue(m.Pagination.PageToken))
 	}
+
+	respErrors := []*capiv1_proto.ListError{}
 	if err := clustersClient.ClusteredList(ctx, clist, false, opts...); err != nil {
-		return nil, fmt.Errorf("error while listing policies: %w", err)
+		var errs clustersmngr.ClusteredListError
+		if !errors.As(err, &errs) {
+			return nil, fmt.Errorf("error while listing policies: %w", err)
+		}
+
+		for _, e := range errs.Errors {
+			respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: e.Cluster, Message: e.Err.Error()})
+		}
 	}
 
 	var policies []*capiv1_proto.Policy
@@ -164,6 +173,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 		Policies:      policies,
 		Total:         int32(len(policies)),
 		NextPageToken: clist.GetContinue(),
+		Errors:        respErrors,
 	}, nil
 }
 

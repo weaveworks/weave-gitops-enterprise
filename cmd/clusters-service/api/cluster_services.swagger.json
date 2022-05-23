@@ -1000,6 +1000,20 @@
         }
       }
     },
+    "v1ListError": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "v1ListGitopsClustersResponse": {
       "type": "object",
       "properties": {
@@ -1030,6 +1044,12 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },

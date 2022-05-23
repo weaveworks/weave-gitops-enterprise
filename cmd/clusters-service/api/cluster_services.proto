@@ -139,9 +139,16 @@ message ListTemplatesRequest {
   string provider = 1;
   string template_kind = 2;
 }
+
 message Pagination {
     int32 pageSize = 1;
     string pageToken = 2;
+}
+
+message ListError {
+    string clusterName = 1;
+    string namespace = 2;
+    string message = 3;
 }
 
 message ListTemplatesResponse {
@@ -195,11 +202,13 @@ message ListPoliciesRequest {
     string clusterName = 1;
     Pagination pagination = 2;
 }
+
 message GetPolicyResponse { Policy policy = 1; }
 message ListPoliciesResponse {
   repeated Policy policies = 1;
   int32 total = 2;
   string nextPageToken = 3;
+  repeated ListError errors = 4;
 }
 
 

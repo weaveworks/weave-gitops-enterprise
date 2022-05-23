@@ -17,6 +17,12 @@ export type Pagination = {
   pageToken?: string
 }
 
+export type ListError = {
+  clusterName?: string
+  namespace?: string
+  message?: string
+}
+
 export type ListTemplatesResponse = {
   templates?: Template[]
   total?: number
@@ -89,6 +95,7 @@ export type ListPoliciesResponse = {
   policies?: Policy[]
   total?: number
   nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type ListPolicyValidationsRequest = {
