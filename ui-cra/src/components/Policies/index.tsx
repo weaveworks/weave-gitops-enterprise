@@ -38,7 +38,7 @@ const Policies = () => {
         <ContentWrapper>
           <Title>Policies</Title>
           <LoadingError fetchFn={fetchPoliciesAPI}>
-            {({ value }: { value: ListPoliciesResponse }) => (
+            {({ value }: { value: any }) => (
               <>
                 {value.total && value.total > 0 ? (
                   <PolicyTable policies={value.policies} />

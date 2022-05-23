@@ -1,10 +1,17 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
-import { request, requestWithCountHeader } from '../../utils/request';
+import {
+  processCountHeader,
+  processResponse,
+  request,
+  requestWithCountHeader,
+} from '../../utils/request';
 import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
 import { GitopsClusterEnriched } from '../../types/custom';
+import { EnterpriseClientContext } from '../EnterpriseClient';
+import { ListGitopsClustersResponse } from '../../cluster-services/cluster_services.pb';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -14,13 +21,23 @@ const ClustersProvider: FC = ({ children }) => {
   const [count, setCount] = useState<number | null>(null);
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
   const { notifications, setNotifications } = useNotifications();
+  const { api } = useContext(EnterpriseClientContext);
 
   const clustersBaseUrl = '/v1/clusters';
 
-  const fetchClusters = () =>
-    requestWithCountHeader('GET', clustersBaseUrl, {
-      cache: 'no-store',
+  const fetchClusters = (): Promise<any> =>
+    // requestWithCountHeader('GET', clustersBaseUrl, {
+    //   cache: 'no-store',
+    // });
+    api.ListGitopsClusters({}).then(res => {
+      processResponse(res).then((body: any) => ({
+        data: body,
+        total: Number(processCountHeader(res)),
+      }));
     });
+  // requestWithCountHeader('GET', clustersBaseUrl, {
+  //   cache: 'no-store',
+  // }
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {

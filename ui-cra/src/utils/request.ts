@@ -1,21 +1,23 @@
 import { RequestMethod } from '../types/global';
 
-export const processResponse = (res: Response) => {
+export const processResponse = (res: any) => {
   // 400s / 500s have res.ok = false
   if (!res.ok) {
     return res
       .clone()
       .json()
-      .catch(() => res.text().then(message => ({ message })))
-      .then(data => Promise.reject(data));
+      .catch(() => res.text().then((message: any) => ({ message })))
+      .then((data: any) => Promise.reject(data));
   }
   return res
     .clone()
     .json()
-    .catch(() => res.text().then(message => ({ success: true, message })));
+    .catch(() =>
+      res.text().then((message: any) => ({ success: true, message })),
+    );
 };
 
-export const processCountHeader = (res: Response) => {
+export const processCountHeader = (res: any) => {
   const headersContent = res.headers.get('Content-Range')?.split('/');
   return headersContent?.[1];
 };
@@ -37,7 +39,7 @@ export const requestWithCountHeader = (
   options: RequestInit = {},
 ) =>
   window.fetch(query, { ...options, method }).then(res =>
-    processResponse(res).then(body => ({
+    processResponse(res).then((body: any) => ({
       data: body,
       total: Number(processCountHeader(res)),
     })),
@@ -49,7 +51,7 @@ export const requestWithEntitlementHeader = (
   options: RequestInit = {},
 ) =>
   window.fetch(query, { ...options, method }).then(res =>
-    processResponse(res).then(body => ({
+    processResponse(res).then((body: any) => ({
       data: body,
       entitlement: processEntitlementHeaders(res),
     })),

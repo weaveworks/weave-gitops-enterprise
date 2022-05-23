@@ -40,7 +40,7 @@ const PoliciesViolations = () => {
         <ContentWrapper>
           <Title>Violations Log</Title>
           <LoadingError fetchFn={fetchPolicyViolationsAPI}>
-            {({ value }: { value: ListPolicyValidationsResponse }) => (
+            {({ value }: { value: any }) => (
               <>
                 {value.total && value.total > 0 ? (
                   <PolicyViolationsTable violations={value.violations} />

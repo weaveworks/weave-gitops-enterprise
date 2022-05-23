@@ -53,7 +53,7 @@ import Policies from './Policies';
 import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
-import { ClustersService } from '../capi-server/capi_server.pb';
+import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
