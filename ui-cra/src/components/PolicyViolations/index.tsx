@@ -5,7 +5,6 @@ import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyViolationsTable } from './Table';
 import { useCallback, useContext, useState } from 'react';
-import { ListPolicyValidationsResponse } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
 import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
 
@@ -20,12 +19,10 @@ const PoliciesViolations = () => {
   //   setPayload(payload);
   // };
   const fetchPolicyViolationsAPI = useCallback(() => {
-    return api
-      .ListPolicyValidations({})
-      .then((res) => {
-        !!res && setCount(res.total);
-        return res;
-      });
+    return api.ListPolicyValidations({}).then(res => {
+      !!res && setCount(res.total);
+      return res;
+    });
     // TODO : Add pagination support for policy violations list API
     // Debendency: payload
   }, [api]);

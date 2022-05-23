@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { ClustersService } from '../../capi-server/capi_server.pb';
+import { ClustersService } from '../../cluster-services/clusters_grpc_pb';
 
 export type EnterpriseClientContextType = {
   api: typeof ClustersService;

@@ -38,21 +38,6 @@ LOCAL_BINARIES_GOOS ?= $(GOOS)
 
 # Takes precedence over the more general rule above
 # The only difference is the build context
-cmd/event-writer/$(UPTODATE): cmd/event-writer/Dockerfile cmd/event-writer/*
-	$(SUDO) docker build \
-		--build-arg=version=$(VERSION) \
-		--build-arg=image_tag=$(IMAGE_TAG) \
-		--build-arg=revision=$(GIT_REVISION) \
-		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
-		--build-arg=now=$(TIME_NOW) \
-		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
-		--file cmd/event-writer/Dockerfile \
-        .
-	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
-	touch $@
-
-# Takes precedence over the more general rule above
-# The only difference is the build context
 cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-service/*
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
@@ -64,20 +49,6 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 		--file cmd/clusters-service/Dockerfile \
 		.
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
-	touch $@
-
-WKP_AGENT := docker.io/weaveworks/wkp-agent
-cmd/wkp-agent/$(UPTODATE): cmd/wkp-agent/Dockerfile cmd/wkp-agent/*
-	$(SUDO) docker build \
-		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
-		--build-arg=image_tag=$(IMAGE_TAG) \
-		--build-arg=revision=$(GIT_REVISION) \
-		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
-		--build-arg=now=$(TIME_NOW) \
-		--tag $(WKP_AGENT) \
-		--file cmd/wkp-agent/Dockerfile \
-		.
-	$(SUDO) docker tag $(WKP_AGENT) $(WKP_AGENT):$(IMAGE_TAG)
 	touch $@
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
@@ -93,7 +64,6 @@ ui-cra/.uptodate: ui-cra/*
 	touch $@
 
 update-mccp-chart-values:
-	sed -i "s|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer.*|eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 	sed -i "s|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service.*|clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 	sed -i "s|uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server.*|uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(IMAGE_TAG)|" $(CHART_VALUES_PATH)
 
@@ -112,7 +82,6 @@ DOCKERFILES := $(shell find . \
 UPTODATE_FILES := $(patsubst %/Dockerfile,%/$(UPTODATE),$(DOCKERFILES))
 DOCKER_IMAGE_DIRS := $(patsubst %/Dockerfile,%,$(DOCKERFILES))
 IMAGE_NAMES := $(foreach dir,$(DOCKER_IMAGE_DIRS),$(patsubst %,$(IMAGE_PREFIX)%,$(subst wkp-,,$(shell basename $(dir)))))
-IMAGE_NAMES += $(WKP_AGENT)
 images:
 	$(info $(IMAGE_NAMES))
 	@echo > /dev/null
@@ -136,15 +105,11 @@ all: $(UPTODATE_FILES) binaries
 check: all lint unit-tests ui-audit
 
 BINARIES = \
-	cmd/wkp-agent/wkp-agent \
 	$(NULL)
 
 binaries: $(BINARIES)
 
 godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $1)
-
-cmd/wkp-agent/wkp-agent:
-	CGO_ENABLED=0 GOOS=$(LOCAL_BINARIES_GOOS) GOARCH=amd64 go build -o $@ ./cmd/wkp-agent
 
 .PHONY: ui-cra/build
 ui-cra/build:
@@ -164,13 +129,11 @@ cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.
 # tests here.
 unit-tests-with-coverage: $(GENERATED)
 	go test -v -cover -coverprofile=.coverprofile ./cmd/... ./pkg/...
-	cd cmd/event-writer && go test -v -cover -coverprofile=.coverprofile ./...
 	cd common && go test -v -cover -coverprofile=.coverprofile ./...
 	cd cmd/clusters-service && go test -v -cover -coverprofile=.coverprofile ./...
 
 unit-tests: $(GENERATED)
 	go test -v ./cmd/... ./pkg/...
-	cd cmd/event-writer && go test -v ./...
 	cd common && go test -v ./...
 	cd cmd/clusters-service && go test -v ./...
 

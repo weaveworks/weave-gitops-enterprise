@@ -1,4 +1,4 @@
-import { Policy, PolicyParam } from '../../../capi-server/capi_server.pb';
+import { Policy, PolicyParam } from '../../../cluster-services/cluster_services.pb';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
 

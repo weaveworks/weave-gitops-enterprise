@@ -5,12 +5,11 @@ import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { useCallback, useContext, useState } from 'react';
-import { ListPoliciesResponse } from '../../capi-server/capi_server.pb';
 import LoadingError from '../LoadingError';
 import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
 
 const Policies = () => {
-  const [count, setCount] = useState<number | undefined >(0);
+  const [count, setCount] = useState<number | undefined>(0);
   const { api } = useContext(EnterpriseClientContext);
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 25 });
@@ -23,7 +22,7 @@ const Policies = () => {
   // I used callback here because I need to pass the payload to the API call as well as the setter function to update the payload in the state object (payload)
   // I could have used useState and setState but I wanted to keep the code as simple as possible.
   const fetchPoliciesAPI = useCallback(() => {
-    return api.ListPolicies({}).then((res) => {
+    return api.ListPolicies({}).then(res => {
       !!res && setCount(res.total);
       return res;
     });

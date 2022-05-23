@@ -48,6 +48,7 @@ COPY --from=build /app/cmd/clusters-service/clusters-service /usr/local/bin
 RUN addgroup -S clusters-service && adduser -S clusters-service -G clusters-service
 
 #
+# -- FIXME: we can probably avoid this now that sqlite is gone?
 # FIXME: it would be nice not run as root but k8s mounts the sqlite host volume as root:root
 # and then the clusters-service user can't write to it.
 #
