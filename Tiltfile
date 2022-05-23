@@ -1,5 +1,5 @@
 if not os.path.exists("./charts/mccp/charts"):
-   # Download NATS chart on first run. This command is slow, so you'd have to
+   # Download chart deps on first run. This command is slow, so you'd have to
    # re-run it yourself if you upgrade the chart
    local("helm dep update charts/mccp")
 
@@ -37,12 +37,6 @@ docker_build('weaveworks/cluster-bootstrap-controller', '../cluster-bootstrap-co
    build_args={'GITHUB_BUILD_USERNAME': 'wge-build-bot', 'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN')}
 )
 docker_build(
-   'weaveworks/weave-gitops-enterprise-event-writer',
-   '.',
-   dockerfile='cmd/event-writer/Dockerfile',
-   build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'}
-)
-docker_build(
    'weaveworks/weave-gitops-enterprise-clusters-service',
    '.',
    dockerfile='cmd/clusters-service/Dockerfile',
@@ -53,18 +47,5 @@ docker_build(
    'ui-cra',
    build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')}
 )
-
-# By default, the wkp-agent uses a pre-built image from Dockerhub. In the unlikely
-# event that you will need to iterate on it, uncomment the following function 
-# to deploy it to your local cluster. You will also need to remove the 
-# `agentTemplate.customTag` value from your local Helm values config otherwise
-# it will continue using the pre-built image. 
-# The agent isn't installed by default - you need to create it in the UI first.
-#docker_build(
-#   'weaveworks/wkp-agent',
-#   '.',
-#   dockerfile='cmd/wkp-agent/Dockerfile',
-#   build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'}
-#)
 
 k8s_resource('chart-mccp-cluster-service', port_forwards='8000')

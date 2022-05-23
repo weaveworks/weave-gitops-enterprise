@@ -319,10 +319,6 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When no clusters are available in the management cluster", func() {
 			It("Verify gitops lists no clusters", func() {
-				if GetEnv("ACCEPTANCE_TESTS_DATABASE_TYPE", "") == "postgres" {
-					Skip("This test case runs only with sqlite")
-				}
-
 				By("And gitops state is reset", func() {
 					gitopsTestRunner.ResetControllers("enterprise")
 					gitopsTestRunner.VerifyWegoPodsRunning()

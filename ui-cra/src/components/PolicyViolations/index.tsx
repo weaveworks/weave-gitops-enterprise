@@ -6,7 +6,7 @@ import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyViolationsTable } from './Table';
 import { PolicyService } from '../Policies/PolicyService';
 import { useCallback, useState } from 'react';
-import { ListPolicyValidationsResponse } from '../../capi-server/capi_server.pb';
+import { ListPolicyValidationsResponse } from '../../cluster-services/cluster_services.pb';
 import LoadingError from '../LoadingError';
 import useClusters from '../../contexts/Clusters';
 

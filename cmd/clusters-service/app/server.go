@@ -9,7 +9,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -25,29 +24,14 @@ import (
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
-	"github.com/go-playground/validator/v10"
-	"github.com/gorilla/mux"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
-	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/agent"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/handlers/api"
-	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
@@ -62,13 +46,24 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
-	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
+	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
 const (
@@ -86,17 +81,11 @@ var (
 )
 
 func EnterprisePublicRoutes() []string {
-	return append(core.PublicRoutes, "/gitops/api/agent.yaml")
+	return core.PublicRoutes
 }
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
-	dbURI                             string
-	dbName                            string
-	dbUser                            string
-	dbPassword                        string
-	dbType                            string
-	dbBusyTimeout                     string
 	entitlementSecretName             string
 	entitlementSecretNamespace        string
 	helmRepoNamespace                 string
@@ -105,9 +94,6 @@ type Params struct {
 	watcherMetricsBindAddress         string
 	watcherHealthzBindAddress         string
 	watcherPort                       int
-	AgentTemplateNatsURL              string
-	AgentTemplateAlertmanagerURL      string
-	AgentTemplateTag                  string
 	htmlRootPath                      string
 	OIDC                              OIDCAuthenticationOptions
 	gitProviderType                   string
@@ -154,12 +140,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&p.dbURI, "db-uri", "/tmp/mccp.db", "URI of the database")
-	cmd.Flags().StringVar(&p.dbType, "db-type", "sqlite", "database type, supported types [sqlite, postgres]")
-	cmd.Flags().StringVar(&p.dbName, "db-name", "", "database name, applicable if type is postgres")
-	cmd.Flags().StringVar(&p.dbUser, "db-user", "", "database user")
-	cmd.Flags().StringVar(&p.dbPassword, "db-password", "", "database password")
-	cmd.Flags().StringVar(&p.dbBusyTimeout, "db-busy-timeout", "5000", "How long should sqlite wait when trying to write to the database")
 	cmd.Flags().StringVar(&p.entitlementSecretName, "entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
 	cmd.Flags().StringVar(&p.entitlementSecretNamespace, "entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
 	cmd.Flags().StringVar(&p.helmRepoNamespace, "helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
@@ -168,9 +148,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.watcherHealthzBindAddress, "watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
 	cmd.Flags().StringVar(&p.watcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().IntVar(&p.watcherPort, "watcher-port", 9443, "the port on which the watcher is running")
-	cmd.Flags().StringVar(&p.AgentTemplateAlertmanagerURL, "agent-template-alertmanager-url", "http://prometheus-operator-kube-p-alertmanager.wkp-prometheus:9093/api/v2", "Value used to populate the alertmanager URL in /api/agent.yaml")
-	cmd.Flags().StringVar(&p.AgentTemplateNatsURL, "agent-template-nats-url", "nats://nats-client.flux-system:4222", "Value used to populate the nats URL in /api/agent.yaml")
-	cmd.Flags().StringVar(&p.AgentTemplateTag, "agent-template-tag", "", "Override the image tag of the agent")
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
@@ -185,7 +162,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
 	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")
 	cmd.Flags().StringVar(&p.gitProviderToken, "git-provider-token", "", "")
-
 	cmd.Flags().StringVar(&p.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&p.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
@@ -269,28 +245,17 @@ func bindFlagValues(cmd *cobra.Command) {
 }
 
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
-	dbUri := p.dbURI
-	if p.dbType == "sqlite" {
-		var err error
-		dbUri, err = utils.GetSqliteUri(dbUri, p.dbBusyTimeout)
-		if err != nil {
-			return err
-		}
-	}
-	db, err := utils.Open(dbUri, p.dbType, p.dbName, p.dbUser, p.dbPassword)
-	if err != nil {
-		return err
-	}
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
 		capiv1.AddToScheme,
+		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 	}
 
-	err = schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
 		return err
 	}
@@ -358,9 +323,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
-		policiesv1.AddToScheme,
+		pacv1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
+		gapiv1.AddToScheme,
 	)
 
 	rest, clusterName, err := kube.RestConfig()
@@ -373,10 +339,13 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return err
 	}
 
+	clientsFactoryScheme := kube.CreateScheme()
+	_ = pacv1.AddToScheme(clientsFactoryScheme)
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
+		clientsFactoryScheme,
 	)
 	clusterClientsFactory.Start(ctx)
 
@@ -387,7 +356,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			Name:      p.entitlementSecretName,
 			Namespace: p.entitlementSecretNamespace,
 		}),
-		WithDatabase(db),
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
@@ -397,9 +365,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			Namespace:    p.capiClustersNamespace,
 		}),
 		WithTemplateLibrary(&templates.CRDLibrary{
-			Log:          log,
-			ClientGetter: clientGetter,
-			Namespace:    p.capiTemplatesNamespace,
+			Log:           log,
+			ClientGetter:  clientGetter,
+			CAPINamespace: p.capiTemplatesNamespace,
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(core_core.NewCoreConfig(
@@ -418,7 +386,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		),
 		WithCAPIClustersNamespace(ns),
 		WithHelmRepositoryCacheDirectory(tempDir),
-		WithAgentTemplate(p.AgentTemplateNatsURL, p.AgentTemplateAlertmanagerURL, p.AgentTemplateTag),
 		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
 		WithOIDCConfig(p.OIDC),
@@ -431,9 +398,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	args := defaultOptions()
 	for _, setter := range setters {
 		setter(args)
-	}
-	if args.Database == nil {
-		return errors.New("database is not set")
 	}
 	if args.KubernetesClient == nil {
 		return errors.New("kubernetes client is not set")
@@ -474,7 +438,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.GitProvider,
 		args.ClientGetter,
 		args.DiscoveryClient,
-		args.Database,
 		args.CAPIClustersNamespace,
 		args.ProfileHelmRepository,
 		args.HelmRepositoryCacheDirectory,
@@ -507,8 +470,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
-
-	gitopsBrokerHandler := getGitopsBrokerMux(args.AgentTemplateNatsURL, args.AgentTemplateAlertmanagerURL, args.AgentTemplateTag, args.Database)
 
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
@@ -561,7 +522,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	// Secure `/v1` and `/gitops/api` API routes
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes())
-	gitopsBrokerHandler = auth.WithAPIAuth(gitopsBrokerHandler, srv, EnterprisePublicRoutes())
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
@@ -575,7 +535,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
-	mux.Handle("/gitops/api/", commonMiddleware(gitopsBrokerHandler))
 
 	mux.Handle("/", staticAssets)
 
@@ -787,20 +746,6 @@ func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
 	} else {
 		log.Info("The current weave-gitops-enterprise version is up to date", "current", version.Version)
 	}
-}
-
-func getGitopsBrokerMux(agentTemplateNatsURL, agentTemplateAlertmanagerURL, agentTemplateTag string, db *gorm.DB) http.Handler {
-	r := mux.NewRouter()
-
-	r.HandleFunc("/gitops/api/agent.yaml", agent.NewGetHandler(db, agentTemplateNatsURL, agentTemplateAlertmanagerURL, agentTemplateTag)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters", api.ListClusters(db, json.MarshalIndent)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.FindCluster(db, json.MarshalIndent)).Methods("GET")
-	r.HandleFunc("/gitops/api/clusters", api.RegisterCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent, utils.Generate)).Methods("POST")
-	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UpdateCluster(db, validator.New(), json.Unmarshal, json.MarshalIndent)).Methods("PUT")
-	r.HandleFunc("/gitops/api/clusters/{id:[0-9]+}", api.UnregisterCluster(db)).Methods("DELETE")
-	r.HandleFunc("/gitops/api/alerts", api.ListAlerts(db, json.MarshalIndent)).Methods("GET")
-
-	return r
 }
 
 type spaFileSystem struct {
