@@ -7,7 +7,7 @@ import { PolicyTable } from './Table';
 import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
 import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
-
+import { ListPoliciesResponse } from '../../cluster-services/cluster_services.pb';
 const Policies = () => {
   const [count, setCount] = useState<number | undefined>(0);
   const { api } = useContext(EnterpriseClientContext);
@@ -38,7 +38,7 @@ const Policies = () => {
         <ContentWrapper>
           <Title>Policies</Title>
           <LoadingError fetchFn={fetchPoliciesAPI}>
-            {({ value }: { value: any }) => (
+            {({ value }: { value: ListPoliciesResponse }) => (
               <>
                 {value.total && value.total > 0 ? (
                   <PolicyTable policies={value.policies} />

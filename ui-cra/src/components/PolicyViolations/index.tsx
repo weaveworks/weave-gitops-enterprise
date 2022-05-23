@@ -7,6 +7,7 @@ import { PolicyViolationsTable } from './Table';
 import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
 import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
+import { ListPolicyValidationsResponse } from '../../cluster-services/cluster_services.pb';
 
 const PoliciesViolations = () => {
   const [count, setCount] = useState<number | undefined>(0);
@@ -40,7 +41,7 @@ const PoliciesViolations = () => {
         <ContentWrapper>
           <Title>Violations Log</Title>
           <LoadingError fetchFn={fetchPolicyViolationsAPI}>
-            {({ value }: { value: any }) => (
+            {({ value }: { value: ListPolicyValidationsResponse }) => (
               <>
                 {value.total && value.total > 0 ? (
                   <PolicyViolationsTable violations={value.violations} />

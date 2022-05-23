@@ -1,17 +1,11 @@
 import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
-import {
-  processCountHeader,
-  processResponse,
-  request,
-  requestWithCountHeader,
-} from '../../utils/request';
+import { request } from '../../utils/request';
 import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { EnterpriseClientContext } from '../EnterpriseClient';
-import { ListGitopsClustersResponse } from '../../cluster-services/cluster_services.pb';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -23,16 +17,14 @@ const ClustersProvider: FC = ({ children }) => {
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
-  const clustersBaseUrl = '/v1/clusters';
+  // const clustersBaseUrl = '/v1/clusters';
 
   const fetchClusters = (): Promise<any> =>
     // requestWithCountHeader('GET', clustersBaseUrl, {
     //   cache: 'no-store',
     // });
     api.ListGitopsClusters({}).then(res => {
-      return {
-        data: res,
-      };
+      return res;
       // return processResponse(res).then((body: any) => ({
       //   data: body,
       //   total: Number(processCountHeader(res)),
@@ -68,7 +60,7 @@ const ClustersProvider: FC = ({ children }) => {
   );
 
   const { error, data, isLoading } = useQuery<
-    { data: { gitopsClusters: GitopsClusterEnriched[]; total: number } },
+    { gitopsClusters: GitopsClusterEnriched[]; total: number },
     Error
   >('clusters', () => fetchClusters(), {
     keepPreviousData: true,
@@ -77,8 +69,8 @@ const ClustersProvider: FC = ({ children }) => {
 
   useEffect(() => {
     if (data) {
-      setClusters(data.data.gitopsClusters);
-      setCount(data.data.total);
+      setClusters(data.gitopsClusters);
+      setCount(data.total);
     }
     if (
       error &&
