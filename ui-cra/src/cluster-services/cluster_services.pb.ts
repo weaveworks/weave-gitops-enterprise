@@ -12,6 +12,17 @@ export type ListTemplatesRequest = {
   templateKind?: string
 }
 
+export type Pagination = {
+  pageSize?: number
+  pageToken?: string
+}
+
+export type ListError = {
+  clusterName?: string
+  namespace?: string
+  message?: string
+}
+
 export type ListTemplatesResponse = {
   templates?: Template[]
   total?: number
@@ -68,9 +79,12 @@ export type ListGitopsClustersResponse = {
 
 export type GetPolicyRequest = {
   policyName?: string
+  clusterName?: string
 }
 
 export type ListPoliciesRequest = {
+  clusterName?: string
+  pagination?: Pagination
 }
 
 export type GetPolicyResponse = {
@@ -80,6 +94,8 @@ export type GetPolicyResponse = {
 export type ListPoliciesResponse = {
   policies?: Policy[]
   total?: number
+  nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type ListPolicyValidationsRequest = {
@@ -326,6 +342,11 @@ export type PolicyTargets = {
   namespaces?: string[]
 }
 
+export type PolicyStandard = {
+  id?: string
+  controls?: string[]
+}
+
 export type Policy = {
   name?: string
   id?: string
@@ -335,11 +356,12 @@ export type Policy = {
   category?: string
   tags?: string[]
   severity?: string
-  controls?: string[]
+  standards?: PolicyStandard[]
   gitCommit?: string
   parameters?: PolicyParam[]
   targets?: PolicyTargets
   createdAt?: string
+  clusterName?: string
 }
 
 export class ClustersService {
