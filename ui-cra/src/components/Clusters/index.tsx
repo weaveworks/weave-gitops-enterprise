@@ -17,9 +17,9 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  // filterConfigForString,
+  filterConfigForString,
   FilterableTable,
-  // filterConfigForStatus,
+  filterConfigForStatus,
   LoadingPage,
   KubeStatusIndicator,
   SortType,
@@ -155,8 +155,8 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   const initialFilterState = {
-    // ...filterConfigForString(clusters, 'namespace'),
-    // ...filterConfigForStatus(clusters),
+    ...filterConfigForString(clusters, 'namespace'),
+    ...filterConfigForStatus(clusters),
   };
 
   useEffect(() => {
@@ -226,6 +226,12 @@ const MCCP: FC = () => {
     checked: {},
     disabled: {},
   })(Checkbox);
+
+  const [key, setKey] = useState<number>(0);
+
+  useEffect(() => {
+    setKey((prevState: number) => prevState + 1);
+  }, [clusters]);
 
   useEffect(() => {
     repositoryURL &&
@@ -328,7 +334,7 @@ const MCCP: FC = () => {
             {!isLoading ? (
               <TableWrapper id="clusters-list" statusExpanded={openCapiStatus}>
                 <FilterableTable
-                  key={clusters.length}
+                  key={key}
                   filters={initialFilterState}
                   rows={clusters}
                   fields={[
