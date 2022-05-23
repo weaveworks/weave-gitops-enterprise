@@ -144,7 +144,7 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 
 	// A fake to support kustomizations, sorry, this is pretty frgaile and will likely break.
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
-	clientsPool.ClientsReturns(map[string]clustersmngr.ClusterClient{})
+	clientsPool.ClientsReturns(map[string]client.Client{})
 
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
 	clientsFactory.GetImpersonatedClientReturns(client, nil)

@@ -139,6 +139,18 @@ message ListTemplatesRequest {
   string provider = 1;
   string template_kind = 2;
 }
+
+message Pagination {
+    int32 pageSize = 1;
+    string pageToken = 2;
+}
+
+message ListError {
+    string clusterName = 1;
+    string namespace = 2;
+    string message = 3;
+}
+
 message ListTemplatesResponse {
   repeated Template templates = 1;
   int32 total = 2;
@@ -182,12 +194,21 @@ message ListGitopsClustersResponse {
   int32 total = 2;
 }
 
-message GetPolicyRequest { string policy_name = 1; }
-message ListPoliciesRequest {}
+message GetPolicyRequest {
+  string policy_name = 1;
+  string clusterName = 2;
+}
+message ListPoliciesRequest {
+    string clusterName = 1;
+    Pagination pagination = 2;
+}
+
 message GetPolicyResponse { Policy policy = 1; }
 message ListPoliciesResponse {
   repeated Policy policies = 1;
   int32 total = 2;
+  string nextPageToken = 3;
+  repeated ListError errors = 4;
 }
 
 
@@ -453,6 +474,11 @@ message PolicyTargets {
   repeated string namespaces = 3;
 }
 
+message PolicyStandard {
+  string id = 1;
+  repeated string controls = 2;
+}
+
 message Policy {
   string name = 1;
   string id = 2;
@@ -462,9 +488,10 @@ message Policy {
   string category = 6;
   repeated string tags = 7;
   string severity = 8;
-  repeated string controls = 9;
+  repeated PolicyStandard standards = 9;
   string git_commit = 10;
   repeated PolicyParam parameters = 11;
   PolicyTargets targets = 12;
   string created_at = 13;
+  string clusterName = 14;
 }
