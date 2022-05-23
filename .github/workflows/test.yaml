@@ -237,6 +237,7 @@ jobs:
       git-provider_hostname: github.com
       cluster_resource_set: true
       management-cluster-kind: kind
+      capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-github"
@@ -265,6 +266,7 @@ jobs:
       git-provider_hostname: gitlab.com
       cluster_resource_set: true
       management-cluster-kind: kind
+      capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-gitlab"
@@ -295,6 +297,7 @@ jobs:
       git-provider_hostname: gitlab.git.dev.weave.works
       cluster_resource_set: true
       management-cluster-kind: kind
+      capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
       artifacts-base-dir: "/tmp/smoke-test-gitlab-on-prem"
@@ -331,6 +334,7 @@ jobs:
       git-provider_hostname: github.com
       cluster_resource_set: true
       management-cluster-kind: kind
+      capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
       database-type: sqlite
       artifacts-base-dir: "/tmp/acceptance-test-github"

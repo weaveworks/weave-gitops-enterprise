@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 
+	"github.com/Masterminds/semver"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/getter"
@@ -80,10 +81,33 @@ func ScanCharts(ctx context.Context, hr *sourcev1.HelmRepository, pred chartPred
 
 	profiles := []*capiv1_proto.Profile{}
 	for _, p := range ps {
-		sort.Strings(p.AvailableVersions)
+		sorted, err := reverseSemVerSort(p.AvailableVersions)
+		if err != nil {
+			return nil, fmt.Errorf("parsing chart %s: %w", p.Name, err)
+		}
+		p.AvailableVersions = sorted
+
 		profiles = append(profiles, p)
 	}
 	return profiles, nil
+}
+
+func reverseSemVerSort(versions []string) ([]string, error) {
+	vs := make([]*semver.Version, len(versions))
+	for i, r := range versions {
+		v, err := semver.NewVersion(r)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", r, err)
+		}
+		vs[i] = v
+	}
+	sort.Sort(sort.Reverse(semver.Collection(vs)))
+
+	result := make([]string, len(versions))
+	for i := range vs {
+		result[i] = vs[i].String()
+	}
+	return result, nil
 }
 
 func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
