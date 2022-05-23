@@ -1,4 +1,4 @@
-import { Policy } from '../../../capi-server/capi_server.pb';
+import { Policy } from '../../../cluster-services/cluster_services.pb';
 import Severity from '../Severity';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';

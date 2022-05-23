@@ -19,11 +19,7 @@ data:
   {{- if not .Values.config.checkpoint.enabled }}
   CHECKPOINT_DISABLE: 1
   {{- end }}
-  {{- if .Values.agentTemplate.customTag }}
-  AGENT_TEMPLATE_TAG: {{ .Values.agentTemplate.customTag | quote }}
-  {{- end }}
   {{- if .Values.config.oidc.enabled }}
-  WEAVE_GITOPS_AUTH_ENABLED: "true"
   OIDC_ISSUER_URL: {{ .Values.config.oidc.issuerURL | quote }}
   OIDC_REDIRECT_URL: {{ .Values.config.oidc.redirectURL | quote }}
   OIDC_COOKIE_DURATION: {{ .Values.config.oidc.cookieDuration | quote }}

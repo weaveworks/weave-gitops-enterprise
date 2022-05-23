@@ -56,8 +56,9 @@ func TestScanCharts_with_matching_charts(t *testing.T) {
 			},
 			Icon: "https://helm.sh/icon.png",
 			AvailableVersions: []string{
-				"1.1.0",
 				"1.1.2",
+				"1.1.2-rc1",
+				"1.1.0",
 			},
 		},
 	}
@@ -78,6 +79,7 @@ func TestScanCharts_errors(t *testing.T) {
 		{"invalid scheme", "sftp://localhost:4222/index.yaml", "fetching profiles.*no provider for scheme: sftp"},
 		{"empty file", ts.URL + "/invalid", "fetching profiles.*no API version specified"},
 		{"invalid yaml", ts.URL + "/brokenyaml", "fetching profiles.*yaml: cannot decode"},
+		{"invalid semantic versions", ts.URL + "/invalid-versions", "parsing chart demo-profile: 1..2: Invalid Semantic Version"},
 	}
 
 	for _, tt := range profilesTests {

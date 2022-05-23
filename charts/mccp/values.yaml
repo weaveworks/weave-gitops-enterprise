@@ -7,7 +7,6 @@ nameOverride: ""
 fullnameOverride: ""
 
 images:
-  eventWriter: docker.io/weaveworks/weave-gitops-enterprise-event-writer:v2.5.0
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
   clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.1.0
@@ -20,17 +19,6 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
-
-dbConfig:
-  databaseType: sqlite
-  databaseURI: /var/database/mccp.db
-  sqliteConfig:
-    persistentVolumeClaim:
-      enabled: true
-      size: 10G
-      existingClaimName: ""
-  postgresConfig:
-    databaseName: postgres
 
 config:
   cluster:
@@ -59,20 +47,6 @@ config:
     cookieDuration: 1h
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
     clientCredentialsSecret: ""
-
-agentTemplate:
-  natsScheme: nats
-  natsURL: weave-gitops-enterprise-nats-client.flux-system:4222
-
-nats:
-  auth:
-    enabled: true
-    user: ""
-    token: $NATS_AUTH_TOKEN
-  client:
-    service:
-      type: NodePort
-  extraEnvVarsSecret: nats-env-vars-secret
 
 tls:
   enabled: true

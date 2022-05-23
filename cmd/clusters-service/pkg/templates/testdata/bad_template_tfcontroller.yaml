@@ -1,0 +1,14 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: GitopsTemplate
+metadata:
+  name: tf-template2
+spec:
+  resourcetemplates:
+    - apiVersion: tf-controller.x-k8s.io/v1alpha3
+      kind: Terraform
+      metadata:
+        name: "${CLUSTER_NAME"
+    - apiVersion: tf-controller.x-k8s.io/v1alpha3
+      kind: Terraform
+      metadata:
+        name: "${CLUSTER_NAME-md-0"

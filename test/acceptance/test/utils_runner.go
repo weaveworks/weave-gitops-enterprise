@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"text/template"
@@ -15,12 +14,10 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	"gorm.io/datatypes"
-	"gorm.io/gorm"
-	"k8s.io/apimachinery/pkg/types"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 // Interface that can be implemented either with:
@@ -34,7 +31,6 @@ type GitopsTestRunner interface {
 	KubectlApplyInsecure(env []string, manifest string) error
 	KubectlDelete(env []string, manifest string) error
 	KubectlDeleteInsecure(env []string, manifest string) error
-	KubectlDeleteAllAgents(env []string) error
 	TimeTravelToLastSeen() error
 	TimeTravelToAlertsResolved() error
 	CreateApplyCapitemplates(templateCount int, templateFile string) []string
@@ -44,26 +40,20 @@ type GitopsTestRunner interface {
 	RestartDeploymentPods(appName string, namespace string) error
 }
 
-// "DB" backend that creates/delete rows
-
 type DatabaseGitopsTestRunner struct {
-	DB     *gorm.DB
 	Client goclient.Client
 }
 
 func (b DatabaseGitopsTestRunner) TimeTravelToLastSeen() error {
-	oneMinuteAgo := time.Now().UTC().Add(time.Minute * -2)
-	b.DB.Exec("update cluster_info set updated_at = ?", oneMinuteAgo)
 	return nil
 }
 
 func (b DatabaseGitopsTestRunner) TimeTravelToAlertsResolved() error {
-	b.DB.Where("1 = 1").Delete(&models.Alert{})
 	return nil
 }
 
 func (b DatabaseGitopsTestRunner) ResetControllers(controllers string) {
-	b.DB.Where("1 = 1").Delete(&models.Cluster{})
+
 }
 
 func (b DatabaseGitopsTestRunner) VerifyWegoPodsRunning() {
@@ -71,34 +61,9 @@ func (b DatabaseGitopsTestRunner) VerifyWegoPodsRunning() {
 }
 
 func (b DatabaseGitopsTestRunner) KubectlApply(env []string, manifest string) error {
-	u, err := url.Parse(manifest)
-	if err != nil {
-		return err
-	}
-	token := u.Query()["token"][0]
-
-	b.DB.Create(&models.ClusterInfo{
-		UID:          types.UID(RandString(10)),
-		ClusterToken: token,
-		UpdatedAt:    time.Now().UTC(),
-	})
-	b.DB.Create(&models.GitCommit{
-		ClusterToken: token,
-		Sha:          "abcdef123456",
-		AuthorName:   "Alice",
-		AuthorEmail:  "alice@acme.org",
-		AuthorDate:   time.Now().UTC().Add(time.Hour * -1),
-		Message:      "Fixed it",
-	})
-	b.DB.Create(&models.FluxInfo{
-		ClusterToken: token,
-		Name:         "flux",
-		Namespace:    "wkp-flux",
-		RepoURL:      "git@github.com:wkp/my-cluster",
-		RepoBranch:   "main",
-	})
 	return nil
 }
+
 func (b DatabaseGitopsTestRunner) KubectlApplyInsecure(env []string, manifest string) error {
 	return b.KubectlApply(env, manifest)
 }
@@ -115,47 +80,21 @@ func (b DatabaseGitopsTestRunner) KubectlDeleteInsecure(env []string, tokenURL s
 	return b.KubectlDelete(env, tokenURL)
 }
 
-func (b DatabaseGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
-	// No more cluster_infos will be created anyway..
-	return nil
-}
-
 func (b DatabaseGitopsTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
-	var firstCluster models.Cluster
-	b.DB.Last(&firstCluster)
-
-	//
-	// FIXME: we shouldn't need this. The UI should stop showing the alerts after 30s anyway
-	// But its not filtering on endsAt right now.
-	//
-	go func() {
-		time.Sleep(fireFor)
-		b.DB.Where("1 = 1").Delete(&models.Alert{})
-	}()
-
-	labels := fmt.Sprintf(`{ "alertname": "%s", "severity": "%s" }`, name, severity)
-	annotations := fmt.Sprintf(`{ "message": "%s" }`, message)
-	b.DB.Create(&models.Alert{
-		ClusterToken: firstCluster.Token,
-		UpdatedAt:    time.Now().UTC(),
-		Labels:       datatypes.JSON(labels),
-		Annotations:  datatypes.JSON(annotations),
-		Severity:     severity,
-		StartsAt:     time.Now().UTC().Add(fireFor * -1),
-		EndsAt:       time.Now().UTC().Add(fireFor),
-	})
-
 	return nil
 }
 
 func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
-	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
+	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files by database test runner")
 	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := capi.ParseFile(fileName)
+			template, err := templates.ParseFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
-			err = b.Client.Create(context.Background(), template)
+			capiTemplate := &capiv1.CAPITemplate{
+				Template: *template,
+			}
+			err = b.Client.Create(context.Background(), capiTemplate)
 			Expect(err).To(BeNil(), "Failed to create CAPITemplate template files")
 		}
 	})
@@ -166,9 +105,12 @@ func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, te
 func (b DatabaseGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	By("Delete CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := capi.ParseFile(fileName)
+			template, err := templates.ParseFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
-			err = b.Client.Delete(context.Background(), template)
+			capiTemplate := &capiv1.CAPITemplate{
+				Template: *template,
+			}
+			err = b.Client.Delete(context.Background(), capiTemplate)
 			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
 		}
 	})
@@ -230,10 +172,6 @@ func (b RealGitopsTestRunner) KubectlDeleteInsecure(env []string, url string) er
 		return fmt.Errorf("failed to curl manifest: %w", err)
 	}
 	return b.KubectlDelete(env, "/tmp/manifest.yaml")
-}
-
-func (b RealGitopsTestRunner) KubectlDeleteAllAgents(env []string) error {
-	return runCommandPassThroughWithEnv(env, "kubectl", "delete", "-n", "wkp-agent", "deploy", "wkp-agent")
 }
 
 func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor time.Duration) error {
@@ -305,7 +243,7 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 // This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability
 func (b RealGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
-	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files")
+	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files by real test runner")
 
 	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
@@ -344,17 +282,21 @@ func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace st
 func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string) {
 	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
-		By("Install AWSClusterStaticIdentity CRD", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
-		})
+		// CAPA installs the AWS identity crds
+		if capi_provider != "capa" {
+			By("Install AWSClusterStaticIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
 
-		By("Install AWSClusterRoleIdentity CRD", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
-			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
-		})
+			By("Install AWSClusterRoleIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
+		}
 
 		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
+			_, _ = runCommandAndReturnStringOutput("kubectl create namespace capa-system")
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 
@@ -375,9 +317,13 @@ func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string)
 	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
 		By("Delete AWS identities and CRD", func() {
+			// Identity crds are installed as part of CAPA installation
 			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/aws_cluster_credentials.yaml", testDataPath))
-			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
-			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+			if capi_provider != "capa" {
+				_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl delete namespace capa-system")
+			}
 		})
 
 	} else if infrastructureProvider == "AZURE" {
@@ -417,8 +363,7 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 		}
 		templateFiles = append(templateFiles, f.Name())
 
-		err = t.Execute(f, input)
-		if err != nil {
+		if err = t.Execute(f, input); err != nil {
 			logger.Infoln("Executing template:", err)
 		}
 

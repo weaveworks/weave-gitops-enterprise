@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { PolicyValidation } from '../../../capi-server/capi_server.pb';
+import { PolicyValidation } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
 import Severity from '../../Policies/Severity';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';

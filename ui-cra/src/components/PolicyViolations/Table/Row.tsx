@@ -1,5 +1,5 @@
 import { TableCell, TableRow } from '@material-ui/core';
-import { PolicyValidation } from '../../../capi-server/capi_server.pb';
+import { PolicyValidation } from '../../../cluster-services/cluster_services.pb';
 import { Link } from 'react-router-dom';
 import Severity from '../../Policies/Severity';
 import moment from 'moment';

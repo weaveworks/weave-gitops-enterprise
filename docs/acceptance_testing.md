@@ -55,21 +55,21 @@ export SELENIUM_DEBUG=true
 export GITOPS_BIN_PATH=/usr/local/bin/gitops
 export ARTIFACTS_BASE_DIR=/tmp/acceptance-tests
 export MANAGEMENT_CLUSTER_KIND=kind
-export ACCEPTANCE_TESTS_DATABASE_TYPE=sqlite
+export CAPI_PROVIDER=capd
 export EXP_CLUSTER_RESOURCE_SET=true
 export UI_NODEPORT=30080
-export NATS_NODEPORT=31490
 export MANAGEMENT_CLUSTER_CNAME=weave.gitops.enterprise.com
 export CLUSTER_REPOSITORY=gitops-testing
 export LOGIN_USER_TYPE=cluster-user
 ```
 
-You can either set 'LOGIN_USER_TYPE' to `oidc` if oidc user authentication is desired or `cluster-user` if cluster user i.e. `admin` account authentication is desired to run the tests.
+You can either set 'LOGIN_USER_TYPE' to `oidc` if oidc user authentication is desired or `cluster-user` if cluster user i.e. `wego-admin` account authentication is desired to run the tests.
+You can also set 'CAPI_PROVIDER' to 'capa' or 'capg' as per requirements.
 
 **User login**
 ```
-export CLUSTER_ADMIN_PASSWORD=<Your chosen password for admin account>
-export CLUSTER_ADMIN_PASSWORD_HASH=<Bcrypt hash for your chosen password>
+export CLUSTER_ADMIN_PASSWORD=wego-enterprise
+export CLUSTER_ADMIN_PASSWORD_HASH='$2b$12$1mxK92n85K.Zga8eNe2j.eqhtC2HnSrvbOk9obSVKbUgJm4SCMwFm'
 export OIDC_ISSUER_URL='https://dex-01.wge.dev.weave.works'
 export DEX_CLIENT_ID='weave-gitops-enterprise'
 export DEX_CLIENT_SECRET='2JPIcb5IvO1isJ3Zii7jvjqbUtLtTC'
