@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
@@ -27,10 +28,165 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/yaml"
 
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
+
+func TestListGitopsClusters(t *testing.T) {
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		refType      string
+		expected     []*capiv1_protos.GitopsCluster
+		err          error
+	}{
+		{
+			name: "no clusters",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(),
+			},
+			expected: []*capiv1_protos.GitopsCluster{},
+		},
+		{
+			name: "1 cluster",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+			},
+		},
+		{
+			name: "2 clusters",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster2"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+				{
+					Name:      "gitops-cluster2",
+					Namespace: "default",
+					SecretRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+			},
+		},
+		{
+			name: "filter by reference type",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster2"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+			},
+			refType: "Secret",
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster2",
+					Namespace: "default",
+					SecretRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+			},
+		},
+		{
+			name: "invalid refType for filtering",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster2"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+			},
+			refType: "foo",
+			err:     errors.New(`reference type "foo" is not recognised`),
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.SetDefault("runtime-namespace", "default")
+
+			// setup
+			gp := NewFakeGitProvider("", nil, nil)
+			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, "", nil)
+
+			// request
+			listGitopsClustersRequest := new(capiv1_protos.ListGitopsClustersRequest)
+			listGitopsClustersRequest.RefType = tt.refType
+			listGitopsClustersResponse, err := s.ListGitopsClusters(context.Background(), listGitopsClustersRequest)
+
+			// check response
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to list gitops clusters:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, listGitopsClustersResponse.GitopsClusters, protocmp.Transform()); diff != "" {
+					t.Fatalf("gitops clusters list didn't match expected:\n%s", diff)
+				}
+			}
+
+		})
+	}
+}
 
 func TestCreatePullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
@@ -442,6 +598,20 @@ func makeSecret(n string, ns string, s ...string) *corev1.Secret {
 		},
 		Data: data,
 	}
+}
+
+func makeTestGitopsCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv1alpha1.GitopsCluster {
+	c := &gitopsv1alpha1.GitopsCluster{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "gitops.weave.works/v1alpha1",
+			Kind:       "GitopsCluster",
+		},
+		Spec: gitopsv1alpha1.GitopsClusterSpec{},
+	}
+	for _, o := range opts {
+		o(c)
+	}
+	return c
 }
 
 func NewFakeGitProvider(url string, repo *git.GitRepo, err error) git.Provider {

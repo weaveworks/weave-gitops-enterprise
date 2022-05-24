@@ -70,6 +70,7 @@ export type RenderTemplateResponse = {
 
 export type ListGitopsClustersRequest = {
   label?: string
+  refType?: string
 }
 
 export type ListGitopsClustersResponse = {
