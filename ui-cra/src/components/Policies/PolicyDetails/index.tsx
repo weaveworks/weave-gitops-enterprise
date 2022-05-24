@@ -15,11 +15,15 @@ import ParametersSection from './ParametersSection';
 const PolicyDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [name, setName] = useState('');
+  const { clusterName } = useParams<{ clusterName: string }>();
+
   const fetchPoliciesAPI = () =>
-    PolicyService.getPolicyById(id).then((res: GetPolicyResponse) => {
-      res.policy?.name && setName(res.policy.name);
-      return res;
-    });
+    PolicyService.getPolicyById(id, clusterName).then(
+      (res: GetPolicyResponse) => {
+        res.policy?.name && setName(res.policy.name);
+        return res;
+      },
+    );
 
   const [fetchPolicyById] = useState(() => fetchPoliciesAPI);
 

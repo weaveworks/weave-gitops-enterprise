@@ -43,6 +43,9 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
                   </ColumnHeaderTooltip>
                 </TableCell>
                 <TableCell align="left">
+                  <span className={classes.headerCell}>Cluster</span>
+                </TableCell>
+                <TableCell align="left">
                   <span className={classes.headerCell}>Category</span>
                 </TableCell>
                 <TableCell align="left">
@@ -54,8 +57,8 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {policies?.map((policy: Policy) => {
-                return <PolicyRow policy={policy} key={policy.name} />;
+              {policies?.map((policy: Policy, index) => {
+                return <PolicyRow policy={policy} key={index} />;
               })}
             </TableBody>
           </Table>

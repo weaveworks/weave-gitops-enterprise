@@ -4,10 +4,11 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { usePolicyStyle } from '../PolicyStyles';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm'
+import remarkGfm from 'remark-gfm';
 
 function HeaderSection({
   id,
+  clusterName,
   tags,
   severity,
   category,
@@ -23,6 +24,10 @@ function HeaderSection({
       <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
         <div className={classes.cardTitle}>Policy ID:</div>
         <span className={classes.body1}>{id}</span>
+      </div>
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+        <div className={classes.cardTitle}>Cluster Name:</div>
+        <span className={classes.body1}>{clusterName}</span>
       </div>
       <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
         <span className={classes.cardTitle}>Tags:</span>
@@ -68,7 +73,11 @@ function HeaderSection({
 
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>How to solve:</div>
-        <ReactMarkdown children={howToSolve || ''} className={classes.editor} remarkPlugins={[remarkGfm]}  />
+        <ReactMarkdown
+          children={howToSolve || ''}
+          className={classes.editor}
+          remarkPlugins={[remarkGfm]}
+        />
       </div>
 
       <div className={classes.sectionSeperator}>

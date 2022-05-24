@@ -8,10 +8,14 @@ export class PolicyService {
       cache: 'no-store',
     });
   };
-  static getPolicyById = (id: string) => {
-    return request('GET', `${this.policiesUrl}/${id}`, {
-      cache: 'no-store',
-    });
+  static getPolicyById = (id: string, clusterName: string) => {
+    return request(
+      'GET',
+      `${this.policiesUrl}/${id}?${new URLSearchParams({
+        clusterName,
+      })}`,
+      { cache: 'no-store' },
+    );
   };
 
   // TODO payload should be a ClusterId

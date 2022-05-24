@@ -15,12 +15,15 @@ import ParametersSection from './ParametersSection';
 const PolicyDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [name, setName] = useState<string>('');
+  const { clusterName } = useParams<{ clusterName: string }>();
 
   const fetchPoliciesAPI = useCallback(() => {
-    return PolicyService.getPolicyById(id).then((res: GetPolicyResponse) => {
-      res.policy && setName(res.policy?.name || '');
-      return res;
-    });
+    return PolicyService.getPolicyById(id, clusterName).then(
+      (res: GetPolicyResponse) => {
+        res.policy && setName(res.policy?.name || '');
+        return res;
+      },
+    );
   }, [id]);
 
   return (
@@ -40,6 +43,7 @@ const PolicyDetails = () => {
               <>
                 <HeaderSection
                   id={policy?.id}
+                  clusterName={policy?.clusterName}
                   tags={policy?.tags}
                   severity={policy?.severity}
                   category={policy?.category}
