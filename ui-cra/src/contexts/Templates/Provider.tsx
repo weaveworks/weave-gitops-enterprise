@@ -1,9 +1,10 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { Template } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Templates } from './index';
 import { useHistory } from 'react-router-dom';
 import useNotifications from './../Notifications';
+import { EnterpriseClientContext } from '../EnterpriseClient';
 
 const TemplatesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -12,6 +13,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const { setNotifications } = useNotifications();
+  const { api } = useContext(EnterpriseClientContext);
 
   const history = useHistory();
 
@@ -47,17 +49,19 @@ const TemplatesProvider: FC = ({ children }) => {
 
   const getTemplates = useCallback(() => {
     setLoading(true);
-    request('GET', templatesUrl, {
-      cache: 'no-store',
-    })
-      .then(res => setTemplates(res.templates))
+    // request('GET', templatesUrl, {
+    //   cache: 'no-store',
+    // })
+      api.ListTemplates({}).then((res: any) => {
+        setTemplates(res.templates)
+      })
       .catch(err =>
         setNotifications([
           { message: { text: err.message }, variant: 'danger' },
         ]),
       )
       .finally(() => setLoading(false));
-  }, [setNotifications]);
+  }, [api, setNotifications]);
 
   useEffect(() => {
     getTemplates();
