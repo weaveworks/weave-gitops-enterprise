@@ -1,5 +1,5 @@
 import React from 'react';
-import { GitopsCluster } from '../capi-server/capi_server.pb';
+import { GitopsCluster } from '../cluster-services/cluster_services.pb';
 
 export interface FormState {
   activeIndex: number;

@@ -849,7 +849,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				setParameterValues(createPage, paramSection)
-				pages.ScrollWindow(webDriver, 0, 4000)
 
 				By("Then I should see PR preview containing identity reference added in the template", func() {
 					Eventually(createPage.PreviewPR.Click).Should(Succeed())
@@ -959,7 +958,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				setParameterValues(createPage, paramSection)
-				pages.ScrollWindow(webDriver, 0, 4000)
 
 				By("Then I should see PR preview without identity reference added to the template", func() {
 					Expect(createPage.PreviewPR.Click()).To(Succeed())

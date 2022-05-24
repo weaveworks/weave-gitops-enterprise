@@ -1,0 +1,500 @@
+syntax = "proto3";
+
+package cluster_services.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/cluster_services";
+
+import "google/api/annotations.proto";
+import "google/api/httpbody.proto";
+import "google/protobuf/any.proto";
+
+service ClustersService {
+  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
+    option (google.api.http) = {
+      get : "/v1/templates"
+    };
+  }
+  rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
+    option (google.api.http) = {
+      get : "/v1/templates/{template_name}"
+    };
+  }
+  rpc ListTemplateParams(ListTemplateParamsRequest)
+      returns (ListTemplateParamsResponse) {
+    option (google.api.http) = {
+      get : "/v1/templates/{template_name}/params"
+    };
+  }
+  // Returns a list of profiles within that template
+  // `gitops get <template-name> --list-profiles`
+  // The template annotations appear in the following form
+  // capi.weave.works/profile-<n> where n is a number
+  rpc ListTemplateProfiles(ListTemplateProfilesRequest)
+      returns (ListTemplateProfilesResponse) {
+    option (google.api.http) = {
+      get : "/v1/templates/{template_name}/profiles"
+    };
+  }
+  rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
+    option (google.api.http) = {
+      post : "/v1/templates/{template_name}/render"
+      body : "*"
+    };
+  }
+  rpc ListGitopsClusters(ListGitopsClustersRequest)
+      returns (ListGitopsClustersResponse) {
+    option (google.api.http) = {
+      get : "/v1/clusters"
+    };
+  }
+  // Creates a pull request for a cluster template.
+  // The template name and values will be used to
+  // create a new branch for which a new pull request
+  // will be created.
+  rpc CreatePullRequest(CreatePullRequestRequest)
+      returns (CreatePullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/clusters"
+      body : "*"
+    };
+  }
+  // Creates a pull request for a tfcontroller template.
+  // The template name and values will be used to
+  // create a new branch for which a new pull request
+  // will be created.
+  rpc CreateTfControllerPullRequest(CreateTfControllerPullRequestRequest)
+      returns (CreateTfControllerPullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/tfcontrollers"
+      body : "*"
+    };
+  }
+
+
+  rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
+      returns (DeleteClustersPullRequestResponse) {
+    option (google.api.http) = {
+      delete : "/v1/clusters"
+      body : "*"
+    };
+  }
+  rpc ListCredentials(ListCredentialsRequest)
+      returns (ListCredentialsResponse) {
+    option (google.api.http) = {
+      get : "/v1/credentials"
+    };
+  }
+  // GetKubeconfig returns the Kubeconfig for the given
+  // workload cluster.
+  rpc GetKubeconfig(GetKubeconfigRequest) returns (google.api.HttpBody) {
+    option (google.api.http) = {
+      get : "/v1/clusters/{cluster_name}/kubeconfig"
+    };
+  }
+  // GetEnterpriseVersion returns the WeGO Enterprise version
+  rpc GetEnterpriseVersion(GetEnterpriseVersionRequest)
+      returns (GetEnterpriseVersionResponse) {
+    option (google.api.http) = {
+      get : "/v1/enterprise/version"
+    };
+  }
+
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
+    option (google.api.http) = {
+      get : "/v1/config"
+    };
+  }
+
+  // ListPolicies list policies available on the management cluster
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
+    option (google.api.http) = {
+      get : "/v1/policies"
+    };
+  }
+
+  // GetPolicy gets a policy on the management cluster by name
+  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
+    option (google.api.http) = {
+      get : "/v1/policies/{policy_name}"
+    };
+  }
+
+  // ListPolicyValidations list policy validations available on the management cluster
+  rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
+    option (google.api.http) = {
+      post : "/v1/policyviolations"
+      body : "*"
+    };
+  }
+
+  // GetPolicyValidation gets a policy validations on the management cluster by id
+  rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
+    option (google.api.http) = {
+      get : "/v1/policyviolations/{violation_id}"
+    };
+  }
+}
+
+message ListTemplatesRequest {
+  string provider = 1;
+  string template_kind = 2;
+}
+
+message Pagination {
+    int32 pageSize = 1;
+    string pageToken = 2;
+}
+
+message ListError {
+    string clusterName = 1;
+    string namespace = 2;
+    string message = 3;
+}
+
+message ListTemplatesResponse {
+  repeated Template templates = 1;
+  int32 total = 2;
+}
+
+message GetTemplateRequest {
+  string template_name = 1;
+  string template_kind = 2;
+}
+message GetTemplateResponse { Template template = 1; }
+
+message ListTemplateParamsRequest {
+  string template_name = 1;
+  string template_kind = 2;
+}
+message ListTemplateParamsResponse {
+  repeated Parameter parameters = 1;
+  repeated TemplateObject objects = 2;
+}
+
+message ListTemplateProfilesRequest {
+  string template_name = 1;
+  string template_kind = 2;
+}
+message ListTemplateProfilesResponse {
+  repeated TemplateProfile profiles = 1;
+  repeated TemplateObject objects = 2;
+}
+
+message RenderTemplateRequest {
+  string template_name = 1;
+  map<string, string> values = 2;
+  Credential credentials = 3;
+  string template_kind = 4;
+}
+message RenderTemplateResponse { string rendered_template = 1; }
+
+message ListGitopsClustersRequest {
+  string label = 1;
+  string ref_type = 2;
+}
+message ListGitopsClustersResponse {
+  repeated GitopsCluster gitops_clusters = 1;
+  int32 total = 2;
+}
+
+message GetPolicyRequest {
+  string policy_name = 1;
+  string clusterName = 2;
+}
+message ListPoliciesRequest {
+    string clusterName = 1;
+    Pagination pagination = 2;
+}
+
+message GetPolicyResponse { Policy policy = 1; }
+message ListPoliciesResponse {
+  repeated Policy policies = 1;
+  int32 total = 2;
+  string nextPageToken = 3;
+  repeated ListError errors = 4;
+}
+
+
+
+message ListPolicyValidationsRequest{
+  string cluster_id = 1;
+}
+message ListPolicyValidationsResponse {
+  repeated PolicyValidation violations = 1;
+  int32 total = 2;
+}
+
+message GetPolicyValidationRequest{ string violation_id = 1; }
+message GetPolicyValidationResponse{ PolicyValidation violation = 1; }
+
+message PolicyValidation{
+  string id = 1;
+  string message = 2;
+  string cluster_id = 3;
+  string category = 4;
+  string severity = 5;
+  string created_at = 6;
+  string entity=7;
+  string namespace=8;
+  string violating_entity=9;
+  string description=10;
+  string how_to_solve=11;
+  string name=12;
+}
+
+message CreatePullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The name of the template to create a pull request for.
+  string template_name = 6;
+  // The values that populate the template's parameters.
+  map<string, string> parameter_values = 7;
+  // The commit message
+  string commit_message = 8;
+  // Credentials
+  Credential credentials = 9;
+  // The values for each profile that will be installed.
+  repeated ProfileValues values = 10;
+  // The repo api url.
+  string repository_api_url = 11;
+}
+message CreatePullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
+}
+
+message CreateTfControllerPullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The name of the template to create a pull request for.
+  string template_name = 6;
+  // The values that populate the template's parameters.
+  map<string, string> parameter_values = 7;
+  // The commit message
+  string commit_message = 8;
+  // The repo api url.
+  string repository_api_url = 11;
+}
+message CreateTfControllerPullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
+}
+
+message DeleteClustersPullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The name of the clusters to be delete via a PR.
+  repeated string cluster_names = 6;
+  // The commit message
+  string commit_message = 7;
+  // Credentials
+  Credential credentials = 8;
+  // The repo api url.
+  string repository_api_url = 9;
+}
+message DeleteClustersPullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
+}
+
+message ListCredentialsRequest {}
+message ListCredentialsResponse {
+  repeated Credential credentials = 1;
+  int32 total = 2;
+}
+
+message GetKubeconfigRequest {
+  // The name of the workload cluster.
+  string cluster_name = 1;
+}
+message GetKubeconfigResponse {
+  // The Kubeconfig of the workload cluster.
+  string kubeconfig = 1;
+}
+
+// kubernetes status condition field
+// XXX: is dup'd in core, can we share?
+message Condition {
+  string type = 1;
+  string status = 2;
+  string reason = 3;
+  string message = 4;
+  string timestamp = 5;
+}
+
+message GitopsCluster {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> annotations = 4;
+  map<string, string> labels = 5;
+  repeated Condition conditions = 6;
+  GitopsClusterRef capiClusterRef = 7;
+  GitopsClusterRef secretRef = 8;
+  CapiCluster capi_cluster = 9;
+}
+
+message CapiCluster {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> annotations = 3;
+  map<string, string> labels = 4;
+  CapiClusterStatus status = 5;
+}
+
+message CapiClusterStatus {
+  string phase = 1;
+  bool infrastructureReady = 2;
+  bool controlPlaneInitialized = 3;
+  bool controlPlaneReady = 4;
+  repeated Condition conditions = 5;
+  int64 observedGeneration = 6;
+}
+
+message GitopsClusterRef { string name = 1; }
+
+message Credential {
+  string group = 1;
+  string version = 2;
+  string kind = 3;
+  string name = 4;
+  string namespace = 5;
+}
+
+message Template {
+  string name = 1;
+  string description = 2;
+  string provider = 3;
+  repeated Parameter parameters = 4;
+  repeated TemplateObject objects = 5;
+  string error = 6;
+  map<string, string> annotations = 7;
+  string template_kind = 8;
+}
+
+message Parameter {
+  string name = 1;
+  string description = 2;
+  bool required = 3;
+  repeated string options = 4;
+}
+
+message TemplateProfile {
+  string name = 1;
+  string version = 2;
+}
+
+message TemplateObject {
+  string kind = 1;
+  string api_version = 2;
+  repeated string parameters = 3;
+  string name = 4;
+  string display_name = 5;
+}
+
+message GetEnterpriseVersionRequest {}
+
+message GetEnterpriseVersionResponse {
+  // The version of WeGO Enterprise
+  string version = 1;
+}
+
+message Maintainer {
+  string name = 1;
+  string email = 2;
+  string url = 3;
+}
+
+message HelmRepository {
+  string name = 1;
+  string namespace = 2;
+}
+
+message Profile {
+  string name = 1;
+  string home = 2;
+  repeated string sources = 3;
+  string description = 4;
+  repeated string keywords = 5;
+  repeated Maintainer maintainers = 6;
+  string icon = 7;
+  map<string, string> annotations = 8;
+  string kube_version = 9;
+  HelmRepository helm_repository = 10;
+  repeated string available_versions = 11;
+}
+
+message ProfileValues {
+  string name = 1;
+  string version = 2;
+  string values = 3;
+  string layer = 4;
+}
+
+message GetConfigRequest {}
+
+message GetConfigResponse { string repositoryURL = 1; }
+
+message PolicyParamRepeatedString { repeated string value = 1; }
+
+message PolicyParam {
+  string name = 1;
+  string type = 2;
+  // value is a generic value that can be a string, int, bool and array of
+  // strings
+  google.protobuf.Any value = 3;
+  bool required = 4;
+}
+
+message PolicyTargetLabel { map<string, string> values = 1; }
+
+message PolicyTargets {
+  repeated string kinds = 1;
+  repeated PolicyTargetLabel labels = 2;
+  repeated string namespaces = 3;
+}
+
+message PolicyStandard {
+  string id = 1;
+  repeated string controls = 2;
+}
+
+message Policy {
+  string name = 1;
+  string id = 2;
+  string code = 3;
+  string description = 4;
+  string how_to_solve = 5;
+  string category = 6;
+  repeated string tags = 7;
+  string severity = 8;
+  repeated PolicyStandard standards = 9;
+  string git_commit = 10;
+  repeated PolicyParam parameters = 11;
+  PolicyTargets targets = 12;
+  string created_at = 13;
+  string clusterName = 14;
+}

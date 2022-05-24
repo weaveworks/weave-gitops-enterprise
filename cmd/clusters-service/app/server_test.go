@@ -14,11 +14,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/logger"
@@ -31,7 +26,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -39,6 +33,11 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
@@ -63,10 +62,6 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	}
 
 	c := createFakeClient(t, createSecret(validEntitlement), hashedSecret)
-	db, err := utils.Open("", "sqlite", "", "", "")
-	if err != nil {
-		t.Fatalf("expected no errors but got %v", err)
-	}
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -96,14 +91,13 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
 			app.WithKubernetesClient(c),
 			app.WithDiscoveryClient(dc),
-			app.WithDatabase(db),
 			app.WithCoreConfig(coreConfig),
 			app.WithApplicationsConfig(appsConfig),
 			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(c))),
 			app.WithTemplateLibrary(&templates.CRDLibrary{
-				Log:          log,
-				ClientGetter: kubefakes.NewFakeClientGetter(c),
-				Namespace:    "default",
+				Log:           log,
+				ClientGetter:  kubefakes.NewFakeClientGetter(c),
+				CAPINamespace: "default",
 			}),
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
@@ -122,18 +116,12 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	}
 	time.Sleep(1 * time.Second)
 
-	// Check this route is public
-	res, err := client.Get("https://localhost:8001/gitops/api/agent.yaml?token=derp")
-	assert.NoError(t, err)
-	// 400 is okay, 401 is not
-	assert.Equal(t, http.StatusBadRequest, res.StatusCode)
-
 	// login
 	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err = client.Get("https://localhost:8001/v1/kustomizations?namespace=foo")
+	res, err := client.Get("https://localhost:8001/v1/kustomizations?namespace=foo")
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
@@ -156,9 +144,9 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 
 	// A fake to support kustomizations, sorry, this is pretty frgaile and will likely break.
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
-	clientsPool.ClientsReturns(map[string]clustersmngr.ClusterClient{})
+	clientsPool.ClientsReturns(map[string]client.Client{})
 
-	client := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
 	clientsFactory.GetImpersonatedClientReturns(client, nil)
 
 	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
