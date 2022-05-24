@@ -162,9 +162,8 @@ func TestListGitopsClusters(t *testing.T) {
 			viper.SetDefault("runtime-namespace", "default")
 
 			// setup
-			db := createDatabase(t)
 			gp := NewFakeGitProvider("", nil, nil)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, db, "", nil)
+			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, "", nil)
 
 			// request
 			listGitopsClustersRequest := new(capiv1_protos.ListGitopsClustersRequest)
