@@ -56,7 +56,7 @@ if native_build:
 
    local_resource(
       'ui',
-      'yarn build',
+      'make build',
       deps=[
          './ui-cra/src',
       ],
