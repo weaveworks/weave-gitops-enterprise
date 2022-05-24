@@ -37,6 +37,11 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
+const (
+	capiClusterRef string = "CAPICluster"
+	secretRef      string = "Secret"
+)
+
 var labels = []string{}
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
@@ -66,6 +71,13 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		}
 
 		clusters = filterClustersByLabel(clusters, msg.Label)
+	}
+
+	if msg.RefType != "" {
+		clusters, err = filterClustersByType(clusters, msg.RefType)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
@@ -617,4 +629,25 @@ func filterClustersByLabel(cl []*capiv1_proto.GitopsCluster, label string) []*ca
 	}
 
 	return clusters
+}
+
+func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*capiv1_proto.GitopsCluster, error) {
+	clusters := []*capiv1_proto.GitopsCluster{}
+
+	for _, c := range cl {
+		switch refType {
+		case capiClusterRef:
+			if c.CapiClusterRef != nil {
+				clusters = append(clusters, c)
+			}
+		case secretRef:
+			if c.SecretRef != nil {
+				clusters = append(clusters, c)
+			}
+		default:
+			return nil, fmt.Errorf("reference type %q is not recognised", refType)
+		}
+	}
+
+	return clusters, nil
 }
