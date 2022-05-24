@@ -66,14 +66,14 @@ if native_build:
    docker_build_with_restart(
       'weaveworks/weave-gitops-enterprise-clusters-service',
       '.',
-      dockerfile="dev.dockerfile",
+      dockerfile="cmd/clusters-service/dev.dockerfile",
       entrypoint='/app/clusters-service',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'},
       live_update=[
-         sync('./cmd/clusters-service/bin', '/app'),
+         sync('cmd/clusters-service/bin', '/app'),
       ],
       ignore=[
-         './cmd/clusters-service/clusters-service'
+         'cmd/clusters-service/clusters-service'
       ]
    )
 
@@ -95,19 +95,5 @@ else:
       'ui-cra',
       build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')}
    )
-
-
-# By default, the wkp-agent uses a pre-built image from Dockerhub. In the unlikely
-# event that you will need to iterate on it, uncomment the following function
-# to deploy it to your local cluster. You will also need to remove the
-# `agentTemplate.customTag` value from your local Helm values config otherwise
-# it will continue using the pre-built image.
-# The agent isn't installed by default - you need to create it in the UI first.
-#docker_build(
-#   'weaveworks/wkp-agent',
-#   '.',
-#   dockerfile='cmd/wkp-agent/Dockerfile',
-#   build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'}
-#)
 
 k8s_resource('chart-mccp-cluster-service', port_forwards='8000')
