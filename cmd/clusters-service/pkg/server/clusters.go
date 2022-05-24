@@ -18,26 +18,28 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/capi"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/common/database/models"
-	common_utils "github.com/weaveworks/weave-gitops-enterprise/common/database/utils"
-	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
-
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	grpcStatus "google.golang.org/grpc/status"
-	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/chartutil"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
+
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+)
+
+const (
+	capiClusterRef string = "CAPICluster"
+	secretRef      string = "Secret"
 )
 
 var labels = []string{}
@@ -75,6 +77,13 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		clusters = filterClustersByLabel(clusters, msg.Label)
 	}
 
+	if msg.RefType != "" {
+		clusters, err = filterClustersByType(clusters, msg.RefType)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
 	return &capiv1_proto.ListGitopsClustersResponse{
 		GitopsClusters: clusters,
@@ -93,17 +102,17 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName)
+	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, "CAPITemplate")
 	if err != nil {
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, msg.ParameterValues)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-clusters-namespace"), msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
 
-	err = capi.ValidateRenderedTemplates(tmplWithValues)
+	err = templates.ValidateRenderedTemplates(tmplWithValues)
 	if err != nil {
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
@@ -122,13 +131,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
 	if !ok {
 		return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' parameter in supplied values")
-	}
-	// FIXME: parse and read from Cluster in yaml template
-	clusterNamespace, ok := msg.ParameterValues["NAMESPACE"]
-	if !ok {
-		s.log.Info("Couldn't find NAMESPACE param in request, using 'default'.")
-		// TODO: https://weaveworks.atlassian.net/browse/WKP-2205
-		clusterNamespace = "default"
 	}
 
 	content := string(tmplWithValuesAndCredentials[:])
@@ -190,64 +192,24 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		files = append(files, *profilesFile)
 	}
 
-	var pullRequestURL string
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		t, err := common_utils.Generate()
-		if err != nil {
-			return fmt.Errorf("error generating token for new cluster: %v", err)
-		}
-
-		c := &models.Cluster{
-			Name:          clusterName,
-			CAPIName:      clusterName,
-			CAPINamespace: clusterNamespace,
-			Token:         t,
-		}
-		if err := tx.Create(c).Error; err != nil {
-			return err
-		}
-
-		// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
-		res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-			GitProvider:       *gp,
-			RepositoryURL:     repositoryURL,
-			ReposistoryAPIURL: msg.RepositoryApiUrl,
-			HeadBranch:        msg.HeadBranch,
-			BaseBranch:        baseBranch,
-			Title:             msg.Title,
-			Description:       msg.Description,
-			CommitMessage:     msg.CommitMessage,
-			Files:             files,
-		})
-		if err != nil {
-			s.log.Error(err, "Failed to create pull request")
-			return err
-		}
-
-		// Create the PR, this shouldn't fail, but if it does it will rollback the Cluster but not the delete the PR
-		pullRequestURL = res.WebURL
-		pr := &models.PullRequest{
-			URL:  pullRequestURL,
-			Type: "create",
-		}
-		if err := tx.Create(pr).Error; err != nil {
-			return err
-		}
-
-		c.PullRequests = append(c.PullRequests, pr)
-		if err := tx.Save(c).Error; err != nil {
-			return err
-		}
-
-		return nil
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider:       *gp,
+		RepositoryURL:     repositoryURL,
+		ReposistoryAPIURL: msg.RepositoryApiUrl,
+		HeadBranch:        msg.HeadBranch,
+		BaseBranch:        baseBranch,
+		Title:             msg.Title,
+		Description:       msg.Description,
+		CommitMessage:     msg.CommitMessage,
+		Files:             files,
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to create pull request and cluster rows for %q: %w", msg.TemplateName, err)
+		return nil, fmt.Errorf("unable to create pull request for %q: %w", msg.TemplateName, err)
 	}
 
 	return &capiv1_proto.CreatePullRequestResponse{
-		WebUrl: pullRequestURL,
+		WebUrl: res.WebURL,
 	}, nil
 }
 
@@ -298,9 +260,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
 	}
 
-	var pullRequestURL string
-
-	// FIXME: maybe this should reconcile rather than just try to create in case of other errors, e.g. database row creation
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
@@ -317,36 +276,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, err
 	}
 
-	pullRequestURL = res.WebURL
-
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		pr := &models.PullRequest{
-			URL:  pullRequestURL,
-			Type: "delete",
-		}
-		if err := tx.Create(pr).Error; err != nil {
-			return err
-		}
-
-		for _, clusterName := range msg.ClusterNames {
-			var cluster models.Cluster
-			if err := tx.Where("name = ?", clusterName).First(&cluster).Error; err != nil {
-				return err
-			}
-
-			cluster.PullRequests = append(cluster.PullRequests, pr)
-			if err := tx.Save(cluster).Error; err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	return &capiv1_proto.DeleteClustersPullRequestResponse{
-		WebUrl: pullRequestURL,
+		WebUrl: res.WebURL,
 	}, nil
 }
 
@@ -549,7 +480,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
 		}
 
-		data, err := capi.ProcessTemplate(decoded, parameterValues)
+		data, err := templates.ProcessTemplate(decoded, parameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -703,4 +634,25 @@ func filterClustersByLabel(cl []*capiv1_proto.GitopsCluster, label string) []*ca
 	}
 
 	return clusters
+}
+
+func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*capiv1_proto.GitopsCluster, error) {
+	clusters := []*capiv1_proto.GitopsCluster{}
+
+	for _, c := range cl {
+		switch refType {
+		case capiClusterRef:
+			if c.CapiClusterRef != nil {
+				clusters = append(clusters, c)
+			}
+		case secretRef:
+			if c.SecretRef != nil {
+				clusters = append(clusters, c)
+			}
+		default:
+			return nil, fmt.Errorf("reference type %q is not recognised", refType)
+		}
+	}
+
+	return clusters, nil
 }

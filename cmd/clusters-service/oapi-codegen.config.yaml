@@ -1,6 +1,6 @@
 output:
-  pkg/openapi-client/capi_server.go
-package: capi_server
+  pkg/openapi-client/cluster_services.go
+package: cluster_services
 generate:
   - types
   - client
