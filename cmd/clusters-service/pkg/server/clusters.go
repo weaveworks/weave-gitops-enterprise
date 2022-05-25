@@ -7,12 +7,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -83,7 +83,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	}
 
 	// Append the management cluster to the end of clusters list
-	mgmtCluster, err := getManagementCluster(ctx, client)
+	mgmtCluster, err := getManagementCluster()
 	if err != nil {
 		return nil, err
 	}
@@ -663,12 +663,15 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*
 }
 
 // getManagementCluster returns the management cluster as a gitops cluster
-func getManagementCluster(ctx context.Context, kubeClient client.Client) (*capiv1_proto.GitopsCluster, error) {
-	clientCfg, err := clientcmd.NewDefaultClientConfigLoadingRules().Load()
-	spew.Dump(clientCfg, err)
+func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
+	c, err := clientcmd.NewDefaultClientConfigLoadingRules().Load()
+	if err != nil {
+		os.Exit(1)
+	}
+	name := c.CurrentContext
 
 	cluster := &capiv1_proto.GitopsCluster{
-		Name: clientCfg.CurrentContext,
+		Name: name,
 		Conditions: []*capiv1_proto.Condition{
 			{
 				Type:   "Ready",

@@ -47,16 +47,7 @@ func TestListGitopsClusters(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTestGitopsCluster(),
 			},
-			expected: []*capiv1_protos.GitopsCluster{
-				{
-					Conditions: []*capiv1_protos.Condition{
-						{
-							Type:   "Ready",
-							Status: "True",
-						},
-					},
-				},
-			},
+			expected: []*capiv1_protos.GitopsCluster{},
 		},
 		{
 			name: "1 cluster",
@@ -70,14 +61,6 @@ func TestListGitopsClusters(t *testing.T) {
 				}),
 			},
 			expected: []*capiv1_protos.GitopsCluster{
-				{
-					Conditions: []*capiv1_protos.Condition{
-						{
-							Type:   "Ready",
-							Status: "True",
-						},
-					},
-				},
 				{
 					Name:      "gitops-cluster",
 					Namespace: "default",
@@ -106,14 +89,6 @@ func TestListGitopsClusters(t *testing.T) {
 				}),
 			},
 			expected: []*capiv1_protos.GitopsCluster{
-				{
-					Conditions: []*capiv1_protos.Condition{
-						{
-							Type:   "Ready",
-							Status: "True",
-						},
-					},
-				},
 				{
 					Name:      "gitops-cluster",
 					Namespace: "default",
@@ -150,14 +125,6 @@ func TestListGitopsClusters(t *testing.T) {
 			},
 			refType: "Secret",
 			expected: []*capiv1_protos.GitopsCluster{
-				{
-					Conditions: []*capiv1_protos.Condition{
-						{
-							Type:   "Ready",
-							Status: "True",
-						},
-					},
-				},
 				{
 					Name:      "gitops-cluster2",
 					Namespace: "default",
