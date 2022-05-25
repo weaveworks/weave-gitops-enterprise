@@ -34,8 +34,12 @@ const PoliciesViolations = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/clusters' },
-            { label: 'Violations Log', url: 'violations', count },
+            { label: 'Clusters', url: '/clusters', count },
+            {
+              label: 'Violations Log',
+              url: 'violations',
+              count: count,
+            },
           ]}
         />
         <ContentWrapper>

@@ -12,6 +12,9 @@
 # Recovery files from vim
 *.swp
 
+# Ignore dependency binaries
+tools/bin
+
 node_modules
 
 # Ignore binary dependencies

@@ -126,10 +126,13 @@ const SignInWrapper = styled.div`
   }
   form div:nth-child(1),
   form div:nth-child(2) {
-    padding-right: 14px;
+    padding-right: 10px;
   }
   .MuiInputBase-root {
     flex-grow: 0;
+  }
+  .MuiIconButton-root {
+    padding-right: 0;
   }
 `;
 
