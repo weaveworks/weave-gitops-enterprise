@@ -8,14 +8,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import Divider from '@material-ui/core/Divider';
 
-const navItemPadding = css`
-  padding: 0 ${theme.spacing.small} ${theme.spacing.small} 0;
-`;
-
-const navItemMargin = css`
-  margin: 0 0 ${theme.spacing.small} 0;
-`;
-
 const itemCss = css`
   /* breaking from std. spacing as */
   display: flex;
@@ -23,9 +15,10 @@ const itemCss = css`
   line-height: ${theme.spacing.large};
   height: ${theme.spacing.large};
   box-sizing: border-box;
-  color: ${theme.colors.black};
-  ${navItemPadding}
-  ${navItemMargin}
+  color: ${theme.colors.neutral40};
+  font-weight: 600;
+  padding: 0 ${theme.spacing.small} ${theme.spacing.small} 0;
+  margin: 0 0 ${theme.spacing.small} 0;
 `;
 
 const itemActiveCss = css`
@@ -37,7 +30,6 @@ const Title = styled.div`
   display: flex;
   color: ${theme.colors.white};
   font-size: ${20}px;
-  padding-left: ${theme.spacing.medium};
   background: ${theme.colors.primary};
   height: ${80}px;
   position: sticky;
@@ -72,8 +64,9 @@ const useStyles = makeStyles({
     height: '100vh',
     borderTopRightRadius: theme.spacing.xs,
   },
-  bold: {
-    fontWeight: 600,
+  subItem: {
+    opacity: 0.7,
+    fontWeight: 400,
   },
   section: {
     paddingBottom: theme.spacing.small,
@@ -94,23 +87,25 @@ export const Navigation: FC = () => {
       </Title>
       <Box className={classes.root} bgcolor={theme.colors.white}>
         <Box className={classes.section}>
-          <NavItem className={classes.bold} to="/clusters" exact>
+          <NavItem to="/clusters" exact>
             Clusters
           </NavItem>
-          <NavItem to="/clusters/templates">Templates</NavItem>
-          <NavItem to="/clusters/violations">Violation Log</NavItem>
+          <NavItem className={classes.subItem} to="/clusters/templates">
+            Templates
+          </NavItem>
+          <NavItem className={classes.subItem} to="/clusters/violations">
+            Violation Log
+          </NavItem>
         </Box>
         <Box className={classes.section}>
-          <NavItem className={classes.bold} to={V2Routes.Automations}>
-            Applications
+          <NavItem to={V2Routes.Automations}>Applications</NavItem>
+          <NavItem className={classes.subItem} to={V2Routes.Sources}>
+            Sources
           </NavItem>
-          <NavItem to={V2Routes.Sources}>Sources</NavItem>
           <NavItem to={V2Routes.FluxRuntime}>Flux Runtime</NavItem>
         </Box>
         <Box className={classes.section}>
-          <NavItem className={classes.bold} to="/policies">
-            Policies
-          </NavItem>
+          <NavItem to="/policies">Policies</NavItem>
         </Box>
       </Box>
     </>

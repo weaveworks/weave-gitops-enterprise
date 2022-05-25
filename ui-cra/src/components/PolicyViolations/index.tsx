@@ -8,9 +8,11 @@ import { PolicyService } from '../Policies/PolicyService';
 import { useCallback, useState } from 'react';
 import { ListPolicyValidationsResponse } from '../../cluster-services/cluster_services.pb';
 import LoadingError from '../LoadingError';
+import useClusters from '../../contexts/Clusters';
 
 const PoliciesViolations = () => {
-  const [count, setCount] = useState<number>(0);
+  const [policiesCount, setPoliciesCount] = useState<number>(0);
+  const { count } = useClusters();
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 20, clusterId:'' });
 
@@ -22,7 +24,7 @@ const PoliciesViolations = () => {
   const fetchPolicyViolationsAPI = useCallback(() => {
     return PolicyService.listPolicyViolations().then(
       (res: ListPolicyValidationsResponse | any) => {
-        !!res && setCount(res.total);
+        !!res && setPoliciesCount(res.total);
         return res;
       },
     );
@@ -36,8 +38,12 @@ const PoliciesViolations = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/clusters' },
-            { label: 'Violations Log', url: 'violations', count },
+            { label: 'Clusters', url: '/clusters', count },
+            {
+              label: 'Violations Log',
+              url: 'violations',
+              count: policiesCount,
+            },
           ]}
         />
         <ContentWrapper>
