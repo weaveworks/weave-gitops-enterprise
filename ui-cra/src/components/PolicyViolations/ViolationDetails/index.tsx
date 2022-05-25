@@ -3,16 +3,17 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
-
 import { useState } from 'react';
 import LoadingError from '../../LoadingError';
 import { useParams } from 'react-router-dom';
 import { GetPolicyValidationResponse } from '../../../cluster-services/cluster_services.pb';
 import { PolicyService } from '../../Policies/PolicyService';
 import ViolationDetails from './ViolationDetails';
+import useClusters from '../../../contexts/Clusters';
 
 const PolicyViolationDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const { count } = useClusters();
   const [name, setName] = useState('');
   const fetchPoliciesViolationsAPI = () =>
     PolicyService.getPolicyViolationById(id).then(
@@ -30,7 +31,7 @@ const PolicyViolationDetails = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/clusters' },
+            { label: 'Clusters', url: '/clusters', count },
             { label: 'Violation logs', url: '/clusters/violations' },
             { label: name, url: 'policy-violation-details' },
           ]}
