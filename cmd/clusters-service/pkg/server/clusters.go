@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -666,7 +665,7 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*
 func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
 	c, err := clientcmd.NewDefaultClientConfigLoadingRules().Load()
 	if err != nil {
-		os.Exit(1)
+		return nil, err
 	}
 	name := c.CurrentContext
 
