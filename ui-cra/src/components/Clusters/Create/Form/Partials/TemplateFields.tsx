@@ -63,7 +63,7 @@ const TemplateFields: FC<{
   };
 
   const required = useMemo(() => {
-    return activeTemplate?.parameters?.map(param => param?.name || '');
+    return activeTemplate?.parameters?.map(param => param.name as string);
   }, [activeTemplate]);
 
   const parameters = useMemo(() => {
