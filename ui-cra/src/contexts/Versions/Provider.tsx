@@ -17,15 +17,12 @@ const VersionsProvider: FC = ({ children }) => {
   const history = useHistory();
 
   const getVersions = useCallback(() => {
-    // requestWithEntitlementHeader('GET', '/v1/enterprise/version', {
-    //   cache: 'no-store',
-    // })
     api
       .GetEnterpriseVersion({})
-      .then((res: any) => {
+      .then((res ) => {
         return {
           data: res,
-          entitlement: processEntitlementHeaders(res),
+          entitlement: processEntitlementHeaders(res as Response),
         };
       })
       .then(res => {
@@ -42,7 +39,7 @@ const VersionsProvider: FC = ({ children }) => {
   const getConfig = useCallback(() => {
     api
       .GetConfig({})
-      .then((res: any) => setRepositoryURL(res.repositoryURL))
+      .then((res) => setRepositoryURL(res.repositoryURL as string))
       .catch(err =>
         setNotifications([
           { message: { text: err.message }, variant: 'danger' },

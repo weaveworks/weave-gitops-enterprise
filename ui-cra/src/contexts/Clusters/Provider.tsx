@@ -4,7 +4,7 @@ import { request } from '../../utils/request';
 import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
-import { GitopsClusterEnriched } from '../../types/custom';
+import { ListGitopsClustersResponseEnriched, GitopsClusterEnriched } from '../../types/custom';
 import { EnterpriseClientContext } from '../EnterpriseClient';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
@@ -17,19 +17,6 @@ const ClustersProvider: FC = ({ children }) => {
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
-  // const clustersBaseUrl = '/v1/clusters';
-
-  const fetchClusters = (): Promise<any> =>
-    // requestWithCountHeader('GET', clustersBaseUrl, {
-    //   cache: 'no-store',
-    // });
-    api.ListGitopsClusters({}).then((res: any) => {
-      return res;
-      // return processResponse(res).then((body: any) => ({
-      //   data: body,
-      //   total: Number(processCountHeader(res)),
-      // }));
-    });
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
@@ -62,7 +49,7 @@ const ClustersProvider: FC = ({ children }) => {
   const { error, data, isLoading } = useQuery<
     { gitopsClusters: GitopsClusterEnriched[]; total: number },
     Error
-  >('clusters', () => fetchClusters(), {
+  >('clusters', () => api.ListGitopsClusters({}).then(res => res as ListGitopsClustersResponseEnriched), {
     keepPreviousData: true,
     refetchInterval: CLUSTERS_POLL_INTERVAL,
   });
