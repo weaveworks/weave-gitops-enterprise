@@ -50,7 +50,7 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 import Policies from './Policies';
-import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
+import PolicyDetails from './Policies/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 

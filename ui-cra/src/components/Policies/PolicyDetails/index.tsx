@@ -5,7 +5,7 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 
 import { PolicyService } from '../PolicyService';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import LoadingError from '../../LoadingError';
 import HeaderSection from './HeaderSection';
 import { useParams } from 'react-router-dom';
@@ -17,15 +17,14 @@ const PolicyDetails = () => {
   const [name, setName] = useState('');
   const { clusterName } = useParams<{ clusterName: string }>();
 
-  const fetchPoliciesAPI = () =>
-    PolicyService.getPolicyById(id, clusterName).then(
+  const fetchPoliciesAPI = useCallback(() => {
+    return PolicyService.getPolicyById(id, clusterName).then(
       (res: GetPolicyResponse) => {
-        res.policy?.name && setName(res.policy.name);
+        res.policy && setName(res.policy?.name || '');
         return res;
       },
     );
-
-  const [fetchPolicyById] = useState(() => fetchPoliciesAPI);
+  }, [id, clusterName]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -39,11 +38,12 @@ const PolicyDetails = () => {
         />
         <ContentWrapper>
           <Title>{name}</Title>
-          <LoadingError fetchFn={fetchPolicyById}>
+          <LoadingError fetchFn={fetchPoliciesAPI}>
             {({ value: { policy } }: { value: GetPolicyResponse }) => (
               <>
                 <HeaderSection
                   id={policy?.id}
+                  clusterName={policy?.clusterName}
                   tags={policy?.tags}
                   severity={policy?.severity}
                   category={policy?.category}
