@@ -1,8 +1,8 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { Template } from '../../types/custom';
+import { Template } from '../../cluster-services/cluster_services.pb';
 
 interface TemplatesContext {
-  templates: Template[] | [];
+  templates: Template[] | undefined;
   loading: boolean;
   activeTemplate: Template | null;
   setActiveTemplate: Dispatch<React.SetStateAction<Template | null>>;

@@ -23,7 +23,7 @@ const ClustersProvider: FC = ({ children }) => {
     // requestWithCountHeader('GET', clustersBaseUrl, {
     //   cache: 'no-store',
     // });
-    api.ListGitopsClusters({}).then(res => {
+    api.ListGitopsClusters({}).then((res: any) => {
       return res;
       // return processResponse(res).then((body: any) => ({
       //   data: body,

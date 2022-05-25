@@ -1,14 +1,17 @@
 import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
-import { Template } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Templates } from './index';
 import { useHistory } from 'react-router-dom';
 import useNotifications from './../Notifications';
 import { EnterpriseClientContext } from '../EnterpriseClient';
+import {
+  ListTemplatesResponse,
+  Template,
+} from '../../cluster-services/cluster_services.pb';
 
 const TemplatesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<Template[] | undefined>([]);
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
@@ -20,7 +23,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const templatesUrl = '/v1/templates';
 
   const getTemplate = (templateName: string) =>
-    templates.find(template => template.name === templateName) || null;
+    templates?.find(template => template.name === templateName) || null;
 
   const renderTemplate = useCallback(
     data => {
@@ -49,13 +52,10 @@ const TemplatesProvider: FC = ({ children }) => {
 
   const getTemplates = useCallback(() => {
     setLoading(true);
-    // request('GET', templatesUrl, {
-    //   cache: 'no-store',
-    // })
-      api.ListTemplates({}).then((res: any) => {
-        setTemplates(res.templates)
-      })
-      .catch(err =>
+    api
+      .ListTemplates({})
+      .then((res: ListTemplatesResponse) => setTemplates(res.templates))
+      .catch((err: Error) =>
         setNotifications([
           { message: { text: err.message }, variant: 'danger' },
         ]),

@@ -14,7 +14,10 @@ import * as UiTemplate from '../UITemplate';
 import FormSteps from '../Steps';
 import styled from 'styled-components';
 import ObjectFieldTemplate from '../GroupedSchema';
-import { Template, TemplateObject } from '../../../../../types/custom';
+import {
+  Template,
+  TemplateObject,
+} from '../../../../../cluster-services/cluster_services.pb';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -60,13 +63,14 @@ const TemplateFields: FC<{
   };
 
   const required = useMemo(() => {
-    return activeTemplate?.parameters?.map(param => param.name);
+    return activeTemplate?.parameters?.map(param => param?.name || '');
   }, [activeTemplate]);
 
   const parameters = useMemo(() => {
     return (
       activeTemplate?.parameters?.map(param => {
-        const { name, options } = param;
+        const { options } = param;
+        const name = param.name as string;
         if (options?.length !== 0) {
           return {
             [name]: {
