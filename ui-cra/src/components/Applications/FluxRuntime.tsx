@@ -7,24 +7,18 @@ import {
   useListFluxRuntimeObjects,
   FluxRuntime,
 } from '@weaveworks/weave-gitops';
-import { useApplicationsCount } from './utils';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading } = useListFluxRuntimeObjects();
-  const applicationsCount = useApplicationsCount();
 
   return (
     <PageTemplate documentTitle="WeGO · Flux Runtime">
       <SectionHeader
         path={[
           {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          {
             label: 'Flux Runtime',
             url: '/flux_runtime',
+            count: data?.deployments?.length,
           },
         ]}
       />
