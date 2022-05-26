@@ -66,7 +66,6 @@ const ProfilesListItem: FC<{
   profile: UpdatedProfile;
   updateProfile: (profile: UpdatedProfile) => void;
 }> = ({ profile, updateProfile }) => {
-  console.log(profile);
   const classes = useStyles();
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
@@ -134,10 +133,10 @@ const ProfilesListItem: FC<{
     );
     if (selectedValue.length > 0) {
       setVersion(selectedValue[0].version);
-      setYaml(selectedValue[0].yaml as string);
+      setYaml(selectedValue[0].yaml);
     } else {
-      setVersion(profile.values[0].version as string);
-      setYaml(profile.values[0].version as string);
+      setVersion(profile.values[0].version);
+      setYaml(profile.values[0].version);
       profile.values[0].selected = true;
     }
   }, [profile]);

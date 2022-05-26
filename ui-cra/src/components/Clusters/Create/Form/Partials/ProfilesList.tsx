@@ -17,7 +17,6 @@ const ProfilesList: FC<{
         p => p.name === profile.name,
       );
       enrichedProfiles[currentProfileIndex] = profile;
-
       onProfilesUpdate(enrichedProfiles);
     },
     [onProfilesUpdate, enrichedProfiles],
