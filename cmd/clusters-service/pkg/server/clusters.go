@@ -26,7 +26,6 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/helm/pkg/chartutil"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -663,11 +662,7 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*
 
 // getManagementCluster returns the management cluster as a gitops cluster
 func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
-	c, err := clientcmd.NewDefaultClientConfigLoadingRules().Load()
-	if err != nil {
-		return nil, err
-	}
-	name := c.CurrentContext
+	name := "management"
 
 	cluster := &capiv1_proto.GitopsCluster{
 		Name: name,
@@ -677,6 +672,7 @@ func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
 				Status: "True",
 			},
 		},
+		ControlPlane: true,
 	}
 
 	return cluster, nil

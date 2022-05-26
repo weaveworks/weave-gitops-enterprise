@@ -980,6 +980,9 @@
         },
         "capiCluster": {
           "$ref": "#/definitions/v1CapiCluster"
+        },
+        "controlPlane": {
+          "type": "boolean"
         }
       }
     },

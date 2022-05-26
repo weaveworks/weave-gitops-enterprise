@@ -355,6 +355,7 @@ message GitopsCluster {
   GitopsClusterRef capiClusterRef = 7;
   GitopsClusterRef secretRef = 8;
   CapiCluster capi_cluster = 9;
+  bool control_plane = 10;
 }
 
 message CapiCluster {

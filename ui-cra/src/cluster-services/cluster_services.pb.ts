@@ -214,6 +214,7 @@ export type GitopsCluster = {
   capiClusterRef?: GitopsClusterRef
   secretRef?: GitopsClusterRef
   capiCluster?: CapiCluster
+  controlPlane?: boolean
 }
 
 export type CapiCluster = {
