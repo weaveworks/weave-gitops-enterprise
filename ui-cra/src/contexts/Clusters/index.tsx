@@ -10,7 +10,7 @@ export interface DeleteClusterPRRequest {
   repositoryUrl?: string;
 }
 interface ClustersContext {
-  clusters: GitopsClusterEnriched[] | [];
+  clusters: GitopsClusterEnriched[];
   isLoading: boolean;
   count: number | null;
   loading: boolean;

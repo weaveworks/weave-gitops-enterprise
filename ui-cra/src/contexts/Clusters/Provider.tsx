@@ -4,8 +4,9 @@ import { request } from '../../utils/request';
 import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
-import { ListGitopsClustersResponseEnriched, GitopsClusterEnriched } from '../../types/custom';
 import { EnterpriseClientContext } from '../EnterpriseClient';
+import { ListGitopsClustersResponse } from '../../cluster-services/cluster_services.pb';
+import { GitopsClusterEnriched } from '../../types/custom';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -16,7 +17,6 @@ const ClustersProvider: FC = ({ children }) => {
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
-
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
@@ -47,17 +47,17 @@ const ClustersProvider: FC = ({ children }) => {
   );
 
   const { error, data, isLoading } = useQuery<
-    { gitopsClusters: GitopsClusterEnriched[]; total: number },
+    ListGitopsClustersResponse,
     Error
-  >('clusters', () => api.ListGitopsClusters({}).then(res => res as ListGitopsClustersResponseEnriched), {
+  >('clusters', () => api.ListGitopsClusters({}), {
     keepPreviousData: true,
     refetchInterval: CLUSTERS_POLL_INTERVAL,
   });
 
   useEffect(() => {
     if (data) {
-      setClusters(data.gitopsClusters);
-      setCount(data.total);
+      setClusters(data.gitopsClusters as GitopsClusterEnriched[]);
+      setCount(data.total as number);
     }
     if (
       error &&
