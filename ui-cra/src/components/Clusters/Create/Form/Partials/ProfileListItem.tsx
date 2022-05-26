@@ -136,7 +136,7 @@ const ProfilesListItem: FC<{
       setYaml(selectedValue[0].yaml);
     } else {
       setVersion(profile.values[0].version);
-      setYaml(profile.values[0].version);
+      setYaml(profile.values[0].yaml);
       profile.values[0].selected = true;
     }
   }, [profile]);
