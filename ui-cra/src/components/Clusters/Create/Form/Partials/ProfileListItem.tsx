@@ -66,6 +66,7 @@ const ProfilesListItem: FC<{
   profile: UpdatedProfile;
   updateProfile: (profile: UpdatedProfile) => void;
 }> = ({ profile, updateProfile }) => {
+  console.log(profile);
   const classes = useStyles();
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
@@ -128,9 +129,15 @@ const ProfilesListItem: FC<{
   }, [profile, updateProfile, version, yaml]);
 
   useEffect(() => {
-    setVersion(profile.values[0].version as string);
-    setYaml(profile.values[0].version as string);
-    profile.values[0].selected = true;
+    if (profile.values.filter(value => value.selected === true).length > 0) {
+      setVersion(
+        profile.values.filter(value => value.selected === true)[0].version,
+      );
+    } else {
+      setVersion(profile.values[0].version as string);
+      setYaml(profile.values[0].version as string);
+      profile.values[0].selected = true;
+    }
   }, [profile]);
 
   return (
