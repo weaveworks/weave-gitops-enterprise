@@ -11,12 +11,12 @@ import "google/protobuf/any.proto";
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
     option (google.api.http) = {
-      get : "/v1/templates"
+      get : "/v1/templates/{provider}/{template_kind}"
     };
   }
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
-      get : "/v1/templates/{template_name}/{template_kind}"
+      get : "/v1/template/{template_name}/{template_kind}"
     };
   }
   rpc ListTemplateParams(ListTemplateParamsRequest)
@@ -37,7 +37,7 @@ service ClustersService {
   }
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (google.api.http) = {
-      post : "/v1/templates/{template_name}/{template_kind}/render"
+      post : "/v1/template/{template_name}/{template_kind}/render"
       body : "*"
     };
   }

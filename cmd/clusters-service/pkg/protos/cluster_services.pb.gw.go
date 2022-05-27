@@ -31,19 +31,35 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
-var (
-	filter_ClustersService_ListTemplates_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_ClustersService_ListTemplates_0(ctx context.Context, marshaler runtime.Marshaler, client ClustersServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListTemplatesRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["provider"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClustersService_ListTemplates_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Provider, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
+	}
+
+	val, ok = pathParams["template_kind"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_kind")
+	}
+
+	protoReq.TemplateKind, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_kind", err)
 	}
 
 	msg, err := client.ListTemplates(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -55,11 +71,31 @@ func local_request_ClustersService_ListTemplates_0(ctx context.Context, marshale
 	var protoReq ListTemplatesRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["provider"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClustersService_ListTemplates_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Provider, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
+	}
+
+	val, ok = pathParams["template_kind"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_kind")
+	}
+
+	protoReq.TemplateKind, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_kind", err)
 	}
 
 	msg, err := server.ListTemplates(ctx, &protoReq)
@@ -817,7 +853,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplates", runtime.WithHTTPPathPattern("/v1/templates"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplates", runtime.WithHTTPPathPattern("/v1/templates/{provider}/{template_kind}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -840,7 +876,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/{template_kind}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetTemplate", runtime.WithHTTPPathPattern("/v1/template/{template_name}/{template_kind}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -909,7 +945,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/{template_kind}/render"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/template/{template_name}/{template_kind}/render"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1247,7 +1283,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplates", runtime.WithHTTPPathPattern("/v1/templates"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplates", runtime.WithHTTPPathPattern("/v1/templates/{provider}/{template_kind}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1267,7 +1303,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/{template_kind}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetTemplate", runtime.WithHTTPPathPattern("/v1/template/{template_name}/{template_kind}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1327,7 +1363,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/templates/{template_name}/{template_kind}/render"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/template/{template_name}/{template_kind}/render"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1587,15 +1623,15 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 }
 
 var (
-	pattern_ClustersService_ListTemplates_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "templates"}, ""))
+	pattern_ClustersService_ListTemplates_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "templates", "provider", "template_kind"}, ""))
 
-	pattern_ClustersService_GetTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "templates", "template_name", "template_kind"}, ""))
+	pattern_ClustersService_GetTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "template", "template_name", "template_kind"}, ""))
 
 	pattern_ClustersService_ListTemplateParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "templates", "template_name", "template_kind", "params"}, ""))
 
 	pattern_ClustersService_ListTemplateProfiles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "templates", "template_name", "profiles"}, ""))
 
-	pattern_ClustersService_RenderTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "templates", "template_name", "template_kind", "render"}, ""))
+	pattern_ClustersService_RenderTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "template", "template_name", "template_kind", "render"}, ""))
 
 	pattern_ClustersService_ListGitopsClusters_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "clusters"}, ""))
 

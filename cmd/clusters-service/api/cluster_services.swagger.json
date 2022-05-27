@@ -357,80 +357,7 @@
         ]
       }
     },
-    "/v1/templates": {
-      "get": {
-        "operationId": "ClustersService_ListTemplates",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplatesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "provider",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{templateName}/profiles": {
-      "get": {
-        "summary": "Returns a list of profiles within that template\n`gitops get \u003ctemplate-name\u003e --list-profiles`\nThe template annotations appear in the following form\ncapi.weave.works/profile-\u003cn\u003e where n is a number",
-        "operationId": "ClustersService_ListTemplateProfiles",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateProfilesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{templateName}/{templateKind}": {
+    "/v1/template/{templateName}/{templateKind}": {
       "get": {
         "operationId": "ClustersService_GetTemplate",
         "responses": {
@@ -466,43 +393,7 @@
         ]
       }
     },
-    "/v1/templates/{templateName}/{templateKind}/params": {
-      "get": {
-        "operationId": "ClustersService_ListTemplateParams",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateParamsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{templateName}/{templateKind}/render": {
+    "/v1/template/{templateName}/{templateKind}/render": {
       "post": {
         "operationId": "ClustersService_RenderTemplate",
         "responses": {
@@ -550,6 +441,115 @@
                 }
               }
             }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/templates/{provider}/{templateKind}": {
+      "get": {
+        "operationId": "ClustersService_ListTemplates",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplatesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/templates/{templateName}/profiles": {
+      "get": {
+        "summary": "Returns a list of profiles within that template\n`gitops get \u003ctemplate-name\u003e --list-profiles`\nThe template annotations appear in the following form\ncapi.weave.works/profile-\u003cn\u003e where n is a number",
+        "operationId": "ClustersService_ListTemplateProfiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplateProfilesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/templates/{templateName}/{templateKind}/params": {
+      "get": {
+        "operationId": "ClustersService_ListTemplateParams",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplateParamsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
