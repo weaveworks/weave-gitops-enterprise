@@ -56,9 +56,9 @@ func initGitProviderData() GitProviderEnv {
 			Password:  GetEnv("GITHUB_PASSWORD", ""),
 		}
 	} else {
-		// `gitops` binary reads GITOPS_GIT_HOST_TYPES w/ a GITOPS_ prefix
+		// `gitops` binary reads WEAVE_GITOPS_GIT_HOST_TYPES w/ a GITOPS_ prefix
 		// while EE just reads GIT_HOST_TYPES, reconcile them here.
-		hostTypes := GetEnv("GITOPS_GIT_HOST_TYPES", "")
+		hostTypes := GetEnv("WEAVE_GITOPS_GIT_HOST_TYPES", "")
 		if hostTypes != "" {
 			viper.Set("git-host-types", hostTypes)
 		}
@@ -73,7 +73,7 @@ func initGitProviderData() GitProviderEnv {
 			Password:       GetEnv("GITLAB_PASSWORD", ""),
 			ClientId:       GetEnv("GITLAB_CLIENT_ID", ""),
 			ClientSecret:   GetEnv("GITLAB_CLIENT_SECRET", ""),
-			HostTypes:      GetEnv("GITOPS_GIT_HOST_TYPES", ""),
+			HostTypes:      GetEnv("WEAVE_GITOPS_GIT_HOST_TYPES", ""),
 			GitlabHostname: GetEnv("GITLAB_HOSTNAME", ""),
 		}
 	}
