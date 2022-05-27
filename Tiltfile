@@ -1,3 +1,5 @@
+load('ext://restart_process', 'docker_build_with_restart')
+
 if not os.path.exists("./charts/mccp/charts"):
    # Download chart deps on first run. This command is slow, so you'd have to
    # re-run it yourself if you upgrade the chart
@@ -36,16 +38,62 @@ docker_build('weaveworks/cluster-controller', '../cluster-controller/')
 docker_build('weaveworks/cluster-bootstrap-controller', '../cluster-bootstrap-controller/',
    build_args={'GITHUB_BUILD_USERNAME': 'wge-build-bot', 'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN')}
 )
-docker_build(
-   'weaveworks/weave-gitops-enterprise-clusters-service',
-   '.',
-   dockerfile='cmd/clusters-service/Dockerfile',
-   build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'}
-)
-docker_build(
-   'weaveworks/weave-gitops-enterprise-ui-server',
-   'ui-cra',
-   build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')}
-)
+
+native_build = os.getenv('NATIVE_BUILD', False)
+
+if native_build:
+   local_resource(
+      'clusters-service',
+      'GOOS=linux GOARCH=amd64 make build',
+      deps=[
+         './cmd/clusters-service',
+      ],
+      ignore=[
+         './cmd/clusters-service/bin'
+      ],
+      dir='cmd/clusters-service',
+   )
+
+   local_resource(
+      'ui',
+      'make build',
+      deps=[
+         './ui-cra/src',
+      ],
+      dir='ui-cra',
+   )
+
+   docker_build_with_restart(
+      'weaveworks/weave-gitops-enterprise-clusters-service',
+      '.',
+      dockerfile="cmd/clusters-service/dev.dockerfile",
+      entrypoint='/app/clusters-service',
+      build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'},
+      live_update=[
+         sync('cmd/clusters-service/bin', '/app'),
+      ],
+      ignore=[
+         'cmd/clusters-service/clusters-service'
+      ]
+   )
+
+   docker_build(
+      'weaveworks/weave-gitops-enterprise-ui-server',
+      'ui-cra',
+      dockerfile="ui-cra/dev.dockerfile",
+      build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')},
+   )
+else:
+   docker_build(
+      'weaveworks/weave-gitops-enterprise-clusters-service',
+      '.',
+      dockerfile='cmd/clusters-service/Dockerfile',
+      build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'}
+   )
+   docker_build(
+      'weaveworks/weave-gitops-enterprise-ui-server',
+      'ui-cra',
+      build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')}
+   )
 
 k8s_resource('chart-mccp-cluster-service', port_forwards='8000')

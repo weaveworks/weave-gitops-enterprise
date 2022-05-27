@@ -1,5 +1,5 @@
 apiVersion: clustertemplates.weave.works/v1alpha1
-kind: GitopsTemplate
+kind: GitOpsTemplate
 metadata:
   name: tf-controller-2
   namespace: default
