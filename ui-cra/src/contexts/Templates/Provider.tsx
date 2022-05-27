@@ -23,7 +23,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const renderTemplate = useCallback(
     data => {
       setLoading(true);
-      request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
+      request('POST', `${templatesUrl}/${activeTemplate?.name}/CAPITemplate/render`, {
         body: JSON.stringify(data),
       })
         .then(data => setPRPreview(data.renderedTemplate))
