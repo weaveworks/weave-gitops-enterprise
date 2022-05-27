@@ -77,7 +77,7 @@ jobs:
       ref: main
 
   acceptance-tests-gitlab-on-prem:
-    needs: [build, coverage, gitops-binary]
+    needs: [build, gitops-binary]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
