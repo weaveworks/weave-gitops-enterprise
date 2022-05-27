@@ -1,5 +1,5 @@
 apiVersion: capi.weave.works/v1alpha1
-kind: GitopsTemplate
+kind: GitOpsTemplate
 metadata:
   name: tf-template2
 spec:

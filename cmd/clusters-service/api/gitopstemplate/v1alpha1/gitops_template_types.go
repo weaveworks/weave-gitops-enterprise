@@ -6,7 +6,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
-const Kind = "GitopsTemplate"
+const Kind = "GitOpsTemplate"
 
 //+kubebuilder:object:root=true
 
