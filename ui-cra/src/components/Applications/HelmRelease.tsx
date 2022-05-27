@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
 import {
   HelmReleaseDetail,
@@ -40,7 +40,6 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         ]}
       />
       <ContentWrapper>
-        <Title>{name}</Title>
         {error && <h3>{error.message}</h3>}
         {isLoading && <LoadingPage />}
         {!error && !isLoading && (
