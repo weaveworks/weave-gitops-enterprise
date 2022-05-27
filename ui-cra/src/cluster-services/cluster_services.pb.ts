@@ -367,10 +367,10 @@ export type Policy = {
 
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
-    return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates/${req["provider"]}/${req["templateKind"]}?${fm.renderURLSearchParams(req, ["provider", "templateKind"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetTemplate(req: GetTemplateRequest, initReq?: fm.InitReq): Promise<GetTemplateResponse> {
-    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/template/${req["templateName"]}/${req["templateKind"]}?${fm.renderURLSearchParams(req, ["templateName", "templateKind"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/template?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
     return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/templates/${req["templateName"]}/${req["templateKind"]}/params?${fm.renderURLSearchParams(req, ["templateName", "templateKind"])}`, {...initReq, method: "GET"})
@@ -379,7 +379,7 @@ export class ClustersService {
     return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/templates/${req["templateName"]}/profiles?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
-    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/template/${req["templateName"]}/${req["templateKind"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/${req["templateKind"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
     return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

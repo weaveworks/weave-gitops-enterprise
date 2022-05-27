@@ -357,7 +357,7 @@
         ]
       }
     },
-    "/v1/template/{templateName}/{templateKind}": {
+    "/v1/template": {
       "get": {
         "operationId": "ClustersService_GetTemplate",
         "responses": {
@@ -377,14 +377,14 @@
         "parameters": [
           {
             "name": "templateName",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           },
           {
             "name": "templateKind",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -393,62 +393,7 @@
         ]
       }
     },
-    "/v1/template/{templateName}/{templateKind}/render": {
-      "post": {
-        "operationId": "ClustersService_RenderTemplate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RenderTemplateResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "values": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
-                },
-                "credentials": {
-                  "$ref": "#/definitions/v1Credential"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{provider}/{templateKind}": {
+    "/v1/templates": {
       "get": {
         "operationId": "ClustersService_ListTemplates",
         "responses": {
@@ -468,14 +413,14 @@
         "parameters": [
           {
             "name": "provider",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           },
           {
             "name": "templateKind",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -550,6 +495,61 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/templates/{templateName}/{templateKind}/render": {
+      "post": {
+        "operationId": "ClustersService_RenderTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "credentials": {
+                  "$ref": "#/definitions/v1Credential"
+                }
+              }
+            }
           }
         ],
         "tags": [
