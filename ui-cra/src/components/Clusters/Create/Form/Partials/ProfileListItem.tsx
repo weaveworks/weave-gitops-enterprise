@@ -128,12 +128,12 @@ const ProfilesListItem: FC<{
   }, [profile, updateProfile, version, yaml]);
 
   useEffect(() => {
-    const selectedValue = profile.values.filter(
+    const [selectedValue] = profile.values.filter(
       value => value.selected === true,
     );
-    if (selectedValue.length > 0) {
-      setVersion(selectedValue[0].version);
-      setYaml(selectedValue[0].yaml);
+    if (selectedValue) {
+      setVersion(selectedValue.version);
+      setYaml(selectedValue.yaml);
     } else {
       setVersion(profile.values[0].version);
       setYaml(profile.values[0].yaml);
