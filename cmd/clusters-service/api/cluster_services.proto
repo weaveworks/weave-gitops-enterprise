@@ -16,13 +16,13 @@ service ClustersService {
   }
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
-      get : "/v1/templates/{template_name}"
+      get : "/v1/templates/{template_name}/{template_kind}"
     };
   }
   rpc ListTemplateParams(ListTemplateParamsRequest)
       returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
-      get : "/v1/templates/{template_name}/params"
+      get : "/v1/templates/{template_name}/{template_kind}/params"
     };
   }
   // Returns a list of profiles within that template
@@ -37,7 +37,7 @@ service ClustersService {
   }
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (google.api.http) = {
-      post : "/v1/templates/{template_name}/render"
+      post : "/v1/templates/{template_name}/{template_kind}/render"
       body : "*"
     };
   }

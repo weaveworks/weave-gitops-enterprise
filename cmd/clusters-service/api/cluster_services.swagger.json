@@ -393,78 +393,6 @@
         ]
       }
     },
-    "/v1/templates/{templateName}": {
-      "get": {
-        "operationId": "ClustersService_GetTemplate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetTemplateResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{templateName}/params": {
-      "get": {
-        "operationId": "ClustersService_ListTemplateParams",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateParamsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
     "/v1/templates/{templateName}/profiles": {
       "get": {
         "summary": "Returns a list of profiles within that template\n`gitops get \u003ctemplate-name\u003e --list-profiles`\nThe template annotations appear in the following form\ncapi.weave.works/profile-\u003cn\u003e where n is a number",
@@ -502,7 +430,79 @@
         ]
       }
     },
-    "/v1/templates/{templateName}/render": {
+    "/v1/templates/{templateName}/{templateKind}": {
+      "get": {
+        "operationId": "ClustersService_GetTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/templates/{templateName}/{templateKind}/params": {
+      "get": {
+        "operationId": "ClustersService_ListTemplateParams",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplateParamsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/templates/{templateName}/{templateKind}/render": {
       "post": {
         "operationId": "ClustersService_RenderTemplate",
         "responses": {
@@ -527,6 +527,12 @@
             "type": "string"
           },
           {
+            "name": "templateKind",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -541,9 +547,6 @@
                 },
                 "credentials": {
                   "$ref": "#/definitions/v1Credential"
-                },
-                "templateKind": {
-                  "type": "string"
                 }
               }
             }
