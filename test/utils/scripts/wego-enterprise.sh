@@ -91,7 +91,7 @@ function setup {
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY"
     GITOPS_REPO=ssh://git@$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY.git
 
-    if [ -z ${GITOPS_GIT_HOST_TYPES} ]; then
+    if [ -z ${WEAVE_GITOPS_GIT_HOST_TYPES} ]; then
       kubectl create secret generic git-provider-credentials --namespace=flux-system \
       --from-literal="GIT_PROVIDER_TOKEN=$GITLAB_TOKEN" \
       --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
@@ -102,7 +102,7 @@ function setup {
       --from-literal="GITLAB_CLIENT_ID=$GITLAB_CLIENT_ID" \
       --from-literal="GITLAB_CLIENT_SECRET=$GITLAB_CLIENT_SECRET" \
       --from-literal="GITLAB_HOSTNAME=$GIT_PROVIDER_HOSTNAME" \
-      --from-literal="GIT_HOST_TYPES=$GITOPS_GIT_HOST_TYPES"      
+      --from-literal="GIT_HOST_TYPES=$WEAVE_GITOPS_GIT_HOST_TYPES"
     fi
 
     flux bootstrap gitlab \
@@ -151,7 +151,7 @@ function setup {
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
   helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
 
-  if [ ! -z $GITOPS_GIT_HOST_TYPES ]; then
+  if [ ! -z $WEAVE_GITOPS_GIT_HOST_TYPES ]; then
     helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
     helmArgs+=( --set "config.extraVolumes[0].configMap.name=ssh-config" )
     helmArgs+=( --set "config.extraVolumeMounts[0].name=ssh-config" )
