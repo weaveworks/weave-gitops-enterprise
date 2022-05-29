@@ -319,8 +319,8 @@ const AddCluster: FC = () => {
             ]}
           />
           <ContentWrapper>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={9}>
+            <Grid container>
+              <Grid item xs={12} md={10}>
                 <Title>Create new cluster with template</Title>
                 <CredentialsWrapper>
                   <div className="template-title">
@@ -380,7 +380,7 @@ const AddCluster: FC = () => {
                   setShowAuthDialog={setShowAuthDialog}
                 />
               </Grid>
-              <Grid className={classes.steps} item md={3}>
+              <Grid className={classes.steps} item md={2}>
                 <FormStepsNavigation
                   steps={steps}
                   activeStep={activeStep}
