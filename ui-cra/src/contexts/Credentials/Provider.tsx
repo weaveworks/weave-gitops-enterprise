@@ -1,23 +1,22 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
 import { Credential } from '../../types/custom';
-import { request } from '../../utils/request';
+import { EnterpriseClientContext } from '../EnterpriseClient';
 import { Credentials } from './index';
 
 const CredentialsProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [credentials, setCredentials] = useState<Credential[] | undefined>([]);
   const [error, setError] = React.useState<string | null>(null);
-
-  const credentialsUrl = '/v1/credentials';
+  const { api } = useContext(EnterpriseClientContext);
 
   const getCredential = (credentialName: string) =>
-    credentials.find(credential => credential.name === credentialName) || null;
+    credentials?.find(credential => credential.name === credentialName) || null;
+
+
 
   const getCredentials = useCallback(() => {
     setLoading(true);
-    request('GET', credentialsUrl, {
-      cache: 'no-store',
-    })
+    api.ListCredentials({})
       .then(res => {
         setCredentials(res.credentials);
         setError(null);
