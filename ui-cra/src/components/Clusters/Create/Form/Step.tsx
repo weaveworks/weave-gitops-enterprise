@@ -33,7 +33,7 @@ const Title = styled.div<{ name?: string }>`
 
 const Content = styled.div`
   display: flex;
-  overflow: hidden;
+  flex-wrap: wrap;
   .step-child {
     display: flex;
     margin-bottom: ${theme.spacing.small};
