@@ -6,7 +6,7 @@ import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { PolicyService } from './PolicyService';
 import { useCallback, useState } from 'react';
-import { ListPoliciesResponse } from '../../cluster-services/cluster_services.pb';
+import { ListPoliciesResponse, Policy } from '../../cluster-services/cluster_services.pb';
 import LoadingError from '../LoadingError';
 
 const Policies = () => {
@@ -23,7 +23,7 @@ const Policies = () => {
   // I could have used useState and setState but I wanted to keep the code as simple as possible.
   const fetchPoliciesAPI = useCallback(() => {
     return PolicyService.listPolicies({}).then(
-      (res: ListPoliciesResponse | any) => {
+      (res) => {
         !!res && setCount(res.total);
         return res;
       },
@@ -43,7 +43,7 @@ const Policies = () => {
             {({ value }: { value: ListPoliciesResponse }) => (
               <>
                 {value.total && value.total > 0 ? (
-                  <PolicyTable policies={value.policies} />
+                  <PolicyTable policies={value.policies as Policy[]} />
                 ) : (
                   <div>No data to display</div>
                 )}
