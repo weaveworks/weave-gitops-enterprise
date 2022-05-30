@@ -5,7 +5,6 @@ import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
 import { useHistory } from 'react-router-dom';
-import { Template } from '../../types/custom';
 import useTemplates from '../../contexts/Templates';
 import { createStyles, makeStyles } from '@material-ui/core';
 import { ReactComponent as EKS } from '../../assets/img/templates/eks.svg';
@@ -18,6 +17,7 @@ import { ReactComponent as OpenStack } from '../../assets/img/templates/openstac
 import { ReactComponent as Packet } from '../../assets/img/templates/packet.svg';
 import { ReactComponent as VSphere } from '../../assets/img/templates/vsphere.svg';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Template } from '../../cluster-services/cluster_services.pb';
 
 const useStyles = makeStyles(() =>
   createStyles({
