@@ -3,15 +3,21 @@ package credentials
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	k8stesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -71,7 +77,7 @@ func TestCheckCredentialsExist(t *testing.T) {
 		Version: "v1alpha4",
 	})
 
-	c := createFakeClient(t)
+	c := newFakeClient(t)
 	_ = c.Create(context.Background(), u)
 
 	creds := &capiv1_protos.Credential{
@@ -160,15 +166,91 @@ spec:
 	}
 }
 
-func convertToStringArray(in [][]byte) []string {
-	var result []string
-	for _, i := range in {
-		result = append(result, string(i))
+func TestFindCredentials(t *testing.T) {
+	apiResources := []*metav1.APIResourceList{
+		{
+			GroupVersion: "infrastructure.cluster.x-k8s.io/v1alpha4",
+			APIResources: []metav1.APIResource{
+				{Name: "awsclusterroleidentities", SingularName: "awsclusterroleidentity", Kind: "AWSClusterRoleIdentity", Namespaced: true},
+				{Name: "azureclusteridentities", SingularName: "azureclusteridentity", Kind: "AzureClusterIdentity", Namespaced: true},
+			},
+		},
 	}
-	return result
+	fakeDiscovery := &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{Resources: apiResources}}
+
+	findTests := []struct {
+		name        string
+		clusterObjs []runtime.Object
+		want        []unstructured.Unstructured
+	}{
+		{
+			"no credentials",
+			[]runtime.Object{},
+			[]unstructured.Unstructured{},
+		},
+		{
+			"single credential",
+			[]runtime.Object{newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds", "test-ns", "uid1")},
+			[]unstructured.Unstructured{
+				*newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds", "test-ns", "uid1")},
+		},
+		{
+			"multi credentials",
+			[]runtime.Object{
+				newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds1", "test-ns", "uid1"),
+				newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds2", "test-ns", "uid2"),
+			},
+			[]unstructured.Unstructured{
+				*newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds1", "test-ns", "uid1"),
+				*newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds2", "test-ns", "uid2"),
+			},
+		},
+		{
+			"multi credentials - returned for different versions",
+			[]runtime.Object{
+				newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha3", "AWSClusterRoleIdentity", "test-creds1", "test-ns", "uid1"),
+				newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds1", "test-ns", "uid1"),
+			},
+			[]unstructured.Unstructured{
+				*newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds1", "test-ns", "uid1"),
+			},
+		},
+		{
+			"multi different kind & identities",
+			[]runtime.Object{
+				newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AzureClusterIdentity", "test-creds1", "test-ns", "uid1"),
+				newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds2", "test-ns", "uid2"),
+			},
+			[]unstructured.Unstructured{
+				*newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AzureClusterIdentity", "test-creds1", "test-ns", "uid1"),
+				*newUnstructured("infrastructure.cluster.x-k8s.io/v1alpha4", "AWSClusterRoleIdentity", "test-creds2", "test-ns", "uid2"),
+			},
+		},
+	}
+
+	for _, tt := range findTests {
+		t.Run(tt.name, func(t *testing.T) {
+			fakeClient := newFakeClient(t, tt.clusterObjs...)
+
+			found, err := FindCredentials(context.TODO(), fakeClient, fakeDiscovery)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			credSorter := func(a, b unstructured.Unstructured) bool {
+				return strings.Compare(string(a.GetUID()), string(b.GetUID())) < 0
+			}
+			resourceVersion := func(k string, _ interface{}) bool {
+				return k == "resourceVersion"
+			}
+			if diff := cmp.Diff(tt.want, found, cmpopts.SortSlices(credSorter), cmpopts.IgnoreMapEntries(resourceVersion)); diff != "" {
+				t.Fatalf("FindCredentials() failed:\n%s", diff)
+			}
+		})
+	}
 }
 
-func createFakeClient(t *testing.T) client.Client {
+func newFakeClient(t *testing.T, objs ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -181,5 +263,24 @@ func createFakeClient(t *testing.T) client.Client {
 
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
+		WithRuntimeObjects(objs...).
 		Build()
+}
+
+func newUnstructured(apiVersion, kind, name, namespace, uid string) *unstructured.Unstructured {
+	u := &unstructured.Unstructured{}
+	u.SetName(name)
+	u.SetNamespace(namespace)
+	u.SetKind(kind)
+	u.SetAPIVersion(apiVersion)
+	u.SetUID(types.UID(uid))
+	return u
+}
+
+func convertToStringArray(in [][]byte) []string {
+	var result []string
+	for _, i := range in {
+		result = append(result, string(i))
+	}
+	return result
 }
