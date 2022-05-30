@@ -12,18 +12,17 @@ const CredentialsProvider: FC = ({ children }) => {
   const getCredential = (credentialName: string) =>
     credentials?.find(credential => credential.name === credentialName) || null;
 
-
-
   const getCredentials = useCallback(() => {
     setLoading(true);
-    api.ListCredentials({})
+    api
+      .ListCredentials({})
       .then(res => {
         setCredentials(res.credentials);
         setError(null);
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [api]);
 
   useEffect(() => {
     getCredentials();
