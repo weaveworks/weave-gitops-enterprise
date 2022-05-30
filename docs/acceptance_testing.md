@@ -113,7 +113,7 @@ export GITHUB_USER=<gitlab account user name>
 export GITHUB_PASSWORD=<gitlab account password>
 export GITLAB_CLIENT_ID=<gitlab oath app id>
 export GITLAB_CLIENT_SECRET=<gitlab oath app secret>
-export GITOPS_GIT_HOST_TYPES="gitlab.git.dev.weave.works=gitlab"
+export WEAVE_GITOPS_GIT_HOST_TYPES="gitlab.git.dev.weave.works=gitlab"
 export GITLAB_HOSTNAME=“gitlab.git.dev.weave.works"
 ```
 You can use any gitlab on-prem instance to run tests. However, `gitlab.git.dev.weave.works` instance is already setup and ready to use for development and testing purposes.

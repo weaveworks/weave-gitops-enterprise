@@ -45,7 +45,11 @@ const (
 var labels = []string{}
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
-	cl, err := s.clustersLibrary.List(ctx)
+	listOptions := client.ListOptions{
+		Limit:    msg.GetPageSize(),
+		Continue: msg.GetPageToken(),
+	}
+	cl, nextPageToken, err := s.clustersLibrary.List(ctx, listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +95,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
 	return &capiv1_proto.ListGitopsClustersResponse{
 		GitopsClusters: clusters,
+		NextPageToken:  nextPageToken,
 		Total:          int32(len(cl))}, err
 }
 
