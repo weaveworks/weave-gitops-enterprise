@@ -15,11 +15,7 @@ import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import FormStepsNavigation from './Form/StepsNavigation';
-import {
-  Credential,
-  TemplateObject,
-  UpdatedProfile,
-} from '../../../types/custom';
+import { Credential, UpdatedProfile } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
@@ -41,6 +37,7 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
+import { TemplateObject } from '../../../cluster-services/cluster_services.pb';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
