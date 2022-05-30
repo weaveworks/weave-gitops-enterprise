@@ -70,12 +70,15 @@ export type RenderTemplateResponse = {
 
 export type ListGitopsClustersRequest = {
   label?: string
+  pageSize?: string
+  pageToken?: string
   refType?: string
 }
 
 export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
   total?: number
+  nextPageToken?: string
 }
 
 export type GetPolicyRequest = {

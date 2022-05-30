@@ -17,7 +17,7 @@ type ClusterGetter interface {
 
 // ClusterLister implementations list clusters from a Library.
 type ClusterLister interface {
-	List(ctx context.Context) (map[string]*gitopsv1alpha1.GitopsCluster, error)
+	List(ctx context.Context, listOptions client.ListOptions) (map[string]*gitopsv1alpha1.GitopsCluster, string, error)
 }
 
 // Library represents a library of Clusters indexed by name.
@@ -54,25 +54,27 @@ func (lib *CRDLibrary) Get(ctx context.Context, name string) (*gitopsv1alpha1.Gi
 	return &cluster, nil
 }
 
-func (lib *CRDLibrary) List(ctx context.Context) (map[string]*gitopsv1alpha1.GitopsCluster, error) {
+func (lib *CRDLibrary) List(ctx context.Context, listOptions client.ListOptions) (map[string]*gitopsv1alpha1.GitopsCluster, string, error) {
 	lib.Log.Info("Getting client from context")
 	cl, err := lib.ClientGetter.Client(ctx)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	lib.Log.Info("Querying namespace for Cluster resources", "namespace", lib.Namespace)
 
 	clusterList := gitopsv1alpha1.GitopsClusterList{}
-	err = cl.List(ctx, &clusterList, client.InNamespace(lib.Namespace))
+	err = cl.List(ctx, &clusterList, client.InNamespace(lib.Namespace), &listOptions)
 	if err != nil {
-		return nil, fmt.Errorf("error getting clusters: %s", err)
+		return nil, "", fmt.Errorf("error getting clusters: %s", err)
 	}
+
 	lib.Log.Info("Got clusters", "numberOfClusters", len(clusterList.Items))
 
+	nextPageToken := clusterList.GetContinue()
 	result := map[string]*gitopsv1alpha1.GitopsCluster{}
 	for i, ct := range clusterList.Items {
 		result[ct.ObjectMeta.Name] = &clusterList.Items[i]
 	}
-	return result, nil
+	return result, nextPageToken, nil
 }
