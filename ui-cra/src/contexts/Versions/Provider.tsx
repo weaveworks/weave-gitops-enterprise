@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
-import { processEntitlementHeaders } from '../../utils/request';
+import {  requestWithEntitlementHeader } from '../../utils/request';
 import { Versions, VersionData } from './index';
 import useNotifications from './../Notifications';
 import { useHistory } from 'react-router-dom';
@@ -17,14 +17,9 @@ const VersionsProvider: FC = ({ children }) => {
   const history = useHistory();
 
   const getVersions = useCallback(() => {
-    api
-      .GetEnterpriseVersion({})
-      .then((res ) => {
-        return {
-          data: res,
-          entitlement: processEntitlementHeaders(res as Response),
-        };
-      })
+    requestWithEntitlementHeader('GET', '/v1/enterprise/version', {
+      cache: 'no-store',
+    })
       .then(res => {
         setVersions(s => ({ ...s, capiServer: res.data.version }));
         setEntitlement(res.entitlement);
@@ -34,7 +29,7 @@ const VersionsProvider: FC = ({ children }) => {
           { message: { text: err.message }, variant: 'danger' },
         ]),
       );
-  }, [api, setNotifications]);
+  }, [setNotifications]);
 
   const getConfig = useCallback(() => {
     api
