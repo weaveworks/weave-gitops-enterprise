@@ -358,7 +358,7 @@ jobs:
           export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
 
           if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER_HOSTNAME }} != "gitlab.com" ]; then
-            export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
+            export WEAVE_GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
             export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
           fi
 

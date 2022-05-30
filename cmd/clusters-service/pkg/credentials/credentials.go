@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 
 	// load the gcp plugin (only required to authenticate against GKE clusters).
@@ -19,35 +20,34 @@ import (
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 )
 
-type IdentityParams struct {
+var identityParamsList = []struct {
 	Group        string
 	Versions     []string
 	Kind         string
 	ClusterKinds []string
-}
+}{
 
-var IdentityParamsList = []IdentityParams{
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
-		Versions:     []string{"v1alpha3", "v1alpha4"},
+		Versions:     []string{"v1alpha3", "v1alpha4", "v1beta1"},
 		Kind:         "AWSClusterStaticIdentity",
 		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster", "AWSManagedControlPlane"},
 	},
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
-		Versions:     []string{"v1alpha3", "v1alpha4"},
+		Versions:     []string{"v1alpha3", "v1alpha4", "v1beta1"},
 		Kind:         "AWSClusterRoleIdentity",
 		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster", "AWSManagedControlPlane"},
 	},
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
-		Versions:     []string{"v1alpha3", "v1alpha4"},
+		Versions:     []string{"v1alpha3", "v1alpha4", "v1beta1"},
 		Kind:         "AzureClusterIdentity",
 		ClusterKinds: []string{"AzureCluster", "AzureManagedCluster"},
 	},
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
-		Versions:     []string{"v1alpha3", "v1alpha4"},
+		Versions:     []string{"v1alpha3", "v1alpha4", "v1beta1"},
 		Kind:         "VSphereClusterIdentity",
 		ClusterKinds: []string{"VSphereCluster"},
 	},
@@ -62,10 +62,10 @@ func isEmptyCredentials(creds *capiv1_proto.Credential) bool {
 }
 
 // FindCredentials returns all the custom resources in the cluster that we think are CAPI identities. What we "think" are
-// capi identities are hardcoded in this file in `IdentityParamsList`
+// capi identities are hardcoded in this file in `identityParamsList`
 func FindCredentials(ctx context.Context, c client.Client, dc discovery.DiscoveryInterface) ([]unstructured.Unstructured, error) {
 	identities := []unstructured.Unstructured{}
-	for _, identityParams := range IdentityParamsList {
+	for _, identityParams := range identityParamsList {
 		for _, v := range identityParams.Versions {
 			gvk := schema.GroupVersionKind{
 				Group:   identityParams.Group,
@@ -99,9 +99,9 @@ func FindCredentials(ctx context.Context, c client.Client, dc discovery.Discover
 	// k8s doesn't internally differentiate between different apiVersions so we de-dup them
 	// https://github.com/kubernetes/kubernetes/issues/58131#issuecomment-403829566
 	//
-	identityIndex := map[schema.GroupKind]unstructured.Unstructured{}
+	identityIndex := map[types.UID]unstructured.Unstructured{}
 	for _, ident := range identities {
-		identityIndex[ident.GroupVersionKind().GroupKind()] = ident
+		identityIndex[ident.GetUID()] = ident
 	}
 	uniqueIdentities := []unstructured.Unstructured{}
 	for _, v := range identityIndex {
@@ -120,11 +120,13 @@ func checkCRDExists(dc discovery.DiscoveryInterface, gvk schema.GroupVersionKind
 	if err != nil {
 		return false, fmt.Errorf("failed to get resources for GV %v: %w", gv, err)
 	}
+
 	availableKindsIndex := map[string]bool{}
 	for _, api := range apiResources.APIResources {
 		availableKindsIndex[api.Kind] = true
 	}
 	_, ok := availableKindsIndex[gvk.Kind]
+
 	return ok, nil
 }
 
@@ -186,7 +188,7 @@ func InjectCredentials(tmplWithValues [][]byte, creds *capiv1_proto.Credential) 
 	newBits := [][]byte{}
 	for _, bit := range tmplWithValues {
 		var err error
-		for _, identityParams := range IdentityParamsList {
+		for _, identityParams := range identityParamsList {
 			for _, v := range identityParams.Versions {
 				// see if we can find the capi type in the list here.
 				if creds.Group == identityParams.Group && creds.Kind == identityParams.Kind && creds.Version == v {

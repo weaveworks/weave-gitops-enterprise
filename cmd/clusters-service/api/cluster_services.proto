@@ -189,12 +189,15 @@ message RenderTemplateRequest {
 message RenderTemplateResponse { string rendered_template = 1; }
 
 message ListGitopsClustersRequest {
-  string label = 1;
-  string ref_type = 2;
+  string label = 1; 
+  int64 page_size = 2;
+  string page_token = 3;
+  string ref_type = 4;
 }
 message ListGitopsClustersResponse {
   repeated GitopsCluster gitops_clusters = 1;
   int32 total = 2;
+  string next_page_token = 3;
 }
 
 message GetPolicyRequest {
