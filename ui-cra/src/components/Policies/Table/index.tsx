@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import { Policy } from '../../../cluster-services/cluster_services.pb';
@@ -13,9 +12,10 @@ import { Link } from 'react-router-dom';
 import Severity from '../Severity';
 import moment from 'moment';
 import styled from 'styled-components';
+import { localEEMuiTheme } from '../../../muiTheme';
 
 const localMuiTheme = createTheme({
-  ...muiTheme,
+  ...localEEMuiTheme,
   shadows: Array(25).fill('none') as Shadows,
 });
 
