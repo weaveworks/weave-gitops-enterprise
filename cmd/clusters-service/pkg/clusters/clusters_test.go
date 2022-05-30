@@ -56,7 +56,7 @@ func TestListClusterFromCRDs(t *testing.T) {
 		}
 	})
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, c1, c2))}
-	result, err := lib.List(context.Background())
+	result, _, err := lib.List(context.Background(), client.ListOptions{})
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}

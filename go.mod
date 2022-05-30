@@ -52,6 +52,7 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
+	gotest.tools v2.2.0+incompatible
 	helm.sh/helm/v3 v3.8.2
 	k8s.io/apiextensions-apiserver v0.23.5
 	k8s.io/helm v2.17.0+incompatible
