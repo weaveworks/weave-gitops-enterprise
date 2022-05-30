@@ -1114,7 +1114,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
 					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
-					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/capi: bootstrap`))
+					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
 
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
@@ -1162,10 +1162,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
-				By("Then I should see cluster status changes to 'Cluster found'", func() {
+				By("Then I should see cluster status changes to 'Ready'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(BeFound())
-					TakeScreenShot("found-cluster")
+					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
+					TakeScreenShot("capi-cluster-ready")
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {

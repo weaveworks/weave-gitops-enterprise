@@ -235,7 +235,7 @@ function setup {
 
   if [ ${GIT_PROVIDER} == "github" ]; then
     kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
-    cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | \
+    cat ${args[1]}/test/utils/data/gitops-cluster-bootstrap-config.yaml | \
       sed s,{{GIT_PROVIDER}},github,g | \
       sed s,{{GITOPS_REPO_NAME}},$CLUSTER_REPOSITORY,g | \
       sed s,{{GITOPS_REPO_OWNER}},$GITHUB_ORG,g | \
@@ -243,7 +243,7 @@ function setup {
       kubectl apply -f -
   elif [ ${GIT_PROVIDER} == "gitlab" ]; then
     kubectl create secret generic my-pat --from-literal GITLAB_TOKEN=$GITLAB_TOKEN
-    cat ${args[1]}/test/utils/data/capi-gitops-cluster-bootstrap-config.yaml | \
+    cat ${args[1]}/test/utils/data/gitops-cluster-bootstrap-config.yaml | \
       sed s,{{GIT_PROVIDER}},gitlab,g | \
       sed s,{{GITOPS_REPO_NAME}},$CLUSTER_REPOSITORY,g | \
       sed s,{{GITOPS_REPO_OWNER}},$GITLAB_ORG,g | \
