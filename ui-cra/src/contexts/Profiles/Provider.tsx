@@ -1,10 +1,11 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { Profile, Template, UpdatedProfile } from '../../types/custom';
+import { Profile, UpdatedProfile } from '../../types/custom';
 import { request } from '../../utils/request';
 import { Profiles } from './index';
 import { useHistory } from 'react-router-dom';
 import useNotifications from './../Notifications';
 import useTemplates from './../Templates';
+import { Template } from '../../cluster-services/cluster_services.pb';
 
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);

@@ -95,3 +95,8 @@ export interface GitopsClusterEnriched extends GitopsCluster {
   type: string;
   updatedAt: string;
 }
+
+export type ListGitopsClustersResponseEnriched = {
+  gitopsClusters: GitopsClusterEnriched[];
+  total: number;
+};

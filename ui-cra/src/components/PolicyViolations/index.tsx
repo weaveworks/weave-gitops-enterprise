@@ -4,15 +4,14 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyViolationsTable } from './Table';
-import { PolicyService } from '../Policies/PolicyService';
-import { useCallback, useState } from 'react';
-import { ListPolicyValidationsResponse } from '../../cluster-services/cluster_services.pb';
+import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
-import useClusters from '../../contexts/Clusters';
+import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
+import { ListPolicyValidationsResponse } from '../../cluster-services/cluster_services.pb';
 
 const PoliciesViolations = () => {
-  const [policiesCount, setPoliciesCount] = useState<number>(0);
-  const { count } = useClusters();
+  const [count, setCount] = useState<number | undefined>(0);
+  const { api } = useContext(EnterpriseClientContext);
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 20, clusterId:'' });
 
@@ -20,17 +19,14 @@ const PoliciesViolations = () => {
   // const updatePayload = (payload: any) => {
   //   setPayload(payload);
   // };
-
   const fetchPolicyViolationsAPI = useCallback(() => {
-    return PolicyService.listPolicyViolations().then(
-      (res: ListPolicyValidationsResponse | any) => {
-        !!res && setPoliciesCount(res.total);
-        return res;
-      },
-    );
+    return api.ListPolicyValidations({}).then(res => {
+      !!res && setCount(res.total);
+      return res;
+    });
     // TODO : Add pagination support for policy violations list API
     // Debendency: payload
-  }, []);
+  }, [api]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -42,7 +38,7 @@ const PoliciesViolations = () => {
             {
               label: 'Violations Log',
               url: 'violations',
-              count: policiesCount,
+              count: count,
             },
           ]}
         />
