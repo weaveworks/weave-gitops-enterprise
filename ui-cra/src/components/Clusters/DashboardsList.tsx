@@ -22,15 +22,13 @@ export const DashboardsList: FC<{
 
   return (
     <ListWrapper style={{ padding: 0 }}>
-      {Object.entries(annotations).map(([key, value]) => {
-        return (
-          <ListItem key={key}>
-            <a href={value} target="_blank" rel="noopener noreferrer">
-              {key}
-            </a>
-          </ListItem>
-        );
-      })}
+      {Object.entries(annotations).map(([key, value]) => (
+        <ListItem key={key}>
+          <a href={value} target="_blank" rel="noopener noreferrer">
+            {key}
+          </a>
+        </ListItem>
+      ))}
     </ListWrapper>
   );
 };
