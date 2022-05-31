@@ -35,6 +35,7 @@ import { CAPIClusterStatus } from './CAPIClusterStatus';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { GitopsClusterEnriched } from '../../types/custom';
+import { DashboardsList } from './DashboardsList';
 
 interface Size {
   size?: 'small';
@@ -400,6 +401,12 @@ const MCCP: FC = () => {
                       sortValue: ({ name }) => name,
                       textSearchable: true,
                       maxWidth: 650,
+                    },
+                    {
+                      label: 'Dashboards',
+                      value: (c: GitopsClusterEnriched) => (
+                        <DashboardsList cluster={c} />
+                      ),
                     },
                     {
                       label: 'Type',

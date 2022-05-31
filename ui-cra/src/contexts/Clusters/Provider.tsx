@@ -5,7 +5,10 @@ import { Clusters, DeleteClusterPRRequest } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
 import { EnterpriseClientContext } from '../EnterpriseClient';
-import { ListGitopsClustersResponse } from '../../cluster-services/cluster_services.pb';
+import {
+  GitopsCluster,
+  ListGitopsClustersResponse,
+} from '../../cluster-services/cluster_services.pb';
 import { GitopsClusterEnriched } from '../../types/custom';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
@@ -17,6 +20,23 @@ const ClustersProvider: FC = ({ children }) => {
   const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
+
+  const getDashboardAnnotations = useCallback((cluster: GitopsCluster) => {
+    if (cluster?.annotations) {
+      const annotations = Object.entries(cluster?.annotations);
+      const dashboardAnnotations: { [key: string]: string } = {};
+      for (const [key, value] of annotations) {
+        if (key.includes('metadata.weave.works/dashboard.')) {
+          const dashboardProvider = key.split(
+            'metadata.weave.works/dashboard.',
+          )[1];
+          dashboardAnnotations[dashboardProvider] = value;
+        }
+      }
+      return dashboardAnnotations;
+    }
+    return {};
+  }, []);
 
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
@@ -83,6 +103,7 @@ const ClustersProvider: FC = ({ children }) => {
         setSelectedClusters,
         deleteCreatedClusters,
         getKubeconfig,
+        getDashboardAnnotations,
       }}
     >
       {children}

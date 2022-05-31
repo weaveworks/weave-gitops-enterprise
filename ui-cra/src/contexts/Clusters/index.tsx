@@ -1,4 +1,5 @@
 import { createContext, Dispatch, useContext } from 'react';
+import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
 import { GitopsClusterEnriched } from '../../types/custom';
 
 export interface DeleteClusterPRRequest {
@@ -21,6 +22,9 @@ interface ClustersContext {
     token: string,
   ) => Promise<any>;
   getKubeconfig: (clusterName: string, fileName: string) => void;
+  getDashboardAnnotations: (cluster: GitopsCluster) => {
+    [key: string]: string;
+  };
 }
 
 export const Clusters = createContext<ClustersContext | null>(null);
