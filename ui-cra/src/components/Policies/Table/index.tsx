@@ -45,11 +45,10 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   const initialFilterState = {
     ...filterConfigForString(policies, 'clusterName'),
     ...filterConfigForString(policies, 'severity'),
-    ...filterConfigForString(policies, 'category'),
   };
 
   return (
-    <div className={`${classes.root}`} id="policies-list">
+    <div className={classes.root} id="policies-list">
       <ThemeProvider theme={localMuiTheme}>
         <TableWrapper id="policy-list">
           <FilterableTable

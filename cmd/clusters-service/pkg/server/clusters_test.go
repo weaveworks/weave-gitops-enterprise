@@ -31,6 +31,7 @@ import (
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -47,7 +48,18 @@ func TestListGitopsClusters(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeTestGitopsCluster(),
 			},
-			expected: []*capiv1_protos.GitopsCluster{},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name: "management",
+					Conditions: []*capiv1_proto.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
 		},
 		{
 			name: "1 cluster",
@@ -67,6 +79,16 @@ func TestListGitopsClusters(t *testing.T) {
 					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
 						Name: "dev",
 					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_proto.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
 				},
 			},
 		},
@@ -103,6 +125,16 @@ func TestListGitopsClusters(t *testing.T) {
 						Name: "dev",
 					},
 				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_proto.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
 			},
 		},
 		{
@@ -131,6 +163,16 @@ func TestListGitopsClusters(t *testing.T) {
 					SecretRef: &capiv1_protos.GitopsClusterRef{
 						Name: "dev",
 					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_proto.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
 				},
 			},
 		},

@@ -17,14 +17,16 @@ const PolicyDetails = () => {
   const [name, setName] = useState('');
   const { clusterName } = useParams<{ clusterName: string }>();
 
-  const fetchPoliciesAPI = useCallback(() => {
-    return PolicyService.getPolicyById(id, clusterName).then(
-      (res: GetPolicyResponse) => {
-        res.policy && setName(res.policy?.name || '');
-        return res;
-      },
-    );
-  }, [id, clusterName]);
+  const fetchPoliciesAPI = useCallback(
+    () =>
+      PolicyService.getPolicyById(id, clusterName).then(
+        (res: GetPolicyResponse) => {
+          res.policy && setName(res.policy?.name || '');
+          return res;
+        },
+      ),
+    [id, clusterName],
+  );
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
