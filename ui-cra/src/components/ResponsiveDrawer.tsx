@@ -143,6 +143,14 @@ const CoreWrapper = styled.div`
   .MuiFormControl-root {
     min-width: 0px;
   }
+  div[class*='ReconciliationGraph'] {
+    svg {
+      min-height: 600px;
+    }
+    .MuiSlider-root.MuiSlider-vertical {
+      height: 200px;
+    }
+  }
   max-width: calc(100vw - 220px);
 `;
 
@@ -267,7 +275,11 @@ const App = () => {
               path={V2Routes.Sources}
             />
             <Route
-              component={withSearchParams(WGApplicationsKustomization)}
+              component={withSearchParams((props: any) => (
+                <CoreWrapper>
+                  <WGApplicationsKustomization {...props} />
+                </CoreWrapper>
+              ))}
               path={V2Routes.Kustomization}
             />
             <Route
