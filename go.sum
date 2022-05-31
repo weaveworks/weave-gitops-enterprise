@@ -1308,10 +1308,8 @@ github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQ
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/policy-agent/api v1.0.3 h1:gq+YXSyFZdcYtVZoqa4awrMBYXUofsCFh/R0Fb4BE2Q=
 github.com/weaveworks/policy-agent/api v1.0.3/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
-github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220530061419-38bf3eed6226 h1:W591FT9NPiPV2OTBl6T1tKNHKgZzHKt/zeOEVZTj0fo=
-github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220530061419-38bf3eed6226/go.mod h1:2wNjCDUcAT/Ni605y36wuMyOTH9pp1CJP5ciZvv9AHQ=
-github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220530193325-112170889661 h1:mYmCf2MTp2yZ0uMkTSz8WbShAz8rlaN4j9oJxeTV2DM=
-github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220530193325-112170889661/go.mod h1:2wNjCDUcAT/Ni605y36wuMyOTH9pp1CJP5ciZvv9AHQ=
+github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220531175907-c00633c53829 h1:bxZo9zD74/9cLZZrGD+knaD0AAwcY12ntk9hzuFEFSk=
+github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220531175907-c00633c53829/go.mod h1:2wNjCDUcAT/Ni605y36wuMyOTH9pp1CJP5ciZvv9AHQ=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/willf/bitset v1.1.11-0.20200630133818-d5bec3311243/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
