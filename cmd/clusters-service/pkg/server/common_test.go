@@ -16,6 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
 	pacv1 "github.com/weaveworks/policy-agent/api/v1"
@@ -55,8 +56,18 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	return c
 }
 
-func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, ns string, hr *sourcev1.HelmRepository) capiv1_protos.ClustersServiceServer {
-	c := createClient(t, clusterState...)
+type serverOptions struct {
+	clusterState   []runtime.Object
+	configMapName  string
+	namespace      string
+	provider       git.Provider
+	ns             string
+	hr             *sourcev1.HelmRepository
+	clientsFactory clustersmngr.ClientsFactory
+}
+
+func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
+	c := createClient(t, o.clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	return NewClusterServer(
@@ -64,18 +75,19 @@ func createServer(t *testing.T, clusterState []runtime.Object, configMapName, na
 		&clusters.CRDLibrary{
 			Log:          logr.Discard(),
 			ClientGetter: kubefakes.NewFakeClientGetter(c),
-			Namespace:    namespace,
+			Namespace:    o.namespace,
 		},
 		&templates.ConfigMapLibrary{
 			Log:           logr.Discard(),
 			Client:        c,
-			ConfigMapName: configMapName,
-			CAPINamespace: namespace,
+			ConfigMapName: o.configMapName,
+			CAPINamespace: o.namespace,
 		},
-		provider,
+		o.clientsFactory,
+		o.provider,
 		kubefakes.NewFakeClientGetter(c),
 		dc,
-		ns,
+		o.ns,
 		"weaveworks-charts", t.TempDir(),
 	)
 }

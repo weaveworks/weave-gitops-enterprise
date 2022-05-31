@@ -204,8 +204,10 @@ func TestListGitopsClusters(t *testing.T) {
 			viper.SetDefault("runtime-namespace", "default")
 
 			// setup
-			gp := NewFakeGitProvider("", nil, nil)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+			})
 
 			// request
 			listGitopsClustersRequest := new(capiv1_protos.ListGitopsClustersRequest)
@@ -417,7 +419,13 @@ status: {}
 				hr.Namespace = "default"
 			})
 			tt.clusterState = append(tt.clusterState, hr)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, "", hr)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+				provider:      tt.provider,
+				hr:            hr,
+			})
 
 			// request
 			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
@@ -525,8 +533,12 @@ func TestGetKubeconfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.SetDefault("capi-clusters-namespace", tt.clusterObjectsNamespace)
 
-			gp := NewFakeGitProvider("", nil, nil)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, tt.clusterObjectsNamespace, nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+				ns:            tt.clusterObjectsNamespace,
+			})
 
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
 
@@ -595,7 +607,11 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			s := createServer(t, []runtime.Object{}, "capi-templates", "default", tt.provider, "", nil)
+			s := createServer(t, serverOptions{
+				configMapName: "capi-templates",
+				namespace:     "default",
+				provider:      tt.provider,
+			})
 
 			// delete request
 			deletePullRequestResponse, err := s.DeleteClustersPullRequest(context.Background(), tt.req)
