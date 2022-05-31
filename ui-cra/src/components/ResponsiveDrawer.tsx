@@ -151,6 +151,9 @@ const CoreWrapper = styled.div`
       height: 200px;
     }
   }
+  .MuiButton-root {
+    margin-right: 0;
+  }
   max-width: calc(100vw - 220px);
 `;
 
