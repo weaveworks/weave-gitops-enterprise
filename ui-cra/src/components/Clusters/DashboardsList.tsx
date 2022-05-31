@@ -7,7 +7,7 @@ import { GitopsClusterEnriched } from '../../types/custom';
 
 const ListWrapper = styled(List)`
   li[class*='MuiListItem-root'] {
-    padding: 0 0 4px 0;
+    padding: 0 0 ${theme.spacing.xxs} 0;
   }
   a {
     color: ${theme.colors.primary};

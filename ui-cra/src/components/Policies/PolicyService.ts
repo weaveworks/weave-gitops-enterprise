@@ -8,7 +8,6 @@ export class PolicyService {
       cache: 'no-store',
     });
   };
-
   static getPolicyById = (id: string, clusterName: string) =>
     request(
       'GET',
@@ -17,7 +16,6 @@ export class PolicyService {
       })}`,
       { cache: 'no-store' },
     );
-  };
 
   // TODO payload should be a ClusterId
   static listPolicyViolations = () => {
