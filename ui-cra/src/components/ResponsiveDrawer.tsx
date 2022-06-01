@@ -50,7 +50,7 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 
 import Policies from './Policies';
-import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
+import PolicyDetails from './Policies/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
@@ -142,6 +142,17 @@ const CoreWrapper = styled.div`
   }
   .MuiFormControl-root {
     min-width: 0px;
+  }
+  div[class*='ReconciliationGraph'] {
+    svg {
+      min-height: 600px;
+    }
+    .MuiSlider-root.MuiSlider-vertical {
+      height: 200px;
+    }
+  }
+  .MuiButton-root {
+    margin-right: 0;
   }
   max-width: calc(100vw - 220px);
 `;
@@ -267,7 +278,11 @@ const App = () => {
               path={V2Routes.Sources}
             />
             <Route
-              component={withSearchParams(WGApplicationsKustomization)}
+              component={withSearchParams((props: any) => (
+                <CoreWrapper>
+                  <WGApplicationsKustomization {...props} />
+                </CoreWrapper>
+              ))}
               path={V2Routes.Kustomization}
             />
             <Route
@@ -317,7 +332,11 @@ const App = () => {
             />
 
             <Route exact path={POLICIES} component={Policies} />
-            <Route exact path="/policies/:id" component={PolicyDetails} />
+            <Route
+              exact
+              path="/policies/:id/:clusterName"
+              component={PolicyDetails}
+            />
 
             <Route
               exact

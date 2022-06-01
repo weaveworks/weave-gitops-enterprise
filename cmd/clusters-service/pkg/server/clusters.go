@@ -96,7 +96,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	return &capiv1_proto.ListGitopsClustersResponse{
 		GitopsClusters: clusters,
 		NextPageToken:  nextPageToken,
-		Total:          int32(len(cl))}, err
+		Total:          int32(len(clusters))}, err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
