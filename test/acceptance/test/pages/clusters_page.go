@@ -47,7 +47,7 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		Checkbox:         cluster.FindByXPath(`td[1]`).Find("input"),
 		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
 		Name:             cluster.FindByXPath(`td[2]`),
-		Status:           cluster.FindByXPath(`td[5]`),
+		Status:           cluster.FindByXPath(`td[6]`),
 	}
 }
 
