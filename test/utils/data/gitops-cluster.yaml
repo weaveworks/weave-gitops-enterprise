@@ -1,0 +1,11 @@
+
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  name: "{{.ClusterName}}"
+  namespace: "{{.NameSpace}}"
+  labels:
+    weave.works/flux: "{{.Bootstrap}}"
+spec:
+  secretRef:
+    name: "{{.KubeconfigSecret}}"
