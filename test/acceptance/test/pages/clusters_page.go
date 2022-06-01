@@ -3,13 +3,17 @@ package pages
 import (
 	"fmt"
 
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	. "github.com/sclevine/agouti/matchers"
 )
 
 type ClusterInformation struct {
 	Checkbox         *agouti.Selection
 	ShowStatusDetail *agouti.Selection
 	Name             *agouti.Selection
+	Type             *agouti.Selection
+	Namespace        *agouti.Selection
 	Status           *agouti.Selection
 }
 
@@ -30,6 +34,7 @@ type DeletePullRequestPopup struct {
 
 //ClustersPage elements
 type ClustersPage struct {
+	ClusterHeader         *agouti.Selection
 	ClusterCount          *agouti.Selection
 	ConnectClusterButton  *agouti.Selection
 	PRDeleteClusterButton *agouti.Selection
@@ -40,6 +45,11 @@ type ClustersPage struct {
 	Version               *agouti.Selection
 }
 
+// This function waits for progressbar circle to disappear
+func (t ClustersPage) WaitForPageToLoad(webDriver *agouti.Page) {
+	Eventually(webDriver.Find(`[class^=MuiCircularProgress]`)).ShouldNot(BeFound())
+}
+
 // FindClusterInList finds the cluster with given name
 func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterInformation {
 	cluster := clustersPage.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
@@ -47,8 +57,14 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		Checkbox:         cluster.FindByXPath(`td[1]`).Find("input"),
 		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
 		Name:             cluster.FindByXPath(`td[2]`),
-		Status:           cluster.FindByXPath(`td[6]`),
+		Status:           cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
 	}
+}
+
+func CountClusters(clustersPage *ClustersPage) int {
+	clusters := clustersPage.ClustersList.All("div[data-cluster-name]")
+	count, _ := clusters.Count()
+	return count
 }
 
 func GetClusterStatus(webDriver *agouti.Page) *ClusterStatus {
@@ -77,6 +93,7 @@ func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 //GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
+		ClusterHeader:         webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
 		ClusterCount:          webDriver.Find(`.count-header .section-header-count`),
 		ConnectClusterButton:  webDriver.Find(`#connect-cluster`),
 		PRDeleteClusterButton: webDriver.Find(`#delete-cluster`),
