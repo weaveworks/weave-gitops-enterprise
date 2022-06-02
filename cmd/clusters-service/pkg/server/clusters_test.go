@@ -398,6 +398,8 @@ spec:
         name: weaveworks-charts
         namespace: default
       version: 0.0.1
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     favoriteDrink: coffee
@@ -821,6 +823,8 @@ spec:
         name: testing
         namespace: test-ns
       version: 0.0.1
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     foo: bar
@@ -880,6 +884,8 @@ spec:
         name: testing
         namespace: test-ns
       version: 0.0.1
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     foo: test-cluster-name
@@ -942,6 +948,8 @@ spec:
         name: testing
         namespace: test-ns
       version: 0.0.1
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     foo: bar
@@ -965,6 +973,8 @@ spec:
       version: 0.0.1
   dependsOn:
   - name: cluster-foo-bar
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     foo: bar
