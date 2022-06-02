@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.1
-	github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220530061419-38bf3eed6226
+	github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220601111052-e912bbb8b21f
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
@@ -51,7 +51,6 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
-	gotest.tools v2.2.0+incompatible
 	helm.sh/helm/v3 v3.8.2
 	k8s.io/apiextensions-apiserver v0.23.5
 	k8s.io/helm v2.17.0+incompatible
