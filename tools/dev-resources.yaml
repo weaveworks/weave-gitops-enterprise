@@ -21,7 +21,7 @@ spec:
         kind: HelmRepository
         name: profiles-catalog
         namespace: flux-system
-      version: 0.2.x
+      version: 0.3.x
   targetNamespace: policy-system
   releaseName: weave-policy-agent
   interval: 1m
