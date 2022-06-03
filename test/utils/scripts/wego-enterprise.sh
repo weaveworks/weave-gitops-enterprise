@@ -219,7 +219,7 @@ function setup {
 
   # Install policy agent to enforce rego policies - (Installing policy agent after capi because capi violates some of thge policies and failed to install)
   helm upgrade --install weave-policy-agent profiles-catalog/weave-policy-agent \
-    --version 0.2.x \
+    --version 0.3.x \
     --set accountId=weaveworks \
     --set clusterId=${MANAGEMENT_CLUSTER_CNAME}
   kubectl wait --for=condition=Ready --timeout=120s -n policy-system --all pod
