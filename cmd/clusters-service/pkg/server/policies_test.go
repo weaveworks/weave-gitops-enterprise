@@ -270,7 +270,6 @@ func TestListPolicies(t *testing.T) {
 			err: errors.New("found unsupported policy parameter type invalid in policy "),
 		},
 	}
-	s := createServer(t, []runtime.Object{}, "policies", "default", nil, "", nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			clientsPool := &clustersmngrfakes.FakeClientsPool{}
@@ -278,10 +277,16 @@ func TestListPolicies(t *testing.T) {
 			clientsPool.ClientsReturns(map[string]client.Client{"Default": fakeCl})
 			clientsPool.ClientReturns(fakeCl, nil)
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
-			ctx := context.WithValue(context.Background(), clustersmngr.ClustersClientCtxKey, clustersClient)
+
+			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+
+			s := createServer(t, serverOptions{
+				clientsFactory: fakeFactory,
+			})
 
 			req := capiv1_proto.ListPoliciesRequest{ClusterName: tt.clusterName}
-			gotResponse, err := s.ListPolicies(ctx, &req)
+			gotResponse, err := s.ListPolicies(context.Background(), &req)
 			if err != nil {
 				if tt.err == nil {
 					t.Fatalf("failed to list policies:\n%s", err)
@@ -394,7 +399,6 @@ func TestGetPolicy(t *testing.T) {
 			err:  requiredClusterNameErr,
 		},
 	}
-	s := createServer(t, []runtime.Object{}, "policies", "default", nil, "", nil)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			clientsPool := &clustersmngrfakes.FakeClientsPool{}
@@ -402,9 +406,15 @@ func TestGetPolicy(t *testing.T) {
 			clientsPool.ClientsReturns(map[string]client.Client{tt.clusterName: fakeCl})
 			clientsPool.ClientReturns(fakeCl, nil)
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
-			ctx := context.WithValue(context.Background(), clustersmngr.ClustersClientCtxKey, clustersClient)
 
-			gotResponse, err := s.GetPolicy(ctx, &capiv1_proto.GetPolicyRequest{
+			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+
+			s := createServer(t, serverOptions{
+				clientsFactory: fakeFactory,
+			})
+
+			gotResponse, err := s.GetPolicy(context.Background(), &capiv1_proto.GetPolicyRequest{
 				PolicyName:  tt.policyName,
 				ClusterName: tt.clusterName})
 			if err != nil {

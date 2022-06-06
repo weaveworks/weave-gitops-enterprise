@@ -435,6 +435,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.Log,
 		args.ClustersLibrary,
 		args.TemplateLibrary,
+		args.CoreServerConfig.ClientsFactory,
 		args.GitProvider,
 		args.ClientGetter,
 		args.DiscoveryClient,
@@ -468,8 +469,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if err = core_core_proto.RegisterCoreHandlerServer(ctx, grpcMux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
-
-	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
 
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
