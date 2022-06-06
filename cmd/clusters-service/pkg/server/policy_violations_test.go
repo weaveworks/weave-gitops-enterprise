@@ -73,7 +73,9 @@ func TestGetPolicyViolation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			s := createServer(t, tt.clusterState, "policies", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+			})
 
 			policyViolation, err := s.GetPolicyValidation(context.Background(), &capiv1_proto.GetPolicyValidationRequest{
 				ViolationId: tt.ViolationId,
@@ -146,7 +148,9 @@ func TestListPolicyValidations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "policies", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+			})
 			policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{})
 			if err != nil {
 				if tt.err == nil {
