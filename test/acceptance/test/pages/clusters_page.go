@@ -10,7 +10,6 @@ import (
 
 type ClusterInformation struct {
 	Checkbox         *agouti.Selection
-	ShowStatusDetail *agouti.Selection
 	Name             *agouti.Selection
 	Type             *agouti.Selection
 	Namespace        *agouti.Selection
@@ -55,7 +54,6 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 	cluster := clustersPage.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
 	return &ClusterInformation{
 		Checkbox:         cluster.FindByXPath(`td[1]`).Find("input"),
-		ShowStatusDetail: cluster.FindByXPath(`td[2]`).Find(`svg`),
 		Name:             cluster.FindByXPath(`td[2]`),
 		Type:             cluster.FindByXPath(`td[4]`),
 		Namespace:        cluster.FindByXPath(`td[5]`),
