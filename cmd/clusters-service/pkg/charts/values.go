@@ -242,6 +242,9 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 					},
 					Interval: metav1.Duration{Duration: time.Minute},
 					Values:   &apiextensionsv1.JSON{Raw: jsonValues},
+					Install: &helmv2.Install{
+						CRDs: helmv2.CreateReplace,
+					},
 				},
 			}
 			if layer.dependsOn != "" {

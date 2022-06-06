@@ -435,6 +435,9 @@ func makeTestHelmRelease(name, repoName, repoNS, chart, version string, opts ...
 					},
 				},
 			},
+			Install: &helmv2.Install{
+				CRDs: helmv2.CreateReplace,
+			},
 			Interval: metav1.Duration{Duration: time.Minute},
 			Values:   &apiextensionsv1.JSON{Raw: []byte("{}")},
 		},
