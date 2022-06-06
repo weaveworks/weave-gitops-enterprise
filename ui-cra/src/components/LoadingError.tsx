@@ -24,7 +24,7 @@ const useStyles = makeStyles(() =>
 
 const FlexCenter = styled.div`
   display: flex;
-  lign-items: center;
+  align-items: center;
   justify-content: center;
 `;
 

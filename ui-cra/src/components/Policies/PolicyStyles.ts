@@ -71,6 +71,15 @@ export const usePolicyStyle= makeStyles((wtheme: Theme) =>
       severityHigh: {
         color: '#9F3119',
       },
+      statusReady: {
+        color: '#27AE60',
+      },
+      statusWaiting: {
+        color: '#F2994A',
+      },
+      statusFailed: {
+        color: '#BC3B1D',
+      },
       column: {
         flexDirection: 'column',
       },

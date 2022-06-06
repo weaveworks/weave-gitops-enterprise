@@ -55,9 +55,12 @@ import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import ProgressiveDelivery from './ProgressiveDelivery';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
+const CANARIES = '/applications/delivery';
+
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -174,7 +177,7 @@ const App = () => {
       components={[
         NotificationsProvider,
         TemplatesProvider,
-        ClustersProvider,
+        // ClustersProvider,
         VersionsProvider,
       ]}
     >
@@ -315,6 +318,8 @@ const App = () => {
               exact
               path={V2Routes.FluxRuntime}
             />
+
+            <Route exact path={CANARIES} component={ProgressiveDelivery} />
 
             <Route exact path={POLICIES} component={Policies} />
             <Route
