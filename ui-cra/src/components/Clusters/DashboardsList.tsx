@@ -9,9 +9,6 @@ const ListWrapper = styled(List)`
   li[class*='MuiListItem-root'] {
     padding: 0 0 ${theme.spacing.xxs} 0;
   }
-  a {
-    color: ${theme.colors.primary};
-  }
 `;
 
 export const DashboardsList: FC<{

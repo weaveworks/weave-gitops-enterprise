@@ -18,6 +18,9 @@ const ClustersProvider: FC = ({ children }) => {
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
+  const getCluster = (clusterName: string) =>
+    clusters?.find(cluster => cluster.name === clusterName) || null;
+
   const getDashboardAnnotations = useCallback(
     (cluster: GitopsClusterEnriched) => {
       if (cluster?.annotations) {
@@ -104,6 +107,7 @@ const ClustersProvider: FC = ({ children }) => {
         deleteCreatedClusters,
         getKubeconfig,
         getDashboardAnnotations,
+        getCluster,
       }}
     >
       {children}

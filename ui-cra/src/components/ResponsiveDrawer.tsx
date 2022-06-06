@@ -55,6 +55,7 @@ import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import ClusterDashboard from './Clusters/ClusterDashboard';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -239,6 +240,11 @@ const App = () => {
           <Switch>
             <Route component={MCCP} exact path={['/', '/clusters']} />
             <Route component={MCCP} exact path="/clusters/delete" />
+            <Route
+              component={ClusterDashboard}
+              exact
+              path="/clusters/:clusterName"
+            />
             <Route
               component={AddClusterWithCredentials}
               exact

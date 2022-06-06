@@ -6,7 +6,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
 import { contentCss, ContentWrapper, Title } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
@@ -30,10 +30,7 @@ import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
-import { Checkbox, Collapse, IconButton, withStyles } from '@material-ui/core';
-import { CAPIClusterStatus } from './CAPIClusterStatus';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
+import { Checkbox, withStyles } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 
@@ -48,7 +45,7 @@ const ActionsWrapper = styled.div<Size>`
   }
 `;
 
-const TableWrapper = styled.div<{ statusExpanded: boolean }>`
+const TableWrapper = styled.div`
   margin-top: ${theme.spacing.medium};
   div[class*='FilterDialog__SlideContainer'],
   div[class*='SearchField'] {
@@ -71,20 +68,14 @@ const TableWrapper = styled.div<{ statusExpanded: boolean }>`
   td:nth-child(2) {
     width: 650px;
   }
-  tr {
-    vertical-align: ${props => (props.statusExpanded ? 'top' : 'center')};
+  a {
+    color: ${theme.colors.primary};
   }
   max-width: calc(100vw - 220px);
 `;
 
 const LoadingWrapper = styled.div`
   ${contentCss};
-`;
-
-const NameCapiClusterWrapper = styled.div`
-  div[class*='MuiPaper-elevation'] {
-    box-shadow: none;
-  }
 `;
 
 const random = Math.random().toString(36).substring(7);
@@ -103,7 +94,6 @@ const MCCP: FC = () => {
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const { repositoryURL } = useVersions();
   const [repoLink, setRepoLink] = useState<string>('');
-  const [openCapiStatus, setOpenCapiStatus] = React.useState<any>({});
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
@@ -328,7 +318,7 @@ const MCCP: FC = () => {
               </a>
             </div>
             {!isLoading ? (
-              <TableWrapper id="clusters-list" statusExpanded={openCapiStatus}>
+              <TableWrapper id="clusters-list">
                 <FilterableTable
                   key={clusters.length}
                   filters={initialFilterState}
@@ -364,43 +354,16 @@ const MCCP: FC = () => {
                     {
                       label: 'Name',
                       value: (c: GitopsClusterEnriched) => (
-                        <NameCapiClusterWrapper data-cluster-name={c.name}>
-                          <>
-                            <IconButton
-                              aria-label="expand row"
-                              size="small"
-                              disabled={!c.capiCluster}
-                              onClick={() =>
-                                setOpenCapiStatus((prev: any) => ({
-                                  ...prev,
-                                  [c.name ? c.name : '']:
-                                    !prev[c.name ? c.name : ''],
-                                }))
-                              }
-                            >
-                              {openCapiStatus[c.name ? c.name : ''] ? (
-                                <KeyboardArrowUpIcon />
-                              ) : (
-                                <KeyboardArrowDownIcon />
-                              )}
-                            </IconButton>
-                            {c.name}
-                          </>
-                          <Collapse
-                            in={openCapiStatus[c.name ? c.name : '']}
-                            timeout="auto"
-                            unmountOnExit
-                          >
-                            <CAPIClusterStatus
-                              clusterName={c.name ? c.name : ''}
-                              status={c.capiCluster?.status}
-                            />
-                          </Collapse>
-                        </NameCapiClusterWrapper>
+                        <Link
+                          to={`/clusters/${c.name}`}
+                          color={theme.colors.primary}
+                        >
+                          {c.name}
+                        </Link>
                       ),
                       sortValue: ({ name }) => name,
                       textSearchable: true,
-                      maxWidth: 650,
+                      maxWidth: 275,
                     },
                     {
                       label: 'Dashboards',
