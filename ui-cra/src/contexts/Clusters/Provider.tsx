@@ -18,6 +18,26 @@ const ClustersProvider: FC = ({ children }) => {
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
+  const getDashboardAnnotations = useCallback(
+    (cluster: GitopsClusterEnriched) => {
+      if (cluster?.annotations) {
+        const annotations = Object.entries(cluster?.annotations);
+        const dashboardAnnotations: { [key: string]: string } = {};
+        for (const [key, value] of annotations) {
+          if (key.includes('metadata.weave.works/dashboard.')) {
+            const dashboardProvider = key.split(
+              'metadata.weave.works/dashboard.',
+            )[1];
+            dashboardAnnotations[dashboardProvider] = value;
+          }
+        }
+        return dashboardAnnotations;
+      }
+      return {};
+    },
+    [],
+  );
+
   const deleteCreatedClusters = useCallback(
     (data: DeleteClusterPRRequest, token: string) => {
       setLoading(true);
@@ -83,6 +103,7 @@ const ClustersProvider: FC = ({ children }) => {
         setSelectedClusters,
         deleteCreatedClusters,
         getKubeconfig,
+        getDashboardAnnotations,
       }}
     >
       {children}
