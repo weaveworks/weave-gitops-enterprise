@@ -26,6 +26,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/helm/pkg/chartutil"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -38,11 +39,19 @@ import (
 )
 
 const (
-	capiClusterRef string = "CAPICluster"
-	secretRef      string = "Secret"
+	capiClusterRef       string = "CAPICluster"
+	secretRef            string = "Secret"
+	HelmReleaseNamespace        = "flux-system"
 )
 
 var labels = []string{}
+
+type pofileFilesValues struct {
+	helmRepositoryNamespacedName types.NamespacedName
+	helmRepositoryCacheDir       string
+	profileValues                []*capiv1_proto.ProfileValues
+	parameterValues              map[string]string
+}
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
 	listOptions := client.ListOptions{
@@ -186,13 +195,17 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if len(msg.Values) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
-			s.profileHelmRepositoryName,
-			viper.GetString("runtime-namespace"),
-			s.helmRepositoryCacheDir,
 			clusterName,
 			client,
-			msg.Values,
-			msg.ParameterValues,
+			pofileFilesValues{
+				helmRepositoryNamespacedName: types.NamespacedName{
+					Name:      s.profileHelmRepositoryName,
+					Namespace: viper.GetString("runtime-namespace"),
+				},
+				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
+				profileValues:          msg.Values,
+				parameterValues:        msg.ParameterValues,
+			},
 		)
 		if err != nil {
 			return nil, err
@@ -437,12 +450,9 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues, parameterValues map[string]string) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, clusterName string, kubeClient client.Client, args pofileFilesValues) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
-	err := kubeClient.Get(ctx, client.ObjectKey{
-		Name:      helmRepoName,
-		Namespace: helmRepoNamespace,
-	}, helmRepo)
+	err := kubeClient.Get(ctx, args.helmRepositoryNamespacedName, helmRepo)
 	if err != nil {
 		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 	}
@@ -452,8 +462,8 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      helmRepoName,
-			Namespace: helmRepoNamespace,
+			Name:      args.helmRepositoryNamespacedName.Name,
+			Namespace: args.helmRepositoryNamespacedName.Namespace,
 		},
 		Spec: helmRepo.Spec,
 	}
@@ -466,10 +476,10 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	}
 
 	var installs []charts.ChartInstall
-	for _, v := range profileValues {
+	for _, v := range args.profileValues {
 		// Check the values and if empty use profile defaults. This should happen before parsing.
 		if v.Values == "" {
-			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, helmRepositoryCacheDir, sourceRef, helmRepo)
+			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
 			}
@@ -488,7 +498,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
 		}
 
-		data, err := templates.ProcessTemplate(decoded, parameterValues)
+		data, err := templates.ProcessTemplate(decoded, args.parameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -507,13 +517,14 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 					Kind:      "HelmRepository",
 				},
 			},
-			Layer:  v.Layer,
-			Values: parsed,
+			Layer:     v.Layer,
+			Values:    parsed,
+			Namespace: v.Namespace,
 		})
 
 	}
 
-	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "flux-system", installs)
+	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, HelmReleaseNamespace, installs)
 	if err != nil {
 		return nil, fmt.Errorf("making helm releases for cluster %s: %w", clusterName, err)
 	}

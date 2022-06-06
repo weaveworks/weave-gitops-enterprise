@@ -26,6 +26,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
@@ -409,6 +410,104 @@ status: {}
 			},
 			expected: "https://github.com/org/repo/pull/1",
 		},
+		{
+			name: "specify profile namespace",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+				Values: []*capiv1_protos.ProfileValues{
+					{
+						Name:      "demo-profile",
+						Version:   "0.0.1",
+						Values:    base64.StdEncoding.EncodeToString([]byte(``)),
+						Namespace: "test-system",
+					},
+				},
+			},
+			committedFiles: []CommittedFile{
+				{
+					Path: "clusters/my-cluster/clusters/dev.yaml",
+					Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: dev
+`,
+				},
+				{
+					Path: "clusters/dev/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`,
+				},
+				{
+					Path: "clusters/dev/profiles.yaml",
+					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: default
+spec:
+  interval: 10m0s
+  url: http://127.0.0.1:{{ .Port }}/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: dev-demo-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: demo-profile
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  targetNamespace: test-system
+  values:
+    favoriteDrink: coffee
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
 	}
 
 	for _, tt := range testCases {
@@ -781,19 +880,22 @@ func TestGenerateProfileFiles(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"testing",
-		"test-ns",
-		"",
 		"cluster-foo",
 		c,
-		[]*capiv1_protos.ProfileValues{
-			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+		pofileFilesValues{
+			helmRepositoryNamespacedName: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
 			},
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
+			},
+			parameterValues: map[string]string{},
 		},
-		map[string]string{},
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -842,19 +944,22 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"testing",
-		"test-ns",
-		"",
 		"cluster-foo",
 		c,
-		[]*capiv1_protos.ProfileValues{
-			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: ${CLUSTER_NAME}")),
+		pofileFilesValues{
+			helmRepositoryNamespacedName: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
 			},
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: ${CLUSTER_NAME}")),
+				},
+			},
+			parameterValues: params,
 		},
-		params,
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -898,25 +1003,28 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"testing",
-		"test-ns",
-		"",
 		"cluster-foo",
 		c,
-		[]*capiv1_protos.ProfileValues{
-			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+		pofileFilesValues{
+			helmRepositoryNamespacedName: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
 			},
-			{
-				Name:    "bar",
-				Version: "0.0.1",
-				Layer:   "testing",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
+				{
+					Name:    "bar",
+					Version: "0.0.1",
+					Layer:   "testing",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
 			},
+			parameterValues: map[string]string{},
 		},
-		map[string]string{},
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2

@@ -247,6 +247,9 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 					},
 				},
 			}
+			if install.Namespace != "" {
+				hr.Spec.TargetNamespace = install.Namespace
+			}
 			if layer.dependsOn != "" {
 				for _, v := range layerInstalls[layer.dependsOn] {
 					hr.Spec.DependsOn = append(hr.Spec.DependsOn,
@@ -297,7 +300,8 @@ func pairLayers(names []string) []layerDependency {
 // ChartInstall configures the installation of a specific chart into a
 // cluster.
 type ChartInstall struct {
-	Ref    ChartReference
-	Layer  string
-	Values map[string]interface{}
+	Ref       ChartReference
+	Layer     string
+	Values    map[string]interface{}
+	Namespace string
 }
