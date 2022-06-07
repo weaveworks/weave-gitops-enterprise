@@ -243,7 +243,7 @@ const App = () => {
             <Route
               component={ClusterDashboard}
               exact
-              path="/clusters/:clusterName"
+              path="/clusters/details/:clusterName"
             />
             <Route
               component={AddClusterWithCredentials}
