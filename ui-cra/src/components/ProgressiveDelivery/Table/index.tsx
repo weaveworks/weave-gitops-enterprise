@@ -9,10 +9,25 @@ import styled, { ThemeProvider } from 'styled-components';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
 
 import { CheckCircle, Error, RemoveCircle } from '@material-ui/icons';
+import LinearProgress from '@material-ui/core/LinearProgress';
 
 interface Props {
   canaries: any[];
 }
+const BorderLinearProgress = styled(LinearProgress)(() => ({
+  height: 10,
+  width: '100%',
+  marginRight: '8px',
+  borderRadius: 5,
+  [`&.barColorPrimary`]: {
+    backgroundColor: '#D8D8D8',
+  },
+  [`&.bar`]: {
+    borderRadius: 5,
+    backgroundColor:  '#1a90ff',
+  },
+}));
+
 const TableWrapper = styled.div`
   margin-top: ${theme.spacing.medium};
   div[class*='FilterDialog__SlideContainer'],
@@ -55,7 +70,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                 label: 'Status',
                 value: ({ status }: any) => {
                   switch (status.phase) {
-                    case 'Progressing':
+                    case 'Initialized':
                       return (
                         <div className={classes.flexStart}>
                           <RemoveCircle
@@ -71,6 +86,16 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                             className={`${classes.severityIcon} ${classes.statusReady}`}
                           />
                           Ready
+                        </div>
+                      );
+                    case 'Progressing':
+                      return (
+                        <div className={classes.flexStart}>
+                          <BorderLinearProgress
+                            variant="determinate"
+                            value={status.canaryWeight}
+                          />
+                          {Math.ceil(status.canaryWeight / 100)} / 10
                         </div>
                       );
                     default:

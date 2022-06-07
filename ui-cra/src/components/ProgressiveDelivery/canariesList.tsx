@@ -6,7 +6,6 @@ import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { CanaryTable } from './Table';
 import { useCallback, useEffect, useState } from 'react';
 import LoadingError from '../LoadingError';
-import OnboardingMessage from './onboardingMessage';
 import { Cached } from '@material-ui/icons';
 import styled from 'styled-components';
 
@@ -18,43 +17,43 @@ const CounterWrapper = styled.div`
   color: #737373;
 `;
 
-const Blob = styled.div`
-  .blob {
-    background: red;
-    border-radius: 50%;
-    /* margin: 10px; */
-    height: 8px;
-    width: 8px;
-    box-shadow: 0 0 0 0 #dd0a0a;
-    transform: scale(1);
-    animation: pulse 2s infinite;
-    top: 0px;
-    right: 0px;
-  }
-
-  @keyframes pulse {
-    0% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
-    }
-
-    70% {
-      transform: scale(1);
-      box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
-    }
-
-    100% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-    }
-  }
-`;
-
 const listCanaries = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve({
         canaries: [
+          {
+            namespace: 'hello-world',
+            name: 'hello-world',
+            clusterName: 'Default',
+            provider: 'traefik',
+            target_reference: {
+              kind: 'Deployment',
+              name: 'hello-world',
+            },
+            target_deployment: {
+              uid: '4b871207-63e7-4981-b067-395c59b3676b',
+              resourceVersion: '1997',
+              fluxLabels: {
+                kustomizeNamespace: 'hello-world',
+                kustomizeName: 'hello-world',
+              },
+            },
+            status: {
+              phase: 'Initialized',
+              lastTransitionTime: '2022-06-03T12:36:23Z',
+              conditions: [
+                {
+                  type: 'Promoted',
+                  status: 'True',
+                  lastUpdateTime: '2022-06-03T12:36:23Z',
+                  lastTransitionTime: '2022-06-03T12:36:23Z',
+                  reason: 'Initialized',
+                  message: 'Deployment initialization completed.',
+                },
+              ],
+            },
+          },
           {
             name: 'hello-world',
             clusterName: 'Default',
@@ -152,7 +151,7 @@ const listCanaries = (): Promise<any> => {
             },
           },
         ],
-        total: 3,
+        total: 4,
         nextPageToken: 'looooong token',
         errors: [],
       });
@@ -168,8 +167,8 @@ const ProgressiveDelivery = () => {
   const fetchCanariesAPI = useCallback(() => {
     if (refetch) {
       setCounter(59);
-      setRefetch(false)
-    };
+      setRefetch(false);
+    }
     return listCanaries().then(res => {
       !!res && setCount(res.total);
       return res;
@@ -199,9 +198,6 @@ const ProgressiveDelivery = () => {
         <ContentWrapper>
           <Title>
             Canaries
-            {/* <Blob>
-              <div className="blob" />
-            </Blob> */}
           </Title>
 
           <LoadingError fetchFn={fetchCanariesAPI}>
@@ -216,7 +212,7 @@ const ProgressiveDelivery = () => {
                     <CanaryTable canaries={value.canaries as any[]} />
                   </>
                 ) : (
-                  <OnboardingMessage />
+                  <p>No data to display</p>
                 )}
               </>
             )}
