@@ -159,7 +159,7 @@ const CoreWrapper = styled.div`
 
 const Page404 = () => (
   <PageTemplate documentTitle="WeGO · NotFound">
-    <SectionHeader />
+    <SectionHeader path={[{ label: 'Error' }]} />
     <ContentWrapper>
       <Lottie
         loop
