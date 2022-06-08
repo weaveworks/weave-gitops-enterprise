@@ -882,8 +882,8 @@ func TestGenerateProfileFiles(t *testing.T) {
 		context.TODO(),
 		"cluster-foo",
 		c,
-		pofileFilesValues{
-			helmRepositoryNamespacedName: types.NamespacedName{
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
 				Name:      "testing",
 				Namespace: "test-ns",
 			},
@@ -946,8 +946,8 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		context.TODO(),
 		"cluster-foo",
 		c,
-		pofileFilesValues{
-			helmRepositoryNamespacedName: types.NamespacedName{
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
 				Name:      "testing",
 				Namespace: "test-ns",
 			},
@@ -1005,8 +1005,8 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		context.TODO(),
 		"cluster-foo",
 		c,
-		pofileFilesValues{
-			helmRepositoryNamespacedName: types.NamespacedName{
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
 				Name:      "testing",
 				Namespace: "test-ns",
 			},

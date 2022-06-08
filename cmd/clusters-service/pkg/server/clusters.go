@@ -46,11 +46,11 @@ const (
 
 var labels = []string{}
 
-type pofileFilesValues struct {
-	helmRepositoryNamespacedName types.NamespacedName
-	helmRepositoryCacheDir       string
-	profileValues                []*capiv1_proto.ProfileValues
-	parameterValues              map[string]string
+type generateProfileFilesParams struct {
+	helmRepository         types.NamespacedName
+	helmRepositoryCacheDir string
+	profileValues          []*capiv1_proto.ProfileValues
+	parameterValues        map[string]string
 }
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
@@ -197,8 +197,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			ctx,
 			clusterName,
 			client,
-			pofileFilesValues{
-				helmRepositoryNamespacedName: types.NamespacedName{
+			generateProfileFilesParams{
+				helmRepository: types.NamespacedName{
 					Name:      s.profileHelmRepositoryName,
 					Namespace: viper.GetString("runtime-namespace"),
 				},
@@ -450,9 +450,9 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, clusterName string, kubeClient client.Client, args pofileFilesValues) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, clusterName string, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
-	err := kubeClient.Get(ctx, args.helmRepositoryNamespacedName, helmRepo)
+	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
 		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 	}
@@ -462,8 +462,8 @@ func generateProfileFiles(ctx context.Context, clusterName string, kubeClient cl
 			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      args.helmRepositoryNamespacedName.Name,
-			Namespace: args.helmRepositoryNamespacedName.Namespace,
+			Name:      args.helmRepository.Name,
+			Namespace: args.helmRepository.Namespace,
 		},
 		Spec: helmRepo.Spec,
 	}

@@ -268,7 +268,6 @@ message CreatePullRequestRequest {
   repeated ProfileValues values = 10;
   // The repo api url.
   string repository_api_url = 11;
-  // The namespace to deploy profile to
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
