@@ -242,6 +242,12 @@ const App = () => {
               <Route component={MCCP} exact path={['/', '/clusters']} />
               <Route component={MCCP} exact path="/clusters/delete" />
               <Route
+                component={withSearchParams((props: any) => (
+                  <ClusterDashboard {...props} />
+                ))}
+                path="/cluster"
+              />
+              <Route
                 component={AddClusterWithCredentials}
                 exact
                 path="/clusters/templates/:templateName/create"

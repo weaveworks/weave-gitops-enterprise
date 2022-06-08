@@ -355,7 +355,7 @@ const MCCP: FC = () => {
                       label: 'Name',
                       value: (c: GitopsClusterEnriched) => (
                         <Link
-                          to={`/clusters/${c.name}`}
+                          to={`/cluster?clusterName=${c.name}`}
                           color={theme.colors.primary}
                         >
                           {c.name}

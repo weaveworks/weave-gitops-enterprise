@@ -8,6 +8,7 @@ import { HelmChartDetail, useListSources } from '@weaveworks/weave-gitops';
 type Props = {
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
 const WGApplicationsHelmChart: FC<Props> = props => {
