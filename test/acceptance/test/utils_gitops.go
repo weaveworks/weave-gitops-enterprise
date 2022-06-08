@@ -304,3 +304,15 @@ func generateGitopsClutermanifest(clusterName string, nameSpace string, bootstra
 
 	return gitopsCluster, err
 }
+
+func createNamespace(namespaces []string) {
+	for _, namespace := range namespaces {
+		_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl create namespace %s`, namespace))
+	}
+}
+
+func deleteNamespace(namespaces []string) {
+	for _, namespace := range namespaces {
+		_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl delete namespace %s`, namespace))
+	}
+}
