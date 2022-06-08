@@ -317,6 +317,7 @@ export type ProfileValues = {
   version?: string
   values?: string
   layer?: string
+  namespace?: string
 }
 
 export type GetConfigRequest = {
