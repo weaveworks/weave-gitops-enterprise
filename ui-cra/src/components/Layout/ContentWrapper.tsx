@@ -7,6 +7,7 @@ import { ListError } from '../../cluster-services/cluster_services.pb';
 import Alert from '@material-ui/lab/Alert';
 import AlertTitle from '@material-ui/lab/AlertTitle';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import { ListItem } from '@material-ui/core';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
@@ -84,13 +85,6 @@ export const ContentWrapper: FC<{
 }> = ({ children, type, backgroundColor, errors }) => {
   const { versions, entitlement } = useVersions();
   const classes = useStyles();
-  const mockErrors = [
-    { clusterName: 'demo1', message: 'failed to connect duo to timout' },
-    {
-      clusterName: 'testCluster',
-      message: 'failed to connect duo to timout unkown config',
-    },
-  ];
   return (
     <div
       style={{
@@ -107,17 +101,15 @@ export const ContentWrapper: FC<{
           {entitlement}
         </Alert>
       )}
-      {!!mockErrors?.length && (
+      {!!(errors && errors.length) && (
         <Alert className={classes.alertWrapper} severity="error">
           <AlertTitle>
-            {' '}
             There was a problem retrieving results from some clusters:
           </AlertTitle>
-          {mockErrors.map(item => (
-            <div>
-              {' '}
+          {errors?.map((item: ListError) => (
+            <ListItem key={item.clusterName}>
               - Cluster {item.clusterName} {item.message}
-            </div>
+            </ListItem>
           ))}
         </Alert>
       )}
