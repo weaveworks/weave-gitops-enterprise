@@ -12,13 +12,13 @@ import (
 )
 
 func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
-	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
+	var _ = Describe("Multi-Cluster Control Plane Clusters", func() {
 
 		Context("[UI] When no leaf cluster is connected", func() {
-			It("Verify coneected cluster dashboard shows only management cluster", Label("integration"), func() {
+			It("Verify connected cluster dashboard shows only management cluster", Label("integration"), func() {
 				pages.NavigateToPage(webDriver, "Clusters")
 				clustersPage := pages.GetClustersPage(webDriver)
-				clustersPage.WaitForPageToLoad(webDriver)
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And wait for Clusters page to be rendered", func() {
 					Eventually(clustersPage.ClusterHeader).Should(BeVisible())
@@ -45,7 +45,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			})
 		})
 
-		Context("[UI] Cluster(s) can be connected connected", func() {
+		Context("[UI] Cluster(s) can be connected", func() {
 			var mgmtClusterContext string
 			leafCluster := "wge-leaf-kind"
 			leafClusterNamespace := "default"
@@ -71,7 +71,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			It("Verify a cluster can be connected and dashboard is updated accordingly", Label("kind-gitops-cluster", "integration", "browser-logs"), func() {
 				pages.NavigateToPage(webDriver, "Clusters")
 				clustersPage := pages.GetClustersPage(webDriver)
-				clustersPage.WaitForPageToLoad(webDriver)
+				pages.WaitForPageToLoad(webDriver)
 				existingClustersCount := pages.CountClusters(clustersPage)
 
 				By(fmt.Sprintf("Create a service account used for cluster connect: %s", serviceAccountName), func() {
@@ -125,7 +125,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					Eventually(clustersPage.ClusterHeader).Should(BeVisible())
 
 					totalClusterCount := existingClustersCount + 1
-					Eventually(clustersPage.ClusterCount).Should(MatchText(strconv.Itoa(totalClusterCount)), fmt.Sprintf("Dashboard failed to update with expected gitopscluster count: %d", totalClusterCount))
+					Eventually(clustersPage.ClusterCount, ASSERTION_30SECONDS_TIME_OUT).Should(MatchText(strconv.Itoa(totalClusterCount)), fmt.Sprintf("Dashboard failed to update with expected gitopscluster count: %d", totalClusterCount))
 					Eventually(func(g Gomega) int {
 						return pages.CountClusters(clustersPage)
 					}, ASSERTION_30SECONDS_TIME_OUT).Should(Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
@@ -162,7 +162,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And wait for GitopsCluster to disappear from Clusters page", func() {
-					Eventually(clustersPage.ClusterCount).Should(MatchText(strconv.Itoa(existingClustersCount)), fmt.Sprintf("Dashboard failed to update with expected gitopscluster count: %d", existingClustersCount))
+					Eventually(clustersPage.ClusterCount, ASSERTION_30SECONDS_TIME_OUT).Should(MatchText(strconv.Itoa(existingClustersCount)), fmt.Sprintf("Dashboard failed to update with expected gitopscluster count: %d", existingClustersCount))
 					Expect(pages.CountClusters(clustersPage)).To(Equal(existingClustersCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", existingClustersCount))
 				})
 			})
