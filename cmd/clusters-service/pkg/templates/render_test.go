@@ -384,6 +384,40 @@ func TestRender_unknown_parameter(t *testing.T) {
 	assert.ErrorContains(t, err, "value for variables [CLUSTER_NAME] is not set")
 }
 
+func TestTextTemplateRender(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/text-template.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME": "testing-templating",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing-templating
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 192.168.0.0/16
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    kind: KubeadmControlPlane
+    name: testing-templating-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AWSCluster
+    name: testing-templating
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
 func writeMultiDoc(t *testing.T, objs [][]byte) string {
 	t.Helper()
 	var out bytes.Buffer
