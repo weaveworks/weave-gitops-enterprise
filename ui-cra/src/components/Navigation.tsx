@@ -1,12 +1,12 @@
-import React, { FC } from 'react';
-import styled, { css } from 'styled-components';
-import { theme, V2Routes } from '@weaveworks/weave-gitops';
-import { NavLink } from 'react-router-dom';
-import WeaveGitOps from '../assets/img/weave-logo.svg';
-import TitleLogo from '../assets/img/title.svg';
-import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import Divider from '@material-ui/core/Divider';
+import { makeStyles } from '@material-ui/core/styles';
+import { theme, V2Routes } from '@weaveworks/weave-gitops';
+import React, { FC } from 'react';
+import { NavLink } from 'react-router-dom';
+import styled, { css } from 'styled-components';
+import TitleLogo from '../assets/img/title.svg';
+import WeaveGitOps from '../assets/img/weave-logo.svg';
 
 const itemCss = css`
   /* breaking from std. spacing as */
@@ -103,6 +103,9 @@ export const Navigation: FC = () => {
         </Box>
         <Box className={classes.section}>
           <NavItem to={V2Routes.Automations}>Applications</NavItem>
+          <NavItem className={classes.subItem} to="/applications/delivery">
+            Delivery
+          </NavItem>
           <NavItem className={classes.subItem} to={V2Routes.Sources}>
             Sources
           </NavItem>

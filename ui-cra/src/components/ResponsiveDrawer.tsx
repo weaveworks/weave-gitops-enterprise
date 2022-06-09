@@ -1,60 +1,61 @@
-import React from 'react';
-import { Switch, Route } from 'react-router-dom';
-import ClustersProvider from '../contexts/Clusters/Provider';
-import MCCP from './Clusters';
-import TemplatesDashboard from './Templates';
-import { Navigation } from './Navigation';
+import Box from '@material-ui/core/Box';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
 import Hidden from '@material-ui/core/Hidden';
 import IconButton from '@material-ui/core/IconButton';
-import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
 import {
-  makeStyles,
-  useTheme,
-  Theme,
   createStyles,
+  makeStyles,
+  Theme,
+  useTheme,
 } from '@material-ui/core/styles';
 import {
-  AuthContextProvider,
   AuthCheck,
+  AuthContextProvider,
   coreClient,
   CoreClientContextProvider,
   OAuthCallback,
   SignIn,
+  theme as weaveTheme,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import qs from 'query-string';
+import React from 'react';
+import Lottie from 'react-lottie-player';
+import { Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
-import TemplatesProvider from '../contexts/Templates/Provider';
+import error404 from '../assets/img/error404.json';
+import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
+import { ClustersService } from '../cluster-services/cluster_services.pb';
+import ClustersProvider from '../contexts/Clusters/Provider';
+import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
+import ProgressiveDelivery from '../contexts/ProgressiveDelivery';
+import TemplatesProvider from '../contexts/Templates/Provider';
 import VersionsProvider from '../contexts/Versions/Provider';
-import Compose from './ProvidersCompose';
-import Box from '@material-ui/core/Box';
+import WGApplicationsDashboard from './Applications';
+import WGApplicationsBucket from './Applications/Bucket';
+import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
+import WGApplicationsGitRepository from './Applications/GitRepository';
+import WGApplicationsHelmChart from './Applications/HelmChart';
+import WGApplicationsHelmRelease from './Applications/HelmRelease';
+import WGApplicationsHelmRepository from './Applications/HelmRepository';
+import WGApplicationsKustomization from './Applications/Kustomization';
+import WGApplicationsSources from './Applications/Sources';
+import MCCP from './Clusters';
+import AddClusterWithCredentials from './Clusters/Create';
+import { ContentWrapper } from './Layout/ContentWrapper';
 import { PageTemplate } from './Layout/PageTemplate';
 import { SectionHeader } from './Layout/SectionHeader';
-import { ContentWrapper } from './Layout/ContentWrapper';
-import Lottie from 'react-lottie-player';
-import error404 from '../assets/img/error404.json';
-import AddClusterWithCredentials from './Clusters/Create';
-import WGApplicationsDashboard from './Applications';
-import WGApplicationsSources from './Applications/Sources';
-import WGApplicationsKustomization from './Applications/Kustomization';
-import WGApplicationsGitRepository from './Applications/GitRepository';
-import WGApplicationsHelmRepository from './Applications/HelmRepository';
-import WGApplicationsBucket from './Applications/Bucket';
-import WGApplicationsHelmRelease from './Applications/HelmRelease';
-import WGApplicationsHelmChart from './Applications/HelmChart';
-import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
-import qs from 'query-string';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-
+import { Navigation } from './Navigation';
 import Policies from './Policies';
 import PolicyDetails from './Policies/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
-import { ClustersService } from '../cluster-services/cluster_services.pb';
-import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import Canaries from './ProgressiveDelivery/Canaries';
+import Compose from './ProvidersCompose';
+import TemplatesDashboard from './Templates';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -187,6 +188,7 @@ const App = () => {
         TemplatesProvider,
         ClustersProvider,
         VersionsProvider,
+        ProgressiveDelivery,
       ]}
     >
       <div className={classes.root}>
@@ -330,6 +332,7 @@ const App = () => {
               exact
               path={V2Routes.FluxRuntime}
             />
+            <Route exact component={Canaries} path="/applications/delivery" />
 
             <Route exact path={POLICIES} component={Policies} />
             <Route
