@@ -271,10 +271,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return err
 	}
-	ns := p.capiClustersNamespace
-	if ns == "" {
-		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
-	}
 
 	appsConfig, err := core.DefaultApplicationsConfig(log)
 	if err != nil {
@@ -334,7 +330,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
 
-	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.capiTemplatesNamespace)
+	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.capiClustersNamespace)
 	if err != nil {
 		return err
 	}
@@ -384,7 +380,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),
-		WithCAPIClustersNamespace(ns),
+		WithCAPIClustersNamespace(p.capiClustersNamespace),
 		WithHelmRepositoryCacheDirectory(tempDir),
 		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
@@ -413,9 +409,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 	if args.ApplicationsConfig == nil {
 		return errors.New("applications config is not set")
-	}
-	if args.CAPIClustersNamespace == "" {
-		return errors.New("CAPI clusters namespace is not set")
 	}
 	if args.ClientGetter == nil {
 		return errors.New("kubernetes client getter is not set")
