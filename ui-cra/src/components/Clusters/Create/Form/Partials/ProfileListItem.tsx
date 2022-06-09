@@ -113,21 +113,12 @@ const ProfilesListItem: FC<{
     setYaml(currentProfile?.yaml as string);
     setOpenYamlPreview(true);
   };
-
-  // const handleChangeNamespace = useCallback(
-  //   (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
-  //     setNamespace(event.target.value as string);
-  //     profile.namespace = namespace;
-  //     updateProfile(profile);
-  //   },
-  //   [namespace, profile, updateProfile],
-  // );
-
-  const handleChangeNamespace = (event: ChangeEvent<HTMLTextAreaElement>) => {
+  const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
     setNamespace(event.target.value);
     profile.namespace = namespace;
     updateProfile(profile);
   };
+
   const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
     setYaml(event.target.value);
 
