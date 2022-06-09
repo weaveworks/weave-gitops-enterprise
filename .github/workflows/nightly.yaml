@@ -30,8 +30,8 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(capd)'"
-      kubectl-version: "v1.22.0"
+      label-filter: "-ginkgo.label-filter='!(application, capd)'"
+      kubectl-version: "v1.23.6"
       login_user_type: "oidc"
       git-provider: github
       git-provider_hostname: github.com
