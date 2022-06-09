@@ -165,10 +165,13 @@ const ProfilesListItem: FC<{
               >
                 {profileVersions(profile)}
               </Select>
+            </FormControl>
+            <FormControl>
               <Input
                 value={namespace}
                 label="Namespace"
                 onChange={handleChangeNamespace}
+                error={false}
               />
             </FormControl>
           </div>
