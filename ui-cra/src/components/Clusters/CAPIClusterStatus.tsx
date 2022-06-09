@@ -1,7 +1,6 @@
 import { fromPairs, sortBy } from 'lodash';
 import {
   Box,
-  Button,
   Paper,
   Table,
   TableBody,
@@ -15,7 +14,6 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC } from 'react';
 import styled from 'styled-components';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import useClusters from './../../contexts/Clusters';
 import { CAPICluster } from '../../types/custom';
 
 // styles
@@ -108,12 +106,8 @@ const statusRenderers: { [key: string]: StatusRenderer } = {
 export const CAPIClusterStatus: FC<{
   clusterName: string;
   status?: CAPICluster['status'];
-}> = ({ clusterName, status }) => {
+}> = ({ status }) => {
   const classes = useStyles();
-  const { getKubeconfig } = useClusters();
-
-  const handleClick = () =>
-    getKubeconfig(clusterName, `${clusterName}.kubeconfig`);
 
   if (!status) {
     return null;
@@ -151,17 +145,6 @@ export const CAPIClusterStatus: FC<{
           </TableBody>
         </Table>
       </TableContainer>
-      <Typography
-        variant="h6"
-        gutterBottom
-        component="div"
-        className={classes.section}
-      >
-        Kubeconfig
-      </Typography>
-      <Button className={classes.downloadBtn} onClick={handleClick}>
-        Download the kubeconfig here
-      </Button>
     </Box>
   );
 };
