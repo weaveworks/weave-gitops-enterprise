@@ -22,6 +22,8 @@ import (
 	"syscall"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -151,8 +153,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
-	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "", "")
-	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "")
+	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
+	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", corev1.NamespaceAll, "where to look for CAPI template resources, defaults to looking in all namespaces")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
 	cmd.Flags().StringVar(&p.addBasesKustomization, "add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
