@@ -27,7 +27,7 @@ export default class ErrorBoundary extends React.Component<
       // You can render any custom fallback UI
       return (
         <PageTemplate documentTitle="Error">
-          <SectionHeader />
+          <SectionHeader path={[{ label: 'Error' }]} />
           <ContentWrapper>
             <h3>Something went wrong.</h3>
             <pre>{this.state.error?.message}</pre>
