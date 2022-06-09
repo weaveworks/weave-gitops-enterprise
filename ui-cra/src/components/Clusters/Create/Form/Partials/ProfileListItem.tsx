@@ -123,11 +123,11 @@ const ProfilesListItem: FC<{
   //   [namespace, profile, updateProfile],
   // );
 
-  const handleChangeNamespace = (event: ChangeEvent<HTMLTextAreaElement>) =>
+  const handleChangeNamespace = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setNamespace(event.target.value);
-  profile.namespace = namespace;
-  updateProfile(profile);
-
+    profile.namespace = namespace;
+    updateProfile(profile);
+  };
   const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
     setYaml(event.target.value);
 
