@@ -1,5 +1,3 @@
-//+kubebuilder:object:generate=true
-//+kubebuilder:skip
 package templates
 
 import (
@@ -11,28 +9,22 @@ import (
 // e.g. envsubst or Go templating.
 const (
 	// RenderTypeEnvsubst uses https://github.com/a8m/envsubst for rendering
+	RenderTypeEnvsubst = "envsubst"
 	// RenderTypeTemplating use text/templating for rendering
-	RenderTypeEnvsubst   = "envsubst"
 	RenderTypeTemplating = "templating"
 )
 
-// TemplateStatus defines the observed state of Template
-type TemplateStatus struct {
-}
-
-//+kubebuilder:subresource:status
-//+kubebuilder:object:root=true
-
 // Template defines a template which can be either a CAPI or a Terraform Template.
+// +kubebuilder:object:generate=true
 type Template struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   TemplateSpec   `json:"spec,omitempty"`
-	Status TemplateStatus `json:"status,omitempty"`
+	Spec TemplateSpec `json:"spec,omitempty"`
 }
 
 // TemplateSpec defines the base template spec needs for CAPI or Terraform Templates.
+// +kubebuilder:object:generate=true
 type TemplateSpec struct {
 	// Description is used to describe the purpose of this template for user
 	// information.
@@ -56,6 +48,7 @@ type TemplateSpec struct {
 }
 
 // TemplateParam is a parameter that can be templated into a struct.
+// +kubebuilder:object:generate=true
 type TemplateParam struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description,omitempty"`
@@ -63,10 +56,10 @@ type TemplateParam struct {
 	Options     []string `json:"options,omitempty"`
 }
 
-//+kubebuilder:pruning:PreserveUnknownFields
-
 // ResourceTemplate describes a resource to create.
-//+kubebuilder:skipversion
+// +kubebuilder:skipversion
+// +kubebuilder:pruning:PreserveUnknownFields
+// +kubebuilder:object:generate=true
 type ResourceTemplate struct {
 	runtime.RawExtension `json:",inline"`
 }
