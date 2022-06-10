@@ -14,7 +14,7 @@ require (
 	github.com/sclevine/agouti v3.0.0+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/weaveworks/weave-gitops v0.8.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
@@ -43,7 +43,7 @@ require (
 	github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.3
-	github.com/weaveworks/progressive-delivery v0.0.0-20220531184615-3dc9bf801ad1
+	github.com/weaveworks/progressive-delivery v0.0.0-20220609161553-e0e4ad48e0b1
 	github.com/xanzy/go-gitlab v0.54.3
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
