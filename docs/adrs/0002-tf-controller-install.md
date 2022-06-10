@@ -24,25 +24,18 @@ However, on further discussion this was deemed not to be optimal for the followi
 
 Giving a consistent experience of installing the Terraform Controller that is the same on the management cluster as it is on a tenant cluster was deemed to be of high importance. Some [discussion in Notion](https://www.notion.so/Terraform-templates-for-WGE-1e3214ad5ff04a339cd0a2a4511e7809?d=8e4b89f0f8f045c891a17550ae0d6395#795a3b6af5f94726adb4d95c85f8c2d7).
 
+There are discussions still ongoing on the role of the `gitops` cli and what functionality it contains in the future.
+
 ## Decision
 
-The installation of the Terraform Controller will be done using the **Profile**.
+The installation of the Terraform Controller into the management cluster (and tenenat clusters) will be done via a `HelmRelease` that uses the projects Helm Chart (**tf-controller**) available via the [https://weaveworks.github.io/tf-controller](https://weaveworks.github.io/tf-controller) registry.
 
-As profiles are based on Helm charts (see [profiles ADR-0002](https://github.com/weaveworks/profiles/blob/main/docs/adrs/0002-helm-charts-as-profiles.md)) this means we can use the same source as a normal Helm chart (via a `HelmRelease`) or as a profile.
-
-We have a profile for the [Terraform Controller](https://github.com/weaveworks/profiles-catalog/tree/main/charts/tf-controller) available. This can be used to install on the management cluster via committing a `HelmRelease` to the management clusters repo.
-
-This profile can also be used to install the TF controller on a tenant cluster if needed via [the UI](https://docs.gitops.weave.works/docs/cluster-management/profiles/) or [the cli](https://docs.gitops.weave.works/docs/references/cli-reference/gitops_add_profile/):
-
-```bash
-gitops add profile --name=tfcontroller --cluster=tenant1 --version=1.0.0 --config-repo=ssh://git@github.com/owner/config-repo.git
-```
+In the future we may consider using the [profile](https://github.com/weaveworks/profiles-catalog/tree/main/charts/tf-controller).
 
 ## Consequences
 
-We would need to do the following:
+As a result of the decision some things to consider:
 
-* Ensure the Weave GitOps documentation is updated with instructions on how to install the Terraform Controller
-* Ensure the [Terraform Controller profile](https://github.com/weaveworks/profiles-catalog/tree/main/charts/tf-controller) is kept up to date with new releases of the controller
-* Consider adding integration tests to Wego Enterprise to cover this functionality 
+* Updating the Weave GitOps documentation with instructions on how to install the Terraform Controller via `HelmRelease`.
+* Adding integration tests to Wego Enterprise to cover the TF controller installation.
 * To enable functionality in the Wego UI we can check for the existence of the TF Controller CRDs and an entitlement, if both are true then show the functionality.
