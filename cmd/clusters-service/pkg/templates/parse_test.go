@@ -217,6 +217,29 @@ func TestParams(t *testing.T) {
 				"CLUSTER_NAME",
 			},
 		},
+		{
+			filename: "testdata/text-template.yaml",
+			want: []string{
+				"CLUSTER_NAME",
+			},
+		},
+		{
+			filename: "testdata/text-template2.yaml",
+			want: []string{
+				"CLUSTER_NAME",
+				"TEST_VALUE",
+			},
+		},
+		{
+			filename: "testdata/text-template3.yaml",
+			want: []string{
+				"CLUSTER_NAME",
+				"CONTROL_PLANE_MACHINE_COUNT",
+				"KUBERNETES_VERSION",
+				"NAMESPACE",
+				"WORKER_MACHINE_COUNT",
+			},
+		},
 	}
 
 	for _, tt := range paramTests {
