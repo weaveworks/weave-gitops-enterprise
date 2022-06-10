@@ -82,3 +82,7 @@ service:
 
 cluster-controller:
   enabled: true
+
+features:
+  progressiveDelivery:
+    enabled: false
