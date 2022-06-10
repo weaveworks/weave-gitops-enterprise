@@ -13,8 +13,7 @@ install:
 
 .PHONY: build
 build:
-# Alpine needs these extra CGO and -a flags to "see" the binary
-	CGO_ENABLED=0 go build -a -installsuffix cgo -o bin/clusters-service main.go
+	go build -o bin/clusters-service main.go
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
