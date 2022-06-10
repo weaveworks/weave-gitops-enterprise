@@ -206,7 +206,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(graph.SourceGit).Should(BeVisible(), fmt.Sprintf("Failed to verify %s Graph/Source", appName))
 					Expect(graph.Kustomization).Should(BeVisible(), fmt.Sprintf("Failed to verify %s Graph/Kustomization", appName))
 					Expect(graph.Deployment).Should(BeVisible(), fmt.Sprintf("Failed to verify %s Graph/Deployment", appName))
-					Expect(graph.ReplicaSet).Should(BeVisible(), fmt.Sprintf("Failed to verify %s Graph/ReplicaSet", appName))
+					Expect(graph.ReplicaSet).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/ReplicaSet", appName))
 					Expect(graph.Pod.At(0)).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Pod", appName))
 				})
 
