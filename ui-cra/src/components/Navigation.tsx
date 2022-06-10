@@ -102,7 +102,9 @@ export const Navigation: FC = () => {
           </NavItem>
         </Box>
         <Box className={classes.section}>
-          <NavItem to={V2Routes.Automations}>Applications</NavItem>
+          <NavItem to={V2Routes.Automations} exact>
+            Applications
+          </NavItem>
           <NavItem className={classes.subItem} to="/applications/delivery">
             Delivery
           </NavItem>
