@@ -48,7 +48,6 @@ import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-
 import Policies from './Policies';
 import PolicyDetails from './Policies/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
@@ -57,6 +56,7 @@ import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import ProgressiveDelivery from './ProgressiveDelivery';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails/CanaryDetails';
+import ErrorBoundary from './ErrorBoundary';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -164,7 +164,7 @@ const CoreWrapper = styled.div`
 
 const Page404 = () => (
   <PageTemplate documentTitle="WeGO · NotFound">
-    <SectionHeader />
+    <SectionHeader path={[{ label: 'Error' }]} />
     <ContentWrapper>
       <Lottie
         loop
@@ -241,100 +241,101 @@ const App = () => {
           </Hidden>
         </nav>
         <main className={classes.content}>
-          <Switch>
-            <Route component={MCCP} exact path={['/', '/clusters']} />
-            <Route component={MCCP} exact path="/clusters/delete" />
-            <Route
-              component={AddClusterWithCredentials}
-              exact
-              path="/clusters/templates/:templateName/create"
-            />
-            <Route
-              component={TemplatesDashboard}
-              exact
-              path="/clusters/templates"
-            />
-            <Route
-              component={PoliciesViolations}
-              exact
-              path="/clusters/violations"
-            />
-            <Route
-              component={PolicyViolationDetails}
-              exact
-              path="/clusters/violations/:id"
-            />
-            <Route
-              component={() => (
-                <CoreWrapper>
-                  <WGApplicationsDashboard />
-                </CoreWrapper>
-              )}
-              exact
-              path={V2Routes.Automations}
-            />
-            <Route
-              component={() => (
-                <CoreWrapper>
-                  <WGApplicationsSources />
-                </CoreWrapper>
-              )}
-              exact
-              path={V2Routes.Sources}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsKustomization {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.Kustomization}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsGitRepository {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.GitRepo}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsHelmRepository {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.HelmRepo}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsBucket {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.Bucket}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsHelmRelease {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.HelmRelease}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsHelmChart {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.HelmChart}
-            />
-            <Route
-              component={WGApplicationsFluxRuntime}
-              exact
-              path={V2Routes.FluxRuntime}
-            />
+          <ErrorBoundary>
+            <Switch>
+              <Route component={MCCP} exact path={['/', '/clusters']} />
+              <Route component={MCCP} exact path="/clusters/delete" />
+              <Route
+                component={AddClusterWithCredentials}
+                exact
+                path="/clusters/templates/:templateName/create"
+              />
+              <Route
+                component={TemplatesDashboard}
+                exact
+                path="/clusters/templates"
+              />
+              <Route
+                component={PoliciesViolations}
+                exact
+                path="/clusters/violations"
+              />
+              <Route
+                component={PolicyViolationDetails}
+                exact
+                path="/clusters/violations/:id"
+              />
+              <Route
+                component={() => (
+                  <CoreWrapper>
+                    <WGApplicationsDashboard />
+                  </CoreWrapper>
+                )}
+                exact
+                path={V2Routes.Automations}
+              />
+              <Route
+                component={() => (
+                  <CoreWrapper>
+                    <WGApplicationsSources />
+                  </CoreWrapper>
+                )}
+                exact
+                path={V2Routes.Sources}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsKustomization {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.Kustomization}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsGitRepository {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.GitRepo}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsHelmRepository {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.HelmRepo}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsBucket {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.Bucket}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsHelmRelease {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.HelmRelease}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsHelmChart {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.HelmChart}
+              />
+              <Route
+                component={WGApplicationsFluxRuntime}
+                exact
+                path={V2Routes.FluxRuntime}
+              />
 
             <Route exact path={CANARIES} component={ProgressiveDelivery} />
             <Route exact path={CANARYDETAILS} component={CanaryDetails} />
@@ -346,21 +347,22 @@ const App = () => {
               component={PolicyDetails}
             />
 
-            <Route
-              exact
-              path={GITLAB_OAUTH_CALLBACK}
-              component={({ location }: any) => {
-                const params = qs.parse(location.search);
-                return (
-                  <OAuthCallback
-                    provider={'GitLab' as GitProvider}
-                    code={params.code as string}
-                  />
-                );
-              }}
-            />
-            <Route exact render={Page404} />
-          </Switch>
+              <Route
+                exact
+                path={GITLAB_OAUTH_CALLBACK}
+                component={({ location }: any) => {
+                  const params = qs.parse(location.search);
+                  return (
+                    <OAuthCallback
+                      provider={'GitLab' as GitProvider}
+                      code={params.code as string}
+                    />
+                  );
+                }}
+              />
+              <Route exact render={Page404} />
+            </Switch>
+          </ErrorBoundary>
         </main>
       </div>
     </Compose>
