@@ -76,7 +76,6 @@ type PickedInputProps = Pick<
   | 'type'
   | 'disabled'
   | 'placeholder'
-  | 'error'
 >;
 
 interface InputProps extends PickedInputProps {
@@ -98,7 +97,6 @@ export const Input: FC<InputProps> = ({
   className,
   multiline,
   rows,
-  error,
 }) => (
   <FormControl className={className}>
     {label && (
@@ -118,7 +116,6 @@ export const Input: FC<InputProps> = ({
       multiline={multiline}
       rows={rows}
       inputProps={{ maxLength: 256 }}
-      error={error}
     />
   </FormControl>
 );
