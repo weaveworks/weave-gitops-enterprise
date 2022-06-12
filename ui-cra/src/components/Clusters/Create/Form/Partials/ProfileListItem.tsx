@@ -18,6 +18,8 @@ import {
   FormControl,
   Select,
   MenuItem,
+  Input,
+  InputLabel,
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
@@ -27,7 +29,7 @@ import {
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
-import { Input } from '../../../../../utils/form';
+// import { Input } from '../../../../../utils/form';
 
 const base = weaveTheme.spacing.base;
 const medium = weaveTheme.spacing.medium;
@@ -72,6 +74,7 @@ const ProfilesListItem: FC<{
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>('');
+  const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
 
   const profileVersions = (profile: UpdatedProfile) => [
     ...profile.values.map((value, index) => {
@@ -114,8 +117,15 @@ const ProfilesListItem: FC<{
     setOpenYamlPreview(true);
   };
   const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
-    setNamespace(event.target.value);
-    profile.namespace = namespace;
+    const value = event.target.value;
+    const pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+    if (pattern.test(value) || value === '') {
+      setNamespaceValidation(true);
+    } else {
+      setNamespaceValidation(false);
+    }
+    setNamespace(value);
+    profile.namespace = value;
     updateProfile(profile);
   };
 
@@ -138,6 +148,7 @@ const ProfilesListItem: FC<{
     const [selectedValue] = profile.values.filter(
       value => value.selected === true,
     );
+    setNamespace(profile.namespace);
     if (selectedValue) {
       setVersion(selectedValue.version);
       setYaml(selectedValue.yaml);
@@ -166,12 +177,14 @@ const ProfilesListItem: FC<{
                 {profileVersions(profile)}
               </Select>
             </FormControl>
+            <span>Namespace</span>
             <FormControl>
               <Input
+                id="profile-namespace"
                 value={namespace}
-                label="Namespace"
+                placeholder=""
                 onChange={handleChangeNamespace}
-                error={false}
+                error={!isNamespaceValid}
               />
             </FormControl>
           </div>
