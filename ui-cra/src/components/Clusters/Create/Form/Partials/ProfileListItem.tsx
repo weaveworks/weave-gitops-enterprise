@@ -19,7 +19,6 @@ import {
   Select,
   MenuItem,
   Input,
-  InputLabel,
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
@@ -29,8 +28,6 @@ import {
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
-// import { Input } from '../../../../../utils/form';
-
 const base = weaveTheme.spacing.base;
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
