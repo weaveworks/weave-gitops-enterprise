@@ -8,7 +8,11 @@ import { useCallback, useEffect, useState } from 'react';
 import LoadingError from '../../LoadingError';
 import { Cached } from '@material-ui/icons';
 import styled from 'styled-components';
-import { CanaryService } from '../CanaryService';
+import {
+  ListCanariesResponse,
+  ProgressiveDeliveryService,
+} from '../../../cluster-services/prog.pb';
+import { Canary } from '../../../cluster-services/types.pb';
 
 const CounterWrapper = styled.div`
   display: flex;
@@ -28,8 +32,8 @@ const ProgressiveDelivery = () => {
       setCounter(59);
       setRefetch(false);
     }
-    return CanaryService.listCanaries().then(res => {
-      !!res && setCount(res.total);
+    return ProgressiveDeliveryService.ListCanaries({}).then(res => {
+      !!res && setCount(res.canaries?.length || 0);
       return res;
     });
   }, [refetch]);
@@ -58,15 +62,15 @@ const ProgressiveDelivery = () => {
           <Title>Canaries</Title>
 
           <LoadingError fetchFn={fetchCanariesAPI}>
-            {({ value }: { value: any }) => (
+            {({ value }: { value: ListCanariesResponse }) => (
               <>
-                {value.total && value.total > 0 ? (
+                {value.canaries?.length ? (
                   <>
                     <CounterWrapper>
                       <p>Updating in {counter} seconds...</p>
                       <Cached onClick={() => setRefetch(true)} />
                     </CounterWrapper>
-                    <CanaryTable canaries={value.canaries as any[]} />
+                    <CanaryTable canaries={value.canaries as Canary[]} />
                   </>
                 ) : (
                   <p>No data to display</p>

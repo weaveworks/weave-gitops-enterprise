@@ -21,7 +21,7 @@ const BorderLinearProgress = styled(LinearProgress)(() => ({
 }));
 
 function CanaryStatus({
-  status,
+  status='',
   canaryWeight,
 }: {
   status: string;

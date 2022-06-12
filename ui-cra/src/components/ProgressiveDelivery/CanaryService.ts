@@ -133,6 +133,7 @@ export class CanaryService {
   ];
 
   static getFlaggerStatus = (): Promise<any> => {
+    
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve({

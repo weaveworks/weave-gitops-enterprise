@@ -5,14 +5,24 @@ import { useCallback } from 'react';
 import LoadingError from '../LoadingError';
 import CanariesList from './ListCanaries/canariesList';
 import OnboardingMessage from './Onboarding/onboardingMessage';
-import { CanaryService } from './CanaryService';
+import {
+  IsFlaggerAvailableResponse,
+  ProgressiveDeliveryService,
+} from '../../cluster-services/prog.pb';
 
 const ProgressiveDelivery = () => {
   const isFlaggerInstalledAPI = useCallback(() => {
-    return CanaryService.getFlaggerStatus().then((res: Object) => {
-      if (Object.keys(res).length === 0) return false;
-      return Object.values(res).some((value: boolean) => value === true);
-    });
+    return ProgressiveDeliveryService.IsFlaggerAvailable({}).then(
+      ({ clusters }: IsFlaggerAvailableResponse) => {
+        if (clusters === undefined || Object.keys(clusters).length === 0)
+          return false;
+        else {
+          return Object.values(clusters).some(
+            (value: boolean) => value === true,
+          );
+        }
+      },
+    );
   }, []);
 
   return (

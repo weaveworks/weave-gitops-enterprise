@@ -7,10 +7,11 @@ import moment from 'moment';
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
+import { Canary } from '../../../../cluster-services/types.pb';
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 interface Props {
-  canaries: any[];
+  canaries: Canary[];
 }
 
 const TableWrapper = styled.div`
@@ -49,13 +50,13 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
             fields={[
               {
                 label: 'Name',
-                value: (c: any) => (
+                value: (c: Canary) => (
                   <>
-                    {!!c.status.canaryWeight ? (
+                    {!!c.status?.canaryWeight ? (
                       <>{c.name} </>
                     ) : (
                       <Link
-                        to={`/applications/delivery/${c.targetDeployment.uid}`}
+                        to={`/applications/delivery/${c.targetDeployment?.uid}`}
                         className={classes.link}
                       >
                         {c.name}
@@ -66,11 +67,11 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
               },
               {
                 label: 'Status',
-                value: (c: any) => (
+                value: (c: Canary) => (
                   <div>
                     <CanaryStatus
-                      status={c.status.phase}
-                      canaryWeight={c.status.canaryWeight || 0}
+                      status={c.status?.phase || ''}
+                      canaryWeight={c.status?.canaryWeight || 0}
                     />
                   </div>
                 ),
@@ -86,16 +87,20 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
               },
               {
                 label: 'Target',
-                value: (c: any) => c.targetReference.name,
+                value: (c: Canary) => c.targetReference?.name || '',
               },
               {
                 label: 'Message',
-                value: (c: any) => c.status.conditions[0].message,
+                value: (c: Canary) =>
+                  (c.status?.conditions && c.status?.conditions[0].message) ||
+                  '--',
               },
               {
                 label: 'Last Updated',
-                value: (c: any) =>
-                  moment(c.status.conditions[0].lastUpdateTime).fromNow(),
+                value: (c: Canary) =>
+                  (c.status?.conditions &&
+                    moment(c.status?.conditions[0].lastUpdateTime).fromNow()) ||
+                  '--',
               },
             ]}
           />
