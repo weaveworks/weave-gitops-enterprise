@@ -1,7 +1,8 @@
 import styled from 'styled-components';
 import { Button, theme } from '@weaveworks/weave-gitops';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { SectionHeader } from '../Layout/SectionHeader';
+import { SectionHeader } from '../../Layout/SectionHeader';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
+
 
 const OnBoardingMessageWrapper = styled.div`
   background: rgba(255, 255, 255, 0.85);

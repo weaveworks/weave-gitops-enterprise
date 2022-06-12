@@ -56,10 +56,12 @@ import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import ProgressiveDelivery from './ProgressiveDelivery';
+import CanaryDetails from './ProgressiveDelivery/CanaryDetails/CanaryDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
+const CANARYDETAILS='/applications/delivery/:id'
 
 
 function withSearchParams(Cmp: any) {
@@ -187,7 +189,7 @@ const App = () => {
     <Compose
       components={[
         NotificationsProvider,
-        TemplatesProvider,
+        // TemplatesProvider,
         // ClustersProvider,
         VersionsProvider,
       ]}
@@ -335,6 +337,7 @@ const App = () => {
             />
 
             <Route exact path={CANARIES} component={ProgressiveDelivery} />
+            <Route exact path={CANARYDETAILS} component={CanaryDetails} />
 
             <Route exact path={POLICIES} component={Policies} />
             <Route
