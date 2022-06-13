@@ -55,7 +55,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
-	pds "github.com/weaveworks/progressive-delivery/pkg/server"
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
+	pd "github.com/weaveworks/progressive-delivery/pkg/server"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
@@ -340,6 +341,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	clientsFactoryScheme := kube.CreateScheme()
 	_ = pacv1.AddToScheme(clientsFactoryScheme)
+	_ = flaggerv1beta1.AddToScheme(clientsFactoryScheme)
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
@@ -466,10 +468,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
 
-	if err = pds.Hydrate(ctx, grpcMux, pds.ServerOpts{
-		ClientFactory: args.CoreServerConfig.ClientsFactory,
-	}); err != nil {
-		return fmt.Errorf("could not registry prog delivery server: %w", err)
+	// Add progressive-delivery handlers
+	if os.Getenv("ENABLE_PROGRESSIVE_DELIVERY") != "" {
+		if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
+			ClientFactory: args.CoreServerConfig.ClientsFactory,
+		}); err != nil {
+			return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
+		}
 	}
 
 	// UI
