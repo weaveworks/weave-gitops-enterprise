@@ -42,7 +42,8 @@ const useStyles = makeStyles(() => ({
 
 const ListItemWrapper = styled.div`
   & .profile-version,
-  .profile-layer {
+  .profile-layer,
+  .profile-namespace {
     display: flex;
     align-items: center;
     margin-left: ${base};
@@ -174,6 +175,8 @@ const ProfilesListItem: FC<{
                 {profileVersions(profile)}
               </Select>
             </FormControl>
+          </div>
+          <div className="profile-namespace">
             <span>Namespace</span>
             <FormControl>
               <Input
