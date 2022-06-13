@@ -22,6 +22,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gitopsv1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -98,6 +100,17 @@ func ListenAndServe(ctx context.Context, srv *http.Server) error {
 	return listenError
 }
 
+func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
+	t.Helper()
+
+	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
+	clientsFactory.GetServerClientReturns(client, nil)
+
+	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
+}
+
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {
 	templatesLibrary := &templates.CRDLibrary{
 		Log:           logr.Discard(),
@@ -126,6 +139,8 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		ClusterConfig: kube.ClusterConfig{},
 	}
 
+	fakeCoreConfig := fakeCoreConfig(t, logr.Discard())
+
 	viper.SetDefault("capi-clusters-namespace", "default")
 
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
@@ -139,7 +154,7 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
-		app.WithCoreConfig(core_core.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", &clustersmngrfakes.FakeClientsFactory{})),
+		app.WithCoreConfig(fakeCoreConfig),
 		app.WithOIDCConfig(
 			app.OIDCAuthenticationOptions{
 				TokenDuration: time.Hour,
