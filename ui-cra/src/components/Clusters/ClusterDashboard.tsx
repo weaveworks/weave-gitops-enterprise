@@ -19,6 +19,7 @@ import {
 import { Box, Button, Typography } from '@material-ui/core';
 import { DashboardsList } from './DashboardsList';
 import Chip from '@material-ui/core/Chip';
+import Divider from '@material-ui/core/Divider';
 
 type Props = {
   className?: string;
@@ -27,8 +28,10 @@ type Props = {
   clusterName: string;
 };
 
-const TableWrapper = styled.div`
-  // use style from other file for the a link
+const ClusterDashbordWrapper = styled.div`
+  .kubeconfig-download {
+    padding: 0;
+  }
 `;
 
 const ClusterDashboard = ({ clusterName }: Props) => {
@@ -68,8 +71,9 @@ const ClusterDashboard = ({ clusterName }: Props) => {
         <ContentWrapper>
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
-              <>
+              <ClusterDashbordWrapper>
                 <InfoList items={info as [string, any][]} />
+                <Divider variant="middle" />
                 <Box margin={2}>
                   <Typography variant="h6" gutterBottom component="div">
                     DASHBOARDS
@@ -92,7 +96,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                   clusterName={clusterName}
                   status={currentCluster?.capiCluster?.status}
                 />
-              </>
+              </ClusterDashbordWrapper>
             </RouterTab>
             <RouterTab name="Events" path={`${path}/events`}>
               <EventsTable

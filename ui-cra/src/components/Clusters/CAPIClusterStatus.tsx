@@ -26,10 +26,6 @@ const useStyles = makeStyles(() =>
     section: {
       marginTop: `${weaveTheme.spacing.medium}`,
     },
-    downloadBtn: {
-      color: weaveTheme.colors.primary,
-      padding: '0px',
-    },
   }),
 );
 
@@ -87,9 +83,7 @@ const conditionsRenderer: StatusRenderer = (key, status) => {
           return (
             <TableRow key={index}>
               {conditionKeys.map(key => (
-                <TableCell key={key} style={{ borderBottom: 'unset' }}>
-                  {cond[key]}
-                </TableCell>
+                <TableCell key={key}>{cond[key]}</TableCell>
               ))}
             </TableRow>
           );
@@ -117,34 +111,34 @@ export const CAPIClusterStatus: FC<{
   const sortedKeys = sortBy(Object.keys(status), key => statusKeySortHint[key]);
 
   return (
-    <Box margin={2}>
+    <Box>
       <Typography variant="h6" gutterBottom component="div">
         CAPI Status
       </Typography>
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableBody>
-            {sortedKeys.map(key => {
-              const renderer = statusRenderers[key] || defaultRenderer;
-              return (
-                <TableRow hover key={key}>
-                  <TableCell
-                    className={classes.conditionNameCell}
-                    component="th"
-                    scope="row"
-                    style={{ borderBottom: 'unset' }}
-                  >
-                    {key}
-                  </TableCell>
-                  <TableCell style={{ borderBottom: 'unset' }}>
-                    <StatusValue>{renderer(key, status)}</StatusValue>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {/* <TableContainer> */}
+      <Table size="small">
+        <TableBody>
+          {sortedKeys.map(key => {
+            const renderer = statusRenderers[key] || defaultRenderer;
+            return (
+              <TableRow hover key={key}>
+                <TableCell
+                  className={classes.conditionNameCell}
+                  component="th"
+                  scope="row"
+                  style={{ borderBottom: 'unset' }}
+                >
+                  {key}
+                </TableCell>
+                <TableCell style={{ borderBottom: 'unset' }}>
+                  <StatusValue>{renderer(key, status)}</StatusValue>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+      {/* </TableContainer> */}
     </Box>
   );
 };
