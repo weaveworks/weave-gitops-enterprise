@@ -115,7 +115,7 @@ const ProfilesListItem: FC<{
     setOpenYamlPreview(true);
   };
   const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
+    const { value } = event.target;
     const pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
     if (pattern.test(value) || value === '') {
       setNamespaceValidation(true);

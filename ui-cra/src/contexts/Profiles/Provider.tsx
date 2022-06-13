@@ -49,14 +49,14 @@ const ProfilesProvider: FC = ({ children }) => {
         const defaultProfiles: UpdatedProfile[] = [];
         for (const [key, value] of annotations) {
           if (key.includes('capi.weave.works/profile')) {
-            const { name, version, values, namespace } = JSON.parse(value);
+            const { name, version, values } = JSON.parse(value);
             if (values !== undefined) {
               defaultProfiles.push({
                 name,
                 values: [{ version, yaml: values, selected: false }],
                 required: true,
                 layer: getProfileLayer(name),
-                namespace,
+                namespace: '',
               });
             } else {
               defaultProfiles.push({
@@ -70,7 +70,7 @@ const ProfilesProvider: FC = ({ children }) => {
                 ],
                 required: true,
                 layer: getProfileLayer(name),
-                namespace,
+                namespace: '',
               });
             }
           }
