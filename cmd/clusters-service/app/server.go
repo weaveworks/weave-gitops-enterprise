@@ -68,6 +68,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
+	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 const (
@@ -342,6 +343,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	clientsFactoryScheme := kube.CreateScheme()
 	_ = pacv1.AddToScheme(clientsFactoryScheme)
 	_ = flaggerv1beta1.AddToScheme(clientsFactoryScheme)
+	_ = extensionsv1.AddToScheme(clientsFactoryScheme)
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
@@ -472,6 +474,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if os.Getenv("ENABLE_PROGRESSIVE_DELIVERY") != "" {
 		if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
 			ClientFactory: args.CoreServerConfig.ClientsFactory,
+			Logger:        args.Log,
 		}); err != nil {
 			return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 		}
