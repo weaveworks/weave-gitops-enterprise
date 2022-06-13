@@ -18,6 +18,7 @@ import {
   FormControl,
   Select,
   MenuItem,
+  Input,
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
@@ -27,8 +28,6 @@ import {
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
-import { Input } from '../../../../../utils/form';
-
 const base = weaveTheme.spacing.base;
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
@@ -43,7 +42,8 @@ const useStyles = makeStyles(() => ({
 
 const ListItemWrapper = styled.div`
   & .profile-version,
-  .profile-layer {
+  .profile-layer,
+  .profile-namespace {
     display: flex;
     align-items: center;
     margin-left: ${base};
@@ -72,6 +72,7 @@ const ProfilesListItem: FC<{
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>('');
+  const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
 
   const profileVersions = (profile: UpdatedProfile) => [
     ...profile.values.map((value, index) => {
@@ -113,20 +114,18 @@ const ProfilesListItem: FC<{
     setYaml(currentProfile?.yaml as string);
     setOpenYamlPreview(true);
   };
-
-  // const handleChangeNamespace = useCallback(
-  //   (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
-  //     setNamespace(event.target.value as string);
-  //     profile.namespace = namespace;
-  //     updateProfile(profile);
-  //   },
-  //   [namespace, profile, updateProfile],
-  // );
-
-  const handleChangeNamespace = (event: ChangeEvent<HTMLTextAreaElement>) =>
-    setNamespace(event.target.value);
-  profile.namespace = namespace;
-  updateProfile(profile);
+  const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    const pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+    if (pattern.test(value) || value === '') {
+      setNamespaceValidation(true);
+    } else {
+      setNamespaceValidation(false);
+    }
+    setNamespace(value);
+    profile.namespace = value;
+    updateProfile(profile);
+  };
 
   const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
     setYaml(event.target.value);
@@ -147,6 +146,7 @@ const ProfilesListItem: FC<{
     const [selectedValue] = profile.values.filter(
       value => value.selected === true,
     );
+    setNamespace(profile.namespace);
     if (selectedValue) {
       setVersion(selectedValue.version);
       setYaml(selectedValue.yaml);
@@ -174,10 +174,17 @@ const ProfilesListItem: FC<{
               >
                 {profileVersions(profile)}
               </Select>
+            </FormControl>
+          </div>
+          <div className="profile-namespace">
+            <span>Namespace</span>
+            <FormControl>
               <Input
+                id="profile-namespace"
                 value={namespace}
-                label="Namespace"
+                placeholder=""
                 onChange={handleChangeNamespace}
+                error={!isNamespaceValid}
               />
             </FormControl>
           </div>
