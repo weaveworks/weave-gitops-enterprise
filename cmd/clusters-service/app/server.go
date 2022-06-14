@@ -22,6 +22,8 @@ import (
 	"syscall"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -53,6 +55,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
+	pd "github.com/weaveworks/progressive-delivery/pkg/server"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
@@ -151,8 +155,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
-	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "", "")
-	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "")
+	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
+	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", corev1.NamespaceAll, "where to look for CAPI template resources, defaults to looking in all namespaces")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
 	cmd.Flags().StringVar(&p.addBasesKustomization, "add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
@@ -271,10 +275,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return err
 	}
-	ns := p.capiClustersNamespace
-	if ns == "" {
-		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
-	}
 
 	appsConfig, err := core.DefaultApplicationsConfig(log)
 	if err != nil {
@@ -334,13 +334,14 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
 
-	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.capiTemplatesNamespace)
+	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.capiClustersNamespace)
 	if err != nil {
 		return err
 	}
 
 	clientsFactoryScheme := kube.CreateScheme()
 	_ = pacv1.AddToScheme(clientsFactoryScheme)
+	_ = flaggerv1beta1.AddToScheme(clientsFactoryScheme)
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
@@ -384,7 +385,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),
-		WithCAPIClustersNamespace(ns),
+		WithCAPIClustersNamespace(p.capiClustersNamespace),
 		WithHelmRepositoryCacheDirectory(tempDir),
 		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
@@ -413,9 +414,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 	if args.ApplicationsConfig == nil {
 		return errors.New("applications config is not set")
-	}
-	if args.CAPIClustersNamespace == "" {
-		return errors.New("CAPI clusters namespace is not set")
 	}
 	if args.ClientGetter == nil {
 		return errors.New("kubernetes client getter is not set")
@@ -468,6 +466,15 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if err = core_core_proto.RegisterCoreHandlerServer(ctx, grpcMux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
+	}
+
+	// Add progressive-delivery handlers
+	if os.Getenv("ENABLE_PROGRESSIVE_DELIVERY") != "" {
+		if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
+			ClientFactory: args.CoreServerConfig.ClientsFactory,
+		}); err != nil {
+			return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
+		}
 	}
 
 	// UI

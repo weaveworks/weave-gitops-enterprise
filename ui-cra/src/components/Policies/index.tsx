@@ -7,10 +7,15 @@ import { PolicyTable } from './Table';
 import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
 import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
-import { ListPoliciesResponse, Policy } from '../../cluster-services/cluster_services.pb';
+import {
+  ListError,
+  ListPoliciesResponse,
+  Policy,
+} from '../../cluster-services/cluster_services.pb';
 const Policies = () => {
   const [count, setCount] = useState<number | undefined>(0);
   const { api } = useContext(EnterpriseClientContext);
+  const [errors, SetErrors] = useState<ListError[] | undefined>();
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 25 });
 
@@ -24,6 +29,7 @@ const Policies = () => {
   const fetchPoliciesAPI = useCallback(() => {
     return api.ListPolicies({}).then(res => {
       !!res && setCount(res.total);
+      !!res && SetErrors(res.errors);
       return res;
     });
   }, [api]);
@@ -35,7 +41,7 @@ const Policies = () => {
           className="count-header"
           path={[{ label: 'Policies', url: 'policies', count }]}
         />
-        <ContentWrapper>
+        <ContentWrapper errors={errors}>
           <Title>Policies</Title>
           <LoadingError fetchFn={fetchPoliciesAPI}>
             {({ value }: { value: ListPoliciesResponse }) => (
