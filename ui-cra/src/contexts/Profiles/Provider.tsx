@@ -56,7 +56,6 @@ const ProfilesProvider: FC = ({ children }) => {
                 values: [{ version, yaml: values, selected: false }],
                 required: true,
                 layer: getProfileLayer(name),
-                namespace: '',
               });
             } else {
               defaultProfiles.push({
@@ -70,7 +69,6 @@ const ProfilesProvider: FC = ({ children }) => {
                 ],
                 required: true,
                 layer: getProfileLayer(name),
-                namespace: '',
               });
             }
           }
@@ -103,7 +101,6 @@ const ProfilesProvider: FC = ({ children }) => {
             version: version,
             payload: data,
             layer: profileLayer,
-            namespace: '',
           };
         }),
       );
@@ -116,7 +113,6 @@ const ProfilesProvider: FC = ({ children }) => {
                 values: { version: string; yaml: string }[];
                 required: boolean;
                 layer?: string;
-                namespace: string;
               }[],
               profile,
             ) => {
@@ -127,7 +123,6 @@ const ProfilesProvider: FC = ({ children }) => {
                 version: profile.version,
                 yaml: profile.payload.message || '',
                 selected: false,
-                namespace: profile.namespace,
               };
 
               if (profileName) {
@@ -138,7 +133,6 @@ const ProfilesProvider: FC = ({ children }) => {
                   values: [value],
                   required: false,
                   layer: profile.layer,
-                  namespace: profile.namespace,
                 });
               }
               return profilesWithAddedValues;
