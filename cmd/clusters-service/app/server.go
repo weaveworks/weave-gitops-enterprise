@@ -349,6 +349,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		clientsFactoryScheme,
 	)
 	clusterClientsFactory.Start(ctx)
+	_ = clusterClientsFactory.UpdateClusters(ctx)
+	_ = clusterClientsFactory.UpdateNamespaces(ctx)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
