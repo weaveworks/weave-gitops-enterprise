@@ -61,6 +61,19 @@ const statusKeySortHint: { [key: string]: number } = fromPairs(
 // renderers
 
 const defaultRenderer: StatusRenderer = (key, status) => {
+  if (
+    [
+      'controlPlaneReady',
+      'controlPlaneInitialized',
+      'infrastructureReady',
+    ].includes(key)
+  ) {
+    return JSON.stringify(status[key], null, 2) === 'true' ? (
+      <Icon type={IconType.SuccessIcon} size="base" />
+    ) : (
+      <Icon type={IconType.FailedIcon} size="base" />
+    );
+  }
   return JSON.stringify(status[key], null, 2);
 };
 
@@ -80,6 +93,8 @@ const conditionsRenderer: StatusRenderer = (key, status) => {
       </TableHead>
       <TableBody>
         {status.conditions.map((cond: Condition, index: number) => {
+          // console.log("type", cond.type)
+          // console.log("status", cond.status)
           if (
             [
               'controlPlaneReady',

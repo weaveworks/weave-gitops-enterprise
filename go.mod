@@ -1,5 +1,7 @@
 module github.com/weaveworks/weave-gitops-enterprise
 
+replace github.com/weaveworks/weave-gitops => /Users/alina/Desktop/projects/weave-gitops/
+
 go 1.18
 
 require (
