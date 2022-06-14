@@ -45,7 +45,7 @@ type ClustersPage struct {
 }
 
 // This function waits for progressbar circle to disappear
-func (t ClustersPage) WaitForPageToLoad(webDriver *agouti.Page) {
+func WaitForPageToLoad(webDriver *agouti.Page) {
 	Eventually(webDriver.Find(`[class^=MuiCircularProgress]`)).ShouldNot(BeFound())
 }
 

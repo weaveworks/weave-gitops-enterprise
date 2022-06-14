@@ -148,6 +148,7 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
 	clientsFactory.GetImpersonatedClientReturns(client, nil)
+	clientsFactory.GetServerClientReturns(client, nil)
 
 	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
 	return coreConfig
