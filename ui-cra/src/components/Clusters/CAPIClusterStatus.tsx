@@ -13,7 +13,7 @@ import {
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { Icon, IconType, theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { CAPICluster } from '../../types/custom';
 
 // styles
@@ -80,6 +80,24 @@ const conditionsRenderer: StatusRenderer = (key, status) => {
       </TableHead>
       <TableBody>
         {status.conditions.map((cond: Condition, index: number) => {
+          if (
+            [
+              'controlPlaneReady',
+              'controlPlaneInitialized',
+              'infrastructureReady',
+            ].includes(cond.type)
+          ) {
+            return (
+              <TableRow key={key}>
+                {cond.type}{' '}
+                {cond.status === 'true' ? (
+                  <Icon type={IconType.SuccessIcon} size="base" />
+                ) : (
+                  <Icon type={IconType.ErrorIcon} size="base" />
+                )}
+              </TableRow>
+            );
+          }
           return (
             <TableRow key={index}>
               {conditionKeys.map(key => (
@@ -115,13 +133,12 @@ export const CAPIClusterStatus: FC<{
       <Typography variant="h6" gutterBottom component="div">
         CAPI Status
       </Typography>
-      {/* <TableContainer> */}
       <Table size="small">
         <TableBody>
           {sortedKeys.map(key => {
             const renderer = statusRenderers[key] || defaultRenderer;
             return (
-              <TableRow hover key={key}>
+              <TableRow key={key}>
                 <TableCell
                   className={classes.conditionNameCell}
                   component="th"
@@ -138,7 +155,6 @@ export const CAPIClusterStatus: FC<{
           })}
         </TableBody>
       </Table>
-      {/* </TableContainer> */}
     </Box>
   );
 };

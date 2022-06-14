@@ -10,6 +10,7 @@ import { localEEMuiTheme } from '../../muiTheme';
 import { CAPIClusterStatus } from './CAPIClusterStatus';
 import { GitopsClusterEnriched } from '../../types/custom';
 import {
+  theme,
   EventsTable,
   FluxObjectKind,
   InfoList,
@@ -72,7 +73,9 @@ const ClusterDashboard = ({ clusterName }: Props) => {
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
               <ClusterDashbordWrapper>
-                <InfoList items={info as [string, any][]} />
+                <Box margin={2}>
+                  <InfoList items={info as [string, any][]} />
+                </Box>
                 <Divider variant="middle" />
                 <Box margin={2}>
                   <Typography variant="h6" gutterBottom component="div">
@@ -82,20 +85,28 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                     cluster={currentCluster as GitopsClusterEnriched}
                   />
                 </Box>
+                <Divider variant="middle" />
                 <Box margin={2}>
                   <Typography variant="h6" gutterBottom component="div">
                     LABELS
                   </Typography>
                   {Object.entries(currentCluster?.labels || {}).map(
                     ([key, value]) => (
-                      <Chip key={key} label={`${key}: ${value}`} />
+                      <Chip
+                        style={{ marginRight: theme.spacing.small }}
+                        key={key}
+                        label={`${key}: ${value}`}
+                      />
                     ),
                   )}
                 </Box>
-                <CAPIClusterStatus
-                  clusterName={clusterName}
-                  status={currentCluster?.capiCluster?.status}
-                />
+                <Divider variant="middle" />
+                <Box margin={2}>
+                  <CAPIClusterStatus
+                    clusterName={clusterName}
+                    status={currentCluster?.capiCluster?.status}
+                  />
+                </Box>
               </ClusterDashbordWrapper>
             </RouterTab>
             <RouterTab name="Events" path={`${path}/events`}>
