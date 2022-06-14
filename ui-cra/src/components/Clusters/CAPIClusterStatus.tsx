@@ -61,6 +61,7 @@ const statusKeySortHint: { [key: string]: number } = fromPairs(
 // renderers
 
 const defaultRenderer: StatusRenderer = (key, status) => {
+  const keyStatus = JSON.stringify(status[key], null, 2);
   if (
     [
       'controlPlaneReady',
@@ -68,13 +69,13 @@ const defaultRenderer: StatusRenderer = (key, status) => {
       'infrastructureReady',
     ].includes(key)
   ) {
-    return JSON.stringify(status[key], null, 2) === 'true' ? (
+    return keyStatus === 'true' ? (
       <Icon type={IconType.SuccessIcon} size="base" />
     ) : (
       <Icon type={IconType.FailedIcon} size="base" />
     );
   }
-  return JSON.stringify(status[key], null, 2);
+  return keyStatus;
 };
 
 const conditionsRenderer: StatusRenderer = (key, status) => {
@@ -92,35 +93,13 @@ const conditionsRenderer: StatusRenderer = (key, status) => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {status.conditions.map((cond: Condition, index: number) => {
-          // console.log("type", cond.type)
-          // console.log("status", cond.status)
-          if (
-            [
-              'controlPlaneReady',
-              'controlPlaneInitialized',
-              'infrastructureReady',
-            ].includes(cond.type)
-          ) {
-            return (
-              <TableRow key={key}>
-                {cond.type}{' '}
-                {cond.status === 'true' ? (
-                  <Icon type={IconType.SuccessIcon} size="base" />
-                ) : (
-                  <Icon type={IconType.ErrorIcon} size="base" />
-                )}
-              </TableRow>
-            );
-          }
-          return (
-            <TableRow key={index}>
-              {conditionKeys.map(key => (
-                <TableCell key={key}>{cond[key]}</TableCell>
-              ))}
-            </TableRow>
-          );
-        })}
+        {status.conditions.map((cond: Condition, index: number) => (
+          <TableRow key={index}>
+            {conditionKeys.map(key => (
+              <TableCell key={key}>{cond[key]}</TableCell>
+            ))}
+          </TableRow>
+        ))}
       </TableBody>
     </Table>
   );
