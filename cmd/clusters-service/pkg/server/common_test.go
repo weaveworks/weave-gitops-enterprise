@@ -282,7 +282,7 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 			},
 			Labels: map[string]string{
 				"pac.weave.works/type": "Admission",
-				"pac.weave.works/id":   "weave.policies.missing-app-label",
+				"pac.weave.works/id":   "66101548-12c1-4f79-a09a-a12979903fba",
 			},
 			Name:      "Missing app Label - fake-event-1",
 			Namespace: "default",
