@@ -29,10 +29,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				By("And wait for Applications page to be rendered", func() {
 					Eventually(applicationsPage.ApplicationHeader).Should(BeVisible())
 					Eventually(applicationsPage.ApplicationCount).Should(MatchText(`1`))
-					Expect(pages.CountApplications(applicationsPage)).To(Equal(1), "There should not be any cluster in cluster table")
+					Expect(applicationsPage.CountApplications()).To(Equal(1), "There should not be any cluster in cluster table")
 				})
 
-				applicationInfo := pages.FindApplicationInList(applicationsPage, "flux-system")
+				applicationInfo := applicationsPage.FindApplicationInList("flux-system")
 				By("And verify bootstrap application Name", func() {
 					Eventually(applicationInfo.Name).Should(MatchText("flux-system"), "Failed to list flux-system application in  application table")
 				})
@@ -80,7 +80,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 				By("And wait for Applications page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					existingAppCount = pages.CountApplications(applicationsPage)
+					existingAppCount = applicationsPage.CountApplications()
 				})
 
 				By("Create namespaces for Kustomization deployments)", func() {
@@ -117,13 +117,13 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(applicationsPage.ApplicationHeader).Should(BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					Eventually(applicationsPage.ApplicationCount, ASSERTION_2MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					Eventually(applicationsPage.ApplicationCount, ASSERTION_3MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 					Eventually(func(g Gomega) int {
-						return pages.CountApplications(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+						return applicationsPage.CountApplications()
+					}, ASSERTION_3MINUTE_TIME_OUT).Should(Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 				})
 
-				applicationInfo := pages.FindApplicationInList(applicationsPage, appName)
+				applicationInfo := applicationsPage.FindApplicationInList(appName)
 				By("And verify podinfo application Name", func() {
 					Eventually(applicationInfo.Name).Should(MatchText(appName), fmt.Sprintf("Failed to list %s application in  application table", appName))
 				})
@@ -227,10 +227,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And wait for podinfo application to dissappeare from the dashboard", func() {
-					Eventually(applicationsPage.ApplicationCount, ASSERTION_2MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(existingAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", existingAppCount))
+					Eventually(applicationsPage.ApplicationCount, ASSERTION_3MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(existingAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", existingAppCount))
 					Eventually(func(g Gomega) int {
-						return pages.CountApplications(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries in application table", existingAppCount))
+						return applicationsPage.CountApplications()
+					}, ASSERTION_3MINUTE_TIME_OUT).Should(Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries in application table", existingAppCount))
 				})
 			})
 		})

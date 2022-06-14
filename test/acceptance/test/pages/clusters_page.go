@@ -50,8 +50,8 @@ func WaitForPageToLoad(webDriver *agouti.Page) {
 }
 
 // FindClusterInList finds the cluster with given name
-func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterInformation {
-	cluster := clustersPage.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
+func (c ClustersPage) FindClusterInList(clusterName string) *ClusterInformation {
+	cluster := c.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
 	return &ClusterInformation{
 		Checkbox:  cluster.FindByXPath(`td[1]`).Find("input"),
 		Name:      cluster.FindByXPath(`td[2]`),
@@ -60,9 +60,8 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 		Status:    cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
 	}
 }
-
-func CountClusters(clustersPage *ClustersPage) int {
-	clusters := clustersPage.ClustersList.All("[data-cluster-name]")
+func (c ClustersPage) CountClusters() int {
+	clusters := c.ClustersList.All("[data-cluster-name]")
 	count, _ := clusters.Count()
 	return count
 }

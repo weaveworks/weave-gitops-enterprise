@@ -271,11 +271,17 @@ func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 
 func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
 	// Restart the deployment pods
-	err := runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
-	if err == nil {
-		// Wait for all the deployments replicas to rolled out successfully
-		err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+	var err error
+	for i := 1; i < 5; i++ {
+		err = runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+		if err == nil {
+			// Wait for all the deployments replicas to rolled out successfully
+			err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+			break
+		}
+		time.Sleep(POLL_INTERVAL_1SECONDS)
 	}
+
 	return err
 }
 
