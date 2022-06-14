@@ -61,8 +61,7 @@ import ErrorBoundary from './ErrorBoundary';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
-const CANARYDETAILS='/applications/delivery/:id'
-
+const CANARYDETAILS = '/applications/delivery/:id';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -336,16 +335,22 @@ const App = () => {
                 exact
                 path={V2Routes.FluxRuntime}
               />
-
-            <Route exact path={CANARIES} component={ProgressiveDelivery} />
-            <Route exact path={CANARYDETAILS} component={CanaryDetails} />
-
-            <Route exact path={POLICIES} component={Policies} />
-            <Route
-              exact
-              path="/policies/:id/:clusterName"
-              component={PolicyDetails}
-            />
+              {Boolean(process.env.REACT_APP_ENABLE_PROGRESSIVE_DELIVERY) && (
+                <>
+                  <Route
+                    exact
+                    path={CANARIES}
+                    component={ProgressiveDelivery}
+                  />
+                  <Route exact path={CANARYDETAILS} component={CanaryDetails} />
+                </>
+              )}
+              <Route exact path={POLICIES} component={Policies} />
+              <Route
+                exact
+                path="/policies/:id/:clusterName"
+                component={PolicyDetails}
+              />
 
               <Route
                 exact

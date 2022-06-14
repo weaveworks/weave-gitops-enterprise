@@ -102,13 +102,17 @@ export const Navigation: FC = () => {
           </NavItem>
         </Box>
         <Box className={classes.section}>
-          <NavItem to={V2Routes.Automations}>Applications</NavItem>
+          <NavItem to={V2Routes.Automations} exact>
+            Applications
+          </NavItem>
           <NavItem className={classes.subItem} to={V2Routes.Sources}>
             Sources
           </NavItem>
-          <NavItem className={classes.subItem} to="/applications/delivery">
-            Delivery
-          </NavItem>
+          {Boolean(process.env.REACT_APP_ENABLE_PROGRESSIVE_DELIVERY) && (
+            <NavItem className={classes.subItem} to="/applications/delivery">
+              Delivery
+            </NavItem>
+          )}
           <NavItem to={V2Routes.FluxRuntime}>Flux Runtime</NavItem>
         </Box>
         <Box className={classes.section}>

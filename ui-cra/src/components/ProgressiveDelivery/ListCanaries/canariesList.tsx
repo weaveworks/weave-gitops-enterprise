@@ -2,52 +2,37 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { CanaryTable } from './Table';
 import { useCallback, useEffect, useState } from 'react';
 import LoadingError from '../../LoadingError';
-import { Cached } from '@material-ui/icons';
-import styled from 'styled-components';
 import {
   ListCanariesResponse,
   ProgressiveDeliveryService,
 } from '../../../cluster-services/prog.pb';
 import { Canary } from '../../../cluster-services/types.pb';
 
-const CounterWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: start;
-  position: absolute;
-  color: #737373;
-`;
-
 const ProgressiveDelivery = () => {
   const [count, setCount] = useState<number | undefined>(0);
-  const [counter, setCounter] = useState(59);
-  const [refetch, setRefetch] = useState<boolean>(false);
+  const [counter, setCounter] = useState<number>(0);
 
   const fetchCanariesAPI = useCallback(() => {
-    if (refetch) {
-      setCounter(59);
-      setRefetch(false);
-    }
+    console.log(`counter call ${counter}`);
     return ProgressiveDeliveryService.ListCanaries({}).then(res => {
       !!res && setCount(res.canaries?.length || 0);
       return res;
     });
-  }, [refetch]);
+  }, [counter]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setCounter(counter - 1);
-      if (counter === 1) {
-        setCounter(59);
-        setRefetch(true);
-      }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [counter]);
+      setCounter(prev => prev + 1);
+    }, 60000);
+    return () => {
+      clearInterval(intervalId);
+      setCounter(0);
+    };
+  }, []);
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Canaries">
@@ -55,23 +40,15 @@ const ProgressiveDelivery = () => {
           className="count-header"
           path={[
             { label: 'Applications', url: 'applications' },
-            { label: 'Canaries', url: 'canaries', count },
+            { label: 'Delivery', url: 'canaries', count },
           ]}
         />
         <ContentWrapper>
-          <Title>Canaries</Title>
-
           <LoadingError fetchFn={fetchCanariesAPI}>
             {({ value }: { value: ListCanariesResponse }) => (
               <>
                 {value.canaries?.length ? (
-                  <>
-                    <CounterWrapper>
-                      <p>Updating in {counter} seconds...</p>
-                      <Cached onClick={() => setRefetch(true)} />
-                    </CounterWrapper>
-                    <CanaryTable canaries={value.canaries as Canary[]} />
-                  </>
+                  <CanaryTable canaries={value.canaries as Canary[]} />
                 ) : (
                   <p>No data to display</p>
                 )}
