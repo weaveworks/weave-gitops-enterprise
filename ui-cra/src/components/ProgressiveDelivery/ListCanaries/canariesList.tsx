@@ -26,17 +26,12 @@ const ProgressiveDelivery = ({
       refetchInterval: CANARIES_POLL_INTERVAL,
     },
   );
-
-  if (isLoading) {
-    return <LoadingPage />;
-  }
   return (
     <>
+      {isLoading && <LoadingPage />}
       {error && <Alert severity="error">{error.message}</Alert>}
-      {data?.canaries?.length ? (
+      {data?.canaries?.length && (
         <CanaryTable canaries={data.canaries as Canary[]} />
-      ) : (
-        <p>No Data to display</p>
       )}
     </>
   );

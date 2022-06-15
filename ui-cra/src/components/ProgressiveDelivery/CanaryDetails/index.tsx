@@ -34,9 +34,6 @@ function CanaryDetails() {
     {},
   );
 
-  if (isLoading) {
-    return <LoadingPage />;
-  }
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
@@ -49,6 +46,7 @@ function CanaryDetails() {
           ]}
         />
         <ContentWrapper>
+          {isLoading && <LoadingPage />}
           {error && <Alert severity="error">{error.message}</Alert>}
           {data?.canary && data?.automation ? (
             <CanaryDetailsSection
