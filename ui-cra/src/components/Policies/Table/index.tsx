@@ -5,7 +5,8 @@ import { Policy } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../PolicyStyles';
 import {
   FilterableTable,
-  filterConfigForString,
+  // filterConfigForString,
+  filterConfig,
   theme,
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
@@ -43,8 +44,8 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
 
   const initialFilterState = {
-    ...filterConfigForString(policies, 'clusterName'),
-    ...filterConfigForString(policies, 'severity'),
+    ...filterConfig(policies, 'clusterName'),
+    ...filterConfig(policies, 'severity'),
   };
 
   return (

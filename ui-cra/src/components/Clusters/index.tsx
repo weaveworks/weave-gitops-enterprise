@@ -17,9 +17,10 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  filterConfigForString,
+  // filterConfigForString,
   FilterableTable,
-  filterConfigForStatus,
+  filterByStatusCallback,
+  filterConfig,
   LoadingPage,
   KubeStatusIndicator,
   SortType,
@@ -146,8 +147,8 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   const initialFilterState = {
-    ...filterConfigForString(clusters, 'namespace'),
-    ...filterConfigForStatus(clusters),
+    ...filterConfig(clusters, 'status', filterByStatusCallback),
+    ...filterConfig(clusters, 'namespace'),
   };
 
   useEffect(() => {
