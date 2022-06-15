@@ -46,7 +46,7 @@ const ProgressiveDelivery = () => {
           <LoadingError fetchFn={isFlaggerInstalledAPI}>
             {({ value }: { value: boolean }) => (
               <>
-                {!value ? (
+                {value ? (
                   <CanariesList onCountChange={onCountChange} />
                 ) : (
                   <OnboardingMessage />
