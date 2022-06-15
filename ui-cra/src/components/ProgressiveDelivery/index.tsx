@@ -29,42 +29,34 @@ const ProgressiveDelivery = () => {
     );
   }, []);
   const onCountChange = useCallback((count: number) => {
-    console.log(count);
     setCount(count);
   }, []);
 
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-      }}
-    >
-      <ThemeProvider theme={localEEMuiTheme}>
-        <PageTemplate documentTitle="WeGo · Delivery">
-          <SectionHeader
-            className="count-header"
-            path={[
-              { label: 'Applications', url: 'applications' },
-              { label: 'Delivery', url: 'canaries', count },
-            ]}
-          />
-          <ContentWrapper>
-            <LoadingError fetchFn={isFlaggerInstalledAPI}>
-              {({ value }: { value: boolean }) => (
-                <>
-                  {value ? (
-                    <CanariesList onCountChange={onCountChange} />
-                  ) : (
-                    <OnboardingMessage />
-                  )}
-                </>
-              )}
-            </LoadingError>
-          </ContentWrapper>
-        </PageTemplate>
-      </ThemeProvider>
-    </div>
+    <ThemeProvider theme={localEEMuiTheme}>
+      <PageTemplate documentTitle="WeGo · Delivery">
+        <SectionHeader
+          className="count-header"
+          path={[
+            { label: 'Applications', url: 'applications' },
+            { label: 'Delivery', url: 'canaries', count },
+          ]}
+        />
+        <ContentWrapper>
+          <LoadingError fetchFn={isFlaggerInstalledAPI}>
+            {({ value }: { value: boolean }) => (
+              <>
+                {value ? (
+                  <CanariesList onCountChange={onCountChange} />
+                ) : (
+                  <OnboardingMessage />
+                )}
+              </>
+            )}
+          </LoadingError>
+        </ContentWrapper>
+      </PageTemplate>
+    </ThemeProvider>
   );
 };
 

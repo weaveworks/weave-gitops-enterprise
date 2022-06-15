@@ -19,6 +19,9 @@ export const useCanaryStyle = makeStyles(() =>
       fontSize: theme.fontSizes.normal,
       color: theme.colors.black,
       marginLeft: theme.spacing.xs,
+      display: 'flex',
+      justifyContent: 'start',
+      alignItems: 'center',
     },
     colorGreen: {
       color: theme.colors.success,
@@ -40,6 +43,14 @@ export const useCanaryStyle = makeStyles(() =>
     },
     statusFailed: {
       color: theme.colors.alert,
+    },
+    sectionHeaderWrapper: {
+      background: theme.colors.neutral10,
+      padding: `${theme.spacing.base} ${theme.spacing.xs}`,
+      margin: `${theme.spacing.base} 0`,
+    },
+    straegyIcon: {
+      marginLeft: theme.spacing.small,
     },
   }),
 );

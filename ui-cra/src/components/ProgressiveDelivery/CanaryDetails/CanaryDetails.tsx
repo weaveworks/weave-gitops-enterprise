@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useParams, } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 
@@ -18,13 +18,15 @@ import {
   TableRow,
 } from '@material-ui/core';
 import styled from 'styled-components';
-import {
-  ProgressiveDeliveryService,
-} from '../../../cluster-services/prog.pb';
+import { ProgressiveDeliveryService } from '../../../cluster-services/prog.pb';
 import { Canary } from '../../../cluster-services/types.pb';
 import { Automation } from '@weaveworks/weave-gitops';
+import { getDeploymentStrategyIcon } from '../ListCanaries/Table';
 
 const TitleWrapper = styled.h2`
+  margin: 0px;
+`;
+const SectionHeaderWrapper = styled.div`
   margin: 0px;
 `;
 
@@ -85,6 +87,14 @@ function CanaryDetails() {
                   rowkey="Target"
                   value={`${automation.kind}/${automation.name}`}
                 />
+                <CanaryRowHeader
+                  rowkey="Deployment Strategy"
+                  value={canary.deploymentStrategy}
+                >
+                  <span className={classes.straegyIcon}>
+                    {getDeploymentStrategyIcon(canary.deploymentStrategy || '')}
+                  </span>
+                </CanaryRowHeader>
                 <CanaryRowHeader rowkey="Provider" value={canary.provider} />
                 <CanaryRowHeader
                   rowkey="Last Transition Time"
@@ -95,13 +105,17 @@ function CanaryDetails() {
                   value={canary.status?.conditions![0].lastUpdateTime}
                 />
 
-                <hr/>
+                <div
+                  className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}
+                >
+                  Status
+                </div>
 
                 <Table size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell align="left">
-                        <span>Status</span>
+                        <span>Status Conditions</span>
                       </TableCell>
                       <TableCell align="left">
                         <span>Value</span>
