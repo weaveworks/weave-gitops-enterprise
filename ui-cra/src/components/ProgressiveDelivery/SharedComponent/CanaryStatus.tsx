@@ -3,7 +3,6 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 
 import React from 'react';
 import styled from 'styled-components';
-import { usePolicyStyle } from '../../Policies/PolicyStyles';
 import { useCanaryStyle } from '../CanaryStyles';
 
 const BorderLinearProgress = styled(LinearProgress)(() => ({

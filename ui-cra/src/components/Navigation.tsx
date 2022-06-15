@@ -108,7 +108,7 @@ export const Navigation: FC = () => {
           <NavItem className={classes.subItem} to={V2Routes.Sources}>
             Sources
           </NavItem>
-          {Boolean(process.env.REACT_APP_ENABLE_PROGRESSIVE_DELIVERY) && (
+          {process.env.REACT_APP_ENABLE_PROGRESSIVE_DELIVERY==="true" && (
             <NavItem className={classes.subItem} to="/applications/delivery">
               Delivery
             </NavItem>

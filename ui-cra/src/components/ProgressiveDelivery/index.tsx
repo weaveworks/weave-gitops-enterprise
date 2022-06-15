@@ -1,7 +1,7 @@
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import LoadingError from '../LoadingError';
 import CanariesList from './ListCanaries/canariesList';
 import OnboardingMessage from './Onboarding/onboardingMessage';
@@ -9,8 +9,12 @@ import {
   IsFlaggerAvailableResponse,
   ProgressiveDeliveryService,
 } from '../../cluster-services/prog.pb';
+import { SectionHeader } from '../Layout/SectionHeader';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 
 const ProgressiveDelivery = () => {
+  const [count, setCount] = useState<number | undefined>();
+
   const isFlaggerInstalledAPI = useCallback(() => {
     return ProgressiveDeliveryService.IsFlaggerAvailable({}).then(
       ({ clusters }: IsFlaggerAvailableResponse) => {
@@ -24,6 +28,10 @@ const ProgressiveDelivery = () => {
       },
     );
   }, []);
+  const onCountChange = useCallback((count: number) => {
+    console.log(count);
+    setCount(count);
+  }, []);
 
   return (
     <div
@@ -33,12 +41,27 @@ const ProgressiveDelivery = () => {
       }}
     >
       <ThemeProvider theme={localEEMuiTheme}>
-        <PageTemplate documentTitle="WeGo · Canaries">
-          <LoadingError fetchFn={isFlaggerInstalledAPI}>
-            {({ value }: { value: boolean }) => (
-              <>{value ? <CanariesList /> : <OnboardingMessage />}</>
-            )}
-          </LoadingError>
+        <PageTemplate documentTitle="WeGo · Delivery">
+          <SectionHeader
+            className="count-header"
+            path={[
+              { label: 'Applications', url: 'applications' },
+              { label: 'Delivery', url: 'canaries', count },
+            ]}
+          />
+          <ContentWrapper>
+            <LoadingError fetchFn={isFlaggerInstalledAPI}>
+              {({ value }: { value: boolean }) => (
+                <>
+                  {value ? (
+                    <CanariesList onCountChange={onCountChange} />
+                  ) : (
+                    <OnboardingMessage />
+                  )}
+                </>
+              )}
+            </LoadingError>
+          </ContentWrapper>
         </PageTemplate>
       </ThemeProvider>
     </div>

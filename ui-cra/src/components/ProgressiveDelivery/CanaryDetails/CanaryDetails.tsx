@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import LoadingError from '../../LoadingError';
@@ -17,24 +17,24 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
-import { CanaryService } from '../CanaryService';
-import { useParams } from 'react-router-dom';
+// import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { ProgressiveDeliveryService } from '../../../cluster-services/prog.pb';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
 `;
 
 function CanaryDetails() {
-  const { id } = useParams<{ id: string }>();
+  // const { id } = useParams<{ id: string }>();
   const [name, setName] = useState('');
   const fetchPoliciesAPI = useCallback(
     () =>
-      CanaryService.GetCanary(id).then((res: any) => {
+      ProgressiveDeliveryService.GetCanary({}).then((res: any) => {
         res.canary && setName(res.canary?.name || '');
         return res;
       }),
-    [id],
+    [],
   );
   const classes = useCanaryStyle();
 

@@ -335,7 +335,7 @@ const App = () => {
                 exact
                 path={V2Routes.FluxRuntime}
               />
-              {Boolean(process.env.REACT_APP_ENABLE_PROGRESSIVE_DELIVERY) && (
+              {process.env.REACT_APP_ENABLE_PROGRESSIVE_DELIVERY==="true" && (
                 <>
                   <Route
                     exact

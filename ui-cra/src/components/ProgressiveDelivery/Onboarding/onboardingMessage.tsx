@@ -3,7 +3,6 @@ import { Button, theme } from '@weaveworks/weave-gitops';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 
-
 const OnBoardingMessageWrapper = styled.div`
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 5px 10px 50px 3px rgb(0 0 0 / 10%);
@@ -37,7 +36,10 @@ const OnboardingMessage = () => {
     <div>
       <SectionHeader
         className="count-header"
-        path={[{ label: 'Applications', url: 'applications' }]}
+        path={[
+          { label: 'Applications', url: 'applications' },
+          { label: 'Delivery', url: 'canaries' },
+        ]}
       />
       <ContentWrapper>
         <OnBoardingMessageWrapper>
