@@ -184,6 +184,7 @@ const AddCluster: FC = () => {
             version: string;
             values: string;
             layer?: string;
+            namespace?: string;
           }[],
           profile,
         ) => {
@@ -194,6 +195,7 @@ const AddCluster: FC = () => {
                 version: value.version,
                 values: btoa(value.yaml),
                 layer: profile.layer,
+                namespace: profile.namespace,
               });
           });
           return accumulator;
