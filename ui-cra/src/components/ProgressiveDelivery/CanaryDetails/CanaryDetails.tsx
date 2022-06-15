@@ -26,10 +26,6 @@ import { getDeploymentStrategyIcon } from '../ListCanaries/Table';
 const TitleWrapper = styled.h2`
   margin: 0px;
 `;
-const SectionHeaderWrapper = styled.div`
-  margin: 0px;
-`;
-
 interface ICanaryParams {
   name: string;
   namespace: string;
