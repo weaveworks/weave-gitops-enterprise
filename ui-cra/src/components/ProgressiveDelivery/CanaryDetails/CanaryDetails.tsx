@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-// import { useParams } from 'react-router-dom';
+import React, { useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 
@@ -17,24 +17,36 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
-// import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { ProgressiveDeliveryService } from '../../../cluster-services/prog.pb';
+import {
+  ProgressiveDeliveryService,
+} from '../../../cluster-services/prog.pb';
+import { Canary } from '../../../cluster-services/types.pb';
+import { Automation } from '@weaveworks/weave-gitops';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
 `;
 
+interface ICanaryParams {
+  name: string;
+  namespace: string;
+  clusterName: string;
+}
+interface IGetCanaryReponse {
+  canary: Canary;
+  automation: Automation;
+}
 function CanaryDetails() {
-  // const { id } = useParams<{ id: string }>();
-  const [name, setName] = useState('');
+  const { name, namespace, clusterName } = useParams<ICanaryParams>();
   const fetchPoliciesAPI = useCallback(
     () =>
-      ProgressiveDeliveryService.GetCanary({}).then((res: any) => {
-        res.canary && setName(res.canary?.name || '');
-        return res;
+      ProgressiveDeliveryService.GetCanary({
+        name,
+        namespace,
+        clusterName,
       }),
-    [],
+    [clusterName, name, namespace],
   );
   const classes = useCanaryStyle();
 
@@ -51,35 +63,40 @@ function CanaryDetails() {
         />
         <ContentWrapper>
           <LoadingError fetchFn={fetchPoliciesAPI}>
-            {({ value: { canary } }: { value: { canary: any } }) => (
+            {({
+              value: { canary, automation },
+            }: {
+              value: IGetCanaryReponse;
+            }) => (
               <>
                 <TitleWrapper>{name}</TitleWrapper>
                 <div className={classes.statusWrapper}>
                   <CanaryStatus
-                    status={canary.status.phase}
-                    canaryWeight={canary.status.canaryWeight || 0}
+                    status={canary.status?.phase || '--'}
+                    canaryWeight={canary.status?.canaryWeight || 0}
                   />
                   <p className={classes.statusMessage}>
-                    {canary.status.conditions[0].message}
+                    {canary.status?.conditions![0].message || '--'}
                   </p>
                 </div>
                 <CanaryRowHeader rowkey="Cluster" value={canary.clusterName} />
                 <CanaryRowHeader rowkey="Namespace" value={canary.namespace} />
                 <CanaryRowHeader
                   rowkey="Target"
-                  value={`${canary.targetDeployment.kind}/${canary.targetDeployment.name}`}
+                  value={`${automation.kind}/${automation.name}`}
                 />
                 <CanaryRowHeader rowkey="Service" value="-" />
                 <CanaryRowHeader rowkey="Provider" value={canary.provider} />
                 <CanaryRowHeader
                   rowkey="Last Transition Time"
-                  value={canary.status.lastTransitionTime}
+                  value={canary.status?.lastTransitionTime}
                 />
-                {/* <CanaryRowHeader rowkey="Last Transition Time" value={ moment(canary.status.lastUpdateTime).fromNow()} /> */}
                 <CanaryRowHeader
                   rowkey="Last Updated Time"
-                  value={canary.status.conditions[0].lastUpdateTime}
+                  value={canary.status?.conditions![0].lastUpdateTime}
                 />
+
+                <hr/>
 
                 <Table size="small">
                   <TableHead>
@@ -94,16 +111,16 @@ function CanaryDetails() {
                   </TableHead>
                   <TableBody>
                     <TableRow>
-                      <TableCell>canaryWeight</TableCell>
+                      <TableCell>Canary Weight</TableCell>
                       <TableCell>{canary.status?.canaryWeight || 0}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell>failedChecks</TableCell>
+                      <TableCell>Failed Checks</TableCell>
                       <TableCell>{canary.status?.failedChecks || 0}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell>iterationa</TableCell>
-                      <TableCell>{canary.status?.iterationa || 0}</TableCell>
+                      <TableCell>Iterations</TableCell>
+                      <TableCell>{canary.status?.iterations || 0}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>

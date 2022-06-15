@@ -32,7 +32,7 @@ function CanaryStatus({
     <div className={classes.statusWrapper}>
       {(() => {
         switch (status) {
-          case 'Initialized':
+          case 'Initializing':
             return (
               <>
                 <RemoveCircle className={`${classes.statusWaiting}`} />

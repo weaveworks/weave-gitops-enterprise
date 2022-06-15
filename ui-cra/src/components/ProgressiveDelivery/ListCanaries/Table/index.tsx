@@ -1,6 +1,6 @@
 import {
   FilterableTable,
-  filterConfigForString,
+  filterConfigForStatus,
   theme,
 } from '@weaveworks/weave-gitops';
 import moment from 'moment';
@@ -35,8 +35,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
   const classes = usePolicyStyle();
 
   const initialFilterState = {
-    ...filterConfigForString(canaries, 'clusterName'),
-    ...filterConfigForString(canaries, 'namespace'),
+    ...filterConfigForStatus(canaries),
   };
 
   return (
@@ -56,7 +55,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                       <>{c.name} </>
                     ) : (
                       <Link
-                        to={`/applications/delivery/${c.targetDeployment?.uid}`}
+                        to={`/applications/delivery/${c.name}/${c.namespace}/${c.clusterName}`}
                         className={classes.link}
                       >
                         {c.name}
