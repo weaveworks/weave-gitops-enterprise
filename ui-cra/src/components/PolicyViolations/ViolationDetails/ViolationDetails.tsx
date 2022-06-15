@@ -31,6 +31,10 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
         <div className={classes.cardTitle}>Message:</div>
         <span className={classes.body1}>{message}</span>
       </div>
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+        <div className={classes.cardTitle}>Cluster Name:</div>
+        <span className={classes.body1}>{clusterName}</span>
+      </div>
 
       <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
         <div className={classes.cardTitle}>Violation Time:</div>
@@ -83,7 +87,7 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
               height: '450px',
             }}
           >
-            {JSON.parse( JSON.stringify(violatingEntity, null, 2))}
+            {JSON.parse(JSON.stringify(violatingEntity, null, 2))}
           </SyntaxHighlighter>
         </div>
       </div>

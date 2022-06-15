@@ -42,6 +42,7 @@ interface Props {
 export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
   const initialFilterState = {
     ...filterConfigForString(violations, 'clusterName'),
+    ...filterConfigForString(violations, 'severity'),
   };
   const classes = usePolicyStyle();
   return (
