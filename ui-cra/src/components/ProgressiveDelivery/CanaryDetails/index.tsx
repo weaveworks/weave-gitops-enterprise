@@ -48,13 +48,11 @@ function CanaryDetails() {
         <ContentWrapper>
           {isLoading && <LoadingPage />}
           {error && <Alert severity="error">{error.message}</Alert>}
-          {data?.canary && data?.automation ? (
+          {data?.canary && data?.automation && (
             <CanaryDetailsSection
               canary={data.canary}
               automation={data.automation}
             />
-          ) : (
-            <p>No Data to display</p>
           )}
         </ContentWrapper>
       </PageTemplate>
