@@ -55,13 +55,13 @@ import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import ProgressiveDelivery from './ProgressiveDelivery';
-import CanaryDetails from './ProgressiveDelivery/CanaryDetails/CanaryDetails';
+import CanaryDetails from './ProgressiveDelivery/CanaryDetails/CanaryDetailsSection';
 import ErrorBoundary from './ErrorBoundary';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
-const CANARYDETAILS = '/applications/delivery/:name/:namespace/:clusterName';
+const CANARYDETAILS = '/applications/delivery/:clusterName/:name/:namespace';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
