@@ -6,7 +6,7 @@ import {
 import moment from 'moment';
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
-import styled, { ThemeProvider } from 'styled-components';
+import { ThemeProvider } from 'styled-components';
 import { Canary } from '../../../../cluster-services/types.pb';
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
@@ -14,26 +14,10 @@ import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg'
 import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
 import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
 import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
+import { TableWrapper } from '../../CanaryStyles';
 interface Props {
   canaries: Canary[];
 }
-
-const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
-  div[class*='FilterDialog'] {
-    .Mui-checked {
-      color: ${theme.colors.primary};
-    }
-  }
-  tr {
-    vertical-align:'center')};
-  }
-  max-width: calc(100vw - 220px);
-`;
 
 export const getDeploymentStrategyIcon = (strategy: string) => {
   switch (strategy.toLocaleLowerCase()) {

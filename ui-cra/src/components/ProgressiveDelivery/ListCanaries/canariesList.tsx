@@ -15,7 +15,7 @@ const ProgressiveDelivery = ({
   const [counter, setCounter] = useState<number>(0);
 
   const fetchCanariesAPI = useCallback(() => {
-    console.log(`counter call ${counter}`);
+    console.log(`fetch ProgressiveDeliveryService ${counter}`);
     return ProgressiveDeliveryService.ListCanaries({}).then(res => {
       onCountChange(res.canaries?.length || 0);
       return res;
