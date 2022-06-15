@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useCallback } from 'react';
+import { useParams, } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 
@@ -85,7 +85,6 @@ function CanaryDetails() {
                   rowkey="Target"
                   value={`${automation.kind}/${automation.name}`}
                 />
-                <CanaryRowHeader rowkey="Service" value="-" />
                 <CanaryRowHeader rowkey="Provider" value={canary.provider} />
                 <CanaryRowHeader
                   rowkey="Last Transition Time"
