@@ -4,6 +4,13 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import styled from 'styled-components';
 import { useCanaryStyle } from '../CanaryStyles';
 
+enum CanaryDeploymentStatus {
+  Waiting = 'Initializing',
+  Ready = 'Succeeded',
+  Progressing = 'Progressing',
+  Failed = 'Failed',
+}
+
 const BorderLinearProgress = styled(LinearProgress)(() => ({
   height: 10,
   width: '100%',
@@ -19,7 +26,7 @@ const BorderLinearProgress = styled(LinearProgress)(() => ({
 }));
 
 function CanaryStatus({
-  status='',
+  status = '',
   canaryWeight,
 }: {
   status: string;
@@ -31,21 +38,21 @@ function CanaryStatus({
     <div className={classes.statusWrapper}>
       {(() => {
         switch (status) {
-          case 'Initializing':
+          case CanaryDeploymentStatus.Waiting:
             return (
               <>
                 <RemoveCircle className={`${classes.statusWaiting}`} />
                 Waiting
               </>
             );
-          case 'Succeeded':
+          case CanaryDeploymentStatus.Ready:
             return (
               <>
                 <CheckCircle className={`${classes.statusReady}`} />
                 Ready
               </>
             );
-          case 'Progressing':
+          case CanaryDeploymentStatus.Progressing:
             return (
               <>
                 <BorderLinearProgress

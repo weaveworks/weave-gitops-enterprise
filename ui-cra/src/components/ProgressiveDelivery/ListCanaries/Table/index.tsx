@@ -18,17 +18,26 @@ import { TableWrapper } from '../../CanaryStyles';
 interface Props {
   canaries: Canary[];
 }
+enum DeploymentStrategy {
+  Canary = 'canary',
+  AB = 'ab-testing',
+  BlueGreen = 'blue-green',
+  Mirroring = 'blue-green-mirror',
+  NoAnalysis = 'no-analysis',
+}
 
 export const getDeploymentStrategyIcon = (strategy: string) => {
   switch (strategy.toLocaleLowerCase()) {
-    case 'a/b':
+    case DeploymentStrategy.AB:
       return <ABIcon />;
-    case 'blue/green':
+    case DeploymentStrategy.BlueGreen:
       return <BlueGreenIcon />;
-    case 'blue/green mirroring':
+    case DeploymentStrategy.Mirroring:
       return <MirroringIcon />;
-    default:
+    case DeploymentStrategy.Canary:
       return <CanaryIcon />;
+    default:
+      return;
   }
 };
 
