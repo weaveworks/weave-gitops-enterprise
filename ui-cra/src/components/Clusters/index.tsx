@@ -17,7 +17,6 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  // filterConfigForString,
   FilterableTable,
   filterByStatusCallback,
   filterConfig,

@@ -17,7 +17,7 @@ export const DashboardsList: FC<{
   const { getDashboardAnnotations } = useClusters();
   const annotations = getDashboardAnnotations(cluster);
 
-  return (
+  return Object.keys(annotations).length > 0 ? (
     <ListWrapper style={{ padding: 0 }}>
       {Object.entries(annotations).map(([key, value]) => (
         <ListItem key={key}>
@@ -27,5 +27,7 @@ export const DashboardsList: FC<{
         </ListItem>
       ))}
     </ListWrapper>
+  ) : (
+    <>-</>
   );
 };

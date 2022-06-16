@@ -4,7 +4,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import useClusters from '../../contexts/Clusters';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { useRouteMatch } from 'react-router-dom';
+import { useHistory, useRouteMatch } from 'react-router-dom';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { localEEMuiTheme } from '../../muiTheme';
 import { CAPIClusterStatus } from './CAPIClusterStatus';
@@ -16,6 +16,9 @@ import {
   InfoList,
   RouterTab,
   SubRouterTabs,
+  Icon,
+  IconType,
+  Button as WeaveButton,
 } from '@weaveworks/weave-gitops';
 import { Box, Button, Typography } from '@material-ui/core';
 import { DashboardsList } from './DashboardsList';
@@ -36,10 +39,16 @@ const ClusterDashbordWrapper = styled.div`
 `;
 
 const ClusterDashboard = ({ clusterName }: Props) => {
-  const { getCluster, getKubeconfig, count } = useClusters();
+  const { getCluster, getDashboardAnnotations, getKubeconfig, count } =
+    useClusters();
   const [currentCluster, setCurrentCluster] =
     useState<GitopsClusterEnriched | null>(null);
   const { path } = useRouteMatch();
+  const labels = currentCluster?.labels || {};
+  const dashboardAnnotations = getDashboardAnnotations(
+    currentCluster as GitopsClusterEnriched,
+  );
+  const history = useHistory();
 
   const handleClick = () =>
     getKubeconfig(clusterName, `${clusterName}.kubeconfig`);
@@ -65,7 +74,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: 'clusters', count },
+            { label: 'Clusters', url: '/clusters', count },
             { label: clusterName },
           ]}
         />
@@ -73,34 +82,51 @@ const ClusterDashboard = ({ clusterName }: Props) => {
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
               <ClusterDashbordWrapper>
+                <WeaveButton
+                  id="create-cluster"
+                  startIcon={<Icon type={IconType.ExternalTab} size="base" />}
+                  onClick={() =>
+                    history.push(
+                      `/applications?filters:clusterName=${currentCluster?.name}`,
+                    )
+                  }
+                >
+                  GO TO APPLICATIONS
+                </WeaveButton>
                 <Box margin={2}>
                   <InfoList items={info as [string, any][]} />
                 </Box>
                 <Divider variant="middle" />
-                <Box margin={2}>
-                  <Typography variant="h6" gutterBottom component="div">
-                    DASHBOARDS
-                  </Typography>
-                  <DashboardsList
-                    cluster={currentCluster as GitopsClusterEnriched}
-                  />
-                </Box>
-                <Divider variant="middle" />
-                <Box margin={2}>
-                  <Typography variant="h6" gutterBottom component="div">
-                    LABELS
-                  </Typography>
-                  {Object.entries(currentCluster?.labels || {}).map(
-                    ([key, value]) => (
-                      <Chip
-                        style={{ marginRight: theme.spacing.small }}
-                        key={key}
-                        label={`${key}: ${value}`}
+                {Object.keys(dashboardAnnotations).length > 0 ? (
+                  <>
+                    <Box margin={2}>
+                      <Typography variant="h6" gutterBottom component="div">
+                        Dashboards
+                      </Typography>
+                      <DashboardsList
+                        cluster={currentCluster as GitopsClusterEnriched}
                       />
-                    ),
-                  )}
-                </Box>
-                <Divider variant="middle" />
+                    </Box>
+                    <Divider variant="middle" />
+                  </>
+                ) : null}
+                {Object.keys(labels).length > 0 ? (
+                  <>
+                    <Box margin={2}>
+                      <Typography variant="h6" gutterBottom component="div">
+                        Labels
+                      </Typography>
+                      {Object.entries(labels).map(([key, value]) => (
+                        <Chip
+                          style={{ marginRight: theme.spacing.small }}
+                          key={key}
+                          label={`${key}: ${value}`}
+                        />
+                      ))}
+                    </Box>
+                    <Divider variant="middle" />
+                  </>
+                ) : null}
                 <Box margin={2}>
                   <CAPIClusterStatus
                     clusterName={clusterName}
