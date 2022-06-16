@@ -58,7 +58,7 @@ export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
                 label: 'Name configured in management UI',
                 value: (v: PolicyValidation) => (
                   <Link
-                    to={`/clusters/violations/${v.id}/${v.clusterName}`}
+                    to={`/clusters/${v.clusterName}/violations/${v.id}`}
                     className={classes.link}
                   >
                     {v.message}

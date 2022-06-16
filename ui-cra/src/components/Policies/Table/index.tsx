@@ -60,7 +60,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
                 label: 'Policy Name',
                 value: (p: Policy) => (
                   <Link
-                    to={`/policies/${p.id}/${p.clusterName}`}
+                    to={`/${p.clusterName}/policies/${p.id}`}
                     className={classes.link}
                   >
                     {p.name}
