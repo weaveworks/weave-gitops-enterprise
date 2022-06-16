@@ -5,10 +5,18 @@ import styled from 'styled-components';
 import { useCanaryStyle } from '../CanaryStyles';
 
 enum CanaryDeploymentStatus {
-  Waiting = 'Initializing',
-  Ready = 'Succeeded',
+  Initializing = 'Initializing',
+  Initialized = 'Initialized',
+  Waiting = 'Waiting',
   Progressing = 'Progressing',
+  WaitingPromotion = 'WaitingPromotion',
+  Promoting = 'Promoting',
+  Finalising = 'Finalising',
+  Succeeded = 'Succeeded',
   Failed = 'Failed',
+  Terminating = 'Terminating',
+  Terminated = 'Terminated',
+  Ready = 'Succeeded',
 }
 
 const BorderLinearProgress = styled(LinearProgress)(() => ({
@@ -26,33 +34,34 @@ const BorderLinearProgress = styled(LinearProgress)(() => ({
 }));
 
 function CanaryStatus({
-  status = '',
+  status,
   canaryWeight,
 }: {
   status: string;
   canaryWeight: number;
 }) {
   const classes = useCanaryStyle();
-
   return (
     <div className={classes.statusWrapper}>
       {(() => {
         switch (status) {
           case CanaryDeploymentStatus.Waiting:
+          case CanaryDeploymentStatus.WaitingPromotion:
             return (
               <>
                 <RemoveCircle className={`${classes.statusWaiting}`} />
-                Waiting
+                {status}
               </>
             );
-          case CanaryDeploymentStatus.Ready:
+          case CanaryDeploymentStatus.Succeeded:
+          case CanaryDeploymentStatus.Initialized:
             return (
               <>
                 <CheckCircle className={`${classes.statusReady}`} />
-                Ready
+                {status}
               </>
             );
-          case CanaryDeploymentStatus.Progressing:
+          case CanaryDeploymentStatus.Promoting:
             return (
               <>
                 <BorderLinearProgress
@@ -62,13 +71,15 @@ function CanaryStatus({
                 <span> {Math.ceil(canaryWeight / 100)} / 10</span>
               </>
             );
-          default:
+          case CanaryDeploymentStatus.Failed:
             return (
               <>
                 <Error className={`${classes.statusFailed}`} />
-                Failed
+                {status}
               </>
             );
+          default:
+            return <>{status}</>;
         }
       })()}
     </div>
