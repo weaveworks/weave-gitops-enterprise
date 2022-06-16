@@ -42,7 +42,7 @@ function CanaryDetails() {
           path={[
             { label: 'Applications', url: '/applications' },
             { label: 'Delivery', url: '/applications/delivery' },
-            { label: name, url: 'canary-details' },
+            { label: name },
           ]}
         />
         <ContentWrapper>
