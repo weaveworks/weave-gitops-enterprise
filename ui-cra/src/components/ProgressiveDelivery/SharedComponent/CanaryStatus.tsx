@@ -41,6 +41,7 @@ function CanaryStatus({
   canaryWeight: number;
 }) {
   const classes = useCanaryStyle();
+
   return (
     <div className={classes.statusWrapper}>
       {(() => {
@@ -61,7 +62,9 @@ function CanaryStatus({
                 {status}
               </>
             );
-          case CanaryDeploymentStatus.Promoting:
+          case CanaryDeploymentStatus.Initializing:
+          case CanaryDeploymentStatus.Progressing:
+          case CanaryDeploymentStatus.Finalising:
             return (
               <>
                 <BorderLinearProgress
