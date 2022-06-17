@@ -206,7 +206,7 @@ func TestMultiFetcher(t *testing.T) {
 
 			g.Expect(clusters).To(HaveLen(tt.expectedCount))
 
-			g.Expect(clusters[0].Name).To(Equal("Default"))
+			g.Expect(clusters[0].Name).To(Equal("management"))
 			g.Expect(clusters[0].Server).To(Equal(config.Host))
 			g.Expect(clusters[0].BearerToken).To(Equal(config.BearerToken))
 		})
