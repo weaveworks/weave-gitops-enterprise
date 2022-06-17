@@ -1,7 +1,7 @@
 import Applications from '../';
 
 import { MuiThemeProvider } from '@material-ui/core';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, RenderResult, screen } from '@testing-library/react';
 import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -74,5 +74,26 @@ describe('Applications index test', () => {
     });
 
     expect(await screen.findByText('my-kustomization')).toBeTruthy();
+  });
+
+  describe('snapshots', () => {
+    it('loading', async () => {
+      await act(async () => {
+        const c = wrap(<Applications />);
+        const result = render(c);
+
+        expect(result.container).toMatchSnapshot();
+      });
+    });
+    it('success', async () => {
+      let result: RenderResult;
+      await act(async () => {
+        const c = wrap(<Applications />);
+        result = await render(c);
+      });
+
+      //   @ts-ignore
+      expect(result.container).toMatchSnapshot();
+    });
   });
 });

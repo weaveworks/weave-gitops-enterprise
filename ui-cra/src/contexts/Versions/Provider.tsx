@@ -14,6 +14,7 @@ const VersionsProvider: FC = ({ children }) => {
   const { setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
   const { requestWithEntitlementHeader } = useRequest();
+  console.log(requestWithEntitlementHeader);
 
   const history = useHistory();
 
@@ -30,7 +31,7 @@ const VersionsProvider: FC = ({ children }) => {
           { message: { text: err.message }, variant: 'danger' },
         ]),
       );
-  }, [setNotifications]);
+  }, [setNotifications, requestWithEntitlementHeader]);
 
   const getConfig = useCallback(() => {
     api
