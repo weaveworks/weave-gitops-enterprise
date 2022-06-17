@@ -19,19 +19,6 @@ enum CanaryDeploymentStatus {
   Ready = 'Succeeded',
 }
 
-const BorderLinearProgress = styled(LinearProgress)(() => ({
-  height: 10,
-  width: '100%',
-  marginRight: '8px',
-  borderRadius: 5,
-  [`&.barColorPrimary`]: {
-    backgroundColor: '#D8D8D8',
-  },
-  [`&.bar`]: {
-    borderRadius: 5,
-    backgroundColor: '#1a90ff',
-  },
-}));
 
 function CanaryStatus({
   status,
@@ -63,13 +50,15 @@ function CanaryStatus({
               </>
             );
           case CanaryDeploymentStatus.Initializing:
-          case CanaryDeploymentStatus.Progressing:
-          case CanaryDeploymentStatus.Finalising:
             return (
               <>
-                <BorderLinearProgress
+                <LinearProgress
                   variant="determinate"
-                  value={canaryWeight}
+                  value={50}
+                  classes={{
+                    barColorPrimary: classes.barroot,
+                  }}
+                  className={classes.root}
                 />
                 <span> {Math.ceil(canaryWeight / 100)} / 10</span>
               </>

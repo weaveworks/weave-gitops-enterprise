@@ -53,6 +53,16 @@ export const useCanaryStyle = makeStyles(() =>
     straegyIcon: {
       marginLeft: theme.spacing.small,
     },
+    barroot: {
+      backgroundColor: theme.colors.success,
+    },
+    root: {
+      backgroundColor: theme.colors.neutral20,
+      width: '100%',
+      height: 8,
+      marginRight: '4px',
+      borderRadius: 5,
+    },
   }),
 );
 
