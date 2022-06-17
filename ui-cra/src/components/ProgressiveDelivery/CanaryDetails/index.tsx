@@ -15,14 +15,14 @@ import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
 import CanaryDetailsSection from './CanaryDetailsSection';
 
-interface ICanaryParams {
+interface CanaryParams {
   name: string;
   namespace: string;
   clusterName: string;
 }
 
 function CanaryDetails() {
-  const { name, namespace, clusterName } = useParams<ICanaryParams>();
+  const { name, namespace, clusterName } = useParams<CanaryParams>();
   const { error, data, isLoading } = useQuery<GetCanaryResponse, Error>(
     'canaryDetails',
     () =>

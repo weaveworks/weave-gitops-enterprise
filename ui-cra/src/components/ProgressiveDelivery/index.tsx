@@ -2,7 +2,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { useCallback, useState } from 'react';
-import CanariesList from './ListCanaries/canariesList';
+import CanariesList from './ListCanaries/CanariesList';
 import OnboardingMessage from './Onboarding/OnboardingMessage';
 import {
   IsFlaggerAvailableResponse,
@@ -14,13 +14,13 @@ import { useQuery } from 'react-query';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
 
-interface IFlaggerStatus {
+interface FlaggerStatus {
   isFlaggerAvailabl: boolean;
 }
 
 const ProgressiveDelivery = () => {
   const [count, setCount] = useState<number | undefined>();
-  const { error, data, isLoading } = useQuery<IFlaggerStatus, Error>(
+  const { error, data, isLoading } = useQuery<FlaggerStatus, Error>(
     'flagger',
     () =>
       ProgressiveDeliveryService.IsFlaggerAvailable({}).then(

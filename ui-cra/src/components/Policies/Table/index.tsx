@@ -34,7 +34,7 @@ const TableWrapper = styled.div`
     }
   }
   tr {
-    vertical-align:'center')};
+    vertical-align:'center'
   }
   max-width: calc(100vw - 220px);
 `;
