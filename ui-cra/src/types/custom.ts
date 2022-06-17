@@ -48,7 +48,7 @@ export type UpdatedProfile = {
   values: { version: string; yaml: string; selected?: boolean }[];
   required: boolean;
   layer?: string;
-  namespace: string;
+  namespace?: string;
 };
 
 export type ChildrenOccurences = {
