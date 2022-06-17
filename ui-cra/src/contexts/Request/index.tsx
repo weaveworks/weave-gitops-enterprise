@@ -11,9 +11,12 @@ interface RequestContextType {
 
 const RequestContext = React.createContext<RequestContextType>(null as any);
 
+// Injecting a fetch arg into our baseline request functions to allow for testing.
+// This will allow us to simulate responses and error states and write tests against them.
 const injectFetchArg = (fetch: Fetch, args: any) => {
   const fetchArg = args[3];
   if (fetchArg) {
+    // The user has passed in their own fetch value here, so use that.
     return args;
   }
 
@@ -25,7 +28,6 @@ export const useRequest = () => {
 
   return {
     request: (...args: Parameters<typeof request>) => {
-      console.log('requesting!');
       const next: Parameters<typeof request> = injectFetchArg(fetch, args);
       return request(...next);
     },
