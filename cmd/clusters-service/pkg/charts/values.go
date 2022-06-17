@@ -245,6 +245,9 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 					Install: &helmv2.Install{
 						CRDs: helmv2.CreateReplace,
 					},
+					Upgrade: &helmv2.Upgrade{
+						CRDs: helmv2.CreateReplace,
+					},
 				},
 			}
 			if install.Namespace != "" {
