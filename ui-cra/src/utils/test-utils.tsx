@@ -6,6 +6,7 @@ import _ from 'lodash';
 import React from 'react';
 import {
   GetConfigResponse,
+  ListGitopsClustersResponse,
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
@@ -39,9 +40,11 @@ export class EnterpriseClientMock {
   constructor() {
     this.GetConfig = this.GetConfig.bind(this);
     this.ListTemplates = this.ListTemplates.bind(this);
+    this.ListGitopsClusters = this.ListGitopsClusters.bind(this);
   }
   GetConfigReturns: GetConfigResponse = {};
   ListTemplatesReturns: ListTemplatesResponse = {};
+  ListGitopsClustersResponse: ListGitopsClustersResponse = {};
 
   GetConfig() {
     return promisify(this.GetConfigReturns);
@@ -49,6 +52,10 @@ export class EnterpriseClientMock {
 
   ListTemplates() {
     return promisify(this.ListTemplatesReturns);
+  }
+
+  ListGitopsClusters() {
+    return promisify(this.ListGitopsClustersResponse);
   }
 }
 
