@@ -127,20 +127,6 @@ const ProfilesListItem: FC<{
     updateProfile(profile);
   };
 
-  // const handleChangeNamespace = useCallback(
-  //   (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
-  //     setNamespace(event.target.value as string);
-  //     profile.namespace = namespace;
-  //     updateProfile(profile);
-  //   },
-  //   [namespace, profile, updateProfile],
-  // );
-
-  const handleChangeNamespace = (event: ChangeEvent<HTMLTextAreaElement>) =>
-    setNamespace(event.target.value);
-  profile.namespace = namespace;
-  updateProfile(profile);
-
   const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
     setYaml(event.target.value);
 
@@ -188,11 +174,6 @@ const ProfilesListItem: FC<{
               >
                 {profileVersions(profile)}
               </Select>
-              <Input
-                value={namespace}
-                label="Namespace"
-                onChange={handleChangeNamespace}
-              />
             </FormControl>
           </div>
           <div className="profile-namespace">

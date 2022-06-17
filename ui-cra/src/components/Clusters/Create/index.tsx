@@ -18,7 +18,6 @@ import FormStepsNavigation from './Form/StepsNavigation';
 import { Credential, UpdatedProfile } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import { Loader } from '../../Loader';
 import {
   CallbackStateContextProvider,
@@ -27,7 +26,6 @@ import {
   getProviderToken,
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
-import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
 import Credentials from './Form/Partials/Credentials';
 import GitOps from './Form/Partials/GitOps';
@@ -105,7 +103,6 @@ const AddCluster: FC = () => {
     PRPreview,
     setPRPreview,
     addCluster,
-    setError,
   } = useTemplates();
   const clustersCount = useClusters().count;
   const { repositoryURL } = useVersions();
@@ -279,7 +276,6 @@ const AddCluster: FC = () => {
     return history.listen(() => {
       setActiveTemplate(null);
       setPRPreview(null);
-      setError(null);
     });
   }, [
     activeTemplate,
@@ -287,7 +283,6 @@ const AddCluster: FC = () => {
     setActiveTemplate,
     templateName,
     history,
-    setError,
     setPRPreview,
   ]);
 
@@ -418,9 +413,9 @@ const AddCluster: FC = () => {
 
 const AddClusterWithCredentials = () => (
   <ThemeProvider theme={localEEMuiTheme}>
-    <Compose components={[ProfilesProvider, CredentialsProvider]}>
+    <ProfilesProvider>
       <AddCluster />
-    </Compose>
+    </ProfilesProvider>
   </ThemeProvider>
 );
 
