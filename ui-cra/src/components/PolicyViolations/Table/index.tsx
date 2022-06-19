@@ -83,42 +83,6 @@ export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
             ]}
           ></FilterableTable>
         </TableWrapper>
-        {/* <Paper className={classes.paper}>
-          <Table className={classes.table} size="small">
-            {violations?.length === 0 ? (
-              <caption>No Violations configured</caption>
-            ) : null}
-            <TableHead className={classes.tableHead}>
-              <TableRow>
-                <TableCell align="left">
-                  <ColumnHeaderTooltip title="Name configured in management UI">
-                    <span className={classes.headerCell}>Message</span>
-                  </ColumnHeaderTooltip>
-                </TableCell>
-
-                <TableCell align="left">
-                  <span className={classes.headerCell}>Severity</span>
-                </TableCell>
-                <TableCell align="left">
-                  <span className={classes.headerCell}>Violation Time</span>
-                </TableCell>
-                <TableCell align="left">
-                  <span className={classes.headerCell}>Application</span>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {violations?.map((violation: PolicyValidation) => {
-                return (
-                  <PolicyViolationRow
-                    violation={violation}
-                    key={violation.id}
-                  />
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Paper> */}
       </ThemeProvider>
     </div>
   );
