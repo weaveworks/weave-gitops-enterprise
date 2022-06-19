@@ -47,6 +47,11 @@ func TestGetPolicyViolation(t *testing.T) {
 					HowToSolve:      "how_to_solve",
 					ViolatingEntity: `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
 					ClusterName:     "Default",
+					Occurrences: []*capiv1_proto.PolicyValidationOccurrence{
+						{
+							Message: "occurrence details",
+						},
+					},
 				},
 			},
 			err: nil,

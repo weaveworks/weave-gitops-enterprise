@@ -238,6 +238,10 @@ message GetPolicyValidationRequest{
 }
 message GetPolicyValidationResponse{ PolicyValidation violation = 1; }
 
+message PolicyValidationOccurrence {
+  string message = 1;
+}
+
 message PolicyValidation{
   string id = 1;
   string message = 2;
@@ -252,6 +256,7 @@ message PolicyValidation{
   string how_to_solve=11;
   string name=12;
   string clusterName = 13;
+  repeated PolicyValidationOccurrence occurrences = 14;
 }
 
 message CreatePullRequestRequest {

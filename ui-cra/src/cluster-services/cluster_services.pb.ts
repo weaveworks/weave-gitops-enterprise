@@ -124,6 +124,10 @@ export type GetPolicyValidationResponse = {
   violation?: PolicyValidation
 }
 
+export type PolicyValidationOccurrence = {
+  message?: string
+}
+
 export type PolicyValidation = {
   id?: string
   message?: string
@@ -138,6 +142,7 @@ export type PolicyValidation = {
   howToSolve?: string
   name?: string
   clusterName?: string
+  occurrences?: PolicyValidationOccurrence[]
 }
 
 export type CreatePullRequestRequest = {

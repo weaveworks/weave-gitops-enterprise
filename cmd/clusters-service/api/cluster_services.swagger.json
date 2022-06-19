@@ -1366,6 +1366,20 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "occurrences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidationOccurrence"
+          }
+        }
+      }
+    },
+    "v1PolicyValidationOccurrence": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
         }
       }
     },

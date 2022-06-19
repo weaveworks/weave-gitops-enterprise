@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -123,7 +124,11 @@ func (s *server) listEvents(ctx context.Context, clusterName string, extraDetail
 				continue
 			}
 			for i := range list.Items {
-				validations = append(validations, toPolicyValidation(list.Items[i], listClusterName, extraDetails))
+				validation, err := toPolicyValidation(list.Items[i], listClusterName, extraDetails)
+				if err != nil {
+					return nil, fmt.Errorf("error while getting policy violation event details: %w", err)
+				}
+				validations = append(validations, validation)
 			}
 		}
 	}
@@ -135,7 +140,7 @@ func (s *server) listEvents(ctx context.Context, clusterName string, extraDetail
 	}, nil
 }
 
-func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) *capiv1_proto.PolicyValidation {
+func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*capiv1_proto.PolicyValidation, error) {
 	annotations := item.GetAnnotations()
 	policyValidation := &capiv1_proto.PolicyValidation{
 		Id:          getAnnotation(item.GetLabels(), "pac.weave.works/id"),
@@ -153,9 +158,13 @@ func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) *c
 		policyValidation.Description = getAnnotation(annotations, "description")
 		policyValidation.HowToSolve = getAnnotation(annotations, "how_to_solve")
 		policyValidation.ViolatingEntity = getAnnotation(annotations, "entity_manifest")
+		err := json.Unmarshal([]byte(getAnnotation(annotations, "occurrences")), &policyValidation.Occurrences)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get occurrences from event: %w", err)
+		}
 	}
 
-	return policyValidation
+	return policyValidation, nil
 }
 
 func getAnnotation(annotations map[string]string, key string) string {
