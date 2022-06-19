@@ -14,7 +14,7 @@ const TemplatesProvider: FC = ({ children }) => {
   const [templates, setTemplates] = useState<Template[] | undefined>([]);
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
-  const { notifications, setNotifications } = useNotifications();
+  const { setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
   const templatesUrl = '/v1/templates';
@@ -47,19 +47,8 @@ const TemplatesProvider: FC = ({ children }) => {
     }).finally(() => setLoading(false));
   }, []);
 
-  const onError = (error: Error) => {
-    if (
-      error &&
-      notifications?.some(
-        notification => error.message === notification.message.text,
-      ) === false
-    ) {
-      setNotifications([
-        ...notifications,
-        { message: { text: error.message }, variant: 'danger' },
-      ]);
-    }
-  };
+  const onError = (error: Error) =>
+    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
 
   const onSuccess = (data: ListTemplatesResponse) =>
     setTemplates(data.templates);

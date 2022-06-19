@@ -41,6 +41,7 @@ export type Profile = {
 
 export type ListProfilesResponse = {
   profiles?: Profile[];
+  code?: number;
 };
 
 export type UpdatedProfile = {
