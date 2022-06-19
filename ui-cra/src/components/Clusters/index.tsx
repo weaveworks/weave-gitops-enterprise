@@ -28,7 +28,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
 import { Checkbox, Collapse, IconButton, withStyles } from '@material-ui/core';
 import { CAPIClusterStatus } from './CAPIClusterStatus';
@@ -36,6 +35,7 @@ import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
+import { useListConfig } from '../../hooks/versions';
 
 interface Size {
   size?: 'small';
@@ -101,7 +101,8 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const { repositoryURL } = useVersions();
+  const { data } = useListConfig();
+  const repositoryURL = data?.repositoryURL || '';
   const [repoLink, setRepoLink] = useState<string>('');
   const [openCapiStatus, setOpenCapiStatus] = React.useState<any>({});
   const capiClusters = useMemo(

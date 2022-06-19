@@ -3,7 +3,6 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
-import useVersions from '../../../contexts/Versions';
 import useProfiles from '../../../contexts/Profiles';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
@@ -36,6 +35,7 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { TemplateObject } from '../../../cluster-services/cluster_services.pb';
+import { useListConfig } from '../../../hooks/versions';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -105,7 +105,8 @@ const AddCluster: FC = () => {
     addCluster,
   } = useTemplates();
   const clustersCount = useClusters().count;
-  const { repositoryURL } = useVersions();
+  const { data } = useListConfig();
+  const repositoryURL = data?.repositoryURL || '';
   const { updatedProfiles } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
