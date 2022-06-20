@@ -1,22 +1,22 @@
-import Grid from '@material-ui/core/Grid';
-import { createTheme, ThemeProvider } from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import { theme } from '@weaveworks/weave-gitops';
 import React, { FC, useState } from 'react';
+import { PageTemplate } from '../Layout/PageTemplate';
+import TemplateCard from './Card';
+import Grid from '@material-ui/core/Grid';
+import useClusters from '../../contexts/Clusters';
+import useTemplates from '../../contexts/Templates';
+import { SectionHeader } from '../Layout/SectionHeader';
+import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { Loader } from '../Loader';
+import { TemplatesTable } from './Table';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
 import { ReactComponent as ListView } from '../../assets/img/list-view.svg';
-import useClusters from '../../contexts/Clusters';
-import useTemplates from '../../contexts/Templates';
+import { theme } from '@weaveworks/weave-gitops';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import TextField from '@material-ui/core/TextField';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../../muiTheme';
 import { Template } from '../../cluster-services/cluster_services.pb';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
-import { Loader } from '../Loader';
-import TemplateCard from './Card';
-import { TemplatesTable } from './Table';
 
 const ActionsWrapper = styled.div`
   padding: ${theme.spacing.medium} ${theme.spacing.small} 0 0;

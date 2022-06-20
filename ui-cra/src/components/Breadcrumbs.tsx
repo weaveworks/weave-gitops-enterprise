@@ -1,11 +1,11 @@
-import { createStyles, makeStyles } from '@material-ui/core/styles';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { isEmpty } from 'lodash';
-import { transparentize } from 'polished';
 import React, { FC } from 'react';
-import { Link } from 'react-router-dom';
+import { isEmpty } from 'lodash';
 import styled from 'styled-components';
+import { transparentize } from 'polished';
 import { ReactComponent as BreadcrumbDivider } from '../assets/img/breadcrumb-divider.svg';
+import { makeStyles, createStyles } from '@material-ui/core/styles';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { Link } from 'react-router-dom';
 
 interface Size {
   size?: 'small';

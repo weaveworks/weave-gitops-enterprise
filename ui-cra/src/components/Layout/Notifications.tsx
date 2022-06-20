@@ -1,13 +1,13 @@
+import React, { FC, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
-import React, { FC, useEffect } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import styled from 'styled-components';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error-icon.svg';
 import { ReactComponent as SuccessIcon } from '../../assets/img/success-icon.svg';
 import useNotifications from '../../contexts/Notifications';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import styled from 'styled-components';
 
 const ToastContainerWrapper = styled.div`
   .Toastify__toast-container {

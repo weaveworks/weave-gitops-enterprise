@@ -1,6 +1,6 @@
-import { theme } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
+import { theme } from '@weaveworks/weave-gitops';
 import useVersions from '../../contexts/Versions';
 import { Tooltip } from '../Shared';
 import { ListError } from '../../cluster-services/cluster_services.pb';
