@@ -8,6 +8,7 @@ import { BucketDetail, useListSources } from '@weaveworks/weave-gitops';
 type Props = {
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
 const WGApplicationsBucket: FC<Props> = props => {
