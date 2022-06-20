@@ -171,6 +171,27 @@ func TestMultiFetcher(t *testing.T) {
 			},
 			expectedCount: 1,
 		},
+		{
+			context: "when cluster is not ready, it is not added",
+			clusterObjects: []runtime.Object{
+				makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = clusterName
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: secretName,
+					}
+
+					// Remove ready status
+					o.SetConditions(nil)
+				}),
+				makeTestSecret(func(o *corev1.Secret) {
+					o.ObjectMeta.Name = secretName + "-kubeconfig"
+					o.Data = map[string][]byte{
+						"value": secretData(clusterName),
+					}
+				}),
+			},
+			expectedCount: 1,
+		},
 	}
 
 	for _, tt := range testCases {
@@ -185,7 +206,7 @@ func TestMultiFetcher(t *testing.T) {
 
 			g.Expect(clusters).To(HaveLen(tt.expectedCount))
 
-			g.Expect(clusters[0].Name).To(Equal("Default"))
+			g.Expect(clusters[0].Name).To(Equal("management"))
 			g.Expect(clusters[0].Server).To(Equal(config.Host))
 			g.Expect(clusters[0].BearerToken).To(Equal(config.BearerToken))
 		})
@@ -217,6 +238,11 @@ func makeTestCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv1alpha
 			Kind:       "GitopsCluster",
 		},
 		Spec: gitopsv1alpha1.GitopsClusterSpec{},
+		Status: gitopsv1alpha1.GitopsClusterStatus{
+			Conditions: []metav1.Condition{
+				{Type: meta.ReadyCondition, Status: metav1.ConditionTrue},
+			},
+		},
 	}
 
 	for _, o := range opts {

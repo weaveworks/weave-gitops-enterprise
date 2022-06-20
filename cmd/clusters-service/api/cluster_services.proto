@@ -139,6 +139,18 @@ message ListTemplatesRequest {
   string provider = 1;
   string template_kind = 2;
 }
+
+message Pagination {
+    int32 pageSize = 1;
+    string pageToken = 2;
+}
+
+message ListError {
+    string clusterName = 1;
+    string namespace = 2;
+    string message = 3;
+}
+
 message ListTemplatesResponse {
   repeated Template templates = 1;
   int32 total = 2;
@@ -176,18 +188,33 @@ message RenderTemplateRequest {
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
-message ListGitopsClustersRequest { string label = 1; }
+message ListGitopsClustersRequest {
+  string label = 1; 
+  int64 page_size = 2;
+  string page_token = 3;
+  string ref_type = 4;
+}
 message ListGitopsClustersResponse {
   repeated GitopsCluster gitops_clusters = 1;
   int32 total = 2;
+  string next_page_token = 3;
 }
 
-message GetPolicyRequest { string policy_name = 1; }
-message ListPoliciesRequest {}
+message GetPolicyRequest {
+  string policy_name = 1;
+  string clusterName = 2;
+}
+message ListPoliciesRequest {
+    string clusterName = 1;
+    Pagination pagination = 2;
+}
+
 message GetPolicyResponse { Policy policy = 1; }
 message ListPoliciesResponse {
   repeated Policy policies = 1;
   int32 total = 2;
+  string nextPageToken = 3;
+  repeated ListError errors = 4;
 }
 
 
@@ -331,6 +358,7 @@ message GitopsCluster {
   GitopsClusterRef capiClusterRef = 7;
   GitopsClusterRef secretRef = 8;
   CapiCluster capi_cluster = 9;
+  bool control_plane = 10;
 }
 
 message CapiCluster {
@@ -428,6 +456,7 @@ message ProfileValues {
   string version = 2;
   string values = 3;
   string layer = 4;
+  string namespace = 5;
 }
 
 message GetConfigRequest {}
@@ -453,6 +482,11 @@ message PolicyTargets {
   repeated string namespaces = 3;
 }
 
+message PolicyStandard {
+  string id = 1;
+  repeated string controls = 2;
+}
+
 message Policy {
   string name = 1;
   string id = 2;
@@ -462,9 +496,10 @@ message Policy {
   string category = 6;
   repeated string tags = 7;
   string severity = 8;
-  repeated string controls = 9;
+  repeated PolicyStandard standards = 9;
   string git_commit = 10;
   repeated PolicyParam parameters = 11;
   PolicyTargets targets = 12;
   string created_at = 13;
+  string clusterName = 14;
 }

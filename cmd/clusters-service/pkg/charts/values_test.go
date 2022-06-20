@@ -268,6 +268,16 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", dependsOn("test-cluster-other-chart")),
 			},
 		},
+		{
+			name: "install with namespace",
+			installs: []ChartInstall{
+				{Layer: "", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr), Namespace: "test-system"}},
+			want: []*helmv2.HelmRelease{
+				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", func(hr *helmv2.HelmRelease) {
+					hr.Spec.TargetNamespace = "test-system"
+				}),
+			},
+		},
 	}
 
 	for _, tt := range layeredTests {
@@ -434,6 +444,9 @@ func makeTestHelmRelease(name, repoName, repoNS, chart, version string, opts ...
 						Namespace:  repoNS,
 					},
 				},
+			},
+			Install: &helmv2.Install{
+				CRDs: helmv2.CreateReplace,
 			},
 			Interval: metav1.Duration{Duration: time.Minute},
 			Values:   &apiextensionsv1.JSON{Raw: []byte("{}")},

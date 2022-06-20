@@ -11,12 +11,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 
-	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+
+	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
@@ -24,6 +27,10 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 )
 
 func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -32,7 +39,9 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1.AddToScheme,
-		policiesv1.AddToScheme,
+		pacv1.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
+		clusterv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -47,23 +56,38 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	return c
 }
 
-func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, ns string, hr *sourcev1.HelmRepository) capiv1_protos.ClustersServiceServer {
-	c := createClient(t, clusterState...)
+type serverOptions struct {
+	clusterState   []runtime.Object
+	configMapName  string
+	namespace      string
+	provider       git.Provider
+	ns             string
+	hr             *sourcev1.HelmRepository
+	clientsFactory clustersmngr.ClientsFactory
+}
+
+func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
+	c := createClient(t, o.clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	return NewClusterServer(
 		logr.Discard(),
-		nil,
+		&clusters.CRDLibrary{
+			Log:          logr.Discard(),
+			ClientGetter: kubefakes.NewFakeClientGetter(c),
+			Namespace:    o.namespace,
+		},
 		&templates.ConfigMapLibrary{
 			Log:           logr.Discard(),
 			Client:        c,
-			ConfigMapName: configMapName,
-			CAPINamespace: namespace,
+			ConfigMapName: o.configMapName,
+			CAPINamespace: o.namespace,
 		},
-		provider,
+		o.clientsFactory,
+		o.provider,
 		kubefakes.NewFakeClientGetter(c),
 		dc,
-		ns,
+		o.ns,
 		"weaveworks-charts", t.TempDir(),
 	)
 }
@@ -208,9 +232,9 @@ func rawExtension(s string) runtime.RawExtension {
 	}
 }
 
-func makePolicy(t *testing.T, opts ...func(p *policiesv1.Policy)) *policiesv1.Policy {
+func makePolicy(t *testing.T, opts ...func(p *pacv1.Policy)) *pacv1.Policy {
 	t.Helper()
-	policy := &policiesv1.Policy{
+	policy := &pacv1.Policy{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Policy",
 			APIVersion: "v1",
@@ -218,13 +242,16 @@ func makePolicy(t *testing.T, opts ...func(p *policiesv1.Policy)) *policiesv1.Po
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "weave.policies.missing-owner-label",
 		},
-		Spec: policiesv1.PolicySpec{
+		Spec: pacv1.PolicySpec{
 			Name:     "Missing Owner Label",
 			Severity: "high",
 			Code:     "foo",
-			Targets: policiesv1.PolicyTargets{
-				Labels: []map[string]string{{"my-label": "my-value"}},
+			Targets: pacv1.PolicyTargets{
+				Labels:     []map[string]string{{"my-label": "my-value"}},
+				Kinds:      []string{},
+				Namespaces: []string{},
 			},
+			Standards: []pacv1.PolicyStandard{},
 		},
 	}
 	for _, o := range opts {

@@ -1,35 +1,5 @@
 import { GitopsCluster } from '../cluster-services/cluster_services.pb';
 
-export type Param = {
-  name: string;
-  description?: string;
-  options?: string[];
-};
-
-export type TemplateObject = {
-  kind?: string;
-  apiVersion?: string;
-  parameters?: Param['name'];
-  name?: string;
-  displayName?: string;
-};
-
-export type Template = {
-  name?: string;
-  description?: string;
-  version?: string;
-  parameters?: Param[];
-  objects?: TemplateObject[];
-  error?: string;
-  provider?: string;
-  annotations?: string[];
-};
-
-export type ListTemplatesResponse = {
-  templates?: Template[];
-  total?: number;
-};
-
 export type Credential = {
   group?: string;
   version?: string;
@@ -78,6 +48,7 @@ export type UpdatedProfile = {
   values: { version: string; yaml: string; selected?: boolean }[];
   required: boolean;
   layer?: string;
+  namespace?: string;
 };
 
 export type ChildrenOccurences = {
@@ -95,3 +66,8 @@ export interface GitopsClusterEnriched extends GitopsCluster {
   type: string;
   updatedAt: string;
 }
+
+export type ListGitopsClustersResponseEnriched = {
+  gitopsClusters: GitopsClusterEnriched[];
+  total: number;
+};

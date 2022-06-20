@@ -242,7 +242,13 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 					},
 					Interval: metav1.Duration{Duration: time.Minute},
 					Values:   &apiextensionsv1.JSON{Raw: jsonValues},
+					Install: &helmv2.Install{
+						CRDs: helmv2.CreateReplace,
+					},
 				},
+			}
+			if install.Namespace != "" {
+				hr.Spec.TargetNamespace = install.Namespace
 			}
 			if layer.dependsOn != "" {
 				for _, v := range layerInstalls[layer.dependsOn] {
@@ -294,7 +300,8 @@ func pairLayers(names []string) []layerDependency {
 // ChartInstall configures the installation of a specific chart into a
 // cluster.
 type ChartInstall struct {
-	Ref    ChartReference
-	Layer  string
-	Values map[string]interface{}
+	Ref       ChartReference
+	Layer     string
+	Values    map[string]interface{}
+	Namespace string
 }

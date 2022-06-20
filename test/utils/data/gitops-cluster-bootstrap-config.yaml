@@ -1,12 +1,12 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: ClusterBootstrapConfig
 metadata:
-  name: capi-gitops
+  name: gitops
   namespace: default
 spec:
   clusterSelector:
     matchLabels:
-      weave.works/capi: bootstrap
+      weave.works/flux: bootstrap
   jobTemplate:
     generateName: "run-gitops-{{ .ObjectMeta.Name }}"
     # requiredClusterReady: true

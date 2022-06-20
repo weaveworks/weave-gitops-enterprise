@@ -17,9 +17,9 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  // filterConfigForString,
+  filterConfigForString,
   FilterableTable,
-  // filterConfigForStatus,
+  filterConfigForStatus,
   LoadingPage,
   KubeStatusIndicator,
   SortType,
@@ -35,6 +35,7 @@ import { CAPIClusterStatus } from './CAPIClusterStatus';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import { GitopsClusterEnriched } from '../../types/custom';
+import { DashboardsList } from './DashboardsList';
 
 interface Size {
   size?: 'small';
@@ -155,8 +156,8 @@ const MCCP: FC = () => {
   }, [activeTemplate, history]);
 
   const initialFilterState = {
-    // ...filterConfigForString(clusters, 'namespace'),
-    // ...filterConfigForStatus(clusters),
+    ...filterConfigForString(clusters, 'namespace'),
+    ...filterConfigForStatus(clusters),
   };
 
   useEffect(() => {
@@ -188,7 +189,8 @@ const MCCP: FC = () => {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const newSelected =
-        clusters.map((cluster: GitopsClusterEnriched) => cluster.name || '') || [];
+        clusters.map((cluster: GitopsClusterEnriched) => cluster.name || '') ||
+        [];
       setSelectedClusters(newSelected);
       return;
     }
@@ -349,7 +351,10 @@ const MCCP: FC = () => {
                       ),
                       value: (c: GitopsClusterEnriched) => (
                         <IndividualCheckbox
-                          checked={selectedClusters.indexOf(c.name ? c.name : '') !== -1}
+                          checked={
+                            selectedClusters.indexOf(c.name ? c.name : '') !==
+                            -1
+                          }
                           onChange={handleIndividualClick}
                           name={c.name}
                         />
@@ -368,7 +373,8 @@ const MCCP: FC = () => {
                               onClick={() =>
                                 setOpenCapiStatus((prev: any) => ({
                                   ...prev,
-                                  [c.name ? c.name : '']: !prev[c.name ? c.name : ''],
+                                  [c.name ? c.name : '']:
+                                    !prev[c.name ? c.name : ''],
                                 }))
                               }
                             >
@@ -395,6 +401,12 @@ const MCCP: FC = () => {
                       sortValue: ({ name }) => name,
                       textSearchable: true,
                       maxWidth: 650,
+                    },
+                    {
+                      label: 'Dashboards',
+                      value: (c: GitopsClusterEnriched) => (
+                        <DashboardsList cluster={c} />
+                      ),
                     },
                     {
                       label: 'Type',

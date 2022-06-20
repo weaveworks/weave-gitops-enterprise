@@ -3,19 +3,25 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/any"
-	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func getPolicyParamValue(param policiesv1.PolicyParameters, policyID string) (*anypb.Any, error) {
+var requiredClusterNameErr = errors.New("`clusterName` param is required")
+
+func getPolicyParamValue(param pacv1.PolicyParameters, policyID string) (*anypb.Any, error) {
 	if param.Value == nil {
 		return nil, nil
 	}
@@ -67,7 +73,7 @@ func getPolicyParamValue(param policiesv1.PolicyParameters, policyID string) (*a
 	return anyValue, nil
 }
 
-func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error) {
+func toPolicyResponse(policyCRD pacv1.Policy, clusterName string) (*capiv1_proto.Policy, error) {
 	policySpec := policyCRD.Spec
 
 	var policyLabels []*capiv1_proto.PolicyTargetLabel
@@ -91,6 +97,13 @@ func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 		policyParam.Value = value
 		policyParams = append(policyParams, policyParam)
 	}
+	var policyStandards []*capiv1_proto.PolicyStandard
+	for _, standard := range policySpec.Standards {
+		policyStandards = append(policyStandards, &capiv1_proto.PolicyStandard{
+			Id:       standard.ID,
+			Controls: standard.Controls,
+		})
+	}
 	policy := &capiv1_proto.Policy{
 		Name:        policySpec.Name,
 		Id:          policySpec.ID,
@@ -100,58 +113,90 @@ func toPolicyResponse(policyCRD policiesv1.Policy) (*capiv1_proto.Policy, error)
 		Category:    policySpec.Category,
 		Tags:        policySpec.Tags,
 		Severity:    policySpec.Severity,
-		Controls:    policySpec.Controls,
+		Standards:   policyStandards,
 		Targets: &capiv1_proto.PolicyTargets{
 			Kinds:      policySpec.Targets.Kinds,
 			Namespaces: policySpec.Targets.Namespaces,
 			Labels:     policyLabels,
 		},
-		Parameters: policyParams,
-		CreatedAt:  policyCRD.CreationTimestamp.Format(time.RFC3339),
+		Parameters:  policyParams,
+		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
+		ClusterName: clusterName,
 	}
 
 	return policy, nil
 }
 
 func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesRequest) (*capiv1_proto.ListPoliciesResponse, error) {
-	client, err := s.clientGetter.Client(ctx)
+	clustersClient, err := s.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("failed to load Kubernetes client: %w", err)
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
 	}
 
-	list := policiesv1.PolicyList{}
-	err = client.List(ctx, &list)
-	if err != nil {
-		return nil, fmt.Errorf("error while listing policies: %w", err)
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &pacv1.PolicyList{}
+	})
+	opts := []client.ListOption{}
+	if m.Pagination != nil {
+		opts = append(opts, client.Limit(m.Pagination.PageSize))
+		opts = append(opts, client.Continue(m.Pagination.PageToken))
+	}
+
+	respErrors := []*capiv1_proto.ListError{}
+	if err := clustersClient.ClusteredList(ctx, clist, false, opts...); err != nil {
+		var errs clustersmngr.ClusteredListError
+		if !errors.As(err, &errs) {
+			return nil, fmt.Errorf("error while listing policies: %w", err)
+		}
+
+		for _, e := range errs.Errors {
+			respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: e.Cluster, Message: e.Err.Error()})
+		}
 	}
 
 	var policies []*capiv1_proto.Policy
-	for i := range list.Items {
-		policy, err := toPolicyResponse(list.Items[i])
-		if err != nil {
-			return nil, err
+	for clusterName, lists := range clist.Lists() {
+		if m.ClusterName != "" && clusterName != m.ClusterName {
+			continue
 		}
-		policies = append(policies, policy)
+		for _, l := range lists {
+			list, ok := l.(*pacv1.PolicyList)
+			if !ok {
+				continue
+			}
+			for i := range list.Items {
+				policy, err := toPolicyResponse(list.Items[i], clusterName)
+				if err != nil {
+					return nil, err
+				}
+				policies = append(policies, policy)
+			}
+		}
 	}
 	return &capiv1_proto.ListPoliciesResponse{
-		Policies: policies,
-		Total:    int32(len(policies)),
+		Policies:      policies,
+		Total:         int32(len(policies)),
+		NextPageToken: clist.GetContinue(),
+		Errors:        respErrors,
 	}, nil
 }
 
 func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest) (*capiv1_proto.GetPolicyResponse, error) {
-	client, err := s.clientGetter.Client(ctx)
+	clustersClient, err := s.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("failed to load Kubernetes client: %w", err)
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
 	}
 
-	policyCR := policiesv1.Policy{}
-	err = client.Get(ctx, types.NamespacedName{Name: m.PolicyName}, &policyCR)
+	if m.ClusterName == "" {
+		return nil, requiredClusterNameErr
+	}
+	policyCR := pacv1.Policy{}
+	err = clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCR)
 	if err != nil {
-		return nil, fmt.Errorf("error while getting policy %s: %w", m.PolicyName, err)
+		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.PolicyName, m.ClusterName, err)
 	}
 
-	policy, err := toPolicyResponse(policyCR)
+	policy, err := toPolicyResponse(policyCR, m.ClusterName)
 	if err != nil {
 		return nil, err
 	}

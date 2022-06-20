@@ -1,8 +1,9 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
-import { request, requestWithEntitlementHeader } from '../../utils/request';
+import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
+import {  requestWithEntitlementHeader } from '../../utils/request';
 import { Versions, VersionData } from './index';
 import useNotifications from './../Notifications';
 import { useHistory } from 'react-router-dom';
+import { EnterpriseClientContext } from '../EnterpriseClient';
 
 const VersionsProvider: FC = ({ children }) => {
   const [entitlement, setEntitlement] = useState<string | null>(null);
@@ -11,6 +12,7 @@ const VersionsProvider: FC = ({ children }) => {
   });
   const [repositoryURL, setRepositoryURL] = useState<string | null>(null);
   const { setNotifications } = useNotifications();
+  const { api } = useContext(EnterpriseClientContext);
 
   const history = useHistory();
 
@@ -30,16 +32,15 @@ const VersionsProvider: FC = ({ children }) => {
   }, [setNotifications]);
 
   const getConfig = useCallback(() => {
-    request('GET', '/v1/config', {
-      cache: 'no-store',
-    })
-      .then(res => setRepositoryURL(res.repositoryURL))
+    api
+      .GetConfig({})
+      .then((res) => setRepositoryURL(res.repositoryURL as string))
       .catch(err =>
         setNotifications([
           { message: { text: err.message }, variant: 'danger' },
         ]),
       );
-  }, [setNotifications]);
+  }, [api, setNotifications]);
 
   useEffect(() => {
     getVersions();

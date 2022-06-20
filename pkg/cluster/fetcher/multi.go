@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/go-logr/logr"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -16,8 +18,9 @@ import (
 )
 
 const (
-	dataKey     = "value"
-	yamlDataKey = "value.yaml"
+	dataKey        = "value"
+	yamlDataKey    = "value.yaml"
+	defaultCluster = "management"
 )
 
 type multiClusterFetcher struct {
@@ -57,7 +60,7 @@ func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) 
 
 func (f *multiClusterFetcher) self() mngr.Cluster {
 	return mngr.Cluster{
-		Name:        mngr.DefaultCluster,
+		Name:        defaultCluster,
 		Server:      f.cfg.Host,
 		BearerToken: f.cfg.BearerToken,
 		TLSConfig:   f.cfg.TLSClientConfig,
@@ -79,6 +82,10 @@ func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, 
 	}
 
 	for _, cluster := range goClusters.Items {
+		if !isReady(cluster) {
+			continue
+		}
+
 		var secretRef string
 
 		if cluster.Spec.CAPIClusterRef != nil {
@@ -136,4 +143,13 @@ func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, 
 	}
 
 	return clusters, nil
+}
+
+func isReady(cluster gitopsv1alpha1.GitopsCluster) bool {
+	for _, condition := range cluster.GetConditions() {
+		if condition.Type == meta.ReadyCondition && condition.Status == metav1.ConditionTrue {
+			return true
+		}
+	}
+	return false
 }

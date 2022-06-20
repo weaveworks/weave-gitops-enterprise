@@ -30,8 +30,8 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(capd, gce)'"
-      kubectl-version: "v1.22.0"
+      label-filter: "-ginkgo.label-filter='!(application, capd)'"
+      kubectl-version: "v1.23.6"
       login_user_type: "oidc"
       git-provider: github
       git-provider_hostname: github.com
@@ -68,7 +68,7 @@ jobs:
       runs-on: macOS-latest
       os-name: darwin
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(upgrade, capd, gce, eks)'"
+      label-filter: "-ginkgo.label-filter='!(upgrade, capd, kind-gitops-cluster)'"
       kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab

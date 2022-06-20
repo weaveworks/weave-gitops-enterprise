@@ -18,6 +18,7 @@ import {
   FormControl,
   Select,
   MenuItem,
+  Input,
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
@@ -27,7 +28,7 @@ import {
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
-
+const base = weaveTheme.spacing.base;
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
 
@@ -41,10 +42,11 @@ const useStyles = makeStyles(() => ({
 
 const ListItemWrapper = styled.div`
   & .profile-version,
-  .profile-layer {
+  .profile-layer,
+  .profile-namespace {
     display: flex;
     align-items: center;
-    margin-right: ${medium};
+    margin-left: ${base};
     span {
       margin-right: ${xs};
     }
@@ -69,6 +71,8 @@ const ProfilesListItem: FC<{
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
+  const [namespace, setNamespace] = useState<string>();
+  const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
 
   const profileVersions = (profile: UpdatedProfile) => [
     ...profile.values.map((value, index) => {
@@ -110,6 +114,18 @@ const ProfilesListItem: FC<{
     setYaml(currentProfile?.yaml as string);
     setOpenYamlPreview(true);
   };
+  const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    const pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+    if (pattern.test(value) || value === '') {
+      setNamespaceValidation(true);
+    } else {
+      setNamespaceValidation(false);
+    }
+    setNamespace(value);
+    profile.namespace = value;
+    updateProfile(profile);
+  };
 
   const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
     setYaml(event.target.value);
@@ -127,9 +143,18 @@ const ProfilesListItem: FC<{
   }, [profile, updateProfile, version, yaml]);
 
   useEffect(() => {
-    setVersion(profile.values[0].version as string);
-    setYaml(profile.values[0].version as string);
-    profile.values[0].selected = true;
+    const [selectedValue] = profile.values.filter(
+      value => value.selected === true,
+    );
+    setNamespace(profile.namespace || '');
+    if (selectedValue) {
+      setVersion(selectedValue.version);
+      setYaml(selectedValue.yaml);
+    } else {
+      setVersion(profile.values[0].version);
+      setYaml(profile.values[0].yaml);
+      profile.values[0].selected = true;
+    }
   }, [profile]);
 
   return (
@@ -151,15 +176,31 @@ const ProfilesListItem: FC<{
               </Select>
             </FormControl>
           </div>
+          <div className="profile-namespace">
+            <span>Namespace</span>
+            <FormControl>
+              <Input
+                id="profile-namespace"
+                value={namespace}
+                placeholder=""
+                onChange={handleChangeNamespace}
+                error={!isNamespaceValid}
+              />
+            </FormControl>
+          </div>
+          <Button
+            style={{ marginLeft: medium }}
+            variant="text"
+            onClick={handleYamlPreview}
+          >
+            Values.yaml
+          </Button>
           {profile.layer ? (
             <div className="profile-layer">
               <span>Layer</span>
               <span>{profile.layer}</span>
             </div>
           ) : null}
-          <Button variant="text" onClick={handleYamlPreview}>
-            Values.yaml
-          </Button>
         </ListItem>
       </ListItemWrapper>
 

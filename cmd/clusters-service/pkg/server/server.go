@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/client-go/discovery"
 
@@ -29,6 +30,7 @@ type server struct {
 	log              logr.Logger
 	templatesLibrary templates.Library
 	clustersLibrary  clusters.Library
+	clientsFactory   clustersmngr.ClientsFactory
 	provider         git.Provider
 	clientGetter     kube.ClientGetter
 	discoveryClient  discovery.DiscoveryInterface
@@ -38,11 +40,12 @@ type server struct {
 	helmRepositoryCacheDir    string
 }
 
-func NewClusterServer(log logr.Logger, clustersLibrary clusters.Library, templatesLibrary templates.Library, provider git.Provider, clientGetter kube.ClientGetter, discoveryClient discovery.DiscoveryInterface, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
+func NewClusterServer(log logr.Logger, clustersLibrary clusters.Library, templatesLibrary templates.Library, clientsFactory clustersmngr.ClientsFactory, provider git.Provider, clientGetter kube.ClientGetter, discoveryClient discovery.DiscoveryInterface, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
 	return &server{
 		log:                       log,
 		clustersLibrary:           clustersLibrary,
 		templatesLibrary:          templatesLibrary,
+		clientsFactory:            clientsFactory,
 		provider:                  provider,
 		clientGetter:              clientGetter,
 		discoveryClient:           discoveryClient,

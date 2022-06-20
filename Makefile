@@ -1,4 +1,4 @@
-.PHONY: all install clean images lint unit-tests check ui-build-for-tests update-mccp-chart-values ui-audit ui-dev-core
+.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -109,7 +109,13 @@ BINARIES = \
 
 binaries: $(BINARIES)
 
+cluster-dev: ## Start tilt to do development with wge running on the cluster
+	./tools/bin/tilt up
+
 godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $1)
+
+dependencies: ## Install build dependencies
+	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
 
 .PHONY: ui-cra/build
 ui-cra/build:

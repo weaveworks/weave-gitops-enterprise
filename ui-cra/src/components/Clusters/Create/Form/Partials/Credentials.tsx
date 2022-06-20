@@ -12,19 +12,20 @@ const Credentials: FC<{
   const { credentials, loading, getCredential } = useCredentials();
 
   const credentialsItems = useMemo(
-    () => [
-      ...credentials.map((credential: Credential, index: number) => {
-        const { kind, namespace, name } = credential;
-        return (
-          <MenuItem key={name} value={name || ''}>
-            {`${kind}/${namespace || 'default'}/${name}`}
-          </MenuItem>
-        );
-      }),
-      <MenuItem key="None" value="None">
-        <em>None</em>
-      </MenuItem>,
-    ],
+    () =>
+      credentials && [
+        ...credentials.map((credential: Credential, index: number) => {
+          const { kind, namespace, name } = credential;
+          return (
+            <MenuItem key={name} value={name || ''}>
+              {`${kind}/${namespace || 'default'}/${name}`}
+            </MenuItem>
+          );
+        }),
+        <MenuItem key="None" value="None">
+          <em>None</em>
+        </MenuItem>,
+      ],
     [credentials],
   );
 

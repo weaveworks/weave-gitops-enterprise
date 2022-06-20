@@ -10,7 +10,7 @@ export interface DeleteClusterPRRequest {
   repositoryUrl?: string;
 }
 interface ClustersContext {
-  clusters: GitopsClusterEnriched[] | [];
+  clusters: GitopsClusterEnriched[];
   isLoading: boolean;
   count: number | null;
   loading: boolean;
@@ -21,6 +21,9 @@ interface ClustersContext {
     token: string,
   ) => Promise<any>;
   getKubeconfig: (clusterName: string, fileName: string) => void;
+  getDashboardAnnotations: (cluster: GitopsClusterEnriched) => {
+    [key: string]: string;
+  };
 }
 
 export const Clusters = createContext<ClustersContext | null>(null);

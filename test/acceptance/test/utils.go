@@ -73,8 +73,9 @@ var seededRand *rand.Rand = rand.New(
 
 // Describes all the UI acceptance tests
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
-	// DescribeClusters(gitopsTestRunner)
+	DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
+	DescribeApplications(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -192,7 +193,7 @@ func InitializeWebdriver(wgeURL string) {
 			a["enableNetwork"] = true
 			chromeDriver := agouti.ChromeDriver(
 				agouti.ChromeOptions("w3c", false),
-				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "window-size=1800,2500", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
+				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
 				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
 			err = chromeDriver.Start()
 			Expect(err).NotTo(HaveOccurred())
@@ -203,12 +204,15 @@ func InitializeWebdriver(wgeURL string) {
 			webDriver, err = agouti.NewPage(selenium_service_url, agouti.Debug, agouti.Desired(agouti.Capabilities{
 				"acceptInsecureCerts": true,
 				"chromeOptions": map[string]interface{}{
-					"args":            []string{"--disable-gpu", "--no-sandbox", "window-size=1800,2500", "--disable-blink-features=AutomationControlled"},
+					"args":            []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
 					"w3c":             false,
 					"excludeSwitches": []string{"enable-automation"},
 				}}))
 			Expect(err).NotTo(HaveOccurred())
 		}
+
+		err = webDriver.Size(1800, 2500)
+		Expect(err).NotTo(HaveOccurred(), "Failed to resize browser window")
 
 	} else {
 		logger.Info("Clearing cookies")
@@ -311,7 +315,7 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 }
 
 func ShowItems(itemType string) {
-	logger.Info("Duming cluster objects/resources...")
+	logger.Info("Dumping cluster objects/resources...")
 	if itemType != "" {
 		_ = runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
@@ -320,12 +324,12 @@ func ShowItems(itemType string) {
 	logger.Info(fmt.Sprintf("Dumping %s congigmap", CLUSTER_SERVICE_DEPLOYMENT_APP))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml", CLUSTER_SERVICE_DEPLOYMENT_APP))
 
-	logger.Info("Duming cluster crds...")
+	logger.Info("Dumping cluster crds...")
 	_ = runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
 }
 
 func DumpClusterInfo(testName string) {
-	logger.Info("Duming cluster-info...")
+	logger.Info("Dumping cluster-info...")
 
 	logsPath := "/tmp/dumped-cluster-logs"
 	archiveLogsPath := path.Join(artifacts_base_dir, "cluster-info")

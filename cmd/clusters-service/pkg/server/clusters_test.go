@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
@@ -25,12 +26,212 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
 
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
+
+func TestListGitopsClusters(t *testing.T) {
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		refType      string
+		expected     []*capiv1_protos.GitopsCluster
+		err          error
+	}{
+		{
+			name: "no clusters",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name: "management",
+					Conditions: []*capiv1_proto.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
+		},
+		{
+			name: "1 cluster",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_proto.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
+		},
+		{
+			name: "2 clusters",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster2"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+				{
+					Name:      "gitops-cluster2",
+					Namespace: "default",
+					SecretRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_proto.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
+		},
+		{
+			name: "filter by reference type",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster2"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+			},
+			refType: "Secret",
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster2",
+					Namespace: "default",
+					SecretRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_proto.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
+		},
+		{
+			name: "invalid refType for filtering",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster2"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+			},
+			refType: "foo",
+			err:     errors.New(`reference type "foo" is not recognised`),
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.SetDefault("runtime-namespace", "default")
+
+			// setup
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+			})
+
+			// request
+			listGitopsClustersRequest := new(capiv1_protos.ListGitopsClustersRequest)
+			listGitopsClustersRequest.RefType = tt.refType
+			listGitopsClustersResponse, err := s.ListGitopsClusters(context.Background(), listGitopsClustersRequest)
+
+			// check response
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to list gitops clusters:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, listGitopsClustersResponse.GitopsClusters, protocmp.Transform()); diff != "" {
+					t.Fatalf("gitops clusters list didn't match expected:\n%s", diff)
+				}
+			}
+
+		})
+	}
+}
 
 func TestCreatePullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
@@ -198,7 +399,107 @@ spec:
         name: weaveworks-charts
         namespace: default
       version: 0.0.1
+  install:
+    crds: CreateReplace
   interval: 1m0s
+  values:
+    favoriteDrink: coffee
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "specify profile namespace",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+				Values: []*capiv1_protos.ProfileValues{
+					{
+						Name:      "demo-profile",
+						Version:   "0.0.1",
+						Values:    base64.StdEncoding.EncodeToString([]byte(``)),
+						Namespace: "test-system",
+					},
+				},
+			},
+			committedFiles: []CommittedFile{
+				{
+					Path: "clusters/my-cluster/clusters/dev.yaml",
+					Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+  name: dev
+`,
+				},
+				{
+					Path: "clusters/dev/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`,
+				},
+				{
+					Path: "clusters/dev/profiles.yaml",
+					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: default
+spec:
+  interval: 10m0s
+  url: http://127.0.0.1:{{ .Port }}/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: dev-demo-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: demo-profile
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  targetNamespace: test-system
   values:
     favoriteDrink: coffee
 status: {}
@@ -219,7 +520,13 @@ status: {}
 				hr.Namespace = "default"
 			})
 			tt.clusterState = append(tt.clusterState, hr)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", tt.provider, "", hr)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+				provider:      tt.provider,
+				hr:            hr,
+			})
 
 			// request
 			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
@@ -327,8 +634,12 @@ func TestGetKubeconfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.SetDefault("capi-clusters-namespace", tt.clusterObjectsNamespace)
 
-			gp := NewFakeGitProvider("", nil, nil)
-			s := createServer(t, tt.clusterState, "capi-templates", "default", gp, tt.clusterObjectsNamespace, nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+				ns:            tt.clusterObjectsNamespace,
+			})
 
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
 
@@ -397,7 +708,11 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			s := createServer(t, []runtime.Object{}, "capi-templates", "default", tt.provider, "", nil)
+			s := createServer(t, serverOptions{
+				configMapName: "capi-templates",
+				namespace:     "default",
+				provider:      tt.provider,
+			})
 
 			// delete request
 			deletePullRequestResponse, err := s.DeleteClustersPullRequest(context.Background(), tt.req)
@@ -442,6 +757,20 @@ func makeSecret(n string, ns string, s ...string) *corev1.Secret {
 		},
 		Data: data,
 	}
+}
+
+func makeTestGitopsCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv1alpha1.GitopsCluster {
+	c := &gitopsv1alpha1.GitopsCluster{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "gitops.weave.works/v1alpha1",
+			Kind:       "GitopsCluster",
+		},
+		Spec: gitopsv1alpha1.GitopsClusterSpec{},
+	}
+	for _, o := range opts {
+		o(c)
+	}
+	return c
 }
 
 func NewFakeGitProvider(url string, repo *git.GitRepo, err error) git.Provider {
@@ -551,19 +880,22 @@ func TestGenerateProfileFiles(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"testing",
-		"test-ns",
-		"",
 		"cluster-foo",
 		c,
-		[]*capiv1_protos.ProfileValues{
-			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
 			},
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
+			},
+			parameterValues: map[string]string{},
 		},
-		map[string]string{},
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -593,6 +925,8 @@ spec:
         name: testing
         namespace: test-ns
       version: 0.0.1
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     foo: bar
@@ -610,19 +944,22 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"testing",
-		"test-ns",
-		"",
 		"cluster-foo",
 		c,
-		[]*capiv1_protos.ProfileValues{
-			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: ${CLUSTER_NAME}")),
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
 			},
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: ${CLUSTER_NAME}")),
+				},
+			},
+			parameterValues: params,
 		},
-		params,
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -652,6 +989,8 @@ spec:
         name: testing
         namespace: test-ns
       version: 0.0.1
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     foo: test-cluster-name
@@ -664,25 +1003,28 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"testing",
-		"test-ns",
-		"",
 		"cluster-foo",
 		c,
-		[]*capiv1_protos.ProfileValues{
-			{
-				Name:    "foo",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
 			},
-			{
-				Name:    "bar",
-				Version: "0.0.1",
-				Layer:   "testing",
-				Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
+				{
+					Name:    "bar",
+					Version: "0.0.1",
+					Layer:   "testing",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
 			},
+			parameterValues: map[string]string{},
 		},
-		map[string]string{},
 	)
 	assert.NoError(t, err)
 	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -714,6 +1056,8 @@ spec:
         name: testing
         namespace: test-ns
       version: 0.0.1
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     foo: bar
@@ -737,6 +1081,8 @@ spec:
       version: 0.0.1
   dependsOn:
   - name: cluster-foo-bar
+  install:
+    crds: CreateReplace
   interval: 1m0s
   values:
     foo: bar

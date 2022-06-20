@@ -211,6 +211,7 @@ jobs:
         run: |
           curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
           sudo mv /tmp/eksctl /usr/local/bin
+          eksctl version
           eksctl get clusters
       - name: Install flux
         run: |
@@ -227,6 +228,7 @@ jobs:
           elif [ "$RUNNER_OS" == "macOS" ]; then
               brew install aws-iam-authenticator
           fi
+          aws-iam-authenticator version
       - name: Authenticate to Google Cloud
         if: ${{ inputs.management-cluster-kind == 'gke' }}
         uses: google-github-actions/auth@v0.4.4
@@ -245,6 +247,10 @@ jobs:
       - name: Install docker
         if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
         uses: docker-practice/actions-setup-docker@master
+      - name: Install helm
+        uses: azure/setup-helm@v2.0
+        with:
+          version: v3.8.2
       - name: Install kubectl
         uses: Azure/setup-kubectl@v2.0
         with:
@@ -358,7 +364,7 @@ jobs:
           export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
 
           if [ ${{ env.GIT_PROVIDER }} == "gitlab" ] && [ ${{ env.GIT_PROVIDER_HOSTNAME }} != "gitlab.com" ]; then
-            export GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
+            export WEAVE_GITOPS_GIT_HOST_TYPES="${{ env.GIT_PROVIDER_HOSTNAME }}=gitlab"
             export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
           fi
 

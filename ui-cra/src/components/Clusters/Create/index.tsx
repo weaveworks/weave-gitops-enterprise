@@ -15,11 +15,7 @@ import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import FormStepsNavigation from './Form/StepsNavigation';
-import {
-  Credential,
-  TemplateObject,
-  UpdatedProfile,
-} from '../../../types/custom';
+import { Credential, UpdatedProfile } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import CredentialsProvider from '../../../contexts/Credentials/Provider';
@@ -41,6 +37,7 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
+import { TemplateObject } from '../../../cluster-services/cluster_services.pb';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -187,6 +184,7 @@ const AddCluster: FC = () => {
             version: string;
             values: string;
             layer?: string;
+            namespace?: string;
           }[],
           profile,
         ) => {
@@ -197,6 +195,7 @@ const AddCluster: FC = () => {
                 version: value.version,
                 values: btoa(value.yaml),
                 layer: profile.layer,
+                namespace: profile.namespace,
               });
           });
           return accumulator;
@@ -322,8 +321,8 @@ const AddCluster: FC = () => {
             ]}
           />
           <ContentWrapper>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={9}>
+            <Grid container>
+              <Grid item xs={12} md={10}>
                 <Title>Create new cluster with template</Title>
                 <CredentialsWrapper>
                   <div className="template-title">
@@ -383,7 +382,7 @@ const AddCluster: FC = () => {
                   setShowAuthDialog={setShowAuthDialog}
                 />
               </Grid>
-              <Grid className={classes.steps} item md={3}>
+              <Grid className={classes.steps} item md={2}>
                 <FormStepsNavigation
                   steps={steps}
                   activeStep={activeStep}

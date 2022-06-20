@@ -5,8 +5,8 @@ if [[ -z "$CLUSTER_NAME" ]]; then
     exit 1
 fi
 
-if [[ -z "$CA_CERTIFICATE" ]]; then
-    echo "Ensure CA_CERTIFICATE has been set to the path of the CA certificate"
+if [[ -z "$CA_AUTHORITY" ]]; then
+    echo "Ensure CA_AUTHORITY has been set"
     exit 1
 fi
 
@@ -20,16 +20,14 @@ if [[ -z "$TOKEN" ]]; then
     exit 1
 fi
 
-export CLUSTER_CA_CERTIFICATE=$(cat "$CA_CERTIFICATE" | base64)
-
 envsubst <<EOF
 apiVersion: v1
 kind: Config
 clusters:
 - name: $CLUSTER_NAME
   cluster:
-    server: https://$ENDPOINT
-    certificate-authority-data: $CLUSTER_CA_CERTIFICATE
+    server: $ENDPOINT
+    certificate-authority-data: $CA_AUTHORITY
 users:
 - name: $CLUSTER_NAME
   user:
