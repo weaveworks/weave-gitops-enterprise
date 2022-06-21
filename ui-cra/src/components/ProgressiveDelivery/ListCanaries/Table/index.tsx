@@ -1,6 +1,6 @@
 import {
   FilterableTable,
-  filterConfigForString,
+  filterConfig,
   theme,
 } from '@weaveworks/weave-gitops';
 import moment from 'moment';
@@ -69,7 +69,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
   const classes = usePolicyStyle();
 
   const initialFilterState = {
-    ...filterConfigForString(canaries, 'name'),
+    ...filterConfig(canaries, 'name'),
   };
 
   return (
