@@ -54,7 +54,7 @@ const ClustersProvider: FC = ({ children }) => {
 
   const getKubeconfig = useCallback(
     (clusterName: string, filename: string) => {
-      request('GET', `v1/clusters/${clusterName}/kubeconfig`, {
+      request('GET', `/v1/clusters/${clusterName}/kubeconfig`, {
         headers: {
           Accept: 'application/octet-stream',
         },
