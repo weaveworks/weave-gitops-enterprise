@@ -63,6 +63,9 @@ export const useCanaryStyle = makeStyles(() =>
       marginRight: '4px',
       borderRadius: 5,
     },
+    code: {
+      wordBreak: 'break-word',
+    },
   }),
 );
 

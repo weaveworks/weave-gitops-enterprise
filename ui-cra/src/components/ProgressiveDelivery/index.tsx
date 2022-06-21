@@ -4,15 +4,16 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { useCallback, useState } from 'react';
 import CanariesList from './ListCanaries/CanariesList';
 import OnboardingMessage from './Onboarding/OnboardingMessage';
-import {
-  IsFlaggerAvailableResponse,
-  ProgressiveDeliveryService,
-} from '../../cluster-services/prog.pb';
+
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useQuery } from 'react-query';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
+import {
+  IsFlaggerAvailableResponse,
+  ProgressiveDeliveryService,
+} from '@weaveworks/progressive-delivery';
 
 interface FlaggerStatus {
   isFlaggerAvailabl: boolean;

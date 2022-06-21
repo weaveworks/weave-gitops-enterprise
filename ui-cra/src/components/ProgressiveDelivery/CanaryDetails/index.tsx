@@ -9,12 +9,11 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import {
   GetCanaryResponse,
   ProgressiveDeliveryService,
-} from '../../../cluster-services/prog.pb';
+} from '@weaveworks/progressive-delivery';
 import { useQuery } from 'react-query';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
 import CanaryDetailsSection from './CanaryDetailsSection';
-
 interface CanaryParams {
   name: string;
   namespace: string;

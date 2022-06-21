@@ -2,11 +2,11 @@ import { CanaryTable } from './Table';
 import {
   ListCanariesResponse,
   ProgressiveDeliveryService,
-} from '../../../cluster-services/prog.pb';
-import { Canary } from '../../../cluster-services/types.pb';
+} from '@weaveworks/progressive-delivery';
 import { useQuery } from 'react-query';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
+import { Canary } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 
 const CANARIES_POLL_INTERVAL = 60000;
 

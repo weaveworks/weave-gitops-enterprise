@@ -7,7 +7,6 @@ import moment from 'moment';
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
-import { Canary } from '../../../../cluster-services/types.pb';
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
@@ -15,6 +14,11 @@ import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
 import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
 import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
 import { TableWrapper } from '../../CanaryStyles';
+import {
+  Canary,
+  CanaryAnalysis,
+  CanaryStatus as Status,
+} from '@weaveworks/progressive-delivery/api/prog/types.pb';
 interface Props {
   canaries: Canary[];
 }
@@ -41,11 +45,31 @@ export const getDeploymentStrategyIcon = (strategy: string) => {
   }
 };
 
+export function getProgressValue(
+  deploymentStrategy: string,
+  status: Status | undefined,
+  analysis: CanaryAnalysis | undefined,
+): { current: number; total: number } {
+  switch (deploymentStrategy) {
+    case DeploymentStrategy.Canary:
+      return {
+        current: (status?.canaryWeight || 0) / (analysis?.stepWeight || 0),
+        total: (analysis?.maxWeight || 0) / (analysis?.stepWeight || 0),
+      };
+
+    default:
+      return {
+        current: status?.iterations || 0,
+        total: analysis?.iterations || 0,
+      };
+  }
+}
+
 export const CanaryTable: FC<Props> = ({ canaries }) => {
   const classes = usePolicyStyle();
 
   const initialFilterState = {
-    ...filterConfigForString(canaries,'name'),
+    ...filterConfigForString(canaries, 'name'),
   };
 
   return (
@@ -61,22 +85,14 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                 {
                   label: 'Name',
                   value: (c: Canary) => (
-                    <>
-                      {!!c.status?.canaryWeight ? (
-                        <>{c.name} </>
-                      ) : (
-                        <Link
-                          to={`/applications/delivery/${c.clusterName}/${c.namespace}/${c.name}`}
-                          className={classes.link}
-                        >
-                          {c.name}
-                          {'  '}
-                          {getDeploymentStrategyIcon(
-                            c.deploymentStrategy || '',
-                          )}
-                        </Link>
-                      )}
-                    </>
+                    <Link
+                      to={`/applications/delivery/${c.clusterName}/${c.namespace}/${c.name}`}
+                      className={classes.link}
+                    >
+                      {c.name}
+                      {'  '}
+                      {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
+                    </Link>
                   ),
                 },
                 {
@@ -85,7 +101,11 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                     <div>
                       <CanaryStatus
                         status={c.status?.phase || ''}
-                        canaryWeight={c.status?.canaryWeight || 0}
+                        value={getProgressValue(
+                          c.deploymentStrategy || '',
+                          c.status,
+                          c.analysis,
+                        )}
                       />
                     </div>
                   ),

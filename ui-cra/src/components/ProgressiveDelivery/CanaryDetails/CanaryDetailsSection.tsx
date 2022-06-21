@@ -10,8 +10,17 @@ import {
 } from '@material-ui/core';
 import styled from 'styled-components';
 
-import { Automation, Canary } from '../../../cluster-services/types.pb';
-import { getDeploymentStrategyIcon } from '../ListCanaries/Table';
+import {
+  getDeploymentStrategyIcon,
+  getProgressValue,
+} from '../ListCanaries/Table';
+import {
+  Canary,
+  Automation,
+} from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
 const TitleWrapper = styled.h2`
   margin: 0px;
 `;
@@ -31,7 +40,11 @@ function CanaryDetailsSection({
       <div className={classes.statusWrapper}>
         <CanaryStatus
           status={canary.status?.phase || '--'}
-          canaryWeight={canary.status?.canaryWeight || 0}
+          value={getProgressValue(
+            canary.deploymentStrategy || '',
+            canary.status,
+            canary.analysis,
+          )}
         />
         <p className={classes.statusMessage}>
           {canary.status?.conditions![0].message || '--'}
@@ -91,6 +104,25 @@ function CanaryDetailsSection({
           </TableRow>
         </TableBody>
       </Table>
+
+      <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
+        YAML
+      </div>
+
+      <SyntaxHighlighter
+        language="yaml"
+        style={darcula}
+        wrapLongLines="pre-wrap"
+        showLineNumbers={true}
+        codeTagProps={{
+          className: classes.code,
+        }}
+        customStyle={{
+          height: '450px',
+        }}
+      >
+        {JSON.parse(JSON.stringify(canary.yaml, null, 2))}
+      </SyntaxHighlighter>
     </>
   );
 }

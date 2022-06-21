@@ -18,13 +18,12 @@ enum CanaryDeploymentStatus {
   Ready = 'Succeeded',
 }
 
-
 function CanaryStatus({
   status,
-  canaryWeight,
+  value,
 }: {
   status: string;
-  canaryWeight: number;
+  value: { current: number; total: number };
 }) {
   const classes = useCanaryStyle();
 
@@ -48,18 +47,18 @@ function CanaryStatus({
                 {status}
               </>
             );
-          case CanaryDeploymentStatus.Initializing:
+          case CanaryDeploymentStatus.Progressing:
             return (
               <>
                 <LinearProgress
                   variant="determinate"
-                  value={50}
+                  value={(value.current / value.total) * 100}
                   classes={{
                     barColorPrimary: classes.barroot,
                   }}
                   className={classes.root}
                 />
-                <span> {Math.ceil(canaryWeight / 100)} / 10</span>
+                <span>{`${value.current} / ${value.total}`}</span>
               </>
             );
           case CanaryDeploymentStatus.Failed:
