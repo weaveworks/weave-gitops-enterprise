@@ -85,11 +85,12 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                 <WeaveButton
                   id="create-cluster"
                   startIcon={<Icon type={IconType.ExternalTab} size="base" />}
-                  onClick={() =>
-                    history.push(
-                      `/applications?filters:clusterName=${currentCluster?.name}`,
-                    )
-                  }
+                  onClick={() => {
+                    const filtersValues = encodeURIComponent(
+                      `clusterName:${currentCluster?.name}`,
+                    );
+                    history.push(`/applications?filters=${filtersValues}`);
+                  }}
                 >
                   GO TO APPLICATIONS
                 </WeaveButton>
