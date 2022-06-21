@@ -23,6 +23,8 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
     violatingEntity,
     entity,
     namespace,
+    occurrences,
+    clusterName,
   } = violation || {};
 
   return (
@@ -54,6 +56,22 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
         <div className={classes.cardTitle}>Application:</div>
         <span className={classes.body1}>{`${namespace}/${entity}`}</span>
       </div>
+      <hr />
+      <div className={classes.sectionSeperator}>
+        <div className={classes.cardTitle}>
+          Occurences{' '}
+          <span className={classes.titleNotification}>
+            ({occurrences.length})
+          </span>
+          :
+        </div>
+        <ul>
+          {occurrences.map((item: String) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      </div>
+
       <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Description:</div>
