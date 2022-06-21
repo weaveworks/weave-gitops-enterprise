@@ -6,7 +6,7 @@ import { PolicyValidation } from '../../../cluster-services/cluster_services.pb'
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
 import {
   FilterableTable,
-  filterConfigForString,
+  filterConfig,
   theme,
 } from '@weaveworks/weave-gitops/ui';
 import styled from 'styled-components';
@@ -41,8 +41,8 @@ interface Props {
 
 export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
   const initialFilterState = {
-    ...filterConfigForString(violations, 'clusterName'),
-    ...filterConfigForString(violations, 'severity'),
+    ...filterConfig(violations, 'clusterName'),
+    ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
   return (
