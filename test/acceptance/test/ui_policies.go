@@ -19,7 +19,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 
 			policyName := "Container Image Pull Policy acceptance-test"
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
-			policyClusterName := "Default"
+			policyClusterName := "management"
 			policySeverity := "Medium"
 			policyCategory := "weave.categories.software-supply-chain"
 			policyTags := []string{"There is no tags for this policy"}
@@ -69,7 +69,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {
-					Eventually(policyInfo.Cluster).Should(MatchText(policyClusterName), fmt.Sprintf("Failed to have expected %s policy Cluster: Default", policyName))
+					Eventually(policyInfo.Cluster).Should(MatchText(policyClusterName), fmt.Sprintf("Failed to have expected %[1]v policy Cluster: %[1]v", policyName))
 				})
 
 				By(fmt.Sprintf("And navigate to '%s' Policy page", policyName), func() {

@@ -21,7 +21,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Applications", func() {
 
 		Context("[UI] When no applications are installed", func() {
-			It("Verify management cluster dashboard shows only bootstrap 'flux-system' application", Label("integration", "application"), func() {
+			FIt("Verify management cluster dashboard shows only bootstrap 'flux-system' application", Label("integration", "application"), func() {
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
@@ -46,7 +46,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And verify bootstrap application Cluster", func() {
-					Eventually(applicationInfo.Cluster).Should(MatchText("Default"), "Failed to have expected flux-system application cluster: Default")
+					Eventually(applicationInfo.Cluster).Should(MatchText("management"), "Failed to have expected flux-system application cluster: management")
 				})
 
 				By("And verify bootstrap application Source", func() {
@@ -137,7 +137,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And verify podinfo application Cluster", func() {
-					Eventually(applicationInfo.Cluster).Should(MatchText("Default"), fmt.Sprintf("Failed to have expected %s application cluster: Default", appName))
+					Eventually(applicationInfo.Cluster).Should(MatchText("management"), fmt.Sprintf("Failed to have expected %s application cluster: management", appName))
 				})
 
 				By("And verify podinfo application Source", func() {
@@ -170,7 +170,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					Eventually(details.Source.Text).Should(MatchRegexp("GitRepository/"+appName), fmt.Sprintf("Failed to verify %s Source", appName))
 					Eventually(details.AppliedRevision.Text).Should(MatchRegexp("master"), fmt.Sprintf("Failed to verify %s AppliedRevision", appName))
-					Eventually(details.Cluster.Text).Should(MatchRegexp("Default"), fmt.Sprintf("Failed to verify %s Cluster", appName))
+					Eventually(details.Cluster.Text).Should(MatchRegexp("management"), fmt.Sprintf("Failed to verify %s Cluster", appName))
 					Eventually(details.Path.Text).Should(MatchRegexp("./kustomize"), fmt.Sprintf("Failed to verify %s Path", appName))
 					Eventually(details.Interval.Text).Should(MatchRegexp(appSyncInterval), fmt.Sprintf("Failed to verify %s AppliedRevision", appName))
 
