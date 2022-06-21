@@ -92,13 +92,7 @@ apiVersion: cluster.x-k8s.io/v1alpha3
 kind: NotCluster
 metadata:
   name: testing
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
-kind: KubeadmControlPlane
-metadata:
-  name: testing-control-plane
-spec:
-  replicas: 5`)
+`)
 	updated, err := processUnstructured(raw, InjectPruneAnnotation)
 	if err != nil {
 		t.Fatal(err)
@@ -115,6 +109,20 @@ metadata:
 	if diff := cmp.Diff(want, string(updated)); diff != "" {
 		t.Fatalf("rendering with option failed:\n%s", diff)
 	}
+}
+
+func TestInjectPruneAnnotation_invalid_yaml(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: NotCluster
+metadata:
+  name: testing
+  annotations:
+    test.annotation: true
+`)
+	_, err := processUnstructured(raw, InjectPruneAnnotation)
+
+	assert.ErrorContains(t, err, "failed trying to inject prune annotation: .metadata.annotations")
 }
 
 func TestRender_InjectPruneAnnotation(t *testing.T) {
