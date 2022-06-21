@@ -19,7 +19,12 @@ type RenderOptFunc func(uns *unstructured.Unstructured) error
 // to instruct flux *not* to prune these objects.
 func InjectPruneAnnotation(uns *unstructured.Unstructured) error {
 	if uns.GetKind() != "Cluster" && uns.GetKind() != "GitopsCluster" {
-		ann := uns.GetAnnotations()
+		// NOTE: This is doing the same thing as uns.GetAnnotations() but with
+		// error handling, GetAnnotations is unlikely to change behaviour.
+		ann, _, err := unstructured.NestedStringMap(uns.Object, "metadata", "annotations")
+		if err != nil {
+			return fmt.Errorf("failed trying to inject prune annotation: %w", err)
+		}
 		if ann == nil {
 			ann = make(map[string]string)
 		}
