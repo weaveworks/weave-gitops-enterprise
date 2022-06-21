@@ -62,7 +62,7 @@ func FindClusterInList(clustersPage *ClustersPage, clusterName string) *ClusterI
 }
 
 func CountClusters(clustersPage *ClustersPage) int {
-	clusters := clustersPage.ClustersList.All("div[data-cluster-name]")
+	clusters := clustersPage.ClustersList.All("[data-cluster-name]")
 	count, _ := clusters.Count()
 	return count
 }
