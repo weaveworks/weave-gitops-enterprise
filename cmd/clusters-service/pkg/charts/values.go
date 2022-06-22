@@ -249,6 +249,7 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 			}
 			if install.Namespace != "" {
 				hr.Spec.TargetNamespace = install.Namespace
+				hr.Spec.Install.CreateNamespace = true
 			}
 			if layer.dependsOn != "" {
 				for _, v := range layerInstalls[layer.dependsOn] {
