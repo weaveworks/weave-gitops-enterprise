@@ -16,7 +16,7 @@ import {
 const PoliciesViolations = () => {
   const [count, setCount] = useState<number | undefined>(0);
   const { api } = useContext(EnterpriseClientContext);
-  const [errors, SetErrors] = useState<ListError[] | undefined>();
+  const [errors, setErrors] = useState<ListError[] | undefined>();
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 20, clusterId:'' });
 
