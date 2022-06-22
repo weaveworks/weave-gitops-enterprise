@@ -157,7 +157,7 @@ jobs:
   ui-unit-tests:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       YARN_CACHE_NAME: cache-yarn
     steps:
       - id: cache-paths
