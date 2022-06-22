@@ -93,6 +93,7 @@ export type ListPoliciesRequest = {
 
 export type GetPolicyResponse = {
   policy?: Policy
+  clusterName?: string
 }
 
 export type ListPoliciesResponse = {
@@ -103,20 +104,28 @@ export type ListPoliciesResponse = {
 }
 
 export type ListPolicyValidationsRequest = {
-  clusterId?: string
+  clusterName?: string
+  pagination?: Pagination
 }
 
 export type ListPolicyValidationsResponse = {
   violations?: PolicyValidation[]
   total?: number
+  nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type GetPolicyValidationRequest = {
   violationId?: string
+  clusterName?: string
 }
 
 export type GetPolicyValidationResponse = {
   violation?: PolicyValidation
+}
+
+export type PolicyValidationOccurrence = {
+  message?: string
 }
 
 export type PolicyValidation = {
@@ -132,6 +141,8 @@ export type PolicyValidation = {
   description?: string
   howToSolve?: string
   name?: string
+  clusterName?: string
+  occurrences?: PolicyValidationOccurrence[]
 }
 
 export type CreatePullRequestRequest = {
