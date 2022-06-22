@@ -363,6 +363,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -939,6 +945,9 @@
       "properties": {
         "policy": {
           "$ref": "#/definitions/v1Policy"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -1081,8 +1090,11 @@
     "v1ListPolicyValidationsRequest": {
       "type": "object",
       "properties": {
-        "clusterId": {
+        "clusterName": {
           "type": "string"
+        },
+        "pagination": {
+          "$ref": "#/definitions/v1Pagination"
         }
       }
     },
@@ -1098,6 +1110,15 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1341,6 +1362,23 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "occurrences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidationOccurrence"
+          }
+        }
+      }
+    },
+    "v1PolicyValidationOccurrence": {
+      "type": "object",
+      "properties": {
+        "message": {
           "type": "string"
         }
       }

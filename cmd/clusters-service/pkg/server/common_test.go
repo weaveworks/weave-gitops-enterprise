@@ -279,10 +279,11 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 				"description":     "Missing app label",
 				"how_to_solve":    "how_to_solve",
 				"entity_manifest": `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
+				"occurrences":     `[{"message": "occurrence details"}]`,
 			},
 			Labels: map[string]string{
 				"pac.weave.works/type": "Admission",
-				"pac.weave.works/id":   "weave.policies.missing-app-label",
+				"pac.weave.works/id":   "66101548-12c1-4f79-a09a-a12979903fba",
 			},
 			Name:      "Missing app Label - fake-event-1",
 			Namespace: "default",
