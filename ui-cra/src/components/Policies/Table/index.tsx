@@ -30,7 +30,7 @@ const TableWrapper = styled.div`
     }
   }
   tr {
-    vertical-align:'center'
+    vertical-align: 'center';
   }
   max-width: calc(100vw - 220px);
 `;
@@ -44,7 +44,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   };
 
   return (
-    <div className={classes.root} id="policies-list">
+    <div className={classes.root}>
       <ThemeProvider theme={localMuiTheme}>
         <TableWrapper id="policy-list">
           <FilterableTable
@@ -58,10 +58,13 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
                   <Link
                     to={`/${p.clusterName}/policies/${p.id}`}
                     className={classes.link}
+                    data-policy-name={p.name}
                   >
                     {p.name}
                   </Link>
                 ),
+                textSearchable: true,
+                sortValue: ({ name }) => name,
                 maxWidth: 650,
               },
               {
@@ -75,7 +78,6 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
               {
                 label: 'Cluster',
                 value: 'clusterName',
-                textSearchable: true,
               },
               {
                 label: 'Age',

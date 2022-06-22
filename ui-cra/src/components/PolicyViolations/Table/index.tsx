@@ -56,10 +56,13 @@ export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
                   <Link
                     to={`/clusters/${v.clusterName}/violations/${v.id}`}
                     className={classes.link}
+                    data-violation-message={v.message}
                   >
                     {v.message}
                   </Link>
                 ),
+                textSearchable: true,
+                sortValue: ({ message }) => message,
                 maxWidth: 650,
               },
               {
@@ -67,6 +70,10 @@ export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
                 value: (v: PolicyValidation) => (
                   <Severity severity={v.severity || ''} />
                 ),
+              },
+              {
+                label: 'Cluster',
+                value: 'clusterName',
               },
               {
                 label: 'Violation Time',
