@@ -7,8 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/spf13/viper"
-
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -108,7 +106,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, viper.GetString("capi-clusters-namespace"), msg.Values)
+	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, getclusterNamespace(msg.ClusterNamespace), msg.Values)
 	if err != nil {
 		return nil, err
 	}

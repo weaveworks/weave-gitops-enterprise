@@ -569,6 +569,9 @@
                 },
                 "templateKind": {
                   "type": "string"
+                },
+                "clusterNamespace": {
+                  "type": "string"
                 }
               }
             }
@@ -791,6 +794,9 @@
         "repositoryApiUrl": {
           "type": "string",
           "description": "The repo api url."
+        },
+        "clusterNamespace": {
+          "type": "string"
         }
       }
     },

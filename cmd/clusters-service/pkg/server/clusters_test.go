@@ -375,6 +375,7 @@ metadata:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
   name: dev
+  namespace: default
 `,
 				},
 				{
@@ -474,6 +475,7 @@ metadata:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
   name: dev
+  namespace: default
 `,
 				},
 				{
@@ -673,13 +675,16 @@ func TestGetKubeconfig(t *testing.T) {
 			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
 		},
 		{
-			name:                    "no namespace and lookup across namespaces",
-			clusterState:            []runtime.Object{},
+			name: "no namespace and lookup across namespaces, use default namespace",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "value", "foo"),
+			},
 			clusterObjectsNamespace: "",
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName: "dev",
 			},
-			err: requiredClusterNamespaceErr,
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
 		},
 	}
 	for _, tt := range testCases {

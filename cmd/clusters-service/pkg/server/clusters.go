@@ -6,7 +6,6 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -47,8 +46,7 @@ const (
 )
 
 var (
-	labels                      = []string{}
-	requiredClusterNamespaceErr = errors.New("`cluster_namespace` is a required field")
+	labels = []string{}
 )
 
 type generateProfileFilesParams struct {
@@ -129,7 +127,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-clusters-namespace"), msg.ParameterValues)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getclusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
@@ -312,24 +310,13 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	var sec corev1.Secret
 	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
 
-	var namespace string
-	if msg.ClusterNamespace == "" {
-		namespace = viper.GetString("capi-clusters-namespace")
-		if namespace == "" {
-			return nil, requiredClusterNamespaceErr
-		}
-
-	} else {
-		namespace = msg.ClusterNamespace
-	}
-
 	cl, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	key := client.ObjectKey{
-		Namespace: namespace,
+		Namespace: getclusterNamespace(msg.ClusterNamespace),
 		Name:      name,
 	}
 	err = cl.Get(ctx, key, &sec)

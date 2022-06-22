@@ -185,6 +185,7 @@ message RenderTemplateRequest {
   map<string, string> values = 2;
   Credential credentials = 3;
   string template_kind = 4;
+  string cluster_namespace = 5;
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
@@ -282,6 +283,7 @@ message CreatePullRequestRequest {
   repeated ProfileValues values = 10;
   // The repo api url.
   string repository_api_url = 11;
+  string cluster_namespace = 12;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.

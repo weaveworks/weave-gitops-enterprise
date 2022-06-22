@@ -62,6 +62,7 @@ export type RenderTemplateRequest = {
   values?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
+  clusterNamespace?: string
 }
 
 export type RenderTemplateResponse = {
@@ -157,6 +158,7 @@ export type CreatePullRequestRequest = {
   credentials?: Credential
   values?: ProfileValues[]
   repositoryApiUrl?: string
+  clusterNamespace?: string
 }
 
 export type CreatePullRequestResponse = {
