@@ -7,9 +7,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/protobuf/testing/protocmp"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestGetPolicyViolation(t *testing.T) {
@@ -17,18 +21,20 @@ func TestGetPolicyViolation(t *testing.T) {
 		name         string
 		ViolationId  string
 		clusterState []runtime.Object
+		clusterName  string
 		err          error
 		expected     *capiv1_proto.GetPolicyValidationResponse
 	}{
 		{
 			name:        "get policy violation",
-			ViolationId: "weave.policies.missing-app-label",
+			ViolationId: "66101548-12c1-4f79-a09a-a12979903fba",
 			clusterState: []runtime.Object{
 				makeEvent(t),
 			},
+			clusterName: "Default",
 			expected: &capiv1_proto.GetPolicyValidationResponse{
 				Violation: &capiv1_proto.PolicyValidation{
-					Id:              "weave.policies.missing-app-label",
+					Id:              "66101548-12c1-4f79-a09a-a12979903fba",
 					Name:            "Missing app Label",
 					ClusterId:       "cluster-1",
 					Category:        "Access Control",
@@ -40,45 +46,56 @@ func TestGetPolicyViolation(t *testing.T) {
 					Description:     "Missing app label",
 					HowToSolve:      "how_to_solve",
 					ViolatingEntity: `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
+					ClusterName:     "Default",
+					Occurrences: []*capiv1_proto.PolicyValidationOccurrence{
+						{
+							Message: "occurrence details",
+						},
+					},
 				},
 			},
 			err: nil,
 		},
 		{
 			name:        "policy violation doesn't exist",
-			ViolationId: "weave.policies.not-found",
+			ViolationId: "invalid-id",
 			clusterState: []runtime.Object{
 				makeEvent(t),
 			},
-			expected: &capiv1_proto.GetPolicyValidationResponse{
-				Violation: &capiv1_proto.PolicyValidation{
-					Id:              "weave.policies.missing-app-label",
-					Name:            "Missing app Label",
-					ClusterId:       "cluster-1",
-					Category:        "Access Control",
-					Severity:        "high",
-					CreatedAt:       "0001-01-01T00:00:00Z",
-					Message:         "Policy event",
-					Entity:          "my-deployment",
-					Namespace:       "default",
-					Description:     "Missing app label",
-					HowToSolve:      "how_to_solve",
-					ViolatingEntity: `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
-				},
+			clusterName: "Default",
+			err:         errors.New("no policy violation found with id invalid-id and cluster: Default"),
+		},
+		{
+			name:        "cluster name not specified",
+			ViolationId: "66101548-12c1-4f79-a09a-a12979903fba",
+			clusterState: []runtime.Object{
+				makeEvent(t),
 			},
-			err: errors.New("no policy violation found with id weave.policies.not-found"),
+			err: requiredClusterNameErr,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
+			clientsPool := &clustersmngrfakes.FakeClientsPool{}
+			fakeCl := createClient(t, tt.clusterState...)
+			clientsPool.ClientsReturns(map[string]client.Client{tt.clusterName: fakeCl})
+			clientsPool.ClientReturns(fakeCl, nil)
+			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{"Default": {
+				v1.Namespace{},
+			}})
+
+			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+
 			s := createServer(t, serverOptions{
-				clusterState: tt.clusterState,
+				clientsFactory: fakeFactory,
 			})
 
 			policyViolation, err := s.GetPolicyValidation(context.Background(), &capiv1_proto.GetPolicyValidationRequest{
 				ViolationId: tt.ViolationId,
+				ClusterName: tt.clusterName,
 			})
 			if err != nil {
 				if tt.err == nil {
@@ -103,9 +120,10 @@ func TestListPolicyValidations(t *testing.T) {
 		events       []*corev1.Event
 		err          error
 		expected     *capiv1_proto.ListPolicyValidationsResponse
+		clusterName  string
 	}{
 		{
-			name: "get policy violation",
+			name: "list policy violations",
 			clusterState: []runtime.Object{
 				makeEvent(t),
 				makeEvent(t, func(e *corev1.Event) {
@@ -113,45 +131,68 @@ func TestListPolicyValidations(t *testing.T) {
 					e.InvolvedObject.Namespace = "weave-system"
 					e.ObjectMeta.Namespace = "weave-system"
 					e.Annotations["policy_name"] = "Missing Owner Label"
-					e.Labels["pac.weave.works/id"] = "weave.policies.missing-owner-label"
+					e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979903"
 				}),
 			},
 			expected: &capiv1_proto.ListPolicyValidationsResponse{
 				Violations: []*capiv1_proto.PolicyValidation{
 					{
-						Id:        "weave.policies.missing-app-label",
-						Name:      "Missing app Label",
-						ClusterId: "cluster-1",
-						Category:  "Access Control",
-						Severity:  "high",
-						CreatedAt: "0001-01-01T00:00:00Z",
-						Message:   "Policy event",
-						Entity:    "my-deployment",
-						Namespace: "default",
+						Id:          "66101548-12c1-4f79-a09a-a12979903fba",
+						Name:        "Missing app Label",
+						ClusterId:   "cluster-1",
+						Category:    "Access Control",
+						Severity:    "high",
+						CreatedAt:   "0001-01-01T00:00:00Z",
+						Message:     "Policy event",
+						Entity:      "my-deployment",
+						Namespace:   "default",
+						ClusterName: "Default",
 					},
 					{
-						Id:        "weave.policies.missing-owner-label",
-						Name:      "Missing Owner Label",
-						ClusterId: "cluster-1",
-						Category:  "Access Control",
-						Severity:  "high",
-						CreatedAt: "0001-01-01T00:00:00Z",
-						Message:   "Policy event",
-						Entity:    "my-deployment",
-						Namespace: "weave-system",
+						Id:          "56701548-12c1-4f79-a09a-a12979903",
+						Name:        "Missing Owner Label",
+						ClusterId:   "cluster-1",
+						Category:    "Access Control",
+						Severity:    "high",
+						CreatedAt:   "0001-01-01T00:00:00Z",
+						Message:     "Policy event",
+						Entity:      "my-deployment",
+						Namespace:   "weave-system",
+						ClusterName: "Default",
 					},
 				},
 				Total: int32(2),
 			},
 		},
+		{
+			name: "list policy violations with cluster filtering",
+			clusterState: []runtime.Object{
+				makeEvent(t),
+			},
+			expected:    &capiv1_proto.ListPolicyValidationsResponse{},
+			clusterName: "wrong",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			clientsPool := &clustersmngrfakes.FakeClientsPool{}
+			fakeCl := createClient(t, tt.clusterState...)
+			clientsPool.ClientsReturns(map[string]client.Client{"Default": fakeCl})
+			clientsPool.ClientReturns(fakeCl, nil)
+			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{"Default": {
+				v1.Namespace{},
+			}})
+
+			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+
 			s := createServer(t, serverOptions{
-				clusterState: tt.clusterState,
+				clientsFactory: fakeFactory,
 			})
-			policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{})
+			policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{
+				ClusterName: tt.clusterName,
+			})
 			if err != nil {
 				if tt.err == nil {
 					t.Fatalf("failed to list policy violation:\n%s", err)
