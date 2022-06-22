@@ -8,6 +8,7 @@ import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
 import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
 import {
+  ListError,
   ListPolicyValidationsResponse,
   PolicyValidation,
 } from '../../cluster-services/cluster_services.pb';
@@ -35,20 +36,20 @@ const PoliciesViolations = () => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Violations Log">
+      <PageTemplate documentTitle="WeGo · Violation Log">
         <SectionHeader
           className="count-header"
           path={[
             { label: 'Clusters', url: '/clusters', count },
             {
-              label: 'Violations Log',
+              label: 'Violation Log',
               url: 'violations',
               count: count,
             },
           ]}
         />
         <ContentWrapper errors={errors}>
-          <Title>Violations Log</Title>
+          <Title>Violation Log</Title>
           <LoadingError fetchFn={fetchPolicyViolationsAPI}>
             {({ value }: { value: ListPolicyValidationsResponse }) => (
               <>

@@ -61,14 +61,14 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
         <div className={classes.cardTitle}>
           Occurences{' '}
           <span className={classes.titleNotification}>
-            ({occurrences.length})
+            ( {occurrences?.length} )
           </span>
-          :
         </div>
-        <ul>
-          {occurrences.map((item: String) => (
-            <li>{item}</li>
-          ))}
+        <ul className={classes.occurrencesList}>
+          {occurrences &&
+            occurrences.map((item: any) => (
+              <li className={classes.body1}>{item.message}</li>
+            ))}
         </ul>
       </div>
 

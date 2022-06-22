@@ -4,11 +4,7 @@ import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import { PolicyValidation } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
-import {
-  FilterableTable,
-  filterConfig,
-  theme,
-} from '@weaveworks/weave-gitops/ui';
+import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import Severity from '../../Policies/Severity';

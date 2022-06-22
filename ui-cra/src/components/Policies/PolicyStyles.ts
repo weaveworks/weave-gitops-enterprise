@@ -120,5 +120,8 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     titleNotification: {
       color: theme.colors.primary,
     },
+    occurrencesList: {
+      paddingLeft: wtheme.spacing(1),
+    },
   }),
 );

@@ -24,9 +24,15 @@ export class PolicyService {
     });
   };
 
-  static getPolicyViolationById = (id: string) => {
-    return request('GET', `/v1/policyviolations/${id}`, {
-      cache: 'no-store',
-    });
+  static getPolicyViolationById = (id: string, clusterName: string) => {
+    return request(
+      'GET',
+      `/v1/policyviolations/${id}?${new URLSearchParams({
+        clusterName,
+      })}`,
+      {
+        cache: 'no-store',
+      },
+    );
   };
 }
