@@ -24,6 +24,7 @@ interface ClustersContext {
   getDashboardAnnotations: (cluster: GitopsClusterEnriched) => {
     [key: string]: string;
   };
+  getCluster: (clusterName: string) => GitopsClusterEnriched | null;
 }
 
 export const Clusters = createContext<ClustersContext | null>(null);

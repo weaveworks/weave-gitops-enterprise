@@ -82,7 +82,6 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     capitlize: {
       textTransform: 'capitalize',
     },
-
     headerCell: {
       color: theme.colors.neutral30,
       fontWeight: 700,
