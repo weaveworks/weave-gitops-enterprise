@@ -9,9 +9,6 @@ const ListWrapper = styled(List)`
   li[class*='MuiListItem-root'] {
     padding: 0 0 ${theme.spacing.xxs} 0;
   }
-  a {
-    color: ${theme.colors.primary};
-  }
 `;
 
 export const DashboardsList: FC<{
@@ -20,7 +17,7 @@ export const DashboardsList: FC<{
   const { getDashboardAnnotations } = useClusters();
   const annotations = getDashboardAnnotations(cluster);
 
-  return (
+  return Object.keys(annotations).length > 0 ? (
     <ListWrapper style={{ padding: 0 }}>
       {Object.entries(annotations).map(([key, value]) => (
         <ListItem key={key}>
@@ -30,5 +27,7 @@ export const DashboardsList: FC<{
         </ListItem>
       ))}
     </ListWrapper>
+  ) : (
+    <>-</>
   );
 };

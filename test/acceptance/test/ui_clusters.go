@@ -23,7 +23,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				By("And wait for Clusters page to be rendered", func() {
 					Eventually(clustersPage.ClusterHeader).Should(BeVisible())
 					Eventually(clustersPage.ClusterCount).Should(MatchText(`1`))
-					Expect(pages.CountClusters(clustersPage)).To(Equal(1), "There should not be any cluster in cluster table")
+					Expect(pages.CountClusters(clustersPage)).To(Equal(1), "There should be a single cluster in cluster table")
 				})
 
 				clusterInfo := pages.FindClusterInList(clustersPage, "management")

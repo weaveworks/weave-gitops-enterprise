@@ -159,7 +159,7 @@ jobs:
     env:
       GO_CACHE_NAME: cache-go-modules
       YARN_CACHE_NAME: cache-yarn
-      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       SELENIUM_DEBUG: true
       ARTIFACTS_BASE_DIR: /tmp/ui-integration-test/
     steps:
