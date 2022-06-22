@@ -36,8 +36,8 @@ exports[`Applications index test snapshots loading 1`] = `
 
 .c7 svg {
   fill: #fff !important;
-  height: 48px;
-  width: 48px;
+  height: 32px;
+  width: 32px;
 }
 
 .c7.downward {
@@ -459,8 +459,8 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c8 svg {
   fill: #fff !important;
-  height: 48px;
-  width: 48px;
+  height: 32px;
+  width: 32px;
 }
 
 .c8.downward {
