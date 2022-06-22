@@ -48,7 +48,7 @@ const ProgressiveDelivery = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Applications', url: 'applications' },
+            { label: 'Applications', url: '/applications' },
             { label: 'Delivery', count },
           ]}
         />
