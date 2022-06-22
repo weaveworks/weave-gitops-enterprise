@@ -119,11 +119,8 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     titleNotification: {
       color: theme.colors.primary,
     },
-<<<<<<< HEAD
     occurrencesList: {
       paddingLeft: wtheme.spacing(1),
     },
-=======
->>>>>>> 45697b7c2af2999afd1547f75fff4d754641edc0
   }),
 );
