@@ -659,6 +659,28 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			err: errors.New("secret \"default/dev-kubeconfig\" was found but is missing key \"value\""),
 		},
+		{
+			name: "use cluster_namespace to get secret",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "kube-system", "value", "foo"),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName:      "dev",
+				ClusterNamespace: "kube-system",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+		},
+		{
+			name:                    "no namespace and lookup across namespaces",
+			clusterState:            []runtime.Object{},
+			clusterObjectsNamespace: "",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			err: requiredClusterNamespaceErr,
+		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {

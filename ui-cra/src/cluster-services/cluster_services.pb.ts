@@ -205,6 +205,7 @@ export type ListCredentialsResponse = {
 
 export type GetKubeconfigRequest = {
   clusterName?: string
+  clusterNamespace?: string
 }
 
 export type GetKubeconfigResponse = {

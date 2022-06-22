@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -45,7 +46,10 @@ const (
 	HelmReleaseNamespace        = "flux-system"
 )
 
-var labels = []string{}
+var (
+	labels                      = []string{}
+	requiredClusterNamespaceErr = errors.New("`cluster_namespace` is a required field")
+)
 
 type generateProfileFilesParams struct {
 	helmRepository         types.NamespacedName
@@ -308,9 +312,15 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	var sec corev1.Secret
 	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
 
-	ns := viper.GetString("capi-clusters-namespace")
-	if ns == "" {
-		return nil, fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
+	var namespace string
+	if msg.ClusterNamespace == "" {
+		namespace = viper.GetString("capi-clusters-namespace")
+		if namespace == "" {
+			return nil, requiredClusterNamespaceErr
+		}
+
+	} else {
+		namespace = msg.ClusterNamespace
 	}
 
 	cl, err := s.clientGetter.Client(ctx)
@@ -319,7 +329,7 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	}
 
 	key := client.ObjectKey{
-		Namespace: ns,
+		Namespace: namespace,
 		Name:      name,
 	}
 	err = cl.Get(ctx, key, &sec)

@@ -347,6 +347,7 @@ message ListCredentialsResponse {
 message GetKubeconfigRequest {
   // The name of the workload cluster.
   string cluster_name = 1;
+  string cluster_namespace = 2;
 }
 message GetKubeconfigResponse {
   // The Kubeconfig of the workload cluster.
