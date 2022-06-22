@@ -1170,7 +1170,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Expect(clusterInfo.ShowStatusDetail.Click()).To(Succeed())
+					Expect(clusterInfo.Name.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
 
@@ -1198,6 +1198,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
+					pages.NavigateToPage(webDriver, "Clusters")
 					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
 					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
 					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
