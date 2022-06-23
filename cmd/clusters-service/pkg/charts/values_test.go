@@ -275,6 +275,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 			want: []*helmv2.HelmRelease{
 				makeTestHelmRelease("test-cluster-test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", func(hr *helmv2.HelmRelease) {
 					hr.Spec.TargetNamespace = "test-system"
+					hr.Spec.Install.CreateNamespace = true
 				}),
 			},
 		},

@@ -500,6 +500,7 @@ spec:
       version: 0.0.1
   install:
     crds: CreateReplace
+    createNamespace: true
   interval: 1m0s
   targetNamespace: test-system
   upgrade:
