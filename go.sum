@@ -158,6 +158,7 @@ github.com/aws/aws-sdk-go v1.34.9/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU
 github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=
+github.com/benbjohnson/clock v1.3.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
@@ -1025,6 +1026,8 @@ github.com/weaveworks/policy-agent/api v1.0.3 h1:gq+YXSyFZdcYtVZoqa4awrMBYXUofsC
 github.com/weaveworks/policy-agent/api v1.0.3/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
 github.com/weaveworks/progressive-delivery v0.0.0-20220621104106-8681f0bf4b0f h1:S0MD4MSHFEQXEjb0Oi++irUQfFBMlCj10tUPR5RJtkM=
 github.com/weaveworks/progressive-delivery v0.0.0-20220621104106-8681f0bf4b0f/go.mod h1:Vjcpo6L7+YjjdiAXDDkIV7KptiodlAdtUYaDGXpnR90=
+github.com/weaveworks/progressive-delivery v0.0.0-20220622211422-c0b04f3c241f h1:73J+4baojJCz6K9nsuxvFGr8o2pg2sZ9x7O1UcZnut4=
+github.com/weaveworks/progressive-delivery v0.0.0-20220622211422-c0b04f3c241f/go.mod h1:Vjcpo6L7+YjjdiAXDDkIV7KptiodlAdtUYaDGXpnR90=
 github.com/weaveworks/weave-gitops v0.9.0-rc.3 h1:rkU8tJIgeabpa9s4DqnABrNFzv3yHZTOsWIxBoFIpxU=
 github.com/weaveworks/weave-gitops v0.9.0-rc.3/go.mod h1:c8B+PZYPgeLK2NUBYizCWaE9v7l2QXK3vnxacOYvVLM=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
