@@ -209,7 +209,11 @@ message ListPoliciesRequest {
     Pagination pagination = 2;
 }
 
-message GetPolicyResponse { Policy policy = 1; }
+message GetPolicyResponse {
+  Policy policy = 1;
+  string clusterName = 2;
+}
+
 message ListPoliciesResponse {
   repeated Policy policies = 1;
   int32 total = 2;
@@ -217,18 +221,26 @@ message ListPoliciesResponse {
   repeated ListError errors = 4;
 }
 
-
-
 message ListPolicyValidationsRequest{
-  string cluster_id = 1;
+  string clusterName = 1;
+  Pagination pagination = 2;
 }
 message ListPolicyValidationsResponse {
   repeated PolicyValidation violations = 1;
   int32 total = 2;
+  string nextPageToken = 3;
+  repeated ListError errors = 4;
 }
 
-message GetPolicyValidationRequest{ string violation_id = 1; }
+message GetPolicyValidationRequest{
+  string violation_id = 1;
+  string clusterName = 2;
+}
 message GetPolicyValidationResponse{ PolicyValidation violation = 1; }
+
+message PolicyValidationOccurrence {
+  string message = 1;
+}
 
 message PolicyValidation{
   string id = 1;
@@ -243,6 +255,8 @@ message PolicyValidation{
   string description=10;
   string how_to_solve=11;
   string name=12;
+  string clusterName = 13;
+  repeated PolicyValidationOccurrence occurrences = 14;
 }
 
 message CreatePullRequestRequest {
