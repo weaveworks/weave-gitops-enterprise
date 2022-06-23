@@ -27,7 +27,7 @@ const PoliciesViolations = () => {
   const fetchPolicyViolationsAPI = useCallback(() => {
     return api.ListPolicyValidations({}).then(res => {
       !!res && setCount(res.total);
-      !!res && SetErrors(res.errors);
+      !!res && setErrors(res.errors);
       return res;
     });
     // TODO : Add pagination support for policy violations list API
