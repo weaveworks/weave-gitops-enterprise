@@ -87,7 +87,7 @@ ingress:
   enabled: false
   className: ""
   # Service target information for ingress
-  # Required if no 'https' service port is defined
+  # Port is required if no 'https' service port is defined
   service:
     name: ""
     port: ""
