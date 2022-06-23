@@ -65,10 +65,11 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
           </span>
         </div>
         <ul className={classes.occurrencesList}>
-          {occurrences &&
-            occurrences.map((item: any) => (
-              <li className={classes.body1}>{item.message}</li>
-            ))}
+          {occurrences?.map(item => (
+            <li key={item.message} className={classes.body1}>
+              {item.message}
+            </li>
+          ))}
         </ul>
       </div>
 
