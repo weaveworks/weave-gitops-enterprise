@@ -469,13 +469,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	// Add progressive-delivery handlers
-	if os.Getenv("ENABLE_PROGRESSIVE_DELIVERY") != "" {
-		if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
-			ClientFactory: args.CoreServerConfig.ClientsFactory,
-			Logger:        args.Log,
-		}); err != nil {
-			return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
-		}
+	if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
+		ClientFactory: args.CoreServerConfig.ClientsFactory,
+		Logger:        args.Log,
+	}); err != nil {
+		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
 	// UI
