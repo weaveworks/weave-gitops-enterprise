@@ -44,7 +44,7 @@ require (
 	github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.3
-	github.com/weaveworks/progressive-delivery v0.0.0-20220621104106-8681f0bf4b0f
+	github.com/weaveworks/progressive-delivery v0.0.0-20220622211422-c0b04f3c241f
 	github.com/xanzy/go-gitlab v0.54.3
 	golang.org/x/crypto v0.0.0-20220513210258-46612604a0f9
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
@@ -116,8 +116,8 @@ require (
 	github.com/fluxcd/pkg/ssa v0.15.2 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
-	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-asset/generics v0.0.0-20220317100214-d5f632c68060 // indirect
+	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
@@ -193,8 +193,8 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/sethvargo/go-limiter v0.7.2 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
+	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
