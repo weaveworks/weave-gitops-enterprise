@@ -150,7 +150,7 @@ function setup {
   helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
   helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
-  helmArgs+=( --set "config.capi.clusters.namespace=''" )
+  helmArgs+=( --set "config.capi.clusters.namespace=" )
 
   if [ ! -z $WEAVE_GITOPS_GIT_HOST_TYPES ]; then
     helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
