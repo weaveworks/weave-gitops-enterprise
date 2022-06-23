@@ -1164,12 +1164,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("Then I should see cluster status changes to 'Ready'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
+					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
 					TakeScreenShot("capi-cluster-ready")
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					clusterInfo := clustersPage.FindClusterInList(clusterName)
 					Expect(clusterInfo.Name.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
@@ -1199,8 +1199,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("Then I should select the cluster to create the delete pull request", func() {
 					pages.NavigateToPage(webDriver, "Clusters")
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
+					clusterInfo := clustersPage.FindClusterInList(clusterName)
 					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
 
 					Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(BeFound())
