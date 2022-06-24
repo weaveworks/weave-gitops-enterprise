@@ -79,6 +79,7 @@ service:
   loadBalancerSourceRanges: []
   externalTrafficPolicy: ""
   healthCheckNodePort: 0
+  annotations: {}
 
 cluster-controller:
   enabled: true
