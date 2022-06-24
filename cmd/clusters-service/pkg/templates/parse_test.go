@@ -227,6 +227,7 @@ func TestParams(t *testing.T) {
 			filename: "testdata/text-template2.yaml",
 			want: []string{
 				"CLUSTER_NAME",
+				"S3_BUCKET_NAME",
 				"TEST_VALUE",
 			},
 		},

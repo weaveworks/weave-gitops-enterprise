@@ -423,8 +423,9 @@ func TestTextTemplateRenderConditional(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/text-template2.yaml")
 
 	b, err := Render(parsed.Spec, map[string]string{
-		"CLUSTER_NAME": "testing-templating",
-		"TEST_VALUE":   "false",
+		"CLUSTER_NAME":   "testing-templating",
+		"TEST_VALUE":     "false",
+		"S3_BUCKET_NAME": "test-bucket",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -448,6 +449,8 @@ spec:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     kind: AWSCluster
     name: testing-templating
+  notARealField:
+    name: test-bucket-test
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)

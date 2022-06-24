@@ -102,7 +102,7 @@ func envsubstParams(s templates.TemplateSpec, rt templates.ResourceTemplate) ([]
 	return variables.List(), nil
 }
 
-var paramsRE = regexp.MustCompile(`{{.*\.params\.([A-Za-z_]+).*}}`)
+var paramsRE = regexp.MustCompile(`{{.*\.params\.([A-Za-z0-9_]+).*}}`)
 
 func goTemplateParams(s templates.TemplateSpec, rt templates.ResourceTemplate) ([]string, error) {
 	variables := sets.NewString()
