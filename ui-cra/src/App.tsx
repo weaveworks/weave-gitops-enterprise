@@ -1,20 +1,21 @@
-import React, { FC } from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { muiTheme } from './muiTheme';
-import { MuiThemeProvider } from '@material-ui/core/styles';
 import '@fortawesome/fontawesome-free/css/all.css';
+import { MuiThemeProvider } from '@material-ui/core/styles';
+import { FC } from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import { muiTheme } from './muiTheme';
 
 import {
-  theme,
-  applicationsClient,
   AppContextProvider,
+  applicationsClient,
+  theme,
 } from '@weaveworks/weave-gitops';
-import ProximaNova from './fonts/proximanova-regular.woff';
-import RobotoMono from './fonts/roboto-mono-regular.woff';
 import Background from './assets/img/background.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
+import RequestContextProvider from './contexts/Request';
+import ProximaNova from './fonts/proximanova-regular.woff';
+import RobotoMono from './fonts/roboto-mono-regular.woff';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -65,14 +66,16 @@ const App: FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <MuiThemeProvider theme={muiTheme}>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter basename={process.env.PUBLIC_URL}>
-            <GlobalStyle />
-            <AppContextProvider applicationsClient={applicationsClient}>
-              <ResponsiveDrawer />
-            </AppContextProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
+        <RequestContextProvider fetch={window.fetch}>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter basename={process.env.PUBLIC_URL}>
+              <GlobalStyle />
+              <AppContextProvider applicationsClient={applicationsClient}>
+                <ResponsiveDrawer />
+              </AppContextProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </RequestContextProvider>
       </MuiThemeProvider>
     </ThemeProvider>
   );

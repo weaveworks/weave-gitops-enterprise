@@ -402,6 +402,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     favoriteDrink: coffee
 status: {}
@@ -498,8 +500,11 @@ spec:
       version: 0.0.1
   install:
     crds: CreateReplace
+    createNamespace: true
   interval: 1m0s
   targetNamespace: test-system
+  upgrade:
+    crds: CreateReplace
   values:
     favoriteDrink: coffee
 status: {}
@@ -928,6 +933,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     foo: bar
 status: {}
@@ -992,6 +999,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     foo: test-cluster-name
 status: {}
@@ -1059,6 +1068,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     foo: bar
 status: {}
@@ -1084,6 +1095,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     foo: bar
 status: {}

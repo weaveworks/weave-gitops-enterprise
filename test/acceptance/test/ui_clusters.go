@@ -23,10 +23,10 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				By("And wait for Clusters page to be rendered", func() {
 					Eventually(clustersPage.ClusterHeader).Should(BeVisible())
 					Eventually(clustersPage.ClusterCount).Should(MatchText(`1`))
-					Expect(pages.CountClusters(clustersPage)).To(Equal(1), "There should be a single cluster in cluster table")
+					Expect(clustersPage.CountClusters()).To(Equal(1), "There should be a single cluster in cluster table")
 				})
 
-				clusterInfo := pages.FindClusterInList(clustersPage, "management")
+				clusterInfo := clustersPage.FindClusterInList("management")
 				By("And verify GitopsCluster Name", func() {
 					Eventually(clusterInfo.Name).Should(MatchText("management"), "Failed to list management cluster in the cluster table")
 				})
@@ -72,7 +72,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Clusters")
 				clustersPage := pages.GetClustersPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
-				existingClustersCount := pages.CountClusters(clustersPage)
+				existingClustersCount := clustersPage.CountClusters()
 
 				By(fmt.Sprintf("Create a service account used for cluster connect: %s", serviceAccountName), func() {
 					err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl create serviceaccount %s`, serviceAccountName))
@@ -127,11 +127,11 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					totalClusterCount := existingClustersCount + 1
 					Eventually(clustersPage.ClusterCount, ASSERTION_30SECONDS_TIME_OUT).Should(MatchText(strconv.Itoa(totalClusterCount)), fmt.Sprintf("Dashboard failed to update with expected gitopscluster count: %d", totalClusterCount))
 					Eventually(func(g Gomega) int {
-						return pages.CountClusters(clustersPage)
+						return clustersPage.CountClusters()
 					}, ASSERTION_30SECONDS_TIME_OUT).Should(Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
 				})
 
-				clusterInfo := pages.FindClusterInList(clustersPage, leafCluster)
+				clusterInfo := clustersPage.FindClusterInList(leafCluster)
 				By("And verify GitopsCluster Name", func() {
 					Eventually(clusterInfo.Name).Should(MatchText(leafCluster), fmt.Sprintf("Failed to list GitopsCluster in the cluster table: %s", leafCluster))
 				})
@@ -163,7 +163,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 				By("And wait for GitopsCluster to disappear from Clusters page", func() {
 					Eventually(clustersPage.ClusterCount, ASSERTION_30SECONDS_TIME_OUT).Should(MatchText(strconv.Itoa(existingClustersCount)), fmt.Sprintf("Dashboard failed to update with expected gitopscluster count: %d", existingClustersCount))
-					Expect(pages.CountClusters(clustersPage)).To(Equal(existingClustersCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", existingClustersCount))
+					Expect(clustersPage.CountClusters()).To(Equal(existingClustersCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", existingClustersCount))
 				})
 			})
 		})
