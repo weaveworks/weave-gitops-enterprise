@@ -53,10 +53,15 @@ import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import ProgressiveDelivery from './ProgressiveDelivery';
+import ClusterDashboard from './Clusters/ClusterDashboard';
 import ErrorBoundary from './ErrorBoundary';
+import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
+const CANARIES = '/applications/delivery';
+const CANARYDETAILS = '/applications/delivery/:clusterName/:namespace/:name';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -235,6 +240,12 @@ const App = () => {
               <Route component={MCCP} exact path={['/', '/clusters']} />
               <Route component={MCCP} exact path="/clusters/delete" />
               <Route
+                component={withSearchParams((props: any) => (
+                  <ClusterDashboard {...props} />
+                ))}
+                path="/cluster"
+              />
+              <Route
                 component={AddClusterWithCredentials}
                 exact
                 path="/clusters/templates/:templateName/create"
@@ -325,7 +336,8 @@ const App = () => {
                 exact
                 path={V2Routes.FluxRuntime}
               />
-
+              <Route exact path={CANARIES} component={ProgressiveDelivery} />
+              <Route exact path={CANARYDETAILS} component={CanaryDetails} />
               <Route exact path={POLICIES} component={Policies} />
               <Route
                 exact

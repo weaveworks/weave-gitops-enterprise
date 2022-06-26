@@ -6,6 +6,7 @@ A guide to making it easier to develop `weave-gitops-enterprise`. If you came he
 
 Weave GitOps Enterprise (WGE) is packaged as a Helm chart and currently consists
 of the following components:
+
 - `clusters-service`
   The API of WGE. This is the component that backend engineers will be changing
   most often. Uses the
@@ -28,6 +29,7 @@ of the following components:
   references the CAPI CRD, it requires CAPI tooling to be installed first.
 
 ## One-time setup
+
 You need a github Personal Access Token to build the service. This token needs
 at least the `repo` and `read:packages` permissions. If you want to be able to
 delete the GitOps repo every time you recreate your local Kind cluster, add the
@@ -69,7 +71,7 @@ dependencies can be installed with `make dependencies`.
 > :warning: The following script will **delete** a local Kind cluster named
 > `wge-dev` and a remote repository named `wge-dev` in your personal GitHub
 > account, if either of them exists. Take a look at the script to understand
-> what it does and how to customize the cluster/repository names. 
+> what it does and how to customize the cluster/repository names.
 
 Run the following script to get a Kind cluster ready for Tilt:
 
@@ -115,6 +117,7 @@ pods running in your system.
   rebuild it.
 
 ### Faster frontend development
+
 Especially for frontend development, the time it takes for the pod to restart
 can be annoying. To spin up a local development frontend against your
 development cluster, run:
@@ -127,7 +130,6 @@ PROXY_HOST=https://localhost:8000 yarn start
 
 Now you have a separate frontend running on
 [http://localhost:3000](http://localhost:3000) with in-process reload.
-
 
 ## Building the project
 
@@ -147,11 +149,11 @@ The following sections suggest some common dev workflows.
 
 Before you start working on the code, you need to install the following tools:
 
-* [Go](https://go.dev/dl/) (1.18) for backend development
-* [Node.js](https://nodejs.org/en/download/releases/) (14) for frontend development
-* [kubectl](https://kubernetes.io/docs/tasks/tools/) for interacting with Kubernetes clusters
-* [Helm](https://helm.sh/docs/intro/install/) for working with Helm charts
-* [Buf](https://docs.buf.build/installation) for generating code from protobuf definitions
+- [Go](https://go.dev/dl/) (1.18) for backend development
+- [Node.js](https://nodejs.org/en/download/releases/) (14) for frontend development
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) for interacting with Kubernetes clusters
+- [Helm](https://helm.sh/docs/intro/install/) for working with Helm charts
+- [Buf](https://docs.buf.build/installation) for generating code from protobuf definitions
 
 ### How to do local dev on the API
 
@@ -181,8 +183,7 @@ rpc GetEnterpriseVersion(GetEnterpriseVersionRequest)
 }
 ```
 
-After making a change in the protobuf definition, you will need to run `make
-generate` to regenerate the code.
+After making a change in the protobuf definition, you will need to run `make generate` to regenerate the code.
 
 To run the service locally, run:
 
@@ -191,8 +192,10 @@ export CAPI_CLUSTERS_NAMESPACE=default
 go run main.go
 
 ```
+
 You can execute HTTP requests to the API by pointing to an endpoint, for
 example:
+
 ```bash
 curl --insecure https://localhost:8000/v1/enterprise/version
 ```
@@ -258,60 +261,60 @@ deploy WGE as a whole to a cluster.
    weave-gitops-enterprise-charts/mccp      <chart-version-with-commit-SHA>     1.16.0          A Helm chart for Kubernetes
    ```
 
-2.  Create a new kind cluster and install flux
+2. Create a new kind cluster and install flux
 
-    ```bash
-    cat > kind-cluster-with-extramounts.yaml <<EOF
-    kind: Cluster
-    apiVersion: kind.x-k8s.io/v1alpha4
-    nodes:
-    - role: control-plane
-      extraMounts:
-      - hostPath: /var/run/docker.sock
-        containerPath: /var/run/docker.sock
-    EOF
+   ```bash
+   cat > kind-cluster-with-extramounts.yaml <<EOF
+   kind: Cluster
+   apiVersion: kind.x-k8s.io/v1alpha4
+   nodes:
+   - role: control-plane
+     extraMounts:
+     - hostPath: /var/run/docker.sock
+       containerPath: /var/run/docker.sock
+   EOF
 
-    ./tools/bin/kind create cluster \
-        --name kind \
-        --config=kind-cluster-with-extramounts.yaml
-    export GITHUB_TOKEN=<your-GH-token>
-    ./tools/bin/flux bootstrap github \
-        --owner=<your-GH-username> \
-        --repository=config \
-        --personal=true \
-        --path=clusters/kind
-    ```
+   ./tools/bin/kind create cluster \
+       --name kind \
+       --config=kind-cluster-with-extramounts.yaml
+   export GITHUB_TOKEN=<your-GH-token>
+   ./tools/bin/flux bootstrap github \
+       --owner=<your-GH-username> \
+       --repository=config \
+       --personal=true \
+       --path=clusters/kind
+   ```
 
-3.  Install CAPI
+3. Install CAPI
 
-    ```bash
-    ./tools/bin/clusterctl init --infrastructure docker
-    ```
+   ```bash
+   ./tools/bin/clusterctl init --infrastructure docker
+   ```
 
-4.  Install WGE
+4. Install WGE
 
-    ```bash
-    cat > values.yaml <<EOF
-    tls:
-      enabled: true
-    config:
-      capi:
-        repositoryURL: <your config repo URL>
-    EOF
+   ```bash
+   cat > values.yaml <<EOF
+   tls:
+     enabled: true
+   config:
+     capi:
+       repositoryURL: <your config repo URL>
+   EOF
 
-    kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
-    ./tools/bin/flux create source helm weave-gitops-enterprise-charts \
-        --url=https://charts.dev.wkp.weave.works/charts-v3 \
-        --namespace=flux-system \
-        --secret-ref=weave-gitops-enterprise-credentials
-    ./tools/bin/flux create hr weave-gitops-enterprise \
-        --namespace=flux-system \
-        --interval=10m \
-        --source=HelmRepository/weave-gitops-enterprise-charts \
-        --chart=mccp \
-        --chart-version=<chart-version-with-commit-SHA> \
-        --values values.yaml
-    ```
+   kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
+   ./tools/bin/flux create source helm weave-gitops-enterprise-charts \
+       --url=https://charts.dev.wkp.weave.works/charts-v3 \
+       --namespace=flux-system \
+       --secret-ref=weave-gitops-enterprise-credentials
+   ./tools/bin/flux create hr weave-gitops-enterprise \
+       --namespace=flux-system \
+       --interval=10m \
+       --source=HelmRepository/weave-gitops-enterprise-charts \
+       --chart=mccp \
+       --chart-version=<chart-version-with-commit-SHA> \
+       --values values.yaml
+   ```
 
 ## How to change the code
 
@@ -416,6 +419,50 @@ yarn start
 
 Open up http://localhost:3000. Changes to code will be hot-reloaded.
 
+### Unit Tests
+
+To start the `jest` test runner CLI dialog:
+
+```
+$ cd ui-cra
+$ yarn test
+
+PASS  src/components/Applications/__tests__/index.test.tsx
+  Applications index test
+    ✓ renders table rows (349 ms)
+    snapshots
+      ✓ loading (170 ms)
+      ✓ success (168 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       3 passed, 3 total
+Snapshots:   2 passed, 2 total
+Time:        5.448 s
+Ran all test suites.
+
+Watch Usage: Press w to show more.
+```
+
+#### UI Unit Test Tips
+
+- The `@testing-library/react` package provides a test renderer as well as helpers for dealing with hooks and component state
+- Snapshots alone generally aren't enough, you should do some assertions to validate component behavior
+- Hooks can be tested in isolation from components using the `act` helper.
+
+#### Snapshot Tests
+
+We use a technique called "Snapshots" to record the rendered output of components and track them in version control over time. Snapshots are not really tests, since they don't have any explicity assertions. Think of them more as a record of the output of a component.
+
+When combined with the `styled-components` integration, snapshots give us a way to track styling logic over time. This can be very helpful in debugging styling issues that would otherwise be hard to understand.
+
+After any changes to styling logic, you should expect to update snapshots, else unit tests will fail.
+
+To update snapshots:
+
+```
+yarn test -u
+```
+
 ### How to do local dev on the UI
 
 The easiest way to dev on the UI is to use an existing cluster.
@@ -458,6 +505,12 @@ rm -rf node_modules/@weaveworks/weave-gitops/
 yarn add ../../weave-gitops/dist
 ```
 
+One magical command to "reload" core (assumes the project directories are located in the same directory):
+
+```sh
+weave-gitops-enterprise/ui-cra$ cd ../../weave-gitops && make ui-lib && cd ../weave-gitops-enterprise/ui-cra && make core-lib
+```
+
 ## How to update the version of `weave-gitops`
 
 [`weave-gitops-enterprise`](https://github.com/weaveworks/weave-gitops-enterprise) depends on [`weave-gitops`](https://github.com/weaveworks/weave-gitops). When WG makes a new release we'll want to update the version WGE depends on. It goes a little something like this:
@@ -478,13 +531,14 @@ cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 We have 3 demo clusters currently that we use to demonstrate our work and test
 new features.
 
-|                    UI                |                       GitOps                        |  CAPI  |
-|--------------------------------------|-----------------------------------------------------|--------|
-| http://34.67.250.163:30080           | https://github.com/wkp-example-org/capd-demo-simon  |  CAPD  |
-| https://demo-01.wge.dev.weave.works  | https://gitlab.git.dev.weave.works/wge/demo-01      |  CAPG  |
-| https://demo-02.wge.dev.weave.works  | https://github.com/wkp-example-org/demo-02          |  CAPG  |
+| UI                                  | GitOps                                             | CAPI |
+| ----------------------------------- | -------------------------------------------------- | ---- |
+| http://34.67.250.163:30080          | https://github.com/wkp-example-org/capd-demo-simon | CAPD |
+| https://demo-01.wge.dev.weave.works | https://gitlab.git.dev.weave.works/wge/demo-01     | CAPG |
+| https://demo-02.wge.dev.weave.works | https://github.com/wkp-example-org/demo-02         | CAPG |
 
 ---
+
 **CAPI NAME COLLISION WARNING**
 
 `demo-01` and `demo-02` are currently deployed on the same [GCP
@@ -595,6 +649,7 @@ Enterprise](https://gitlab.git.dev.weave.works/wge) group or get added to the
 4. Voila
 
 ---
+
 **NOTE FOR UPDATING 34.67.250.163**
 
 As of writing the `HelmRelease` for 34.67.250.163 lives in
@@ -632,7 +687,8 @@ Requires: helm CLI >= 3.8.1
   && ./tools/bin/helm search repo wkp --devel --versions \
   | grep e4e540d
 ```
-where `e4e540d` is your commit sha. This will return `wkp/mccp      0.0.17-88-ge4e540d      1.16.0          A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
+
+where `e4e540d` is your commit sha. This will return `wkp/mccp 0.0.17-88-ge4e540d 1.16.0 A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
 
 ## How to make a self-signed cert that works in chrome!
 

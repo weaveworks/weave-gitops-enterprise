@@ -5,3 +5,7 @@ node_modules: package.json yarn.lock
 
 build: node_modules $(shell find src -type f)
 	REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
+
+core-lib:
+	rm -rf node_modules/@weaveworks/weave-gitops/
+	yarn add ../../weave-gitops/dist

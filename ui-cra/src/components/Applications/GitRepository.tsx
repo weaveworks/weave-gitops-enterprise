@@ -8,6 +8,7 @@ import { GitRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
 type Props = {
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
 const WGApplicationsGitRepository: FC<Props> = props => {

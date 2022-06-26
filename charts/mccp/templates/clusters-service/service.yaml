@@ -4,6 +4,10 @@ kind: Service
 metadata:
   name: clusters-service
   namespace: {{ .Release.Namespace | quote }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   selector:
     app: clusters-service
