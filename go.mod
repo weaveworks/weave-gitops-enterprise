@@ -8,7 +8,7 @@ require (
 	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/onsi/gomega v1.18.1
+	github.com/onsi/gomega v1.19.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.12.2 // indirect
 	github.com/sclevine/agouti v3.0.0+incompatible
@@ -28,7 +28,7 @@ require (
 
 require (
 	github.com/fluxcd/flagger v1.21.0
-	github.com/fluxcd/go-git-providers v0.5.4
+	github.com/fluxcd/go-git-providers v0.6.1-0.20220623095438-c155e9212a26
 	github.com/fluxcd/helm-controller/api v0.20.1
 	github.com/fluxcd/kustomize-controller/api v0.24.4
 	github.com/fluxcd/pkg/apis/meta v0.12.2
@@ -45,9 +45,9 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.3
 	github.com/weaveworks/progressive-delivery v0.0.0-20220622211422-c0b04f3c241f
-	github.com/xanzy/go-gitlab v0.54.3
-	golang.org/x/crypto v0.0.0-20220513210258-46612604a0f9
-	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
+	github.com/xanzy/go-gitlab v0.68.0
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
 	google.golang.org/grpc v1.46.2
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
@@ -79,7 +79,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/Microsoft/go-winio v0.5.1 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20220517143526-88bb52951d5b // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
@@ -142,7 +142,7 @@ require (
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/helm/helm v2.17.0+incompatible // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
@@ -208,7 +208,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/net v0.0.0-20220513224357-95641704303c // indirect
+	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220513210249-45d2b4557a2a // indirect
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
