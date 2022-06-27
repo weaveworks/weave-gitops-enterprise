@@ -25,7 +25,7 @@ const Profiles: FC<{
   selectedProfiles,
   setSelectedProfiles,
 }) => {
-  const { updatedProfiles, loading } = useProfiles();
+  const { updatedProfiles, isLoading } = useProfiles();
 
   const handleSelectProfiles = (selectProfiles: UpdatedProfile[]) =>
     setSelectedProfiles(selectProfiles);
@@ -44,7 +44,7 @@ const Profiles: FC<{
       clicked={clickedStep === 'Profiles'}
       setActiveStep={setActiveStep}
     >
-      {loading ? (
+      {isLoading ? (
         <Loader />
       ) : (
         <>

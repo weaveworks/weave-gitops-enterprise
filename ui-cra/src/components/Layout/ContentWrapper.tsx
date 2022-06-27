@@ -1,13 +1,14 @@
 import React, { FC } from 'react';
 import styled, { css } from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
-import useVersions from '../../contexts/Versions';
 import { Tooltip } from '../Shared';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import Alert from '@material-ui/lab/Alert';
 import AlertTitle from '@material-ui/lab/AlertTitle';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { ListItem } from '@material-ui/core';
+import { useListVersion } from '../../hooks/versions';
+import useNotifications from './../../contexts/Notifications';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
@@ -83,8 +84,19 @@ export const ContentWrapper: FC<{
   backgroundColor?: string;
   errors?: ListError[];
 }> = ({ children, type, backgroundColor, errors }) => {
-  const { versions, entitlement } = useVersions();
   const classes = useStyles();
+  const { setNotifications } = useNotifications();
+  const { data, error } = useListVersion();
+  const entitlement = data?.entitlement;
+  const versions = {
+    capiServer: data?.data.version,
+    ui: process.env.REACT_APP_VERSION || 'no version specified',
+  };
+
+  if (error) {
+    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
+  }
+
   return (
     <div
       style={{

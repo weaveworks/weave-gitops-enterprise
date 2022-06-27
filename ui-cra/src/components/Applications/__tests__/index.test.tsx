@@ -11,7 +11,6 @@ import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provide
 import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
 import TemplatesProvider from '../../../contexts/Templates/Provider';
-import VersionsProvider from '../../../contexts/Versions/Provider';
 import { muiTheme } from '../../../muiTheme';
 import {
   CoreClientMock,
@@ -42,10 +41,8 @@ describe('Applications index test', () => {
       [CoreClientContextProvider, { api }],
       [MemoryRouter],
       [NotificationsProvider],
-      [VersionsProvider],
       [TemplatesProvider],
       [ClustersProvider],
-      [VersionsProvider],
     ]);
   });
   it('renders table rows', async () => {
