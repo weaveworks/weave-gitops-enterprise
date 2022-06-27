@@ -32,7 +32,9 @@ const Profiles: FC<{
 
   useEffect(() => {
     if (selectedProfiles.length === 0) {
-      setSelectedProfiles(updatedProfiles.filter(profile => profile.required));
+      setSelectedProfiles(
+        updatedProfiles.filter((profile: any) => profile.required),
+      );
     }
   }, [updatedProfiles, setSelectedProfiles, selectedProfiles.length]);
 

@@ -4,7 +4,7 @@ import { UpdatedProfile } from '../../types/custom';
 interface ProfilesContext {
   loading: boolean;
   isLoading: boolean;
-  updatedProfiles: UpdatedProfile[];
+  updatedProfiles: any;
 }
 
 export const Profiles = createContext<ProfilesContext | null>(null);
