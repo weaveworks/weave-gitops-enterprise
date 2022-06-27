@@ -54,7 +54,7 @@ const localMuiTheme = createTheme({
 });
 
 const TemplatesDashboard: FC = () => {
-  const { templates, loading } = useTemplates();
+  const { templates, isLoading } = useTemplates();
   const providers = [
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
@@ -116,7 +116,7 @@ const TemplatesDashboard: FC = () => {
             },
           ]}
         />
-        {!loading ? (
+        {!isLoading ? (
           <div style={{ display: 'flex' }}>
             {view === 'grid' && (
               <ContentWrapper backgroundColor="transparent">

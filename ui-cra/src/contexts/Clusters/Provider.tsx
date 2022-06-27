@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useContext, useEffect, useState } from 'react';
+import React, { FC, useCallback, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
 import { request } from '../../utils/request';
 import { Clusters, DeleteClusterPRRequest } from './index';
@@ -69,19 +69,7 @@ const ClustersProvider: FC = ({ children }) => {
     [setNotifications],
   );
 
-  const { error, data, isLoading } = useQuery<
-    ListGitopsClustersResponse,
-    Error
-  >('clusters', () => api.ListGitopsClusters({}), {
-    keepPreviousData: true,
-    refetchInterval: CLUSTERS_POLL_INTERVAL,
-  });
-
-  useEffect(() => {
-    if (data) {
-      setClusters(data.gitopsClusters as GitopsClusterEnriched[]);
-      setCount(data.total as number);
-    }
+  const onError = (error: Error) => {
     if (
       error &&
       notifications?.some(
@@ -93,7 +81,23 @@ const ClustersProvider: FC = ({ children }) => {
         { message: { text: error.message }, variant: 'danger' },
       ]);
     }
-  }, [data, error, notifications, setNotifications]);
+  };
+
+  const onSuccess = (data: ListGitopsClustersResponse) => {
+    setClusters(data.gitopsClusters as GitopsClusterEnriched[]);
+    setCount(data.total as number);
+  };
+
+  const { isLoading } = useQuery<ListGitopsClustersResponse, Error>(
+    'clusters',
+    () => api.ListGitopsClusters({}),
+    {
+      keepPreviousData: true,
+      refetchInterval: CLUSTERS_POLL_INTERVAL,
+      onSuccess,
+      onError,
+    },
+  );
 
   return (
     <Clusters.Provider

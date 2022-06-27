@@ -27,7 +27,6 @@ import {
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
-import VersionsProvider from '../contexts/Versions/Provider';
 import Compose from './ProvidersCompose';
 import Box from '@material-ui/core/Box';
 import { PageTemplate } from './Layout/PageTemplate';
@@ -187,12 +186,7 @@ const App = () => {
 
   return (
     <Compose
-      components={[
-        NotificationsProvider,
-        TemplatesProvider,
-        ClustersProvider,
-        VersionsProvider,
-      ]}
+      components={[NotificationsProvider, TemplatesProvider, ClustersProvider]}
     >
       <div className={classes.root}>
         <CssBaseline />
@@ -269,7 +263,7 @@ const App = () => {
               <Route
                 component={PolicyViolationDetails}
                 exact
-                path="/clusters/violations/:id"
+                path="/clusters/:clusterName/violations/:id"
               />
               <Route
                 component={() => (
@@ -347,7 +341,7 @@ const App = () => {
               <Route exact path={POLICIES} component={Policies} />
               <Route
                 exact
-                path="/policies/:id/:clusterName"
+                path="/:clusterName/policies/:id"
                 component={PolicyDetails}
               />
 
