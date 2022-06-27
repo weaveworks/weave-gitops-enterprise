@@ -26,8 +26,6 @@ func (s *server) ListEvents(ctx context.Context, msg *capiv1_proto.ListEventsReq
 		return nil, fmt.Errorf("scoping to cluster %q: %w", msg.ClusterName, err)
 	}
 
-	fmt.Printf("%#v", msg)
-
 	fields := client.MatchingFields{
 		"involvedObject.kind":      msg.InvolvedObject.Kind,
 		"involvedObject.name":      msg.InvolvedObject.Name,

@@ -150,7 +150,7 @@ jobs:
       - name: Run integration tests
         run: |
           go version
-
+          make dependencies
           cd cmd/clusters-service
           go test -v ./... -tags=integration
 
