@@ -23,6 +23,8 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
     violatingEntity,
     entity,
     namespace,
+    occurrences,
+    clusterName,
   } = violation || {};
 
   return (
@@ -30,6 +32,10 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
       <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
         <div className={classes.cardTitle}>Message:</div>
         <span className={classes.body1}>{message}</span>
+      </div>
+      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+        <div className={classes.cardTitle}>Cluster Name:</div>
+        <span className={classes.body1}>{clusterName}</span>
       </div>
 
       <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
@@ -50,6 +56,23 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
         <div className={classes.cardTitle}>Application:</div>
         <span className={classes.body1}>{`${namespace}/${entity}`}</span>
       </div>
+      <hr />
+      <div className={classes.sectionSeperator}>
+        <div className={classes.cardTitle}>
+          Occurences{' '}
+          <span className={classes.titleNotification}>
+            ( {occurrences?.length} )
+          </span>
+        </div>
+        <ul className={classes.occurrencesList}>
+          {occurrences?.map(item => (
+            <li key={item.message} className={classes.body1}>
+              {item.message}
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Description:</div>
@@ -83,7 +106,7 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
               height: '450px',
             }}
           >
-            {JSON.parse( JSON.stringify(violatingEntity, null, 2))}
+            {JSON.parse(JSON.stringify(violatingEntity, null, 2))}
           </SyntaxHighlighter>
         </div>
       </div>

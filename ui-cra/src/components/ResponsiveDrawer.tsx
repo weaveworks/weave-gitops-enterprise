@@ -269,7 +269,7 @@ const App = () => {
               <Route
                 component={PolicyViolationDetails}
                 exact
-                path="/clusters/violations/:id"
+                path="/clusters/:clusterName/violations/:id"
               />
               <Route
                 component={() => (
@@ -347,7 +347,7 @@ const App = () => {
               <Route exact path={POLICIES} component={Policies} />
               <Route
                 exact
-                path="/policies/:id/:clusterName"
+                path="/:clusterName/policies/:id"
                 component={PolicyDetails}
               />
 
