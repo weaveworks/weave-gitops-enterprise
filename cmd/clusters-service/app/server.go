@@ -22,6 +22,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
+
 	corev1 "k8s.io/api/core/v1"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -541,7 +543,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
 
-	mux.Handle("/", staticAssets)
+	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
+
+	mux.Handle("/", staticAssetsWithGz)
 
 	s := &http.Server{
 		Addr:    addr,
