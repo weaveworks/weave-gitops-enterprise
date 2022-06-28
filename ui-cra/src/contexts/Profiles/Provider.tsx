@@ -14,13 +14,10 @@ import { useQuery } from 'react-query';
 
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [updatedProfiles, setUpdatedProfiles] = useState<Profile[]>([]);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
-  const [profilesWithValues, setProfilesWithValues] = useState<
-    UpdatedProfile[]
-  >([]);
-  const [profiles, setProfiles] = useState<Profile[] | undefined>([]);
+  const [profiles, setProfiles] = useState<UpdatedProfile[] | undefined>([]);
+  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
 
   const history = useHistory();
 
@@ -83,8 +80,7 @@ const ProfilesProvider: FC = ({ children }) => {
             }
           }
         }
-        console.log(defaultProfiles);
-
+        // console.log(defaultProfiles);
         return defaultProfiles;
       }
       return [];
@@ -92,66 +88,37 @@ const ProfilesProvider: FC = ({ children }) => {
     [getVersionValue, getProfileLayer],
   );
 
-  const getProfileValues = useCallback(
-    (profiles: Profile[]) => {
-      const profileRequests = profiles.flatMap(profile =>
-        profile.availableVersions.map(async version => {
-          const profileName = profile.name;
-          const profileLayer = profile.layer;
-          const data = await getProfileYaml(profileName, version);
-          return {
-            name: profileName,
-            version: version,
-            payload: data,
-            layer: profileLayer,
-          };
-        }),
-      );
-      Promise.all(profileRequests)
-        .then(data => {
-          const profiles = data.reduce(
-            (
-              profilesWithAddedValues: {
-                name: string;
-                values: { version: string; yaml: string }[];
-                required: boolean;
-                layer?: string;
-              }[],
-              profile,
-            ) => {
-              const profileName = profilesWithAddedValues.find(
-                p => p.name === profile.name,
-              );
-              const value = {
-                version: profile.version,
-                yaml: profile.payload.message || '',
-                selected: false,
-              };
+  const processProfiles = useCallback((profiles: Profile[]) => {
+    const acc: {
+      name: string;
+      values: { version: string; yaml: string; selected: boolean }[];
+      required: boolean;
+      layer?: string;
+    }[] = [];
+    profiles.flatMap(profile =>
+      profile.availableVersions.forEach(version => {
+        const profileName = acc.find(p => p.name === profile.name);
+        const value = {
+          version,
+          yaml: '',
+          selected: false,
+        };
 
-              if (profileName) {
-                profileName.values.push(value);
-              } else {
-                profilesWithAddedValues.push({
-                  name: profile.name,
-                  values: [value],
-                  required: false,
-                  layer: profile.layer,
-                });
-              }
-              return profilesWithAddedValues;
-            },
-            [],
-          );
-          setProfilesWithValues(profiles);
-        })
-        .catch(err =>
-          setNotifications([
-            { message: { text: err.message }, variant: 'danger' },
-          ]),
-        );
-    },
-    [getProfileYaml, setNotifications],
-  );
+        if (profileName) {
+          profileName.values.push(value);
+        } else {
+          acc.push({
+            name: profile.name,
+            values: [value],
+            required: false,
+            layer: profile.layer,
+          });
+        }
+      }),
+    );
+    console.log(acc);
+    return acc;
+  }, []);
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
@@ -161,7 +128,7 @@ const ProfilesProvider: FC = ({ children }) => {
       setUpdatedProfiles([]);
       return;
     }
-    setProfiles(data?.profiles);
+    setProfiles(processProfiles(data?.profiles || []));
   };
 
   const { isLoading } = useQuery<ListProfilesResponse, Error>(
@@ -181,8 +148,8 @@ const ProfilesProvider: FC = ({ children }) => {
         profiles?.find(
           profile =>
             defaultProfile.name === profile.name &&
-            profile?.availableVersions.map(
-              version => version === defaultProfile.values[0].version,
+            profile?.values.map(
+              value => value.version === defaultProfile.values[0].version,
             )?.length !== 0,
         ),
       ) || []
@@ -200,19 +167,16 @@ const ProfilesProvider: FC = ({ children }) => {
           !validDefaultProfiles.find(
             p =>
               profile.name === p.name &&
-              profile.availableVersions.map(
-                version => version === p.values[0].version,
-              ).length !== 0,
+              profile.values.map(value => value.version === p.values[0].version)
+                .length !== 0,
           ),
       ) || [];
-    console.log(optionalProfiles, validDefaultProfiles);
-    setUpdatedProfiles([] as any);
+    setUpdatedProfiles([...optionalProfiles, ...validDefaultProfiles]);
   }, [
     profiles,
     activeTemplate,
     getProfileYaml,
     setNotifications,
-    getProfileValues,
     history,
     getValidDefaultProfiles,
   ]);
