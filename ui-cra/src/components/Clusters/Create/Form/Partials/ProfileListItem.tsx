@@ -28,6 +28,8 @@ import {
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
+import useProfiles from './../../../../../contexts/Profiles';
+
 const base = weaveTheme.spacing.base;
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
@@ -73,6 +75,7 @@ const ProfilesListItem: FC<{
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
+  const { getProfileYaml } = useProfiles();
 
   const profileVersions = (profile: UpdatedProfile) => [
     ...profile.values.map((value, index) => {
@@ -108,10 +111,7 @@ const ProfilesListItem: FC<{
   );
 
   const handleYamlPreview = () => {
-    const currentProfile = profile.values.find(
-      value => value.version === version,
-    );
-    setYaml(currentProfile?.yaml as string);
+    getProfileYaml(profile?.name, version).then((res: any) => setYaml(res));
     setOpenYamlPreview(true);
   };
   const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
