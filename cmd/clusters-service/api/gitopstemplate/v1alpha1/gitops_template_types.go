@@ -8,16 +8,14 @@ import (
 
 const Kind = "GitOpsTemplate"
 
-//+kubebuilder:object:root=true
-
 // GitOpsTemplate is the Schema for the GitOpsTemplate API
+// +kubebuilder:object:root=true
 type GitOpsTemplate struct {
-	templates.Template
+	templates.Template `json:",inline"`
 }
 
-//+kubebuilder:object:root=true
-
 // GitOpsTemplateList contains a list of GitOpsTemplate
+// +kubebuilder:object:root=true
 type GitOpsTemplateList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
