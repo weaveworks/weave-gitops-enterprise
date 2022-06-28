@@ -3,6 +3,7 @@ package entitlement
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -31,6 +32,11 @@ var (
 	public                string
 	contextKeyEntitlement = contextKey("entitlement")
 )
+
+// mimics the response of google.golang.org/genproto/googleapis/rpc/status.Status without adding it as dependency
+type response struct {
+	Message string `json:"message"`
+}
 
 // LoadEntitlementIntoContextHandler retrieves the entitlement from Kubernetes
 // and adds it to the request context.
@@ -65,7 +71,15 @@ func CheckEntitlementHandler(log logr.Logger, next http.Handler, publicRoutes []
 		if ent == nil {
 			log.Info("Entitlement was not found.")
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(errorMessage))
+			response, err := json.Marshal(
+				response{
+					Message: errorMessage,
+				},
+			)
+			if err != nil {
+				log.Error(err, "unexpected error while handling entitlement not found response")
+			}
+			w.Write(response)
 			return
 		}
 		if ok {

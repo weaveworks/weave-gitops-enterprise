@@ -36,6 +36,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"k8s.io/apimachinery/pkg/api/validation"
 )
 
 const (
@@ -543,6 +544,18 @@ func generateProfileFiles(ctx context.Context, clusterName string, kubeClient cl
 	return file, nil
 }
 
+func validateNamespace(namespace string) error {
+	if namespace == "" {
+		return nil
+	}
+	errs := validation.ValidateNamespaceName(namespace, false)
+	if len(errs) != 0 {
+		return fmt.Errorf("invalid namespace: %s, %s", namespace, strings.Join(errs, ","))
+	}
+
+	return nil
+}
+
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 	var err error
 
@@ -552,6 +565,18 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 
 	if msg.ParameterValues == nil {
 		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
+	}
+
+	invalidNamespaceErr := validateNamespace(msg.ParameterValues["NAMESPACE"])
+	if invalidNamespaceErr != nil {
+		err = multierror.Append(err, invalidNamespaceErr)
+	}
+
+	for i := range msg.Values {
+		invalidNamespaceErr := validateNamespace(msg.Values[i].Namespace)
+		if invalidNamespaceErr != nil {
+			err = multierror.Append(err, invalidNamespaceErr)
+		}
 	}
 
 	return err

@@ -27,6 +27,7 @@ require (
 )
 
 require (
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.6.1-0.20220623095438-c155e9212a26
 	github.com/fluxcd/helm-controller/api v0.20.1
