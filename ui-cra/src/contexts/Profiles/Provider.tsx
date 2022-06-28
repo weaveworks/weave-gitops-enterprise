@@ -1,11 +1,16 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { Profile, UpdatedProfile } from '../../types/custom';
+import {
+  ListProfilesResponse,
+  Profile,
+  UpdatedProfile,
+} from '../../types/custom';
 import { request } from '../../utils/request';
 import { Profiles } from './index';
 import { useHistory } from 'react-router-dom';
 import useNotifications from './../Notifications';
 import useTemplates from './../Templates';
 import { Template } from '../../cluster-services/cluster_services.pb';
+import { useQuery } from 'react-query';
 
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -150,25 +155,25 @@ const ProfilesProvider: FC = ({ children }) => {
     [getProfileYaml, setNotifications],
   );
 
-  const getProfiles = useCallback(() => {
-    setLoading(true);
-    request('GET', profilesUrl, {
-      cache: 'no-store',
-    })
-      .then(res => {
-        if (res.code === 2) {
-          setUpdatedProfiles([]);
-          return;
-        }
-        getProfileValues(res.profiles);
-      })
-      .catch(err =>
-        setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
-        ]),
-      )
-      .finally(() => setLoading(false));
-  }, [setNotifications, getProfileValues]);
+  const onError = (error: Error) =>
+    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
+
+  const onSuccess = (data: ListProfilesResponse) => {
+    if (data.code === 2) {
+      setUpdatedProfiles([]);
+      return;
+    }
+    getProfileValues(data?.profiles as Profile[]);
+  };
+
+  const { isLoading } = useQuery<ListProfilesResponse, Error>(
+    'profiles',
+    () => request('GET', profilesUrl),
+    {
+      onSuccess,
+      onError,
+    },
+  );
 
   const getValidDefaultProfiles = useCallback(() => {
     const defaultProfiles =
@@ -185,10 +190,6 @@ const ProfilesProvider: FC = ({ children }) => {
       ) || []
     );
   }, [activeTemplate, profilesWithValues, getDefaultProfiles]);
-
-  useEffect(() => {
-    getProfiles();
-  }, [getProfiles]);
 
   useEffect(() => {
     // get default / required profiles for the active template
@@ -221,6 +222,7 @@ const ProfilesProvider: FC = ({ children }) => {
     <Profiles.Provider
       value={{
         loading,
+        isLoading,
         updatedProfiles,
       }}
     >

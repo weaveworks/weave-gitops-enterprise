@@ -3,6 +3,7 @@ import { UpdatedProfile } from '../../types/custom';
 
 interface ProfilesContext {
   loading: boolean;
+  isLoading: boolean;
   updatedProfiles: UpdatedProfile[];
 }
 
