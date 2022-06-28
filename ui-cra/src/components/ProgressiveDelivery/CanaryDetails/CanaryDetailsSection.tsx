@@ -1,20 +1,11 @@
-import CanaryRowHeader from '../SharedComponent/CanaryRowHeader';
+import CanaryRowHeader, {
+  KeyValueRow,
+} from '../SharedComponent/CanaryRowHeader';
 import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { useCanaryStyle } from '../CanaryStyles';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@material-ui/core';
+import { Table, TableBody } from '@material-ui/core';
 import styled from 'styled-components';
-import {
-  RouterTab,
-  SubRouterTabs,
-  EventsTable,
-  FluxObjectKind,
-} from '@weaveworks/weave-gitops';
+import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 
 import {
   getDeploymentStrategyIcon,
@@ -27,6 +18,8 @@ import {
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useRouteMatch } from 'react-router-dom';
+import { useState } from 'react';
+import { ExpandLess, ExpandMore } from '@material-ui/icons';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -44,6 +37,14 @@ function CanaryDetailsSection({
 }) {
   const classes = useCanaryStyle();
   const { path } = useRouteMatch();
+  const [open, setOpen] = useState(true);
+
+  const { conditions, ...restStatus } = canary?.status || { conditions: [] };
+  const { lastTransitionTime, ...restConditionObj } = conditions![0];
+
+  const toggleCollapse = () => {
+    setOpen(!open);
+  };
 
   return (
     <>
@@ -80,14 +81,6 @@ function CanaryDetailsSection({
               </span>
             </CanaryRowHeader>
             <CanaryRowHeader rowkey="Provider" value={canary.provider} />
-            <CanaryRowHeader
-              rowkey="Last Transition Time"
-              value={canary.status?.lastTransitionTime}
-            />
-            <CanaryRowHeader
-              rowkey="Last Updated Time"
-              value={canary.status?.conditions![0].lastUpdateTime}
-            />
 
             <div
               className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}
@@ -96,29 +89,28 @@ function CanaryDetailsSection({
             </div>
 
             <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell align="left">
-                    <span>Status Conditions</span>
-                  </TableCell>
-                  <TableCell align="left">
-                    <span>Value</span>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
               <TableBody>
-                <TableRow>
-                  <TableCell>Canary Weight</TableCell>
-                  <TableCell>{canary.status?.canaryWeight || 0}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Failed Checks</TableCell>
-                  <TableCell>{canary.status?.failedChecks || 0}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Iterations</TableCell>
-                  <TableCell>{canary.status?.iterations || 0}</TableCell>
-                </TableRow>
+                {Object.entries(restStatus || {}).map((entry, index) => (
+                  <KeyValueRow entryObj={entry} key={index} />
+                ))}
+              </TableBody>
+            </Table>
+
+            <div
+              className={` ${classes.cardTitle} ${classes.expandableCondition}`}
+              onClick={toggleCollapse}
+            >
+              {!open ? <ExpandLess /> : <ExpandMore />}
+              <span className={classes.expandableSpacing}> Conditions</span>
+            </div>
+            <Table
+              size="small"
+              className={open ? classes.fadeIn : classes.fadeOut}
+            >
+              <TableBody>
+                {Object.entries(restConditionObj).map((entry, index) => (
+                  <KeyValueRow entryObj={entry} key={index}></KeyValueRow>
+                ))}
               </TableBody>
             </Table>
           </CanaryDetailsWrapper>
@@ -141,7 +133,7 @@ function CanaryDetailsSection({
             </SyntaxHighlighter>
           </CanaryDetailsWrapper>
         </RouterTab>
-        <RouterTab name="Events" path={`${path}/events`}>
+        {/* <RouterTab name="Events" path={`${path}/events`}>
           <CanaryDetailsWrapper>
             <EventsTable
               namespace={canary?.namespace}
@@ -152,7 +144,7 @@ function CanaryDetailsSection({
               }}
             />
           </CanaryDetailsWrapper>
-        </RouterTab>
+        </RouterTab> */}
       </SubRouterTabs>
     </>
   );

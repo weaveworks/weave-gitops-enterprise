@@ -13,7 +13,7 @@ export const useCanaryStyle = makeStyles(() =>
     cardTitle: {
       fontWeight: 600,
       fontSize: theme.fontSizes.normal,
-      color: theme.colors.neutral30,
+      // color: theme.colors.neutral30,
     },
     body1: {
       fontWeight: 400,
@@ -46,7 +46,7 @@ export const useCanaryStyle = makeStyles(() =>
       color: theme.colors.alert,
     },
     sectionHeaderWrapper: {
-      background: theme.colors.neutral10,
+      background: '#F6F7F9', // add Neutral/Grey Blue to core
       padding: `${theme.spacing.base} ${theme.spacing.xs}`,
       margin: `${theme.spacing.base} 0`,
     },
@@ -66,6 +66,29 @@ export const useCanaryStyle = makeStyles(() =>
     code: {
       wordBreak: 'break-word',
     },
+    expandableCondition: {
+      display: 'flex',
+      justifyContent: 'start',
+      alignItems: 'center',
+      padding: theme.spacing.small,
+      marginTop: theme.spacing.xs,
+      cursor: 'pointer',
+    },
+    expandableSpacing: {
+      marginLeft: theme.spacing.xs,
+    },
+    fadeIn: {
+      transform: 'scaleY(0)',
+      transformOrigin: 'top',
+      display: 'block',
+      maxHeight: 0,
+      transition: 'transform 0.15s ease',
+    },
+    fadeOut: {
+      transform: 'scaleY(1)',
+      transformOrigin: 'top',
+      transition: 'transform 0.15s ease',
+    },
   }),
 );
 
@@ -81,7 +104,7 @@ export const TableWrapper = styled.div`
     }
   }
   tr {
-    vertical-align:'center';
+    vertical-align: 'center';
   }
   max-width: calc(100vw - 220px);
 `;
