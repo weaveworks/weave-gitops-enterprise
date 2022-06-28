@@ -8,25 +8,38 @@ import (
 	"strings"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
-	// Default to CAPI kind to ease transition
-	if msg.TemplateKind == "" {
-		msg.TemplateKind = capiv1.Kind
-	}
-	tl, err := s.templatesLibrary.List(ctx, msg.TemplateKind)
-	if err != nil {
-		return nil, err
-	}
 	templates := []*capiv1_proto.Template{}
-	for _, t := range tl {
-		templates = append(templates, ToTemplateResponse(t))
+	includeGitopsTemplates := msg.TemplateKind == "" || msg.TemplateKind == gapiv1.Kind
+	includeCAPITemplates := msg.TemplateKind == "" || msg.TemplateKind == capiv1.Kind
+
+	if includeGitopsTemplates {
+		tl, err := s.templatesLibrary.List(ctx, gapiv1.Kind)
+		if err != nil {
+			return nil, fmt.Errorf("error listing gitops templates %w", err)
+		}
+		for _, t := range tl {
+			templates = append(templates, ToTemplateResponse(t))
+		}
 	}
 
+	if includeCAPITemplates {
+		tl, err := s.templatesLibrary.List(ctx, capiv1.Kind)
+		if err != nil {
+			return nil, fmt.Errorf("error listing capi templates %w", err)
+		}
+		for _, t := range tl {
+			templates = append(templates, ToTemplateResponse(t))
+		}
+	}
+
+	total := int32(len(templates))
 	if msg.Provider != "" {
 		if !isProviderRecognised(msg.Provider) {
 			return nil, fmt.Errorf("provider %q is not recognised", msg.Provider)
@@ -36,7 +49,10 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	}
 
 	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
-	return &capiv1_proto.ListTemplatesResponse{Templates: templates, Total: int32(len(tl))}, err
+	return &capiv1_proto.ListTemplatesResponse{
+		Templates: templates,
+		Total:     total,
+	}, nil
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
