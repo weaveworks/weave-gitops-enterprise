@@ -158,6 +158,8 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Delete Gitops cluster from the management cluster", func() {
+					// Clean up kubeconfig secret, gitopscluster finalizer will wait for it now
+					deleteKubeconfigSecret([]string{leafClusterkubeconfig}, leafClusterNamespace)
 					deleteGitopsCluster([]string{leafCluster}, leafClusterNamespace)
 				})
 
