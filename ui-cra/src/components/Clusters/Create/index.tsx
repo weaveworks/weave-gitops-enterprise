@@ -107,7 +107,7 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
-  const { updatedProfiles } = useProfiles();
+  const { profiles } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   let initialFormData = {
@@ -294,7 +294,7 @@ const AddCluster: FC = () => {
         url: repositoryURL,
       }));
     }
-  }, [callbackState, infraCredential, repositoryURL, updatedProfiles]);
+  }, [callbackState, infraCredential, repositoryURL, profiles]);
 
   return useMemo(() => {
     return (
@@ -347,7 +347,7 @@ const AddCluster: FC = () => {
                 ) : (
                   <Loader />
                 )}
-                {updatedProfiles.length > 0 && (
+                {profiles.length > 0 && (
                   <Profiles
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
@@ -394,7 +394,7 @@ const AddCluster: FC = () => {
   }, [
     authRedirectPage,
     formData,
-    updatedProfiles.length,
+    profiles.length,
     infraCredential,
     activeTemplate,
     clustersCount,

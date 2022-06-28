@@ -14,7 +14,7 @@ const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
-  const [updatedProfiles, setUpdatedProfiles] = useState<UpdatedProfile[]>([]);
+  const [profiles, setProfiles] = useState<UpdatedProfile[]>([]);
 
   const profilesUrl = '/v1/profiles';
 
@@ -27,7 +27,7 @@ const ProfilesProvider: FC = ({ children }) => {
     }).finally(() => setLoading(false));
   }, []);
 
-  const getDefaultProfiles = useCallback(
+  const getProfilesWithDefaults = useCallback(
     (profiles: UpdatedProfile[]) => {
       if (activeTemplate?.annotations) {
         const annotations = Object.entries(activeTemplate?.annotations);
@@ -35,10 +35,10 @@ const ProfilesProvider: FC = ({ children }) => {
           if (key.includes('capi.weave.works/profile')) {
             const { name, version, values } = JSON.parse(value);
             profiles.forEach(profile => {
-              const getVersion = profile.values.find(
-                value => value.version,
+              const profileVersion = profile.values.find(
+                value => value.version === version,
               )?.version;
-              if (profile.name === name && getVersion !== undefined) {
+              if (profile.name === name && profileVersion !== undefined) {
                 profile.required = true;
                 profile.values.forEach(value => {
                   if (value.version === version) {
@@ -50,21 +50,21 @@ const ProfilesProvider: FC = ({ children }) => {
           }
         }
       }
-      setUpdatedProfiles(profiles);
+      return profiles;
     },
     [activeTemplate?.annotations],
   );
 
-  const processProfiles = useCallback((profiles: Profile[]) => {
-    const acc: {
+  const getProfiles = useCallback((profiles?: Profile[]) => {
+    const accumulator: {
       name: string;
       values: { version: string; yaml: string; selected: boolean }[];
       required: boolean;
       layer?: string;
     }[] = [];
-    profiles.flatMap(profile =>
+    profiles?.flatMap(profile =>
       profile.availableVersions.forEach(version => {
-        const profileName = acc.find(p => p.name === profile.name);
+        const profileName = accumulator.find(p => p.name === profile.name);
         const value = {
           version,
           yaml: '',
@@ -73,7 +73,7 @@ const ProfilesProvider: FC = ({ children }) => {
         if (profileName) {
           profileName.values.push(value);
         } else {
-          acc.push({
+          accumulator.push({
             name: profile.name,
             values: [value],
             required: false,
@@ -82,7 +82,7 @@ const ProfilesProvider: FC = ({ children }) => {
         }
       }),
     );
-    return acc;
+    return accumulator;
   }, []);
 
   const onError = (error: Error) =>
@@ -90,11 +90,10 @@ const ProfilesProvider: FC = ({ children }) => {
 
   const onSuccess = (data: ListProfilesResponse) => {
     if (data.code === 2) {
-      setUpdatedProfiles([]);
+      setProfiles([]);
       return;
     }
-    const profiles = processProfiles(data?.profiles || []);
-    getDefaultProfiles(profiles);
+    setProfiles(getProfilesWithDefaults(getProfiles(data?.profiles)));
   };
 
   const { isLoading } = useQuery<ListProfilesResponse, Error>(
@@ -111,7 +110,7 @@ const ProfilesProvider: FC = ({ children }) => {
       value={{
         loading,
         isLoading,
-        updatedProfiles,
+        profiles,
         getProfileYaml,
       }}
     >
