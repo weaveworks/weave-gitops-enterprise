@@ -233,7 +233,6 @@ const AddCluster: FC = () => {
       },
       values: encodedProfiles(selectedProfiles),
     };
-    console.log(payload);
     return addCluster(
       payload,
       getProviderToken(formData.provider as GitProvider),
