@@ -6,7 +6,6 @@ import { useCanaryStyle } from '../CanaryStyles';
 import { Table, TableBody } from '@material-ui/core';
 import styled from 'styled-components';
 import {
-  FluxObjectKind,
   RouterTab,
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
