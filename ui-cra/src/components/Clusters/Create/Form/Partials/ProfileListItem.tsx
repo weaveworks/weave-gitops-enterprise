@@ -7,7 +7,10 @@ import React, {
 } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import { UpdatedProfile } from '../../../../../types/custom';
+import {
+  ListProfileValuesResponse,
+  UpdatedProfile,
+} from '../../../../../types/custom';
 import ListItem from '@material-ui/core/ListItem';
 import {
   Dialog,
@@ -29,6 +32,7 @@ import {
   IconType,
 } from '@weaveworks/weave-gitops';
 import useProfiles from './../../../../../contexts/Profiles';
+import { Loader } from '../../../../Loader';
 
 const base = weaveTheme.spacing.base;
 const medium = weaveTheme.spacing.medium;
@@ -75,6 +79,7 @@ const ProfilesListItem: FC<{
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
+  const [loadingYaml, setLoadingYaml] = useState<boolean>(false);
   const { getProfileYaml } = useProfiles();
 
   const profileVersions = (profile: UpdatedProfile) => [
@@ -111,8 +116,13 @@ const ProfilesListItem: FC<{
   );
 
   const handleYamlPreview = () => {
-    getProfileYaml(profile?.name, version).then((res: any) => setYaml(res));
     setOpenYamlPreview(true);
+    if (yaml === '') {
+      setLoadingYaml(true);
+      getProfileYaml(profile?.name, version)
+        .then((res: ListProfileValuesResponse) => setYaml(res.message))
+        .finally(() => setLoadingYaml(false));
+    }
   };
   const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -216,11 +226,15 @@ const ProfilesListItem: FC<{
           <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
         </DialogTitle>
         <DialogContent>
-          <TextareaAutosize
-            className={classes.textarea}
-            defaultValue={yaml}
-            onChange={event => handleChangeYaml(event)}
-          />
+          {loadingYaml ? (
+            <Loader />
+          ) : (
+            <TextareaAutosize
+              className={classes.textarea}
+              defaultValue={yaml}
+              onChange={event => handleChangeYaml(event)}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button

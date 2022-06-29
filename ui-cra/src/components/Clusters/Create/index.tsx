@@ -14,7 +14,11 @@ import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import FormStepsNavigation from './Form/StepsNavigation';
-import { Credential, UpdatedProfile } from '../../../types/custom';
+import {
+  Credential,
+  ListProfileValuesResponse,
+  UpdatedProfile,
+} from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { Loader } from '../../Loader';
@@ -107,7 +111,7 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
-  const { profiles } = useProfiles();
+  const { profiles, getProfileYaml } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   let initialFormData = {
@@ -173,6 +177,15 @@ const AddCluster: FC = () => {
     });
   }, [formData, setOpenPreview, renderTemplate, infraCredential]);
 
+  const getYaml = useCallback(
+    (name: string, version: string) => {
+      return getProfileYaml(name, version).then(
+        (res: ListProfileValuesResponse) => res.message,
+      );
+    },
+    [getProfileYaml],
+  );
+
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
       profiles.reduce(
@@ -186,8 +199,11 @@ const AddCluster: FC = () => {
           }[],
           profile,
         ) => {
-          profile.values.forEach(value => {
-            if (value.selected === true)
+          profile.values.forEach(async value => {
+            if (value.selected === true) {
+              if (value.yaml === '') {
+                value.yaml = await getYaml(profile.name, value.version);
+              }
               accumulator.push({
                 name: profile.name,
                 version: value.version,
@@ -195,72 +211,73 @@ const AddCluster: FC = () => {
                 layer: profile.layer,
                 namespace: profile.namespace,
               });
+            }
           });
           return accumulator;
         },
         [],
       ),
-    [],
+    [getYaml],
   );
 
-  const handleAddCluster = useCallback(
-    () =>
-      addCluster(
-        {
-          head_branch: formData.branchName,
-          title: formData.pullRequestTitle,
-          description: formData.pullRequestDescription,
-          commit_message: formData.commitMessage,
-          credentials: infraCredential,
-          template_name: activeTemplate?.name,
-          parameter_values: {
-            ...formData,
-          },
-          values: encodedProfiles(selectedProfiles),
-        },
-        getProviderToken(formData.provider as GitProvider),
-      )
-        .then(response => {
-          setPRPreview(null);
-          history.push('/clusters');
-          setNotifications([
-            {
-              message: {
-                component: (
-                  <a
-                    style={{ color: weaveTheme.colors.primary }}
-                    href={response.webUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    PR created successfully.
-                  </a>
-                ),
-              },
-              variant: 'success',
+  const handleAddCluster = useCallback(() => {
+    const payload = {
+      head_branch: formData.branchName,
+      title: formData.pullRequestTitle,
+      description: formData.pullRequestDescription,
+      commit_message: formData.commitMessage,
+      credentials: infraCredential,
+      template_name: activeTemplate?.name,
+      parameter_values: {
+        ...formData,
+      },
+      values: encodedProfiles(selectedProfiles),
+    };
+    console.log(payload);
+    return addCluster(
+      payload,
+      getProviderToken(formData.provider as GitProvider),
+    )
+      .then(response => {
+        setPRPreview(null);
+        history.push('/clusters');
+        setNotifications([
+          {
+            message: {
+              component: (
+                <a
+                  style={{ color: weaveTheme.colors.primary }}
+                  href={response.webUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  PR created successfully.
+                </a>
+              ),
             },
-          ]);
-        })
-        .catch(error => {
-          setNotifications([
-            { message: { text: error.message }, variant: 'danger' },
-          ]);
-          if (isUnauthenticated(error.code)) {
-            removeToken(formData.provider);
-          }
-        }),
-    [
-      selectedProfiles,
-      addCluster,
-      formData,
-      activeTemplate?.name,
-      infraCredential,
-      history,
-      setNotifications,
-      encodedProfiles,
-      setPRPreview,
-    ],
-  );
+            variant: 'success',
+          },
+        ]);
+      })
+      .catch(error => {
+        setNotifications([
+          { message: { text: error.message }, variant: 'danger' },
+        ]);
+        if (isUnauthenticated(error.code)) {
+          removeToken(formData.provider);
+        }
+      });
+  }, [
+    selectedProfiles,
+    addCluster,
+    formData,
+    activeTemplate?.name,
+    infraCredential,
+    history,
+    setNotifications,
+    encodedProfiles,
+    setPRPreview,
+  ]);
 
   useEffect(() => {
     if (!activeTemplate) {
