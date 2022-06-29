@@ -721,6 +721,17 @@
         }
       }
     },
+    "v1ClusterNamespacedName": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -923,6 +934,12 @@
         "repositoryApiUrl": {
           "type": "string",
           "description": "The repo api url."
+        },
+        "clusterNamespacedNames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterNamespacedName"
+          }
         }
       }
     },

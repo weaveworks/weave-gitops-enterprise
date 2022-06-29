@@ -181,6 +181,11 @@ export type CreateTfControllerPullRequestResponse = {
   webUrl?: string
 }
 
+export type ClusterNamespacedName = {
+  namespace?: string
+  name?: string
+}
+
 export type DeleteClustersPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
@@ -191,6 +196,7 @@ export type DeleteClustersPullRequestRequest = {
   commitMessage?: string
   credentials?: Credential
   repositoryApiUrl?: string
+  clusterNamespacedNames?: ClusterNamespacedName[]
 }
 
 export type DeleteClustersPullRequestResponse = {

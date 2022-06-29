@@ -597,7 +597,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And the manifests are present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})
@@ -1231,7 +1231,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 

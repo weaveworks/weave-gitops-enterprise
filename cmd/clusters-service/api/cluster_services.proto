@@ -315,6 +315,11 @@ message CreateTfControllerPullRequestResponse {
   string web_url = 1;
 }
 
+message ClusterNamespacedName {
+  string namespace = 1;
+  string name = 2;
+}
+
 message DeleteClustersPullRequestRequest {
   // The repository to use.
   string repository_url = 1;
@@ -334,6 +339,7 @@ message DeleteClustersPullRequestRequest {
   Credential credentials = 8;
   // The repo api url.
   string repository_api_url = 9;
+  repeated ClusterNamespacedName cluster_namespaced_names = 10;
 }
 message DeleteClustersPullRequestResponse {
   // The url of the new pull request.

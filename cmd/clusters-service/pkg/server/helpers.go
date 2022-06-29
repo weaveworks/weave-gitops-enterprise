@@ -56,7 +56,7 @@ func isMissingVariableError(err error) (string, bool) {
 	return "", false
 }
 
-func getclusterNamespace(clusterNamespace string) string {
+func getClusterNamespace(clusterNamespace string) string {
 	namespace := "default"
 	if clusterNamespace == "" {
 		ns := viper.GetString("capi-clusters-namespace")
