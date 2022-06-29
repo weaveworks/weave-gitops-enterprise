@@ -1090,8 +1090,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text, 30*time.Second).Should(MatchRegexp("podinfo"))
-					Eventually(valuesYaml.TextArea.Text, 30*time.Second).Should(MatchRegexp("tag: 6.0.1"))
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.1"))
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
@@ -1102,8 +1102,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text, 30*time.Second).Should(MatchRegexp("observability"))
-					Eventually(valuesYaml.TextArea.Text, 30*time.Second).Should(MatchRegexp("kube-prometheus-stack:"))
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("observability"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("kube-prometheus-stack:"))
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
