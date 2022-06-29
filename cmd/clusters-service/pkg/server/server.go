@@ -40,17 +40,30 @@ type server struct {
 	helmRepositoryCacheDir    string
 }
 
-func NewClusterServer(log logr.Logger, clustersLibrary clusters.Library, templatesLibrary templates.Library, clientsFactory clustersmngr.ClientsFactory, provider git.Provider, clientGetter kube.ClientGetter, discoveryClient discovery.DiscoveryInterface, ns string, profileHelmRepositoryName string, helmRepositoryCacheDir string) capiv1_proto.ClustersServiceServer {
+type ServerOpts struct {
+	Logger                    logr.Logger
+	TemplatesLibrary          templates.Library
+	ClustersLibrary           clusters.Library
+	ClientsFactory            clustersmngr.ClientsFactory
+	GitProvider               git.Provider
+	ClientGetter              kube.ClientGetter
+	DiscoveryClient           discovery.DiscoveryInterface
+	ClustersNamespace         string
+	ProfileHelmRepositoryName string
+	HelmRepositoryCacheDir    string
+}
+
+func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 	return &server{
-		log:                       log,
-		clustersLibrary:           clustersLibrary,
-		templatesLibrary:          templatesLibrary,
-		clientsFactory:            clientsFactory,
-		provider:                  provider,
-		clientGetter:              clientGetter,
-		discoveryClient:           discoveryClient,
-		ns:                        ns,
-		profileHelmRepositoryName: profileHelmRepositoryName,
-		helmRepositoryCacheDir:    helmRepositoryCacheDir,
+		log:                       opts.Logger,
+		clustersLibrary:           opts.ClustersLibrary,
+		templatesLibrary:          opts.TemplatesLibrary,
+		clientsFactory:            opts.ClientsFactory,
+		provider:                  opts.GitProvider,
+		clientGetter:              opts.ClientGetter,
+		discoveryClient:           opts.DiscoveryClient,
+		ns:                        opts.ClustersNamespace,
+		profileHelmRepositoryName: opts.ProfileHelmRepositoryName,
+		helmRepositoryCacheDir:    opts.HelmRepositoryCacheDir,
 	}
 }
