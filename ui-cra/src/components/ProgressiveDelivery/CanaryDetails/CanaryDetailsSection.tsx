@@ -5,7 +5,11 @@ import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { useCanaryStyle } from '../CanaryStyles';
 import { Table, TableBody } from '@material-ui/core';
 import styled from 'styled-components';
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import {
+  FluxObjectKind,
+  RouterTab,
+  SubRouterTabs,
+} from '@weaveworks/weave-gitops';
 
 import {
   getDeploymentStrategyIcon,
@@ -20,6 +24,7 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useRouteMatch } from 'react-router-dom';
 import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import ListEvents from '../Events/ListEvents';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -133,18 +138,18 @@ function CanaryDetailsSection({
             </SyntaxHighlighter>
           </CanaryDetailsWrapper>
         </RouterTab>
-        {/* <RouterTab name="Events" path={`${path}/events`}>
+        <RouterTab name="Events" path={`${path}/events`}>
           <CanaryDetailsWrapper>
-            <EventsTable
-              namespace={canary?.namespace}
+            <ListEvents
+              clusterName={canary?.clusterName}
               involvedObject={{
-                kind: FluxObjectKind.KindCluster,
-                name: canary.clusterName,
+                kind: 'Canary',
+                name: canary.name,
                 namespace: canary?.namespace,
               }}
             />
           </CanaryDetailsWrapper>
-        </RouterTab> */}
+        </RouterTab>
       </SubRouterTabs>
     </>
   );
