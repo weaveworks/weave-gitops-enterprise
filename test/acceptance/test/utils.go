@@ -77,6 +77,7 @@ func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeTemplates(gitopsTestRunner)
 	DescribeApplications(gitopsTestRunner)
 	DescribePolicies(gitopsTestRunner)
+	DescribeViolations(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
