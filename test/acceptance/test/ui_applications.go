@@ -21,7 +21,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Applications", func() {
 
 		Context("[UI] When no applications are installed", func() {
-			FIt("Verify management cluster dashboard shows only bootstrap 'flux-system' application", Label("integration", "application"), func() {
+			It("Verify management cluster dashboard shows only bootstrap 'flux-system' application", Label("integration", "application"), func() {
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)

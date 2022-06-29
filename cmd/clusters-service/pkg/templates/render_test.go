@@ -385,6 +385,78 @@ spec:
 	}
 }
 
+func TestTextTemplateRender(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/text-template.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME": "testing-templating",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing-templating
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 192.168.0.0/16
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    kind: KubeadmControlPlane
+    name: testing-templating-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AWSCluster
+    name: testing-templating
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
+func TestTextTemplateRenderConditional(t *testing.T) {
+	parsed := mustParseFile(t, "testdata/text-template2.yaml")
+
+	b, err := Render(parsed.Spec, map[string]string{
+		"CLUSTER_NAME":   "testing-templating",
+		"TEST_VALUE":     "false",
+		"S3_BUCKET_NAME": "test-bucket",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing-templating
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 192.168.1.0/16
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    kind: KubeadmControlPlane
+    name: testing-templating-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AWSCluster
+    name: testing-templating
+  notARealField:
+    name: test-bucket-test
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
 func TestRender_unknown_parameter(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
