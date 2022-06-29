@@ -7,6 +7,7 @@ import (
 	"path"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -194,7 +195,7 @@ func deleteGitopsCluster(clusters []string, nameSpace string) {
 	for _, cluster := range clusters {
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get gitopscluster %s`, cluster))
 		if err == nil {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl delete gitopscluster %s -n %s`, cluster, nameSpace))
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl delete gitopscluster %s -n %s`, cluster, nameSpace), ASSERTION_30SECONDS_TIME_OUT)
 		}
 	}
 }
@@ -305,6 +306,28 @@ func generateGitopsClutermanifest(clusterName string, nameSpace string, bootstra
 	return gitopsCluster, err
 }
 
+func addKustomizationBases(leafCluster string) {
+	repoAbsolutePath := path.Join(configRepoAbsolutePath(gitProviderEnv))
+	checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
+	leafClusterPath := path.Join(repoAbsolutePath, "clusters", "default", leafCluster)
+	clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
+
+	pathErr := func() error {
+		pullGitRepo(repoAbsolutePath)
+		_, err := os.Stat(leafClusterPath)
+		return err
+
+	}
+	Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", leafCluster))
+
+	Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
+	Expect(createDirectory(clusterBasesPath)).Should(Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
+	Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
+	Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
+	Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
+	gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
+}
+
 func createNamespace(namespaces []string) {
 	for _, namespace := range namespaces {
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl create namespace %s`, namespace))
@@ -322,4 +345,22 @@ func deleteNamespace(namespaces []string) {
 			_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl delete namespace %s`, namespace))
 		}
 	}
+}
+
+func getClustersCount() int {
+	stdOut, _ := runCommandAndReturnStringOutput("kubectl get GitopsCluster --output name | wc -l")
+	cCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+	return cCount + 1 // management cluster is always available
+}
+
+func getPoliciesCount() int {
+	stdOut, _ := runCommandAndReturnStringOutput("kubectl get policies --output name | wc -l")
+	pCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+	return pCount
+}
+
+func getViolationsCount() int {
+	stdOut, _ := runCommandAndReturnStringOutput("kubectl  get events --field-selector reason=PolicyViolation  --output name | wc -l")
+	vCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+	return vCount
 }

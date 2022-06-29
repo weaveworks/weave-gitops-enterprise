@@ -145,7 +145,7 @@ function setup {
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
-   helmArgs+=( --set "tls.enabled=false" )
+  helmArgs+=( --set "tls.enabled=false" )
   helmArgs+=( --set "config.oidc.enabled=true" )
   helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
@@ -194,7 +194,7 @@ function setup {
       kubectl apply -f -
 
   # Install RBAC for user authentication
-   kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
+   kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
 
   # enable cluster resource sets
   export EXP_CLUSTER_RESOURCE_SET=true

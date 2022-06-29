@@ -19,7 +19,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
 
 			policyName := "Container Image Pull Policy acceptance-test"
-			// policyID := "weave.policies.container-image-pull-policy-acceptance-test"
+			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
 			violationMsg := "Container Image Pull Policy acceptance-test in deployment postgres"
 			voliationClusterName := "management"
 			violationApplication := "default/postgres"
@@ -31,20 +31,15 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("Verify Violations can be monitored for violating resource", Label("integration", "violation"), func() {
-				existingViolationCount := 1
+				existingViolationCount := getViolationsCount()
+
+				installTestPolicies("management", policiesYaml)
 
 				pages.NavigateToPage(webDriver, "Violations")
 				violationsPage := pages.GetViolationsPage(webDriver)
-				By("And wait for Applications page to be fully rendered", func() {
-					pages.WaitForPageToLoad(webDriver)
-					existingViolationCount = violationsPage.CountViolations()
-				})
-
-				By("Add/Install test Policies to the management cluster", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, policiesYaml), "Failed to install test policies to management cluster")
-				})
 
 				By("Install violating Postgres deployment to the management cluster", func() {
+					Expect(waitForResource("policy", policyID, "default", "", ASSERTION_1MINUTE_TIME_OUT))
 					Expect(gitopsTestRunner.KubectlApply([]string{}, deploymentYaml)).ShouldNot(Succeed(), "Failed to install test Postgres deployment to management cluster")
 				})
 

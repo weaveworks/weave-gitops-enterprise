@@ -180,7 +180,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should install rolebindings for default enterprise roles'", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "rbac-auth.yaml")), "Failed to install rolbindings for enterprise default roles")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
@@ -365,7 +365,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the manifests are present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
+					// Enable new path chenking when upograding to clusters across namespaces WGE release
+					// _, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})
