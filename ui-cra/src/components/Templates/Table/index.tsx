@@ -53,7 +53,7 @@ export const TemplatesTable: FC<{ templates: Template[] | undefined }> = ({
   templates,
 }) => {
   const classes = useStyles();
-  const { loading } = useTemplates();
+  const { isLoading } = useTemplates();
   const [sortedTemplates, setSortedTemplates] = useState<
     Template[] | undefined
   >(templates);
@@ -78,7 +78,7 @@ export const TemplatesTable: FC<{ templates: Template[] | undefined }> = ({
     <div id="templates-list">
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
-          {loading ? (
+          {isLoading ? (
             <Loader />
           ) : (
             <Table className={classes.table} size="small">

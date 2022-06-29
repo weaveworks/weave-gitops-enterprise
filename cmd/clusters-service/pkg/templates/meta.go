@@ -6,12 +6,7 @@ import (
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 )
-
-// ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
-// contains the objects that are in the template, along with the parameters used
-// by each of the objects.
 
 const (
 	// DisplayNameAnnotation is the annotation used for labeling template resources
@@ -19,26 +14,25 @@ const (
 	CAPIDisplayNameAnnotation    = "capi.weave.works/display-name"
 )
 
+// ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
+// contains the objects that are in the template, along with the parameters used
+// by each of the objects.
 func ParseTemplateMeta(s *apitemplates.Template, annotation string) (*TemplateMeta, error) {
-	proc := processor.NewSimpleProcessor()
-	variables := map[string]bool{}
 	var objects []Object
 	for _, v := range s.Spec.ResourceTemplates {
-		tv, err := proc.GetVariables(v.RawExtension.Raw)
+		params, err := paramsFromResourceTemplate(s.Spec, v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get parameters processing template: %w", err)
-		}
-		for _, n := range tv {
-			variables[n] = true
+			return nil, fmt.Errorf("failed to parse params in template: %w", err)
 		}
 		var uv unstructured.Unstructured
 		if err := uv.UnmarshalJSON(v.RawExtension.Raw); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
 		}
 		objects = append(objects, Object{
-			Kind:       uv.GetKind(),
-			APIVersion: uv.GetAPIVersion(),
-			Params:     tv, Name: uv.GetName(),
+			Kind:        uv.GetKind(),
+			APIVersion:  uv.GetAPIVersion(),
+			Params:      params,
+			Name:        uv.GetName(),
 			DisplayName: uv.GetAnnotations()[annotation],
 		})
 	}
@@ -56,7 +50,7 @@ func ParseTemplateMeta(s *apitemplates.Template, annotation string) (*TemplateMe
 }
 
 // Object contains the details of the object rendered from a template along with
-// the parametesr.
+// the parameters.
 type Object struct {
 	Kind        string   `json:"kind"`
 	APIVersion  string   `json:"apiVersion"`

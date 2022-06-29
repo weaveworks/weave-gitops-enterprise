@@ -273,6 +273,31 @@ func TestCreatePullRequest(t *testing.T) {
 			err: errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 		},
 		{
+			name: "namespace validation errors",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+			},
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo bar bad name",
+					"NAMESPACE":    "default-",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+				Values: []*capiv1_proto.ProfileValues{
+					{
+						Namespace: "bad_namespace",
+					},
+				},
+			},
+			err: errors.New("2 errors occurred:\ninvalid namespace: default-, a lowercase RFC 1123 label must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?')\ninvalid namespace: bad_namespace, a lowercase RFC 1123 label must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?')"),
+		},
+		{
 			name: "pull request failed",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
@@ -402,6 +427,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     favoriteDrink: coffee
 status: {}
@@ -501,6 +528,8 @@ spec:
     createNamespace: true
   interval: 1m0s
   targetNamespace: test-system
+  upgrade:
+    crds: CreateReplace
   values:
     favoriteDrink: coffee
 status: {}
@@ -929,6 +958,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     foo: bar
 status: {}
@@ -993,6 +1024,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     foo: test-cluster-name
 status: {}
@@ -1060,6 +1093,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     foo: bar
 status: {}
@@ -1085,6 +1120,8 @@ spec:
   install:
     crds: CreateReplace
   interval: 1m0s
+  upgrade:
+    crds: CreateReplace
   values:
     foo: bar
 status: {}

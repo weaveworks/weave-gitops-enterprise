@@ -59,6 +59,16 @@ func TestParamsFromSpec(t *testing.T) {
 				{Name: "CLUSTER_NAME"},
 			},
 		},
+		{
+			"testdata/text-template.yaml", []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
+					Options:     []string{},
+				},
+			},
+		},
 	}
 
 	for _, tt := range templateTests {

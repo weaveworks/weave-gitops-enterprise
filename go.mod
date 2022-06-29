@@ -27,6 +27,7 @@ require (
 )
 
 require (
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.5.4
 	github.com/fluxcd/helm-controller/api v0.20.1
@@ -85,7 +86,6 @@ require (
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/alecthomas/chroma v0.9.2 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect

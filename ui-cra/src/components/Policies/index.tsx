@@ -15,7 +15,7 @@ import {
 const Policies = () => {
   const [count, setCount] = useState<number | undefined>(0);
   const { api } = useContext(EnterpriseClientContext);
-  const [errors, SetErrors] = useState<ListError[] | undefined>();
+  const [errors, setErrors] = useState<ListError[] | undefined>();
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 25 });
 
@@ -29,7 +29,7 @@ const Policies = () => {
   const fetchPoliciesAPI = useCallback(() => {
     return api.ListPolicies({}).then(res => {
       !!res && setCount(res.total);
-      !!res && SetErrors(res.errors);
+      !!res && setErrors(res.errors);
       return res;
     });
   }, [api]);
