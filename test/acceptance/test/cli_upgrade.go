@@ -313,8 +313,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
+					Eventually(valuesYaml.Title.Text, 30*time.Second).Should(MatchRegexp("podinfo"))
+					Eventually(valuesYaml.TextArea.Text,30*time.Second).Should(MatchRegexp("tag: 6.0.0"))
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
