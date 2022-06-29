@@ -432,16 +432,18 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
-		args.Log,
-		args.ClustersLibrary,
-		args.TemplateLibrary,
-		args.CoreServerConfig.ClientsFactory,
-		args.GitProvider,
-		args.ClientGetter,
-		args.DiscoveryClient,
-		args.CAPIClustersNamespace,
-		args.ProfileHelmRepository,
-		args.HelmRepositoryCacheDirectory,
+		server.ServerOpts{
+			Logger:                    args.Log,
+			TemplatesLibrary:          args.TemplateLibrary,
+			ClustersLibrary:           args.ClustersLibrary,
+			ClientsFactory:            args.CoreServerConfig.ClientsFactory,
+			GitProvider:               args.GitProvider,
+			ClientGetter:              args.ClientGetter,
+			DiscoveryClient:           args.DiscoveryClient,
+			ClustersNamespace:         args.CAPIClustersNamespace,
+			ProfileHelmRepositoryName: args.ProfileHelmRepository,
+			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
+		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
 		return fmt.Errorf("failed to register clusters service handler server: %w", err)
