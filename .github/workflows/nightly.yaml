@@ -30,7 +30,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(application, capd)'"
+      label-filter: "-ginkgo.label-filter='!(capd)'"
       kubectl-version: "v1.23.6"
       login_user_type: "oidc"
       git-provider: github
@@ -39,7 +39,6 @@ jobs:
       management-cluster-kind: eks
       capi_provider: capa
       gitops-bin-path: /usr/local/bin/gitops
-      eks-leaf-kubeconfig: "/tmp/eks-leaf-kubeconfig"
       artifacts-base-dir: "/tmp/acceptance-test-eks-github"
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
@@ -53,7 +52,6 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
-      WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
 
   gitops-binary-macOs:
     uses: ./.github/workflows/gitops-binary.yaml
@@ -77,7 +75,6 @@ jobs:
       management-cluster-kind: gke
       capi_provider: capg
       gitops-bin-path: /usr/local/bin/gitops
-      gce-leaf-kubeconfig: "/tmp/gce-leaf-kubeconfig"
       artifacts-base-dir: "/tmp/acceptance-test-gke-gitlab"
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
@@ -93,4 +90,3 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_SAS_GITLAB_CLIENT_SECRET }}
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-      WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}

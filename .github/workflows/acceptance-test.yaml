@@ -115,13 +115,7 @@ on:
         required: false
       WGE_GITLAB_CLIENT_SECRET:
         description: "Gitlab oauth pplication secret"
-        required: false
-      WGE_ACCEPTANCE_EKS_KUBECONFIG:
-        description: "EKS kubeconfig (base64 encoded)"
-        required: false
-      WGE_ACCEPTANCE_GCE_KUBECONFIG:
-        description: "GCE kubeconfig (base64 encoded)"
-        required: false
+        required: false      
       GCP_PROJECT_ID:
         description: "Project id of the Google Cloud project"
         required: false
@@ -162,12 +156,9 @@ env:
   MANAGEMENT_CLUSTER_KIND: ${{ inputs.management-cluster-kind }}
   CAPI_PROVIDER: ${{ inputs.capi_provider }}
   GITOPS_BIN_PATH: ${{ inputs.gitops-bin-path }}
-  EKS_LEAF_KUBECONFIG: ${{ inputs.eks-leaf-kubeconfig }}
-  WGE_ACCEPTANCE_EKS_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_EKS_KUBECONFIG }}
-  GCE_LEAF_KUBECONFIG: ${{ inputs.gce-leaf-kubeconfig }}
-  WGE_ACCEPTANCE_GCE_KUBECONFIG: ${{ secrets.WGE_ACCEPTANCE_GCE_KUBECONFIG }}
   ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
   EXP_CLUSTER_RESOURCE_SET: ${{ inputs.cluster_resource_set }}
+  USE_GKE_GCLOUD_AUTH_PLUGIN: True
   SELENIUM_DEBUG: true
   CHECKPOINT_DISABLE: 1
 
@@ -215,19 +206,27 @@ jobs:
           eksctl get clusters
       - name: Install flux
         run: |
-          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.29.5/flux_0.29.5_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp
+          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.30.2/flux_0.30.2_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp
           sudo mv /tmp/flux /usr/local/bin
           flux version --client
-      - name: Install aws-iam-authenticator
+      - name: Install aws-cli
         if: ${{ inputs.management-cluster-kind == 'eks' }}
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
-            curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
-            chmod +x ./aws-iam-authenticator
-            sudo mv ./aws-iam-authenticator /usr/local/bin 
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install --update
           elif [ "$RUNNER_OS" == "macOS" ]; then
-              brew install aws-iam-authenticator
+              curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+              sudo installer -pkg AWSCLIV2.pkg -target /
           fi
+          aws --version
+      - name: Install aws-iam-authenticator
+        if: ${{ inputs.management-cluster-kind == 'eks' }}
+        run: |
+          wget https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.5.7/aws-iam-authenticator_0.5.7_${{ inputs.os-name }}_amd64 -O /tmp/aws-iam-authenticator
+          chmod +x /tmp/aws-iam-authenticator
+          sudo mv /tmp/aws-iam-authenticator /usr/local/bin
           aws-iam-authenticator version
       - name: Authenticate to Google Cloud
         if: ${{ inputs.management-cluster-kind == 'gke' }}
@@ -239,11 +238,11 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0.3.0
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-      - name: Use gcloud CLI
+      - name: Install gcloud auth plugin
         if: ${{ inputs.management-cluster-kind == 'gke' }}
         run: |
           gcloud info
-          gcloud container clusters list
+          gcloud components install gke-gcloud-auth-plugin --quiet
       - name: Install docker
         if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
         uses: docker-practice/actions-setup-docker@master
@@ -267,7 +266,7 @@ jobs:
           kind version
       - name: Install clusterctl
         run: |
-          curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.1.3/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
+          curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.1.4/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
           chmod +x ./clusterctl
           sudo mv ./clusterctl /usr/local/bin/clusterctl
           clusterctl version
@@ -314,7 +313,7 @@ jobs:
           # Start selenium server in standalone mode
           xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
       - name: Setup management cluster
-        run: |
+        run: |          
           if [ ${{ inputs.management-cluster-kind }} = 'eks' ]; then
             export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
             export CLUSTER_VERSION=1.21
@@ -349,15 +348,6 @@ jobs:
           elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
             kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.23.4 --config test/utils/data/local-kind-config.yaml
             kubectl get pods -A
-          fi
-      - name: Setup connect leaf cluster
-        if: ${{ (inputs.management-cluster-kind == 'eks') || (inputs.management-cluster-kind == 'gke') }}
-        run: |
-          # decode kubeconfig and store at path set in EKS_LEAF_KUBECONFIG or GKE_LEAF_KUBECONFIG
-          if [ ${{ inputs.management-cluster-kind }} = "eks" ]; then
-            echo $WGE_ACCEPTANCE_EKS_KUBECONFIG | base64 -d > $EKS_LEAF_KUBECONFIG
-          elif [ ${{ inputs.management-cluster-kind }} = "gke" ]; then
-            echo $WGE_ACCEPTANCE_GCE_KUBECONFIG | base64 -d > $GCE_LEAF_KUBECONFIG
           fi
       - name: Run Acceptance tests
         run: |
