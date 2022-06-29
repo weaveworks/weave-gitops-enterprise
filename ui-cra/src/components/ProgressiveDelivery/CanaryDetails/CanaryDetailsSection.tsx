@@ -5,10 +5,7 @@ import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { useCanaryStyle } from '../CanaryStyles';
 import { Table, TableBody } from '@material-ui/core';
 import styled from 'styled-components';
-import {
-  RouterTab,
-  SubRouterTabs,
-} from '@weaveworks/weave-gitops';
+import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 
 import {
   getDeploymentStrategyIcon,
@@ -119,6 +116,18 @@ function CanaryDetailsSection({
             </Table>
           </CanaryDetailsWrapper>
         </RouterTab>
+        <RouterTab name="Events" path={`${path}/events`}>
+          <CanaryDetailsWrapper>
+            <ListEvents
+              clusterName={canary?.clusterName}
+              involvedObject={{
+                kind: 'Canary',
+                name: canary.name,
+                namespace: canary?.namespace,
+              }}
+            />
+          </CanaryDetailsWrapper>
+        </RouterTab>
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <CanaryDetailsWrapper>
             <SyntaxHighlighter
@@ -135,18 +144,6 @@ function CanaryDetailsSection({
             >
               {canary.yaml}
             </SyntaxHighlighter>
-          </CanaryDetailsWrapper>
-        </RouterTab>
-        <RouterTab name="Events" path={`${path}/events`}>
-          <CanaryDetailsWrapper>
-            <ListEvents
-              clusterName={canary?.clusterName}
-              involvedObject={{
-                kind: 'Canary',
-                name: canary.name,
-                namespace: canary?.namespace,
-              }}
-            />
           </CanaryDetailsWrapper>
         </RouterTab>
       </SubRouterTabs>
