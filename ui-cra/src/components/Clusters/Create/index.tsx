@@ -14,11 +14,7 @@ import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import FormStepsNavigation from './Form/StepsNavigation';
-import {
-  Credential,
-  ListProfileValuesResponse,
-  UpdatedProfile,
-} from '../../../types/custom';
+import { Credential, UpdatedProfile } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { Loader } from '../../Loader';
@@ -111,7 +107,7 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
-  const { profiles, getProfileYaml } = useProfiles();
+  const { profiles } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   let initialFormData = {
@@ -177,15 +173,6 @@ const AddCluster: FC = () => {
     });
   }, [formData, setOpenPreview, renderTemplate, infraCredential]);
 
-  const getYaml = useCallback(
-    (name: string, version: string) => {
-      return getProfileYaml(name, version).then(
-        (res: ListProfileValuesResponse) => res.message,
-      );
-    },
-    [getProfileYaml],
-  );
-
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
       profiles.reduce(
@@ -199,11 +186,8 @@ const AddCluster: FC = () => {
           }[],
           profile,
         ) => {
-          profile.values.forEach(async value => {
+          profile.values.forEach(value => {
             if (value.selected === true) {
-              if (value.yaml === '') {
-                value.yaml = await getYaml(profile.name, value.version);
-              }
               accumulator.push({
                 name: profile.name,
                 version: value.version,
@@ -217,7 +201,7 @@ const AddCluster: FC = () => {
         },
         [],
       ),
-    [getYaml],
+    [],
   );
 
   const handleAddCluster = useCallback(() => {
