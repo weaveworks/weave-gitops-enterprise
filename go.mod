@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.2
-	github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220623134044-59f42abc1a29
+	github.com/weaveworks/weave-gitops v0.8.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -45,6 +45,7 @@ require (
 	github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.3
+	github.com/weaveworks/progressive-delivery v0.0.0-20220630062338-6618e3bf554b
 	github.com/xanzy/go-gitlab v0.54.3
 	golang.org/x/crypto v0.0.0-20220513210258-46612604a0f9
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
@@ -242,5 +243,6 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
+	github.com/weaveworks/weave-gitops => githubs.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220623134044-59f42abc1a29
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 )
