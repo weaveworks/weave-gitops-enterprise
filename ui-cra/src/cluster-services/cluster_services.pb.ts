@@ -390,6 +390,31 @@ export type Policy = {
   clusterName?: string
 }
 
+export type ObjectRef = {
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type Event = {
+  type?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+  component?: string
+  host?: string
+  name?: string
+}
+
+export type ListEventsRequest = {
+  involvedObject?: ObjectRef
+  clusterName?: string
+}
+
+export type ListEventsResponse = {
+  events?: Event[]
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -441,5 +466,8 @@ export class ClustersService {
   }
   static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
     return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyviolations/${req["violationId"]}?${fm.renderURLSearchParams(req, ["violationId"])}`, {...initReq, method: "GET"})
+  }
+  static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

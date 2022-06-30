@@ -133,6 +133,13 @@ service ClustersService {
       get : "/v1/policyviolations/{violation_id}"
     };
   }
+
+  // ListEvents returns the k8s events for a given object
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+    option (google.api.http) = {
+      get : "/v1/enterprise/events"
+    };
+  }
 }
 
 message ListTemplatesRequest {
@@ -525,4 +532,29 @@ message Policy {
   PolicyTargets targets = 12;
   string created_at = 13;
   string clusterName = 14;
+}
+
+message ObjectRef {
+  string kind      = 1;
+  string name      = 2;
+  string namespace = 3;
+}
+
+message Event {
+  string type      = 1;
+  string reason    = 2;
+  string message   = 3;
+  string timestamp = 4;
+  string component = 5;
+  string host      = 6;
+  string name      = 7;
+}
+
+message ListEventsRequest {
+  ObjectRef involvedObject = 1;
+  string    clusterName    = 2;
+}
+
+message ListEventsResponse {
+  repeated Event events = 1;
 }

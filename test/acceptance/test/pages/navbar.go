@@ -15,6 +15,7 @@ type NavbarwebDriver struct {
 	Templates    *agouti.Selection
 	Applications *agouti.Selection
 	Policies     *agouti.Selection
+	Violations   *agouti.Selection
 }
 
 //NavbarwebDriver initialises the webDriver object
@@ -25,6 +26,7 @@ func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 		Templates:    webDriver.Find(`nav a[href="/clusters/templates"]`),
 		Applications: webDriver.Find(`nav a[href="/applications"]`),
 		Policies:     webDriver.Find(`nav a[href="/policies"]`),
+		Violations:   webDriver.Find(`nav a[href="/clusters/violations"]`),
 	}
 
 	return &navbar
@@ -44,6 +46,8 @@ func NavigateToPage(webDriver *agouti.Page, page string) {
 			Eventually(navbarPage.Applications.Click).Should(Succeed())
 		case "Policies":
 			Eventually(navbarPage.Policies.Click).Should(Succeed())
+		case "Violations":
+			Eventually(navbarPage.Violations.Click).Should(Succeed())
 		}
 	})
 }
