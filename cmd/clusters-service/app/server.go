@@ -322,7 +322,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}
 	}()
 
-	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
+	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
 		pacv1.AddToScheme,
