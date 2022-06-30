@@ -71,24 +71,27 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	return NewClusterServer(
-		logr.Discard(),
-		&clusters.CRDLibrary{
-			Log:          logr.Discard(),
-			ClientGetter: kubefakes.NewFakeClientGetter(c),
-			Namespace:    o.namespace,
+		ServerOpts{
+			Logger: logr.Discard(),
+			TemplatesLibrary: &templates.ConfigMapLibrary{
+				Log:           logr.Discard(),
+				Client:        c,
+				ConfigMapName: o.configMapName,
+				CAPINamespace: o.namespace,
+			},
+			ClustersLibrary: &clusters.CRDLibrary{
+				Log:          logr.Discard(),
+				ClientGetter: kubefakes.NewFakeClientGetter(c),
+				Namespace:    o.namespace,
+			},
+			ClientsFactory:            o.clientsFactory,
+			GitProvider:               o.provider,
+			ClientGetter:              kubefakes.NewFakeClientGetter(c),
+			DiscoveryClient:           dc,
+			ClustersNamespace:         o.ns,
+			ProfileHelmRepositoryName: "weaveworks-charts",
+			HelmRepositoryCacheDir:    t.TempDir(),
 		},
-		&templates.ConfigMapLibrary{
-			Log:           logr.Discard(),
-			Client:        c,
-			ConfigMapName: o.configMapName,
-			CAPINamespace: o.namespace,
-		},
-		o.clientsFactory,
-		o.provider,
-		kubefakes.NewFakeClientGetter(c),
-		dc,
-		o.ns,
-		"weaveworks-charts", t.TempDir(),
 	)
 }
 

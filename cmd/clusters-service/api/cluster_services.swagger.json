@@ -202,6 +202,55 @@
         ]
       }
     },
+    "/v1/enterprise/events": {
+      "get": {
+        "summary": "ListEvents returns the k8s events for a given object",
+        "operationId": "ClustersService_ListEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEventsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "involvedObject.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/enterprise/version": {
       "get": {
         "summary": "GetEnterpriseVersion returns the WeGO Enterprise version",
@@ -923,6 +972,32 @@
         }
       }
     },
+    "v1Event": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetConfigResponse": {
       "type": "object",
       "properties": {
@@ -1042,6 +1117,17 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "v1ListEventsResponse": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Event"
+          }
         }
       }
     },
@@ -1168,6 +1254,20 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "v1ObjectRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     },
