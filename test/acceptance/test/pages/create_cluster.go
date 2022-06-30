@@ -121,6 +121,7 @@ func GetProfile(webDriver *agouti.Page, profileName string) Profile {
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 	Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(BeVisible())
+	time.Sleep(10 * time.Second)
 	return ValuesYaml{
 		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] > h5`),
 		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] > button`),

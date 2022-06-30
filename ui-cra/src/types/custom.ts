@@ -52,6 +52,11 @@ export type UpdatedProfile = {
   namespace?: string;
 };
 
+export type ListProfileValuesResponse = {
+  message: string;
+  success: boolean;
+};
+
 export type ChildrenOccurences = {
   name: string;
   groupVisible: boolean;
