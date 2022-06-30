@@ -42,7 +42,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.11.0
-	github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4
+	github.com/weaveworks/cluster-controller v1.2.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.3
 	github.com/weaveworks/progressive-delivery v0.0.0-20220622211422-c0b04f3c241f
