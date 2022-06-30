@@ -7,7 +7,7 @@ data:
   CLUSTER_NAME: {{ .Values.config.cluster.name }}
   GIT_PROVIDER_TYPE: {{ .Values.config.git.type }}
   GIT_PROVIDER_HOSTNAME: {{ .Values.config.git.hostname }}
-  CAPI_CLUSTERS_NAMESPACE: {{ .Values.config.capi.clusters.namespace }}
+  CAPI_CLUSTERS_NAMESPACE: "{{ .Values.config.capi.clusters.namespace }}"
   CAPI_TEMPLATES_NAMESPACE: {{ .Values.config.capi.templates.namespace }}
   INJECT_PRUNE_ANNOTATION: {{ .Values.config.capi.templates.injectPruneAnnotation }}
   ADD_BASES_KUSTOMIZATION: {{ .Values.config.capi.templates.addBasesKustomization }}

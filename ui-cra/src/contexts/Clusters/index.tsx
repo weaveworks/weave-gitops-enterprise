@@ -1,23 +1,21 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { GitopsClusterEnriched } from '../../types/custom';
+import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+import {
+  GitopsClusterEnriched,
+  DeleteClustersPRRequestEnriched,
+} from '../../types/custom';
 
-export interface DeleteClusterPRRequest {
-  clusterNames: string[];
-  headBranch: string;
-  title: string;
-  commitMessage: string;
-  description: string;
-  repositoryUrl?: string;
-}
 interface ClustersContext {
   clusters: GitopsClusterEnriched[];
   isLoading: boolean;
   count: number | null;
   loading: boolean;
-  selectedClusters: string[];
-  setSelectedClusters: Dispatch<React.SetStateAction<string[] | []>>;
+  selectedClusters: ClusterNamespacedName[];
+  setSelectedClusters: Dispatch<
+    React.SetStateAction<ClusterNamespacedName[] | []>
+  >;
   deleteCreatedClusters: (
-    data: DeleteClusterPRRequest,
+    data: DeleteClustersPRRequestEnriched,
     token: string,
   ) => Promise<any>;
   getKubeconfig: (clusterName: string, fileName: string) => void;

@@ -1,12 +1,18 @@
 import React, { FC, useCallback, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
 import { request } from '../../utils/request';
-import { Clusters, DeleteClusterPRRequest } from './index';
+import { Clusters } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
 import { EnterpriseClientContext } from '../EnterpriseClient';
-import { ListGitopsClustersResponse } from '../../cluster-services/cluster_services.pb';
-import { GitopsClusterEnriched } from '../../types/custom';
+import {
+  ClusterNamespacedName,
+  ListGitopsClustersResponse,
+} from '../../cluster-services/cluster_services.pb';
+import {
+  GitopsClusterEnriched,
+  DeleteClustersPRRequestEnriched,
+} from '../../types/custom';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -14,7 +20,9 @@ const ClustersProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [clusters, setClusters] = useState<GitopsClusterEnriched[]>([]);
   const [count, setCount] = useState<number | null>(null);
-  const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
+  const [selectedClusters, setSelectedClusters] = useState<
+    ClusterNamespacedName[]
+  >([]);
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
@@ -42,7 +50,7 @@ const ClustersProvider: FC = ({ children }) => {
   );
 
   const deleteCreatedClusters = useCallback(
-    (data: DeleteClusterPRRequest, token: string) => {
+    (data: DeleteClustersPRRequestEnriched, token: string) => {
       setLoading(true);
       return request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),
