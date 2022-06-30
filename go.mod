@@ -243,6 +243,6 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
-	github.com/weaveworks/weave-gitops => githubs.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220623134044-59f42abc1a29
+	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops v0.8.1-rc.2.0.20220623134044-59f42abc1a29
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 )
