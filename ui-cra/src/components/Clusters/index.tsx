@@ -33,6 +33,7 @@ import { Checkbox, withStyles } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
+import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 
 interface Size {
@@ -69,6 +70,11 @@ const TableWrapper = styled.div`
   td:nth-child(2) {
     width: 650px;
   }
+  td:nth-child(7) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
   a {
     color: ${theme.colors.primary};
   }
@@ -86,6 +92,14 @@ export const PRdefaults = {
   pullRequestTitle: 'Deletes capi cluster(s)',
   commitMessage: 'Deletes capi cluster(s)',
 };
+
+export function computeMessage(conditions: Condition[]) {
+  const readyCondition = conditions.find(
+    c => c.type === 'Ready' || c.type === 'Available',
+  );
+
+  return readyCondition ? readyCondition.message : 'unknown error';
+}
 
 const IndividualCheckbox = withStyles({
   root: {
@@ -388,15 +402,18 @@ const MCCP: FC = () => {
                     },
                     {
                       label: 'Name',
-                      value: (c: GitopsClusterEnriched) => (
-                        <Link
-                          to={`/cluster?clusterName=${c.name}`}
-                          color={theme.colors.primary}
-                          data-cluster-name={c.name}
-                        >
-                          {c.name}
-                        </Link>
-                      ),
+                      value: (c: GitopsClusterEnriched) =>
+                        c.controlPlane === true ? (
+                          <span data-cluster-name={c.name}>{c.name}</span>
+                        ) : (
+                          <Link
+                            to={`/cluster?clusterName=${c.name}`}
+                            color={theme.colors.primary}
+                            data-cluster-name={c.name}
+                          >
+                            {c.name}
+                          </Link>
+                        ),
                       sortValue: ({ name }) => name,
                       textSearchable: true,
                       maxWidth: 275,
@@ -427,6 +444,14 @@ const MCCP: FC = () => {
                         ) : null,
                       sortType: SortType.number,
                       sortValue: statusSortHelper,
+                    },
+                    {
+                      label: 'Message',
+                      value: (c: GitopsClusterEnriched) =>
+                        (c.conditions && c.conditions[0].message) || null,
+                      sortType: SortType.string,
+                      sortValue: ({ conditions }) => computeMessage(conditions),
+                      maxWidth: 600,
                     },
                   ]}
                 />
