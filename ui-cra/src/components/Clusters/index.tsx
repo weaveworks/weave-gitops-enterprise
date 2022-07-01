@@ -70,6 +70,11 @@ const TableWrapper = styled.div`
   td:nth-child(2) {
     width: 650px;
   }
+  td:nth-child(7) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
   a {
     color: ${theme.colors.primary};
   }
@@ -399,7 +404,7 @@ const MCCP: FC = () => {
                       label: 'Name',
                       value: (c: GitopsClusterEnriched) =>
                         c.controlPlane === true ? (
-                          c.name
+                          <span data-cluster-name={c.name}>{c.name}</span>
                         ) : (
                           <Link
                             to={`/cluster?clusterName=${c.name}`}
