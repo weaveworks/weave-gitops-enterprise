@@ -1,20 +1,22 @@
-import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
-import moment from 'moment';
-import { FC } from 'react';
-import { Link } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
-import { usePolicyStyle } from '../../../Policies/PolicyStyles';
-import CanaryStatus from '../../SharedComponent/CanaryStatus';
-import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
-import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
-import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
-import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
-import { TableWrapper } from '../../CanaryStyles';
 import {
   Canary,
   CanaryAnalysis,
   CanaryStatus as Status,
+  CanaryTargetDeployment
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import moment from 'moment';
+import React, { FC } from 'react';
+import { Link } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
+import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
+import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
+import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
+import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
+import { usePolicyStyle } from '../../../Policies/PolicyStyles';
+import { TableWrapper } from '../../CanaryStyles';
+import CanaryStatus from '../../SharedComponent/CanaryStatus';
 interface Props {
   canaries: Canary[];
 }
@@ -59,6 +61,41 @@ export function getProgressValue(
         total: analysis?.iterations || 0,
       };
   }
+}
+
+function toLink(img: string) {
+  return (
+    <a target="_blank" rel="noreferrer" href={`https://${img}`}>
+      {img}
+    </a>
+  );
+}
+
+function formatPromoted(target?: CanaryTargetDeployment): any {
+  if (!target) {
+    return '';
+  }
+
+  // Most of the time we will only have one container and therefore one image.
+  // If that is the case, we don't need to list container:image key value pairs.
+  if (_.keys(target.promotedImageVersions).length === 1) {
+    const img = _.first(_.values(target.promotedImageVersions)) || '';
+    return toLink(img);
+  }
+
+  const out: any[] = [];
+  _.each(target.promotedImageVersions, (img, container) => {
+    out.push(
+      <React.Fragment key={container}>
+        <span>
+          {container}: {toLink(img)}
+        </span>{' '}
+      </React.Fragment>,
+    );
+  });
+
+  // Remove trainling comma
+  return out;
 }
 
 export const CanaryTable: FC<Props> = ({ canaries }) => {
@@ -125,6 +162,10 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                   value: (c: Canary) =>
                     (c.status?.conditions && c.status?.conditions[0].message) ||
                     '--',
+                },
+                {
+                  label: 'Promoted',
+                  value: (c: Canary) => formatPromoted(c.targetDeployment),
                 },
                 {
                   label: 'Last Updated',

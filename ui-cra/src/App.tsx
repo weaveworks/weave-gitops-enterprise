@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { muiTheme } from './muiTheme';
 
+import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
 import {
   AppContextProvider,
   applicationsClient,
@@ -13,6 +14,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import Background from './assets/img/background.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
+import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
@@ -70,9 +72,11 @@ const App: FC = () => {
           <QueryClientProvider client={queryClient}>
             <BrowserRouter basename={process.env.PUBLIC_URL}>
               <GlobalStyle />
-              <AppContextProvider applicationsClient={applicationsClient}>
-                <ResponsiveDrawer />
-              </AppContextProvider>
+              <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
+                <AppContextProvider applicationsClient={applicationsClient}>
+                  <ResponsiveDrawer />
+                </AppContextProvider>
+              </ProgressiveDeliveryProvider>
             </BrowserRouter>
           </QueryClientProvider>
         </RequestContextProvider>
