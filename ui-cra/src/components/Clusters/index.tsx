@@ -33,6 +33,7 @@ import { Checkbox, withStyles } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
+import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 
 interface Size {
   size?: 'small';
@@ -85,6 +86,14 @@ export const PRdefaults = {
   pullRequestTitle: 'Deletes capi cluster(s)',
   commitMessage: 'Deletes capi cluster(s)',
 };
+
+export function computeMessage(conditions: Condition[]) {
+  const readyCondition = conditions.find(
+    c => c.type === 'Ready' || c.type === 'Available',
+  );
+
+  return readyCondition ? readyCondition.message : 'unknown error';
+}
 
 const MCCP: FC = () => {
   const { clusters, isLoading, count, selectedClusters, setSelectedClusters } =
@@ -354,15 +363,18 @@ const MCCP: FC = () => {
                     },
                     {
                       label: 'Name',
-                      value: (c: GitopsClusterEnriched) => (
-                        <Link
-                          to={`/cluster?clusterName=${c.name}`}
-                          color={theme.colors.primary}
-                          data-cluster-name={c.name}
-                        >
-                          {c.name}
-                        </Link>
-                      ),
+                      value: (c: GitopsClusterEnriched) =>
+                        c.controlPlane === true ? (
+                          c.name
+                        ) : (
+                          <Link
+                            to={`/cluster?clusterName=${c.name}`}
+                            color={theme.colors.primary}
+                            data-cluster-name={c.name}
+                          >
+                            {c.name}
+                          </Link>
+                        ),
                       sortValue: ({ name }) => name,
                       textSearchable: true,
                       maxWidth: 275,
@@ -394,6 +406,35 @@ const MCCP: FC = () => {
                       sortType: SortType.number,
                       sortValue: statusSortHelper,
                     },
+                    {
+                      label: 'Message',
+                      value: (c: GitopsClusterEnriched) =>
+                        (c.conditions && c.conditions[0].message) || null,
+                      sortType: SortType.string,
+                      sortValue: ({ conditions }) => computeMessage(conditions),
+                      maxWidth: 600,
+                    },
+                    // {
+                    //   label: 'Status',
+                    //   value: (u: UnstructuredObject) =>
+                    //     u.conditions.length > 0 ? (
+                    //       <KubeStatusIndicator
+                    //         conditions={u.conditions}
+                    //         suspended={u.suspended}
+                    //         short
+                    //       />
+                    //     ) : null,
+                    //   sortType: SortType.number,
+                    //   sortValue: statusSortHelper,
+                    // },
+                    // {
+                    //   label: 'Message',
+                    //   value: (u: UnstructuredObject) =>
+                    //     _.first(u.conditions)?.message,
+                    //   sortType: SortType.string,
+                    //   sortValue: ({ conditions }) => computeMessage(conditions),
+                    //   maxWidth: 600,
+                    // },
                   ]}
                 />
               </TableWrapper>

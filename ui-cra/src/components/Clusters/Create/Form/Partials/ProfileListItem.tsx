@@ -192,7 +192,7 @@ const ProfilesListItem: FC<{
               <Input
                 id="profile-namespace"
                 value={namespace}
-                placeholder=""
+                placeholder="flux-system"
                 onChange={handleChangeNamespace}
                 error={!isNamespaceValid}
               />
