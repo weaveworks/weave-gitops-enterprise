@@ -55,10 +55,6 @@ spec:
                 required:
                 - name
                 type: object
-              clusterReadinessBackoff:
-                description: When checking for readiness, this is the time to wait before
-                  checking again.
-                type: string
               secretRef:
                 description: SecretRef specifies the Secret containing the kubeconfig
                   for a cluster.

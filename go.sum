@@ -997,8 +997,8 @@ github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802/go.mod h1
 github.com/tomwright/dasel v1.22.1 h1:Y1wefjI7UlhEsHdOozzp3aGMsipKGGyaft6waUU1m24=
 github.com/tomwright/dasel v1.22.1/go.mod h1:YmXrjcQHjmOfvG/ZVg7P0hhURwRlqtbNhSWQu0fOeRQ=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
-github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4 h1:StERkssvzeofBgNpkSI6MIrink9E3piomjiByVU/3og=
-github.com/weaveworks/cluster-controller v0.0.0-20220329095024-22c0a57802a4/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
+github.com/weaveworks/cluster-controller v1.2.0 h1:Q+c5GncBHAf6z7KgvyXM4sCDftC4LfY9d8giD1s8e+w=
+github.com/weaveworks/cluster-controller v1.2.0/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQdHzmBimPxGIus5JOvNPu+tWxOTC+Q4w9fJOok=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/policy-agent/api v1.0.3 h1:gq+YXSyFZdcYtVZoqa4awrMBYXUofsCFh/R0Fb4BE2Q=
