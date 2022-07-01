@@ -295,7 +295,8 @@ func verifyPRCreated(gp GitProviderEnv, repoAbsolutePath string) string {
 	var prs []gitprovider.PullRequest
 
 	Eventually(func(g Gomega) {
-		prs, err := or.PullRequests().List(ctx)
+		var err error
+		prs, err = or.PullRequests().List(ctx)
 		g.Expect(err).ShouldNot(HaveOccurred())
 
 		g.Expect(len(prs)).To(BeNumerically(">=", 1))
