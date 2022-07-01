@@ -40,12 +40,15 @@ import (
 )
 
 const (
-	capiClusterRef       string = "CAPICluster"
-	secretRef            string = "Secret"
-	HelmReleaseNamespace        = "flux-system"
+	capiClusterRef            string = "CAPICluster"
+	secretRef                 string = "Secret"
+	HelmReleaseNamespace             = "flux-system"
+	deleteClustersRequiredErr        = "at least one cluster must be specified"
 )
 
-var labels = []string{}
+var (
+	labels = []string{}
+)
 
 type generateProfileFilesParams struct {
 	helmRepository         types.NamespacedName
@@ -125,7 +128,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-clusters-namespace"), msg.ParameterValues)
+	clusterNamespace := getClusterNamespace(msg.ClusterNamespace)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
@@ -150,9 +154,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if !ok {
 		return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' parameter in supplied values")
 	}
+	cluster := types.NamespacedName{
+		Name:      clusterName,
+		Namespace: clusterNamespace,
+	}
 
 	content := string(tmplWithValuesAndCredentials[:])
-	path := getClusterManifestPath(clusterName)
+	path := getClusterManifestPath(cluster)
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &path,
@@ -196,7 +204,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if len(msg.Values) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
-			clusterName,
+			cluster,
 			client,
 			generateProfileFilesParams{
 				helmRepository: types.NamespacedName{
@@ -256,12 +264,32 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	}
 
 	var filesList []gitprovider.CommitFile
-	for _, clusterName := range msg.ClusterNames {
-		path := getClusterManifestPath(clusterName)
-		filesList = append(filesList, gitprovider.CommitFile{
-			Path:    &path,
-			Content: nil,
-		})
+	if len(msg.ClusterNamespacedNames) > 0 {
+		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
+			path := getClusterManifestPath(
+				types.NamespacedName{
+					Name:      clusterNamespacedName.Name,
+					Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
+				},
+			)
+			filesList = append(filesList, gitprovider.CommitFile{
+				Path:    &path,
+				Content: nil,
+			})
+		}
+	} else {
+		for _, clusterName := range msg.ClusterNames {
+			path := getClusterManifestPath(
+				types.NamespacedName{
+					Name:      clusterName,
+					Namespace: getClusterNamespace(""),
+				},
+			)
+			filesList = append(filesList, gitprovider.CommitFile{
+				Path:    &path,
+				Content: nil,
+			})
+		}
 	}
 
 	if msg.HeadBranch == "" {
@@ -308,18 +336,13 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	var sec corev1.Secret
 	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
 
-	ns := viper.GetString("capi-clusters-namespace")
-	if ns == "" {
-		return nil, fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
-	}
-
 	cl, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	key := client.ObjectKey{
-		Namespace: ns,
+		Namespace: getClusterNamespace(msg.ClusterNamespace),
 		Name:      name,
 	}
 	err = cl.Get(ctx, key, &sec)
@@ -451,7 +474,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, clusterName string, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
@@ -525,16 +548,16 @@ func generateProfileFiles(ctx context.Context, clusterName string, kubeClient cl
 
 	}
 
-	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, HelmReleaseNamespace, installs)
+	helmReleases, err := charts.MakeHelmReleasesInLayers(cluster.Name, HelmReleaseNamespace, installs)
 	if err != nil {
-		return nil, fmt.Errorf("making helm releases for cluster %s: %w", clusterName, err)
+		return nil, fmt.Errorf("making helm releases for cluster %s: %w", cluster.Name, err)
 	}
 	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
 	if err != nil {
 		return nil, err
 	}
 
-	profilePath := getClusterProfilesPath(clusterName)
+	profilePath := getClusterProfilesPath(cluster)
 	profileContent := string(c)
 	file := &gitprovider.CommitFile{
 		Path:    &profilePath,
@@ -585,17 +608,18 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest) error {
 	var err error
 
-	if msg.ClusterNames == nil {
-		err = multierror.Append(err, fmt.Errorf("at least one cluster name must be specified"))
+	if len(msg.ClusterNamespacedNames) == 0 && len(msg.ClusterNames) == 0 {
+		err = multierror.Append(err, fmt.Errorf(deleteClustersRequiredErr))
 	}
 
 	return err
 }
 
-func getClusterManifestPath(clusterName string) string {
+func getClusterManifestPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-path"),
-		fmt.Sprintf("%s.yaml", clusterName),
+		cluster.Namespace,
+		fmt.Sprintf("%s.yaml", cluster.Name),
 	)
 }
 
@@ -607,10 +631,11 @@ func getCommonKustomizationPath(clusterName string) string {
 	)
 }
 
-func getClusterProfilesPath(clusterName string) string {
+func getClusterProfilesPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
-		clusterName,
+		cluster.Namespace,
+		cluster.Name,
 		profiles.ManifestFileName,
 	)
 }

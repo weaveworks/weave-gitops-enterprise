@@ -135,7 +135,10 @@ func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, 
 
 		clusters = append(clusters,
 			mngr.Cluster{
-				Name:        cluster.Name,
+				Name: types.NamespacedName{
+					Name:      cluster.Name,
+					Namespace: cluster.Namespace,
+				}.String(),
 				Server:      restCfg.Host,
 				BearerToken: restCfg.BearerToken,
 				TLSConfig:   restCfg.TLSClientConfig,
