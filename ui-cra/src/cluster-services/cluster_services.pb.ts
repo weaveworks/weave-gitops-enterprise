@@ -62,6 +62,7 @@ export type RenderTemplateRequest = {
   values?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
+  clusterNamespace?: string
 }
 
 export type RenderTemplateResponse = {
@@ -157,6 +158,7 @@ export type CreatePullRequestRequest = {
   credentials?: Credential
   values?: ProfileValues[]
   repositoryApiUrl?: string
+  clusterNamespace?: string
 }
 
 export type CreatePullRequestResponse = {
@@ -179,6 +181,11 @@ export type CreateTfControllerPullRequestResponse = {
   webUrl?: string
 }
 
+export type ClusterNamespacedName = {
+  namespace?: string
+  name?: string
+}
+
 export type DeleteClustersPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
@@ -189,6 +196,7 @@ export type DeleteClustersPullRequestRequest = {
   commitMessage?: string
   credentials?: Credential
   repositoryApiUrl?: string
+  clusterNamespacedNames?: ClusterNamespacedName[]
 }
 
 export type DeleteClustersPullRequestResponse = {
@@ -205,6 +213,7 @@ export type ListCredentialsResponse = {
 
 export type GetKubeconfigRequest = {
   clusterName?: string
+  clusterNamespace?: string
 }
 
 export type GetKubeconfigResponse = {

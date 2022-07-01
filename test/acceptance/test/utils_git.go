@@ -292,11 +292,16 @@ func verifyPRCreated(gp GitProviderEnv, repoAbsolutePath string) string {
 	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
 	Expect(repoErr).ShouldNot(HaveOccurred())
 
-	prs, err := or.PullRequests().List(ctx)
-	Expect(err).ShouldNot(HaveOccurred())
+	var prs []gitprovider.PullRequest
 
-	Expect(len(prs)).To(BeNumerically(">=", 1))
-	Expect(prs[0].Get().Merged).To(BeFalse())
+	Eventually(func(g Gomega) {
+		var err error
+		prs, err = or.PullRequests().List(ctx)
+		g.Expect(err).ShouldNot(HaveOccurred())
+
+		g.Expect(len(prs)).To(BeNumerically(">=", 1))
+		g.Expect(prs[0].Get().Merged).To(BeFalse())
+	}, ASSERTION_1MINUTE_TIME_OUT).Should(Succeed())
 
 	return prs[0].Get().WebURL
 }

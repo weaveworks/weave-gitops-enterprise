@@ -367,7 +367,7 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 			committedFiles: []CommittedFile{
 				{
-					Path: "clusters/my-cluster/clusters/dev.yaml",
+					Path: "clusters/my-cluster/clusters/default/dev.yaml",
 					Content: `apiVersion: fooversion
 kind: fookind
 metadata:
@@ -375,6 +375,7 @@ metadata:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
   name: dev
+  namespace: default
 `,
 				},
 				{
@@ -396,7 +397,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/dev/profiles.yaml",
+					Path: "clusters/default/dev/profiles.yaml",
 					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -466,7 +467,7 @@ status: {}
 			},
 			committedFiles: []CommittedFile{
 				{
-					Path: "clusters/my-cluster/clusters/dev.yaml",
+					Path: "clusters/my-cluster/clusters/default/dev.yaml",
 					Content: `apiVersion: fooversion
 kind: fookind
 metadata:
@@ -474,6 +475,7 @@ metadata:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
   name: dev
+  namespace: default
 `,
 				},
 				{
@@ -495,7 +497,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/dev/profiles.yaml",
+					Path: "clusters/default/dev/profiles.yaml",
 					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -659,6 +661,31 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			err: errors.New("secret \"default/dev-kubeconfig\" was found but is missing key \"value\""),
 		},
+		{
+			name: "use cluster_namespace to get secret",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "kube-system", "value", "foo"),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName:      "dev",
+				ClusterNamespace: "kube-system",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+		},
+		{
+			name: "no namespace and lookup across namespaces, use default namespace",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "value", "foo"),
+			},
+			clusterObjectsNamespace: "",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
@@ -700,7 +727,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		{
 			name: "validation errors",
 			req:  &capiv1_protos.DeleteClustersPullRequestRequest{},
-			err:  errors.New("at least one cluster name must be specified"),
+			err:  errors.New(deleteClustersRequiredErr),
 		},
 		//
 		// -- FIXME: consider checking the contents of git before trying to delete
@@ -724,6 +751,29 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNames:  []string{"foo", "bar"},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-02",
+				BaseBranch:    "feature-01",
+				Title:         "Delete Cluster",
+				Description:   "Deletes a cluster",
+				CommitMessage: "Remove cluster manifest",
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name:     "create delete pull request with namespaced cluster names",
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+				ClusterNamespacedNames: []*capiv1_proto.ClusterNamespacedName{
+					{
+						Name:      "foo",
+						Namespace: "ns-foo",
+					},
+					{
+						Name:      "bar",
+						Namespace: "ns-bar",
+					},
+				},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-02",
 				BaseBranch:    "feature-01",
@@ -910,7 +960,10 @@ func TestGenerateProfileFiles(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"cluster-foo",
+		types.NamespacedName{
+			Name:      "cluster-foo",
+			Namespace: "ns-foo",
+		},
 		c,
 		generateProfileFilesParams{
 			helmRepository: types.NamespacedName{
@@ -976,7 +1029,10 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"cluster-foo",
+		types.NamespacedName{
+			Name:      "cluster-foo",
+			Namespace: "ns-foo",
+		},
 		c,
 		generateProfileFilesParams{
 			helmRepository: types.NamespacedName{
@@ -1037,7 +1093,10 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
-		"cluster-foo",
+		types.NamespacedName{
+			Name:      "cluster-foo",
+			Namespace: "ns-foo",
+		},
 		c,
 		generateProfileFilesParams{
 			helmRepository: types.NamespacedName{
