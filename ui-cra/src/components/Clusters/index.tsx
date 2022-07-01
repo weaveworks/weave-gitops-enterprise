@@ -414,27 +414,6 @@ const MCCP: FC = () => {
                       sortValue: ({ conditions }) => computeMessage(conditions),
                       maxWidth: 600,
                     },
-                    // {
-                    //   label: 'Status',
-                    //   value: (u: UnstructuredObject) =>
-                    //     u.conditions.length > 0 ? (
-                    //       <KubeStatusIndicator
-                    //         conditions={u.conditions}
-                    //         suspended={u.suspended}
-                    //         short
-                    //       />
-                    //     ) : null,
-                    //   sortType: SortType.number,
-                    //   sortValue: statusSortHelper,
-                    // },
-                    // {
-                    //   label: 'Message',
-                    //   value: (u: UnstructuredObject) =>
-                    //     _.first(u.conditions)?.message,
-                    //   sortType: SortType.string,
-                    //   sortValue: ({ conditions }) => computeMessage(conditions),
-                    //   maxWidth: 600,
-                    // },
                   ]}
                 />
               </TableWrapper>
