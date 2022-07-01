@@ -62,6 +62,7 @@ export type RenderTemplateRequest = {
   values?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
+  clusterNamespace?: string
 }
 
 export type RenderTemplateResponse = {
@@ -157,6 +158,7 @@ export type CreatePullRequestRequest = {
   credentials?: Credential
   values?: ProfileValues[]
   repositoryApiUrl?: string
+  clusterNamespace?: string
 }
 
 export type CreatePullRequestResponse = {
@@ -179,6 +181,11 @@ export type CreateTfControllerPullRequestResponse = {
   webUrl?: string
 }
 
+export type ClusterNamespacedName = {
+  namespace?: string
+  name?: string
+}
+
 export type DeleteClustersPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
@@ -189,6 +196,7 @@ export type DeleteClustersPullRequestRequest = {
   commitMessage?: string
   credentials?: Credential
   repositoryApiUrl?: string
+  clusterNamespacedNames?: ClusterNamespacedName[]
 }
 
 export type DeleteClustersPullRequestResponse = {
@@ -205,6 +213,7 @@ export type ListCredentialsResponse = {
 
 export type GetKubeconfigRequest = {
   clusterName?: string
+  clusterNamespace?: string
 }
 
 export type GetKubeconfigResponse = {
@@ -381,6 +390,31 @@ export type Policy = {
   clusterName?: string
 }
 
+export type ObjectRef = {
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type Event = {
+  type?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+  component?: string
+  host?: string
+  name?: string
+}
+
+export type ListEventsRequest = {
+  involvedObject?: ObjectRef
+  clusterName?: string
+}
+
+export type ListEventsResponse = {
+  events?: Event[]
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -432,5 +466,8 @@ export class ClustersService {
   }
   static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
     return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyviolations/${req["violationId"]}?${fm.renderURLSearchParams(req, ["violationId"])}`, {...initReq, method: "GET"})
+  }
+  static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

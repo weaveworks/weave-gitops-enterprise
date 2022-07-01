@@ -104,5 +104,5 @@ func TestParseTemplateMeta_bad_parameter(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
-	assert.EqualError(t, err, "failed to get parameters processing template: missing closing brace")
+	assert.EqualError(t, err, "failed to parse params in template: processing template: missing closing brace")
 }

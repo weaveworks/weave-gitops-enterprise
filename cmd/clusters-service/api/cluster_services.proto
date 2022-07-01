@@ -133,6 +133,13 @@ service ClustersService {
       get : "/v1/policyviolations/{violation_id}"
     };
   }
+
+  // ListEvents returns the k8s events for a given object
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+    option (google.api.http) = {
+      get : "/v1/enterprise/events"
+    };
+  }
 }
 
 message ListTemplatesRequest {
@@ -185,6 +192,7 @@ message RenderTemplateRequest {
   map<string, string> values = 2;
   Credential credentials = 3;
   string template_kind = 4;
+  string cluster_namespace = 5;
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
@@ -282,6 +290,7 @@ message CreatePullRequestRequest {
   repeated ProfileValues values = 10;
   // The repo api url.
   string repository_api_url = 11;
+  string cluster_namespace = 12;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
@@ -313,6 +322,11 @@ message CreateTfControllerPullRequestResponse {
   string web_url = 1;
 }
 
+message ClusterNamespacedName {
+  string namespace = 1;
+  string name = 2;
+}
+
 message DeleteClustersPullRequestRequest {
   // The repository to use.
   string repository_url = 1;
@@ -332,6 +346,7 @@ message DeleteClustersPullRequestRequest {
   Credential credentials = 8;
   // The repo api url.
   string repository_api_url = 9;
+  repeated ClusterNamespacedName cluster_namespaced_names = 10;
 }
 message DeleteClustersPullRequestResponse {
   // The url of the new pull request.
@@ -347,6 +362,7 @@ message ListCredentialsResponse {
 message GetKubeconfigRequest {
   // The name of the workload cluster.
   string cluster_name = 1;
+  string cluster_namespace = 2;
 }
 message GetKubeconfigResponse {
   // The Kubeconfig of the workload cluster.
@@ -516,4 +532,29 @@ message Policy {
   PolicyTargets targets = 12;
   string created_at = 13;
   string clusterName = 14;
+}
+
+message ObjectRef {
+  string kind      = 1;
+  string name      = 2;
+  string namespace = 3;
+}
+
+message Event {
+  string type      = 1;
+  string reason    = 2;
+  string message   = 3;
+  string timestamp = 4;
+  string component = 5;
+  string host      = 6;
+  string name      = 7;
+}
+
+message ListEventsRequest {
+  ObjectRef involvedObject = 1;
+  string    clusterName    = 2;
+}
+
+message ListEventsResponse {
+  repeated Event events = 1;
 }

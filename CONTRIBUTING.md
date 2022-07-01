@@ -539,6 +539,46 @@ new features.
 
 ---
 
+## Managing multiple clusters
+
+As enterprise features are deployed, the multi-cluster permissions may need to be updated as well.  For example viewing canaries from a leaf cluster did not work.  Below is an example rbac config that resolved the canary issue:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-02
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: impersonate-user-groups
+subjects:
+  - kind: ServiceAccount
+    name: demo-02
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: user-groups-impersonator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: user-groups-impersonator
+rules:
+- apiGroups: [""]
+  resources: ["users", "groups"]
+  verbs: ["impersonate"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+- apiGroups: ["apiextensions.k8s.io"] # required for canary support
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list"]
+```
+
 **CAPI NAME COLLISION WARNING**
 
 `demo-01` and `demo-02` are currently deployed on the same [GCP

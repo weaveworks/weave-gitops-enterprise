@@ -109,8 +109,8 @@ func GetApplicationsDetailPage(webDriver *agouti.Page) *ApplicationDetailPage {
 }
 
 func GetApplicationDetail(webDriver *agouti.Page, name string) *ApplicationDetail {
-	autoDetails := webDriver.FindByXPath(`//div[contains(@class,"AutomationDetail__TabContent")]//table[contains(@class, "InfoList")]/tbody`)
-	reconcileDetails := webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class,"AutomationDetail__TabContent")]//div[contains(@class, "ReconciledObjectsTable")]//table/tbody//td[1][.="%s"]/ancestor::tr`, name))
+	autoDetails := webDriver.FindByXPath(`//table[contains(@class, "InfoList")]/tbody`)
+	reconcileDetails := webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "ReconciledObjectsTable")]//table/tbody//td[1][.="%s"]/ancestor::tr`, name))
 
 	return &ApplicationDetail{
 		Source:          autoDetails.FindByXPath(`tr[1]/td[2]`),

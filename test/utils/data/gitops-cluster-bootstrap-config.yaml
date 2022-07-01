@@ -27,7 +27,7 @@ spec:
               "--hostname=$(GIT_PROVIDER_HOSTNAME)",
               "--owner=$(GITOPS_REPO_OWNER)",
               "--repository=$(GITOPS_REPO_NAME)",
-              "--path=./clusters/{{ .ObjectMeta.Name }}",
+              "--path=./clusters/{{ .ObjectMeta.Namespace }}/{{ .ObjectMeta.Name }}",
             ]
           envFrom:
             - secretRef:
