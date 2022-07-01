@@ -1,9 +1,8 @@
 {{- if .Values.rbac.adminUserRoleBindings.create -}}
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: wego-admin-read-apps
-  namespace: flux-system
 subjects:
 - kind: User
   name: "wego-admin"
@@ -27,6 +26,7 @@ roleRef:
   name: gitops-templates-reader
   apiGroup: rbac.authorization.k8s.io
 ---
+{{- if .Values.config.capi.clusters.namespace }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -40,6 +40,20 @@ roleRef:
   kind: ClusterRole
   name: gitops-secrets-reader
   apiGroup: rbac.authorization.k8s.io
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-read-cluster-secrets
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-secrets-reader
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -82,6 +96,20 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-read-canaries
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-canaries-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+{{- if .Values.config.capi.clusters.namespace }}
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: wego-admin-read-gitopsclusters
@@ -94,8 +122,23 @@ roleRef:
   kind: ClusterRole
   name: gitops-gitopsclusters-reader
   apiGroup: rbac.authorization.k8s.io
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-read-gitopsclusters
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-gitopsclusters-reader
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
 {{- end }}
 ---
+{{- if .Values.config.capi.clusters.namespace }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -109,3 +152,17 @@ subjects:
   - kind: User
     name: wego-admin
     apiGroup: rbac.authorization.k8s.io
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-gitops-capi-cluster-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gitops-capicluster-reader
+subjects:
+  - kind: User
+    name: wego-admin
+    apiGroup: rbac.authorization.k8s.io
+{{- end }}

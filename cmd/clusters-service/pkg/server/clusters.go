@@ -26,6 +26,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/helm/pkg/chartutil"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -35,17 +36,33 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"k8s.io/apimachinery/pkg/api/validation"
 )
 
 const (
-	capiClusterRef string = "CAPICluster"
-	secretRef      string = "Secret"
+	capiClusterRef            string = "CAPICluster"
+	secretRef                 string = "Secret"
+	HelmReleaseNamespace             = "flux-system"
+	deleteClustersRequiredErr        = "at least one cluster must be specified"
 )
 
-var labels = []string{}
+var (
+	labels = []string{}
+)
+
+type generateProfileFilesParams struct {
+	helmRepository         types.NamespacedName
+	helmRepositoryCacheDir string
+	profileValues          []*capiv1_proto.ProfileValues
+	parameterValues        map[string]string
+}
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
-	cl, err := s.clustersLibrary.List(ctx)
+	listOptions := client.ListOptions{
+		Limit:    msg.GetPageSize(),
+		Continue: msg.GetPageToken(),
+	}
+	cl, nextPageToken, err := s.clustersLibrary.List(ctx, listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +97,19 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		}
 	}
 
+	// Append the management cluster to the end of clusters list
+	mgmtCluster, err := getManagementCluster()
+	if err != nil {
+		return nil, err
+	}
+
+	clusters = append(clusters, mgmtCluster)
+
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
 	return &capiv1_proto.ListGitopsClustersResponse{
 		GitopsClusters: clusters,
-		Total:          int32(len(cl))}, err
+		NextPageToken:  nextPageToken,
+		Total:          int32(len(clusters))}, err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
@@ -102,7 +128,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-clusters-namespace"), msg.ParameterValues)
+	clusterNamespace := getClusterNamespace(msg.ClusterNamespace)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
@@ -127,9 +154,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if !ok {
 		return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' parameter in supplied values")
 	}
+	cluster := types.NamespacedName{
+		Name:      clusterName,
+		Namespace: clusterNamespace,
+	}
 
 	content := string(tmplWithValuesAndCredentials[:])
-	path := getClusterManifestPath(clusterName)
+	path := getClusterManifestPath(cluster)
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &path,
@@ -173,13 +204,17 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if len(msg.Values) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
-			s.profileHelmRepositoryName,
-			viper.GetString("runtime-namespace"),
-			s.helmRepositoryCacheDir,
-			clusterName,
+			cluster,
 			client,
-			msg.Values,
-			msg.ParameterValues,
+			generateProfileFilesParams{
+				helmRepository: types.NamespacedName{
+					Name:      s.profileHelmRepositoryName,
+					Namespace: viper.GetString("runtime-namespace"),
+				},
+				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
+				profileValues:          msg.Values,
+				parameterValues:        msg.ParameterValues,
+			},
 		)
 		if err != nil {
 			return nil, err
@@ -229,12 +264,32 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	}
 
 	var filesList []gitprovider.CommitFile
-	for _, clusterName := range msg.ClusterNames {
-		path := getClusterManifestPath(clusterName)
-		filesList = append(filesList, gitprovider.CommitFile{
-			Path:    &path,
-			Content: nil,
-		})
+	if len(msg.ClusterNamespacedNames) > 0 {
+		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
+			path := getClusterManifestPath(
+				types.NamespacedName{
+					Name:      clusterNamespacedName.Name,
+					Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
+				},
+			)
+			filesList = append(filesList, gitprovider.CommitFile{
+				Path:    &path,
+				Content: nil,
+			})
+		}
+	} else {
+		for _, clusterName := range msg.ClusterNames {
+			path := getClusterManifestPath(
+				types.NamespacedName{
+					Name:      clusterName,
+					Namespace: getClusterNamespace(""),
+				},
+			)
+			filesList = append(filesList, gitprovider.CommitFile{
+				Path:    &path,
+				Content: nil,
+			})
+		}
 	}
 
 	if msg.HeadBranch == "" {
@@ -281,18 +336,13 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	var sec corev1.Secret
 	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
 
-	ns := viper.GetString("capi-clusters-namespace")
-	if ns == "" {
-		return nil, fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
-	}
-
 	cl, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	key := client.ObjectKey{
-		Namespace: ns,
+		Namespace: getClusterNamespace(msg.ClusterNamespace),
 		Name:      name,
 	}
 	err = cl.Get(ctx, key, &sec)
@@ -424,12 +474,9 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, helmRepositoryCacheDir, clusterName string, kubeClient client.Client, profileValues []*capiv1_proto.ProfileValues, parameterValues map[string]string) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
-	err := kubeClient.Get(ctx, client.ObjectKey{
-		Name:      helmRepoName,
-		Namespace: helmRepoNamespace,
-	}, helmRepo)
+	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
 		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
 	}
@@ -439,8 +486,8 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      helmRepoName,
-			Namespace: helmRepoNamespace,
+			Name:      args.helmRepository.Name,
+			Namespace: args.helmRepository.Namespace,
 		},
 		Spec: helmRepo.Spec,
 	}
@@ -453,10 +500,10 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	}
 
 	var installs []charts.ChartInstall
-	for _, v := range profileValues {
+	for _, v := range args.profileValues {
 		// Check the values and if empty use profile defaults. This should happen before parsing.
 		if v.Values == "" {
-			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, helmRepositoryCacheDir, sourceRef, helmRepo)
+			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
 			}
@@ -475,7 +522,7 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
 		}
 
-		data, err := templates.ProcessTemplate(decoded, parameterValues)
+		data, err := templates.ProcessTemplate(decoded, args.parameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -494,22 +541,23 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 					Kind:      "HelmRepository",
 				},
 			},
-			Layer:  v.Layer,
-			Values: parsed,
+			Layer:     v.Layer,
+			Values:    parsed,
+			Namespace: v.Namespace,
 		})
 
 	}
 
-	helmReleases, err := charts.MakeHelmReleasesInLayers(clusterName, "flux-system", installs)
+	helmReleases, err := charts.MakeHelmReleasesInLayers(cluster.Name, HelmReleaseNamespace, installs)
 	if err != nil {
-		return nil, fmt.Errorf("making helm releases for cluster %s: %w", clusterName, err)
+		return nil, fmt.Errorf("making helm releases for cluster %s: %w", cluster.Name, err)
 	}
 	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
 	if err != nil {
 		return nil, err
 	}
 
-	profilePath := getClusterProfilesPath(clusterName)
+	profilePath := getClusterProfilesPath(cluster)
 	profileContent := string(c)
 	file := &gitprovider.CommitFile{
 		Path:    &profilePath,
@@ -517,6 +565,18 @@ func generateProfileFiles(ctx context.Context, helmRepoName, helmRepoNamespace, 
 	}
 
 	return file, nil
+}
+
+func validateNamespace(namespace string) error {
+	if namespace == "" {
+		return nil
+	}
+	errs := validation.ValidateNamespaceName(namespace, false)
+	if len(errs) != 0 {
+		return fmt.Errorf("invalid namespace: %s, %s", namespace, strings.Join(errs, ","))
+	}
+
+	return nil
 }
 
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
@@ -530,23 +590,36 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
 	}
 
+	invalidNamespaceErr := validateNamespace(msg.ParameterValues["NAMESPACE"])
+	if invalidNamespaceErr != nil {
+		err = multierror.Append(err, invalidNamespaceErr)
+	}
+
+	for i := range msg.Values {
+		invalidNamespaceErr := validateNamespace(msg.Values[i].Namespace)
+		if invalidNamespaceErr != nil {
+			err = multierror.Append(err, invalidNamespaceErr)
+		}
+	}
+
 	return err
 }
 
 func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest) error {
 	var err error
 
-	if msg.ClusterNames == nil {
-		err = multierror.Append(err, fmt.Errorf("at least one cluster name must be specified"))
+	if len(msg.ClusterNamespacedNames) == 0 && len(msg.ClusterNames) == 0 {
+		err = multierror.Append(err, fmt.Errorf(deleteClustersRequiredErr))
 	}
 
 	return err
 }
 
-func getClusterManifestPath(clusterName string) string {
+func getClusterManifestPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-path"),
-		fmt.Sprintf("%s.yaml", clusterName),
+		cluster.Namespace,
+		fmt.Sprintf("%s.yaml", cluster.Name),
 	)
 }
 
@@ -558,10 +631,11 @@ func getCommonKustomizationPath(clusterName string) string {
 	)
 }
 
-func getClusterProfilesPath(clusterName string) string {
+func getClusterProfilesPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
-		clusterName,
+		cluster.Namespace,
+		cluster.Name,
 		profiles.ManifestFileName,
 	)
 }
@@ -650,4 +724,22 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*
 	}
 
 	return clusters, nil
+}
+
+// getManagementCluster returns the management cluster as a gitops cluster
+func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
+	name := "management"
+
+	cluster := &capiv1_proto.GitopsCluster{
+		Name: name,
+		Conditions: []*capiv1_proto.Condition{
+			{
+				Type:   "Ready",
+				Status: "True",
+			},
+		},
+		ControlPlane: true,
+	}
+
+	return cluster, nil
 }

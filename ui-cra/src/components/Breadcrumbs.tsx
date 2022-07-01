@@ -30,10 +30,12 @@ export const Count = styled.div<Size>`
     size === 'small'
       ? transparentize(0.5, weaveTheme.colors.white)
       : weaveTheme.colors.white};
-  padding: ${weaveTheme.spacing.xxs} ${weaveTheme.spacing.xs};
+  padding: 0 ${weaveTheme.spacing.xxs};
   align-self: center;
   font-size: ${({ size }) =>
-    size === 'small' ? weaveTheme.spacing.small : weaveTheme.fontSizes.normal};
+    size === 'small'
+      ? weaveTheme.fontSizes.small
+      : weaveTheme.fontSizes.normal};
   color: ${weaveTheme.colors.primary};
   margin-left: ${weaveTheme.spacing.xxs};
   border-radius: ${weaveTheme.borderRadius.soft};
@@ -68,7 +70,11 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
   return (
     <Container>
       {path.map(({ label, url, count }, index) => (
-        <div key={index} className={classes.path}>
+        <div
+          key={index}
+          className={classes.path}
+          style={{ alignItems: 'center' }}
+        >
           {index > 0 && (
             <div className={classes.divider}>
               <BreadcrumbDivider />
@@ -83,12 +89,12 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
                   {label}
                 </Link>
               </Title>
-              {!(count === undefined || count === null) && (
-                <Count className="section-header-count" size={size}>
-                  {count || 0}
-                </Count>
-              )}
             </>
+          )}
+          {!(count === undefined || count === null) && (
+            <Count className="section-header-count" size={size}>
+              {count || 0}
+            </Count>
           )}
         </div>
       ))}

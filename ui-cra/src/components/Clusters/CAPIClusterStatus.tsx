@@ -1,12 +1,9 @@
 import { fromPairs, sortBy } from 'lodash';
 import {
   Box,
-  Button,
-  Paper,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
   TableRow,
   Typography,
@@ -14,8 +11,7 @@ import {
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import useClusters from './../../contexts/Clusters';
+import { Icon, IconType, theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { CAPICluster } from '../../types/custom';
 
 // styles
@@ -27,10 +23,6 @@ const useStyles = makeStyles(() =>
     },
     section: {
       marginTop: `${weaveTheme.spacing.medium}`,
-    },
-    downloadBtn: {
-      color: weaveTheme.colors.primary,
-      padding: '0px',
     },
   }),
 );
@@ -67,7 +59,21 @@ const statusKeySortHint: { [key: string]: number } = fromPairs(
 // renderers
 
 const defaultRenderer: StatusRenderer = (key, status) => {
-  return JSON.stringify(status[key], null, 2);
+  const keyStatus = JSON.stringify(status[key], null, 2);
+  if (
+    [
+      'controlPlaneReady',
+      'controlPlaneInitialized',
+      'infrastructureReady',
+    ].includes(key)
+  ) {
+    return keyStatus === 'true' ? (
+      <Icon type={IconType.SuccessIcon} size="base" />
+    ) : (
+      <Icon type={IconType.FailedIcon} size="base" />
+    );
+  }
+  return keyStatus;
 };
 
 const conditionsRenderer: StatusRenderer = (key, status) => {
@@ -85,17 +91,13 @@ const conditionsRenderer: StatusRenderer = (key, status) => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {status.conditions.map((cond: Condition, index: number) => {
-          return (
-            <TableRow key={index}>
-              {conditionKeys.map(key => (
-                <TableCell key={key} style={{ borderBottom: 'unset' }}>
-                  {cond[key]}
-                </TableCell>
-              ))}
-            </TableRow>
-          );
-        })}
+        {status.conditions.map((cond: Condition, index: number) => (
+          <TableRow key={index}>
+            {conditionKeys.map(key => (
+              <TableCell key={key}>{cond[key]}</TableCell>
+            ))}
+          </TableRow>
+        ))}
       </TableBody>
     </Table>
   );
@@ -108,12 +110,8 @@ const statusRenderers: { [key: string]: StatusRenderer } = {
 export const CAPIClusterStatus: FC<{
   clusterName: string;
   status?: CAPICluster['status'];
-}> = ({ clusterName, status }) => {
+}> = ({ status }) => {
   const classes = useStyles();
-  const { getKubeconfig } = useClusters();
-
-  const handleClick = () =>
-    getKubeconfig(clusterName, `${clusterName}.kubeconfig`);
 
   if (!status) {
     return null;
@@ -123,45 +121,32 @@ export const CAPIClusterStatus: FC<{
   const sortedKeys = sortBy(Object.keys(status), key => statusKeySortHint[key]);
 
   return (
-    <Box margin={2}>
+    <Box>
       <Typography variant="h6" gutterBottom component="div">
         CAPI Status
       </Typography>
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableBody>
-            {sortedKeys.map(key => {
-              const renderer = statusRenderers[key] || defaultRenderer;
-              return (
-                <TableRow hover key={key}>
-                  <TableCell
-                    className={classes.conditionNameCell}
-                    component="th"
-                    scope="row"
-                    style={{ borderBottom: 'unset' }}
-                  >
-                    {key}
-                  </TableCell>
-                  <TableCell style={{ borderBottom: 'unset' }}>
-                    <StatusValue>{renderer(key, status)}</StatusValue>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <Typography
-        variant="h6"
-        gutterBottom
-        component="div"
-        className={classes.section}
-      >
-        Kubeconfig
-      </Typography>
-      <Button className={classes.downloadBtn} onClick={handleClick}>
-        Download the kubeconfig here
-      </Button>
+      <Table size="small">
+        <TableBody>
+          {sortedKeys.map(key => {
+            const renderer = statusRenderers[key] || defaultRenderer;
+            return (
+              <TableRow key={key}>
+                <TableCell
+                  className={classes.conditionNameCell}
+                  component="th"
+                  scope="row"
+                  style={{ borderBottom: 'unset' }}
+                >
+                  {key}
+                </TableCell>
+                <TableCell style={{ borderBottom: 'unset' }}>
+                  <StatusValue>{renderer(key, status)}</StatusValue>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
     </Box>
   );
 };

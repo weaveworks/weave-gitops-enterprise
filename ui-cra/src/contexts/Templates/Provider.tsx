@@ -1,24 +1,26 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
-import { Template } from '../../types/custom';
+import React, { FC, useCallback, useContext, useState } from 'react';
+import { useQuery } from 'react-query';
 import { request } from '../../utils/request';
 import { Templates } from './index';
-import { useHistory } from 'react-router-dom';
 import useNotifications from './../Notifications';
+import { EnterpriseClientContext } from '../EnterpriseClient';
+import {
+  ListTemplatesResponse,
+  Template,
+} from '../../cluster-services/cluster_services.pb';
 
 const TemplatesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<Template[] | undefined>([]);
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const { setNotifications } = useNotifications();
-
-  const history = useHistory();
+  const { api } = useContext(EnterpriseClientContext);
 
   const templatesUrl = '/v1/templates';
 
   const getTemplate = (templateName: string) =>
-    templates.find(template => template.name === templateName) || null;
+    templates?.find(template => template.name === templateName) || null;
 
   const renderTemplate = useCallback(
     data => {
@@ -45,35 +47,31 @@ const TemplatesProvider: FC = ({ children }) => {
     }).finally(() => setLoading(false));
   }, []);
 
-  const getTemplates = useCallback(() => {
-    setLoading(true);
-    request('GET', templatesUrl, {
-      cache: 'no-store',
-    })
-      .then(res => setTemplates(res.templates))
-      .catch(err =>
-        setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
-        ]),
-      )
-      .finally(() => setLoading(false));
-  }, [setNotifications]);
+  const onError = (error: Error) =>
+    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
 
-  useEffect(() => {
-    getTemplates();
-    return history.listen(getTemplates);
-  }, [history, getTemplates]);
+  const onSuccess = (data: ListTemplatesResponse) =>
+    setTemplates(data.templates);
+
+  const { isLoading } = useQuery<ListTemplatesResponse, Error>(
+    'templates',
+    () => api.ListTemplates({}),
+    {
+      keepPreviousData: true,
+      onSuccess,
+      onError,
+    },
+  );
 
   return (
     <Templates.Provider
       value={{
+        isLoading,
         templates,
         loading,
         activeTemplate,
         setActiveTemplate,
         getTemplate,
-        error,
-        setError,
         addCluster,
         renderTemplate,
         PRPreview,

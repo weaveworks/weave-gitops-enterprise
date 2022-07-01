@@ -24,8 +24,9 @@ const useStyles = makeStyles(() =>
 
 const FlexCenter = styled.div`
   display: flex;
-  lign-items: center;
+  align-items: center;
   justify-content: center;
+  height:100%
 `;
 
 const FlexStart = styled.div`
@@ -102,33 +103,4 @@ const LoadingError: React.FC<any> = ({ children, fetchFn }: ILoadingError) => {
     </>
   );
 };
-
-// export const LoadingErrorRequestInfo: React.FC<any> = ({
-//   children,
-//   requestInfo: { error, errorMessage, loading, retry },
-// }: any) => {
-//   const classes = useStyles();
-//   return (
-//     <>
-//       {loading && (
-//         <FlexCenter>
-//           <LoadingPage />
-//         </FlexCenter>
-//       )}
-//       {!loading && error && (
-//         <div>
-//           <Alert severity="error">
-//             <FlexStart>
-//               {errorMessage}
-//               <span onClick={retry} className={classes.retry}>
-//                 <Refresh />
-//               </span>
-//             </FlexStart>
-//           </Alert>
-//         </div>
-//       )}
-//       {!loading && !error && children}
-//     </>
-//   );
-// };
 export default LoadingError;

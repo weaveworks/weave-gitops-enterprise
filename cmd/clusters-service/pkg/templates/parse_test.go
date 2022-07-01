@@ -150,7 +150,7 @@ func TestParseFileResourceTemplate(t *testing.T) {
 	want := &gapiv1.GitOpsTemplate{
 		Template: templates.Template{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "GitopsTemplate",
+				Kind:       "GitOpsTemplate",
 				APIVersion: "clustertemplates.weave.works/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
@@ -215,6 +215,30 @@ func TestParams(t *testing.T) {
 				"AWS_NODE_MACHINE_TYPE",
 				"AWS_SSH_KEY_NAME",
 				"CLUSTER_NAME",
+			},
+		},
+		{
+			filename: "testdata/text-template.yaml",
+			want: []string{
+				"CLUSTER_NAME",
+			},
+		},
+		{
+			filename: "testdata/text-template2.yaml",
+			want: []string{
+				"CLUSTER_NAME",
+				"S3_BUCKET_NAME",
+				"TEST_VALUE",
+			},
+		},
+		{
+			filename: "testdata/text-template3.yaml",
+			want: []string{
+				"CLUSTER_NAME",
+				"CONTROL_PLANE_MACHINE_COUNT",
+				"KUBERNETES_VERSION",
+				"NAMESPACE",
+				"WORKER_MACHINE_COUNT",
 			},
 		},
 	}

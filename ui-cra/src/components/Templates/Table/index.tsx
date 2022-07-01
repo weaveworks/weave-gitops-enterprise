@@ -17,8 +17,8 @@ import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import useTemplates from '../../../contexts/Templates';
 import { Loader } from '../../Loader';
-import { Template } from '../../../types/custom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { Template } from '../../../cluster-services/cluster_services.pb';
 
 const localMuiTheme = createTheme({
   ...muiTheme,
@@ -49,17 +49,19 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-export const TemplatesTable: FC<{ templates: Template[] }> = ({
+export const TemplatesTable: FC<{ templates: Template[] | undefined }> = ({
   templates,
 }) => {
   const classes = useStyles();
-  const { loading } = useTemplates();
-  const [sortedTemplates, setSortedTemplates] = useState<Template[]>(templates);
+  const { isLoading } = useTemplates();
+  const [sortedTemplates, setSortedTemplates] = useState<
+    Template[] | undefined
+  >(templates);
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   const sort = () => {
-    const sorted = sortedTemplates.sort();
-    const revSorted = sortedTemplates.reverse();
+    const sorted = sortedTemplates?.sort();
+    const revSorted = sortedTemplates?.reverse();
     if (order === 'asc') {
       setSortedTemplates(sorted);
     } else {
@@ -76,11 +78,11 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
     <div id="templates-list">
       <ThemeProvider theme={localMuiTheme}>
         <Paper className={classes.paper}>
-          {loading ? (
+          {isLoading ? (
             <Loader />
           ) : (
             <Table className={classes.table} size="small">
-              {sortedTemplates.length === 0 ? (
+              {sortedTemplates?.length === 0 ? (
                 <caption>No templates available</caption>
               ) : null}
               <TableHead className={classes.tableHead}>
@@ -110,7 +112,7 @@ export const TemplatesTable: FC<{ templates: Template[] }> = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedTemplates.map((template: Template, index: number) => {
+                {sortedTemplates?.map((template: Template, index: number) => {
                   return (
                     <TemplateRow
                       key={template.name}

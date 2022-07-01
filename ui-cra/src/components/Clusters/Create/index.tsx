@@ -3,7 +3,6 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
-import useVersions from '../../../contexts/Versions';
 import useProfiles from '../../../contexts/Profiles';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
@@ -15,14 +14,9 @@ import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
 import FormStepsNavigation from './Form/StepsNavigation';
-import {
-  Credential,
-  TemplateObject,
-  UpdatedProfile,
-} from '../../../types/custom';
+import { Credential, UpdatedProfile } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import CredentialsProvider from '../../../contexts/Credentials/Provider';
 import { Loader } from '../../Loader';
 import {
   CallbackStateContextProvider,
@@ -31,7 +25,6 @@ import {
   getProviderToken,
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
-import Compose from '../../ProvidersCompose';
 import TemplateFields from './Form/Partials/TemplateFields';
 import Credentials from './Form/Partials/Credentials';
 import GitOps from './Form/Partials/GitOps';
@@ -41,6 +34,8 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
+import { TemplateObject } from '../../../cluster-services/cluster_services.pb';
+import { useListConfig } from '../../../hooks/versions';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -108,11 +103,11 @@ const AddCluster: FC = () => {
     PRPreview,
     setPRPreview,
     addCluster,
-    setError,
   } = useTemplates();
   const clustersCount = useClusters().count;
-  const { repositoryURL } = useVersions();
-  const { updatedProfiles } = useProfiles();
+  const { data } = useListConfig();
+  const repositoryURL = data?.repositoryURL || '';
+  const { profiles } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   let initialFormData = {
@@ -187,17 +182,20 @@ const AddCluster: FC = () => {
             version: string;
             values: string;
             layer?: string;
+            namespace?: string;
           }[],
           profile,
         ) => {
           profile.values.forEach(value => {
-            if (value.selected === true)
+            if (value.selected === true) {
               accumulator.push({
                 name: profile.name,
                 version: value.version,
                 values: btoa(value.yaml),
                 layer: profile.layer,
+                namespace: profile.namespace,
               });
+            }
           });
           return accumulator;
         },
@@ -206,64 +204,63 @@ const AddCluster: FC = () => {
     [],
   );
 
-  const handleAddCluster = useCallback(
-    () =>
-      addCluster(
-        {
-          head_branch: formData.branchName,
-          title: formData.pullRequestTitle,
-          description: formData.pullRequestDescription,
-          commit_message: formData.commitMessage,
-          credentials: infraCredential,
-          template_name: activeTemplate?.name,
-          parameter_values: {
-            ...formData,
-          },
-          values: encodedProfiles(selectedProfiles),
-        },
-        getProviderToken(formData.provider as GitProvider),
-      )
-        .then(response => {
-          setPRPreview(null);
-          history.push('/clusters');
-          setNotifications([
-            {
-              message: {
-                component: (
-                  <a
-                    style={{ color: weaveTheme.colors.primary }}
-                    href={response.webUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    PR created successfully.
-                  </a>
-                ),
-              },
-              variant: 'success',
+  const handleAddCluster = useCallback(() => {
+    const payload = {
+      head_branch: formData.branchName,
+      title: formData.pullRequestTitle,
+      description: formData.pullRequestDescription,
+      commit_message: formData.commitMessage,
+      credentials: infraCredential,
+      template_name: activeTemplate?.name,
+      parameter_values: {
+        ...formData,
+      },
+      values: encodedProfiles(selectedProfiles),
+    };
+    return addCluster(
+      payload,
+      getProviderToken(formData.provider as GitProvider),
+    )
+      .then(response => {
+        setPRPreview(null);
+        history.push('/clusters');
+        setNotifications([
+          {
+            message: {
+              component: (
+                <a
+                  style={{ color: weaveTheme.colors.primary }}
+                  href={response.webUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  PR created successfully.
+                </a>
+              ),
             },
-          ]);
-        })
-        .catch(error => {
-          setNotifications([
-            { message: { text: error.message }, variant: 'danger' },
-          ]);
-          if (isUnauthenticated(error.code)) {
-            removeToken(formData.provider);
-          }
-        }),
-    [
-      selectedProfiles,
-      addCluster,
-      formData,
-      activeTemplate?.name,
-      infraCredential,
-      history,
-      setNotifications,
-      encodedProfiles,
-      setPRPreview,
-    ],
-  );
+            variant: 'success',
+          },
+        ]);
+      })
+      .catch(error => {
+        setNotifications([
+          { message: { text: error.message }, variant: 'danger' },
+        ]);
+        if (isUnauthenticated(error.code)) {
+          removeToken(formData.provider);
+        }
+      });
+  }, [
+    selectedProfiles,
+    addCluster,
+    formData,
+    activeTemplate?.name,
+    infraCredential,
+    history,
+    setNotifications,
+    encodedProfiles,
+    setPRPreview,
+  ]);
 
   useEffect(() => {
     if (!activeTemplate) {
@@ -280,7 +277,6 @@ const AddCluster: FC = () => {
     return history.listen(() => {
       setActiveTemplate(null);
       setPRPreview(null);
-      setError(null);
     });
   }, [
     activeTemplate,
@@ -288,7 +284,6 @@ const AddCluster: FC = () => {
     setActiveTemplate,
     templateName,
     history,
-    setError,
     setPRPreview,
   ]);
 
@@ -299,7 +294,7 @@ const AddCluster: FC = () => {
         url: repositoryURL,
       }));
     }
-  }, [callbackState, infraCredential, repositoryURL, updatedProfiles]);
+  }, [callbackState, infraCredential, repositoryURL, profiles]);
 
   return useMemo(() => {
     return (
@@ -322,8 +317,8 @@ const AddCluster: FC = () => {
             ]}
           />
           <ContentWrapper>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={9}>
+            <Grid container>
+              <Grid item xs={12} md={10}>
                 <Title>Create new cluster with template</Title>
                 <CredentialsWrapper>
                   <div className="template-title">
@@ -352,7 +347,7 @@ const AddCluster: FC = () => {
                 ) : (
                   <Loader />
                 )}
-                {updatedProfiles.length > 0 && (
+                {profiles.length > 0 && (
                   <Profiles
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
@@ -383,7 +378,7 @@ const AddCluster: FC = () => {
                   setShowAuthDialog={setShowAuthDialog}
                 />
               </Grid>
-              <Grid className={classes.steps} item md={3}>
+              <Grid className={classes.steps} item md={2}>
                 <FormStepsNavigation
                   steps={steps}
                   activeStep={activeStep}
@@ -399,7 +394,7 @@ const AddCluster: FC = () => {
   }, [
     authRedirectPage,
     formData,
-    updatedProfiles.length,
+    profiles.length,
     infraCredential,
     activeTemplate,
     clustersCount,
@@ -419,9 +414,9 @@ const AddCluster: FC = () => {
 
 const AddClusterWithCredentials = () => (
   <ThemeProvider theme={localEEMuiTheme}>
-    <Compose components={[ProfilesProvider, CredentialsProvider]}>
+    <ProfilesProvider>
       <AddCluster />
-    </Compose>
+    </ProfilesProvider>
   </ThemeProvider>
 );
 

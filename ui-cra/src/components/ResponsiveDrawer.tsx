@@ -27,7 +27,6 @@ import {
 import styled from 'styled-components';
 import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
-import VersionsProvider from '../contexts/Versions/Provider';
 import Compose from './ProvidersCompose';
 import Box from '@material-ui/core/Box';
 import { PageTemplate } from './Layout/PageTemplate';
@@ -48,14 +47,21 @@ import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
 import qs from 'query-string';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-
 import Policies from './Policies';
-import PolicyDetails from './Policies/PolicyDetails/PolicyDetails';
+import PolicyDetails from './Policies/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
+import { ClustersService } from '../cluster-services/cluster_services.pb';
+import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import ProgressiveDelivery from './ProgressiveDelivery';
+import ClusterDashboard from './Clusters/ClusterDashboard';
+import ErrorBoundary from './ErrorBoundary';
+import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
+const CANARIES = '/applications/delivery';
+const CANARYDETAILS = '/applications/delivery/:clusterName/:namespace/:name';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -124,10 +130,13 @@ const SignInWrapper = styled.div`
   }
   form div:nth-child(1),
   form div:nth-child(2) {
-    padding-right: 14px;
+    padding-right: 10px;
   }
   .MuiInputBase-root {
     flex-grow: 0;
+  }
+  .MuiIconButton-root {
+    padding-right: 0;
   }
 `;
 
@@ -138,12 +147,23 @@ const CoreWrapper = styled.div`
   .MuiFormControl-root {
     min-width: 0px;
   }
+  div[class*='ReconciliationGraph'] {
+    svg {
+      min-height: 600px;
+    }
+    .MuiSlider-root.MuiSlider-vertical {
+      height: 200px;
+    }
+  }
+  .MuiButton-root {
+    margin-right: 0;
+  }
   max-width: calc(100vw - 220px);
 `;
 
 const Page404 = () => (
   <PageTemplate documentTitle="WeGO · NotFound">
-    <SectionHeader />
+    <SectionHeader path={[{ label: 'Error' }]} />
     <ContentWrapper>
       <Lottie
         loop
@@ -166,12 +186,7 @@ const App = () => {
 
   return (
     <Compose
-      components={[
-        NotificationsProvider,
-        TemplatesProvider,
-        ClustersProvider,
-        VersionsProvider,
-      ]}
+      components={[NotificationsProvider, TemplatesProvider, ClustersProvider]}
     >
       <div className={classes.root}>
         <CssBaseline />
@@ -220,115 +235,132 @@ const App = () => {
           </Hidden>
         </nav>
         <main className={classes.content}>
-          <Switch>
-            <Route component={MCCP} exact path={['/', '/clusters']} />
-            <Route component={MCCP} exact path="/clusters/delete" />
-            <Route
-              component={AddClusterWithCredentials}
-              exact
-              path="/clusters/templates/:templateName/create"
-            />
-            <Route
-              component={TemplatesDashboard}
-              exact
-              path="/clusters/templates"
-            />
-            <Route
-              component={PoliciesViolations}
-              exact
-              path="/clusters/violations"
-            />
-            <Route
-              component={PolicyViolationDetails}
-              exact
-              path="/clusters/violations/:id"
-            />
-            <Route
-              component={() => (
-                <CoreWrapper>
-                  <WGApplicationsDashboard />
-                </CoreWrapper>
-              )}
-              exact
-              path={V2Routes.Automations}
-            />
-            <Route
-              component={() => (
-                <CoreWrapper>
-                  <WGApplicationsSources />
-                </CoreWrapper>
-              )}
-              exact
-              path={V2Routes.Sources}
-            />
-            <Route
-              component={withSearchParams(WGApplicationsKustomization)}
-              path={V2Routes.Kustomization}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsGitRepository {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.GitRepo}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsHelmRepository {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.HelmRepo}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsBucket {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.Bucket}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsHelmRelease {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.HelmRelease}
-            />
-            <Route
-              component={withSearchParams((props: any) => (
-                <CoreWrapper>
-                  <WGApplicationsHelmChart {...props} />
-                </CoreWrapper>
-              ))}
-              path={V2Routes.HelmChart}
-            />
-            <Route
-              component={WGApplicationsFluxRuntime}
-              exact
-              path={V2Routes.FluxRuntime}
-            />
+          <ErrorBoundary>
+            <Switch>
+              <Route component={MCCP} exact path={['/', '/clusters']} />
+              <Route component={MCCP} exact path="/clusters/delete" />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <ClusterDashboard {...props} />
+                ))}
+                path="/cluster"
+              />
+              <Route
+                component={AddClusterWithCredentials}
+                exact
+                path="/clusters/templates/:templateName/create"
+              />
+              <Route
+                component={TemplatesDashboard}
+                exact
+                path="/clusters/templates"
+              />
+              <Route
+                component={PoliciesViolations}
+                exact
+                path="/clusters/violations"
+              />
+              <Route
+                component={PolicyViolationDetails}
+                exact
+                path="/clusters/:clusterName/violations/:id"
+              />
+              <Route
+                component={() => (
+                  <CoreWrapper>
+                    <WGApplicationsDashboard />
+                  </CoreWrapper>
+                )}
+                exact
+                path={V2Routes.Automations}
+              />
+              <Route
+                component={() => (
+                  <CoreWrapper>
+                    <WGApplicationsSources />
+                  </CoreWrapper>
+                )}
+                exact
+                path={V2Routes.Sources}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsKustomization {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.Kustomization}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsGitRepository {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.GitRepo}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsHelmRepository {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.HelmRepo}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsBucket {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.Bucket}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsHelmRelease {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.HelmRelease}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsHelmChart {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.HelmChart}
+              />
+              <Route
+                component={WGApplicationsFluxRuntime}
+                exact
+                path={V2Routes.FluxRuntime}
+              />
+              <Route exact path={CANARIES} component={ProgressiveDelivery} />
+              <Route exact path={CANARYDETAILS} component={CanaryDetails} />
+              <Route exact path={POLICIES} component={Policies} />
+              <Route
+                exact
+                path="/:clusterName/policies/:id"
+                component={PolicyDetails}
+              />
 
-            <Route exact path={POLICIES} component={Policies} />
-            <Route exact path="/policies/:id" component={PolicyDetails} />
-
-            <Route
-              exact
-              path={GITLAB_OAUTH_CALLBACK}
-              component={({ location }: any) => {
-                const params = qs.parse(location.search);
-                return (
-                  <OAuthCallback
-                    provider={'GitLab' as GitProvider}
-                    code={params.code as string}
-                  />
-                );
-              }}
-            />
-            <Route exact render={Page404} />
-          </Switch>
+              <Route
+                exact
+                path={GITLAB_OAUTH_CALLBACK}
+                component={({ location }: any) => {
+                  const params = qs.parse(location.search);
+                  return (
+                    <OAuthCallback
+                      provider={'GitLab' as GitProvider}
+                      code={params.code as string}
+                    />
+                  );
+                }}
+              />
+              <Route exact render={Page404} />
+            </Switch>
+          </ErrorBoundary>
         </main>
       </div>
     </Compose>
@@ -338,25 +370,27 @@ const App = () => {
 const ResponsiveDrawer = () => {
   return (
     <AuthContextProvider>
-      <CoreClientContextProvider api={coreClient}>
-        <Switch>
-          <Route
-            component={() => (
-              <SignInWrapper>
-                <SignIn />
-              </SignInWrapper>
-            )}
-            exact={true}
-            path="/sign_in"
-          />
-          <Route path="*">
-            {/* Check we've got a logged in user otherwise redirect back to signin */}
-            <AuthCheck>
-              <App />
-            </AuthCheck>
-          </Route>
-        </Switch>
-      </CoreClientContextProvider>
+      <EnterpriseClientProvider api={ClustersService}>
+        <CoreClientContextProvider api={coreClient}>
+          <Switch>
+            <Route
+              component={() => (
+                <SignInWrapper>
+                  <SignIn />
+                </SignInWrapper>
+              )}
+              exact={true}
+              path="/sign_in"
+            />
+            <Route path="*">
+              {/* Check we've got a logged in user otherwise redirect back to signin */}
+              <AuthCheck>
+                <App />
+              </AuthCheck>
+            </Route>
+          </Switch>
+        </CoreClientContextProvider>
+      </EnterpriseClientProvider>
     </AuthContextProvider>
   );
 };

@@ -150,16 +150,41 @@ jobs:
       - name: Run integration tests
         run: |
           go version
-
+          make dependencies
           cd cmd/clusters-service
           go test -v ./... -tags=integration
+
+  ui-unit-tests:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      YARN_CACHE_NAME: cache-yarn
+    steps:
+      - id: cache-paths
+        run: |
+          echo "::set-output name=dir::$(yarn cache dir)"
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Yarn Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.cache-paths.outputs.dir }}
+          key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
+      - name: Install modules
+        run: cd ui-cra && yarn --pure-lockfile
+      - name: Run Front-end Unit Tests
+        run: cd ui-cra && ./node_modules/.bin/react-scripts test
 
   ui-integration-tests:
     runs-on: ubuntu-latest
     env:
       GO_CACHE_NAME: cache-go-modules
       YARN_CACHE_NAME: cache-yarn
-      GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       SELENIUM_DEBUG: true
       ARTIFACTS_BASE_DIR: /tmp/ui-integration-test/
     steps:
@@ -323,7 +348,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(upgrade, smoke, gce, eks)'"
+      label-filter: "-ginkgo.label-filter='!(upgrade, application, smoke)'"
       kubectl-version: "v1.23.3"
       login_user_type: "oidc"
       git-provider: github

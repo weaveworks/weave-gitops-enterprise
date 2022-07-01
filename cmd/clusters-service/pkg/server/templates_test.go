@@ -122,7 +122,11 @@ func TestListTemplates(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+			})
 
 			listTemplatesRequest := &capiv1_protos.ListTemplatesRequest{
 				TemplateKind: capiv1.Kind,
@@ -247,7 +251,11 @@ func TestListClusterTemplates(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "cluster-templates", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "cluster-templates",
+				namespace:     "default",
+			})
 
 			listTemplatesRequest := &capiv1_protos.ListTemplatesRequest{
 				TemplateKind: gapiv1.Kind,
@@ -366,7 +374,11 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+			})
 
 			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
 			listTemplatesRequest.Provider = tt.provider
@@ -433,7 +445,11 @@ func TestGetTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+			})
 			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{TemplateName: "cluster-template-1"})
 			if err != nil && tt.err == nil {
 				t.Fatalf("failed to read the templates:\n%s", err)
@@ -478,7 +494,11 @@ func TestListTemplateParams(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+			})
 
 			listTemplateParamsRequest := new(capiv1_protos.ListTemplateParamsRequest)
 			listTemplateParamsRequest.TemplateName = "cluster-template-1"
@@ -532,7 +552,11 @@ func TestListTemplateProfiles(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+			})
 
 			listTemplateProfilesRequest := new(capiv1_protos.ListTemplateProfilesRequest)
 			listTemplateProfilesRequest.TemplateName = "cluster-template-1"
@@ -652,7 +676,11 @@ func TestRenderTemplate(t *testing.T) {
 			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
 			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
 
-			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+			})
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
@@ -683,7 +711,11 @@ func TestRenderTemplate_MissingVariables(t *testing.T) {
 	clusterState := []runtime.Object{
 		makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
 	}
-	s := createServer(t, clusterState, "capi-templates", "default", nil, "", nil)
+	s := createServer(t, serverOptions{
+		clusterState:  clusterState,
+		configMapName: "capi-templates",
+		namespace:     "default",
+	})
 
 	renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 		TemplateName: "cluster-template-1",
@@ -716,7 +748,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n  namespace: default\n",
 		},
 		{
 			name: "value contains non alphanumeric",
@@ -748,7 +780,11 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.Reset()
 
-			s := createServer(t, tt.clusterState, "capi-templates", "default", nil, "", nil)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+			})
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",

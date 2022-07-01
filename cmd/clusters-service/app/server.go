@@ -22,6 +22,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
+
+	corev1 "k8s.io/api/core/v1"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -53,6 +57,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
+	pd "github.com/weaveworks/progressive-delivery/pkg/server"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
@@ -151,8 +157,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
-	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", "", "")
-	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "")
+	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
+	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "where to look for CAPI template resources, required")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
 	cmd.Flags().StringVar(&p.addBasesKustomization, "add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
@@ -245,6 +251,9 @@ func bindFlagValues(cmd *cobra.Command) {
 }
 
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+	if p.capiTemplatesNamespace == "" {
+		return errors.New("CAPI templates namespace not set")
+	}
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
@@ -270,10 +279,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(kubeClientConfig)
 	if err != nil {
 		return err
-	}
-	ns := p.capiClustersNamespace
-	if ns == "" {
-		return fmt.Errorf("environment variable %q cannot be empty", "CAPI_CLUSTERS_NAMESPACE")
 	}
 
 	appsConfig, err := core.DefaultApplicationsConfig(log)
@@ -334,13 +339,14 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
 
-	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.capiTemplatesNamespace)
+	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.capiClustersNamespace)
 	if err != nil {
 		return err
 	}
 
 	clientsFactoryScheme := kube.CreateScheme()
 	_ = pacv1.AddToScheme(clientsFactoryScheme)
+	_ = flaggerv1beta1.AddToScheme(clientsFactoryScheme)
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
@@ -384,7 +390,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),
-		WithCAPIClustersNamespace(ns),
+		WithCAPIClustersNamespace(p.capiClustersNamespace),
 		WithHelmRepositoryCacheDirectory(tempDir),
 		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
@@ -414,9 +420,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.ApplicationsConfig == nil {
 		return errors.New("applications config is not set")
 	}
-	if args.CAPIClustersNamespace == "" {
-		return errors.New("CAPI clusters namespace is not set")
-	}
 	if args.ClientGetter == nil {
 		return errors.New("kubernetes client getter is not set")
 	}
@@ -432,15 +435,18 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
-		args.Log,
-		args.ClustersLibrary,
-		args.TemplateLibrary,
-		args.GitProvider,
-		args.ClientGetter,
-		args.DiscoveryClient,
-		args.CAPIClustersNamespace,
-		args.ProfileHelmRepository,
-		args.HelmRepositoryCacheDirectory,
+		server.ServerOpts{
+			Logger:                    args.Log,
+			TemplatesLibrary:          args.TemplateLibrary,
+			ClustersLibrary:           args.ClustersLibrary,
+			ClientsFactory:            args.CoreServerConfig.ClientsFactory,
+			GitProvider:               args.GitProvider,
+			ClientGetter:              args.ClientGetter,
+			DiscoveryClient:           args.DiscoveryClient,
+			ClustersNamespace:         args.CAPIClustersNamespace,
+			ProfileHelmRepositoryName: args.ProfileHelmRepository,
+			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
+		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
 		return fmt.Errorf("failed to register clusters service handler server: %w", err)
@@ -469,7 +475,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
 
-	grpcHttpHandler = clustersmngr.WithClustersClient(args.CoreServerConfig.ClientsFactory, grpcHttpHandler)
+	// Add progressive-delivery handlers
+	if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
+		ClientFactory: args.CoreServerConfig.ClientsFactory,
+		Logger:        args.Log,
+	}); err != nil {
+		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
+	}
 
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
@@ -536,7 +548,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
 
-	mux.Handle("/", staticAssets)
+	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
+
+	mux.Handle("/", staticAssetsWithGz)
 
 	s := &http.Server{
 		Addr:    addr,

@@ -1,65 +1,91 @@
-import {
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@material-ui/core';
 import { FC } from 'react';
-import { ColumnHeaderTooltip } from '../../Shared';
-import { muiTheme } from '../../../muiTheme';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import { Policy } from '../../../cluster-services/cluster_services.pb';
-import PolicyRow from './Row';
 import { usePolicyStyle } from '../PolicyStyles';
+import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
+import { Link } from 'react-router-dom';
+import Severity from '../Severity';
+import moment from 'moment';
+import styled from 'styled-components';
+import { localEEMuiTheme } from '../../../muiTheme';
 
 const localMuiTheme = createTheme({
-  ...muiTheme,
+  ...localEEMuiTheme,
   shadows: Array(25).fill('none') as Shadows,
 });
 
 interface Props {
-  policies: Policy[] | undefined;
+  policies: Policy[];
 }
+const TableWrapper = styled.div`
+  margin-top: ${theme.spacing.medium};
+  div[class*='FilterDialog__SlideContainer'],
+  div[class*='SearchField'] {
+    overflow: hidden;
+  }
+  div[class*='FilterDialog'] {
+    .Mui-checked {
+      color: ${theme.colors.primary};
+    }
+  }
+  tr {
+    vertical-align: 'center';
+  }
+  max-width: calc(100vw - 220px);
+`;
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
 
+  const initialFilterState = {
+    ...filterConfig(policies, 'clusterName'),
+    ...filterConfig(policies, 'severity'),
+  };
+
   return (
-    <div className={`${classes.root}`} id="policies-list">
+    <div className={classes.root}>
       <ThemeProvider theme={localMuiTheme}>
-        <Paper className={classes.paper}>
-          <Table className={classes.table} size="small">
-            {policies?.length === 0 ? (
-              <caption>No policies configured</caption>
-            ) : null}
-            <TableHead className={classes.tableHead}>
-              <TableRow>
-                <TableCell align="left">
-                  <ColumnHeaderTooltip title="Name configured in management UI">
-                    <span className={classes.headerCell}>Policy Name</span>
-                  </ColumnHeaderTooltip>
-                </TableCell>
-                <TableCell align="left">
-                  <span className={classes.headerCell}>Category</span>
-                </TableCell>
-                <TableCell align="left">
-                  <span className={classes.headerCell}>Severity</span>
-                </TableCell>
-                <TableCell align="left">
-                  <span className={classes.headerCell}>Age</span>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {policies?.map((policy: Policy) => {
-                return <PolicyRow policy={policy} key={policy.name} />;
-              })}
-            </TableBody>
-          </Table>
-        </Paper>
+        <TableWrapper id="policy-list">
+          <FilterableTable
+            key={policies?.length}
+            filters={initialFilterState}
+            rows={policies}
+            fields={[
+              {
+                label: 'Policy Name',
+                value: (p: Policy) => (
+                  <Link
+                    to={`/${p.clusterName}/policies/${p.id}`}
+                    className={classes.link}
+                    data-policy-name={p.name}
+                  >
+                    {p.name}
+                  </Link>
+                ),
+                textSearchable: true,
+                sortValue: ({ name }) => name,
+                maxWidth: 650,
+              },
+              {
+                label: 'Category',
+                value: 'category',
+              },
+              {
+                label: 'Severity',
+                value: (p: Policy) => <Severity severity={p.severity || ''} />,
+              },
+              {
+                label: 'Cluster',
+                value: 'clusterName',
+              },
+              {
+                label: 'Age',
+                value: (p: Policy) => moment(p.createdAt).fromNow(),
+              },
+            ]}
+          />
+        </TableWrapper>
       </ThemeProvider>
     </div>
   );

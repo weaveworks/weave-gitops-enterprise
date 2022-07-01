@@ -112,7 +112,13 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 				hr.Namespace = "default"
 			})
 			tt.clusterState = append(tt.clusterState, hr)
-			s := createServer(t, tt.clusterState, "terraform-templates", "default", tt.provider, "", hr)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "terraform-templates",
+				namespace:     "default",
+				provider:      tt.provider,
+				hr:            hr,
+			})
 
 			// request
 			createPullRequestResponse, err := s.CreateTfControllerPullRequest(context.Background(), tt.req)

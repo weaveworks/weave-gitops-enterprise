@@ -1,34 +1,21 @@
-import { GitopsCluster } from '../cluster-services/cluster_services.pb';
+import {
+  DeleteClustersPullRequestRequest,
+  GitopsCluster,
+} from '../cluster-services/cluster_services.pb';
 
-export type Param = {
-  name: string;
-  description?: string;
-  options?: string[];
-};
+//
+// Utils
+//
 
-export type TemplateObject = {
-  kind?: string;
-  apiVersion?: string;
-  parameters?: Param['name'];
-  name?: string;
-  displayName?: string;
-};
+// Make certain fields of a type required.
+// Useful for adapting grpc-gateway-ts fields which are ALL always optional.
+// We can mark those we know will always be returned as required
+//
+type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
-export type Template = {
-  name?: string;
-  description?: string;
-  version?: string;
-  parameters?: Param[];
-  objects?: TemplateObject[];
-  error?: string;
-  provider?: string;
-  annotations?: string[];
-};
-
-export type ListTemplatesResponse = {
-  templates?: Template[];
-  total?: number;
-};
+//
+// Types
+//
 
 export type Credential = {
   group?: string;
@@ -71,6 +58,7 @@ export type Profile = {
 
 export type ListProfilesResponse = {
   profiles?: Profile[];
+  code?: number;
 };
 
 export type UpdatedProfile = {
@@ -78,6 +66,12 @@ export type UpdatedProfile = {
   values: { version: string; yaml: string; selected?: boolean }[];
   required: boolean;
   layer?: string;
+  namespace?: string;
+};
+
+export type ListProfileValuesResponse = {
+  message: string;
+  success: boolean;
 };
 
 export type ChildrenOccurences = {
@@ -92,6 +86,17 @@ export interface CAPICluster {
 
 export interface GitopsClusterEnriched extends GitopsCluster {
   name: string;
+  namespace: string;
   type: string;
   updatedAt: string;
 }
+
+export type DeleteClustersPRRequestEnriched = WithRequired<
+  DeleteClustersPullRequestRequest,
+  'headBranch' | 'title' | 'commitMessage' | 'description'
+>;
+
+export type ListGitopsClustersResponseEnriched = {
+  gitopsClusters: GitopsClusterEnriched[];
+  total: number;
+};

@@ -1,10 +1,18 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
-import { request, requestWithCountHeader } from '../../utils/request';
-import { Clusters, DeleteClusterPRRequest } from './index';
+import { request } from '../../utils/request';
+import { Clusters } from './index';
 import useNotifications from './../Notifications';
 import fileDownload from 'js-file-download';
-import { GitopsClusterEnriched } from '../../types/custom';
+import { EnterpriseClientContext } from '../EnterpriseClient';
+import {
+  ClusterNamespacedName,
+  ListGitopsClustersResponse,
+} from '../../cluster-services/cluster_services.pb';
+import {
+  GitopsClusterEnriched,
+  DeleteClustersPRRequestEnriched,
+} from '../../types/custom';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -12,18 +20,37 @@ const ClustersProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [clusters, setClusters] = useState<GitopsClusterEnriched[]>([]);
   const [count, setCount] = useState<number | null>(null);
-  const [selectedClusters, setSelectedClusters] = useState<string[]>([]);
+  const [selectedClusters, setSelectedClusters] = useState<
+    ClusterNamespacedName[]
+  >([]);
   const { notifications, setNotifications } = useNotifications();
+  const { api } = useContext(EnterpriseClientContext);
 
-  const clustersBaseUrl = '/v1/clusters';
+  const getCluster = (clusterName: string) =>
+    clusters?.find(cluster => cluster.name === clusterName) || null;
 
-  const fetchClusters = () =>
-    requestWithCountHeader('GET', clustersBaseUrl, {
-      cache: 'no-store',
-    });
+  const getDashboardAnnotations = useCallback(
+    (cluster: GitopsClusterEnriched) => {
+      if (cluster?.annotations) {
+        const annotations = Object.entries(cluster?.annotations);
+        const dashboardAnnotations: { [key: string]: string } = {};
+        for (const [key, value] of annotations) {
+          if (key.includes('metadata.weave.works/dashboard.')) {
+            const dashboardProvider = key.split(
+              'metadata.weave.works/dashboard.',
+            )[1];
+            dashboardAnnotations[dashboardProvider] = value;
+          }
+        }
+        return dashboardAnnotations;
+      }
+      return {};
+    },
+    [],
+  );
 
   const deleteCreatedClusters = useCallback(
-    (data: DeleteClusterPRRequest, token: string) => {
+    (data: DeleteClustersPRRequestEnriched, token: string) => {
       setLoading(true);
       return request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),
@@ -35,7 +62,7 @@ const ClustersProvider: FC = ({ children }) => {
 
   const getKubeconfig = useCallback(
     (clusterName: string, filename: string) => {
-      request('GET', `v1/clusters/${clusterName}/kubeconfig`, {
+      request('GET', `/v1/clusters/${clusterName}/kubeconfig`, {
         headers: {
           Accept: 'application/octet-stream',
         },
@@ -50,19 +77,7 @@ const ClustersProvider: FC = ({ children }) => {
     [setNotifications],
   );
 
-  const { error, data, isLoading } = useQuery<
-    { data: { gitopsClusters: GitopsClusterEnriched[]; total: number } },
-    Error
-  >('clusters', () => fetchClusters(), {
-    keepPreviousData: true,
-    refetchInterval: CLUSTERS_POLL_INTERVAL,
-  });
-
-  useEffect(() => {
-    if (data) {
-      setClusters(data.data.gitopsClusters);
-      setCount(data.data.total);
-    }
+  const onError = (error: Error) => {
     if (
       error &&
       notifications?.some(
@@ -74,7 +89,23 @@ const ClustersProvider: FC = ({ children }) => {
         { message: { text: error.message }, variant: 'danger' },
       ]);
     }
-  }, [data, error, notifications, setNotifications]);
+  };
+
+  const onSuccess = (data: ListGitopsClustersResponse) => {
+    setClusters(data.gitopsClusters as GitopsClusterEnriched[]);
+    setCount(data.total as number);
+  };
+
+  const { isLoading } = useQuery<ListGitopsClustersResponse, Error>(
+    'clusters',
+    () => api.ListGitopsClusters({}),
+    {
+      keepPreviousData: true,
+      refetchInterval: CLUSTERS_POLL_INTERVAL,
+      onSuccess,
+      onError,
+    },
+  );
 
   return (
     <Clusters.Provider
@@ -87,6 +118,8 @@ const ClustersProvider: FC = ({ children }) => {
         setSelectedClusters,
         deleteCreatedClusters,
         getKubeconfig,
+        getDashboardAnnotations,
+        getCluster,
       }}
     >
       {children}

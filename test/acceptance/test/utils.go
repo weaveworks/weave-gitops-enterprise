@@ -73,8 +73,11 @@ var seededRand *rand.Rand = rand.New(
 
 // Describes all the UI acceptance tests
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
-	// DescribeClusters(gitopsTestRunner)
+	DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
+	DescribeApplications(gitopsTestRunner)
+	DescribePolicies(gitopsTestRunner)
+	DescribeViolations(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -314,7 +317,7 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 }
 
 func ShowItems(itemType string) {
-	logger.Info("Duming cluster objects/resources...")
+	logger.Info("Dumping cluster objects/resources...")
 	if itemType != "" {
 		_ = runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
@@ -323,12 +326,12 @@ func ShowItems(itemType string) {
 	logger.Info(fmt.Sprintf("Dumping %s congigmap", CLUSTER_SERVICE_DEPLOYMENT_APP))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml", CLUSTER_SERVICE_DEPLOYMENT_APP))
 
-	logger.Info("Duming cluster crds...")
+	logger.Info("Dumping cluster crds...")
 	_ = runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
 }
 
 func DumpClusterInfo(testName string) {
-	logger.Info("Duming cluster-info...")
+	logger.Info("Dumping cluster-info...")
 
 	logsPath := "/tmp/dumped-cluster-logs"
 	archiveLogsPath := path.Join(artifacts_base_dir, "cluster-info")

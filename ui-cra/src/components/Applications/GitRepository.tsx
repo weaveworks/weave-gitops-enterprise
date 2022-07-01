@@ -1,13 +1,14 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
 import { GitRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
 const WGApplicationsGitRepository: FC<Props> = props => {
@@ -34,7 +35,6 @@ const WGApplicationsGitRepository: FC<Props> = props => {
         ]}
       />
       <ContentWrapper>
-        <Title>{props.name}</Title>
         <GitRepositoryDetail {...props} />
       </ContentWrapper>
     </PageTemplate>

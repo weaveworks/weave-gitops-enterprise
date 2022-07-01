@@ -1,8 +1,7 @@
 import React, { FC } from 'react';
-import styled from 'styled-components';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
 import {
   KustomizationDetail,
@@ -14,17 +13,6 @@ type Props = {
   namespace?: string;
   clusterName: string;
 };
-
-const KustomizationDetailWrapper = styled(KustomizationDetail)`
-  div[class*='ReconciliationGraph'] {
-    svg {
-      min-height: 600px;
-    }
-    .MuiSlider-root.MuiSlider-vertical {
-      height: 200px;
-    }
-  }
-`;
 
 const WGApplicationsKustomization: FC<Props> = ({
   name,
@@ -50,8 +38,7 @@ const WGApplicationsKustomization: FC<Props> = ({
         ]}
       />
       <ContentWrapper>
-        <Title>{name}</Title>
-        <KustomizationDetailWrapper kustomization={kustomization} />
+        <KustomizationDetail kustomization={kustomization} />
       </ContentWrapper>
     </PageTemplate>
   );

@@ -16,9 +16,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
 	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
@@ -27,6 +29,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 )
 
@@ -53,28 +56,42 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	return c
 }
 
-func createServer(t *testing.T, clusterState []runtime.Object, configMapName, namespace string, provider git.Provider, ns string, hr *sourcev1.HelmRepository) capiv1_protos.ClustersServiceServer {
-	c := createClient(t, clusterState...)
+type serverOptions struct {
+	clusterState   []runtime.Object
+	configMapName  string
+	namespace      string
+	provider       git.Provider
+	ns             string
+	hr             *sourcev1.HelmRepository
+	clientsFactory clustersmngr.ClientsFactory
+}
+
+func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
+	c := createClient(t, o.clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	return NewClusterServer(
-		logr.Discard(),
-		&clusters.CRDLibrary{
-			Log:          logr.Discard(),
-			ClientGetter: kubefakes.NewFakeClientGetter(c),
-			Namespace:    namespace,
+		ServerOpts{
+			Logger: logr.Discard(),
+			TemplatesLibrary: &templates.ConfigMapLibrary{
+				Log:           logr.Discard(),
+				Client:        c,
+				ConfigMapName: o.configMapName,
+				CAPINamespace: o.namespace,
+			},
+			ClustersLibrary: &clusters.CRDLibrary{
+				Log:          logr.Discard(),
+				ClientGetter: kubefakes.NewFakeClientGetter(c),
+				Namespace:    o.namespace,
+			},
+			ClientsFactory:            o.clientsFactory,
+			GitProvider:               o.provider,
+			ClientGetter:              kubefakes.NewFakeClientGetter(c),
+			DiscoveryClient:           dc,
+			ClustersNamespace:         o.ns,
+			ProfileHelmRepositoryName: "weaveworks-charts",
+			HelmRepositoryCacheDir:    t.TempDir(),
 		},
-		&templates.ConfigMapLibrary{
-			Log:           logr.Discard(),
-			Client:        c,
-			ConfigMapName: configMapName,
-			CAPINamespace: namespace,
-		},
-		provider,
-		kubefakes.NewFakeClientGetter(c),
-		dc,
-		ns,
-		"weaveworks-charts", t.TempDir(),
 	)
 }
 
@@ -265,10 +282,11 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 				"description":     "Missing app label",
 				"how_to_solve":    "how_to_solve",
 				"entity_manifest": `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
+				"occurrences":     `[{"message": "occurrence details"}]`,
 			},
 			Labels: map[string]string{
 				"pac.weave.works/type": "Admission",
-				"pac.weave.works/id":   "weave.policies.missing-app-label",
+				"pac.weave.works/id":   "66101548-12c1-4f79-a09a-a12979903fba",
 			},
 			Name:      "Missing app Label - fake-event-1",
 			Namespace: "default",

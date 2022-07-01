@@ -4,13 +4,19 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyViolationsTable } from './Table';
-import { PolicyService } from '../Policies/PolicyService';
-import { useCallback, useState } from 'react';
-import { ListPolicyValidationsResponse } from '../../cluster-services/cluster_services.pb';
+import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
+import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
+import {
+  ListError,
+  ListPolicyValidationsResponse,
+  PolicyValidation,
+} from '../../cluster-services/cluster_services.pb';
 
 const PoliciesViolations = () => {
-  const [count, setCount] = useState<number>(0);
+  const [count, setCount] = useState<number | undefined>(0);
+  const { api } = useContext(EnterpriseClientContext);
+  const [errors, setErrors] = useState<ListError[] | undefined>();
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 20, clusterId:'' });
 
@@ -18,35 +24,39 @@ const PoliciesViolations = () => {
   // const updatePayload = (payload: any) => {
   //   setPayload(payload);
   // };
-
   const fetchPolicyViolationsAPI = useCallback(() => {
-    return PolicyService.listPolicyViolations().then(
-      (res: ListPolicyValidationsResponse | any) => {
-        !!res && setCount(res.total);
-        return res;
-      },
-    );
+    return api.ListPolicyValidations({}).then(res => {
+      !!res && setCount(res.total);
+      !!res && setErrors(res.errors);
+      return res;
+    });
     // TODO : Add pagination support for policy violations list API
     // Debendency: payload
-  }, []);
+  }, [api]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Violations Log">
+      <PageTemplate documentTitle="WeGo · Violation Log">
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/clusters' },
-            { label: 'Violations Log', url: 'violations', count },
+            { label: 'Clusters', url: '/clusters', count },
+            {
+              label: 'Violation Log',
+              url: 'violations',
+              count: count,
+            },
           ]}
         />
-        <ContentWrapper>
-          <Title>Violations Log</Title>
+        <ContentWrapper errors={errors}>
+          <Title>Violation Log</Title>
           <LoadingError fetchFn={fetchPolicyViolationsAPI}>
             {({ value }: { value: ListPolicyValidationsResponse }) => (
               <>
                 {value.total && value.total > 0 ? (
-                  <PolicyViolationsTable violations={value.violations} />
+                  <PolicyViolationsTable
+                    violations={value.violations as PolicyValidation[]}
+                  />
                 ) : (
                   <div>No data to display</div>
                 )}

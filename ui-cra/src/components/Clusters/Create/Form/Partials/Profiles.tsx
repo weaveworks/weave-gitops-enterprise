@@ -25,16 +25,16 @@ const Profiles: FC<{
   selectedProfiles,
   setSelectedProfiles,
 }) => {
-  const { updatedProfiles, loading } = useProfiles();
+  const { profiles, isLoading } = useProfiles();
 
   const handleSelectProfiles = (selectProfiles: UpdatedProfile[]) =>
     setSelectedProfiles(selectProfiles);
 
   useEffect(() => {
     if (selectedProfiles.length === 0) {
-      setSelectedProfiles(updatedProfiles.filter(profile => profile.required));
+      setSelectedProfiles(profiles.filter(profile => profile.required));
     }
-  }, [updatedProfiles, setSelectedProfiles, selectedProfiles.length]);
+  }, [profiles, setSelectedProfiles, selectedProfiles.length]);
 
   return (
     <FormStep
@@ -44,14 +44,14 @@ const Profiles: FC<{
       clicked={clickedStep === 'Profiles'}
       setActiveStep={setActiveStep}
     >
-      {loading ? (
+      {isLoading ? (
         <Loader />
       ) : (
         <>
           <ProfilesDropdown className="profiles-select">
             <span>Select profiles:&nbsp;</span>
             <MultiSelectDropdown
-              allItems={updatedProfiles}
+              allItems={profiles}
               preSelectedItems={selectedProfiles}
               onSelectItems={handleSelectProfiles}
             />

@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
 import { TableCell, TableRow } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { Template } from '../../../types/custom';
 import { useHistory } from 'react-router-dom';
 import { theme, Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Template } from '../../../cluster-services/cluster_services.pb';
 
 const useStyles = makeStyles(() =>
   createStyles({

@@ -597,7 +597,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And the manifests are present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})
@@ -1114,7 +1114,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
 					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
-					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/capi: bootstrap`))
+					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
 
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
@@ -1162,15 +1162,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gitUpdateCommitPush(repoAbsolutePath, "")
 				})
 
-				By("Then I should see cluster status changes to 'Cluster found'", func() {
+				By("Then I should see cluster status changes to 'Ready'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(BeFound())
-					TakeScreenShot("found-cluster")
+					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
+					TakeScreenShot("capi-cluster-ready")
 				})
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
-					Expect(clusterInfo.ShowStatusDetail.Click()).To(Succeed())
+					clusterInfo := clustersPage.FindClusterInList(clusterName)
+					Expect(clusterInfo.Name.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
 
@@ -1198,8 +1198,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					pages.NavigateToPage(webDriver, "Clusters")
+					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
+					clusterInfo := clustersPage.FindClusterInList(clusterName)
 					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
 
 					Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(BeFound())
@@ -1230,7 +1231,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 

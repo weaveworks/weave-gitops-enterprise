@@ -38,7 +38,7 @@ spec:
         name: "${CLUSTER_NAME}"
         namespace: "${NAMESPACE}"
         labels:
-          weave.works/capi: bootstrap
+          weave.works/flux: bootstrap
       spec:
         capiClusterRef:
           name: "${CLUSTER_NAME}"

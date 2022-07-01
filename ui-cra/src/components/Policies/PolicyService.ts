@@ -8,11 +8,14 @@ export class PolicyService {
       cache: 'no-store',
     });
   };
-  static getPolicyById = (id: string) => {
-    return request('GET', `${this.policiesUrl}/${id}`, {
-      cache: 'no-store',
-    });
-  };
+  static getPolicyById = (id: string, clusterName: string) =>
+    request(
+      'GET',
+      `${this.policiesUrl}/${id}?${new URLSearchParams({
+        clusterName,
+      })}`,
+      { cache: 'no-store' },
+    );
 
   // TODO payload should be a ClusterId
   static listPolicyViolations = () => {
@@ -21,9 +24,15 @@ export class PolicyService {
     });
   };
 
-  static getPolicyViolationById = (id: string) => {
-    return request('GET', `/v1/policyviolations/${id}`, {
-      cache: 'no-store',
-    });
+  static getPolicyViolationById = (id: string, clusterName: string) => {
+    return request(
+      'GET',
+      `/v1/policyviolations/${id}?${new URLSearchParams({
+        clusterName,
+      })}`,
+      {
+        cache: 'no-store',
+      },
+    );
   };
 }

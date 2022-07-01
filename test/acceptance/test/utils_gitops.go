@@ -3,9 +3,12 @@ package acceptance
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"regexp"
 	"runtime"
 	"strings"
+	"text/template"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -187,12 +190,34 @@ func deleteGitopsDeploySecret(nameSpace string) {
 	})
 }
 
+func deleteGitopsCluster(clusters []string, nameSpace string) {
+	for _, cluster := range clusters {
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get gitopscluster %s`, cluster))
+		if err == nil {
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl delete gitopscluster %s -n %s`, cluster, nameSpace))
+		}
+	}
+}
+
+func deleteKubeconfigSecret(kubeconfigSecrets []string, nameSpace string) {
+	for _, secret := range kubeconfigSecrets {
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get secret %s`, secret))
+		if err == nil {
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl delete secret %s -n %s`, secret, nameSpace))
+		}
+	}
+}
+
 func createCluster(clusterType string, clusterName string, configFile string) {
 	if clusterType == "kind" {
-		err := runCommandPassThrough("kind", "create", "cluster", "--name", clusterName, "--image=kindest/node:v1.20.7", "--config", "../../utils/data/"+configFile)
+		if configFile != "" {
+			configFile = "--config " + path.Join(getCheckoutRepoPath(), "test/utils/data", configFile)
+		}
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf("kind create cluster --name %s --image=kindest/node:v1.23.4 %s", clusterName, configFile))
 		Expect(err).ShouldNot(HaveOccurred())
+
 	} else {
-		Fail(fmt.Sprintf("%s cluster type is not supported for test WGE upgrade", clusterType))
+		Fail(fmt.Sprintf("%s cluster type is not supported", clusterType))
 	}
 }
 
@@ -245,6 +270,56 @@ func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string, profiles
 		case "podinfo":
 			Expect(waitForResource("deploy", capiCluster+"-podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
 			waitForResourceState("Ready", "true", "pods", namespace, "app.kubernetes.io/name="+capiCluster+"-podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		}
+	}
+}
+
+func generateGitopsClutermanifest(clusterName string, nameSpace string, bootstrap string, kubeconfigSecret string) (gitopsCluster string, err error) {
+	// Read input capitemplate
+	contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/gitops-cluster.yaml"))
+
+	if err != nil {
+		return gitopsCluster, err
+	}
+	t := template.Must(template.New("gitops-cluster").Parse(string(contents)))
+
+	// Prepare  data to insert into the template.
+	type TemplateInput struct {
+		ClusterName      string
+		NameSpace        string
+		Bootstrap        string
+		KubeconfigSecret string
+	}
+	input := TemplateInput{clusterName, nameSpace, bootstrap, kubeconfigSecret}
+
+	gitopsCluster = path.Join("/tmp", clusterName+"-gitops-cluster.yaml")
+
+	f, err := os.Create(gitopsCluster)
+	if err != nil {
+		return gitopsCluster, err
+	}
+
+	err = t.Execute(f, input)
+	f.Close()
+
+	return gitopsCluster, err
+}
+
+func createNamespace(namespaces []string) {
+	for _, namespace := range namespaces {
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl create namespace %s`, namespace))
+		if err != nil {
+			// 2nd attempt to create namespace
+			_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl create namespace %s`, namespace))
+		}
+	}
+}
+
+func deleteNamespace(namespaces []string) {
+	for _, namespace := range namespaces {
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl delete namespace %s`, namespace))
+		if err != nil {
+			_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl delete namespace %s`, namespace))
 		}
 	}
 }

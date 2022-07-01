@@ -4,13 +4,18 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
-import { PolicyService } from './PolicyService';
-import { useCallback, useState } from 'react';
-import { ListPoliciesResponse } from '../../cluster-services/cluster_services.pb';
+import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
-
+import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
+import {
+  ListError,
+  ListPoliciesResponse,
+  Policy,
+} from '../../cluster-services/cluster_services.pb';
 const Policies = () => {
-  const [count, setCount] = useState<number>(0);
+  const [count, setCount] = useState<number | undefined>(0);
+  const { api } = useContext(EnterpriseClientContext);
+  const [errors, setErrors] = useState<ListError[] | undefined>();
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 25 });
 
@@ -22,13 +27,12 @@ const Policies = () => {
   // I used callback here because I need to pass the payload to the API call as well as the setter function to update the payload in the state object (payload)
   // I could have used useState and setState but I wanted to keep the code as simple as possible.
   const fetchPoliciesAPI = useCallback(() => {
-    return PolicyService.listPolicies({}).then(
-      (res: ListPoliciesResponse | any) => {
-        !!res && setCount(res.total);
-        return res;
-      },
-    );
-  }, []);
+    return api.ListPolicies({}).then(res => {
+      !!res && setCount(res.total);
+      !!res && setErrors(res.errors);
+      return res;
+    });
+  }, [api]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -37,13 +41,13 @@ const Policies = () => {
           className="count-header"
           path={[{ label: 'Policies', url: 'policies', count }]}
         />
-        <ContentWrapper>
+        <ContentWrapper errors={errors}>
           <Title>Policies</Title>
           <LoadingError fetchFn={fetchPoliciesAPI}>
             {({ value }: { value: ListPoliciesResponse }) => (
               <>
                 {value.total && value.total > 0 ? (
-                  <PolicyTable policies={value.policies} />
+                  <PolicyTable policies={value.policies as Policy[]} />
                 ) : (
                   <div>No data to display</div>
                 )}

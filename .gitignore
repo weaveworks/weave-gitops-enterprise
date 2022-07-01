@@ -12,7 +12,11 @@
 # Recovery files from vim
 *.swp
 
+# Ignore dependency binaries
+tools/bin
+
 node_modules
+tilt_modules
 
 # Ignore binary dependencies
 /setup/wk-quickstart/bin/
@@ -47,3 +51,5 @@ tf.json
 
 # ignore sub-charts pulled in during dev
 charts/mccp/charts
+
+tilt_modules

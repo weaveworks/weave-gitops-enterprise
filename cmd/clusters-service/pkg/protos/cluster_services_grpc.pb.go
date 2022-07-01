@@ -55,6 +55,8 @@ type ClustersServiceClient interface {
 	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
 	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
+	// ListEvents returns the k8s events for a given object
+	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -218,6 +220,15 @@ func (c *clustersServiceClient) GetPolicyValidation(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *clustersServiceClient) ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error) {
+	out := new(ListEventsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListEvents", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -258,6 +269,8 @@ type ClustersServiceServer interface {
 	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
 	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
+	// ListEvents returns the k8s events for a given object
+	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -315,6 +328,9 @@ func (UnimplementedClustersServiceServer) ListPolicyValidations(context.Context,
 }
 func (UnimplementedClustersServiceServer) GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyValidation not implemented")
+}
+func (UnimplementedClustersServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -635,6 +651,24 @@ func _ClustersService_GetPolicyValidation_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_ListEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListEvents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListEvents(ctx, req.(*ListEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -709,6 +743,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPolicyValidation",
 			Handler:    _ClustersService_GetPolicyValidation_Handler,
+		},
+		{
+			MethodName: "ListEvents",
+			Handler:    _ClustersService_ListEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

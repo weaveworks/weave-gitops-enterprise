@@ -1,3 +1,11 @@
+CONTROLLER_TOOLS_VERSION ?= v0.9.0
+CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
+
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
 .PHONY: generate
 generate:
 	@buf generate
@@ -13,27 +21,18 @@ install:
 
 .PHONY: build
 build:
-	go build -o clusters-service main.go
+# Alpine needs these extra CGO and -a flags to "see" the binary
+	CGO_ENABLED=0 go build -a -installsuffix cgo -o bin/clusters-service main.go
 
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
+.PHONY: crd-manifests
 crd-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	cp config/crd/bases/* ../../charts/mccp/crds/
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./api/..." output:crd:artifacts:config=config/crd/bases
 
+
+.PHONY: crd-generate
 crd-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
-
-# To regenerate the CRD after changes to api/v1/capitemplate_types.go, run make crd-generate
-# Note that controller-gen needs to be in $PATH
-CONTROLLER_GEN = controller-gen
-controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
-
-KUSTOMIZE = $(shell pwd)/bin/kustomize
-kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./api/..."
 
 .PHONY: unit-tests
 unit-tests:
@@ -43,3 +42,8 @@ unit-tests:
 .PHONY: tests
 tests:
 	@go test -v ./... -tags=integration
+
+.PHONY: controller-gen
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+$(CONTROLLER_GEN): $(LOCALBIN)
+	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)

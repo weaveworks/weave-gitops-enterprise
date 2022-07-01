@@ -62,6 +62,7 @@ export type RenderTemplateRequest = {
   values?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
+  clusterNamespace?: string
 }
 
 export type RenderTemplateResponse = {
@@ -70,12 +71,15 @@ export type RenderTemplateResponse = {
 
 export type ListGitopsClustersRequest = {
   label?: string
+  pageSize?: string
+  pageToken?: string
   refType?: string
 }
 
 export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
   total?: number
+  nextPageToken?: string
 }
 
 export type GetPolicyRequest = {
@@ -90,6 +94,7 @@ export type ListPoliciesRequest = {
 
 export type GetPolicyResponse = {
   policy?: Policy
+  clusterName?: string
 }
 
 export type ListPoliciesResponse = {
@@ -100,20 +105,28 @@ export type ListPoliciesResponse = {
 }
 
 export type ListPolicyValidationsRequest = {
-  clusterId?: string
+  clusterName?: string
+  pagination?: Pagination
 }
 
 export type ListPolicyValidationsResponse = {
   violations?: PolicyValidation[]
   total?: number
+  nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type GetPolicyValidationRequest = {
   violationId?: string
+  clusterName?: string
 }
 
 export type GetPolicyValidationResponse = {
   violation?: PolicyValidation
+}
+
+export type PolicyValidationOccurrence = {
+  message?: string
 }
 
 export type PolicyValidation = {
@@ -129,6 +142,8 @@ export type PolicyValidation = {
   description?: string
   howToSolve?: string
   name?: string
+  clusterName?: string
+  occurrences?: PolicyValidationOccurrence[]
 }
 
 export type CreatePullRequestRequest = {
@@ -143,6 +158,7 @@ export type CreatePullRequestRequest = {
   credentials?: Credential
   values?: ProfileValues[]
   repositoryApiUrl?: string
+  clusterNamespace?: string
 }
 
 export type CreatePullRequestResponse = {
@@ -165,6 +181,11 @@ export type CreateTfControllerPullRequestResponse = {
   webUrl?: string
 }
 
+export type ClusterNamespacedName = {
+  namespace?: string
+  name?: string
+}
+
 export type DeleteClustersPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
@@ -175,6 +196,7 @@ export type DeleteClustersPullRequestRequest = {
   commitMessage?: string
   credentials?: Credential
   repositoryApiUrl?: string
+  clusterNamespacedNames?: ClusterNamespacedName[]
 }
 
 export type DeleteClustersPullRequestResponse = {
@@ -191,6 +213,7 @@ export type ListCredentialsResponse = {
 
 export type GetKubeconfigRequest = {
   clusterName?: string
+  clusterNamespace?: string
 }
 
 export type GetKubeconfigResponse = {
@@ -214,6 +237,7 @@ export type GitopsCluster = {
   capiClusterRef?: GitopsClusterRef
   secretRef?: GitopsClusterRef
   capiCluster?: CapiCluster
+  controlPlane?: boolean
 }
 
 export type CapiCluster = {
@@ -313,6 +337,7 @@ export type ProfileValues = {
   version?: string
   values?: string
   layer?: string
+  namespace?: string
 }
 
 export type GetConfigRequest = {
@@ -363,6 +388,31 @@ export type Policy = {
   targets?: PolicyTargets
   createdAt?: string
   clusterName?: string
+}
+
+export type ObjectRef = {
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type Event = {
+  type?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+  component?: string
+  host?: string
+  name?: string
+}
+
+export type ListEventsRequest = {
+  involvedObject?: ObjectRef
+  clusterName?: string
+}
+
+export type ListEventsResponse = {
+  events?: Event[]
 }
 
 export class ClustersService {
@@ -416,5 +466,8 @@ export class ClustersService {
   }
   static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
     return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyviolations/${req["violationId"]}?${fm.renderURLSearchParams(req, ["violationId"])}`, {...initReq, method: "GET"})
+  }
+  static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }
