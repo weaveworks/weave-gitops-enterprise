@@ -379,7 +379,7 @@ metadata:
 `,
 				},
 				{
-					Path: "clusters/dev/clusters-bases-kustomization.yaml",
+					Path: "clusters/default/dev/clusters-bases-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -479,7 +479,7 @@ metadata:
 `,
 				},
 				{
-					Path: "clusters/dev/clusters-bases-kustomization.yaml",
+					Path: "clusters/default/dev/clusters-bases-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
