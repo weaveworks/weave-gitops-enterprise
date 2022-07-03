@@ -1,5 +1,6 @@
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../muiTheme';
+import useClusters from './../../contexts/Clusters';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../Layout/ContentWrapper';
@@ -17,6 +18,7 @@ const PoliciesViolations = () => {
   const [count, setCount] = useState<number | undefined>(0);
   const { api } = useContext(EnterpriseClientContext);
   const [errors, setErrors] = useState<ListError[] | undefined>();
+  const clustersCount = useClusters().count;
 
   // const [payload, setPayload] = useState<any>({ page: 1, limit: 20, clusterId:'' });
 
@@ -40,11 +42,11 @@ const PoliciesViolations = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/clusters', count },
+            { label: 'Clusters', url: '/clusters', count: clustersCount },
             {
               label: 'Violation Log',
               url: 'violations',
-              count: count,
+              count,
             },
           ]}
         />
