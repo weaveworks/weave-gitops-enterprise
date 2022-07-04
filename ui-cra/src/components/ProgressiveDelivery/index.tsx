@@ -26,15 +26,13 @@ const ProgressiveDelivery = () => {
     () =>
       ProgressiveDeliveryService.IsFlaggerAvailable({}).then(
         ({ clusters }: IsFlaggerAvailableResponse) => {
-          if (clusters === undefined || Object.keys(clusters).length === 0)
-            return { isFlaggerAvailabl: false };
-          else {
-            return {
-              isFlaggerAvailabl: Object.values(clusters).some(
-                (value: boolean) => value === true,
-              ),
-            };
-          }
+          return clusters === undefined || Object.keys(clusters).length === 0
+            ? { isFlaggerAvailabl: false }
+            : {
+                isFlaggerAvailabl: Object.values(clusters).some(
+                  (value: boolean) => value === true,
+                ),
+              };
         },
       ),
   );
