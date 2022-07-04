@@ -24,6 +24,7 @@ env:
   NODE_MODULES_CACHE_NAME: cache-node-modules
   NODE_VERSION: "14"
   HELM_REPO: ${{ inputs.helmrepo }}
+  REACT_APP_DISABLE_PROGRESSIVE_DELIVERY: "true"
 
 jobs:
   helm-chart:

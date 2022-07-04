@@ -19,10 +19,11 @@ func ToTemplateResponse(t *apitemplates.Template) *capiv1_proto.Template {
 		annotation = templates.GitOpsTemplateNameAnnotation
 	}
 	res := &capiv1_proto.Template{
-		Name:        t.GetName(),
-		Description: t.Spec.Description,
-		Provider:    getProvider(t, annotation),
-		Annotations: t.Annotations,
+		Name:         t.GetName(),
+		Description:  t.Spec.Description,
+		Provider:     getProvider(t, annotation),
+		Annotations:  t.Annotations,
+		TemplateKind: t.Kind,
 	}
 
 	meta, err := templates.ParseTemplateMeta(t, annotation)

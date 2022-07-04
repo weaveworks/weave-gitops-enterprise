@@ -35,8 +35,9 @@ metadata:
   name: foo
 `,
 			expected: &capiv1_protos.Template{
-				Name:     "foo",
-				Provider: "",
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
 			},
 		},
 		{
@@ -60,9 +61,10 @@ metadata:
 				}
 			}),
 			expected: &capiv1_protos.Template{
-				Name:        "cluster-template-1",
-				Description: "this is test template 1",
-				Provider:    "",
+				Name:         "cluster-template-1",
+				Description:  "this is test template 1",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						ApiVersion: "fooversion",
@@ -92,25 +94,28 @@ metadata:
   name: foo
 `,
 			expected: &capiv1_protos.Template{
-				Name:        "foo",
-				Provider:    "",
-				Annotations: map[string]string{"hi": "there"},
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
+				Annotations:  map[string]string{"hi": "there"},
 			},
 		},
 		{
 			name:  "With basic type errors",
 			value: makeErrorTemplate(t, `"derp"`),
 			expected: &capiv1_protos.Template{
-				Name:  "cluster-template-1",
-				Error: "Couldn't load template body: failed to unmarshal resourceTemplate: json: cannot unmarshal string into Go value of type map[string]interface {}",
+				Name:         "cluster-template-1",
+				TemplateKind: "CAPITemplate",
+				Error:        "Couldn't load template body: failed to unmarshal resourceTemplate: json: cannot unmarshal string into Go value of type map[string]interface {}",
 			},
 		},
 		{
 			name:  "With structural errors",
 			value: makeErrorTemplate(t, `{ "boop": "beep" }`),
 			expected: &capiv1_protos.Template{
-				Name:  "cluster-template-1",
-				Error: "Couldn't load template body: failed to unmarshal resourceTemplate: Object 'Kind' is missing in '{\"boop\":\"beep\"}'",
+				Name:         "cluster-template-1",
+				TemplateKind: "CAPITemplate",
+				Error:        "Couldn't load template body: failed to unmarshal resourceTemplate: Object 'Kind' is missing in '{\"boop\":\"beep\"}'",
 			},
 		},
 	}
