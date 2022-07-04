@@ -169,7 +169,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	if viper.GetString("add-bases-kustomization") == "enabled" {
-		commonKustomization, err := getCommonKustomization(clusterName)
+		commonKustomization, err := getCommonKustomization(cluster)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", clusterName, err)
 		}
@@ -399,9 +399,9 @@ func getToken(ctx context.Context) (string, string, error) {
 	return providerToken.AccessToken, "oauth2", nil
 }
 
-func getCommonKustomization(clusterName string) (*gitprovider.CommitFile, error) {
+func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFile, error) {
 
-	commonKustomizationPath := getCommonKustomizationPath(clusterName)
+	commonKustomizationPath := getCommonKustomizationPath(cluster)
 	commonKustomization := &kustomizev1.Kustomization{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       kustomizev1.KustomizationKind,
@@ -623,10 +623,11 @@ func getClusterManifestPath(cluster types.NamespacedName) string {
 	)
 }
 
-func getCommonKustomizationPath(clusterName string) string {
+func getCommonKustomizationPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
-		clusterName,
+		cluster.Namespace,
+		cluster.Name,
 		"clusters-bases-kustomization.yaml",
 	)
 }
