@@ -30,7 +30,7 @@ func TestListTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no configmap",
-			err:      errors.New("configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
+			err:      errors.New("error listing capi templates: configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
 			expected: []*capiv1_protos.Template{},
 		},
 		{
@@ -159,7 +159,7 @@ func TestListClusterTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no configmap",
-			err:      errors.New("configmap cluster-templates not found in default namespace: configmaps \"cluster-templates\" not found"),
+			err:      errors.New("error listing gitops templates: configmap cluster-templates not found in default namespace: configmaps \"cluster-templates\" not found"),
 			expected: []*capiv1_protos.Template{},
 		},
 		{

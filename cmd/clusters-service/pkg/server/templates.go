@@ -22,7 +22,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	if includeGitopsTemplates {
 		tl, err := s.templatesLibrary.List(ctx, gapiv1.Kind)
 		if err != nil {
-			return nil, fmt.Errorf("error listing gitops templates %w", err)
+			return nil, fmt.Errorf("error listing gitops templates: %w", err)
 		}
 		for _, t := range tl {
 			templates = append(templates, ToTemplateResponse(t))
@@ -32,7 +32,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	if includeCAPITemplates {
 		tl, err := s.templatesLibrary.List(ctx, capiv1.Kind)
 		if err != nil {
-			return nil, fmt.Errorf("error listing capi templates %w", err)
+			return nil, fmt.Errorf("error listing capi templates: %w", err)
 		}
 		for _, t := range tl {
 			templates = append(templates, ToTemplateResponse(t))
