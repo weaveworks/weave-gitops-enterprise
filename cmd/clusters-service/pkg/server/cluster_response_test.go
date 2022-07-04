@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -54,6 +55,12 @@ func TestAddCAPIClusters(t *testing.T) {
 						"cni": "calico",
 					}
 					o.Status.Phase = "Provisioned"
+					o.Status.Conditions = clusterv1.Conditions{
+						clusterv1.Condition{
+							Type:   clusterv1.ControlPlaneInitializedCondition,
+							Status: corev1.ConditionStatus(strconv.FormatBool(true)),
+						},
+					}
 				}),
 			},
 			expected: []*capiv1_proto.GitopsCluster{
@@ -70,7 +77,59 @@ func TestAddCAPIClusters(t *testing.T) {
 							"cni": "calico",
 						},
 						Status: &capiv1_proto.CapiClusterStatus{
-							Phase: "Provisioned",
+							Phase:                   "Provisioned",
+							ControlPlaneInitialized: true,
+							Conditions: []*capiv1_proto.Condition{
+								{
+									Type:      string(clusterv1.ControlPlaneInitializedCondition),
+									Status:    "true",
+									Timestamp: "0001-01-01 00:00:00 +0000 UTC",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "CapiClusterRef exists but cluster isn't ready",
+			gitopsClusters: []*capiv1_proto.GitopsCluster{
+				{
+					Name:        "capi-cluster",
+					Namespace:   "default",
+					Annotations: map[string]string{},
+					Labels:      map[string]string{},
+					CapiClusterRef: &capiv1_proto.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+			},
+			clusterObjects: []runtime.Object{
+				makeTestCluster(func(o *clusterv1.Cluster) {
+					o.ObjectMeta.Name = "capi-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.ObjectMeta.Annotations = map[string]string{
+						"cni": "calico",
+					}
+					o.Status.Phase = string(clusterv1.ClusterPhasePending)
+				}),
+			},
+			expected: []*capiv1_proto.GitopsCluster{
+				{
+					Name:      "capi-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_proto.GitopsClusterRef{
+						Name: "dev",
+					},
+					CapiCluster: &capiv1_proto.CapiCluster{
+						Name:      "capi-cluster",
+						Namespace: "default",
+						Annotations: map[string]string{
+							"cni": "calico",
+						},
+						Status: &capiv1_proto.CapiClusterStatus{
+							Phase:                   string(clusterv1.ClusterPhasePending),
+							ControlPlaneInitialized: false,
 						},
 					},
 				},
