@@ -17,7 +17,6 @@ import {
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useRouteMatch } from 'react-router-dom';
 import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
@@ -37,7 +36,7 @@ function CanaryDetailsSection({
   automation: Automation;
 }) {
   const classes = useCanaryStyle();
-  const { path } = useRouteMatch();
+  const path = `/applications/delivery/${canary.targetDeployment?.uid}`;
   const [open, setOpen] = useState(true);
 
   const { conditions, ...restStatus } = canary?.status || { conditions: [] };

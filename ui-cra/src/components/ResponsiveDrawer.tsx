@@ -337,7 +337,7 @@ const App = () => {
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
               <Route
-                path="/delivery"
+                path="/applications/delivery/:id"
                 component={withSearchParams(CanaryDetails)}
               />
               <Route exact path={POLICIES} component={Policies} />

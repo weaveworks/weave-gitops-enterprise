@@ -83,7 +83,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                   label: 'Name',
                   value: (c: Canary) => (
                     <Link
-                      to={`/delivery?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
+                      to={`/applications/delivery/${c.targetDeployment?.uid}?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
                       className={classes.link}
                     >
                       {c.name}
