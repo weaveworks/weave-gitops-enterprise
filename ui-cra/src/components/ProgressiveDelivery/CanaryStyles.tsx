@@ -13,7 +13,6 @@ export const useCanaryStyle = makeStyles(() =>
     cardTitle: {
       fontWeight: 600,
       fontSize: theme.fontSizes.normal,
-      // color: theme.colors.neutral30,
     },
     body1: {
       fontWeight: 400,

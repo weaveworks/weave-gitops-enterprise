@@ -126,10 +126,6 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                     (c.status?.conditions && c.status?.conditions[0].message) ||
                     '--',
                 },
-                // {
-                //   label: 'Target',
-                //   value: (c: Canary) => c.targetReference?.name || '',
-                // },
                 {
                   label: 'Last Updated',
                   value: (c: Canary) =>

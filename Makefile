@@ -57,6 +57,7 @@ ui-cra/.uptodate: ui-cra/*
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--build-arg=GITHUB_TOKEN=$(GITHUB_BUILD_TOKEN) \
+		--build-arg=REACT_APP_DISABLE_PROGRESSIVE_DELIVERY=$(REACT_APP_DISABLE_PROGRESSIVE_DELIVERY) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(UI_SERVER) \
 		$(@D)/
