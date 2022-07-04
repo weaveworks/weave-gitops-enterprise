@@ -47,7 +47,7 @@ const ActionsWrapper = styled.div<Size>`
   }
 `;
 
-const TableWrapper = styled.div`
+export const TableWrapper = styled.div`
   margin-top: ${theme.spacing.medium};
   div[class*='FilterDialog__SlideContainer'],
   div[class*='SearchField'] {
