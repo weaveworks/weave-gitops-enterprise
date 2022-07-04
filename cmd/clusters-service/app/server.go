@@ -158,7 +158,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
-	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", corev1.NamespaceAll, "where to look for CAPI template resources, defaults to looking in all namespaces")
+	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "where to look for CAPI template resources, required")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
 	cmd.Flags().StringVar(&p.addBasesKustomization, "add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
@@ -251,6 +251,9 @@ func bindFlagValues(cmd *cobra.Command) {
 }
 
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+	if p.capiTemplatesNamespace == "" {
+		return errors.New("CAPI templates namespace not set")
+	}
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{

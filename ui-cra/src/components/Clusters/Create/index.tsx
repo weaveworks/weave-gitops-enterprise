@@ -107,7 +107,7 @@ const AddCluster: FC = () => {
   const clustersCount = useClusters().count;
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
-  const { updatedProfiles } = useProfiles();
+  const { profiles } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   let initialFormData = {
@@ -187,7 +187,7 @@ const AddCluster: FC = () => {
           profile,
         ) => {
           profile.values.forEach(value => {
-            if (value.selected === true)
+            if (value.selected === true) {
               accumulator.push({
                 name: profile.name,
                 version: value.version,
@@ -195,6 +195,7 @@ const AddCluster: FC = () => {
                 layer: profile.layer,
                 namespace: profile.namespace,
               });
+            }
           });
           return accumulator;
         },
@@ -203,64 +204,63 @@ const AddCluster: FC = () => {
     [],
   );
 
-  const handleAddCluster = useCallback(
-    () =>
-      addCluster(
-        {
-          head_branch: formData.branchName,
-          title: formData.pullRequestTitle,
-          description: formData.pullRequestDescription,
-          commit_message: formData.commitMessage,
-          credentials: infraCredential,
-          template_name: activeTemplate?.name,
-          parameter_values: {
-            ...formData,
-          },
-          values: encodedProfiles(selectedProfiles),
-        },
-        getProviderToken(formData.provider as GitProvider),
-      )
-        .then(response => {
-          setPRPreview(null);
-          history.push('/clusters');
-          setNotifications([
-            {
-              message: {
-                component: (
-                  <a
-                    style={{ color: weaveTheme.colors.primary }}
-                    href={response.webUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    PR created successfully.
-                  </a>
-                ),
-              },
-              variant: 'success',
+  const handleAddCluster = useCallback(() => {
+    const payload = {
+      head_branch: formData.branchName,
+      title: formData.pullRequestTitle,
+      description: formData.pullRequestDescription,
+      commit_message: formData.commitMessage,
+      credentials: infraCredential,
+      template_name: activeTemplate?.name,
+      parameter_values: {
+        ...formData,
+      },
+      values: encodedProfiles(selectedProfiles),
+    };
+    return addCluster(
+      payload,
+      getProviderToken(formData.provider as GitProvider),
+    )
+      .then(response => {
+        setPRPreview(null);
+        history.push('/clusters');
+        setNotifications([
+          {
+            message: {
+              component: (
+                <a
+                  style={{ color: weaveTheme.colors.primary }}
+                  href={response.webUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  PR created successfully.
+                </a>
+              ),
             },
-          ]);
-        })
-        .catch(error => {
-          setNotifications([
-            { message: { text: error.message }, variant: 'danger' },
-          ]);
-          if (isUnauthenticated(error.code)) {
-            removeToken(formData.provider);
-          }
-        }),
-    [
-      selectedProfiles,
-      addCluster,
-      formData,
-      activeTemplate?.name,
-      infraCredential,
-      history,
-      setNotifications,
-      encodedProfiles,
-      setPRPreview,
-    ],
-  );
+            variant: 'success',
+          },
+        ]);
+      })
+      .catch(error => {
+        setNotifications([
+          { message: { text: error.message }, variant: 'danger' },
+        ]);
+        if (isUnauthenticated(error.code)) {
+          removeToken(formData.provider);
+        }
+      });
+  }, [
+    selectedProfiles,
+    addCluster,
+    formData,
+    activeTemplate?.name,
+    infraCredential,
+    history,
+    setNotifications,
+    encodedProfiles,
+    setPRPreview,
+  ]);
 
   useEffect(() => {
     if (!activeTemplate) {
@@ -294,7 +294,7 @@ const AddCluster: FC = () => {
         url: repositoryURL,
       }));
     }
-  }, [callbackState, infraCredential, repositoryURL, updatedProfiles]);
+  }, [callbackState, infraCredential, repositoryURL, profiles]);
 
   return useMemo(() => {
     return (
@@ -347,7 +347,7 @@ const AddCluster: FC = () => {
                 ) : (
                   <Loader />
                 )}
-                {updatedProfiles.length > 0 && (
+                {profiles.length > 0 && (
                   <Profiles
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
@@ -394,7 +394,7 @@ const AddCluster: FC = () => {
   }, [
     authRedirectPage,
     formData,
-    updatedProfiles.length,
+    profiles.length,
     infraCredential,
     activeTemplate,
     clustersCount,

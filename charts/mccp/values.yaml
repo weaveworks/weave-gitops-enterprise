@@ -32,7 +32,7 @@ config:
       injectPruneAnnotation: enabled
       addBasesKustomization: enabled
     clusters:
-      namespace: default
+      namespace: ""
     repositoryURL: ""
     repositoryApiURL: ""
     repositoryPath: "./clusters/management/clusters"
