@@ -108,9 +108,11 @@ export const Navigation: FC = () => {
           <NavItem className={classes.subItem} to={V2Routes.Sources}>
             Sources
           </NavItem>
+          {process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true' && (
             <NavItem className={classes.subItem} to="/applications/delivery">
               Delivery
             </NavItem>
+          )}
           <NavItem to={V2Routes.FluxRuntime}>Flux Runtime</NavItem>
         </Box>
         <Box className={classes.section}>
