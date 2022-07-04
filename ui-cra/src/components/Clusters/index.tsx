@@ -58,6 +58,10 @@ export const TableWrapper = styled.div`
       color: ${theme.colors.primary};
     }
   }
+  max-width: calc(100vw - 220px);
+`;
+
+const ClustersTableWrapper = styled(TableWrapper)`
   thead {
     th:first-of-type {
       padding: ${theme.spacing.base};
@@ -66,9 +70,6 @@ export const TableWrapper = styled.div`
   td:first-of-type {
     text-overflow: clip;
     width: 25px;
-  }
-  td:nth-child(2) {
-    width: 650px;
   }
   td:nth-child(7) {
     white-space: pre-wrap;
@@ -363,7 +364,7 @@ const MCCP: FC = () => {
               </a>
             </div>
             {!isLoading ? (
-              <TableWrapper id="clusters-list">
+              <ClustersTableWrapper id="clusters-list">
                 <FilterableTable
                   key={clusters.length}
                   filters={initialFilterState}
@@ -455,7 +456,7 @@ const MCCP: FC = () => {
                     },
                   ]}
                 />
-              </TableWrapper>
+              </ClustersTableWrapper>
             ) : (
               <LoadingWrapper>
                 <LoadingPage />

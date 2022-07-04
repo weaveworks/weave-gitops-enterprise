@@ -84,7 +84,7 @@ const TemplatesDashboard: FC = () => {
 
   const initialFilterState = {
     ...filterConfig(templates, 'provider'),
-    // ...filterConfig(templates, 'kind'),
+    ...filterConfig(templates, 'templateKind'),
   };
 
   const titleSection = (
@@ -161,6 +161,12 @@ const TemplatesDashboard: FC = () => {
                       {
                         label: 'Name',
                         value: 'name',
+                        sortValue: ({ name }) => name,
+                        textSearchable: true,
+                      },
+                      {
+                        label: 'Kind',
+                        value: 'templateKind',
                         sortValue: ({ name }) => name,
                         textSearchable: true,
                       },
