@@ -5,17 +5,20 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { useCallback, useState } from 'react';
 import LoadingError from '../../LoadingError';
-import { useParams } from 'react-router-dom';
 import { GetPolicyValidationResponse } from '../../../cluster-services/cluster_services.pb';
 import { PolicyService } from '../../Policies/PolicyService';
 import ViolationDetails from './ViolationDetails';
 import useClusters from '../../../contexts/Clusters';
 
-const PolicyViolationDetails = () => {
-  const { id } = useParams<{ id: string }>();
+const PolicyViolationDetails = ({
+  id,
+  clusterName,
+}: {
+  id: string;
+  clusterName: string;
+}) => {
   const { count } = useClusters();
   const [name, setName] = useState('');
-  const { clusterName } = useParams<{ clusterName: string }>();
 
   const fetchPolicyViolationById = useCallback(
     () =>

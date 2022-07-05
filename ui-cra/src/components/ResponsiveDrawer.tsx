@@ -260,9 +260,9 @@ const App = () => {
                 path="/clusters/violations"
               />
               <Route
-                component={PolicyViolationDetails}
+                component={withSearchParams(PolicyViolationDetails)}
                 exact
-                path="/clusters/:clusterName/violations/:id"
+                path="/clusters/violations/details"
               />
               <Route
                 component={() => (
@@ -343,8 +343,8 @@ const App = () => {
               <Route exact path={POLICIES} component={Policies} />
               <Route
                 exact
-                path="/:clusterName/policies/:id"
-                component={PolicyDetails}
+                path="/policies/details"
+                component={withSearchParams(PolicyDetails)}
               />
 
               <Route

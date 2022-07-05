@@ -8,14 +8,17 @@ import { PolicyService } from '../PolicyService';
 import { useCallback, useState } from 'react';
 import LoadingError from '../../LoadingError';
 import HeaderSection from './HeaderSection';
-import { useParams } from 'react-router-dom';
 import { GetPolicyResponse } from '../../../cluster-services/cluster_services.pb';
 import ParametersSection from './ParametersSection';
 
-const PolicyDetails = () => {
-  const { id } = useParams<{ id: string }>();
+const PolicyDetails = ({
+  clusterName,
+  id,
+}: {
+  clusterName: string;
+  id: string;
+}) => {
   const [name, setName] = useState('');
-  const { clusterName } = useParams<{ clusterName: string }>();
 
   const fetchPoliciesAPI = useCallback(
     () =>
