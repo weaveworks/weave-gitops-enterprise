@@ -30,9 +30,7 @@ const ProgressiveDelivery = ({
     <>
       {isLoading && <LoadingPage />}
       {error && <Alert severity="error">{error.message}</Alert>}
-      {data?.canaries && (
-        <CanaryTable canaries={data.canaries as Canary[]} />
-      )}
+      {data?.canaries && <CanaryTable canaries={data.canaries as Canary[]} />}
     </>
   );
 };

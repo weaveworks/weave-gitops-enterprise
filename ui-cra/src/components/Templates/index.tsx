@@ -90,24 +90,26 @@ const TemplatesDashboard: FC = () => {
   const titleSection = (
     <TitleSection>
       {view === 'grid' ? (
-        <Title style={{ paddingBottom: theme.spacing.xl }}>
-          Cluster Templates
-        </Title>
+        <>
+          <Title style={{ paddingBottom: theme.spacing.xl }}>
+            Cluster Templates
+          </Title>
+          <div style={{ width: '200px' }}>
+            <Autocomplete
+              value={selectedProvider}
+              disablePortal
+              id="filter-by-provider"
+              options={validProviders}
+              onChange={onProviderChange}
+              clearOnEscape
+              blurOnSelect="mouse"
+              renderInput={params => <TextField {...params} label="Provider" />}
+            />
+          </div>
+        </>
       ) : (
         <Title>Cluster Templates</Title>
       )}
-      <div style={{ width: '200px' }}>
-        <Autocomplete
-          value={selectedProvider}
-          disablePortal
-          id="filter-by-provider"
-          options={validProviders}
-          onChange={onProviderChange}
-          clearOnEscape
-          blurOnSelect="mouse"
-          renderInput={params => <TextField {...params} label="Provider" />}
-        />
-      </div>
     </TitleSection>
   );
 
