@@ -16,7 +16,7 @@ import {
 } from '@weaveworks/progressive-delivery';
 
 interface FlaggerStatus {
-  isFlaggerAvailabl: boolean;
+  isFlaggerAvailable: boolean;
 }
 
 const ProgressiveDelivery = () => {
@@ -27,9 +27,9 @@ const ProgressiveDelivery = () => {
       ProgressiveDeliveryService.IsFlaggerAvailable({}).then(
         ({ clusters }: IsFlaggerAvailableResponse) => {
           return clusters === undefined || Object.keys(clusters).length === 0
-            ? { isFlaggerAvailabl: false }
+            ? { isFlaggerAvailable: false }
             : {
-                isFlaggerAvailabl: Object.values(clusters).some(
+                isFlaggerAvailable: Object.values(clusters).some(
                   (value: boolean) => value === true,
                 ),
               };
@@ -56,7 +56,7 @@ const ProgressiveDelivery = () => {
 
           {!!data && (
             <>
-              {data.isFlaggerAvailabl ? (
+              {data.isFlaggerAvailable ? (
                 <CanariesList onCountChange={onCountChange} />
               ) : (
                 <OnboardingMessage />
