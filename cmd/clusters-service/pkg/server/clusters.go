@@ -128,7 +128,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	clusterNamespace := getClusterNamespace(msg.ClusterNamespace)
+	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
