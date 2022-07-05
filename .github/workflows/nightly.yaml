@@ -23,6 +23,76 @@ jobs:
       runs-on: ubuntu-latest
       ref: main
 
+  gitops-binary-macOs:
+    uses: ./.github/workflows/gitops-binary.yaml
+    with:
+      runs-on: macOS-latest
+      ref: main
+
+  acceptance-tests-github:
+    needs:
+      - build
+      - lint
+      - unit-tests
+      - integration-tests
+      - ui-integration-tests
+      - gitops-binary-ubuntu
+    uses: ./.github/workflows/acceptance-test.yaml
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 90
+      label-filter: "-ginkgo.label-filter='!(upgrade, application, smoke)'"
+      kubectl-version: "v1.23.3"
+      login_user_type: "oidc"
+      git-provider: github
+      git-provider_hostname: github.com
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      capi_provider: capd
+      gitops-bin-path: /usr/local/bin/gitops
+      artifacts-base-dir: "/tmp/acceptance-test-github"
+    secrets:
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GITHUB_ORG: wge-org-test
+      WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
+      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
+
+  acceptance-tests-gitlab-on-prem:
+    needs: [build, coverage, gitops-binary-ubuntu]
+    uses: ./.github/workflows/acceptance-test.yaml
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 90
+      label-filter: "-ginkgo.label-filter='!(application)'"
+      kubectl-version: "v1.23.3"
+      login_user_type: "cluster-user"
+      git-provider: gitlab
+      git-provider_hostname: gitlab.git.dev.weave.works
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      capi_provider: capd
+      gitops-bin-path: /usr/local/bin/gitops
+      artifacts-base-dir: "/tmp/acceptance-test-gitlab-on-prem"
+    secrets:
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
+      WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
+      WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
+      WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
+      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
+      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
+      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
+
   acceptance-tests-eks-github:
     needs: [build, gitops-binary-ubuntu]
     uses: ./.github/workflows/acceptance-test.yaml
@@ -52,12 +122,6 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
-
-  gitops-binary-macOs:
-    uses: ./.github/workflows/gitops-binary.yaml
-    with:
-      runs-on: macOS-latest
-      ref: main
 
   acceptance-tests-gke-gitlab:
     needs: [build, gitops-binary-macOs]
