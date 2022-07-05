@@ -45,6 +45,15 @@ export function useListCanaries(clb: (res: ListCanariesResponse) => void) {
   );
 }
 
+export function useListCanariesCount() {
+  const { data } = useQuery<ListCanariesResponse, Error>(
+    'canaries',
+    () => ProgressiveDeliveryService.ListCanaries({}),
+    {},
+  );
+  return data?.canaries?.length || 0;
+}
+
 export function useListEvents(listEventsPayload: ListEventsRequest) {
   return useQuery<ListEventsResponse, Error>('events', () =>
     ClustersService.ListEvents(listEventsPayload),

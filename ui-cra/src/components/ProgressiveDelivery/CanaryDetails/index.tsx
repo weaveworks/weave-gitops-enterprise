@@ -12,10 +12,12 @@ import { useApplicationsCount } from '../../Applications/utils';
 import {
   CanaryParams,
   useCanaryDetails,
+  useListCanariesCount,
 } from '../../../hooks/progressiveDelivery';
 
 function CanaryDetails({ name, namespace, clusterName }: CanaryParams) {
   const applicationsCount = useApplicationsCount();
+  const canariesCount = useListCanariesCount();
   const { error, data, isLoading } = useCanaryDetails({
     name,
     namespace,
@@ -33,7 +35,11 @@ function CanaryDetails({ name, namespace, clusterName }: CanaryParams) {
               url: '/applications',
               count: applicationsCount,
             },
-            { label: 'Delivery', url: '/applications/delivery' },
+            {
+              label: 'Delivery',
+              url: '/applications/delivery',
+              count: canariesCount,
+            },
             { label: name },
           ]}
         />
