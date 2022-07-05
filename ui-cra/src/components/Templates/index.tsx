@@ -5,7 +5,7 @@ import Grid from '@material-ui/core/Grid';
 import useClusters from '../../contexts/Clusters';
 import useTemplates from '../../contexts/Templates';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { Loader } from '../Loader';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
@@ -39,10 +39,11 @@ const ActionsWrapper = styled.div`
   }
 `;
 
-const TitleSection = styled.div`
+const FilteringSection = styled.div`
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  padding-bottom: ${theme.spacing.medium};
 `;
 
 const localMuiTheme = createTheme({
@@ -87,32 +88,6 @@ const TemplatesDashboard: FC = () => {
     ...filterConfig(templates, 'templateKind'),
   };
 
-  const titleSection = (
-    <TitleSection>
-      {view === 'grid' ? (
-        <>
-          <Title style={{ paddingBottom: theme.spacing.xl }}>
-            Cluster Templates
-          </Title>
-          <div style={{ width: '200px' }}>
-            <Autocomplete
-              value={selectedProvider}
-              disablePortal
-              id="filter-by-provider"
-              options={validProviders}
-              onChange={onProviderChange}
-              clearOnEscape
-              blurOnSelect="mouse"
-              renderInput={params => <TextField {...params} label="Provider" />}
-            />
-          </div>
-        </>
-      ) : (
-        <Title>Cluster Templates</Title>
-      )}
-    </TitleSection>
-  );
-
   const filteredTemplates = selectedProvider
     ? templates?.filter(
         t => selectedProvider === 'All' || t.provider === selectedProvider,
@@ -141,7 +116,22 @@ const TemplatesDashboard: FC = () => {
           <div style={{ display: 'flex' }}>
             {view === 'grid' && (
               <ContentWrapper backgroundColor="transparent">
-                {titleSection}
+                <FilteringSection>
+                  <div style={{ width: '200px' }}>
+                    <Autocomplete
+                      value={selectedProvider}
+                      disablePortal
+                      id="filter-by-provider"
+                      options={validProviders}
+                      onChange={onProviderChange}
+                      clearOnEscape
+                      blurOnSelect="mouse"
+                      renderInput={params => (
+                        <TextField {...params} label="Provider" />
+                      )}
+                    />
+                  </div>
+                </FilteringSection>
                 <Grid container spacing={3} justifyContent="center">
                   {filteredTemplates?.map((template: any, index: number) => (
                     <Grid key={index} item xs={11} sm={8} md={4}>
@@ -153,7 +143,6 @@ const TemplatesDashboard: FC = () => {
             )}
             {view === 'table' && (
               <ContentWrapper>
-                {titleSection}
                 <TableWrapper id="templates-list">
                   <FilterableTable
                     key={templates?.length}

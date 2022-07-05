@@ -8,7 +8,7 @@ import { Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { Link, useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
-import { contentCss, ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import {
   Button,
@@ -290,7 +290,6 @@ const MCCP: FC = () => {
             path={[{ label: 'Clusters', url: 'clusters', count }]}
           />
           <ContentWrapper>
-            <Title>Connected clusters dashboard</Title>
             <div
               style={{
                 display: 'flex',
