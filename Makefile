@@ -53,9 +53,7 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
 ui-cra/.uptodate: ui-cra/*
-	$(SUDO) docker buildx build \
-		--cache-from=type=gha \
-		--cache-to=type=gha,mode=max \
+	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--build-arg=GITHUB_TOKEN=$(GITHUB_BUILD_TOKEN) \

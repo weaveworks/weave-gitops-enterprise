@@ -122,4 +122,4 @@ jobs:
           password: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
       - name: Push images to docker registry
         run: |
-          docker buildx push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
+          docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
