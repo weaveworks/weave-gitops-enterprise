@@ -52,9 +52,10 @@ export const WGContent = styled.div`
 
 const HelpLinkWrapper = styled.div`
   padding: ${small} ${medium};
-  margin: 0 ${small};
+  margin: ${small};
   background-color: ${theme.colors.white};
   color: ${({ theme }) => theme.colors.neutral40};
+  border-radius: ${xs};
   display: flex;
   justify-content: space-between;
   a {

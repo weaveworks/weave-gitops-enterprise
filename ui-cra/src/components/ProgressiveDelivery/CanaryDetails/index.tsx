@@ -1,4 +1,3 @@
-import { useParams } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 
@@ -20,8 +19,7 @@ interface CanaryParams {
   clusterName: string;
 }
 
-function CanaryDetails() {
-  const { name, namespace, clusterName } = useParams<CanaryParams>();
+function CanaryDetails({ name, namespace, clusterName }: CanaryParams) {
   const { error, data, isLoading } = useQuery<GetCanaryResponse, Error>(
     'canaryDetails',
     () =>
