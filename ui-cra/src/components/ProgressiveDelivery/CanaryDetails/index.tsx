@@ -5,31 +5,22 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 
-import {
-  GetCanaryResponse,
-  ProgressiveDeliveryService,
-} from '@weaveworks/progressive-delivery';
-import { useQuery } from 'react-query';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
 import CanaryDetailsSection from './CanaryDetailsSection';
-interface CanaryParams {
-  name: string;
-  namespace: string;
-  clusterName: string;
-}
+import { useApplicationsCount } from '../../Applications/utils';
+import {
+  CanaryParams,
+  useCanaryDetails,
+} from '../../../hooks/progressiveDelivery';
 
 function CanaryDetails({ name, namespace, clusterName }: CanaryParams) {
-  const { error, data, isLoading } = useQuery<GetCanaryResponse, Error>(
-    'canaryDetails',
-    () =>
-      ProgressiveDeliveryService.GetCanary({
-        name,
-        namespace,
-        clusterName,
-      }),
-    {},
-  );
+  const applicationsCount = useApplicationsCount();
+  const { error, data, isLoading } = useCanaryDetails({
+    name,
+    namespace,
+    clusterName,
+  });
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -37,7 +28,11 @@ function CanaryDetails({ name, namespace, clusterName }: CanaryParams) {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Applications', url: '/applications' },
+            {
+              label: 'Applications',
+              url: '/applications',
+              count: applicationsCount,
+            },
             { label: 'Delivery', url: '/applications/delivery' },
             { label: name },
           ]}

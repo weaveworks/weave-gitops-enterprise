@@ -7,35 +7,21 @@ import OnboardingMessage from './Onboarding/OnboardingMessage';
 
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useQuery } from 'react-query';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
-import {
-  IsFlaggerAvailableResponse,
-  ProgressiveDeliveryService,
-} from '@weaveworks/progressive-delivery';
 
-interface FlaggerStatus {
-  isFlaggerAvailable: boolean;
-}
+import { useApplicationsCount } from '../Applications/utils';
+import { useIsFlaggerAvailable } from '../../hooks/progressiveDelivery';
+
+
 
 const ProgressiveDelivery = () => {
+  // To be discussed as we don't need to show counts for prev tabs in breadcrumb as it's not needed
+  const applicationsCount = useApplicationsCount();
+  
   const [count, setCount] = useState<number | undefined>();
-  const { error, data, isLoading } = useQuery<FlaggerStatus, Error>(
-    'flagger',
-    () =>
-      ProgressiveDeliveryService.IsFlaggerAvailable({}).then(
-        ({ clusters }: IsFlaggerAvailableResponse) => {
-          return clusters === undefined || Object.keys(clusters).length === 0
-            ? { isFlaggerAvailable: false }
-            : {
-                isFlaggerAvailable: Object.values(clusters).some(
-                  (value: boolean) => value === true,
-                ),
-              };
-        },
-      ),
-  );
+  const { error, data, isLoading } = useIsFlaggerAvailable();
+
   const onCountChange = useCallback((count: number) => {
     setCount(count);
   }, []);
@@ -46,7 +32,11 @@ const ProgressiveDelivery = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Applications', url: '/applications' },
+            {
+              label: 'Applications',
+              url: '/applications',
+              count: applicationsCount,
+            },
             { label: 'Delivery', count },
           ]}
         />
