@@ -74,9 +74,10 @@ exports[`Applications index test snapshots loading 1`] = `
 
 .c11 {
   padding: 12px 24px;
-  margin: 0 12px;
+  margin: 12px;
   background-color: #fff;
   color: #1a1a1a;
+  border-radius: 8px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -720,9 +721,10 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c38 {
   padding: 12px 24px;
-  margin: 0 12px;
+  margin: 12px;
   background-color: #fff;
   color: #1a1a1a;
+  border-radius: 8px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
