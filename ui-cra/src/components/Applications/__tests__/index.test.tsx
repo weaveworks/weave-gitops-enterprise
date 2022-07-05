@@ -74,13 +74,15 @@ describe('Applications index test', () => {
   });
 
   describe('snapshots', () => {
+
     it('loading', async () => {
+      let result: RenderResult;
       await act(async () => {
         const c = wrap(<Applications />);
-        const result = render(c);
-
+        result = await render(c);
         expect(result.container).toMatchSnapshot();
       });
+
     });
     it('success', async () => {
       let result: RenderResult;
