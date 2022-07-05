@@ -51,21 +51,6 @@ const TemplateFields: FC<{
   setActiveStep,
   clickedStep,
 }) => {
-  const [userSelectedFields, setUserSelectedFields] = useState<string[]>([]);
-  const [formContextId, setFormContextId] = useState<number>(0);
-  const [uiSchema, setuiSchema] = useState<any>({});
-
-  const objectTitle = (object: TemplateObject, index: number) => {
-    if (object.displayName && object.displayName !== '') {
-      return `${index + 1}.${object.kind} (${object.displayName})`;
-    }
-    return `${index + 1}.${object.kind}`;
-  };
-
-  const required = useMemo(() => {
-    return activeTemplate?.parameters?.map(param => param.name as string);
-  }, [activeTemplate]);
-
   const parameters = useMemo(() => {
     return (
       activeTemplate?.parameters?.map(param => {
@@ -91,81 +76,63 @@ const TemplateFields: FC<{
     );
   }, [activeTemplate]);
 
-  const properties = useMemo(() => {
-    return Object.assign({}, ...parameters);
-  }, [parameters]);
+  console.log(parameters);
 
-  const schema: JSONSchema7 = useMemo(() => {
-    return {
-      type: 'object',
-      properties,
-      required,
-    };
-  }, [properties, required]);
+  // }, [sections, addUserSelectedFields, userSelectedFields]);
 
-  // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
-  const sections = useMemo(() => {
-    const excludeObjectsWithoutParams = activeTemplate?.objects?.filter(
-      object => object.parameters?.length !== 0,
-    );
-    const groups =
-      excludeObjectsWithoutParams?.reduce(
-        (accumulator, item, index) =>
-          Object.assign(accumulator, {
-            [objectTitle(item, index)]: item.parameters,
-          }),
-        {},
-      ) || {};
-    Object.assign(groups, { 'ui:template': 'Box' });
-    return [groups];
-  }, [activeTemplate]);
-
-  const addUserSelectedFields = useCallback(
-    (name: string) => {
-      if (userSelectedFields.includes(name)) {
-        setUserSelectedFields(userSelectedFields.filter(el => el !== name));
-      } else {
-        setUserSelectedFields([...userSelectedFields, name]);
-      }
-    },
-    [userSelectedFields],
-  );
-
-  useEffect(() => {
-    setFormContextId((prevState: number) => prevState + 1);
-
-    setuiSchema({
-      'ui:groups': sections,
-      'ui:template': (props: ObjectFieldTemplateProps) => (
-        <ObjectFieldTemplate
-          {...props}
-          userSelectedFields={userSelectedFields}
-          addUserSelectedFields={addUserSelectedFields}
-        />
-      ),
-    });
-  }, [sections, addUserSelectedFields, userSelectedFields]);
+  // const credentialsItems = [
+  //   ...credentials.map((credential: Credential) => {
+  //     const { kind, namespace, name } = credential;
+  //     return (
+  //       <MenuItem key={name} value={name || ''}>
+  //         {`${kind}/${namespace || 'default'}/${name}`}
+  //       </MenuItem>
+  //     );
+  //   }),
+  //   <MenuItem key="None" value="None">
+  //     <em>None</em>
+  //   </MenuItem>,
+  // ];
 
   return (
-    <FormWrapper
-      schema={schema as JSONSchema7}
-      onChange={({ formData }) => setFormData(formData)}
-      formData={formData}
-      onSubmit={onPRPreview}
-      onError={() => console.log('errors')}
-      uiSchema={uiSchema}
-      formContext={{
-        formContextId,
-        templates: FormSteps,
-        clickedStep,
-        setActiveStep,
-      }}
-      {...UiTemplate}
-    >
+    /* TO DO: if enum show select else show the normal input */
+
+    // formData structure
+
+    // { ... parameter_values":{"url":"https://github.com/wkp-example-org/capd-demo-reloaded","provider":"GitHub","branchName":"create-clusters-branch-ded8a","pullRequestTitle":"Creates capi cluster",""commitMessage":"Creates capi cluster","pullRequestDescription":"This PR creates a new cluster","CLUSTER_NAME":"testali111","NAMESPACE":"default","CONTROL_PLANE_MACHINE_COUNT":"1","KUBERNETES_VERSION":"1.19.11","WORKER_MACHINE_COUNT":"1"} ... ]}
+
+    <>
+      {/* <div className="profile-namespace">
+        <span>Namespace</span>
+        <FormControl>
+          <Input
+            id="profile-namespace"
+            value={namespace}
+            placeholder="flux-system"
+            onChange={handleChangeNamespace}
+            error={!isNamespaceValid}
+          />
+        </FormControl>
+      </div> */}
+
+      {/* <div className="credentials">
+        <span>Infrastructure provider credentials:</span>
+        <FormControl>
+          <Select
+            disabled={isLoading}
+            value={infraCredential?.name || 'None'}
+            onChange={handleSelectCredentials}
+            autoWidth
+            label="Credentials"
+          >
+            {credentialsItems}
+          </Select>
+        </FormControl>
+      </div> */}
       <div className="previewCTA">
         <Button type="submit">PREVIEW PR</Button>
       </div>
-    </FormWrapper>
+    </>
   );
 };
 
