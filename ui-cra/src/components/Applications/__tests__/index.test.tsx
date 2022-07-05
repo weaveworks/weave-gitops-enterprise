@@ -75,10 +75,10 @@ describe('Applications index test', () => {
 
   describe('snapshots', () => {
     it('loading', async () => {
-      let result: RenderResult;
       await act(async () => {
         const c = wrap(<Applications />);
-        result = await render(c);
+        const result = render(c);
+
         expect(result.container).toMatchSnapshot();
       });
     });
@@ -87,8 +87,10 @@ describe('Applications index test', () => {
       await act(async () => {
         const c = wrap(<Applications />);
         result = await render(c);
-        expect(result.container).toMatchSnapshot();
       });
+
+      //   @ts-ignore
+      expect(result.container).toMatchSnapshot();
     });
   });
 });
