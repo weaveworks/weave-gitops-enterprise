@@ -597,7 +597,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And the manifests are present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/quick-capi/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})
