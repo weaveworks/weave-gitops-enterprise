@@ -1,8 +1,4 @@
-import {
-  FilterableTable,
-  filterConfig,
-  theme,
-} from '@weaveworks/weave-gitops';
+import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
@@ -69,7 +65,8 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
   const classes = usePolicyStyle();
 
   const initialFilterState = {
-    ...filterConfig(canaries, 'name'),
+    ...filterConfig(canaries, 'namespace'),
+    ...filterConfig(canaries, 'clusterName'),
   };
 
   return (
@@ -86,7 +83,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                   label: 'Name',
                   value: (c: Canary) => (
                     <Link
-                      to={`/applications/delivery/${c.clusterName}/${c.namespace}/${c.name}`}
+                      to={`/applications/delivery/${c.targetDeployment?.uid}?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
                       className={classes.link}
                     >
                       {c.name}
@@ -137,6 +134,8 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                         c.status?.conditions[0].lastUpdateTime,
                       ).fromNow()) ||
                     '--',
+                  sortValue: (c: Canary) =>
+                    c.status?.conditions![0].lastUpdateTime,
                 },
               ]}
             />
