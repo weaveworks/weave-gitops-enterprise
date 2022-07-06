@@ -54,6 +54,8 @@ You will also be using your personal GitHub account to host GitOps repositories.
 export GITHUB_USER=your_username
 ```
 
+Along with this repository you need to clone the [cluster-controller](https://github.com/weaveworks/cluster-controller) and [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller) repositories next to this repository's clone.
+
 Finally, make sure you can access to the
 [weave-gitops-enterprise-credentials][wge-creds] repository.
 

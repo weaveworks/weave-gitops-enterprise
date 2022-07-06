@@ -1,4 +1,3 @@
-import { useParams } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 
@@ -6,32 +5,24 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 
-import {
-  GetCanaryResponse,
-  ProgressiveDeliveryService,
-} from '@weaveworks/progressive-delivery';
-import { useQuery } from 'react-query';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
 import CanaryDetailsSection from './CanaryDetailsSection';
-interface CanaryParams {
-  name: string;
-  namespace: string;
-  clusterName: string;
-}
+import { useApplicationsCount } from '../../Applications/utils';
+import {
+  CanaryParams,
+  useCanaryDetails,
+  useListCanariesCount,
+} from '../../../hooks/progressiveDelivery';
 
-function CanaryDetails() {
-  const { name, namespace, clusterName } = useParams<CanaryParams>();
-  const { error, data, isLoading } = useQuery<GetCanaryResponse, Error>(
-    'canaryDetails',
-    () =>
-      ProgressiveDeliveryService.GetCanary({
-        name,
-        namespace,
-        clusterName,
-      }),
-    {},
-  );
+function CanaryDetails({ name, namespace, clusterName }: CanaryParams) {
+  const applicationsCount = useApplicationsCount();
+  const canariesCount = useListCanariesCount();
+  const { error, data, isLoading } = useCanaryDetails({
+    name,
+    namespace,
+    clusterName,
+  });
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -39,8 +30,16 @@ function CanaryDetails() {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Applications', url: '/applications' },
-            { label: 'Delivery', url: '/applications/delivery' },
+            {
+              label: 'Applications',
+              url: '/applications',
+              count: applicationsCount,
+            },
+            {
+              label: 'Delivery',
+              url: '/applications/delivery',
+              count: canariesCount,
+            },
             { label: name },
           ]}
         />

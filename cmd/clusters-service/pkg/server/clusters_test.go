@@ -379,7 +379,7 @@ metadata:
 `,
 				},
 				{
-					Path: "clusters/dev/clusters-bases-kustomization.yaml",
+					Path: "clusters/default/dev/clusters-bases-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -439,7 +439,7 @@ status: {}
 			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
-			name: "specify profile namespace",
+			name: "specify profile namespace and cluster namespace",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
 			},
@@ -448,7 +448,7 @@ status: {}
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "dev",
-					"NAMESPACE":    "default",
+					"NAMESPACE":    "clusters-namespace",
 				},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -467,7 +467,7 @@ status: {}
 			},
 			committedFiles: []CommittedFile{
 				{
-					Path: "clusters/my-cluster/clusters/default/dev.yaml",
+					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
 kind: fookind
 metadata:
@@ -475,11 +475,11 @@ metadata:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
   name: dev
-  namespace: default
+  namespace: clusters-namespace
 `,
 				},
 				{
-					Path: "clusters/dev/clusters-bases-kustomization.yaml",
+					Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -497,7 +497,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/default/dev/profiles.yaml",
+					Path: "clusters/clusters-namespace/dev/profiles.yaml",
 					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:

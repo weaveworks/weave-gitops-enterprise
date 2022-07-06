@@ -11,14 +11,13 @@ import { CAPIClusterStatus } from './CAPIClusterStatus';
 import { GitopsClusterEnriched } from '../../types/custom';
 import {
   theme,
-  EventsTable,
-  FluxObjectKind,
   InfoList,
   RouterTab,
   SubRouterTabs,
   Icon,
   IconType,
   Button as WeaveButton,
+  KubeStatusIndicator,
 } from '@weaveworks/weave-gitops';
 import { Box, Button, Typography } from '@material-ui/core';
 import { DashboardsList } from './DashboardsList';
@@ -51,7 +50,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
   const history = useHistory();
 
   const handleClick = () =>
-    getKubeconfig(clusterName, `${clusterName}.kubeconfig`);
+    getKubeconfig(clusterName, currentCluster?.namespace || "", `${clusterName}.kubeconfig`);
 
   const info = [
     [
@@ -82,6 +81,15 @@ const ClusterDashboard = ({ clusterName }: Props) => {
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
               <ClusterDashbordWrapper>
+                {currentCluster?.conditions &&
+                currentCluster?.conditions[0].message ? (
+                  <div style={{ paddingBottom: theme.spacing.small }}>
+                    <KubeStatusIndicator
+                      conditions={currentCluster.conditions}
+                    />
+                  </div>
+                ) : null}
+
                 <WeaveButton
                   id="create-cluster"
                   startIcon={<Icon type={IconType.ExternalTab} size="base" />}
@@ -135,16 +143,6 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                   />
                 </Box>
               </ClusterDashbordWrapper>
-            </RouterTab>
-            <RouterTab name="Events" path={`${path}/events`}>
-              <EventsTable
-                namespace={currentCluster?.namespace}
-                involvedObject={{
-                  kind: 'KindCluster' as FluxObjectKind,
-                  name: currentCluster?.name,
-                  namespace: currentCluster?.namespace,
-                }}
-              />
             </RouterTab>
           </SubRouterTabs>
         </ContentWrapper>
