@@ -70,7 +70,7 @@ func (t TemplatesPage) GetTemplateTileList() []string {
 }
 
 func GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord {
-	tileRow := webDriver.Find(fmt.Sprintf(`tr.summary[data-template-name="%s"]`, templateName))
+	tileRow := webDriver.FindByXPath(`//tr//td[1]//span[contains(text(), templateName)]`)
 	return &TemplateRecord{
 		Name:             templateName,
 		Provider:         tileRow.FindByXPath(`td[2]`),
