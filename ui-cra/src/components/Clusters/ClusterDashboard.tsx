@@ -71,8 +71,6 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     [clusterName, getCluster],
   );
 
-  console.log(currentCluster);
-
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Cluster Page">
