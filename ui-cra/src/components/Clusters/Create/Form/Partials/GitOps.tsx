@@ -3,10 +3,7 @@ import { Input } from '../../../../../utils/form';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button } from '@weaveworks/weave-gitops';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import useTemplates from '../../../../../contexts/Templates';
-import { FormStep } from '../Step';
 import GitAuth from './GitAuth';
-import { Loader } from '../../../../Loader';
 
 const base = weaveTheme.spacing.base;
 
@@ -23,27 +20,18 @@ const useStyles = makeStyles(() =>
 const GitOps: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  activeStep: string | undefined;
-  setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
-  clickedStep: string;
-  setClickedStep: Dispatch<React.SetStateAction<string>>;
   onSubmit: () => Promise<void>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   formData,
   setFormData,
-  activeStep,
-  setActiveStep,
-  clickedStep,
-  setClickedStep,
   onSubmit,
   showAuthDialog,
   setShowAuthDialog,
 }) => {
   const classes = useStyles();
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-  const { loading } = useTemplates();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -84,12 +72,7 @@ const GitOps: FC<{
   const handleGitOps = useCallback(() => onSubmit(), [onSubmit]);
 
   return (
-    <FormStep
-      title="GitOps"
-      active={activeStep === 'GitOps'}
-      clicked={clickedStep === 'GitOps'}
-      setActiveStep={setActiveStep}
-    >
+    <>
       <Input
         label="Create branch"
         placeholder={formData.branchName}
@@ -120,18 +103,9 @@ const GitOps: FC<{
         setShowAuthDialog={setShowAuthDialog}
       />
       <div className={classes.createCTA} onClick={handleGitOps}>
-        {loading && clickedStep === 'GitOps' ? (
-          <Loader />
-        ) : (
-          <Button
-            onClick={() => setClickedStep('GitOps')}
-            disabled={!enableCreatePR}
-          >
-            CREATE PULL REQUEST
-          </Button>
-        )}
+        <Button disabled={!enableCreatePR}>CREATE PULL REQUEST</Button>
       </div>
-    </FormStep>
+    </>
   );
 };
 

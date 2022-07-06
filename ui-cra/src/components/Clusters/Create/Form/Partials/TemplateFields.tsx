@@ -1,19 +1,6 @@
-import React, {
-  FC,
-  useMemo,
-  useState,
-  Dispatch,
-  useEffect,
-  useCallback,
-} from 'react';
+import React, { FC, useMemo, Dispatch } from 'react';
 import { theme as weaveTheme, Button } from '@weaveworks/weave-gitops';
-import { ObjectFieldTemplateProps } from '@rjsf/core';
-import { JSONSchema7 } from 'json-schema';
-import Form from '@rjsf/material-ui';
-import * as UiTemplate from '../UITemplate';
-import FormSteps from '../Steps';
 import styled from 'styled-components';
-import ObjectFieldTemplate from '../GroupedSchema';
 import {
   Template,
   TemplateObject,
@@ -22,7 +9,7 @@ import {
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
 
-const FormWrapper = styled(Form)`
+const FormWrapper = styled.div`
   .form-group {
     padding-top: ${base};
   }
@@ -41,16 +28,7 @@ const TemplateFields: FC<{
   onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
-  clickedStep: string;
-}> = ({
-  activeTemplate,
-  onPRPreview,
-  formData,
-  setFormData,
-  setActiveStep,
-  clickedStep,
-}) => {
+}> = ({ activeTemplate, onPRPreview, formData, setFormData }) => {
   const parameters = useMemo(() => {
     return (
       activeTemplate?.parameters?.map(param => {
@@ -101,7 +79,7 @@ const TemplateFields: FC<{
 
     // { ... parameter_values":{"url":"https://github.com/wkp-example-org/capd-demo-reloaded","provider":"GitHub","branchName":"create-clusters-branch-ded8a","pullRequestTitle":"Creates capi cluster",""commitMessage":"Creates capi cluster","pullRequestDescription":"This PR creates a new cluster","CLUSTER_NAME":"testali111","NAMESPACE":"default","CONTROL_PLANE_MACHINE_COUNT":"1","KUBERNETES_VERSION":"1.19.11","WORKER_MACHINE_COUNT":"1"} ... ]}
 
-    <>
+    <FormWrapper>
       {/* <div className="profile-namespace">
         <span>Namespace</span>
         <FormControl>
@@ -132,7 +110,7 @@ const TemplateFields: FC<{
       <div className="previewCTA">
         <Button type="submit">PREVIEW PR</Button>
       </div>
-    </>
+    </FormWrapper>
   );
 };
 

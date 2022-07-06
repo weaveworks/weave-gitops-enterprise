@@ -13,7 +13,6 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
-import FormStepsNavigation from './Form/StepsNavigation';
 import { Credential, UpdatedProfile } from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -146,23 +145,13 @@ const AddCluster: FC = () => {
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
   );
-  const [steps, setSteps] = useState<string[]>([]);
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { templateName } = useParams<{ templateName: string }>();
   const history = useHistory();
-  const [activeStep, setActiveStep] = useState<string | undefined>(undefined);
-  const [clickedStep, setClickedStep] = useState<string>('');
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
   const authRedirectPage = `/clusters/templates/${activeTemplate?.name}/create`;
-
-  const objectTitle = (object: TemplateObject, index: number) => {
-    if (object.displayName && object.displayName !== '') {
-      return `${index + 1}.${object.kind} (${object.displayName})`;
-    }
-    return `${index + 1}.${object.kind}`;
-  };
 
   const handlePRPreview = useCallback(() => {
     setOpenPreview(true);
@@ -268,12 +257,6 @@ const AddCluster: FC = () => {
       setActiveTemplate(getTemplate(templateName));
     }
 
-    const steps = activeTemplate?.objects?.map((object, index) =>
-      objectTitle(object, index),
-    );
-
-    setSteps(steps as string[]);
-
     return history.listen(() => {
       setActiveTemplate(null);
       setPRPreview(null);
@@ -337,8 +320,6 @@ const AddCluster: FC = () => {
                 {activeTemplate ? (
                   <TemplateFields
                     activeTemplate={activeTemplate}
-                    setActiveStep={setActiveStep}
-                    clickedStep={clickedStep}
                     formData={formData}
                     setFormData={setFormData}
                     onFormDataUpdate={setFormData}
@@ -349,9 +330,6 @@ const AddCluster: FC = () => {
                 )}
                 {profiles.length > 0 && (
                   <Profiles
-                    activeStep={activeStep}
-                    setActiveStep={setActiveStep}
-                    clickedStep={clickedStep}
                     selectedProfiles={selectedProfiles}
                     setSelectedProfiles={setSelectedProfiles}
                   />
@@ -361,29 +339,14 @@ const AddCluster: FC = () => {
                     openPreview={openPreview}
                     setOpenPreview={setOpenPreview}
                     PRPreview={PRPreview}
-                    activeStep={activeStep}
-                    setActiveStep={setActiveStep}
-                    clickedStep={clickedStep}
                   />
                 ) : null}
                 <GitOps
                   formData={formData}
                   setFormData={setFormData}
                   onSubmit={handleAddCluster}
-                  activeStep={activeStep}
-                  setActiveStep={setActiveStep}
-                  clickedStep={clickedStep}
-                  setClickedStep={setClickedStep}
                   showAuthDialog={showAuthDialog}
                   setShowAuthDialog={setShowAuthDialog}
-                />
-              </Grid>
-              <Grid className={classes.steps} item md={2}>
-                <FormStepsNavigation
-                  steps={steps}
-                  activeStep={activeStep}
-                  setClickedStep={setClickedStep}
-                  PRPreview={PRPreview}
                 />
               </Grid>
             </Grid>
@@ -401,9 +364,6 @@ const AddCluster: FC = () => {
     classes,
     openPreview,
     PRPreview,
-    steps,
-    activeStep,
-    clickedStep,
     isLargeScreen,
     showAuthDialog,
     handlePRPreview,
