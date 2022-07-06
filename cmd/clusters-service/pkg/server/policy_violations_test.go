@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/protobuf/testing/protocmp"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -82,8 +81,8 @@ func TestGetPolicyViolation(t *testing.T) {
 			fakeCl := createClient(t, tt.clusterState...)
 			clientsPool.ClientsReturns(map[string]client.Client{tt.clusterName: fakeCl})
 			clientsPool.ClientReturns(fakeCl, nil)
-			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{"Default": {
-				v1.Namespace{},
+			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{"Default": {
+				corev1.Namespace{},
 			}})
 
 			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
@@ -180,8 +179,8 @@ func TestListPolicyValidations(t *testing.T) {
 			fakeCl := createClient(t, tt.clusterState...)
 			clientsPool.ClientsReturns(map[string]client.Client{"Default": fakeCl})
 			clientsPool.ClientReturns(fakeCl, nil)
-			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{"Default": {
-				v1.Namespace{},
+			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{"Default": {
+				corev1.Namespace{},
 			}})
 
 			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
