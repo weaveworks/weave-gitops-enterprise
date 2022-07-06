@@ -301,7 +301,7 @@ func verifyPRCreated(gp GitProviderEnv, repoAbsolutePath string) string {
 
 		g.Expect(len(prs)).To(BeNumerically(">=", 1))
 		g.Expect(prs[0].Get().Merged).To(BeFalse())
-	}, ASSERTION_1MINUTE_TIME_OUT).Should(Succeed())
+	}, ASSERTION_1MINUTE_TIME_OUT).Should(Succeed(), "Failed to verify created PR in the repository")
 
 	return prs[0].Get().WebURL
 }
