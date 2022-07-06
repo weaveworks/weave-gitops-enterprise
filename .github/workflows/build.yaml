@@ -69,9 +69,12 @@ jobs:
           HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
         if: github.ref_name == 'main'
         run: |
-          TAG=$(git describe --always --match "v*" --abbrev=7)
-          SEMVER_TAG=$(awk -F'v|-g' '{print $2}' <<< $TAG)
-          echo "Current tag $TAG"
+          DEBUG_TAG=$(git describe --always --match "v*" --abbrev=7)
+          # Zero fill out the number of commits since the last tag. This allows helm to do a proper sorting of semver rc tags which are sorted alphanumerically.
+          ZERO_FILLED_TAG=$(LAST_TAG=$(git describe --abbrev=0); N=$(git rev-list "$LAST_TAG".. --count); REF=$(git rev-parse --short=8 HEAD); printf "$LAST_TAG-%05d-g$REF" $N)
+          SEMVER_TAG=$(awk -F'v|-g' '{print $2}' <<< $ZERO_FILLED_TAG)
+          echo "Current tag $DEBUG_TAG"
+          echo "Current zerofill'd tag $ZERO_FILLED_TAG"
           echo "Current semver tag $SEMVER_TAG"
 
           if [ -z $HELM_REPO_USERNAME ] && [ -z "$HELM_REPO_PASSWORD" ];
