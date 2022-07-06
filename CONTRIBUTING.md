@@ -732,6 +732,30 @@ Requires: helm CLI >= 3.8.1
 
 where `e4e540d` is your commit sha. This will return `wkp/mccp 0.0.17-88-ge4e540d 1.16.0 A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
 
+## How to search for a Helm release from GCP OCI registry
+
+1. If you are using a Helm verion prior to `v3.8.0` set the `HELM_EXPERIMENTAL_OCI` environment variable.  Helm versions `v3.8.0` and newer have OCI support enabled by default
+
+```bash
+export HELM_EXPERIMENTAL_OCI=1
+```
+
+2. If you haven't already, install and configure the [gcloud CLI](https://cloud.google.com/sdk/docs/install)
+
+3. Use the gcloud cli to query registry artifacts
+    > The Google Artifact Registry Docker repository can hold both helm charts and docker images. If both type will be deployed to the same registry, charts should be stored in the `charts` namespace and images in the `images` namespace as documented [here](https://cloud.google.com/artifact-registry/docs/helm)
+
+```bash
+gcloud artifacts docker images list europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops-enterprise --include-tags
+```
+
+4. Once you know the version tag you can use the oci image url and version to run helm show/pull/install commands
+    > With oci registries the `--version` flag is required
+
+```bash
+helm show all oci://europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops-enterprise/charts/mccp --version 0.8.1-55
+```
+
 ## How to make a self-signed cert that works in chrome!
 
 ```bash
