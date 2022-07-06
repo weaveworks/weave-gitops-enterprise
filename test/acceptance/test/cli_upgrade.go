@@ -365,9 +365,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the manifests are present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					// Enable new path chenking when upograding to clusters across namespaces WGE release
-					// _, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})

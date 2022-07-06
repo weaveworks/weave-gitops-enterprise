@@ -314,7 +314,7 @@ func addKustomizationBases(leafCluster string) {
 
 	pathErr := func() error {
 		pullGitRepo(repoAbsolutePath)
-		_, err := os.Stat(leafClusterPath)
+		_, err := os.Stat(path.Join(leafClusterPath, "flux-system", "kustomization.yaml"))
 		return err
 
 	}

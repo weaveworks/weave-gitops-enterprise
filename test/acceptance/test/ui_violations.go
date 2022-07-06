@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"strconv"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -49,9 +50,18 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 					totalViolationCount := existingViolationCount + 1
 					Eventually(violationsPage.ViolationCount, ASSERTION_2MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
+					Eventually(func(g Gomega) string {
+						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
+						count, _ := violationsPage.ViolationCount.Text()
+						return count
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
+
 					Eventually(func(g Gomega) int {
 						return violationsPage.CountViolations()
 					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalViolationCount))
+
 				})
 
 				violationInfo := violationsPage.FindViolationInList(policyName)

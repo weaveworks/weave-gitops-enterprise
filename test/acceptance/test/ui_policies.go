@@ -67,10 +67,18 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					Eventually(policiesPage.PolicyHeader).Should(BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 3
-					Eventually(policiesPage.PolicyCount, ASSERTION_2MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(totalPolicyCount)), fmt.Sprintf("Dashboard failed to update with expected policies count: %d", totalPolicyCount))
+					Eventually(func(g Gomega) string {
+						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
+						count, _ := policiesPage.PolicyCount.Text()
+						return count
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(strconv.Itoa(totalPolicyCount)), fmt.Sprintf("Dashboard failed to update with expected policies count: %d", totalPolicyCount))
+
 					Eventually(func(g Gomega) int {
 						return policiesPage.CountPolicies()
 					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+
 				})
 
 				policyInfo := policiesPage.FindPolicyInList(policyName)
@@ -233,9 +241,11 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And filter leaf cluster '%s' policies", leafClusterName), func() {
+					filterID := "clusterName:" + leafClusterNamespace + `/` + leafClusterName
 					searchPage := pages.GetSearchPage(webDriver)
 					Eventually(searchPage.FilterBtn.Click).Should(Succeed(), "Failed to click filter buttton")
-					Expect(searchPage.GetFilter("cluster", leafClusterName).Click()).Should(Succeed(), "Failed to select cluster filter: "+leafClusterName)
+					searchPage.SelectFilter("cluster", filterID)
+
 					Expect(searchPage.FilterBtn.Click()).Should(Succeed(), "Failed to click filter buttton")
 				})
 

@@ -21,21 +21,25 @@ func GetSearchPage(webDriver *agouti.Page) *SearchPage {
 		SearchForm:   webDriver.FindByXPath(`//input[@placeholder="Search"]`),
 		SearchBtn:    webDriver.AllByXPath(`//input[@placeholder="Search"]/ancestor::div/button`).At(0),
 		FilterBtn:    webDriver.AllByXPath(`//input[@placeholder="Search"]/ancestor::div/button`).At(1),
-		FilterDialog: webDriver.Find(`div[class*="FilterDialog"].open form`),
-		Filters:      webDriver.AllByXPath(`//div[.="Filters"]/following-sibling::form/ul/li`),
+		FilterDialog: webDriver.Find(`div[class*="FilterDialog"].open`),
 	}
 }
 
-func (s SearchPage) GetFilter(filterType string, filterName string) *agouti.Selection {
+func (s SearchPage) SelectFilter(filterType string, filterID string) {
 	Eventually(s.FilterDialog).Should(BeVisible(), "Filter dialog can not be found")
-	fCount, _ := s.Filters.Count()
+	filters := s.FilterDialog.AllByXPath(`//form/ul/li`)
+	fCount, _ := filters.Count()
 
 	for i := 0; i < fCount; i++ {
-		f := s.Filters.At(i).FindByXPath(fmt.Sprintf(`//li/span[.="%s"]`, filterType))
+		f := filters.At(i).FindByXPath(fmt.Sprintf(`//li/span[.="%s"]`, filterType))
 		if count, _ := f.Count(); count == 1 {
-			filter := s.Filters.At(i).FindByXPath(fmt.Sprintf(`//li/span[.="%s"]/parent::li/div/div`, filterName))
-			return filter
+
+			Eventually(func(g Gomega) {
+				g.Expect(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]`, filterID)).Check()).Should(Succeed())
+				g.Expect(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]/ancestor::span[contains(@class, "Mui-checked")]`, filterID))).Should(BeFound())
+			}).Should(Succeed(), "Failed to select cluster filter: "+filterID)
+
 		}
 	}
-	return nil
+
 }
