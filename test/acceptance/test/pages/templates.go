@@ -73,9 +73,9 @@ func GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord
 	tileRow := webDriver.FindByXPath(`//tr//td[1]//span[contains(text(), templateName)]`)
 	return &TemplateRecord{
 		Name:             templateName,
-		Provider:         tileRow.FindByXPath(`td[2]`),
-		Description:      tileRow.FindByXPath(`td[3]`),
-		CreateTemplate:   tileRow.FindByXPath(`td[4]/button[@id="create-cluster"]`),
+		Provider:         tileRow.FindByXPath(`td[3]`),
+		Description:      tileRow.FindByXPath(`td[4]`),
+		CreateTemplate:   tileRow.FindByXPath(`td[5]/button[@id="create-cluster"]`),
 		ErrorHeader:      tileRow.Find(`.template-error-header`),
 		ErrorDescription: tileRow.Find(`.template-error-description`),
 	}
