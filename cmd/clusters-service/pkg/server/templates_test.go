@@ -30,7 +30,7 @@ func TestListTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no configmap",
-			err:      errors.New("configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
+			err:      errors.New("error listing capi templates: configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
 			expected: []*capiv1_protos.Template{},
 		},
 		{
@@ -47,9 +47,10 @@ func TestListTemplates(t *testing.T) {
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-1",
-					Description: "this is test template 1",
-					Provider:    "aws",
+					Name:         "cluster-template-1",
+					Description:  "this is test template 1",
+					Provider:     "aws",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -77,9 +78,10 @@ func TestListTemplates(t *testing.T) {
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-1",
-					Description: "this is test template 1",
-					Provider:    "",
+					Name:         "cluster-template-1",
+					Description:  "this is test template 1",
+					Provider:     "",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        string("${CLUSTER_NAME}"),
@@ -97,9 +99,10 @@ func TestListTemplates(t *testing.T) {
 					},
 				},
 				{
-					Name:        "cluster-template-2",
-					Description: "this is test template 2",
-					Provider:    "",
+					Name:         "cluster-template-2",
+					Description:  "this is test template 2",
+					Provider:     "",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        string("${CLUSTER_NAME}"),
@@ -159,7 +162,7 @@ func TestListClusterTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no configmap",
-			err:      errors.New("configmap cluster-templates not found in default namespace: configmaps \"cluster-templates\" not found"),
+			err:      errors.New("error listing gitops templates: configmap cluster-templates not found in default namespace: configmaps \"cluster-templates\" not found"),
 			expected: []*capiv1_protos.Template{},
 		},
 		{
@@ -176,9 +179,10 @@ func TestListClusterTemplates(t *testing.T) {
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-1",
-					Description: "this is test template 1",
-					Provider:    "aws",
+					Name:         "cluster-template-1",
+					Description:  "this is test template 1",
+					Provider:     "aws",
+					TemplateKind: "GitOpsTemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       "${RESOURCE_NAME}",
@@ -206,9 +210,10 @@ func TestListClusterTemplates(t *testing.T) {
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-1",
-					Description: "this is test template 1",
-					Provider:    "",
+					Name:         "cluster-template-1",
+					Description:  "this is test template 1",
+					Provider:     "",
+					TemplateKind: "GitOpsTemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        "${RESOURCE_NAME}",
@@ -226,9 +231,10 @@ func TestListClusterTemplates(t *testing.T) {
 					},
 				},
 				{
-					Name:        "cluster-template-2",
-					Description: "this is test template 2",
-					Provider:    "",
+					Name:         "cluster-template-2",
+					Description:  "this is test template 2",
+					Provider:     "",
+					TemplateKind: "GitOpsTemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        "${RESOURCE_NAME}",
@@ -297,9 +303,10 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-2",
-					Description: "this is test template 2",
-					Provider:    "aws",
+					Name:         "cluster-template-2",
+					Description:  "this is test template 2",
+					Provider:     "aws",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -328,9 +335,10 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-2",
-					Description: "this is test template 2",
-					Provider:    "aws",
+					Name:         "cluster-template-2",
+					Description:  "this is test template 2",
+					Provider:     "aws",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -420,10 +428,11 @@ func TestGetTemplate(t *testing.T) {
 				})),
 			},
 			expected: &capiv1_protos.Template{
-				Name:        "cluster-template-1",
-				Annotations: map[string]string{"hi": "there"},
-				Description: "this is test template 1",
-				Provider:    "",
+				Name:         "cluster-template-1",
+				Annotations:  map[string]string{"hi": "there"},
+				Description:  "this is test template 1",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						Name:        string("${CLUSTER_NAME}"),
