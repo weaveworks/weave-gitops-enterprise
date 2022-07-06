@@ -79,10 +79,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
       - name: Install goveralls
-        env:
-          GO111MODULE: off
-        run: go get github.com/mattn/goveralls
-
+        run: go install github.com/mattn/goveralls@v0.0.11
       - name: Run unit tests
         run: |
           go version

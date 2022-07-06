@@ -115,7 +115,7 @@ on:
         required: false
       WGE_GITLAB_CLIENT_SECRET:
         description: "Gitlab oauth pplication secret"
-        required: false      
+        required: false
       GCP_PROJECT_ID:
         description: "Project id of the Google Cloud project"
         required: false
@@ -313,7 +313,7 @@ jobs:
           # Start selenium server in standalone mode
           xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
       - name: Setup management cluster
-        run: |          
+        run: |
           if [ ${{ inputs.management-cluster-kind }} = 'eks' ]; then
             export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
             export CLUSTER_VERSION=1.21
