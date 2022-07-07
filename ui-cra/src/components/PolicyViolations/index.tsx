@@ -3,7 +3,7 @@ import { localEEMuiTheme } from '../../muiTheme';
 import useClusters from './../../contexts/Clusters';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PolicyViolationsTable } from './Table';
 import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
@@ -51,7 +51,6 @@ const PoliciesViolations = () => {
           ]}
         />
         <ContentWrapper errors={errors}>
-          <Title>Violation Log</Title>
           <LoadingError fetchFn={fetchPolicyViolationsAPI}>
             {({ value }: { value: ListPolicyValidationsResponse }) => (
               <>

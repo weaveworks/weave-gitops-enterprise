@@ -12,7 +12,7 @@ spec:
     # requiredClusterReady: true
     spec:
       containers:
-        - image: ghcr.io/fluxcd/flux-cli:v0.29.5
+        - image: ghcr.io/fluxcd/flux-cli:v0.30.2
           imagePullPolicy: Always
           name: flux-bootstrap
           resources: {}

@@ -39,13 +39,22 @@ const TemplatesProvider: FC = ({ children }) => {
     [activeTemplate, setNotifications],
   );
 
-  const addCluster = useCallback(({ ...data }, token: string) => {
-    setLoading(true);
-    return request('POST', '/v1/clusters', {
-      body: JSON.stringify(data),
-      headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-    }).finally(() => setLoading(false));
-  }, []);
+  const addCluster = useCallback(
+    ({ ...data }, token: string, templateKind: string) => {
+      setLoading(true);
+      return request(
+        'POST',
+        templateKind === 'GitOpsTemplate'
+          ? '/v1/tfcontrollers'
+          : '/v1/clusters',
+        {
+          body: JSON.stringify(data),
+          headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
+        },
+      ).finally(() => setLoading(false));
+    },
+    [],
+  );
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
