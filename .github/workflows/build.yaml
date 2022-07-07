@@ -16,6 +16,8 @@ on:
       WGE_S3_AWS_SECRET_ACCESS_KEY: { required: true }
       WGE_HELM_REPO_USERNAME: { required: false }
       WGE_HELM_REPO_PASSWORD: { required: false }
+      WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER: { required: false }
+      WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT: { required: false }
 
 env:
   GITHUB_BUILD_USERNAME: wge-build-bot
@@ -25,9 +27,13 @@ env:
   NODE_VERSION: "14"
   HELM_REPO: ${{ inputs.helmrepo }}
   REACT_APP_DISABLE_PROGRESSIVE_DELIVERY: "true"
+  HAS_GCP_CREDS: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER != '' && secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT != '' }}
 
 jobs:
   helm-chart:
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -37,10 +43,20 @@ jobs:
       - name: Grab all tags from git
         run: |
           git fetch --tags -f
+      - name: Generate release tags
+        id: release_tags
+        run: |
+          TAG=$(git describe --always --match "v*" --abbrev=7)
+          # Zero fill out the number of commits since the last tag. This allows helm to do a proper sorting of semver rc tags which are sorted alphanumerically.
+          ZERO_FILLED_TAG=$(LAST_TAG=$(git describe --abbrev=0); N=$(git rev-list "$LAST_TAG".. --count); REF=$(git rev-parse --short=8 HEAD); printf "$LAST_TAG-%05d-g$REF" $N)
+          SEMVER_TAG=$(awk -F'v|-g' '{print $2}' <<< $ZERO_FILLED_TAG)
+          echo "::set-output name=tag::$TAG"
+          echo "::set-output name=zero_filled_tag::$ZERO_FILLED_TAG"
+          echo "::set-output name=semver_tag::$SEMVER_TAG"
       - name: Install Helm v3
         uses: azure/setup-helm@v1
         with:
-          version: v3.5.4
+          version: v3.9.0
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -48,9 +64,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
       - name: Publish helm chart to s3
+        env:
+          TAG: ${{ steps.release_tags.outputs.tag }}
         run: |
-          TAG=$(git describe --always --match "v*" --abbrev=7)
-
           CHART_VALUES_PATH=./charts/mccp/values.yaml
           # Update the MCCP chart values.yaml file with the current image tag
           make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
@@ -58,16 +74,15 @@ jobs:
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
       - name: Publish Helm chart for main only
+        if: github.ref_name == 'main'
         env:
           HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
           HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
-        if: github.ref_name == 'main'
+          TAG: ${{ steps.release_tags.outputs.tag }}
+          ZERO_FILLED_TAG: ${{ steps.release_tags.outputs.zero_filled_tag }}
+          SEMVER_TAG: ${{ steps.release_tags.outputs.semver_tag }}
         run: |
-          DEBUG_TAG=$(git describe --always --match "v*" --abbrev=7)
-          # Zero fill out the number of commits since the last tag. This allows helm to do a proper sorting of semver rc tags which are sorted alphanumerically.
-          ZERO_FILLED_TAG=$(LAST_TAG=$(git describe --abbrev=0); N=$(git rev-list "$LAST_TAG".. --count); REF=$(git rev-parse --short=8 HEAD); printf "$LAST_TAG-%05d-g$REF" $N)
-          SEMVER_TAG=$(awk -F'v|-g' '{print $2}' <<< $ZERO_FILLED_TAG)
-          echo "Current tag $DEBUG_TAG"
+          echo "Current tag $TAG"
           echo "Current zerofill'd tag $ZERO_FILLED_TAG"
           echo "Current semver tag $SEMVER_TAG"
 
@@ -81,6 +96,29 @@ jobs:
             # Use the same image tag from the previous step but set the semver version
             helm cm-push ./charts/mccp weave-gitops-enterprise-main --version=$SEMVER_TAG --force
           fi
+      - name: Authenticate with Google Artifact Repository
+        id: google_auth
+        if: github.ref_name == 'main' && env.HAS_GCP_CREDS == 'true'
+        uses: google-github-actions/auth@v0
+        with:
+          workload_identity_provider: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_lifetime: 300s
+      - name: Publish Helm chart to Google Artifact Repository
+        if: github.ref_name == 'main' && env.HAS_GCP_CREDS == 'true'
+        env:
+          TAG: ${{ steps.release_tags.outputs.tag }}
+          ZERO_FILLED_TAG: ${{ steps.release_tags.outputs.zero_filled_tag }}
+          SEMVER_TAG: ${{ steps.release_tags.outputs.semver_tag }}
+        run: |
+          echo "Current tag $TAG"
+          echo "Current zerofill'd tag $ZERO_FILLED_TAG"
+          echo "Current semver tag $SEMVER_TAG"
+
+          echo ${{ steps.google_auth.outputs.access_token }} | helm registry login europe-west1-docker.pkg.dev --username oauth2accesstoken --password-stdin
+          helm package ./charts/mccp --version $SEMVER_TAG
+          helm push ./mccp-$SEMVER_TAG.tgz oci://europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops-enterprise/charts
 
   cluster-service:
     runs-on: ubuntu-latest
