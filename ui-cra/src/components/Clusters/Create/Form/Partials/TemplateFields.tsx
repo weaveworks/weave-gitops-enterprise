@@ -10,6 +10,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from '@material-ui/core/Input';
 import FormHelperText from '@material-ui/core/FormHelperText';
+import InputLabel from '@material-ui/core/InputLabel';
 
 const base = weaveTheme.spacing.base;
 const small = weaveTheme.spacing.small;
@@ -48,11 +49,12 @@ const TemplateFields: FC<{
           return (
             <div>
               <FormControl>
+                <span>{param.name}</span>
                 <Select
                   id={param.name}
                   value={formData.name}
                   onChange={handleFormData}
-                  autoWidth
+                  // autoWidth
                   label={param.name}
                 >
                   {options?.map(option => (
@@ -61,6 +63,7 @@ const TemplateFields: FC<{
                     </MenuItem>
                   ))}
                 </Select>
+
                 <FormHelperText>{param.description}</FormHelperText>
               </FormControl>
             </div>
@@ -69,6 +72,7 @@ const TemplateFields: FC<{
           return (
             <div>
               <FormControl>
+                <span>{param.name}</span>
                 <Input
                   id={param.name}
                   value={formData.name}
