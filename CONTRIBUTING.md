@@ -743,7 +743,7 @@ export HELM_EXPERIMENTAL_OCI=1
 2. If you haven't already, install and configure the [gcloud CLI](https://cloud.google.com/sdk/docs/install)
 
 3. Use the gcloud cli to query registry artifacts
-    > The Google Artifact Registry Docker repository can hold both helm charts and docker images. If both type will be deployed to the same registry, charts should be stored in the `charts` namespace and images in the `images` namespace as documented [here](https://cloud.google.com/artifact-registry/docs/helm)
+    > The Google Artifact Registry Docker repository can hold both helm charts and docker images. If both types will be deployed to the same registry, charts should be stored in the `charts` namespace and images in the `images` namespace as documented [here](https://cloud.google.com/artifact-registry/docs/helm)
 
 ```bash
 gcloud artifacts docker images list europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops-enterprise --include-tags
