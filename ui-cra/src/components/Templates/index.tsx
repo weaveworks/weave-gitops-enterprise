@@ -46,6 +46,10 @@ const FilteringSection = styled.div`
   padding-bottom: ${theme.spacing.medium};
 `;
 
+const Error = styled.span`
+  color: ${theme.colors.alert};
+`;
+
 const localMuiTheme = createTheme({
   ...muiTheme,
   overrides: {
@@ -169,7 +173,12 @@ const TemplatesDashboard: FC = () => {
                       },
                       {
                         label: 'Description',
-                        value: 'description',
+                        value: (t: Template) => (
+                          <>
+                            {t.description}
+                            <Error>{t.error}</Error>
+                          </>
+                        ),
                         maxWidth: 600,
                       },
                       {
