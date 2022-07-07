@@ -1,15 +1,31 @@
+import { MuiThemeProvider } from '@material-ui/core';
+import {
+  IsFlaggerAvailableResponse,
+  ListCanariesResponse,
+  ProgressiveDeliveryService,
+} from '@weaveworks/progressive-delivery';
+import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import {
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import _ from 'lodash';
 import React from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
 import {
   GetConfigResponse,
   ListGitopsClustersResponse,
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
+import ClustersProvider from '../contexts/Clusters/Provider';
+import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import NotificationProvider from '../contexts/Notifications/Provider';
+import RequestContextProvider from '../contexts/Request';
+import TemplatesProvider from '../contexts/Templates/Provider';
+import { muiTheme } from '../muiTheme';
 
 export const withContext = (contexts: any[]) => {
   return (component: React.ReactElement) => {
@@ -27,6 +43,27 @@ export const withContext = (contexts: any[]) => {
     return <Compose components={tree}>{component}</Compose>;
   };
 };
+
+export const defaultContexts = () => [
+  [ThemeProvider, { theme: theme }],
+  [MuiThemeProvider, { theme: muiTheme }],
+  [
+    RequestContextProvider,
+    { fetch: () => new Promise(accept => accept(null)) },
+  ],
+  [QueryClientProvider, { client: new QueryClient() }],
+  [
+    EnterpriseClientProvider,
+    {
+      api: new EnterpriseClientMock(),
+    },
+  ],
+  [CoreClientContextProvider, { api: new CoreClientMock() }],
+  [MemoryRouter],
+  [NotificationProvider],
+  [TemplatesProvider],
+  [ClustersProvider],
+];
 
 const promisify = <R, E>(res: R, errRes?: E) =>
   new Promise<R>((accept, reject) => {
@@ -73,5 +110,22 @@ export class CoreClientMock {
 
   ListHelmReleases() {
     return promisify(this.ListHelmReleasesReturns);
+  }
+}
+
+export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
+  constructor() {
+    this.ListCanaries = this.ListCanaries.bind(this);
+    this.IsFlaggerAvailable = this.IsFlaggerAvailable.bind(this);
+  }
+  ListCanariesReturns: ListCanariesResponse = {};
+  IsFlaggerAvailableReturns: IsFlaggerAvailableResponse = {};
+
+  ListCanaries() {
+    return promisify(this.ListCanariesReturns);
+  }
+
+  IsFlaggerAvailable() {
+    return promisify(this.IsFlaggerAvailableReturns);
   }
 }
