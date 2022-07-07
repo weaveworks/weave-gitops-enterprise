@@ -44,10 +44,7 @@ jobs:
           go install github.com/jstemmer/go-junit-report@latest
           npm install -g junit-report-merger
       - name: Install goveralls
-        env:
-          GO111MODULE: off
-        run: go get github.com/mattn/goveralls
-
+        run: go install github.com/mattn/goveralls@v0.0.11
       - name: Run unit tests
         run: |
           go version
@@ -59,7 +56,7 @@ jobs:
 
           cd ${{ github.workspace }}
           # Merge all coverage results
-          gocovmerge .coverprofile common/.coverprofile  cmd/clusters-service/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles    
+          gocovmerge .coverprofile common/.coverprofile  cmd/clusters-service/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles
           # Merge all junit test results
           jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
       - name: Store unit test coverage results
@@ -83,7 +80,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(application)'"
+      label-filter: "-ginkgo.label-filter='!(application, leaf-policy)'"
       kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab

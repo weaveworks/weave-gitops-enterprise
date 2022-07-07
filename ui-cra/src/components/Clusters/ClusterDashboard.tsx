@@ -50,7 +50,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
   const history = useHistory();
 
   const handleClick = () =>
-    getKubeconfig(clusterName, `${clusterName}.kubeconfig`);
+    getKubeconfig(clusterName, currentCluster?.namespace || "", `${clusterName}.kubeconfig`);
 
   const info = [
     [

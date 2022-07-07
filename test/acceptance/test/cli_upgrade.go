@@ -148,7 +148,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.8.1-rc.1"
+				version := "0.9.0-rc.1"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is not supported for capi cluster PR creation.
@@ -180,7 +180,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should install rolebindings for default enterprise roles'", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "rbac-auth.yaml")), "Failed to install rolbindings for enterprise default roles")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {

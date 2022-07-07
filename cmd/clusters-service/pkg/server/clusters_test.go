@@ -32,7 +32,6 @@ import (
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -52,7 +51,7 @@ func TestListGitopsClusters(t *testing.T) {
 			expected: []*capiv1_protos.GitopsCluster{
 				{
 					Name: "management",
-					Conditions: []*capiv1_proto.Condition{
+					Conditions: []*capiv1_protos.Condition{
 						{
 							Type:   "Ready",
 							Status: "True",
@@ -83,7 +82,7 @@ func TestListGitopsClusters(t *testing.T) {
 				},
 				{
 					Name: "management",
-					Conditions: []*capiv1_proto.Condition{
+					Conditions: []*capiv1_protos.Condition{
 						{
 							Type:   "Ready",
 							Status: "True",
@@ -128,7 +127,7 @@ func TestListGitopsClusters(t *testing.T) {
 				},
 				{
 					Name: "management",
-					Conditions: []*capiv1_proto.Condition{
+					Conditions: []*capiv1_protos.Condition{
 						{
 							Type:   "Ready",
 							Status: "True",
@@ -167,7 +166,7 @@ func TestListGitopsClusters(t *testing.T) {
 				},
 				{
 					Name: "management",
-					Conditions: []*capiv1_proto.Condition{
+					Conditions: []*capiv1_protos.Condition{
 						{
 							Type:   "Ready",
 							Status: "True",
@@ -289,7 +288,7 @@ func TestCreatePullRequest(t *testing.T) {
 				Title:         "New Cluster",
 				Description:   "Creates a cluster through a CAPI template",
 				CommitMessage: "Add cluster manifest",
-				Values: []*capiv1_proto.ProfileValues{
+				Values: []*capiv1_protos.ProfileValues{
 					{
 						Namespace: "bad_namespace",
 					},
@@ -439,7 +438,7 @@ status: {}
 			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
-			name: "specify profile namespace",
+			name: "specify profile namespace and cluster namespace",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
 			},
@@ -448,7 +447,7 @@ status: {}
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "dev",
-					"NAMESPACE":    "default",
+					"NAMESPACE":    "clusters-namespace",
 				},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -467,7 +466,7 @@ status: {}
 			},
 			committedFiles: []CommittedFile{
 				{
-					Path: "clusters/my-cluster/clusters/default/dev.yaml",
+					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
 kind: fookind
 metadata:
@@ -475,11 +474,11 @@ metadata:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
   name: dev
-  namespace: default
+  namespace: clusters-namespace
 `,
 				},
 				{
-					Path: "clusters/default/dev/clusters-bases-kustomization.yaml",
+					Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -497,7 +496,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/default/dev/profiles.yaml",
+					Path: "clusters/clusters-namespace/dev/profiles.yaml",
 					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -764,7 +763,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 			name:     "create delete pull request with namespaced cluster names",
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
-				ClusterNamespacedNames: []*capiv1_proto.ClusterNamespacedName{
+				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
 					{
 						Name:      "foo",
 						Namespace: "ns-foo",

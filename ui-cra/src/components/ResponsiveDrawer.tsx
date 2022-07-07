@@ -61,7 +61,6 @@ import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
-const CANARYDETAILS = '/applications/delivery/:clusterName/:namespace/:name';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -261,9 +260,9 @@ const App = () => {
                 path="/clusters/violations"
               />
               <Route
-                component={PolicyViolationDetails}
+                component={withSearchParams(PolicyViolationDetails)}
                 exact
-                path="/clusters/:clusterName/violations/:id"
+                path="/clusters/violations/details"
               />
               <Route
                 component={() => (
@@ -337,12 +336,15 @@ const App = () => {
                 path={V2Routes.FluxRuntime}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
-              <Route exact path={CANARYDETAILS} component={CanaryDetails} />
+              <Route
+                path="/applications/delivery/:id"
+                component={withSearchParams(CanaryDetails)}
+              />
               <Route exact path={POLICIES} component={Policies} />
               <Route
                 exact
-                path="/:clusterName/policies/:id"
-                component={PolicyDetails}
+                path="/policies/details"
+                component={withSearchParams(PolicyDetails)}
               />
 
               <Route

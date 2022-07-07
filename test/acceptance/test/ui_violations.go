@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"strconv"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -19,7 +20,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
 
 			policyName := "Container Image Pull Policy acceptance-test"
-			// policyID := "weave.policies.container-image-pull-policy-acceptance-test"
+			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
 			violationMsg := "Container Image Pull Policy acceptance-test in deployment postgres"
 			voliationClusterName := "management"
 			violationApplication := "default/postgres"
@@ -31,20 +32,15 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("Verify Violations can be monitored for violating resource", Label("integration", "violation"), func() {
-				existingViolationCount := 1
+				existingViolationCount := getViolationsCount()
+
+				installTestPolicies("management", policiesYaml)
 
 				pages.NavigateToPage(webDriver, "Violations")
 				violationsPage := pages.GetViolationsPage(webDriver)
-				By("And wait for Applications page to be fully rendered", func() {
-					pages.WaitForPageToLoad(webDriver)
-					existingViolationCount = violationsPage.CountViolations()
-				})
-
-				By("Add/Install test Policies to the management cluster", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, policiesYaml), "Failed to install test policies to management cluster")
-				})
 
 				By("Install violating Postgres deployment to the management cluster", func() {
+					Expect(waitForResource("policy", policyID, "default", "", ASSERTION_1MINUTE_TIME_OUT))
 					Expect(gitopsTestRunner.KubectlApply([]string{}, deploymentYaml)).ShouldNot(Succeed(), "Failed to install test Postgres deployment to management cluster")
 				})
 
@@ -54,9 +50,18 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 					totalViolationCount := existingViolationCount + 1
 					Eventually(violationsPage.ViolationCount, ASSERTION_2MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
+					Eventually(func(g Gomega) string {
+						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
+						count, _ := violationsPage.ViolationCount.Text()
+						return count
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
+
 					Eventually(func(g Gomega) int {
 						return violationsPage.CountViolations()
 					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalViolationCount))
+
 				})
 
 				violationInfo := violationsPage.FindViolationInList(policyName)

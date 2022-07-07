@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -414,4 +415,32 @@ func fileExists(name string) bool {
 		}
 	}
 	return true
+}
+
+func createDirectory(dirPath string) error {
+	return os.MkdirAll(dirPath, os.ModePerm)
+}
+
+func copyFile(sourceFile, destination string) error {
+
+	if info, err := os.Stat(destination); err == nil {
+		if info.IsDir() {
+			_, src := path.Split(sourceFile)
+			destination = path.Join(destination, src)
+		}
+
+		input, err := ioutil.ReadFile(sourceFile)
+		if err != nil {
+			return err
+		}
+
+		err = ioutil.WriteFile(destination, input, 0644)
+		if err != nil {
+			return err
+		}
+	} else {
+		return err
+	}
+
+	return nil
 }
