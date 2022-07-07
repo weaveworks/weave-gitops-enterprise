@@ -180,7 +180,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should install rolebindings for default enterprise roles'", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "rbac-auth.yaml")), "Failed to install rolbindings for enterprise default roles")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
