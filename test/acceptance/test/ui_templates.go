@@ -214,7 +214,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And I should change the templates view to 'table'", func() {
 					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
 					rowCount, _ := templatesPage.TemplatesTable.Count()
-					Eventually(rowCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
+					Eventually(rowCount).Should(Equal(totalTemplateCount), "The number of rows rendered should be equal to number of templates created")
 
 				})
 
@@ -223,22 +223,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					for i := 0; i < totalTemplateCount; i++ {
 						Expect(actual_list[i]).Should(ContainSubstring(ordered_template_list[i]))
 					}
-				})
-
-				By("And templates can be filtered by provider - table view", func() {
-					// Select cluster provider by selecting from the popup list
-					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
-					Expect(templatesPage.SelectProvider("aws").Click()).To(Succeed())
-
-					rowCount, _ := templatesPage.TemplatesTable.Count()
-					Eventually(rowCount).Should(Equal(4), "The number of selected template tiles rendered should be equal to number of aws templates created")
-
-					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
-					Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(Succeed()) // sending back space key
-
-					rowCount, _ = templatesPage.TemplateTiles.Count()
-					Eventually(rowCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
-
 				})
 
 				By("And I should change the templates view to 'grid'", func() {

@@ -1,26 +1,27 @@
 import { ThemeProvider } from '@material-ui/core/styles';
+import { useCallback, useState } from 'react';
 import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { useCallback, useState } from 'react';
 import CanariesList from './ListCanaries/CanariesList';
 import OnboardingMessage from './Onboarding/OnboardingMessage';
 
-import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
-
+import { LoadingPage } from '@weaveworks/weave-gitops';
+import { useIsFlaggerAvailable } from '../../contexts/ProgressiveDelivery';
 import { useApplicationsCount } from '../Applications/utils';
-import { useIsFlaggerAvailable } from '../../hooks/progressiveDelivery';
-
-
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { SectionHeader } from '../Layout/SectionHeader';
 
 const ProgressiveDelivery = () => {
   // To be discussed as we don't need to show counts for prev tabs in breadcrumb as it's not needed
   const applicationsCount = useApplicationsCount();
-  
+
   const [count, setCount] = useState<number | undefined>();
-  const { error, data, isLoading } = useIsFlaggerAvailable();
+  const {
+    data: isFlaggerAvailable,
+    isLoading,
+    error,
+  } = useIsFlaggerAvailable();
 
   const onCountChange = useCallback((count: number) => {
     setCount(count);
@@ -44,9 +45,9 @@ const ProgressiveDelivery = () => {
           {isLoading && <LoadingPage />}
           {error && <Alert severity="error">{error.message}</Alert>}
 
-          {!!data && (
+          {!isLoading && (
             <>
-              {data.isFlaggerAvailable ? (
+              {isFlaggerAvailable ? (
                 <CanariesList onCountChange={onCountChange} />
               ) : (
                 <OnboardingMessage />
