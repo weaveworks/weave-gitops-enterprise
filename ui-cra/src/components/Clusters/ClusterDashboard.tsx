@@ -50,7 +50,11 @@ const ClusterDashboard = ({ clusterName }: Props) => {
   const history = useHistory();
 
   const handleClick = () =>
-    getKubeconfig(clusterName, currentCluster?.namespace || "", `${clusterName}.kubeconfig`);
+    getKubeconfig(
+      clusterName,
+      currentCluster?.namespace || '',
+      `${clusterName}.kubeconfig`,
+    );
 
   const info = [
     [
@@ -95,7 +99,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                   startIcon={<Icon type={IconType.ExternalTab} size="base" />}
                   onClick={() => {
                     const filtersValues = encodeURIComponent(
-                      `clusterName:${currentCluster?.name}`,
+                      `clusterName:${currentCluster?.namespace}/${currentCluster?.name}`,
                     );
                     history.push(`/applications?filters=${filtersValues}`);
                   }}
