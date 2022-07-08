@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { Loader } from '../../../../Loader';
 
 const ProfilesWrapper = styled.div`
-  padding-bottom: ${props => props.theme.spacing.xl};
+  padding-bottom: ${({ theme }) => theme.spacing.xl};
   .profiles-select {
     display: flex;
     align-items: center;

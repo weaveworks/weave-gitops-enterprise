@@ -10,14 +10,14 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 
 const FormWrapper = styled.div`
   .form-group {
-    padding-top: ${props => props.theme.spacing.base};
+    padding-top: ${({ theme }) => theme.spacing.base};
   }
 
   .previewCTA {
     display: flex;
     justify-content: flex-end;
-    padding-top: ${props => props.theme.spacing.small};
-    padding-bottom: ${props => props.theme.spacing.base};
+    padding-top: ${({ theme }) => theme.spacing.small};
+    padding-bottom: ${({ theme }) => theme.spacing.base};
   }
 `;
 

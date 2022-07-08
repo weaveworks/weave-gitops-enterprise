@@ -44,17 +44,17 @@ const CredentialsWrapper = styled.div`
   display: flex;
   align-items: center;
   & .template-title {
-    margin-right: ${props => props.theme.spacing.medium};
+    margin-right: ${({ theme }) => theme.spacing.medium};
   }
   & .credentials {
     display: flex;
     align-items: center;
     span {
-      margin-right: ${props => props.theme.spacing.xs};
+      margin-right: ${({ theme }) => theme.spacing.xs};
     }
   }
   & .dropdown-toggle {
-    border: 1px solid ${props => props.theme.colors.neutral10};
+    border: 1px solid ${({ theme }) => theme.colors.neutral10};
   }
   & .dropdown-popover {
     width: auto;
@@ -64,7 +64,7 @@ const CredentialsWrapper = styled.div`
     flex-direction: column;
     align-items: left;
     & .template-title {
-      padding-bottom: ${props => props.theme.spacing.base};
+      padding-bottom: ${({ theme }) => theme.spacing.base};
     }
   }
 `;

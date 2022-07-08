@@ -12,13 +12,14 @@ const itemCss = css`
   /* breaking from std. spacing as */
   display: flex;
   font-size: ${20}px;
-  line-height: ${theme.spacing.large};
-  height: ${theme.spacing.large};
+  line-height: ${({ theme }) => theme.spacing.large};
+  height: ${({ theme }) => theme.spacing.large};
   box-sizing: border-box;
   color: ${theme.colors.neutral40};
   font-weight: 600;
-  padding: 0 ${theme.spacing.small} ${theme.spacing.small} 0;
-  margin: 0 0 ${theme.spacing.small} 0;
+  padding: 0 ${({ theme }) => theme.spacing.small}
+    ${({ theme }) => theme.spacing.small} 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
 `;
 
 const itemActiveCss = css`
