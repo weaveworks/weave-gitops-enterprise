@@ -1,13 +1,12 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
 import useClusters from './../../contexts/Clusters';
 import { List, ListItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
 
 const ListWrapper = styled(List)`
   li[class*='MuiListItem-root'] {
-    padding: 0 0 ${theme.spacing.xxs} 0;
+    padding: 0 0 ${props => props.theme.spacing.xxs} 0;
   }
 `;
 

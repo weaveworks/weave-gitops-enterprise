@@ -43,24 +43,24 @@ interface Size {
 const ActionsWrapper = styled.div<Size>`
   display: flex;
   & > * {
-    margin-right: ${theme.spacing.medium};
+    margin-right: ${props => props.theme.spacing.medium};
   }
 `;
 
 const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
+  margin-top: ${props => props.theme.spacing.medium};
   div[class*='FilterDialog__SlideContainer'],
   div[class*='SearchField'] {
     overflow: hidden;
   }
   div[class*='FilterDialog'] {
     .Mui-checked {
-      color: ${theme.colors.primary};
+      color: ${props => props.theme.colors.primary};
     }
   }
   thead {
     th:first-of-type {
-      padding: ${theme.spacing.base};
+      padding: ${props => props.theme.spacing.base};
     }
   }
   td:first-of-type {
@@ -76,7 +76,7 @@ const TableWrapper = styled.div`
     word-wrap: break-word;
   }
   a {
-    color: ${theme.colors.primary};
+    color: ${props => props.theme.colors.primary};
   }
   max-width: calc(100vw - 220px);
 `;

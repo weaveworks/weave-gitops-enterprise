@@ -33,30 +33,28 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
-import { TemplateObject } from '../../../cluster-services/cluster_services.pb';
 import { useListConfig } from '../../../hooks/versions';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
-const xs = weaveTheme.spacing.xs;
 
 const CredentialsWrapper = styled.div`
   display: flex;
   align-items: center;
   & .template-title {
-    margin-right: ${medium};
+    margin-right: ${props => props.theme.spacing.medium};
   }
   & .credentials {
     display: flex;
     align-items: center;
     span {
-      margin-right: ${xs};
+      margin-right: ${props => props.theme.spacing.xs};
     }
   }
   & .dropdown-toggle {
-    border: 1px solid ${weaveTheme.colors.neutral10};
+    border: 1px solid ${props => props.theme.colors.neutral10};
   }
   & .dropdown-popover {
     width: auto;
@@ -66,7 +64,7 @@ const CredentialsWrapper = styled.div`
     flex-direction: column;
     align-items: left;
     & .template-title {
-      padding-bottom: ${base};
+      padding-bottom: ${props => props.theme.spacing.base};
     }
   }
 `;

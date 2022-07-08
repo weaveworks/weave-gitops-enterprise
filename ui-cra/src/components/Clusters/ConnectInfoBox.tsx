@@ -6,13 +6,12 @@ import {
   Typography,
 } from '@material-ui/core';
 import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiDialog-paper'] {
-    padding: ${theme.spacing.medium};
-    border-radius: ${theme.spacing.xs};
+    padding: ${props => props.theme.spacing.medium};
+    border-radius: ${props => props.theme.spacing.xs};
   }
 `;
 

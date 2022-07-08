@@ -6,9 +6,12 @@ import ProfilesList from './ProfilesList';
 import styled from 'styled-components';
 import { Loader } from '../../../../Loader';
 
-const ProfilesDropdown = styled.div`
-  display: flex;
-  align-items: center;
+const ProfilesWrapper = styled.div`
+  padding-bottom: ${props => props.theme.spacing.xl};
+  .profiles-select {
+    display: flex;
+    align-items: center;
+  }
 `;
 
 const Profiles: FC<{
@@ -29,20 +32,21 @@ const Profiles: FC<{
   return isLoading ? (
     <Loader />
   ) : (
-    <>
-      <ProfilesDropdown className="profiles-select">
+    <ProfilesWrapper>
+      <h2>Profiles</h2>
+      <div className="profiles-select">
         <span>Select profiles:&nbsp;</span>
         <MultiSelectDropdown
           allItems={profiles}
           preSelectedItems={selectedProfiles}
           onSelectItems={handleSelectProfiles}
         />
-      </ProfilesDropdown>
+      </div>
       <ProfilesList
         selectedProfiles={selectedProfiles}
         onProfilesUpdate={handleSelectProfiles}
       />
-    </>
+    </ProfilesWrapper>
   );
 };
 

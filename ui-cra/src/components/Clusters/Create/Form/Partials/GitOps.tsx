@@ -1,9 +1,10 @@
 import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
-import { Input } from '../../../../../utils/form';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { Button } from '@weaveworks/weave-gitops';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
+import FormControl from '@material-ui/core/FormControl';
+import Input from '@material-ui/core/Input';
 
 const base = weaveTheme.spacing.base;
 
@@ -11,8 +12,12 @@ const useStyles = makeStyles(() =>
   createStyles({
     createCTA: {
       display: 'flex',
-      justifyContent: 'center',
+      justifyContent: 'end',
       paddingTop: base,
+    },
+    formField: {
+      width: '50%',
+      paddingBottom: weaveTheme.spacing.small,
     },
   }),
 );
@@ -72,29 +77,44 @@ const GitOps: FC<{
   const handleGitOps = useCallback(() => onSubmit(), [onSubmit]);
 
   return (
-    <>
-      <Input
-        label="Create branch"
-        placeholder={formData.branchName}
-        onChange={handleChangeBranchName}
-      />
-      <Input
-        label="Pull request title"
-        placeholder={formData.pullRequestTitle}
-        onChange={handleChangePullRequestTitle}
-      />
-      <Input
-        label="Commit message"
-        placeholder={formData.commitMessage}
-        onChange={handleChangeCommitMessage}
-      />
-      <Input
-        label="Pull request description"
-        placeholder={formData.pullRequestDescription}
-        onChange={handleChangePRDescription}
-        multiline
-        rows={4}
-      />
+    <div style={{ paddingBottom: weaveTheme.spacing.xl }}>
+      <h2>GitOps</h2>
+      <FormControl className={classes.formField}>
+        <span>CREATE BRANCH</span>
+        <Input
+          id="Create branch"
+          placeholder={formData.branchName}
+          value={formData.branchName}
+          onChange={handleChangeBranchName}
+        />
+      </FormControl>
+      <FormControl className={classes.formField}>
+        <span>PULL REQUEST TITLE</span>
+        <Input
+          id="Pull request title"
+          placeholder={formData.pullRequestTitle}
+          value={formData.pullRequestTitle}
+          onChange={handleChangePullRequestTitle}
+        />
+      </FormControl>
+      <FormControl className={classes.formField}>
+        <span>COMMIT MESSAGE</span>
+        <Input
+          id="Commit message"
+          placeholder={formData.commitMessage}
+          value={formData.commitMessage}
+          onChange={handleChangeCommitMessage}
+        />
+      </FormControl>
+      <FormControl className={classes.formField}>
+        <span>PULL REQUEST DESCRIPTION</span>
+        <Input
+          id="Commit message"
+          placeholder={formData.pullRequestDescription}
+          value={formData.pullRequestDescription}
+          onChange={handleChangePRDescription}
+        />
+      </FormControl>
       <GitAuth
         formData={formData}
         setFormData={setFormData}
@@ -105,7 +125,7 @@ const GitOps: FC<{
       <div className={classes.createCTA} onClick={handleGitOps}>
         <Button disabled={!enableCreatePR}>CREATE PULL REQUEST</Button>
       </div>
-    </>
+    </div>
   );
 };
 

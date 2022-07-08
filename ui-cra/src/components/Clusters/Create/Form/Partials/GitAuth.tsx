@@ -3,16 +3,15 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import {
   GithubDeviceAuthModal,
   RepoInputWithAuth,
-  theme as weaveTheme,
   useIsAuthenticated,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
-  margin-bottom: ${weaveTheme.spacing.base};
+  margin-bottom: ${props => props.theme.spacing.base};
   width: 100%;
   & .auth-message {
-    margin-top: 16px;
+    margin-top: ${props => props.theme.spacing.base};
     button {
       span {
         width: 200px;
