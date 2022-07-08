@@ -2,7 +2,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PolicyTable } from './Table';
 import { useCallback, useContext, useState } from 'react';
 import LoadingError from '../LoadingError';
@@ -42,7 +42,6 @@ const Policies = () => {
           path={[{ label: 'Policies', url: 'policies', count }]}
         />
         <ContentWrapper errors={errors}>
-          <Title>Policies</Title>
           <LoadingError fetchFn={fetchPoliciesAPI}>
             {({ value }: { value: ListPoliciesResponse }) => (
               <>

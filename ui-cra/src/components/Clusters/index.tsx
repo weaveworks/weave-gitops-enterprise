@@ -8,7 +8,7 @@ import { Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { Link, useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
-import { contentCss, ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import {
   Button,
@@ -58,6 +58,10 @@ const TableWrapper = styled.div`
       color: ${props => props.theme.colors.primary};
     }
   }
+  max-width: calc(100vw - 220px);
+`;
+
+const ClustersTableWrapper = styled(TableWrapper)`
   thead {
     th:first-of-type {
       padding: ${props => props.theme.spacing.base};
@@ -66,9 +70,6 @@ const TableWrapper = styled.div`
   td:first-of-type {
     text-overflow: clip;
     width: 25px;
-  }
-  td:nth-child(2) {
-    width: 650px;
   }
   td:nth-child(7) {
     white-space: pre-wrap;
@@ -289,7 +290,6 @@ const MCCP: FC = () => {
             path={[{ label: 'Clusters', url: 'clusters', count }]}
           />
           <ContentWrapper>
-            <Title>Connected clusters dashboard</Title>
             <div
               style={{
                 display: 'flex',
@@ -363,7 +363,7 @@ const MCCP: FC = () => {
               </a>
             </div>
             {!isLoading ? (
-              <TableWrapper id="clusters-list">
+              <ClustersTableWrapper id="clusters-list">
                 <FilterableTable
                   key={clusters.length}
                   filters={initialFilterState}
@@ -455,7 +455,7 @@ const MCCP: FC = () => {
                     },
                   ]}
                 />
-              </TableWrapper>
+              </ClustersTableWrapper>
             ) : (
               <LoadingWrapper>
                 <LoadingPage />

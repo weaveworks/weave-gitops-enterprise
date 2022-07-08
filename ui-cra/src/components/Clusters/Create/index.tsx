@@ -207,6 +207,7 @@ const AddCluster: FC = () => {
     return addCluster(
       payload,
       getProviderToken(formData.provider as GitProvider),
+      activeTemplate?.templateKind || '',
     )
       .then(response => {
         setPRPreview(null);
@@ -247,6 +248,7 @@ const AddCluster: FC = () => {
     setNotifications,
     encodedProfiles,
     setPRPreview,
+    activeTemplate?.templateKind,
   ]);
 
   useEffect(() => {
