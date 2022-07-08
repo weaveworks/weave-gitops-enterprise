@@ -2,7 +2,7 @@ import {
   Canary,
   CanaryAnalysis,
   CanaryStatus as Status,
-  CanaryTargetDeployment
+  CanaryTargetDeployment,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
@@ -124,10 +124,13 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                       className={classes.link}
                     >
                       {c.name}
-                      {'  '}
-                      {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
                     </Link>
                   ),
+                },
+                {
+                  label: '',
+                  value: (c: Canary) =>
+                    getDeploymentStrategyIcon(c.deploymentStrategy || ''),
                 },
                 {
                   label: 'Status',
