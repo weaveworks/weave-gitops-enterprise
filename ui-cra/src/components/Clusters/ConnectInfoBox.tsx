@@ -10,8 +10,8 @@ import { CloseIconButton } from '../../assets/img/close-icon-button';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiDialog-paper'] {
-    padding: ${props => props.theme.spacing.medium};
-    border-radius: ${props => props.theme.spacing.xs};
+    padding: ${({ theme }) => theme.spacing.medium};
+    border-radius: ${({ theme }) => theme.spacing.xs};
   }
 `;
 

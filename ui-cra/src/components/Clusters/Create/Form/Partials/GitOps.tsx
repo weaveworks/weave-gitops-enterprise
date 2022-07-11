@@ -1,26 +1,25 @@
 import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
+import styled from 'styled-components';
 import { Button } from '@weaveworks/weave-gitops';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 
-const base = weaveTheme.spacing.base;
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    createCTA: {
-      display: 'flex',
-      justifyContent: 'end',
-      paddingTop: base,
-    },
-    formField: {
-      width: '50%',
-      paddingBottom: weaveTheme.spacing.small,
-    },
-  }),
-);
+const GitOpsWrapper = styled.div`
+  padding-bottom: ${({ theme }) => theme.spacing.xl};
+  .form-field {
+    width: 50%;
+    padding-bottom: ${({ theme }) => theme.spacing.small};
+  }
+  .create-cta {
+    display: flex;
+    justify-content: end;
+    padding-top: ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
+  }
+`;
 
 const GitOps: FC<{
   formData: any;
@@ -35,7 +34,6 @@ const GitOps: FC<{
   showAuthDialog,
   setShowAuthDialog,
 }) => {
-  const classes = useStyles();
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const handleChangeBranchName = useCallback(
@@ -77,9 +75,9 @@ const GitOps: FC<{
   const handleGitOps = useCallback(() => onSubmit(), [onSubmit]);
 
   return (
-    <div style={{ paddingBottom: weaveTheme.spacing.xl }}>
+    <GitOpsWrapper>
       <h2>GitOps</h2>
-      <FormControl className={classes.formField}>
+      <FormControl className="form-field">
         <span>CREATE BRANCH</span>
         <Input
           id="Create branch"
@@ -88,7 +86,7 @@ const GitOps: FC<{
           onChange={handleChangeBranchName}
         />
       </FormControl>
-      <FormControl className={classes.formField}>
+      <FormControl className="form-field">
         <span>PULL REQUEST TITLE</span>
         <Input
           id="Pull request title"
@@ -97,7 +95,7 @@ const GitOps: FC<{
           onChange={handleChangePullRequestTitle}
         />
       </FormControl>
-      <FormControl className={classes.formField}>
+      <FormControl className="form-field">
         <span>COMMIT MESSAGE</span>
         <Input
           id="Commit message"
@@ -106,7 +104,7 @@ const GitOps: FC<{
           onChange={handleChangeCommitMessage}
         />
       </FormControl>
-      <FormControl className={classes.formField}>
+      <FormControl className="form-field">
         <span>PULL REQUEST DESCRIPTION</span>
         <Input
           id="Commit message"
@@ -122,10 +120,10 @@ const GitOps: FC<{
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
       />
-      <div className={classes.createCTA} onClick={handleGitOps}>
+      <div className="create-cta" onClick={handleGitOps}>
         <Button disabled={!enableCreatePR}>CREATE PULL REQUEST</Button>
       </div>
-    </div>
+    </GitOpsWrapper>
   );
 };
 

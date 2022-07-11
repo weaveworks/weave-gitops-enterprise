@@ -18,6 +18,9 @@ const FormWrapper = styled.form`
     justify-content: flex-end;
     padding-top: ${({ theme }) => theme.spacing.small};
     padding-bottom: ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
   }
 `;
 
@@ -33,8 +36,7 @@ const TemplateFields: FC<{
       | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
       | React.ChangeEvent<{ name?: string; value: unknown }>,
   ) => {
-    const name = event?.target?.name;
-    const value = event?.target?.value;
+    const { name, value } = event?.target;
     setFormData({ ...formData, [name as string]: value });
   };
 

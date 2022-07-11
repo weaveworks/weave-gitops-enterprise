@@ -13,9 +13,7 @@ const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   & .auth-message {
     margin-top: ${({ theme }) => theme.spacing.base};
     button {
-      span {
-        width: 200px;
-      }
+      width: 200px;
     }
   }
 `;
