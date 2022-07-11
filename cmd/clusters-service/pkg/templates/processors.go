@@ -3,6 +3,7 @@ package templates
 import (
 	"fmt"
 	"regexp"
+	"sort"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -32,9 +33,60 @@ var templateRenderers = map[string]templateRenderFunc{
 	templates.RenderTypeTemplating: processTemplatingTemplate,
 }
 
+// NewProcessorForTemplate creates and returns an appropriate processor for a
+// template based on its declared type.
+func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
+	switch t.Spec.RenderType {
+	case "", templates.RenderTypeEnvsubst:
+		return &TemplateProcessor{Processor: NewEnvsubstTemplateProcessor(), Template: t}, nil
+	case templates.RenderTypeTemplating:
+		return &TemplateProcessor{Processor: NewTextTemplateProcessor(), Template: t}, nil
+
+	}
+	return nil, fmt.Errorf("unknown template renderType: %s", t.Spec.RenderType)
+}
+
+// TemplateProcessor does the work of rendering a template.
+type TemplateProcessor struct {
+	templates.Template
+	Processor
+}
+
+func (p TemplateProcessor) Params() ([]Param, error) {
+	paramNames := sets.NewString()
+	for _, v := range p.Template.Spec.ResourceTemplates {
+		names, err := p.Processor.ParamNames(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get params from template: %w", err)
+		}
+		paramNames.Insert(names...)
+	}
+
+	paramsMeta := map[string]Param{}
+	for _, v := range paramNames.List() {
+		paramsMeta[v] = Param{Name: v}
+	}
+
+	for _, v := range p.Template.Spec.Params {
+		if m, ok := paramsMeta[v.Name]; ok {
+			m.Description = v.Description
+			m.Options = v.Options
+			m.Required = v.Required
+			paramsMeta[v.Name] = m
+		}
+	}
+
+	var params []Param
+	for _, v := range paramsMeta {
+		params = append(params, v)
+	}
+	sort.Slice(params, func(i, j int) bool { return params[i].Name < params[j].Name })
+	return params, nil
+}
+
 // NewTextTemplateProcessor creates and returns a new TextTemplateProcessor.
-func NewTextTemplateProcessor() *TextTemplateProcessor {
-	return &TextTemplateProcessor{}
+func NewTextTemplateProcessor() *TemplateProcessor {
+	return &TemplateProcessor{Processor: &TextTemplateProcessor{}}
 }
 
 // TextProcessor is an implementation of the Processor interface that uses Go's
@@ -62,10 +114,25 @@ func (p *TextTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]str
 	return variables.List(), nil
 }
 
+func (p TemplateProcessor) AllParamNames() ([]string, error) {
+	paramNames := sets.NewString()
+	for _, v := range p.Template.Spec.ResourceTemplates {
+		names, err := p.Processor.ParamNames(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get params from template: %w", err)
+		}
+		paramNames.Insert(names...)
+	}
+
+	params := paramNames.List()
+	sort.Strings(params)
+	return params, nil
+}
+
 // NewEnvsubstTemplateProcessor creates and returns a new
 // EnvsubstTemplateProcessor.
-func NewEnvsubstTemplateProcessor() *EnvsubstTemplateProcessor {
-	return &EnvsubstTemplateProcessor{}
+func NewEnvsubstTemplateProcessor() *TemplateProcessor {
+	return &TemplateProcessor{Processor: &EnvsubstTemplateProcessor{}}
 }
 
 // EnvsubstTemplateProcessor is an implementation of the Processor interface

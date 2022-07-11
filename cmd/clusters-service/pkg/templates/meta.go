@@ -18,9 +18,14 @@ const (
 // contains the objects that are in the template, along with the parameters used
 // by each of the objects.
 func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMeta, error) {
+	processor, err := NewProcessorForTemplate(s)
+	if err != nil {
+		return nil, err
+	}
+
 	var objects []Object
 	for _, v := range s.Spec.ResourceTemplates {
-		params, err := paramsFromResourceTemplate(s.Spec, v)
+		params, err := processor.ParamNames(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse params in template: %w", err)
 		}
@@ -37,7 +42,7 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 		})
 	}
 
-	enriched, err := ParamsFromTemplate(s)
+	enriched, err := processor.Params()
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse parameters from the spec: %w", err)
 	}

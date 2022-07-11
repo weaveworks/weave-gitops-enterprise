@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"sort"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
@@ -51,42 +49,4 @@ func ParseConfigMap(cm corev1.ConfigMap) (map[string]*templates.Template, error)
 		tm[t.Name] = t
 	}
 	return tm, nil
-}
-
-// Params extracts the named parameters from resource templates in a spec.
-func Params(t templates.Template) ([]string, error) {
-	variables := sets.NewString()
-	for _, v := range t.Spec.ResourceTemplates {
-		params, err := paramsFromResourceTemplate(t.Spec, v)
-		if err != nil {
-			return nil, err
-		}
-		variables.Insert(params...)
-	}
-	names := variables.List()
-	sort.Strings(names)
-	return names, nil
-}
-
-// paramsFromResourceTemplate extracts the named parameters from a specific
-// resource template.
-func paramsFromResourceTemplate(s templates.TemplateSpec, rt templates.ResourceTemplate) ([]string, error) {
-	var (
-		names []string
-		err   error
-	)
-
-	switch s.RenderType {
-	case templates.RenderTypeTemplating:
-		processor := NewTextTemplateProcessor()
-		names, err = processor.ParamNames(rt)
-	default:
-		processor := NewEnvsubstTemplateProcessor()
-		names, err = processor.ParamNames(rt)
-	}
-	if err != nil {
-		return nil, err
-	}
-	sort.Strings(names)
-	return names, nil
 }
