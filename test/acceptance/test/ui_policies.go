@@ -25,7 +25,7 @@ func installPolicyAgent(clusterName string) {
 	})
 
 	By(fmt.Sprintf("And install policy agent to %s cluster", clusterName), func() {
-		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "charts-profile/weave-policy-agent", "--version", "0.3.x", "--set", "accountId=weaveworks", "--set", "clusterId="+clusterName)
+		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "charts-profile/weave-policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "0.3.x", "--set", "accountId=weaveworks", "--set", "clusterId="+clusterName)
 		Expect(err).ShouldNot(HaveOccurred(), "Failed to install policy agent to leaf cluster: "+clusterName)
 	})
 }
