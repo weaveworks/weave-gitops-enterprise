@@ -5,20 +5,25 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 
-import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
-import CanaryDetailsSection from './CanaryDetailsSection';
-import { useApplicationsCount } from '../../Applications/utils';
+import { LoadingPage } from '@weaveworks/weave-gitops';
 import {
-  CanaryParams,
-  useCanaryDetails,
-  useListCanariesCount,
-} from '../../../hooks/progressiveDelivery';
+  useCanariesCount,
+  useGetCanaryDetails,
+} from '../../../contexts/ProgressiveDelivery';
+import { useApplicationsCount } from '../../Applications/utils';
+import CanaryDetailsSection from './CanaryDetailsSection';
 
-function CanaryDetails({ name, namespace, clusterName }: CanaryParams) {
+type Props = {
+  name: string;
+  namespace: string;
+  clusterName: string;
+};
+
+function CanaryDetails({ name, namespace, clusterName }: Props) {
   const applicationsCount = useApplicationsCount();
-  const canariesCount = useListCanariesCount();
-  const { error, data, isLoading } = useCanaryDetails({
+  const canariesCount = useCanariesCount();
+  const { error, data, isLoading } = useGetCanaryDetails({
     name,
     namespace,
     clusterName,
