@@ -47,7 +47,7 @@ const TemplateFields: FC<{
         const options = param?.options || [];
         if (options.length > 0) {
           return (
-            <FormControl style={{ width: '50%' }}>
+            <FormControl style={{ width: '50%' }} id={name}>
               <span>{name}</span>
               <Select
                 value={formData.name}

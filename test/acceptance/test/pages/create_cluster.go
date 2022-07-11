@@ -111,8 +111,8 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 }
 
 func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string) FormField {
-	Eventually(webdriver.FindByName(name)).Should(BeFound())
-	param := webdriver.FindByName(name)
+	Eventually(webdriver.FindByID(name)).Should(BeFound())
+	param := webdriver.FindByID(name)
 
 	return FormField{
 		Label:   param.Find(`span`),
