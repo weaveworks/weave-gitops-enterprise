@@ -13,16 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
-// RenderOptFunc is a functional option for Rendering templates.
-type RenderOptFunc func(uns *unstructured.Unstructured) error
-
-type templateRenderFunc func(tmpl []byte, values map[string]string) ([]byte, error)
-
-var templateRenderers = map[string]templateRenderFunc{
-	templates.RenderTypeEnvsubst:   ProcessTemplate,
-	templates.RenderTypeTemplating: processTemplatingTemplate,
-}
-
 // InjectPruneAnnotation injects an annotation on everything
 // but Cluster and GitopsCluster objects
 // to instruct flux *not* to prune these objects.

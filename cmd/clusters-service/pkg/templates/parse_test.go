@@ -246,7 +246,7 @@ func TestParams(t *testing.T) {
 	for _, tt := range paramTests {
 		t.Run(tt.filename, func(t *testing.T) {
 			c := mustParseFile(t, tt.filename)
-			params, err := Params(c.Spec)
+			params, err := Params(*c)
 			if err != nil {
 				t.Fatal(err)
 			}

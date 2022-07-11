@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
-func TestParamsFromCAPISpec(t *testing.T) {
+func TestParamsFromCAPITemplate(t *testing.T) {
 	templateTests := []struct {
 		filename string
 		want     []Param
@@ -31,7 +31,7 @@ func TestParamsFromCAPISpec(t *testing.T) {
 	for _, tt := range templateTests {
 		t.Run(tt.filename, func(t *testing.T) {
 			parsed := mustParseFile(t, tt.filename)
-			got, err := ParamsFromSpec(parsed.Spec)
+			got, err := ParamsFromTemplate(*parsed)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -42,7 +42,7 @@ func TestParamsFromCAPISpec(t *testing.T) {
 	}
 }
 
-func TestParamsFromSpec(t *testing.T) {
+func TestParamsFromTemplate(t *testing.T) {
 	templateTests := []struct {
 		filename string
 		want     []Param
@@ -74,7 +74,7 @@ func TestParamsFromSpec(t *testing.T) {
 	for _, tt := range templateTests {
 		t.Run(tt.filename, func(t *testing.T) {
 			parsed := mustParseFile(t, tt.filename)
-			got, err := ParamsFromSpec(parsed.Spec)
+			got, err := ParamsFromTemplate(*parsed)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -85,9 +85,9 @@ func TestParamsFromSpec(t *testing.T) {
 	}
 }
 
-func TestParamsFromSpec_with_bad_template(t *testing.T) {
+func TestParamsFromTemplate_with_bad_template(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/bad_template.yaml")
-	_, err := ParamsFromSpec(parsed.Spec)
+	_, err := ParamsFromTemplate(*parsed)
 	assert.EqualError(t, err, "failed to get params from template: processing template: missing closing brace")
 }
 

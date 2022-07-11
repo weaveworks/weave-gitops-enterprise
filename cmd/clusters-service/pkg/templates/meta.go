@@ -17,7 +17,7 @@ const (
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
 // contains the objects that are in the template, along with the parameters used
 // by each of the objects.
-func ParseTemplateMeta(s *apitemplates.Template, annotation string) (*TemplateMeta, error) {
+func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMeta, error) {
 	var objects []Object
 	for _, v := range s.Spec.ResourceTemplates {
 		params, err := paramsFromResourceTemplate(s.Spec, v)
@@ -37,7 +37,7 @@ func ParseTemplateMeta(s *apitemplates.Template, annotation string) (*TemplateMe
 		})
 	}
 
-	enriched, err := ParamsFromSpec(s.Spec)
+	enriched, err := ParamsFromTemplate(s)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse parameters from the spec: %w", err)
 	}

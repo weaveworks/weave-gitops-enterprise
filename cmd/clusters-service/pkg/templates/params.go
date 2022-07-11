@@ -7,14 +7,14 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
-// ParamsFromSpec extracts the named parameters from a CAPITemplate, finding all
+// ParamsFromTemplate extracts the named parameters from a CAPITemplate, finding all
 // the named parameters in each of the resource templates, and enriching that
 // with data from the params field in the spec (if found).
 //
 // Any fields in the templates, but not in the params will not be enriched, and
 // only the name will be returned.
-func ParamsFromSpec(s templates.TemplateSpec) ([]Param, error) {
-	paramNames, err := Params(s)
+func ParamsFromTemplate(t templates.Template) ([]Param, error) {
+	paramNames, err := Params(t)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get params from template: %w", err)
 	}
@@ -23,7 +23,7 @@ func ParamsFromSpec(s templates.TemplateSpec) ([]Param, error) {
 		paramsMeta[v] = Param{Name: v}
 	}
 
-	for _, v := range s.Params {
+	for _, v := range t.Spec.Params {
 		if m, ok := paramsMeta[v.Name]; ok {
 			m.Description = v.Description
 			m.Options = v.Options
