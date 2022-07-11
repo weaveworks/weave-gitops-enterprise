@@ -1,10 +1,16 @@
 import {
+  GetCanaryResponse,
   ListCanariesResponse,
   ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
-import React from 'react';
+import React, { useContext } from 'react';
 import { useQuery } from 'react-query';
+import {
+  ListEventsRequest,
+  ListEventsResponse,
+} from '../../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../EnterpriseClient';
 
 interface Props {
   api: typeof ProgressiveDeliveryService;
@@ -50,3 +56,38 @@ export const useListCanaries = () => {
     () => pd.ListCanaries({}),
   );
 };
+
+type CanaryParams = {
+  name: string;
+  namespace: string;
+  clusterName: string;
+};
+
+export const useGetCanaryDetails = (params: CanaryParams) => {
+  const pd = useProgressiveDelivery();
+
+  return useQuery<GetCanaryResponse, Error>(
+    [PD_QUERY_KEY, CANARIES_KEY, params],
+    () => pd.GetCanary(params),
+  );
+};
+
+export const useCanariesCount = () => {
+  const { data } = useListCanaries();
+
+  if (!data) {
+    return 0;
+  }
+
+  return data?.canaries?.length;
+};
+
+const EVENTS_QUERY_KEY = 'events';
+
+export function useListEvents(req: ListEventsRequest) {
+  const { api } = useContext(EnterpriseClientContext);
+
+  return useQuery<ListEventsResponse, Error>([EVENTS_QUERY_KEY, req], () =>
+    api.ListEvents(req),
+  );
+}

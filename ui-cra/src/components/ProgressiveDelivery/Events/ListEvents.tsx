@@ -1,11 +1,13 @@
-import { ListEventsRequest } from '../../../cluster-services/cluster_services.pb';
-import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
+import { LoadingPage } from '@weaveworks/weave-gitops';
+import { ListEventsRequest } from '../../../cluster-services/cluster_services.pb';
+import { useListEvents } from '../../../contexts/ProgressiveDelivery';
 import { EventsTable } from './EventsTable';
-import { useListEvents } from '../../../hooks/progressiveDelivery';
 
-const ListEvents = (listEventsPayload: ListEventsRequest) => {
-  const { error, data, isLoading } = useListEvents(listEventsPayload);
+type Props = ListEventsRequest;
+
+const ListEvents = (props: Props) => {
+  const { error, data, isLoading } = useListEvents(props);
   return (
     <>
       {isLoading && <LoadingPage />}
