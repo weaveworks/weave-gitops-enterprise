@@ -25,6 +25,7 @@ type FormField struct {
 	Field   *agouti.Selection
 	ListBox *agouti.Selection
 }
+
 type TemplateSection struct {
 	Name   *agouti.Selection
 	Fields []FormField
@@ -106,6 +107,16 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 	return TemplateSection{
 		Name:   name,
 		Fields: formFields,
+	}
+}
+
+func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string) FormField {
+	param := webdriver.FindByName(name)
+
+	return FormField{
+		Label:   param.Find(`span`),
+		Field:   param.Find(`input`),
+		ListBox: param.Find(`div[role="button"][aria-haspopup="listbox"]`),
 	}
 }
 

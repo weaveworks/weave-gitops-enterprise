@@ -13,7 +13,7 @@ const FormWrapper = styled.form`
     padding-top: ${({ theme }) => theme.spacing.base};
   }
 
-  .previewCTA {
+  .preview-cta {
     display: flex;
     justify-content: flex-end;
     padding-top: ${({ theme }) => theme.spacing.small};
@@ -70,7 +70,6 @@ const TemplateFields: FC<{
             <FormControl style={{ width: '50%' }}>
               <span>{name}</span>
               <Input
-                id={name}
                 name={name}
                 value={formData.name}
                 onChange={handleFormData}
@@ -79,7 +78,7 @@ const TemplateFields: FC<{
             </FormControl>
           );
       })}
-      <div className="previewCTA">
+      <div className="preview-cta">
         <Button onClick={onPRPreview}>PREVIEW PR</Button>
       </div>
     </FormWrapper>
