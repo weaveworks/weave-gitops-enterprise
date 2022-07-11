@@ -175,6 +175,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			JustBeforeEach(func() {
+
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
