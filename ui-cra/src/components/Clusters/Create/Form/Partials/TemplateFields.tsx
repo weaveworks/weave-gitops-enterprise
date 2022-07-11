@@ -8,7 +8,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Input from '@material-ui/core/Input';
 import FormHelperText from '@material-ui/core/FormHelperText';
 
-const FormWrapper = styled.div`
+const FormWrapper = styled.form`
   .form-group {
     padding-top: ${({ theme }) => theme.spacing.base};
   }
@@ -28,11 +28,14 @@ const TemplateFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ activeTemplate, onPRPreview, formData, setFormData }) => {
-  console.log(formData);
-  const handleFormData = (event: any) => {
-    const id = event?.target?.id;
+  const handleFormData = (
+    event:
+      | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+      | React.ChangeEvent<{ name?: string; value: unknown }>,
+  ) => {
+    const name = event?.target?.name;
     const value = event?.target?.value;
-    setFormData({ ...formData, [id]: value });
+    setFormData({ ...formData, [name as string]: value });
   };
 
   return (
@@ -45,10 +48,10 @@ const TemplateFields: FC<{
             <FormControl style={{ width: '50%' }}>
               <span>{name}</span>
               <Select
-                id={name}
                 value={formData.name}
                 onChange={handleFormData}
                 autoWidth
+                name={name}
                 label={name}
               >
                 {options?.map(option => (
@@ -66,6 +69,7 @@ const TemplateFields: FC<{
               <span>{name}</span>
               <Input
                 id={name}
+                name={name}
                 value={formData.name}
                 onChange={handleFormData}
               />
@@ -74,8 +78,7 @@ const TemplateFields: FC<{
           );
       })}
       <div className="previewCTA">
-        {/* add handler for pr preview */}
-        <Button type="submit">PREVIEW PR</Button>
+        <Button onClick={onPRPreview}>PREVIEW PR</Button>
       </div>
     </FormWrapper>
   );

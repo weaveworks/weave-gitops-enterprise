@@ -15,7 +15,7 @@ const itemCss = css`
   line-height: ${({ theme }) => theme.spacing.large};
   height: ${({ theme }) => theme.spacing.large};
   box-sizing: border-box;
-  color: ${theme.colors.neutral40};
+  color: ${({ theme }) => theme.colors.neutral40};
   font-weight: 600;
   padding: 0 ${({ theme }) => theme.spacing.small}
     ${({ theme }) => theme.spacing.small} 0;
@@ -23,15 +23,15 @@ const itemCss = css`
 `;
 
 const itemActiveCss = css`
-  border-right: 4px solid ${theme.colors.primary};
+  border-right: 4px solid ${({ theme }) => theme.colors.primary};
 `;
 
 const Title = styled.div`
   align-items: center;
   display: flex;
-  color: ${theme.colors.white};
+  color: ${({ theme }) => theme.colors.white};
   font-size: ${20}px;
-  background: ${theme.colors.primary};
+  background: ${({ theme }) => theme.colors.primary};
   height: ${80}px;
   position: sticky;
   top: 0;
