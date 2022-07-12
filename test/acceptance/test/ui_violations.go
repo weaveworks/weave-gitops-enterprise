@@ -29,6 +29,8 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 			JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, deploymentYaml)
+
 			})
 
 			It("Verify Violations can be monitored for violating resource", Label("integration", "violation"), func() {
@@ -41,7 +43,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 				By("Install violating Postgres deployment to the management cluster", func() {
 					Expect(waitForResource("policy", policyID, "default", "", ASSERTION_1MINUTE_TIME_OUT))
-					Expect(gitopsTestRunner.KubectlApply([]string{}, deploymentYaml)).ShouldNot(Succeed(), "Failed to install test Postgres deployment to management cluster")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, deploymentYaml)).ShouldNot(Succeed(), "Test Postgres deployment should not be installed in the management cluster")
 				})
 
 				By("And wait for violations to be visibe on the dashboard", func() {
