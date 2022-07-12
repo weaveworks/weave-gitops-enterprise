@@ -1,7 +1,9 @@
 package templates
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"regexp"
 	"sort"
 
@@ -25,13 +27,6 @@ type Processor interface {
 
 // RenderOptFunc is a functional option for Rendering templates.
 type RenderOptFunc func(uns *unstructured.Unstructured) error
-
-type templateRenderFunc func(tmpl []byte, values map[string]string) ([]byte, error)
-
-var templateRenderers = map[string]templateRenderFunc{
-	templates.RenderTypeEnvsubst:   ProcessTemplate,
-	templates.RenderTypeTemplating: processTemplatingTemplate,
-}
 
 // NewProcessorForTemplate creates and returns an appropriate processor for a
 // template based on its declared type.
@@ -81,7 +76,32 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		params = append(params, v)
 	}
 	sort.Slice(params, func(i, j int) bool { return params[i].Name < params[j].Name })
+
 	return params, nil
+}
+
+// RenderTemplates renders all the resourceTemplates in the template.
+func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
+	var processed [][]byte
+	for _, v := range p.Template.Spec.ResourceTemplates {
+		b, err := yaml.JSONToYAML(v.RawExtension.Raw)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
+		}
+
+		data, err := p.Processor.Render(b, vars)
+		if err != nil {
+			return nil, fmt.Errorf("processing template: %w", err)
+		}
+
+		data, err = processUnstructured(data, opts...)
+		if err != nil {
+			return nil, fmt.Errorf("modifying template: %w", err)
+		}
+		processed = append(processed, data)
+	}
+
+	return processed, nil
 }
 
 // NewTextTemplateProcessor creates and returns a new TextTemplateProcessor.
@@ -94,8 +114,18 @@ func NewTextTemplateProcessor() *TemplateProcessor {
 type TextTemplateProcessor struct {
 }
 
-func (p *TextTemplateProcessor) Render([]byte, map[string]string) ([]byte, error) {
-	return nil, nil
+func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
+	parsed, err := template.New("capi-template").Parse(string(tmpl))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	var out bytes.Buffer
+	if err := parsed.Execute(&out, map[string]interface{}{"params": values}); err != nil {
+		return nil, fmt.Errorf("failed to render template: %w", err)
+	}
+
+	return out.Bytes(), nil
 }
 
 var paramsRE = regexp.MustCompile(`{{.*\.params\.([A-Za-z0-9_]+).*}}`)
@@ -126,6 +156,7 @@ func (p TemplateProcessor) AllParamNames() ([]string, error) {
 
 	params := paramNames.List()
 	sort.Strings(params)
+
 	return params, nil
 }
 
@@ -140,8 +171,20 @@ func NewEnvsubstTemplateProcessor() *TemplateProcessor {
 type EnvsubstTemplateProcessor struct {
 }
 
-func (p *EnvsubstTemplateProcessor) Render([]byte, map[string]string) ([]byte, error) {
-	return nil, nil
+func (p *EnvsubstTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
+	proc := processor.NewSimpleProcessor()
+
+	rendered, err := proc.Process(tmpl, func(n string) (string, error) {
+		if s, ok := values[n]; ok {
+			return s, nil
+		}
+		return "", fmt.Errorf("variable %s not found", n)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to process template values: %w", err)
+	}
+
+	return rendered, nil
 }
 
 func (p *EnvsubstTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]string, error) {

@@ -16,17 +16,26 @@ func TestNewProcessorForTemplate(t *testing.T) {
 	processorTests := []struct {
 		renderType string
 		want       interface{}
+		wantErr    string
 	}{
 		{renderType: templates.RenderTypeEnvsubst, want: NewEnvsubstTemplateProcessor()},
 		{renderType: "", want: NewEnvsubstTemplateProcessor()},
 		{renderType: templates.RenderTypeTemplating, want: NewTextTemplateProcessor()},
+		{renderType: "unknown", wantErr: "unknown template renderType: unknown"},
 	}
 
 	for _, tt := range processorTests {
 		t.Run("processor for "+tt.renderType, func(t *testing.T) {
 			v, err := NewProcessorForTemplate(templates.Template{Spec: templates.TemplateSpec{RenderType: tt.renderType}})
+
 			if err != nil {
-				t.Fatal(err)
+				if tt.wantErr == "" {
+					t.Fatal(err)
+				}
+				if msg := err.Error(); msg != tt.wantErr {
+					t.Fatalf("want error %s, got %s", msg, tt.wantErr)
+				}
+				return
 			}
 
 			if !reflect.DeepEqual(tt.want, v.Processor) {
