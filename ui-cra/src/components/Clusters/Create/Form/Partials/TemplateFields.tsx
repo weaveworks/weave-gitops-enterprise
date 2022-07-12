@@ -17,8 +17,8 @@ const FormWrapper = styled.form`
   .preview-cta {
     display: flex;
     justify-content: flex-end;
-    padding-top: ${({ theme }) => theme.spacing.small};
-    padding-bottom: ${({ theme }) => theme.spacing.base};
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.base};
     button {
       width: 200px;
     }

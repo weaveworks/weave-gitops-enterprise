@@ -15,7 +15,7 @@ const GitOpsWrapper = styled.form`
   .create-cta {
     display: flex;
     justify-content: end;
-    padding-top: ${({ theme }) => theme.spacing.base};
+    padding: ${({ theme }) => theme.spacing.base};
     button {
       width: 200px;
     }
