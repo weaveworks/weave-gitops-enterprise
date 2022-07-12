@@ -7,6 +7,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from '@material-ui/core/Input';
 import FormHelperText from '@material-ui/core/FormHelperText';
+import { validateFormData } from '../../../../../utils/form';
 
 const FormWrapper = styled.form`
   .form-group {
@@ -50,6 +51,7 @@ const TemplateFields: FC<{
             <FormControl style={{ width: '50%' }} id={name}>
               <span>{name}</span>
               <Select
+                required
                 value={formData.name}
                 onChange={handleFormData}
                 autoWidth
@@ -70,6 +72,7 @@ const TemplateFields: FC<{
             <FormControl style={{ width: '50%' }}>
               <span>{name}</span>
               <Input
+                required
                 name={name}
                 value={formData.name}
                 onChange={handleFormData}
@@ -79,7 +82,9 @@ const TemplateFields: FC<{
           );
       })}
       <div className="preview-cta">
-        <Button onClick={onPRPreview}>PREVIEW PR</Button>
+        <Button onClick={event => validateFormData(event, onPRPreview)}>
+          PREVIEW PR
+        </Button>
       </div>
     </FormWrapper>
   );

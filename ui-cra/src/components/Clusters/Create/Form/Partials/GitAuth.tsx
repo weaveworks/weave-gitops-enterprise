@@ -12,7 +12,8 @@ const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
   & .auth-message {
     margin-top: ${({ theme }) => theme.spacing.base};
-    button {
+    button,
+    > div {
       width: 200px;
     }
   }

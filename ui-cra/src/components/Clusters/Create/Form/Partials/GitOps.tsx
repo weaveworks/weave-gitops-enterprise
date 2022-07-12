@@ -4,8 +4,9 @@ import { Button } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
 import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
+import { validateFormData } from '../../../../../utils/form';
 
-const GitOpsWrapper = styled.div`
+const GitOpsWrapper = styled.form`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
   .form-field {
     width: 50%;
@@ -72,8 +73,6 @@ const GitOps: FC<{
     [setFormData],
   );
 
-  const handleGitOps = useCallback(() => onSubmit(), [onSubmit]);
-
   return (
     <GitOpsWrapper>
       <h2>GitOps</h2>
@@ -81,6 +80,7 @@ const GitOps: FC<{
         <span>CREATE BRANCH</span>
         <Input
           id="Create branch"
+          required
           placeholder={formData.branchName}
           value={formData.branchName}
           onChange={handleChangeBranchName}
@@ -90,6 +90,7 @@ const GitOps: FC<{
         <span>PULL REQUEST TITLE</span>
         <Input
           id="Pull request title"
+          required
           placeholder={formData.pullRequestTitle}
           value={formData.pullRequestTitle}
           onChange={handleChangePullRequestTitle}
@@ -99,6 +100,7 @@ const GitOps: FC<{
         <span>COMMIT MESSAGE</span>
         <Input
           id="Commit message"
+          required
           placeholder={formData.commitMessage}
           value={formData.commitMessage}
           onChange={handleChangeCommitMessage}
@@ -108,6 +110,7 @@ const GitOps: FC<{
         <span>PULL REQUEST DESCRIPTION</span>
         <Input
           id="Commit message"
+          required
           placeholder={formData.pullRequestDescription}
           value={formData.pullRequestDescription}
           onChange={handleChangePRDescription}
@@ -120,8 +123,13 @@ const GitOps: FC<{
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
       />
-      <div className="create-cta" onClick={handleGitOps}>
-        <Button disabled={!enableCreatePR}>CREATE PULL REQUEST</Button>
+      <div className="create-cta">
+        <Button
+          onClick={event => validateFormData(event, onSubmit)}
+          disabled={!enableCreatePR}
+        >
+          CREATE PULL REQUEST
+        </Button>
       </div>
     </GitOpsWrapper>
   );
