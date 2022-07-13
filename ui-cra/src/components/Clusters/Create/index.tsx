@@ -36,6 +36,7 @@ import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { TemplateObject } from '../../../cluster-services/cluster_services.pb';
 import { useListConfig } from '../../../hooks/versions';
+import { Template } from '../../../cluster-services/cluster_services.pb';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -93,6 +94,15 @@ const useStyles = makeStyles(theme =>
   }),
 );
 
+const credentialsEnabled = (template: Template | null) =>
+  // template?.annotations?.['templates.weave.works/credentials-enabled'] !==
+  // 'false';
+  template?.templateKind === 'CAPITemplate';
+
+const profilesEnabled = (template: Template | null) =>
+  // template?.annotations?.['templates.weave.works/profiles-enabled'] !== 'false';
+  template?.templateKind === 'CAPITemplate';
+
 const AddCluster: FC = () => {
   const classes = useStyles();
   const {
@@ -113,10 +123,10 @@ const AddCluster: FC = () => {
   let initialFormData = {
     url: '',
     provider: '',
-    branchName: `create-clusters-branch-${random}`,
-    pullRequestTitle: 'Creates capi cluster',
-    commitMessage: 'Creates capi cluster',
-    pullRequestDescription: 'This PR creates a new cluster',
+    branchName: `create-resouce-branch-${random}`,
+    pullRequestTitle: 'Creates resource',
+    commitMessage: 'Creates resource',
+    pullRequestDescription: 'This PR creates a new resource',
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -168,10 +178,17 @@ const AddCluster: FC = () => {
     setOpenPreview(true);
     const { url, provider, ...templateFields } = formData;
     renderTemplate({
+      templateKind: activeTemplate?.templateKind || '',
       values: templateFields,
       credentials: infraCredential,
     });
-  }, [formData, setOpenPreview, renderTemplate, infraCredential]);
+  }, [
+    formData,
+    setOpenPreview,
+    renderTemplate,
+    infraCredential,
+    activeTemplate?.templateKind,
+  ]);
 
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
@@ -326,10 +343,12 @@ const AddCluster: FC = () => {
                   <div className="template-title">
                     Template: <span>{activeTemplate?.name}</span>
                   </div>
-                  <Credentials
-                    infraCredential={infraCredential}
-                    setInfraCredential={setInfraCredential}
-                  />
+                  {credentialsEnabled(activeTemplate) && (
+                    <Credentials
+                      infraCredential={infraCredential}
+                      setInfraCredential={setInfraCredential}
+                    />
+                  )}
                 </CredentialsWrapper>
                 <Divider
                   className={
@@ -349,7 +368,7 @@ const AddCluster: FC = () => {
                 ) : (
                   <Loader />
                 )}
-                {profiles.length > 0 && (
+                {profilesEnabled(activeTemplate) && profiles.length > 0 && (
                   <Profiles
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
