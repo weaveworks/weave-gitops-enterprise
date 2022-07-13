@@ -127,6 +127,13 @@ function CanaryDetailsSection({
             />
           </CanaryDetailsWrapper>
         </RouterTab>
+        <RouterTab name="Analysis" path={`${path}/analysis`}>
+          <CanaryDetailsWrapper>
+            <CanaryRowHeader rowkey="Cluster" value={canary.clusterName} />
+            <CanaryRowHeader rowkey="Namespace" value={canary.namespace} />
+          </CanaryDetailsWrapper>
+        </RouterTab>
+
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <CanaryDetailsWrapper>
             <SyntaxHighlighter
