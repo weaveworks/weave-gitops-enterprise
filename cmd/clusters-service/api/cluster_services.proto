@@ -290,7 +290,8 @@ message CreatePullRequestRequest {
   repeated ProfileValues values = 10;
   // The repo api url.
   string repository_api_url = 11;
-  string cluster_namespace = 12;
+  // CAPITemplate or GitOpsTemplate
+  string template_kind = 13;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.

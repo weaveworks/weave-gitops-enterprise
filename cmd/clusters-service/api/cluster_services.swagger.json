@@ -855,8 +855,9 @@
           "type": "string",
           "description": "The repo api url."
         },
-        "clusterNamespace": {
-          "type": "string"
+        "templateKind": {
+          "type": "string",
+          "title": "CAPITemplate or GitOpsTemplate"
         }
       }
     },

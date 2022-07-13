@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -113,6 +114,11 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
+	// Default to CAPI kind to ease transition
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
+	}
+
 	gp, err := getGitProvider(ctx)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
@@ -123,7 +129,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, "CAPITemplate")
+	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
@@ -149,10 +155,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	// FIXME: parse and read from Cluster in yaml template
-	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
-	if !ok {
-		return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' parameter in supplied values")
+	clusterName, foundClusterName := msg.ParameterValues["CLUSTER_NAME"]
+	if !foundClusterName {
+		resourceName, foundResourceName := msg.ParameterValues["RESOURCE_NAME"]
+		if !foundResourceName {
+			return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
+		}
+		clusterName = resourceName
 	}
 	cluster := types.NamespacedName{
 		Name:      clusterName,
@@ -185,13 +194,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		baseBranch = msg.BaseBranch
 	}
 	if msg.HeadBranch == "" {
-		msg.HeadBranch = getHash(msg.RepositoryUrl, msg.ParameterValues["CLUSTER_NAME"], msg.BaseBranch)
+		msg.HeadBranch = getHash(msg.RepositoryUrl, clusterName, msg.BaseBranch)
 	}
 	if msg.Title == "" {
-		msg.Title = fmt.Sprintf("Gitops add cluster %s", msg.ParameterValues["CLUSTER_NAME"])
+		msg.Title = fmt.Sprintf("Gitops add cluster %s", clusterName)
 	}
 	if msg.Description == "" {
-		msg.Description = fmt.Sprintf("Pull request to create cluster %s", msg.ParameterValues["CLUSTER_NAME"])
+		msg.Description = fmt.Sprintf("Pull request to create cluster %s", clusterName)
 	}
 	if msg.CommitMessage == "" {
 		msg.CommitMessage = "Add Cluster Manifests"

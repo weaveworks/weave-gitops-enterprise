@@ -158,7 +158,7 @@ export type CreatePullRequestRequest = {
   credentials?: Credential
   values?: ProfileValues[]
   repositoryApiUrl?: string
-  clusterNamespace?: string
+  templateKind?: string
 }
 
 export type CreatePullRequestResponse = {
