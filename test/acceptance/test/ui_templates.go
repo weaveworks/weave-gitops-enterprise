@@ -494,6 +494,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
+				// Delete authenticating once the form reset issue is fixed
+				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
+
 				setParameterValues(createPage, parameters)
 
 				By("Then I should preview the PR", func() {
@@ -514,10 +517,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					pages.ScrollWindow(webDriver, 0, 4000)
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
@@ -616,6 +622,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
+				// Delete authenticating once the form reset issue is fixed
+				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
+
 				setParameterValues(createPage, parameters)
 
 				//Pull request values
@@ -629,10 +638,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					pages.ScrollWindow(webDriver, 0, 4000)
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(branchName)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
@@ -987,11 +999,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				setParameterValues(createPage, parameters)
-				pages.ScrollWindow(webDriver, 0, 4000)
-
-				// FIXME: Workaround for #626 double HelmRelease enteries in profiles.yaml
+				// Delete authenticating once the form reset issue is fixed
 				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
+
+				setParameterValues(createPage, parameters)
 				pages.ScrollWindow(webDriver, 0, 4000)
 
 				By("And select the podinfo profile to install", func() {
@@ -1050,17 +1061,20 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
 
 					// Wait for template to be reloaded before submitting
-					Eventually(webDriver.Find("#root_CLUSTER_NAME-label")).Should(BeFound())
+					Eventually(createPage.GetTemplateParameter(webDriver, parameters[0].Name).Label).Should(BeVisible(), "Create cluseter page failed to render after git provider authentication")
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})

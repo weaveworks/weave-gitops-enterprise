@@ -47,3 +47,10 @@ func OpenNewWindow(webDriver *agouti.Page, url string, windowName string) {
 	var result interface{}
 	Expect(webDriver.RunScript(script, map[string]interface{}{}, &result)).ShouldNot(HaveOccurred())
 }
+
+func ClearFieldValue(field *agouti.Selection) {
+	val, _ := field.Attribute("value")
+	for i := 0; i < len(val); i++ {
+		Expect(field.SendKeys("\uE003")).To(Succeed())
+	}
+}

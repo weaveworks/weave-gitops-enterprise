@@ -111,11 +111,11 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 }
 
 func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string) FormField {
-	Eventually(webdriver.FindByID(name)).Should(BeFound())
-	param := webdriver.FindByID(name)
+	Eventually(webdriver.FindByXPath(fmt.Sprintf(`//input[@name="%s"]/ancestor::div[contains(@class, "MuiFormControl-root")]`, name))).Should(BeFound())
+	param := webdriver.FindByXPath(fmt.Sprintf(`//input[@name="%s"]/ancestor::div[contains(@class, "MuiFormControl-root")]`, name))
 
 	return FormField{
-		Label:   param.Find(`span`),
+		Label:   param.All(`span`).At(0),
 		Field:   param.Find(`input`),
 		ListBox: param.Find(`div[role="button"][aria-haspopup="listbox"]`),
 	}
@@ -133,7 +133,6 @@ func GetProfile(webDriver *agouti.Page, profileName string) Profile {
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 	Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(BeVisible())
-	time.Sleep(10 * time.Second)
 	return ValuesYaml{
 		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] > h5`),
 		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] > button`),
@@ -156,7 +155,7 @@ func (c CreateCluster) SelectProfile(profileName string) *agouti.Selection {
 }
 
 func DissmissProfilePopup(webDriver *agouti.Page) {
-	Expect(webDriver.Find(`div[name=Profiles]`).DoubleClick()).To(Succeed())
+	Expect(webDriver.Find(`div.profiles-select`).DoubleClick()).To(Succeed())
 }
 
 func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
@@ -182,19 +181,23 @@ func GetPreview(webDriver *agouti.Page) Preview {
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
-		GitOpsLabel: webDriver.FindByName("GitOps"),
+		GitOpsLabel: webDriver.FindByXPath(`//h2[.="GitOps"]`),
 		GitOpsFields: []FormField{
 			{
-				Label: webDriver.FindByLabel(`Create branch`),
-				Field: webDriver.FindByID(`Create branch-input`),
+				Label: webDriver.FindByXPath(`//div/span[.="CREATE BRANCH"]`),
+				Field: webDriver.FindByID(`Create branch`),
 			},
 			{
-				Label: webDriver.FindByLabel(`Pull request title`),
-				Field: webDriver.FindByID(`Pull request title-input`),
+				Label: webDriver.FindByXPath(`//div/span[.="PULL REQUEST TITLE"]`),
+				Field: webDriver.FindByID(`Pull request title`),
 			},
 			{
-				Label: webDriver.FindByLabel(`Commit message`),
-				Field: webDriver.FindByID(`Commit message-input`),
+				Label: webDriver.FindByXPath(`//div/span[.="COMMIT MESSAGE"]`),
+				Field: webDriver.All(`input[id="Commit message"]`).At(0),
+			},
+			{
+				Label: webDriver.FindByXPath(`//div/span[.="PULL REQUEST DESCRIPTION"]`),
+				Field: webDriver.FindByID(`Pull request description`),
 			},
 			{
 				Label: webDriver.FindByLabel(`Pull request description`),
