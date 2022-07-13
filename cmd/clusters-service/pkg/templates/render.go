@@ -27,7 +27,8 @@ var templateRenderers = map[string]templateRenderFunc{
 // but Cluster and GitopsCluster objects
 // to instruct flux *not* to prune these objects.
 func InjectPruneAnnotation(uns *unstructured.Unstructured) error {
-	if uns.GetKind() != "Cluster" && uns.GetKind() != "GitopsCluster" {
+	// FIXME: need a bit system for this now.
+	if uns.GetKind() != "Cluster" && uns.GetKind() != "GitopsCluster" && uns.GetKind() != "Terraform" {
 		// NOTE: This is doing the same thing as uns.GetAnnotations() but with
 		// error handling, GetAnnotations is unlikely to change behaviour.
 		ann, _, err := unstructured.NestedStringMap(uns.Object, "metadata", "annotations")
