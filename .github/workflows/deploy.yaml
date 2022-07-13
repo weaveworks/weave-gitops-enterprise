@@ -82,7 +82,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(application)'"
+      label-filter: "-ginkgo.label-filter='!(upgrade)'"
       kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab
