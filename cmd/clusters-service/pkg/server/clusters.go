@@ -177,7 +177,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		},
 	}
 
-	if viper.GetString("add-bases-kustomization") == "enabled" {
+	if viper.GetString("add-bases-kustomization") == "enabled" && !msg.SkipAddBasesKustomziation {
 		commonKustomization, err := getCommonKustomization(cluster)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", clusterName, err)
@@ -197,13 +197,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		msg.HeadBranch = getHash(msg.RepositoryUrl, clusterName, msg.BaseBranch)
 	}
 	if msg.Title == "" {
-		msg.Title = fmt.Sprintf("Gitops add cluster %s", clusterName)
+		msg.Title = fmt.Sprintf("Gitops add %s", clusterName)
 	}
 	if msg.Description == "" {
-		msg.Description = fmt.Sprintf("Pull request to create cluster %s", clusterName)
+		msg.Description = fmt.Sprintf("Pull request to create %s", clusterName)
 	}
 	if msg.CommitMessage == "" {
-		msg.CommitMessage = "Add Cluster Manifests"
+		msg.CommitMessage = "Add Manifests"
 	}
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {

@@ -19,10 +19,16 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		CommitMessage:    msg.CommitMessage,
 		RepositoryApiUrl: msg.RepositoryApiUrl,
 
-		TemplateKind: gapiv1.Kind,
+		TemplateKind:              gapiv1.Kind,
+		SkipAddBasesKustomziation: true,
 	})
 
-	return &proto.CreateTfControllerPullRequestResponse{
-		WebUrl: res.WebUrl,
-	}, err
+	var tfRes *proto.CreateTfControllerPullRequestResponse
+	if res != nil {
+		tfRes = &proto.CreateTfControllerPullRequestResponse{
+			WebUrl: res.WebUrl,
+		}
+	}
+
+	return tfRes, err
 }

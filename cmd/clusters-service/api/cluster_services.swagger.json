@@ -858,6 +858,10 @@
         "templateKind": {
           "type": "string",
           "title": "CAPITemplate or GitOpsTemplate"
+        },
+        "skipAddBasesKustomziation": {
+          "type": "boolean",
+          "title": "TODO: remove this once we have a more flexible kustomization addition system"
         }
       }
     },

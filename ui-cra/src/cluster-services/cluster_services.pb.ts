@@ -159,6 +159,7 @@ export type CreatePullRequestRequest = {
   values?: ProfileValues[]
   repositoryApiUrl?: string
   templateKind?: string
+  skipAddBasesKustomziation?: boolean
 }
 
 export type CreatePullRequestResponse = {

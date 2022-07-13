@@ -292,6 +292,8 @@ message CreatePullRequestRequest {
   string repository_api_url = 11;
   // CAPITemplate or GitOpsTemplate
   string template_kind = 13;
+  // TODO: remove this once we have a more flexible kustomization addition system
+  bool skip_add_bases_kustomziation = 14;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
