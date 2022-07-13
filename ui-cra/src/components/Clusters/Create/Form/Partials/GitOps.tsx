@@ -109,7 +109,7 @@ const GitOps: FC<{
       <FormControl className="form-field">
         <span>PULL REQUEST DESCRIPTION</span>
         <Input
-          id="Commit message"
+          id="Pull request description"
           required
           placeholder={formData.pullRequestDescription}
           value={formData.pullRequestDescription}

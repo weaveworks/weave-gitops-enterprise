@@ -51,8 +51,9 @@ const TemplateFields: FC<{
             <FormControl style={{ width: '50%' }} id={name}>
               <span>{name}</span>
               <Select
+                id={name}
                 required
-                value={formData.name}
+                value={formData[name]}
                 onChange={handleFormData}
                 autoWidth
                 name={name}
@@ -72,9 +73,10 @@ const TemplateFields: FC<{
             <FormControl style={{ width: '50%' }}>
               <span>{name}</span>
               <Input
+                id={name}
                 required
                 name={name}
-                value={formData.name}
+                value={formData[name]}
                 onChange={handleFormData}
               />
               <FormHelperText>{param.description}</FormHelperText>

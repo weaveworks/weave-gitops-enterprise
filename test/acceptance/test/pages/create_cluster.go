@@ -196,6 +196,10 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 				Label: webDriver.FindByLabel(`Commit message`),
 				Field: webDriver.FindByID(`Commit message-input`),
 			},
+			{
+				Label: webDriver.FindByLabel(`Pull request description`),
+				Field: webDriver.FindByID(`Pull request description-input`),
+			},
 		},
 		GitCredentials: webDriver.Find(`div.auth-message`),
 		CreatePR:       webDriver.FindByButton(`CREATE PULL REQUEST`),

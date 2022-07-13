@@ -15,6 +15,7 @@ const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
     button,
     > div {
       width: 200px;
+      margin-right: ${({ theme }) => theme.spacing.medium};
     }
   }
 `;
