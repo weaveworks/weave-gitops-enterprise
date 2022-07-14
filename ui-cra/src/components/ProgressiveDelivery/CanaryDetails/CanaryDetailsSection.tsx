@@ -2,10 +2,10 @@ import CanaryRowHeader, {
   KeyValueRow,
 } from '../SharedComponent/CanaryRowHeader';
 import CanaryStatus from '../SharedComponent/CanaryStatus';
-import { useCanaryStyle } from '../CanaryStyles';
+import {TableWrapper, useCanaryStyle} from '../CanaryStyles';
 import { Table, TableBody } from '@material-ui/core';
 import styled from 'styled-components';
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import {FilterableTable, RouterTab, SubRouterTabs} from '@weaveworks/weave-gitops';
 
 import {
   getDeploymentStrategyIcon,
@@ -17,9 +17,12 @@ import {
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
+import {Link} from "react-router-dom";
+import moment from "moment";
+import {CanaryMetricsTable} from "./Analysis/CanaryMetricsTable";
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -82,16 +85,11 @@ function CanaryDetailsSection({
             </CanaryRowHeader>
             <CanaryRowHeader rowkey="Provider" value={canary.provider} />
 
-            <div
-              className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}
-            >
-              Status
-            </div>
-
+            <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>Status</div>
             <Table size="small">
               <TableBody>
                 {Object.entries(restStatus || {}).map((entry, index) => (
-                  <KeyValueRow entryObj={entry} key={index} />
+                    <KeyValueRow entryObj={entry} key={index}/>
                 ))}
               </TableBody>
             </Table>
@@ -129,11 +127,9 @@ function CanaryDetailsSection({
         </RouterTab>
         <RouterTab name="Analysis" path={`${path}/analysis`}>
           <CanaryDetailsWrapper>
-            <CanaryRowHeader rowkey="Cluster" value={canary.clusterName} />
-            <CanaryRowHeader rowkey="Namespace" value={canary.namespace} />
+            <CanaryMetricsTable metrics={canary.analysis?.metrics || []}></CanaryMetricsTable>
           </CanaryDetailsWrapper>
         </RouterTab>
-
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <CanaryDetailsWrapper>
             <SyntaxHighlighter
