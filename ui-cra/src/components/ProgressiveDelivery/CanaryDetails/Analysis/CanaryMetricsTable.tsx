@@ -25,23 +25,21 @@ export const CanaryMetricsTable = ({ metrics }: { metrics: CanaryMetric[] }) => 
                                 {
                                     label: 'Name',
                                     value: 'name',
-                                    // textSearchable: true,
                                 },
-                                // {
-                                //     label: 'Namespace',
-                                //     value: (c: CanaryMetric) =>
-                                //         (c.namespace) || "no-namespace",
-                                //     // textSearchable: true,
-                                // },
+                                {
+                                    label: 'Ns',
+                                    value: (c: CanaryMetric) =>
+                                        (c.namespace) || "-",
+                                },
                                 {
                                     label: 'Threshold Min',
                                     value: (c: CanaryMetric) =>
-                                        "" + (c.thresholdRange?.min),
+                                        c.thresholdRange?.min ? "" + (c.thresholdRange?.min) : "-",
                                 },
                                 {
                                     label: 'Threshold Max',
                                     value: (c: CanaryMetric) =>
-                                        "" + (c.thresholdRange?.max),
+                                        c.thresholdRange?.max ? "" + (c.thresholdRange?.max) : "-",
                                 },
                                 {
                                     label: 'Interval',

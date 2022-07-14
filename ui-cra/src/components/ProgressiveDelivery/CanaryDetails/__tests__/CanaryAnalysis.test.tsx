@@ -106,13 +106,17 @@ function assertCanaryMetric(table: Element, metricAsElement: Element, metric: Ca
   const nameText = findTextByHeading(table, metricAsElement, 'Name')
   expect(nameText).toEqual(metric.name);
 
+  //assert namespace
+  const namespaceText = findTextByHeading(table, metricAsElement, 'Ns')
+  expect(namespaceText).toEqual(metric.namespace || "-");
+
   //assert threshold min
   const thresholdMin = findTextByHeading(table, metricAsElement, 'Threshold Min')
-  expect(thresholdMin).toEqual(""+metric.thresholdRange?.min || "undefined");
+  expect(thresholdMin).toEqual(metric.thresholdRange?.min ? ""+metric.thresholdRange?.min : "-");
 
   //assert threshold max
   const thresholdMax = findTextByHeading(table, metricAsElement, 'Threshold Max')
-  expect(thresholdMax).toEqual( ""+metric.thresholdRange?.max || "undefined");
+  expect(thresholdMax).toEqual(metric.thresholdRange?.max ? ""+metric.thresholdRange?.max : "-");
 
   //assert interval
   const intervalText = findTextByHeading(table, metricAsElement, 'Interval')
