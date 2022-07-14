@@ -26,37 +26,6 @@ describe('CanaryMetricsTable', () => {
   "namespace": "canary",
   "name": "canary01",
   "clusterName": "Default",
-  "targetReference": {
-    "kind": "Deployment",
-    "name": "deployment01"
-  },
-  "targetDeployment": {
-    "uid": "37b1b1b5-a8e4-40c0-94bb-8ab50840dd76",
-    "resourceVersion": "1841",
-    "fluxLabels": {
-    },
-    "appliedImageVersions": {
-      "app": "ghcr.io/yitsushi/hello-world:1.0.7"
-    },
-    "promotedImageVersions": {
-      "app": "ghcr.io/yitsushi/hello-world:1.0.7"
-    }
-  },
-  "status": {
-    "phase": "Initializing",
-    "lastTransitionTime": "2022-07-11T08:04:51Z",
-    "conditions": [
-      {
-        "type": "Promoted",
-        "status": "Unknown",
-        "lastUpdateTime": "2022-07-11T08:04:51Z",
-        "lastTransitionTime": "2022-07-11T08:04:51Z",
-        "reason": "Initializing",
-        "message": "New Deployment detected, starting initialization."
-      }
-    ]
-  },
-  "deploymentStrategy": "canary",
   "analysis": {
     "interval": "1m",
     "maxWeight": 50,
