@@ -71,15 +71,15 @@ func waitForResourceState(state string, statusCondition string, resourceName str
 }
 
 func verifyFluxControllers(namespace string) {
-	Expect(waitForResource("deploy", "helm-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", "kustomize-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", "notification-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("deploy", "source-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", "helm-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+	Expect(waitForResource("deploy", "kustomize-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+	Expect(waitForResource("deploy", "notification-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+	Expect(waitForResource("deploy", "source-controller", namespace, "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 }
 
 func verifyCoreControllers(namespace string) {
-	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 
 	By("And I wait for the gitops core controllers to be ready", func() {
 		waitForResourceState("Ready", "true", "pod", namespace, "app.kubernetes.io/name=weave-gitops", "", ASSERTION_3MINUTE_TIME_OUT)
@@ -88,8 +88,8 @@ func verifyCoreControllers(namespace string) {
 
 func verifyEnterpriseControllers(releaseName string, mccpPrefix, namespace string) {
 	// SOMETIMES (?) (with helm install ./local-path), the mccpPrefix is skipped
-	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"cluster-service", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
-	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("deploy", releaseName+"-"+mccpPrefix+"cluster-service", namespace, "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+	Expect(waitForResource("pods", "", namespace, "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 
 	By("And I wait for the gitops enterprise controllers to be ready", func() {
 		waitForResourceState("Ready", "true", "pod", namespace, "", "", ASSERTION_3MINUTE_TIME_OUT)
@@ -136,8 +136,8 @@ func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace str
 }
 
 func waitForGitRepoReady(appName string, namespace string) {
-	waitForResourceState("Ready", "true", "GitRepositories", namespace, "", "", ASSERTION_3MINUTE_TIME_OUT)
 	Expect(waitForResource("GitRepositories", appName, namespace, "", ASSERTION_5MINUTE_TIME_OUT)).To(Succeed())
+	waitForResourceState("Ready", "true", "GitRepositories", namespace, "", "", ASSERTION_3MINUTE_TIME_OUT)
 }
 
 func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestRepoURL string) {
@@ -163,8 +163,8 @@ func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestR
 	Expect(verifyGitRepositories).Should(BeTrue(), "GitRepositories resource has failed to become READY.")
 }
 
-func removeGitopsCapiClusters(clusternames []string) {
-	deleteClusters("capi", clusternames)
+func removeGitopsCapiClusters(clusternames []string, nameSpace string) {
+	deleteClusters("capi", clusternames, nameSpace)
 }
 
 func listGitopsApplication(appName string, nameSpace string) string {
@@ -191,18 +191,9 @@ func deleteGitopsDeploySecret(nameSpace string) {
 	})
 }
 
-func deleteGitopsCluster(clusters []string, nameSpace string) {
-	for _, cluster := range clusters {
-		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get gitopscluster %s`, cluster))
-		if err == nil {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl delete gitopscluster %s -n %s`, cluster, nameSpace), ASSERTION_30SECONDS_TIME_OUT)
-		}
-	}
-}
-
-func deleteKubeconfigSecret(kubeconfigSecrets []string, nameSpace string) {
+func deleteSecret(kubeconfigSecrets []string, nameSpace string) {
 	for _, secret := range kubeconfigSecrets {
-		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get secret %s`, secret))
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get secret %s -n %s`, secret, nameSpace))
 		if err == nil {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl delete secret %s -n %s`, secret, nameSpace))
 		}
@@ -217,24 +208,26 @@ func createCluster(clusterType string, clusterName string, configFile string) {
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf("kind create cluster --name %s --image=kindest/node:v1.23.4 %s", clusterName, configFile))
 		Expect(err).ShouldNot(HaveOccurred())
 
+		Expect(waitForResource("pods", "", "kube-system", "", ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+		waitForResourceState("Ready", "true", "pods", "kube-system", "", "", ASSERTION_2MINUTE_TIME_OUT)
 	} else {
 		Fail(fmt.Sprintf("%s cluster type is not supported", clusterType))
 	}
 }
 
-func deleteClusters(clusterType string, clusters []string) {
+func deleteClusters(clusterType string, clusters []string, nameSpace string) {
 	for _, cluster := range clusters {
 		if clusterType == "kind" {
 			logger.Infof("Deleting cluster: %s", cluster)
 			err := runCommandPassThrough("kind", "delete", "cluster", "--name", cluster)
 			Expect(err).ShouldNot(HaveOccurred())
 		} else {
-			err := runCommandPassThrough("kubectl", "get", "cluster", cluster)
+			err := runCommandPassThrough("kubectl", "get", "cluster", cluster, "-n", nameSpace)
 			if err == nil {
-				logger.Infof("Deleting cluster: %s", cluster)
-				err := runCommandPassThrough("kubectl", "delete", "cluster", cluster)
+				logger.Infof("Deleting cluster %s in namespace %s", cluster, nameSpace)
+				err := runCommandPassThrough("kubectl", "delete", "cluster", cluster, "-n", nameSpace)
 				Expect(err).ShouldNot(HaveOccurred())
-				err = runCommandPassThrough("kubectl", "get", "cluster", cluster)
+				err = runCommandPassThrough("kubectl", "get", "cluster", cluster, "-n", nameSpace)
 				Expect(err).Should(HaveOccurred(), fmt.Sprintf("Failed to delete cluster %s", cluster))
 			}
 		}
@@ -255,61 +248,156 @@ func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
 
 func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string, profiles []string, namespace string) {
 
-	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 	waitForResourceState("Ready", "true", "nodes", "default", "", kubeconfigPath, ASSERTION_5MINUTE_TIME_OUT)
 
-	Expect(waitForResource("pods", "", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+	Expect(waitForResource("pods", "", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 	waitForResourceState("Ready", "true", "pods", namespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 
 	for _, profile := range profiles {
 		// Check all profiles are installed in layering order
 		switch profile {
 		case "observability":
-			Expect(waitForResource("deploy", capiCluster+"-observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
-			Expect(waitForResource("deploy", capiCluster+"-observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+			Expect(waitForResource("deploy", capiCluster+"-observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			Expect(waitForResource("deploy", capiCluster+"-observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 			waitForResourceState("Ready", "true", "pods", namespace, "release="+capiCluster+"-observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "podinfo":
-			Expect(waitForResource("deploy", capiCluster+"-podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT))
+			Expect(waitForResource("deploy", capiCluster+"-podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 			waitForResourceState("Ready", "true", "pods", namespace, "app.kubernetes.io/name="+capiCluster+"-podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
 	}
 }
 
-func generateGitopsClutermanifest(clusterName string, nameSpace string, bootstrap string, kubeconfigSecret string) (gitopsCluster string, err error) {
-	// Read input capitemplate
-	contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/gitops-cluster.yaml"))
+func createPATSecret(clusterNamespace string, patSecret string) {
+	By("Create personal access token secret in management cluster for ClusterBootstrapConfig", func() {
+		// kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
+		tokenType := "GITHUB_TOKEN"
+		if gitProviderEnv.Type != GitProviderGitHub {
+			tokenType = "GITLAB_TOKEN"
+		}
 
-	if err != nil {
-		return gitopsCluster, err
-	}
-	t := template.Must(template.New("gitops-cluster").Parse(string(contents)))
-
-	// Prepare  data to insert into the template.
-	type TemplateInput struct {
-		ClusterName      string
-		NameSpace        string
-		Bootstrap        string
-		KubeconfigSecret string
-	}
-	input := TemplateInput{clusterName, nameSpace, bootstrap, kubeconfigSecret}
-
-	gitopsCluster = path.Join("/tmp", clusterName+"-gitops-cluster.yaml")
-
-	f, err := os.Create(gitopsCluster)
-	if err != nil {
-		return gitopsCluster, err
-	}
-
-	err = t.Execute(f, input)
-	f.Close()
-
-	return gitopsCluster, err
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl create secret generic %s --from-literal %s=%s -n %s`, patSecret, tokenType, gitProviderEnv.Token, clusterNamespace))
+		Expect(err).ShouldNot(HaveOccurred(), "Failed to create personal access token secret for ClusterBootstrapConfig")
+	})
 }
 
-func addKustomizationBases(leafCluster string) {
+func createClusterResourceSet(clusterName string, nameSpace string) (resourceSet string) {
+	By(fmt.Sprintf("Add ClusterResourceSet resource for %s cluster to management cluster", clusterName), func() {
+		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/calico-crs.yaml"))
+		Expect(err).To(BeNil(), "Failed to read calico-crs template yaml")
+
+		t := template.Must(template.New("cluster-resource-set").Parse(string(contents)))
+
+		// Prepare  data to insert into the template.
+		type TemplateInput struct {
+			Name      string
+			NameSpace string
+		}
+		input := TemplateInput{clusterName, nameSpace}
+
+		resourceSet = path.Join("/tmp", clusterName+"-calico-crs.yaml")
+
+		f, err := os.Create(resourceSet)
+		Expect(err).To(BeNil(), "Failed to create ClusterResourceSet manifest yaml")
+
+		err = t.Execute(f, input)
+		f.Close()
+		Expect(err).To(BeNil(), "Failed to generate ClusterResourceSet manifest yaml")
+
+		err = runCommandPassThrough("kubectl", "apply", "-f", resourceSet)
+		Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to create ClusterResourceSet resource for  cluster: %s", clusterName))
+	})
+	return resourceSet
+}
+
+func createCRSConfigmap(clusterName string, nameSpace string) (configmap string) {
+	By(fmt.Sprintf("Add ClusterResourceSet configmap resource for %s cluster to management cluster", clusterName), func() {
+		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/calico-crs-configmap.yaml"))
+		Expect(err).To(BeNil(), "Failed to read calico-crs-configmap template yaml")
+
+		t := template.Must(template.New("crs-configmap").Parse(string(contents)))
+
+		// Prepare  data to insert into the template.
+		type TemplateInput struct {
+			Name      string
+			NameSpace string
+		}
+		input := TemplateInput{clusterName, nameSpace}
+
+		configmap = path.Join("/tmp", clusterName+"-calico-crs-configmap.yaml")
+
+		f, err := os.Create(configmap)
+		Expect(err).To(BeNil(), "Failed to create calico-crs-configmap manifest yaml")
+
+		err = t.Execute(f, input)
+		f.Close()
+		Expect(err).To(BeNil(), "Failed to generate calico-crs-configmap manifest yaml")
+
+		err = runCommandPassThrough("kubectl", "apply", "-f", configmap)
+		Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to create ClusterResourceSet Configmap resource for  cluster: %s", clusterName))
+	})
+	return configmap
+}
+
+func createClusterBootstrapConfig(clusterName string, nameSpace string, bootstrapLabel string, patSecret string) (bootstrapConfig string) {
+	tmplConfig := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "gitops-cluster-bootstrap-config.yaml")
+	bootstrapConfig = path.Join("/tmp", nameSpace+"-gitops-cluster-bootstrap-config.yaml")
+
+	By(fmt.Sprintf("Add ClusterBootstrapConfig resource for %s cluster to management cluster", clusterName), func() {
+		cmd := fmt.Sprintf(`cat %s | \
+			sed s,{{NAME}},%s,g | \
+			sed s,{{NAMESPACE}},%s,g | \
+			sed s,{{BOOTSTRAP}},%s,g | \
+			sed s,{{PAT_SECRET}},%s,g | \
+			sed s,{{GIT_PROVIDER}},%s,g | \
+			sed s,{{GITOPS_REPO_NAME}},%s,g | \
+			sed s,{{GITOPS_REPO_OWNER}},%s,g | \
+			sed s,{{GIT_PROVIDER_HOSTNAME}},%s,g`, tmplConfig, clusterName, nameSpace, bootstrapLabel, patSecret, gitProviderEnv.Type, gitProviderEnv.Repo, gitProviderEnv.Org, gitProviderEnv.Hostname)
+		err := runCommandPassThrough("sh", "-c", fmt.Sprintf("%s > %s", cmd, bootstrapConfig))
+		Expect(err).To(BeNil(), "Failed to generate ClusterBootstrapConfig manifest yaml")
+
+		err = runCommandPassThrough("kubectl", "apply", "-f", bootstrapConfig)
+		Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to create ClusterBootstrapConfig resource for  cluster: %s", clusterName))
+	})
+
+	return bootstrapConfig
+}
+
+func connectGitopsCuster(clusterName string, nameSpace string, bootstrapLabel string, kubeconfigSecret string) (gitopsCluster string) {
+	By(fmt.Sprintf("Add GitopsCluster resource for %s cluster to management cluster", clusterName), func() {
+		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/gitops-cluster.yaml"))
+		Expect(err).To(BeNil(), "Failed to read GitopsCluster template yaml")
+
+		t := template.Must(template.New("gitops-cluster").Parse(string(contents)))
+
+		// Prepare  data to insert into the template.
+		type TemplateInput struct {
+			ClusterName      string
+			NameSpace        string
+			Bootstrap        string
+			KubeconfigSecret string
+		}
+		input := TemplateInput{clusterName, nameSpace, bootstrapLabel, kubeconfigSecret}
+
+		gitopsCluster = path.Join("/tmp", clusterName+"-gitops-cluster.yaml")
+
+		f, err := os.Create(gitopsCluster)
+		Expect(err).To(BeNil(), "Failed to create GitopsCluster manifest yaml")
+
+		err = t.Execute(f, input)
+		f.Close()
+		Expect(err).To(BeNil(), "Failed to generate GitopsCluster manifest yaml")
+
+		err = runCommandPassThrough("kubectl", "apply", "-f", gitopsCluster)
+		Expect(err).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to create GitopsCluster resource for  cluster: %s", clusterName))
+	})
+	return gitopsCluster
+}
+
+func addKustomizationBases(leafCluster string, namespace string) {
 	repoAbsolutePath := path.Join(configRepoAbsolutePath(gitProviderEnv))
 	checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
-	leafClusterPath := path.Join(repoAbsolutePath, "clusters", "default", leafCluster)
+	leafClusterPath := path.Join(repoAbsolutePath, "clusters", namespace, leafCluster)
 	clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
 
 	pathErr := func() error {

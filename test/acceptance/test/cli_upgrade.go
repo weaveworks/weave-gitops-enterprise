@@ -86,7 +86,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				err := runCommandPassThrough("kubectl", "config", "use-context", currentContext)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				deleteClusters("kind", []string{kind_upgrade_cluster_name})
+				deleteClusters("kind", []string{kind_upgrade_cluster_name}, "")
 
 				// Login to management cluster console, in case it has been logged out
 				InitializeWebdriver(test_ui_url)
@@ -148,7 +148,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.9.0-rc.1"
+				version := "0.9.0-rc.4"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is not supported for capi cluster PR creation.
@@ -360,7 +360,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the manifests are present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s/%s.yaml", repoAbsolutePath, namespace, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})

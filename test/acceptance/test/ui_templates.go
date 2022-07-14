@@ -912,12 +912,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
+			var clusterBootstrapCopnfig string
+			var clusterResourceSet string
+			var crsConfigmap string
+
 			clusterNamespace := map[string]string{
-				GitProviderGitLab: "default",
-				// GitProviderGitHub: "github-system", (FIXME: there is an existing bug #563)
+				GitProviderGitLab: "capi-test-system",
 				GitProviderGitHub: "default",
 			}
-
+			bootstrapLabel := "bootstrap"
+			patSecret := "capi-pat"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
 			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
@@ -925,16 +929,24 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			JustBeforeEach(func() {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 
-				logger.Info("Connecting cluster to itself")
+				createNamespace([]string{clusterNamespace[gitProviderEnv.Type]})
+				createPATSecret(clusterNamespace[gitProviderEnv.Type], patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(capdClusterName, clusterNamespace[gitProviderEnv.Type], bootstrapLabel, patSecret)
+				clusterResourceSet = createClusterResourceSet(capdClusterName, clusterNamespace[gitProviderEnv.Type])
+				crsConfigmap = createCRSConfigmap(capdClusterName, clusterNamespace[gitProviderEnv.Type])
 			})
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
+				deleteSecret([]string{patSecret}, clusterNamespace[gitProviderEnv.Type])
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
 
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters([]string{capdClusterName})
+				removeGitopsCapiClusters([]string{capdClusterName}, clusterNamespace[gitProviderEnv.Type])
 			})
 
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
@@ -1173,13 +1185,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/default/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf(`%s/clusters/my-cluster/clusters/%s/%s.yaml`, repoAbsolutePath, clusterNamespace[gitProviderEnv.Type], clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 
 				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
 					clusterFound := func() error {
-						return runCommandPassThrough("kubectl", "get", "cluster", clusterName)
+						return runCommandPassThrough("kubectl", "get", "cluster", clusterName, "-n", clusterNamespace[gitProviderEnv.Type])
 					}
 					Eventually(clusterFound, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})

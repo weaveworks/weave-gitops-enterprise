@@ -26,14 +26,14 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[UI] Violations can be seen in management cluster dashboard", func() {
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
-			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
+			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "multi-container-manifest.yaml")
 
-			policyName := "Container Image Pull Policy acceptance-test"
-			violationMsg := "Container Image Pull Policy acceptance-test in deployment postgres"
+			policyName := "Containers Running With Privilege Escalation acceptance test"
+			violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment multi-container \(2 occurrences\)`
 			voliationClusterName := "management"
-			violationApplication := "default/postgres"
-			violationSeverity := "Medium"
-			violationCategory := "weave.categories.software-supply-chain"
+			violationApplication := "default/multi-container"
+			violationSeverity := "High"
+			violationCategory := "weave.categories.pod-security"
 
 			JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
@@ -41,7 +41,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			It("Verify Violations can be monitored for violating resource", Label("integration", "violation"), func() {
+			It("Verify multiple occurrence violations can be monitored for violating resource", Label("integration", "violation"), func() {
 				existingViolationCount := getViolationsCount()
 
 				installTestPolicies("management", policiesYaml)
@@ -54,7 +54,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 					Eventually(violationsPage.ViolationHeader).Should(BeVisible())
 
-					totalViolationCount := existingViolationCount + 1
+					totalViolationCount := existingViolationCount + 2 // Container Running As Root + Containers Running With Privilege Escalation
 					Eventually(func(g Gomega) string {
 						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
@@ -71,7 +71,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 				violationInfo := violationsPage.FindViolationInList(policyName)
 				By(fmt.Sprintf("And verify '%s' violation Message", policyName), func() {
-					Eventually(violationInfo.Message.Text).Should(MatchRegexp(violationMsg), fmt.Sprintf("Failed to list %s violation in vioilations table", violationMsg))
+					Eventually(violationInfo.Message.Text).Should(MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in vioilations table", violationMsg))
 				})
 
 				By(fmt.Sprintf("And verify '%s' violation Severity", policyName), func() {
@@ -102,9 +102,17 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And verify '%s' violation Details", policyName), func() {
-					description := "This Policy is to ensure you are setting a value for your imagePullPolicy."
-					howToSolve := `spec:\s*containers:\s*- imagePullPolicy: <policy>`
-					violatingEntity := `"name\\":\\"postgres\\",\\"namespace\\":\\"default\\"`
+					occurenceCount := 2
+					description := "Containers are running with PrivilegeEscalation configured."
+					howToSolve := `spec:\s*containers:\s*securityContext:\s*allowPrivilegeEscalation: <value>`
+					violatingEntity := `"name\\":\\"redis\\",\\"securityContext\\":{\\"allowPrivilegeEscalation\\":true}`
+
+					Expect(violationDetailPage.OccurrencesCount.Text()).Should(MatchRegexp(strconv.Itoa(occurenceCount)), "Failed to verify violation occurrence count on violation page")
+					Expect(violationDetailPage.Occurrences.Count()).Should(BeNumerically("==", occurenceCount), "Failed to verify number of violation occurrence enteries on violation page")
+					for i := 0; i < occurenceCount; i++ {
+						Expect(violationDetailPage.Occurrences.At(i).Text()).Should(MatchRegexp(fmt.Sprintf(`Container spec.template.spec.containers\[%d\] privilegeEscalation should be set to 'false'; detected 'true'`, i)), "Failed to verify number of violation occurrence enteries on violation page")
+					}
+
 					Expect(violationDetailPage.Description.Text()).Should(MatchRegexp(description), "Failed to verify violation Description on violation page")
 					Expect(violationDetailPage.HowToSolve.Text()).Should(MatchRegexp(howToSolve), "Failed to verify violation 'How to solve' on violation page")
 					Expect(violationDetailPage.ViolatingEntity.Text()).Should(MatchRegexp(violatingEntity), "Failed to verify 'Violating Entity' on violation page")
@@ -117,13 +125,17 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			var mgmtClusterContext string
 			var leafClusterContext string
 			var leafClusterkubeconfig string
+			var clusterBootstrapCopnfig string
+			var gitopsCluster string
+			patSecret := "violation-pat"
+			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-violation-kind"
 			leafClusterNamespace := "default"
 
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
-			policyName := "Container Image Pull Policy acceptance-test"
-			violationMsg := "Container Image Pull Policy acceptance-test in deployment postgres"
+			policyName := "Container Image Pull Policy acceptance test"
+			violationMsg := "Container Image Pull Policy acceptance test in deployment postgres"
 			violationApplication := "default/postgres"
 			violationSeverity := "Medium"
 			violationCategory := "weave.categories.software-supply-chain"
@@ -138,11 +150,11 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			JustAfterEach(func() {
 				useClusterContext(mgmtClusterContext)
 
-				deleteKubeconfigSecret([]string{leafClusterkubeconfig}, leafClusterNamespace)
-				deleteGitopsCluster([]string{leafClusterName}, leafClusterNamespace)
+				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafClusterNamespace)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName})
-
+				deleteClusters("kind", []string{leafClusterName}, "")
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 
 			})
@@ -155,7 +167,9 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				installViolatingDeployment(leafClusterName, deploymentYaml)
 
 				useClusterContext(mgmtClusterContext)
-				connectGitopsCuster(leafClusterName, leafClusterNamespace, leafClusterkubeconfig)
+				createPATSecret(leafClusterNamespace, patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafClusterName, leafClusterNamespace, bootstrapLabel, patSecret)
+				gitopsCluster = connectGitopsCuster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafClusterNamespace, leafClusterkubeconfig)
 
 				By("Verify GitopsCluster status after creating kubeconfig secret", func() {
@@ -168,7 +182,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And add kustomization bases for common resources for leaf cluster)", func() {
-					addKustomizationBases(leafClusterName)
+					addKustomizationBases(leafClusterName, leafClusterNamespace)
 				})
 
 				installTestPolicies("management", policiesYaml)
@@ -207,7 +221,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 				violationInfo := violationsPage.FindViolationInList(policyName)
 				By(fmt.Sprintf("And verify '%s' violation Message", policyName), func() {
-					Eventually(violationInfo.Message.Text).Should(MatchRegexp(violationMsg), fmt.Sprintf("Failed to list %s violation in vioilations table", violationMsg))
+					Eventually(violationInfo.Message.Text).Should(MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in vioilations table", violationMsg))
 				})
 
 				By(fmt.Sprintf("And verify '%s' violation Severity", policyName), func() {
