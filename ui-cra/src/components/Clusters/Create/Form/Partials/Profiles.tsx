@@ -4,7 +4,7 @@ import useProfiles from '../../../../../contexts/Profiles';
 import styled from 'styled-components';
 import { Loader } from '../../../../Loader';
 import { DataTable } from '@weaveworks/weave-gitops';
-import { Checkbox, makeStyles } from '@material-ui/core';
+import { Checkbox } from '@material-ui/core';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import ProfilesListItem from './ProfileListItem';
 
@@ -31,7 +31,7 @@ const Profiles: FC<{
   setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
 }> = ({ selectedProfiles, setSelectedProfiles }) => {
   const { profiles, isLoading } = useProfiles();
-  const [selected, setSelected] = useState<any[]>([]);
+  const [selected, setSelected] = useState<UpdatedProfile['name'][]>([]);
 
   const getProfilesFromNames = (names: string[]) =>
     profiles.filter(profile => names.find(name => profile.name === name));
@@ -54,22 +54,6 @@ const Profiles: FC<{
     }
   };
 
-  const useStyles = makeStyles(theme => ({
-    formControl: {
-      margin: theme.spacing(1),
-      width: 300,
-    },
-    indeterminateColor: {
-      color: weaveTheme.colors.primary,
-    },
-    downloadBtn: {
-      color: weaveTheme.colors.primary,
-      padding: '0px',
-    },
-  }));
-
-  const classes = useStyles();
-
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       setSelectedProfiles(profiles);
@@ -83,6 +67,8 @@ const Profiles: FC<{
   const isAllSelected =
     profiles.length > 0 &&
     (selected.length === profiles.length || onlyRequiredItems);
+
+  // add required profiles to selectedProfiles by default
 
   useEffect(
     () => setSelected(getNamesFromProfiles(selectedProfiles)),
@@ -102,7 +88,6 @@ const Profiles: FC<{
             label: 'checkbox',
             labelRenderer: () => (
               <Checkbox
-                classes={{ indeterminate: classes.indeterminateColor }}
                 onChange={handleSelectAllClick}
                 checked={isAllSelected}
                 indeterminate={

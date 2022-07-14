@@ -1,5 +1,6 @@
 import React, {
   ChangeEvent,
+  Dispatch,
   FC,
   useCallback,
   useEffect,
@@ -67,7 +68,7 @@ const ListItemWrapper = styled.div`
 const ProfilesListItem: FC<{
   profile: UpdatedProfile;
   selectedProfiles: UpdatedProfile[];
-  setSelectedProfiles: any;
+  setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
 }> = ({ profile, selectedProfiles, setSelectedProfiles }) => {
   const classes = useStyles();
   const [version, setVersion] = useState<string>('');

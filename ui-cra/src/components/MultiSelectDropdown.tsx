@@ -22,12 +22,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-//     <MultiSelectDropdown
-//       allItems={profiles}
-//       preSelectedItems={selectedProfiles}
-//       onSelectItems={handleSelectProfiles}
-//     />
-
 const MultiSelectDropdown: FC<{
   allItems: any[];
   preSelectedItems: any[];
