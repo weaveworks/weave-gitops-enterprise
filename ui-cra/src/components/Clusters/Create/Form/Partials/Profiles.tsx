@@ -23,34 +23,27 @@ const Profiles: FC<{
 }> = ({ selectedProfiles, setSelectedProfiles }) => {
   const { profiles, isLoading } = useProfiles();
   const [selected, setSelected] = useState<any[]>([]);
-  const onlyRequiredItems =
-    profiles.filter(item => item.required === true).length === profiles.length;
-  const isAllSelected =
-    profiles.length > 0 &&
-    (selected.length === profiles.length || onlyRequiredItems);
 
-  const getItemsFromNames = (names: string[]) =>
-    profiles.filter(item => names.find(name => item.name === name));
+  const getProfileFromName = useCallback(
+    name => profiles.filter(profile => profile.name === name),
+    [profiles],
+  );
 
-  const getNamesFromItems = (items: any[]) => items.map(item => item.name);
+  const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
+    profiles.map(p => p.name);
 
-  const handleChange = (event: React.ChangeEvent<any>) => {
-    const value = event.target.value;
-    if (value[value.length - 1] === 'all') {
-      const selectedItems = selected.length === profiles.length ? [] : profiles;
-      setSelected(getNamesFromItems(selectedItems));
-      // onSelectItems(selectedItems);
-      return;
+  const handleIndividualClick = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    name: string,
+  ) => {
+    console.log(event.target.checked);
+    console.log(name);
+    if (event.target.checked === true) {
+      setSelected(prevState => [...prevState, name]);
+    } else {
+      setSelected(prevState => prevState.filter(p => p.name !== name));
     }
-    setSelected(value);
-    // onSelectItems(getItemsFromNames(value));
   };
-
-  const numSelected = selectedProfiles.length;
-  const rowCount = profiles.length || 0;
-
-  const handleSelectProfiles = (selectProfiles: UpdatedProfile[]) =>
-    setSelectedProfiles(selectProfiles);
 
   const useStyles = makeStyles(theme => ({
     formControl: {
@@ -68,11 +61,24 @@ const Profiles: FC<{
 
   const classes = useStyles();
 
-  useEffect(() => {
-    if (selectedProfiles.length === 0) {
-      setSelectedProfiles(profiles.filter(profile => profile.required));
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedProfiles(profiles);
+      return;
     }
-  }, [profiles, setSelectedProfiles, selectedProfiles.length]);
+    setSelectedProfiles([]);
+  };
+
+  const onlyRequiredItems =
+    profiles.filter(item => item.required === true).length === profiles.length;
+  const isAllSelected =
+    profiles.length > 0 &&
+    (selected.length === profiles.length || onlyRequiredItems);
+
+  useEffect(
+    () => setSelected(getNamesFromProfiles(selectedProfiles)),
+    [selectedProfiles],
+  );
 
   return isLoading ? (
     <Loader />
@@ -92,7 +98,7 @@ const Profiles: FC<{
         onProfilesUpdate={handleSelectProfiles}
       /> */}
       <DataTable
-        key={selectedProfiles.length}
+        key={profiles.length}
         rows={profiles}
         fields={[
           {
@@ -100,6 +106,7 @@ const Profiles: FC<{
             labelRenderer: () => (
               <Checkbox
                 classes={{ indeterminate: classes.indeterminateColor }}
+                onChange={handleSelectAllClick}
                 checked={isAllSelected}
                 indeterminate={
                   selected.length > 0 && selected.length < profiles.length
@@ -109,9 +116,13 @@ const Profiles: FC<{
                 }}
               />
             ),
-            value: (p: UpdatedProfile) => (
+            value: (profile: UpdatedProfile) => (
               <Checkbox
-                checked={p.required === true || selected.indexOf(p.name) > -1}
+                onChange={event => handleIndividualClick(event, profile.name)}
+                checked={
+                  profile.required === true ||
+                  selected.indexOf(profile.name) > -1
+                }
                 style={{
                   color: weaveTheme.colors.primary,
                 }}
@@ -133,8 +144,8 @@ const Profiles: FC<{
               // MultiSelectDropdown needs to change from Profiles to Versions
               <MultiSelectDropdown
                 allItems={profiles}
-                preSelectedItems={selectedProfiles}
-                onSelectItems={handleSelectProfiles}
+                preSelectedItems={[]}
+                onSelectItems={setSelectedProfiles}
               />
             ),
           },

@@ -88,7 +88,7 @@ export function computeMessage(conditions: Condition[]) {
   return readyCondition ? readyCondition.message : 'unknown error';
 }
 
-export const IndividualCheckbox = withStyles({
+const IndividualCheckbox = withStyles({
   root: {
     color: theme.colors.primary,
     '&$checked': {
