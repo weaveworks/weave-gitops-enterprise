@@ -48,7 +48,7 @@ export const CanaryMetricsTable = ({ metrics }: { metrics: CanaryMetric[] }) => 
                         />
                     </TableWrapper>
                 ) : (
-                    <p>No data to display</p>
+                    <p>No metrics to display</p>
                 )}
             </ThemeProvider>
         </div>

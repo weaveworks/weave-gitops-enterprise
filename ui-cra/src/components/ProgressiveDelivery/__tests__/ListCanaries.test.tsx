@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import ListCanaries from '../';
+
 import { ProgressiveDeliveryProvider } from '../../../contexts/ProgressiveDelivery';
 import {
   defaultContexts,
