@@ -34,7 +34,6 @@ import {
 import useProfiles from './../../../../../contexts/Profiles';
 import { Loader } from '../../../../Loader';
 
-const base = weaveTheme.spacing.base;
 const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
 
@@ -52,10 +51,6 @@ const ListItemWrapper = styled.div`
   .profile-namespace {
     display: flex;
     align-items: center;
-    margin-left: ${base};
-    span {
-      margin-right: ${xs};
-    }
   }
   ,
   & .profile-name,
@@ -71,8 +66,9 @@ const ListItemWrapper = styled.div`
 
 const ProfilesListItem: FC<{
   profile: UpdatedProfile;
-  updateProfile: (profile: UpdatedProfile) => void;
-}> = ({ profile, updateProfile }) => {
+  selectedProfiles: UpdatedProfile[];
+  setSelectedProfiles: any;
+}> = ({ profile, selectedProfiles, setSelectedProfiles }) => {
   const classes = useStyles();
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
@@ -93,6 +89,17 @@ const ProfilesListItem: FC<{
     }),
   ];
 
+  const handleUpdateProfile = useCallback(
+    profile => {
+      const currentProfileIndex = selectedProfiles.findIndex(
+        p => p.name === profile.name,
+      );
+      selectedProfiles[currentProfileIndex] = profile;
+      setSelectedProfiles(selectedProfiles);
+    },
+    [setSelectedProfiles, selectedProfiles],
+  );
+
   const handleSelectVersion = useCallback(
     (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
       const value = event.target.value as string;
@@ -110,9 +117,9 @@ const ProfilesListItem: FC<{
         }
       });
 
-      updateProfile(profile);
+      handleUpdateProfile(profile);
     },
-    [profile, updateProfile],
+    [profile, handleUpdateProfile],
   );
 
   const handleYamlPreview = () => {
@@ -134,7 +141,7 @@ const ProfilesListItem: FC<{
     }
     setNamespace(value);
     profile.namespace = value;
-    updateProfile(profile);
+    handleUpdateProfile(profile);
   };
 
   const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
@@ -147,10 +154,10 @@ const ProfilesListItem: FC<{
       }
     });
 
-    updateProfile(profile);
+    handleUpdateProfile(profile);
 
     setOpenYamlPreview(false);
-  }, [profile, updateProfile, version, yaml]);
+  }, [profile, handleUpdateProfile, version, yaml]);
 
   useEffect(() => {
     const [selectedValue] = profile.values.filter(
@@ -170,10 +177,11 @@ const ProfilesListItem: FC<{
   return (
     <>
       <ListItemWrapper>
-        <ListItem data-profile-name={profile.name}>
-          <div className="profile-name">{profile.name}</div>
+        <ListItem
+          data-profile-name={profile.name}
+          style={{ paddingLeft: '0px' }}
+        >
           <div className="profile-version">
-            <span>Version</span>
             <FormControl>
               <Select
                 disabled={profile.required}
@@ -187,7 +195,6 @@ const ProfilesListItem: FC<{
             </FormControl>
           </div>
           <div className="profile-namespace">
-            <span>Namespace</span>
             <FormControl>
               <Input
                 id="profile-namespace"
@@ -205,12 +212,6 @@ const ProfilesListItem: FC<{
           >
             Values.yaml
           </Button>
-          {profile.layer ? (
-            <div className="profile-layer">
-              <span>Layer</span>
-              <span>{profile.layer}</span>
-            </div>
-          ) : null}
         </ListItem>
       </ListItemWrapper>
 

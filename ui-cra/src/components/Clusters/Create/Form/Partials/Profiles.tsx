@@ -1,19 +1,28 @@
-import React, { Dispatch, FC, useCallback, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useEffect, useState } from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
-import MultiSelectDropdown from '../../../../MultiSelectDropdown';
 import useProfiles from '../../../../../contexts/Profiles';
-import ProfilesList from './ProfilesList';
 import styled from 'styled-components';
 import { Loader } from '../../../../Loader';
-import { DataTable, theme } from '@weaveworks/weave-gitops';
+import { DataTable } from '@weaveworks/weave-gitops';
 import { Checkbox, makeStyles } from '@material-ui/core';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import ProfilesListItem from './ProfileListItem';
 
 const ProfilesWrapper = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
-  .profiles-select {
-    display: flex;
-    align-items: center;
+  table {
+    thead {
+      th:first-of-type {
+        padding: ${({ theme }) => theme.spacing.base};
+      }
+    }
+    td:first-of-type {
+      text-overflow: clip;
+      width: 25px;
+    }
+    a {
+      color: ${({ theme }) => theme.colors.primary};
+    }
   }
 `;
 
@@ -24,10 +33,8 @@ const Profiles: FC<{
   const { profiles, isLoading } = useProfiles();
   const [selected, setSelected] = useState<any[]>([]);
 
-  const getProfileFromName = useCallback(
-    name => profiles.filter(profile => profile.name === name),
-    [profiles],
-  );
+  const getProfilesFromNames = (names: string[]) =>
+    profiles.filter(profile => names.find(name => profile.name === name));
 
   const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
     profiles.map(p => p.name);
@@ -36,12 +43,14 @@ const Profiles: FC<{
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
   ) => {
-    console.log(event.target.checked);
-    console.log(name);
     if (event.target.checked === true) {
-      setSelected(prevState => [...prevState, name]);
+      const newProfilesNames = [...selected, name];
+      setSelected(newProfilesNames);
+      setSelectedProfiles(getProfilesFromNames(newProfilesNames));
     } else {
-      setSelected(prevState => prevState.filter(p => p.name !== name));
+      const newProfilesNames = selected.filter(p => p !== name);
+      setSelected(newProfilesNames);
+      setSelectedProfiles(getProfilesFromNames(newProfilesNames));
     }
   };
 
@@ -85,18 +94,6 @@ const Profiles: FC<{
   ) : (
     <ProfilesWrapper>
       <h2>Profiles</h2>
-      {/* <div className="profiles-select"> */}
-      {/* <span>Select profiles:&nbsp;</span> */}
-      {/* <MultiSelectDropdown
-          allItems={profiles}
-          preSelectedItems={selectedProfiles}
-          onSelectItems={handleSelectProfiles}
-        />
-      </div>
-      <ProfilesList
-        selectedProfiles={selectedProfiles}
-        onProfilesUpdate={handleSelectProfiles}
-      /> */}
       <DataTable
         key={profiles.length}
         rows={profiles}
@@ -139,25 +136,23 @@ const Profiles: FC<{
             maxWidth: 275,
           },
           {
+            label: 'Layer',
+            value: (p: UpdatedProfile) =>
+              p.layer ? (
+                <div className="profile-layer">
+                  <span>{p.layer}</span>
+                </div>
+              ) : null,
+          },
+          {
             label: 'Version',
             value: (p: UpdatedProfile) => (
-              // MultiSelectDropdown needs to change from Profiles to Versions
-              <MultiSelectDropdown
-                allItems={profiles}
-                preSelectedItems={[]}
-                onSelectItems={setSelectedProfiles}
+              <ProfilesListItem
+                profile={p}
+                selectedProfiles={selectedProfiles}
+                setSelectedProfiles={setSelectedProfiles}
               />
             ),
-          },
-          {
-            label: 'Layer',
-            value: (p: UpdatedProfile) => (
-              <span data-profile-name={p.layer}>{p.layer}</span>
-            ),
-          },
-          {
-            label: 'Namespace',
-            value: 'namespace',
           },
         ]}
       />
