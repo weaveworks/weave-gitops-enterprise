@@ -6,6 +6,8 @@ import {
   ProgressiveDeliveryMock,
   withContext,
 } from '../../../../utils/test-utils';
+import {CanaryMetric} from "@weaveworks/progressive-delivery/api/prog/types.pb";
+
 
 describe('CanaryMetricsTable', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -20,7 +22,7 @@ describe('CanaryMetricsTable', () => {
     api.IsFlaggerAvailableReturns = { clusters: { 'my-cluster': true } };
   });
   it('renders metrics table for a canary with metrics', async () => {
-    var canaryAsJson = `{
+    let canaryAsJson = `{
   "namespace": "canary",
   "name": "canary01",
   "clusterName": "Default",
@@ -92,7 +94,39 @@ describe('CanaryMetricsTable', () => {
     expect(await screen.findByText('request-success-rate')).toBeTruthy();
     const tbl = document.querySelector('#canary-analysis-metrics table');
     const rows = tbl?.querySelectorAll('tbody tr');
-
     expect(rows).toHaveLength(2);
+    assertCanaryMetric(tbl,rows.item(0),api.GetCanaryReturns.canary?.analysis?.metrics[0])
+    assertCanaryMetric(tbl,rows.item(1),api.GetCanaryReturns.canary?.analysis?.metrics[1])
   });
 });
+
+function assertCanaryMetric(table: Element, metricAsElement: Element, metric: CanaryMetric) {
+  const cols = table?.querySelectorAll('thead th');
+
+  console.log(table.textContent)
+
+  //assert interval
+  const intervalIndex = findColByHeading(cols, 'Interval') as number;
+  const intervalText = metricAsElement.childNodes.item(intervalIndex).textContent;
+  expect(intervalText).toEqual(metric.interval);
+}
+
+// Helper to ensure that tests still pass if columns get re-ordered
+function findColByHeading(
+    cols: NodeListOf<Element> | undefined,
+    heading: string,
+): null | number {
+  if (!cols) {
+    return null;
+  }
+
+  let idx = null;
+  cols?.forEach((e, i) => {
+    if (e.innerHTML.includes(heading)) {
+      idx = i;
+    }
+  });
+
+  return idx;
+}
+
