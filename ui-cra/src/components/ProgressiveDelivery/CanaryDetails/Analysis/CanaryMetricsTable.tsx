@@ -27,7 +27,7 @@ export const CanaryMetricsTable = ({ metrics }: { metrics: CanaryMetric[] }) => 
                                     value: 'name',
                                 },
                                 {
-                                    label: 'Ns',
+                                    label: 'Namespace',
                                     value: (c: CanaryMetric) =>
                                         (c.namespace) || "-",
                                 },

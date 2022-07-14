@@ -100,15 +100,13 @@ describe('CanaryMetricsTable', () => {
 });
 
 function assertCanaryMetric(table: Element, metricAsElement: Element, metric: CanaryMetric) {
-  console.log(table.textContent)
-
   //assert name
   const nameText = findTextByHeading(table, metricAsElement, 'Name')
   expect(nameText).toEqual(metric.name);
 
   //assert namespace
-  const namespaceText = findTextByHeading(table, metricAsElement, 'Ns')
-  expect(namespaceText).toEqual(metric.namespace || "-");
+  const namespaceText = findTextByHeading(table, metricAsElement, 'Namespace')
+  expect(namespaceText).toEqual(metric.namespace ? metric.namespace : "-");
 
   //assert threshold min
   const thresholdMin = findTextByHeading(table, metricAsElement, 'Threshold Min')
@@ -141,7 +139,8 @@ function findColByHeading(
 
   let idx = null;
   cols?.forEach((e, i) => {
-    if (e.innerHTML.includes(heading)) {
+    //TODO: look for a better matching
+    if (e.innerHTML.match("(>"+heading+"<)")) {
       idx = i;
     }
   });
