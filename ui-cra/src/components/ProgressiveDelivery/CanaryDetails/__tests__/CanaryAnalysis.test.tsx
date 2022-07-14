@@ -62,7 +62,6 @@ describe('CanaryMetricsTable', () => {
     "maxWeight": 50,
     "stepWeight": 10,
     "threshold": 5,
-    "yaml": "interval: 1m\\niterations: 0\\nmirror: false\\nmirrorweight: 0\\nmaxweight: 50\\nstepweight: 10\\nstepweights: []\\nstepweightpromotion: 0\\nthreshold: 5\\nprimaryreadythreshold: null\\ncanaryreadythreshold: null\\nalerts: []\\nmetrics:\\n    - name: request-success-rate\\n      interval: 1m\\n      threshold: 0\\n      thresholdrange:\\n        min: 99\\n        max: null\\n      query: \\"\\"\\n      templateref: null\\n    - name: request-duration\\n      interval: 30s\\n      threshold: 0\\n      thresholdrange:\\n        min: null\\n        max: 500\\n      query: \\"\\"\\n      templateref: null\\nwebhooks:\\n    - type: pre-rollout\\n      name: acceptance-test\\n      url: http://flagger-loadtester.test/\\n      mutealert: false\\n      timeout: 30s\\n      metadata:\\n        cmd: curl -sd 'test' http://canary01-canary:9898/token | grep token\\n        type: bash\\n    - type: \\"\\"\\n      name: load-test\\n      url: http://flagger-loadtester.test/\\n      mutealert: false\\n      timeout: 5s\\n      metadata:\\n        cmd: hey -z 1m -q 10 -c 2 http://canary01-canary.test:9898/\\nmatch: []\\n",
     "metrics": [
       {
         "name": "request-success-rate",
@@ -101,15 +100,31 @@ describe('CanaryMetricsTable', () => {
 });
 
 function assertCanaryMetric(table: Element, metricAsElement: Element, metric: CanaryMetric) {
-  const cols = table?.querySelectorAll('thead th');
-
   console.log(table.textContent)
 
+  //assert name
+  const nameText = findTextByHeading(table, metricAsElement, 'Name')
+  expect(nameText).toEqual(metric.name);
+
+  //assert threshold min
+  const thresholdMin = findTextByHeading(table, metricAsElement, 'Threshold Min')
+  expect(thresholdMin).toEqual(""+metric.thresholdRange?.min || "undefined");
+
+  //assert threshold max
+  const thresholdMax = findTextByHeading(table, metricAsElement, 'Threshold Max')
+  expect(thresholdMax).toEqual( ""+metric.thresholdRange?.max || "undefined");
+
   //assert interval
-  const intervalIndex = findColByHeading(cols, 'Interval') as number;
-  const intervalText = metricAsElement.childNodes.item(intervalIndex).textContent;
+  const intervalText = findTextByHeading(table, metricAsElement, 'Interval')
   expect(intervalText).toEqual(metric.interval);
 }
+
+function findTextByHeading(table: Element,row: Element, headingName: string) {
+  const cols = table?.querySelectorAll('thead th');
+  const index = findColByHeading(cols, headingName) as number;
+  return row.childNodes.item(index).textContent;
+}
+
 
 // Helper to ensure that tests still pass if columns get re-ordered
 function findColByHeading(

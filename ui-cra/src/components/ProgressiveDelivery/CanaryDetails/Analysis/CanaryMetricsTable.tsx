@@ -3,6 +3,7 @@ import { ThemeProvider } from 'styled-components';
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 import { TableWrapper } from '../../CanaryStyles';
 import {CanaryMetric} from "@weaveworks/progressive-delivery/api/prog/types.pb";
+import {GitopsClusterEnriched} from "../../../../types/custom";
 
 export const CanaryMetricsTable = ({ metrics }: { metrics: CanaryMetric[] }) => {
     const classes = usePolicyStyle();
@@ -21,24 +22,26 @@ export const CanaryMetricsTable = ({ metrics }: { metrics: CanaryMetric[] }) => 
                             filters={initialFilterState}
                             rows={metrics}
                             fields={[
-
                                 {
                                     label: 'Name',
                                     value: 'name',
-                                    textSearchable: true,
+                                    // textSearchable: true,
                                 },
-                                {
-                                    label: 'Namespace',
-                                    value: 'namespace',
-                                    textSearchable: true,
-                                },
+                                // {
+                                //     label: 'Namespace',
+                                //     value: (c: CanaryMetric) =>
+                                //         (c.namespace) || "no-namespace",
+                                //     // textSearchable: true,
+                                // },
                                 {
                                     label: 'Threshold Min',
-                                    value: 'thresholdRange.min',
+                                    value: (c: CanaryMetric) =>
+                                        "" + (c.thresholdRange?.min),
                                 },
                                 {
                                     label: 'Threshold Max',
-                                    value: 'thresholdRange.max',
+                                    value: (c: CanaryMetric) =>
+                                        "" + (c.thresholdRange?.max),
                                 },
                                 {
                                     label: 'Interval',
