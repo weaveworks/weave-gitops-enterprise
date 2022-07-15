@@ -98,7 +98,7 @@ export const Input: FC<InputProps> = ({
   required,
   name,
 }) => (
-  <FormControl className={className}>
+  <FormControl id={label} className={className}>
     {label && (
       <InputLabel htmlFor={`${label}-input`} shrink>
         {label}
@@ -158,7 +158,7 @@ export const Select: FC<SelectProps> = ({
   className,
   description,
 }) => (
-  <FormControl className={className}>
+  <FormControl id={label} className={className}>
     <InputLabel htmlFor={`${label}-input`} shrink>
       {label}
     </InputLabel>
