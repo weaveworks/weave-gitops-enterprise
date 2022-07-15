@@ -105,8 +105,8 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 }
 
 // NewTextTemplateProcessor creates and returns a new TextTemplateProcessor.
-func NewTextTemplateProcessor() *TemplateProcessor {
-	return &TemplateProcessor{Processor: &TextTemplateProcessor{}}
+func NewTextTemplateProcessor() *TextTemplateProcessor {
+	return &TextTemplateProcessor{}
 }
 
 // TextProcessor is an implementation of the Processor interface that uses Go's
@@ -162,8 +162,8 @@ func (p TemplateProcessor) AllParamNames() ([]string, error) {
 
 // NewEnvsubstTemplateProcessor creates and returns a new
 // EnvsubstTemplateProcessor.
-func NewEnvsubstTemplateProcessor() *TemplateProcessor {
-	return &TemplateProcessor{Processor: &EnvsubstTemplateProcessor{}}
+func NewEnvsubstTemplateProcessor() *EnvsubstTemplateProcessor {
+	return &EnvsubstTemplateProcessor{}
 }
 
 // EnvsubstTemplateProcessor is an implementation of the Processor interface
