@@ -23,6 +23,7 @@ var providers = map[string]string{
 	"GCPCluster":             "gcp",
 	"OpenStackCluster":       "openstack",
 	"PacketCluster":          "packet",
+	"Terraform":              "terraform",
 	"VSphereCluster":         "vsphere",
 }
 
