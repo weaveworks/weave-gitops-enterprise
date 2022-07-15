@@ -36,7 +36,7 @@ export const ConnectClusterDialog: FC<Props> = ({ onFinish }) => {
         For instructions on how to connect and disconnect clusters, have a look
         at the&nbsp;
         <a
-          href=" https://docs.gitops.weave.works/docs/cluster-management/managing-existing-clusters/#how-to-connect-a-cluster"
+          href="https://docs.gitops.weave.works/docs/cluster-management/managing-existing-clusters/#connect-a-cluster"
           target="_blank"
           rel="noopener noreferrer"
         >
