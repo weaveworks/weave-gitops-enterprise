@@ -10,7 +10,7 @@ const GitOpsWrapper = styled.form`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
   .form-field {
     width: 50%;
-    padding-bottom: ${({ theme }) => theme.spacing.small};
+    padding-bottom: ${({ theme }) => theme.spacing.medium};
   }
   .create-cta {
     display: flex;

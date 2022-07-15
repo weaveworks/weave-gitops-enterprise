@@ -10,10 +10,10 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 import { validateFormData } from '../../../../../utils/form';
 
 const FormWrapper = styled.form`
-  .form-group {
-    padding-top: ${({ theme }) => theme.spacing.base};
+  .form-section {
+    width: 50%;
+    padding-bottom: ${({ theme }) => theme.spacing.medium};
   }
-
   .preview-cta {
     display: flex;
     justify-content: flex-end;
@@ -48,7 +48,7 @@ const TemplateFields: FC<{
         const options = param?.options || [];
         if (options.length > 0) {
           return (
-            <FormControl style={{ width: '50%' }} id={name}>
+            <FormControl className="form-section">
               <span>{name}</span>
               <Select
                 id={name}
@@ -70,7 +70,7 @@ const TemplateFields: FC<{
           );
         } else
           return (
-            <FormControl style={{ width: '50%' }}>
+            <FormControl className="form-section">
               <span>{name}</span>
               <Input
                 id={name}
