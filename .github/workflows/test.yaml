@@ -345,7 +345,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(upgrade, application, smoke, leaf-policy)'"
+      label-filter: "-ginkgo.label-filter='!(upgrade, application, smoke, leaf-policy, leaf-violation)'"
       kubectl-version: "v1.23.3"
       login_user_type: "oidc"
       git-provider: github
