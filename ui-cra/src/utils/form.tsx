@@ -45,7 +45,6 @@ const FormControl = withStyles((theme: Theme) => ({
 
 const InputLabel = withStyles(() => ({
   root: {
-    width: 125,
     fontSize: 12,
     color: 'black',
     paddingBottom: 6,
