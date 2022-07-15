@@ -8,6 +8,7 @@ import {
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
   InputBase as MuiInputBase,
+  FormHelperText,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
@@ -38,20 +39,16 @@ export const AddGroupSectionButton: any = withStyles((theme: Theme) => ({
 
 const FormControl = withStyles((theme: Theme) => ({
   root: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing(0.75),
-    marginTop: theme.spacing(0.75),
+    paddingBottom: '24px',
   },
 }))(MuiFormControl);
 
 const InputLabel = withStyles(() => ({
   root: {
     width: 125,
-    fontSize: 16,
+    fontSize: 12,
     color: 'black',
+    paddingBottom: 6,
   },
   formControl: {
     position: 'initial',
@@ -59,9 +56,6 @@ const InputLabel = withStyles(() => ({
 }))(MuiInputLabel);
 
 const InputBase = withStyles(() => ({
-  input: {
-    marginLeft: '10px',
-  },
   inputMultiline: {
     padding: '10px',
   },
@@ -83,6 +77,9 @@ interface InputProps extends PickedInputProps {
   className?: string;
   multiline?: boolean;
   rows?: number;
+  description?: string;
+  required?: boolean;
+  name?: string;
 }
 
 export const Input: FC<InputProps> = ({
@@ -97,6 +94,9 @@ export const Input: FC<InputProps> = ({
   className,
   multiline,
   rows,
+  description,
+  required,
+  name,
 }) => (
   <FormControl className={className}>
     {label && (
@@ -105,6 +105,7 @@ export const Input: FC<InputProps> = ({
       </InputLabel>
     )}
     <InputBase
+      name={name}
       autoFocus={autoFocus}
       defaultValue={defaultValue}
       disabled={disabled}
@@ -116,7 +117,9 @@ export const Input: FC<InputProps> = ({
       multiline={multiline}
       rows={rows}
       inputProps={{ maxLength: 256 }}
+      required={required}
     />
+    <FormHelperText>{description}</FormHelperText>
   </FormControl>
 );
 
@@ -140,6 +143,8 @@ interface SelectProps extends MuiSelectProps {
   items?: string[];
   value: string;
   disabled?: boolean;
+  className?: string;
+  description?: string;
 }
 
 export const Select: FC<SelectProps> = ({
@@ -150,12 +155,15 @@ export const Select: FC<SelectProps> = ({
   value,
   variant,
   onChange,
+  className,
+  description,
 }) => (
-  <FormControl>
+  <FormControl className={className}>
     <InputLabel htmlFor={`${label}-input`} shrink>
       {label}
     </InputLabel>
     <MuiSelect
+      id={`${label}-input`}
       input={input ?? <InputBase />}
       onChange={onChange}
       value={value}
@@ -168,6 +176,7 @@ export const Select: FC<SelectProps> = ({
           </MenuItem>
         ))}
     </MuiSelect>
+    <FormHelperText>{description}</FormHelperText>
   </FormControl>
 );
 
