@@ -111,8 +111,8 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 }
 
 func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string) FormField {
-	Eventually(webdriver.FindByXPath(fmt.Sprintf(`//input[@name="%s-input"]/ancestor::div[contains(@class, "MuiFormControl-root")]`, name))).Should(BeFound())
-	param := webdriver.FindByXPath(fmt.Sprintf(`//input[@name="%s-input"]/ancestor::div[contains(@class, "MuiFormControl-root")]`, name))
+	Eventually(webdriver.FindByXPath(fmt.Sprintf(`//input[@name="%s"]/ancestor::div/div[contains(@class, "MuiFormControl-root")]`, name))).Should(BeFound())
+	param := webdriver.FindByXPath(fmt.Sprintf(`//input[@name="%s"]/ancestor::div/div[contains(@class, "MuiFormControl-root")]`, name))
 
 	return FormField{
 		Label:   param.Find(`label`),
