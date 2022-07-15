@@ -20,6 +20,8 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
+import { ManagedObjectsTable } from './ManagedObjectsTable';
+import ListManagedObjects from './ListManagedObjects';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -82,9 +84,7 @@ function CanaryDetailsSection({
             </CanaryRowHeader>
             <CanaryRowHeader rowkey="Provider" value={canary.provider} />
 
-            <div
-              className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}
-            >
+            <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
               Status
             </div>
 
@@ -113,6 +113,16 @@ function CanaryDetailsSection({
                 ))}
               </TableBody>
             </Table>
+
+            <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
+              Managed Resources
+            </div>
+
+            <ListManagedObjects
+              clusterName={canary.clusterName || ''}
+              name={canary.name || ''}
+              namespace={canary.namespace || ''}
+            />
           </CanaryDetailsWrapper>
         </RouterTab>
         <RouterTab name="Events" path={`${path}/events`}>
