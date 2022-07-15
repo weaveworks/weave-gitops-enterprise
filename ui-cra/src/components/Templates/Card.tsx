@@ -18,6 +18,7 @@ import { ReactComponent as Packet } from '../../assets/img/templates/packet.svg'
 import { ReactComponent as VSphere } from '../../assets/img/templates/vsphere.svg';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { Template } from '../../cluster-services/cluster_services.pb';
+import { textForCreateButton } from '../../utils/templates';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -102,7 +103,7 @@ const TemplateCard: FC<{ template: Template }> = ({ template }) => {
           onClick={handleCreateClick}
           disabled={disabled}
         >
-          CREATE A CLUSTER
+          {textForCreateButton(template)}
         </Button>
       </CardActions>
     </Card>

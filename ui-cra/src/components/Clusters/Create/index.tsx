@@ -36,7 +36,11 @@ import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { TemplateObject } from '../../../cluster-services/cluster_services.pb';
 import { useListConfig } from '../../../hooks/versions';
-import { Template } from '../../../cluster-services/cluster_services.pb';
+import {
+  defaultCommitValues,
+  isClusterTemplate,
+  textForCreateHeader,
+} from '../../../utils/templates';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -94,14 +98,40 @@ const useStyles = makeStyles(theme =>
   }),
 );
 
-const credentialsEnabled = (template: Template | null) =>
-  // template?.annotations?.['templates.weave.works/credentials-enabled'] !==
-  // 'false';
-  template?.templateKind === 'CAPITemplate';
+const encodedProfiles = (profiles: UpdatedProfile[]) =>
+  profiles.reduce(
+    (
+      accumulator: {
+        name: string;
+        version: string;
+        values: string;
+        layer?: string;
+        namespace?: string;
+      }[],
+      profile,
+    ) => {
+      profile.values.forEach(value => {
+        if (value.selected === true) {
+          accumulator.push({
+            name: profile.name,
+            version: value.version,
+            values: btoa(value.yaml),
+            layer: profile.layer,
+            namespace: profile.namespace,
+          });
+        }
+      });
+      return accumulator;
+    },
+    [],
+  );
 
-const profilesEnabled = (template: Template | null) =>
-  // template?.annotations?.['templates.weave.works/profiles-enabled'] !== 'false';
-  template?.templateKind === 'CAPITemplate';
+const objectTitle = (object: TemplateObject, index: number) => {
+  if (object.displayName && object.displayName !== '') {
+    return `${index + 1}.${object.kind} (${object.displayName})`;
+  }
+  return `${index + 1}.${object.kind}`;
+};
 
 const AddCluster: FC = () => {
   const classes = useStyles();
@@ -123,10 +153,7 @@ const AddCluster: FC = () => {
   let initialFormData = {
     url: '',
     provider: '',
-    branchName: `create-resouce-branch-${random}`,
-    pullRequestTitle: 'Creates resource',
-    commitMessage: 'Creates resource',
-    pullRequestDescription: 'This PR creates a new resource',
+    ...defaultCommitValues(activeTemplate, random),
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -167,13 +194,6 @@ const AddCluster: FC = () => {
   const { setNotifications } = useNotifications();
   const authRedirectPage = `/clusters/templates/${activeTemplate?.name}/create`;
 
-  const objectTitle = (object: TemplateObject, index: number) => {
-    if (object.displayName && object.displayName !== '') {
-      return `${index + 1}.${object.kind} (${object.displayName})`;
-    }
-    return `${index + 1}.${object.kind}`;
-  };
-
   const handlePRPreview = useCallback(() => {
     setOpenPreview(true);
     const { url, provider, ...templateFields } = formData;
@@ -189,37 +209,6 @@ const AddCluster: FC = () => {
     infraCredential,
     activeTemplate?.templateKind,
   ]);
-
-  const encodedProfiles = useCallback(
-    (profiles: UpdatedProfile[]) =>
-      profiles.reduce(
-        (
-          accumulator: {
-            name: string;
-            version: string;
-            values: string;
-            layer?: string;
-            namespace?: string;
-          }[],
-          profile,
-        ) => {
-          profile.values.forEach(value => {
-            if (value.selected === true) {
-              accumulator.push({
-                name: profile.name,
-                version: value.version,
-                values: btoa(value.yaml),
-                layer: profile.layer,
-                namespace: profile.namespace,
-              });
-            }
-          });
-          return accumulator;
-        },
-        [],
-      ),
-    [],
-  );
 
   const handleAddCluster = useCallback(() => {
     const payload = {
@@ -276,7 +265,6 @@ const AddCluster: FC = () => {
     infraCredential,
     history,
     setNotifications,
-    encodedProfiles,
     setPRPreview,
     activeTemplate?.templateKind,
   ]);
@@ -317,7 +305,9 @@ const AddCluster: FC = () => {
 
   return useMemo(() => {
     return (
-      <PageTemplate documentTitle="WeGo · Create new cluster">
+      <PageTemplate
+        documentTitle={`WeGo · ${textForCreateHeader(activeTemplate)}`}
+      >
         <CallbackStateContextProvider
           callbackState={{
             page: authRedirectPage as PageRoute,
@@ -332,18 +322,20 @@ const AddCluster: FC = () => {
             className="count-header"
             path={[
               { label: 'Clusters', url: '/', count: clustersCount },
-              { label: 'Create new cluster' },
+              { label: textForCreateHeader(activeTemplate) },
             ]}
           />
           <ContentWrapper>
             <Grid container>
               <Grid item xs={12} md={10}>
-                <Title>Create new cluster with template</Title>
+                <Title>
+                  {textForCreateHeader(activeTemplate)} cluster with template
+                </Title>
                 <CredentialsWrapper>
                   <div className="template-title">
                     Template: <span>{activeTemplate?.name}</span>
                   </div>
-                  {credentialsEnabled(activeTemplate) && (
+                  {isClusterTemplate(activeTemplate) && (
                     <Credentials
                       infraCredential={infraCredential}
                       setInfraCredential={setInfraCredential}
@@ -368,7 +360,7 @@ const AddCluster: FC = () => {
                 ) : (
                   <Loader />
                 )}
-                {profilesEnabled(activeTemplate) && profiles.length > 0 && (
+                {isClusterTemplate(activeTemplate) && profiles.length > 0 && (
                   <Profiles
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
