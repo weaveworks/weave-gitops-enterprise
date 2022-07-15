@@ -13,7 +13,7 @@ controllerManager:
   manager:
     image:
       repository: docker.io/weaveworks/cluster-controller
-      tag: v1.2.0
+      tag: simple-capi-ready-status@sha256:d4ece2b010583516cd3283be4bfea3599001f4f658d848b5f9a1e1c4b7f0eb9a
     resources:
       limits:
         cpu: 500m
