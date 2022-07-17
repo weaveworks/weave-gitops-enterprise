@@ -45,6 +45,7 @@ const (
 	secretRef                 string = "Secret"
 	HelmReleaseNamespace             = "flux-system"
 	deleteClustersRequiredErr        = "at least one cluster must be specified"
+	kustomizationKind                = "GitRepository"
 )
 
 var (
@@ -413,28 +414,18 @@ func getToken(ctx context.Context) (string, string, error) {
 func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFile, error) {
 
 	commonKustomizationPath := getCommonKustomizationPath(cluster)
-	commonKustomization := &kustomizev1.Kustomization{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       kustomizev1.KustomizationKind,
-			APIVersion: kustomizev1.GroupVersion.Identifier(),
+	commonKustomization := createKustomizationObject(&capiv1_proto.Kustomization{
+		Name:      "clusters-bases-kustomization",
+		Namespace: "flux-system",
+		Path: filepath.Join(
+			viper.GetString("capi-repository-clusters-path"),
+			"bases",
+		),
+		SourceRef: &capiv1_proto.SourceRef{
+			Name: "flux-system",
 		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "clusters-bases-kustomization",
-			Namespace: "flux-system",
-		},
-		Spec: kustomizev1.KustomizationSpec{
-			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
-				Name: "flux-system",
-			},
-			Interval: metav1.Duration{Duration: time.Minute * 10},
-			Prune:    true,
-			Path: filepath.Join(
-				viper.GetString("capi-repository-clusters-path"),
-				"bases",
-			),
-		},
-	}
+	})
+
 	b, err := yaml.Marshal(commonKustomization)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling common kustomization, %w", err)
@@ -788,13 +779,15 @@ func generateKustomizationFiles(ctx context.Context, cluster types.NamespacedNam
 
 	for _, kustomization := range kustomizations {
 
-		k, err := createKustomizationYAML(kustomization)
+		kustomizationYAML := createKustomizationObject(kustomization)
+
+		b, err := yaml.Marshal(kustomizationYAML)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error marshalling %s kustomization, %w", kustomization.Name, err)
 		}
 
 		kustomizationPath := getClusterKustomizationsPath(cluster, kustomization.Namespace, kustomization.Name)
-		kustomizationContent := string(k)
+		kustomizationContent := string(b)
 
 		file := &gitprovider.CommitFile{
 			Path:    &kustomizationPath,
@@ -817,7 +810,7 @@ func getClusterKustomizationsPath(cluster types.NamespacedName, ns, name string)
 	)
 }
 
-func createKustomizationYAML(kustomization *capiv1_proto.Kustomization) ([]byte, error) {
+func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kustomizev1.Kustomization {
 	generatedKustomization := &kustomizev1.Kustomization{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       kustomizev1.KustomizationKind,
@@ -829,6 +822,7 @@ func createKustomizationYAML(kustomization *capiv1_proto.Kustomization) ([]byte,
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind:      kustomizationKind,
 				Name:      kustomization.SourceRef.Name,
 				Namespace: kustomization.SourceRef.Namespace,
 			},
@@ -837,10 +831,6 @@ func createKustomizationYAML(kustomization *capiv1_proto.Kustomization) ([]byte,
 			Path:     kustomization.Path,
 		},
 	}
-	b, err := yaml.Marshal(generatedKustomization)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling common kustomization, %w", err)
-	}
 
-	return b, nil
+	return generatedKustomization
 }

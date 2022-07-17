@@ -623,7 +623,7 @@ spec:
   path: ./apps/capi
   prune: true
   sourceRef:
-    kind: ""
+    kind: GitRepository
     name: flux-system
     namespace: flux-system
 status: {}
@@ -642,7 +642,7 @@ spec:
   path: ./apps/billing
   prune: true
   sourceRef:
-    kind: ""
+    kind: GitRepository
     name: flux-system
     namespace: flux-system
 status: {}
