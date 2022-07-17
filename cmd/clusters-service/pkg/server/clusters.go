@@ -224,6 +224,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		files = append(files, *profilesFile)
 	}
 
+	if len(msg.Kustomizations) > 0 {
+		kustomizations, err := generateKustomizationFiles(ctx, cluster, client, msg.Kustomizations)
+
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, kustomizations...)
+	}
+
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
@@ -609,6 +618,28 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 		}
 	}
 
+	for _, k := range msg.Kustomizations {
+		if k.Name == "" {
+			err = multierror.Append(err, fmt.Errorf("kustomization name must be specified"))
+		}
+
+		invalidNamespaceErr := validateNamespace(k.Namespace)
+		if invalidNamespaceErr != nil {
+			err = multierror.Append(err, invalidNamespaceErr)
+		}
+
+		if k.SourceRef != nil {
+			if k.SourceRef.Name == "" {
+				err = multierror.Append(err, fmt.Errorf("sourceRef name must be specified"))
+			}
+
+			invalidNamespaceErr := validateNamespace(k.SourceRef.Namespace)
+			if invalidNamespaceErr != nil {
+				err = multierror.Append(err, invalidNamespaceErr)
+			}
+		}
+	}
+
 	return err
 }
 
@@ -750,4 +781,66 @@ func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
 	}
 
 	return cluster, nil
+}
+
+func generateKustomizationFiles(ctx context.Context, cluster types.NamespacedName, kubeClient client.Client, kustomizations []*capiv1_proto.Kustomization) ([]gitprovider.CommitFile, error) {
+	files := []gitprovider.CommitFile{}
+
+	for _, kustomization := range kustomizations {
+
+		k, err := createKustomizationYAML(kustomization)
+		if err != nil {
+			return nil, err
+		}
+
+		kustomizationPath := getClusterKustomizationsPath(cluster, kustomization.Namespace, kustomization.Name)
+		kustomizationContent := string(k)
+
+		file := &gitprovider.CommitFile{
+			Path:    &kustomizationPath,
+			Content: &kustomizationContent,
+		}
+
+		files = append(files, *file)
+	}
+
+	return files, nil
+}
+
+func getClusterKustomizationsPath(cluster types.NamespacedName, ns, name string) string {
+	return filepath.Join(
+		viper.GetString("capi-repository-clusters-path"),
+		cluster.Namespace,
+		cluster.Name,
+		ns,
+		fmt.Sprintf("%s-kustomization.yaml", name),
+	)
+}
+
+func createKustomizationYAML(kustomization *capiv1_proto.Kustomization) ([]byte, error) {
+	generatedKustomization := &kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kustomization.Name,
+			Namespace: kustomization.Namespace,
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Name:      kustomization.SourceRef.Name,
+				Namespace: kustomization.SourceRef.Namespace,
+			},
+			Interval: metav1.Duration{Duration: time.Minute * 10},
+			Prune:    true,
+			Path:     kustomization.Path,
+		},
+	}
+	b, err := yaml.Marshal(generatedKustomization)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling common kustomization, %w", err)
+	}
+
+	return b, nil
 }
