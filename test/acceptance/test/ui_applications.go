@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,14 +22,24 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Applications", func() {
 
 		Context("[UI] When no applications are installed", func() {
-			It("Verify management cluster dashboard shows only bootstrap 'flux-system' application", Label("integration", "application"), func() {
+			It("Verify management cluster dashboard shows only bootstrap 'flux-system' application", Label("integration"), func() {
+				existingAppCount := getApplicationCount()
+
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 
 				By("And wait for Applications page to be rendered", func() {
 					Eventually(applicationsPage.ApplicationHeader).Should(BeVisible())
-					Eventually(applicationsPage.ApplicationCount).Should(MatchText(`1`))
+
+					Eventually(func(g Gomega) string {
+						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
+						count, _ := applicationsPage.ApplicationCount.Text()
+						return count
+
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(strconv.Itoa(existingAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", existingAppCount))
+
 					Expect(applicationsPage.CountApplications()).To(Equal(1), "There should not be any cluster in cluster table")
 				})
 
@@ -74,7 +85,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			It("Verify application can be installed  and dashboard is updated accordingly", Label("integration", "application", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount := 1
+				existingAppCount := getApplicationCount()
 
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
@@ -117,7 +128,14 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(applicationsPage.ApplicationHeader).Should(BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					Eventually(applicationsPage.ApplicationCount, ASSERTION_3MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					Eventually(func(g Gomega) string {
+						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
+						count, _ := applicationsPage.ApplicationCount.Text()
+						return count
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+
 					Eventually(func(g Gomega) int {
 						return applicationsPage.CountApplications()
 					}, ASSERTION_3MINUTE_TIME_OUT).Should(Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
