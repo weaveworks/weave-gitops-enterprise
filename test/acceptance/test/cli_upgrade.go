@@ -315,7 +315,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					Eventually(createPage.PreviewPR.Click(), 30*time.Second).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
