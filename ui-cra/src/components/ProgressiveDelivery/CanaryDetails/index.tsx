@@ -51,7 +51,7 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
         <ContentWrapper>
           {isLoading && <LoadingPage />}
           {error && <Alert severity="error">{error.message}</Alert>}
-          {data?.canary && data?.automation && (
+          {data?.canary && (
             <CanaryDetailsSection
               canary={data.canary}
               automation={data.automation}
