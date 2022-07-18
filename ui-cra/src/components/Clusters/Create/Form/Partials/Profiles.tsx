@@ -68,12 +68,15 @@ const Profiles: FC<{
     profiles.length > 0 &&
     (selected.length === profiles.length || onlyRequiredItems);
 
-  // add required profiles to selectedProfiles by default
-
-  useEffect(
-    () => setSelected(getNamesFromProfiles(selectedProfiles)),
-    [selectedProfiles],
-  );
+  useEffect(() => {
+    let requiredProfiles: UpdatedProfile[] = [];
+    if (selectedProfiles.length === 0) {
+      requiredProfiles = profiles.filter(profile => profile.required);
+      setSelected(getNamesFromProfiles(requiredProfiles));
+      setSelectedProfiles(requiredProfiles);
+    }
+    setSelected(getNamesFromProfiles(selectedProfiles));
+  }, [selectedProfiles, profiles, setSelectedProfiles]);
 
   return isLoading ? (
     <Loader />
@@ -81,7 +84,7 @@ const Profiles: FC<{
     <ProfilesWrapper>
       <h2>Profiles</h2>
       <DataTable
-        key={profiles.length}
+        // rows should be profiles if selected profiles is empty and selectedProfiles + profiles - selectedProfiles if not
         rows={profiles}
         fields={[
           {
@@ -101,10 +104,7 @@ const Profiles: FC<{
             value: (profile: UpdatedProfile) => (
               <Checkbox
                 onChange={event => handleIndividualClick(event, profile.name)}
-                checked={
-                  profile.required === true ||
-                  selected.indexOf(profile.name) > -1
-                }
+                checked={selected.indexOf(profile.name) > -1}
                 style={{
                   color: weaveTheme.colors.primary,
                 }}

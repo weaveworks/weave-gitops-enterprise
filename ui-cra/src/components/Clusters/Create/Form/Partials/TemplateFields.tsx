@@ -37,12 +37,13 @@ const TemplateFields: FC<{
 
   return (
     <FormWrapper>
-      {activeTemplate?.parameters?.map(param => {
+      {activeTemplate?.parameters?.map((param, index) => {
         const name = param.name || '';
         const options = param?.options || [];
         if (options.length > 0) {
           return (
             <Select
+              key={index}
               className="form-section"
               name={name}
               required
@@ -56,6 +57,7 @@ const TemplateFields: FC<{
         } else
           return (
             <Input
+              key={index}
               className="form-section"
               required
               name={name}

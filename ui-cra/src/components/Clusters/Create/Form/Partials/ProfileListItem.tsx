@@ -161,6 +161,8 @@ const ProfilesListItem: FC<{
   }, [profile, handleUpdateProfile, version, yaml]);
 
   useEffect(() => {
+    console.log(profile);
+
     const [selectedValue] = profile.values.filter(
       value => value.selected === true,
     );
@@ -234,7 +236,7 @@ const ProfilesListItem: FC<{
             <TextareaAutosize
               className={classes.textarea}
               defaultValue={yaml}
-              onChange={event => handleChangeYaml(event)}
+              onChange={handleChangeYaml}
             />
           )}
         </DialogContent>
