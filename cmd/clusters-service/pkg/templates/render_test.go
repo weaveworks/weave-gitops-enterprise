@@ -11,8 +11,12 @@ import (
 
 func TestCAPIRender(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	})
@@ -50,8 +54,12 @@ spec:
 
 func TestGitopsRender(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/cluster-template.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":       "testing",
 		"GIT_REPO_NAME":      "git-repo",
 		"GIT_REPO_NAMESPACE": "git-namespace",
@@ -127,8 +135,12 @@ metadata:
 
 func TestRender_InjectPruneAnnotation(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
@@ -201,8 +213,12 @@ metadata:
 
 func TestInNamespaceGitOps(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/cluster-template-2.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME": "testing",
 	}, InNamespace("new-namespace"))
 	if err != nil {
@@ -259,8 +275,12 @@ metadata:
 
 func TestRender_in_namespace(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
@@ -303,8 +323,12 @@ spec:
 
 func TestRender_with_options(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "2",
 	},
@@ -355,8 +379,13 @@ spec:
 
 func TestRenderWithCRD(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template0.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"})
+	b, err := processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME": "testing"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -387,8 +416,12 @@ spec:
 
 func TestTextTemplateRender(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/text-template.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME": "testing-templating",
 	})
 	if err != nil {
@@ -421,8 +454,12 @@ spec:
 
 func TestTextTemplateRenderConditional(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/text-template2.yaml")
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":   "testing-templating",
 		"TEST_VALUE":     "false",
 		"S3_BUCKET_NAME": "test-bucket",
@@ -460,7 +497,12 @@ spec:
 func TestRender_unknown_parameter(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
 
-	_, err := Render(parsed.Spec, map[string]string{})
+	processor, err := NewProcessorForTemplate(*parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = processor.RenderTemplates(map[string]string{})
 	assert.ErrorContains(t, err, "value for variables [CLUSTER_NAME] is not set")
 }
 

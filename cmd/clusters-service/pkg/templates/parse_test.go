@@ -2,7 +2,6 @@ package templates
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -198,70 +197,4 @@ func TestParseFileResourceTemplate(t *testing.T) {
 	if diff := cmp.Diff(want, &gapiv1.GitOpsTemplate{Template: *c}); diff != "" {
 		t.Fatalf("failed to read the template:\n%s", diff)
 	}
-}
-
-func TestParams(t *testing.T) {
-	paramTests := []struct {
-		filename string
-		want     []string
-	}{
-		{
-			filename: "testdata/template1.yaml",
-			want:     []string{"CLUSTER_NAME"},
-		},
-		{
-			filename: "testdata/template2.yaml",
-			want: []string{
-				"AWS_NODE_MACHINE_TYPE",
-				"AWS_SSH_KEY_NAME",
-				"CLUSTER_NAME",
-			},
-		},
-		{
-			filename: "testdata/text-template.yaml",
-			want: []string{
-				"CLUSTER_NAME",
-			},
-		},
-		{
-			filename: "testdata/text-template2.yaml",
-			want: []string{
-				"CLUSTER_NAME",
-				"S3_BUCKET_NAME",
-				"TEST_VALUE",
-			},
-		},
-		{
-			filename: "testdata/text-template3.yaml",
-			want: []string{
-				"CLUSTER_NAME",
-				"CONTROL_PLANE_MACHINE_COUNT",
-				"KUBERNETES_VERSION",
-				"NAMESPACE",
-				"WORKER_MACHINE_COUNT",
-			},
-		},
-	}
-
-	for _, tt := range paramTests {
-		t.Run(tt.filename, func(t *testing.T) {
-			c := mustParseFile(t, tt.filename)
-			params, err := Params(c.Spec)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if diff := cmp.Diff(tt.want, params); diff != "" {
-				t.Fatalf("failed to extract params:\n%s", diff)
-			}
-		})
-	}
-}
-
-func readFixture(t *testing.T, fname string) []byte {
-	t.Helper()
-	b, err := ioutil.ReadFile(fname)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return b
 }
