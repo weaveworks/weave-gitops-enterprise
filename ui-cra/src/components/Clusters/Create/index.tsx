@@ -301,7 +301,7 @@ const AddCluster: FC = () => {
           />
           <ContentWrapper>
             <Grid container>
-              <Grid item xs={12} md={10}>
+              <Grid item xs={12} sm={10} md={10} lg={8}>
                 <Title>Create new cluster with template</Title>
                 <CredentialsWrapper>
                   <div className="template-title">

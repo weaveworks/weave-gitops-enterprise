@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
+	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -204,6 +205,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if len(msg.Values) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
+			tmpl,
 			cluster,
 			client,
 			generateProfileFilesParams{
@@ -474,7 +476,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
@@ -497,6 +499,11 @@ func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kub
 		Kind:       helmRepo.TypeMeta.Kind,
 		Name:       helmRepo.ObjectMeta.Name,
 		Namespace:  helmRepo.ObjectMeta.Namespace,
+	}
+
+	tmplProcessor, err := templates.NewProcessorForTemplate(*tmpl)
+	if err != nil {
+		return nil, err
 	}
 
 	var installs []charts.ChartInstall
@@ -522,7 +529,7 @@ func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kub
 			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
 		}
 
-		data, err := templates.ProcessTemplate(decoded, args.parameterValues)
+		data, err := tmplProcessor.Render(decoded, args.parameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}

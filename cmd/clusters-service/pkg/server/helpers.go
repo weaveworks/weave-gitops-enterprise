@@ -18,7 +18,12 @@ func renderTemplateWithValues(t *apitemplates.Template, name, namespace string, 
 		opts = append(opts, templates.InjectPruneAnnotation)
 	}
 
-	templateBits, err := templates.Render(t.Spec, values, opts...)
+	processor, err := templates.NewProcessorForTemplate(*t)
+	if err != nil {
+		return nil, err
+	}
+
+	templateBits, err := processor.RenderTemplates(values, opts...)
 	if err != nil {
 		if missing, ok := isMissingVariableError(err); ok {
 			return nil, fmt.Errorf("error rendering template %v due to missing variables: %s", name, missing)
@@ -30,7 +35,7 @@ func renderTemplateWithValues(t *apitemplates.Template, name, namespace string, 
 }
 
 func getProvider(t *apitemplates.Template, annotation string) string {
-	meta, err := templates.ParseTemplateMeta(t, annotation)
+	meta, err := templates.ParseTemplateMeta(*t, annotation)
 
 	if err != nil {
 		return ""

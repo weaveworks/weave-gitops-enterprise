@@ -9,7 +9,7 @@ import (
 
 func TestParseTemplateTerraformMeta(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/cluster-template-multiple.yaml")
-	meta, err := ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
+	meta, err := ParseTemplateMeta(*parsed, GitOpsTemplateNameAnnotation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestParseTemplateTerraformMeta(t *testing.T) {
 
 func TestParseTemplateCAPIMeta(t *testing.T) {
 	parsed := mustParseFile(t, "testdata/template3.yaml")
-	meta, err := ParseTemplateMeta(parsed, CAPIDisplayNameAnnotation)
+	meta, err := ParseTemplateMeta(*parsed, CAPIDisplayNameAnnotation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,6 +103,6 @@ func TestParseTemplateMeta_bad_parameter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
+	_, err = ParseTemplateMeta(*parsed, GitOpsTemplateNameAnnotation)
 	assert.EqualError(t, err, "failed to parse params in template: processing template: missing closing brace")
 }

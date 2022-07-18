@@ -2,15 +2,12 @@ import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import { Button } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
-import FormControl from '@material-ui/core/FormControl';
-import Input from '@material-ui/core/Input';
-import { validateFormData } from '../../../../../utils/form';
+import { Input, validateFormData } from '../../../../../utils/form';
 
 const GitOpsWrapper = styled.form`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
-  .form-field {
+  .form-section {
     width: 50%;
-    padding-bottom: ${({ theme }) => theme.spacing.small};
   }
   .create-cta {
     display: flex;
@@ -76,46 +73,38 @@ const GitOps: FC<{
   return (
     <GitOpsWrapper>
       <h2>GitOps</h2>
-      <FormControl className="form-field">
-        <span>CREATE BRANCH</span>
-        <Input
-          id="Create branch"
-          required
-          placeholder={formData.branchName}
-          value={formData.branchName}
-          onChange={handleChangeBranchName}
-        />
-      </FormControl>
-      <FormControl className="form-field">
-        <span>PULL REQUEST TITLE</span>
-        <Input
-          id="Pull request title"
-          required
-          placeholder={formData.pullRequestTitle}
-          value={formData.pullRequestTitle}
-          onChange={handleChangePullRequestTitle}
-        />
-      </FormControl>
-      <FormControl className="form-field">
-        <span>COMMIT MESSAGE</span>
-        <Input
-          id="Commit message"
-          required
-          placeholder={formData.commitMessage}
-          value={formData.commitMessage}
-          onChange={handleChangeCommitMessage}
-        />
-      </FormControl>
-      <FormControl className="form-field">
-        <span>PULL REQUEST DESCRIPTION</span>
-        <Input
-          id="Pull request description"
-          required
-          placeholder={formData.pullRequestDescription}
-          value={formData.pullRequestDescription}
-          onChange={handleChangePRDescription}
-        />
-      </FormControl>
+      <Input
+        className="form-section"
+        required
+        label="CREATE BRANCH"
+        placeholder={formData.branchName}
+        value={formData.branchName}
+        onChange={handleChangeBranchName}
+      />
+      <Input
+        className="form-section"
+        required
+        label="PULL REQUEST TITLE"
+        placeholder={formData.pullRequestTitle}
+        value={formData.pullRequestTitle}
+        onChange={handleChangePullRequestTitle}
+      />
+      <Input
+        className="form-section"
+        required
+        label="COMMIT MESSAGE"
+        placeholder={formData.commitMessage}
+        value={formData.commitMessage}
+        onChange={handleChangeCommitMessage}
+      />
+      <Input
+        className="form-section"
+        required
+        label="PULL REQUEST DESCRIPTION"
+        placeholder={formData.pullRequestDescription}
+        value={formData.pullRequestDescription}
+        onChange={handleChangePRDescription}
+      />
       <GitAuth
         formData={formData}
         setFormData={setFormData}

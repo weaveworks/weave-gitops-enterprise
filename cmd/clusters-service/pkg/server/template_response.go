@@ -26,7 +26,7 @@ func ToTemplateResponse(t *apitemplates.Template) *capiv1_proto.Template {
 		TemplateKind: t.Kind,
 	}
 
-	meta, err := templates.ParseTemplateMeta(t, annotation)
+	meta, err := templates.ParseTemplateMeta(*t, annotation)
 	if err != nil {
 		res.Error = fmt.Sprintf("Couldn't load template body: %s", err.Error())
 		return res

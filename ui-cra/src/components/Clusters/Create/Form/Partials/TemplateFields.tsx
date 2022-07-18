@@ -2,18 +2,12 @@ import React, { FC, Dispatch } from 'react';
 import { Button } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Template } from '../../../../../cluster-services/cluster_services.pb';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import Input from '@material-ui/core/Input';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import { validateFormData } from '../../../../../utils/form';
+import { Input, Select, validateFormData } from '../../../../../utils/form';
 
 const FormWrapper = styled.form`
-  .form-group {
-    padding-top: ${({ theme }) => theme.spacing.base};
+  .form-section {
+    width: 50%;
   }
-
   .preview-cta {
     display: flex;
     justify-content: flex-end;
@@ -48,39 +42,28 @@ const TemplateFields: FC<{
         const options = param?.options || [];
         if (options.length > 0) {
           return (
-            <FormControl style={{ width: '50%' }} id={name}>
-              <span>{name}</span>
-              <Select
-                id={name}
-                required
-                value={formData[name]}
-                onChange={handleFormData}
-                autoWidth
-                name={name}
-                label={name}
-              >
-                {options?.map(option => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-              <FormHelperText>{param.description}</FormHelperText>
-            </FormControl>
+            <Select
+              className="form-section"
+              name={name}
+              required
+              label={name}
+              value={formData[name]}
+              onChange={handleFormData}
+              items={options}
+              description={param.description}
+            />
           );
         } else
           return (
-            <FormControl style={{ width: '50%' }}>
-              <span>{name}</span>
-              <Input
-                id={name}
-                required
-                name={name}
-                value={formData[name]}
-                onChange={handleFormData}
-              />
-              <FormHelperText>{param.description}</FormHelperText>
-            </FormControl>
+            <Input
+              className="form-section"
+              required
+              name={name}
+              label={name}
+              value={formData[name]}
+              onChange={handleFormData}
+              description={param.description}
+            />
           );
       })}
       <div className="preview-cta">

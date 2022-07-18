@@ -111,11 +111,11 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 }
 
 func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string) FormField {
-	Eventually(webdriver.FindByXPath(fmt.Sprintf(`//input[@name="%s"]/ancestor::div[contains(@class, "MuiFormControl-root")]`, name))).Should(BeFound())
-	param := webdriver.FindByXPath(fmt.Sprintf(`//input[@name="%s"]/ancestor::div[contains(@class, "MuiFormControl-root")]`, name))
+	Eventually(webdriver.FindByID(fmt.Sprintf(`%s-group`, name))).Should(BeFound())
+	param := webdriver.FindByID(fmt.Sprintf(`%s-group`, name))
 
 	return FormField{
-		Label:   param.All(`span`).At(0),
+		Label:   param.Find(`label`),
 		Field:   param.Find(`input`),
 		ListBox: param.Find(`div[role="button"][aria-haspopup="listbox"]`),
 	}
@@ -184,24 +184,20 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 		GitOpsLabel: webDriver.FindByXPath(`//h2[.="GitOps"]`),
 		GitOpsFields: []FormField{
 			{
-				Label: webDriver.FindByXPath(`//div/span[.="CREATE BRANCH"]`),
-				Field: webDriver.FindByID(`Create branch`),
+				Label: webDriver.FindByLabel(`CREATE BRANCH`),
+				Field: webDriver.FindByID(`CREATE BRANCH-input`),
 			},
 			{
-				Label: webDriver.FindByXPath(`//div/span[.="PULL REQUEST TITLE"]`),
-				Field: webDriver.FindByID(`Pull request title`),
+				Label: webDriver.FindByLabel(`PULL REQUEST TITLE`),
+				Field: webDriver.FindByID(`PULL REQUEST TITLE-input`),
 			},
 			{
-				Label: webDriver.FindByXPath(`//div/span[.="COMMIT MESSAGE"]`),
-				Field: webDriver.All(`input[id="Commit message"]`).At(0),
+				Label: webDriver.FindByLabel(`COMMIT MESSAGE`),
+				Field: webDriver.FindByID(`COMMIT MESSAGE-input`),
 			},
 			{
-				Label: webDriver.FindByXPath(`//div/span[.="PULL REQUEST DESCRIPTION"]`),
-				Field: webDriver.FindByID(`Pull request description`),
-			},
-			{
-				Label: webDriver.FindByLabel(`Pull request description`),
-				Field: webDriver.FindByID(`Pull request description-input`),
+				Label: webDriver.FindByLabel(`PULL REQUEST DESCRIPTION`),
+				Field: webDriver.FindByID(`PULL REQUEST DESCRIPTION-input`),
 			},
 		},
 		GitCredentials: webDriver.Find(`div.auth-message`),
