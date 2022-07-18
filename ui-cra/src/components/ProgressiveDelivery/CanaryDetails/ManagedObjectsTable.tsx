@@ -8,7 +8,7 @@ export const ManagedObjectsTable = ({ objects }: { objects: UnstructuredObject[]
   const classes = usePolicyStyle();
 
   const initialFilterState = {
-    ...filterConfig(objects, 'component'),
+    ...filterConfig(objects, 'Name'),
   };
 
   return (
