@@ -31,7 +31,7 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Policies">
+      <PageTemplate documentTitle="WeGo · Delivery">
         <SectionHeader
           className="count-header"
           path={[
