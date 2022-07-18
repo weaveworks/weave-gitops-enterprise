@@ -7,6 +7,7 @@ import { DataTable } from '@weaveworks/weave-gitops';
 import { Checkbox } from '@material-ui/core';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import ProfilesListItem from './ProfileListItem';
+import _ from 'lodash';
 
 const ProfilesWrapper = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
@@ -84,8 +85,10 @@ const Profiles: FC<{
     <ProfilesWrapper>
       <h2>Profiles</h2>
       <DataTable
-        // rows should be profiles if selected profiles is empty and selectedProfiles + profiles - selectedProfiles if not
-        rows={profiles}
+        rows={[
+          ..._.differenceBy(profiles, selectedProfiles, 'name'),
+          ...selectedProfiles,
+        ]}
         fields={[
           {
             label: 'checkbox',

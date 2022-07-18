@@ -161,8 +161,6 @@ const ProfilesListItem: FC<{
   }, [profile, handleUpdateProfile, version, yaml]);
 
   useEffect(() => {
-    console.log(profile);
-
     const [selectedValue] = profile.values.filter(
       value => value.selected === true,
     );
