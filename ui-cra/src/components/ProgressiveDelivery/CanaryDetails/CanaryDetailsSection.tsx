@@ -16,7 +16,7 @@ import {
   Automation,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
@@ -131,7 +131,7 @@ function CanaryDetailsSection({
           <CanaryDetailsWrapper>
             <SyntaxHighlighter
               language="yaml"
-              style={darcula}
+              style={github}
               wrapLongLines="pre-wrap"
               showLineNumbers={true}
               codeTagProps={{
