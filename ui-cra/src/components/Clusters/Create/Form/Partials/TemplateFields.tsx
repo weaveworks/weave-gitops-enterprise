@@ -30,9 +30,10 @@ const TemplateFields: FC<{
     event:
       | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
       | React.ChangeEvent<{ name?: string; value: unknown }>,
+    fieldName?: string,
   ) => {
     const { name, value } = event?.target;
-    setFormData({ ...formData, [name as string]: value });
+    setFormData({ ...formData, [(name || fieldName) as string]: value });
   };
 
   return (
@@ -48,7 +49,7 @@ const TemplateFields: FC<{
               required={param.required}
               label={name}
               value={formData[name]}
-              onChange={handleFormData}
+              onChange={event => handleFormData(event, name)}
               items={options}
               description={param.description}
             />
