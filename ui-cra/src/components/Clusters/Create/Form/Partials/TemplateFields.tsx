@@ -45,7 +45,7 @@ const TemplateFields: FC<{
             <Select
               className="form-section"
               name={name}
-              required
+              required={param.required}
               label={name}
               value={formData[name]}
               onChange={handleFormData}
@@ -57,7 +57,7 @@ const TemplateFields: FC<{
           return (
             <Input
               className="form-section"
-              required
+              required={param.required}
               name={name}
               label={name}
               value={formData[name]}
