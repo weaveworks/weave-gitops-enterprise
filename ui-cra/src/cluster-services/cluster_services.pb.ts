@@ -159,10 +159,23 @@ export type CreatePullRequestRequest = {
   values?: ProfileValues[]
   repositoryApiUrl?: string
   clusterNamespace?: string
+  kustomizations?: Kustomization[]
 }
 
 export type CreatePullRequestResponse = {
   webUrl?: string
+}
+
+export type Kustomization = {
+  name?: string
+  namespace?: string
+  path?: string
+  sourceRef?: SourceRef
+}
+
+export type SourceRef = {
+  name?: string
+  namespace?: string
 }
 
 export type CreateTfControllerPullRequestRequest = {
@@ -305,6 +318,28 @@ export type GetEnterpriseVersionRequest = {
 
 export type GetEnterpriseVersionResponse = {
   version?: string
+}
+
+export type CreateKustomizationsPullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  commitMessage?: string
+  repositoryApiUrl?: string
+  clusterKustomizations?: ClusterKustomization[]
+}
+
+export type ClusterKustomization = {
+  name?: string
+  namespace?: string
+  isControlPlane?: boolean
+  kustomizations?: Kustomization[]
+}
+
+export type CreateKustomizationsPullRequestResponse = {
+  webUrl?: string
 }
 
 export type Maintainer = {
@@ -451,6 +486,9 @@ export class ClustersService {
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static CreateKustomizationsPullRequest(req: CreateKustomizationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateKustomizationsPullRequestResponse> {
+    return fm.fetchReq<CreateKustomizationsPullRequestRequest, CreateKustomizationsPullRequestResponse>(`/v1/enterprise/kustomizations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
