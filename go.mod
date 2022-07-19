@@ -46,11 +46,11 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.3
 	github.com/weaveworks/progressive-delivery v0.0.0-20220719161717-3318c52a96f8
-	github.com/xanzy/go-gitlab v0.54.3
-	golang.org/x/crypto v0.0.0-20220513210258-46612604a0f9
-	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
-	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
-	google.golang.org/grpc v1.46.2
+	github.com/xanzy/go-gitlab v0.58.0
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
+	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
+	google.golang.org/genproto v0.0.0-20220715211116-798f69b842b9
+	google.golang.org/grpc v1.48.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/src-d/go-git.v4 v4.13.1

@@ -1006,17 +1006,10 @@ github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQ
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/policy-agent/api v1.0.3 h1:gq+YXSyFZdcYtVZoqa4awrMBYXUofsCFh/R0Fb4BE2Q=
 github.com/weaveworks/policy-agent/api v1.0.3/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
-github.com/weaveworks/progressive-delivery v0.0.0-20220701153224-9d580bffeec3 h1:T1qPbwiIBkW5umDDBr+ABlawBQMUnGSVJNVdeVlIFKo=
-github.com/weaveworks/progressive-delivery v0.0.0-20220701153224-9d580bffeec3/go.mod h1:V/JF+61q3yBObG4jrUOAAZObO2rBQoxEZd6FYqhATjE=
-<<<<<<< HEAD
 github.com/weaveworks/progressive-delivery v0.0.0-20220719161717-3318c52a96f8 h1:heu/YEkVgb+YKiX1e0iuxlSNkF395DMltyoWfQ+Lq/g=
 github.com/weaveworks/progressive-delivery v0.0.0-20220719161717-3318c52a96f8/go.mod h1:DKROFoMYek6LRX/Us3W2Jb/VCjvqNduxhKz4E7hgq8c=
-github.com/weaveworks/weave-gitops v0.9.0 h1:jGg6msvnQ5Cu3dieGWaNGO00sn+FNqWOZ3exCON65H8=
-github.com/weaveworks/weave-gitops v0.9.0/go.mod h1:PY2GpQXluz6xNfdkUvHSYCaAbXrlYumdLNRySxBCqI8=
-=======
 github.com/weaveworks/weave-gitops v0.9.1-rc.1 h1:jYZysrZiz9kO4Y7VYHMSK8Frj/bjVWYXIXO9XRV+9Zs=
 github.com/weaveworks/weave-gitops v0.9.1-rc.1/go.mod h1:gHtdVgaWdZqF/ZJnv7Kekfj76olyQebW+/sjfwjbdOI=
->>>>>>> 9d172cbd1c63a2ad8b3c85a3c430bf64fef19694
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.58.0 h1:Entnl8GrVDlc1jd1BlOWhNR0QVQgiO3WDom5DJbT+1s=
