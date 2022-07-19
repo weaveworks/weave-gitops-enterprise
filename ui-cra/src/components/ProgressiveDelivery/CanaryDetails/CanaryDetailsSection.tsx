@@ -40,7 +40,7 @@ function CanaryDetailsSection({
   const [open, setOpen] = useState(true);
 
   const { conditions, ...restStatus } = canary?.status || { conditions: [] };
-  const { lastTransitionTime, ...restConditionObj } = conditions![0];
+  const { lastTransitionTime, ...restConditionObj } = conditions![0] || { lastTransitionTime: '' };
 
   const toggleCollapse = () => {
     setOpen(!open);
