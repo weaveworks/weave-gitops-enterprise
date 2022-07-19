@@ -1129,17 +1129,11 @@
     "v1Kustomization": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
         },
-        "namespace": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "sourceRef": {
-          "$ref": "#/definitions/v1SourceRef"
+        "spec": {
+          "$ref": "#/definitions/v1Spec"
         }
       }
     },
@@ -1306,6 +1300,17 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "v1Metadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     },
@@ -1571,6 +1576,17 @@
         },
         "namespace": {
           "type": "string"
+        }
+      }
+    },
+    "v1Spec": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
         }
       }
     },

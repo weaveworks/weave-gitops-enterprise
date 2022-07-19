@@ -167,8 +167,16 @@ export type CreatePullRequestResponse = {
 }
 
 export type Kustomization = {
+  metadata?: Metadata
+  spec?: Spec
+}
+
+export type Metadata = {
   name?: string
   namespace?: string
+}
+
+export type Spec = {
   path?: string
   sourceRef?: SourceRef
 }
