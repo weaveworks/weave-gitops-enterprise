@@ -1007,6 +1007,8 @@ github.com/weaveworks/progressive-delivery v0.0.0-20220622211422-c0b04f3c241f h1
 github.com/weaveworks/progressive-delivery v0.0.0-20220622211422-c0b04f3c241f/go.mod h1:Vjcpo6L7+YjjdiAXDDkIV7KptiodlAdtUYaDGXpnR90=
 github.com/weaveworks/progressive-delivery v0.0.0-20220701153224-9d580bffeec3 h1:T1qPbwiIBkW5umDDBr+ABlawBQMUnGSVJNVdeVlIFKo=
 github.com/weaveworks/progressive-delivery v0.0.0-20220701153224-9d580bffeec3/go.mod h1:V/JF+61q3yBObG4jrUOAAZObO2rBQoxEZd6FYqhATjE=
+github.com/weaveworks/progressive-delivery v0.0.0-20220719161717-3318c52a96f8 h1:heu/YEkVgb+YKiX1e0iuxlSNkF395DMltyoWfQ+Lq/g=
+github.com/weaveworks/progressive-delivery v0.0.0-20220719161717-3318c52a96f8/go.mod h1:DKROFoMYek6LRX/Us3W2Jb/VCjvqNduxhKz4E7hgq8c=
 github.com/weaveworks/weave-gitops v0.9.0 h1:jGg6msvnQ5Cu3dieGWaNGO00sn+FNqWOZ3exCON65H8=
 github.com/weaveworks/weave-gitops v0.9.0/go.mod h1:PY2GpQXluz6xNfdkUvHSYCaAbXrlYumdLNRySxBCqI8=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
