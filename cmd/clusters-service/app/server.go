@@ -352,6 +352,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clientsFactoryScheme,
+		clustersmngr.NewClustersClientsPool,
 	)
 	clusterClientsFactory.Start(ctx)
 
@@ -466,7 +467,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	appsServer, err := core_core.NewCoreServer(args.CoreServerConfig, core_core.WithClientGetter(args.ClientGetter))
+	appsServer, err := core_core.NewCoreServer(args.CoreServerConfig)
 	if err != nil {
 		return fmt.Errorf("unable to create new kube client: %w", err)
 	}
