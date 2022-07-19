@@ -413,7 +413,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				By("Then I should preview the PR", func() {
-					Eventually(createPage.PreviewPR.Click(), 30*time.Second).Should(Succeed())
+					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
@@ -500,7 +500,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				By("Then I should preview the PR", func() {
-					Eventually(createPage.PreviewPR.Click(), 30*time.Second).Should(Succeed())
+					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
@@ -792,7 +792,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				By("Then I should see PR preview containing identity reference added in the template", func() {
-					Eventually(createPage.PreviewPR.Click(), 30*time.Second).Should(Succeed())
+					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
@@ -888,7 +888,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				By("Then I should see PR preview without identity reference added to the template", func() {
-					Eventually(createPage.PreviewPR.Click(), 30*time.Second).Should(Succeed())
+					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
@@ -1040,7 +1040,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should preview the PR", func() {
-					Eventually(createPage.PreviewPR.Click(), 30*time.Second).Should(Succeed())
+					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
