@@ -541,6 +541,12 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c20.MuiButton-root {
+  height: 32px;
+  font-size: 12px;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
   line-height: 1;
   border-radius: 2px;
   font-weight: 600;
@@ -577,6 +583,10 @@ exports[`Applications index test snapshots success 1`] = `
 .c21.MuiButton-root {
   margin: 0;
   text-transform: none;
+  -webkit-letter-spacing: 0;
+  -moz-letter-spacing: 0;
+  -ms-letter-spacing: 0;
+  letter-spacing: 0;
 }
 
 .c21.MuiButton-text {
