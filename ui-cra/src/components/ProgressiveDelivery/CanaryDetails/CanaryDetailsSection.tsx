@@ -1,25 +1,24 @@
+import { Table, TableBody } from '@material-ui/core';
+import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
+import { useCanaryStyle } from '../CanaryStyles';
 import CanaryRowHeader, {
   KeyValueRow,
 } from '../SharedComponent/CanaryRowHeader';
 import CanaryStatus from '../SharedComponent/CanaryStatus';
-import { useCanaryStyle } from '../CanaryStyles';
-import { Table, TableBody } from '@material-ui/core';
-import styled from 'styled-components';
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 
+import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import {
+  Automation,
+  Canary,
+} from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { useState } from 'react';
+import YamlView from '../../YamlView';
+import ListEvents from '../Events/ListEvents';
 import {
   getDeploymentStrategyIcon,
   getProgressValue,
 } from '../ListCanaries/Table';
-import {
-  Canary,
-  Automation,
-} from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { useState } from 'react';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
-import ListEvents from '../Events/ListEvents';
 import ListManagedObjects from './ListManagedObjects';
 import {CanaryMetricsTable} from "./Analysis/CanaryMetricsTable";
 
@@ -156,20 +155,7 @@ function CanaryDetailsSection({
         </RouterTab>
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <CanaryDetailsWrapper>
-            <SyntaxHighlighter
-              language="yaml"
-              style={github}
-              wrapLongLines="pre-wrap"
-              showLineNumbers={true}
-              codeTagProps={{
-                className: classes.code,
-              }}
-              customStyle={{
-                height: '450px',
-              }}
-            >
-              {canary.yaml}
-            </SyntaxHighlighter>
+            <YamlView yaml={canary.yaml || ''} kind="Canary" object={canary} />
           </CanaryDetailsWrapper>
         </RouterTab>
       </SubRouterTabs>
