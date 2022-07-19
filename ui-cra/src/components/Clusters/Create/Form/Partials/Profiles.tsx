@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useCallback, useEffect, useState } from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
 import useProfiles from '../../../../../contexts/Profiles';
 import styled from 'styled-components';
@@ -63,6 +63,12 @@ const Profiles: FC<{
     setSelectedProfiles([]);
   };
 
+  // handleSelectedProfiles wraps setSelectedProfiles as adding this directly to useEffect causes an infinite loop
+  const handleSelectedProfiles = useCallback(
+    profiles => setSelectedProfiles(profiles),
+    [setSelectedProfiles],
+  );
+
   const onlyRequiredItems =
     profiles.filter(item => item.required === true).length === profiles.length;
   const isAllSelected =
@@ -74,10 +80,10 @@ const Profiles: FC<{
     if (selectedProfiles.length === 0) {
       requiredProfiles = profiles.filter(profile => profile.required);
       setSelected(getNamesFromProfiles(requiredProfiles));
-      setSelectedProfiles(requiredProfiles);
+      handleSelectedProfiles(requiredProfiles);
     }
     setSelected(getNamesFromProfiles(selectedProfiles));
-  }, [selectedProfiles, profiles, setSelectedProfiles]);
+  }, [selectedProfiles, profiles, handleSelectedProfiles]);
 
   return isLoading ? (
     <Loader />
@@ -85,10 +91,15 @@ const Profiles: FC<{
     <ProfilesWrapper>
       <h2>Profiles</h2>
       <DataTable
-        rows={[
-          ..._.differenceBy(profiles, selectedProfiles, 'name'),
-          ...selectedProfiles,
-        ]}
+        className="profiles-table"
+        rows={_.orderBy(
+          [
+            ..._.differenceBy(profiles, selectedProfiles, 'name'),
+            ...selectedProfiles,
+          ],
+          ['name'],
+          ['asc'],
+        )}
         fields={[
           {
             label: 'checkbox',
@@ -138,7 +149,7 @@ const Profiles: FC<{
               <ProfilesListItem
                 profile={p}
                 selectedProfiles={selectedProfiles}
-                setSelectedProfiles={setSelectedProfiles}
+                setSelectedProfiles={handleSelectedProfiles}
               />
             ),
           },
