@@ -12,8 +12,6 @@
     "@material-ui/lab": "^4.0.0-alpha.58",
     "@material-ui/styles": "^4.11.4",
     "@primer/octicons-react": "9.6.0",
-    "@rjsf/core": "^2.5.1",
-    "@rjsf/material-ui": "^2.5.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@types/classnames": "^2.3.1",
     "@types/d3-scale": "^3.2.2",
