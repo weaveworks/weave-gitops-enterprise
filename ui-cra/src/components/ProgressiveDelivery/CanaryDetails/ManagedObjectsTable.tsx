@@ -1,10 +1,9 @@
 import { filterConfig, theme, FilterableTable } from '@weaveworks/weave-gitops';
 import { ThemeProvider } from 'styled-components';
-import { UnstructuredObject } from '@weaveworks/progressive-delivery';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
 import { TableWrapper } from '../CanaryStyles';
 
-export const ManagedObjectsTable = ({ objects }: { objects: UnstructuredObject[] }) => {
+export const ManagedObjectsTable = ({ objects }: { objects: any[] }) => {
   const classes = usePolicyStyle();
 
   const initialFilterState = {
