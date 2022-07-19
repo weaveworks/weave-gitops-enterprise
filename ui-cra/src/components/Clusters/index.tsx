@@ -4,7 +4,7 @@ import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { Tooltip } from '../Shared';
+import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { Link, useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
@@ -43,28 +43,14 @@ interface Size {
 const ActionsWrapper = styled.div<Size>`
   display: flex;
   & > * {
-    margin-right: ${theme.spacing.medium};
+    margin-right: ${({ theme }) => theme.spacing.medium};
   }
-`;
-
-export const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
-  div[class*='FilterDialog'] {
-    .Mui-checked {
-      color: ${theme.colors.primary};
-    }
-  }
-  max-width: calc(100vw - 220px);
 `;
 
 const ClustersTableWrapper = styled(TableWrapper)`
   thead {
     th:first-of-type {
-      padding: ${theme.spacing.base};
+      padding: ${({ theme }) => theme.spacing.base};
     }
   }
   td:first-of-type {
@@ -77,7 +63,7 @@ const ClustersTableWrapper = styled(TableWrapper)`
     word-wrap: break-word;
   }
   a {
-    color: ${theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
   }
   max-width: calc(100vw - 220px);
 `;
