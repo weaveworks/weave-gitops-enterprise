@@ -6,8 +6,10 @@ import (
 	"html/template"
 	"regexp"
 	"sort"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
@@ -154,6 +156,18 @@ func (p TemplateProcessor) AllParamNames() ([]string, error) {
 		paramNames.Insert(names...)
 	}
 
+	for k, v := range p.GetAnnotations() {
+		if strings.HasPrefix(k, "capi.weave.works/profile-") {
+			names, err := p.Processor.ParamNames(templates.ResourceTemplate{RawExtension: runtime.RawExtension{
+				Raw: []byte(v),
+			}})
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
+			}
+			paramNames.Insert(names...)
+		}
+	}
+
 	params := paramNames.List()
 	sort.Strings(params)
 
@@ -173,7 +187,6 @@ type EnvsubstTemplateProcessor struct {
 
 func (p *EnvsubstTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
 	proc := processor.NewSimpleProcessor()
-
 	rendered, err := proc.Process(tmpl, func(n string) (string, error) {
 		if s, ok := values[n]; ok {
 			return s, nil

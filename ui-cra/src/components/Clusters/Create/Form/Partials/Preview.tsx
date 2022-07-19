@@ -23,9 +23,6 @@ const useStyles = makeStyles(() =>
 const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
-  activeStep: string | undefined;
-  setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
-  clickedStep: string;
   PRPreview: string;
 }> = ({ PRPreview, openPreview, setOpenPreview }) => {
   const classes = useStyles();

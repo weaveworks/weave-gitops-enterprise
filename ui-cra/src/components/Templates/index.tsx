@@ -23,11 +23,12 @@ import TextField from '@material-ui/core/TextField';
 import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { muiTheme } from '../../muiTheme';
 import { Template } from '../../cluster-services/cluster_services.pb';
-import { TableWrapper } from '../Clusters';
 import { useHistory } from 'react-router-dom';
+import { TableWrapper } from '../Shared';
 
 const ActionsWrapper = styled.div`
-  padding: ${theme.spacing.medium} ${theme.spacing.small} 0 0;
+  padding: ${({ theme }) => theme.spacing.medium}
+    ${({ theme }) => theme.spacing.small} 0 0;
   display: flex;
 
   svg {
@@ -35,7 +36,7 @@ const ActionsWrapper = styled.div`
   }
 
   svg.inactive {
-    fill: ${theme.colors.neutral20};
+    fill: ${({ theme }) => theme.colors.neutral20};
   }
 `;
 
@@ -43,7 +44,7 @@ const FilteringSection = styled.div`
   width: 100%;
   display: flex;
   justify-content: flex-end;
-  padding-bottom: ${theme.spacing.medium};
+  padding-bottom: ${({ theme }) => theme.spacing.medium};
 `;
 
 const Error = styled.span`
