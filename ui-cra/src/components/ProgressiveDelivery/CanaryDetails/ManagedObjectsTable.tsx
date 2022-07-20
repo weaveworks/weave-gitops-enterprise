@@ -15,10 +15,8 @@ export const ManagedObjectsTable = ({ objects }: { objects: any[] }) => {
   return (
     <div className={classes.root}>
       <ThemeProvider theme={theme}>
-        {objects.length > 0 ? (
           <TableWrapper id="objects-list">
             <CustomDataTable
-              key={objects?.length}
               rows={objects}
               fields={[
                 {
@@ -46,9 +44,6 @@ export const ManagedObjectsTable = ({ objects }: { objects: any[] }) => {
               ]}
             />
           </TableWrapper>
-        ) : (
-          <p>No data to display</p>
-        )}
       </ThemeProvider>
     </div>
   );
