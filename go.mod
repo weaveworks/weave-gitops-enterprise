@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.2
-	github.com/weaveworks/weave-gitops v0.9.1-rc.1
+	github.com/weaveworks/weave-gitops v0.9.1-rc.1.0.20220720151155-47b9020ad0eb
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -243,8 +243,6 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
-	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
-	// Version v0.9.1-rc.1 of weave-gitops is requiring a invalid revision of this module, remove this override once that's fixed.
-	github.com/johannesboyne/gofakes3 => github.com/johannesboyne/gofakes3 v0.0.0-20220627085814-c3ac35da23b2
+	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 )
