@@ -8,7 +8,7 @@ import {
 import styled from 'styled-components';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
-  margin-bottom: ${({ theme }) => theme.spacing.base};
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
   width: 100%;
   & .auth-message {
     margin-top: ${({ theme }) => theme.spacing.base};
