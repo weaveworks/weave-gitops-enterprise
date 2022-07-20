@@ -78,7 +78,7 @@ func GetClusterStatus(webDriver *agouti.Page) *ClusterStatus {
 func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 	deletePRPopup := DeletePullRequestPopup{
 		Title:               webDriver.Find(`#delete-popup h5`),
-		PRDescription:       webDriver.Find(`#delete-popup textarea`),
+		PRDescription:       webDriver.Find(`PULL REQUEST DESCRIPTION-input`),
 		ClosePopup:          webDriver.Find(`#delete-popup > div > button[type=button]`),
 		DeleteClusterButton: webDriver.Find(`#delete-popup button#delete-cluster`),
 		ConfirmDelete:       webDriver.Find(`#confirm-disconnect-cluster-dialog button:first-child`),
