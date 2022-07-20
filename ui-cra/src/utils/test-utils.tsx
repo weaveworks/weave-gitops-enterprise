@@ -1,5 +1,6 @@
 import { MuiThemeProvider } from '@material-ui/core';
 import {
+  GetCanaryResponse,
   IsFlaggerAvailableResponse,
   ListCanariesResponse,
   ProgressiveDeliveryService,
@@ -117,9 +118,11 @@ export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   constructor() {
     this.ListCanaries = this.ListCanaries.bind(this);
     this.IsFlaggerAvailable = this.IsFlaggerAvailable.bind(this);
+    this.GetCanary = this.GetCanary.bind(this);
   }
   ListCanariesReturns: ListCanariesResponse = {};
   IsFlaggerAvailableReturns: IsFlaggerAvailableResponse = {};
+  GetCanaryReturns: GetCanaryResponse = {};
 
   ListCanaries() {
     return promisify(this.ListCanariesReturns);
@@ -127,5 +130,9 @@ export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
 
   IsFlaggerAvailable() {
     return promisify(this.IsFlaggerAvailableReturns);
+  }
+
+  GetCanary() {
+    return promisify(this.GetCanaryReturns);
   }
 }

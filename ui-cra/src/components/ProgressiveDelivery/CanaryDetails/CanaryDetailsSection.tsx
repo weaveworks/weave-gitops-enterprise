@@ -33,14 +33,14 @@ function CanaryDetailsSection({
   automation,
 }: {
   canary: Canary;
-  automation: Automation;
+  automation?: Automation;
 }) {
   const classes = useCanaryStyle();
   const path = `/applications/delivery/${canary.targetDeployment?.uid}`;
   const [open, setOpen] = useState(true);
 
   const { conditions, ...restStatus } = canary?.status || { conditions: [] };
-  const { lastTransitionTime, ...restConditionObj } = conditions![0];
+  const { lastTransitionTime, ...restConditionObj } = conditions![0] || { lastTransitionTime: '' };
 
   const toggleCollapse = () => {
     setOpen(!open);
@@ -70,7 +70,11 @@ function CanaryDetailsSection({
             <CanaryRowHeader rowkey="Namespace" value={canary.namespace} />
             <CanaryRowHeader
               rowkey="Target"
-              value={`${automation.kind}/${automation.name}`}
+              value={`${canary.targetReference?.kind}/${canary.targetReference?.name}`}
+            />
+            <CanaryRowHeader
+              rowkey="Application"
+              value={automation?.kind && automation?.name ? `${automation?.kind}/${automation?.name}` : '--'}
             />
             <CanaryRowHeader
               rowkey="Deployment Strategy"
