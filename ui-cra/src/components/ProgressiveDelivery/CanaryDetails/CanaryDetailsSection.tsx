@@ -25,6 +25,7 @@ import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
+import ListManagedObjects from './ListManagedObjects';
 import { getKindRoute } from '../../../utils/nav';
 
 const TitleWrapper = styled.h2`
@@ -104,9 +105,7 @@ function CanaryDetailsSection({
             </CanaryRowHeader>
             <CanaryRowHeader rowkey="Provider" value={canary.provider} />
 
-            <div
-              className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}
-            >
+            <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
               Status
             </div>
 
@@ -135,6 +134,12 @@ function CanaryDetailsSection({
                 ))}
               </TableBody>
             </Table>
+
+            <ListManagedObjects
+              clusterName={canary.clusterName || ''}
+              name={canary.name || ''}
+              namespace={canary.namespace || ''}
+            />
           </CanaryDetailsWrapper>
         </RouterTab>
         <RouterTab name="Events" path={`${path}/events`}>
