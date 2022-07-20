@@ -244,4 +244,7 @@ replace (
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
+
+	// Version v0.9.1-rc.1 of weave-gitops is requiring a invalid revision of this module, remove this override once that's fixed.
+	github.com/johannesboyne/gofakes3 => github.com/johannesboyne/gofakes3 v0.0.0-20220627085814-c3ac35da23b2
 )

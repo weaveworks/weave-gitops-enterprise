@@ -1,4 +1,4 @@
-import { filterConfig, theme, FilterableTable } from '@weaveworks/weave-gitops';
+import { theme, DataTable } from '@weaveworks/weave-gitops';
 import { ThemeProvider } from 'styled-components';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
 import { TableWrapper } from '../CanaryStyles';
@@ -6,18 +6,13 @@ import { TableWrapper } from '../CanaryStyles';
 export const ManagedObjectsTable = ({ objects }: { objects: any[] }) => {
   const classes = usePolicyStyle();
 
-  const initialFilterState = {
-    ...filterConfig(objects, 'Name'),
-  };
-
   return (
     <div className={classes.root}>
       <ThemeProvider theme={theme}>
         {objects.length > 0 ? (
           <TableWrapper id="objects-list">
-            <FilterableTable
+            <DataTable
               key={objects?.length}
-              filters={initialFilterState}
               rows={objects}
               fields={[
                 {
