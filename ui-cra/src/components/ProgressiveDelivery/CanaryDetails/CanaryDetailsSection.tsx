@@ -16,7 +16,7 @@ import {
   Automation,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
@@ -34,14 +34,14 @@ function CanaryDetailsSection({
   automation,
 }: {
   canary: Canary;
-  automation: Automation;
+  automation?: Automation;
 }) {
   const classes = useCanaryStyle();
   const path = `/applications/delivery/${canary.targetDeployment?.uid}`;
   const [open, setOpen] = useState(true);
 
   const { conditions, ...restStatus } = canary?.status || { conditions: [] };
-  const { lastTransitionTime, ...restConditionObj } = conditions![0];
+  const { lastTransitionTime, ...restConditionObj } = conditions![0] || { lastTransitionTime: '' };
 
   const toggleCollapse = () => {
     setOpen(!open);
@@ -71,7 +71,11 @@ function CanaryDetailsSection({
             <CanaryRowHeader rowkey="Namespace" value={canary.namespace} />
             <CanaryRowHeader
               rowkey="Target"
-              value={`${automation.kind}/${automation.name}`}
+              value={`${canary.targetReference?.kind}/${canary.targetReference?.name}`}
+            />
+            <CanaryRowHeader
+              rowkey="Application"
+              value={automation?.kind && automation?.name ? `${automation?.kind}/${automation?.name}` : '--'}
             />
             <CanaryRowHeader
               rowkey="Deployment Strategy"
@@ -136,7 +140,7 @@ function CanaryDetailsSection({
           <CanaryDetailsWrapper>
             <SyntaxHighlighter
               language="yaml"
-              style={darcula}
+              style={github}
               wrapLongLines="pre-wrap"
               showLineNumbers={true}
               codeTagProps={{
