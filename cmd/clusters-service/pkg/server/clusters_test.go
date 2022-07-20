@@ -686,6 +686,19 @@ status: {}
 						Spec: &capiv1_protos.Spec{
 							Path: "./apps/capi",
 							SourceRef: &capiv1_protos.SourceRef{
+								Name:      "flux-system",
+								Namespace: "flux-system",
+							},
+						},
+					},
+					{
+						Metadata: &capiv1_protos.Metadata{
+							Name:      "apps-capi",
+							Namespace: "flux-system",
+						},
+						Spec: &capiv1_protos.Spec{
+							Path: "./apps/capi",
+							SourceRef: &capiv1_protos.SourceRef{
 								Name:      "",
 								Namespace: "",
 							},
@@ -693,7 +706,7 @@ status: {}
 					},
 				},
 			},
-			err: errors.New("3 errors occurred:\nkustomization name must be specified\ninvalid namespace: @kustomization, a lowercase RFC 1123 label must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?')\nsourceRef name must be specified"),
+			err: errors.New("3 errors occurred:\nkustomization name must be specified\ninvalid namespace: @kustomization, a lowercase RFC 1123 label must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?')\nsourceRef name must be specified in Kustomization apps-capi"),
 		},
 	}
 
