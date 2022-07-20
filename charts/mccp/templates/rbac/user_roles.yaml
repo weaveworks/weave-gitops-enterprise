@@ -1,24 +1,44 @@
 {{- if .Values.rbac.userRoles.create -}}
+{{- if .Values.rbac.userRoles.roleAggregation.enabled -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+rules: []
+{{- end }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-apps-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
+    resources: ["secrets", "pods"]
+    verbs: ["get", "list"]
   - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list"]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "patch" ]
+    resources: ["kustomizations"]
+    verbs: ["get", "list", "patch"]
   - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "patch" ]
+    resources: ["helmreleases"]
+    verbs: ["get", "list", "patch"]
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
-    verbs: [ "get", "list", "patch" ]
+    resources: ["buckets", "helmcharts", "gitrepositories", "helmrepositories"]
+    verbs: ["get", "list", "patch"]
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
@@ -27,6 +47,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-configmaps-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
   - apiGroups: [""]
     resources: ["configmaps"]
@@ -36,6 +61,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-templates-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
   - apiGroups: ["capi.weave.works"]
     resources: ["capitemplates"]
@@ -48,6 +78,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-identities-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
   - apiGroups: ["infrastructure.cluster.x-k8s.io"]
     resources:
@@ -55,13 +90,19 @@ rules:
         "awsclusterstaticidentities",
         "awsclusterroleidentities",
         "azureclusteridentities",
+        "vsphereclusteridentities",
       ]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-secrets-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
@@ -71,6 +112,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-policies-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
   - apiGroups: ["pac.weave.works"]
     resources: ["policies"]
@@ -83,6 +129,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-canaries-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
   - apiGroups: ["flagger.app"]
     resources: ["canaries"]
@@ -95,17 +146,27 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-gitopsclusters-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
 - apiGroups: ["gitops.weave.works"]
   resources: ["gitopsclusters"]
   verbs: ["get", "watch", "list"]
-{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-capicluster-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
 rules:
 - apiGroups: ["cluster.x-k8s.io"]
   resources: ["clusters"]
   verbs: ["get", "list", "watch"]
+{{- end }}

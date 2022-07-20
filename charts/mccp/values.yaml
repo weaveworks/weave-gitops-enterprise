@@ -59,6 +59,9 @@ clusterBootstrapController:
 rbac:
   userRoles:
     create: true
+    roleAggregation:
+      # Aggregate userRoles into common role
+      enabled: true
   adminUserRoleBindings:
     create: true
 
