@@ -1,7 +1,7 @@
 import {
   GetCanaryResponse,
   ListCanariesResponse,
-  ListFlaggerObjectsResponse,
+  ListCanaryObjectsResponse,
   ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
@@ -87,8 +87,8 @@ const CANARY_OBJS_KEY = 'canary_objects';
 export const useListFlaggerObjects = (params: CanaryParams) => {
   const pd = useProgressiveDelivery();
 
-  return useQuery<ListFlaggerObjectsResponse, Error>([PD_QUERY_KEY, CANARY_OBJS_KEY, params], () => {
-    return pd.ListFlaggerObjects(params)
+  return useQuery<ListCanaryObjectsResponse, Error>([PD_QUERY_KEY, CANARY_OBJS_KEY, params], () => {
+    return pd.ListCanaryObjects(params)
   });
 };
 

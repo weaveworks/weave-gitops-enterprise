@@ -117,10 +117,6 @@ function CanaryDetailsSection({
               </TableBody>
             </Table>
 
-            <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
-              Managed Resources
-            </div>
-
             <ListManagedObjects
               clusterName={canary.clusterName || ''}
               name={canary.name || ''}
