@@ -1008,7 +1008,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And select the podinfo profile to install", func() {
 					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
 					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
-					pages.DissmissProfilePopup(webDriver)
 				})
 
 				By("And verify selected podinfo profile values.yaml", func() {

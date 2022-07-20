@@ -152,16 +152,12 @@ func (c CreateCluster) SelectProfile(profileName string) *agouti.Selection {
 	pCount := c.CountProfiles()
 
 	for i := 0; i < pCount; i++ {
-		pName, _ := c.ProfileSelect.At(i).Text()
+		pName,_ := c.ProfileSelect.At(i).Find("[data-profile-name]").Text()
 		if profileName == pName {
 			return c.ProfileSelect.At(i)
 		}
 	}
 	return nil
-}
-
-func DissmissProfilePopup(webDriver *agouti.Page) {
-	Expect(webDriver.Find(`div.profiles-select`).DoubleClick()).To(Succeed())
 }
 
 func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
