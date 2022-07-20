@@ -57,9 +57,9 @@ function CanaryStatus({
                   classes={{
                     barColorPrimary: classes.barroot,
                   }}
-                  className={classes.root}
+                  className={classes.statusProcessing}
                 />
-                <span>{`${current} / ${value.total}`}</span>
+                <span className={classes.statusProcessingText}>{`${current} / ${value.total}`}</span>
               </>
             );
           case CanaryDeploymentStatus.Failed:
