@@ -25,7 +25,13 @@ import GitAuth from './Create/Form/Partials/GitAuth';
 import { PRdefaults } from '.';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 
-const FormWrapper = styled.form`
+const DeleteClusterWrapper = styled(Dialog)`
+  #delete-popup {
+    padding: 0 0 0 ${({ theme }) => theme.spacing.base};
+  }
+  h5 {
+    padding-bottom: ${({ theme }) => theme.spacing.base};
+  }
   .form-section {
     width: 100%;
   }
@@ -136,7 +142,7 @@ export const DeleteClusterDialog: FC<Props> = ({
   }, [setSelectedClusters, setFormData, setOpenDeletePR]);
 
   return (
-    <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
+    <DeleteClusterWrapper open maxWidth="md" fullWidth onClose={cleanUp}>
       <div id="delete-popup">
         <DialogTitle disableTypography>
           <Typography variant="h5">Create PR to remove clusters</Typography>
@@ -144,7 +150,7 @@ export const DeleteClusterDialog: FC<Props> = ({
         </DialogTitle>
         <DialogContent>
           {!loading ? (
-            <FormWrapper>
+            <>
               <Input
                 className="form-section"
                 label="CREATE BRANCH"
@@ -168,8 +174,6 @@ export const DeleteClusterDialog: FC<Props> = ({
                 label="PULL REQUEST DESCRIPTION"
                 placeholder={formData.pullRequestDescription}
                 onChange={handleChangePRDescription}
-                multiline
-                rows={4}
               />
               <GitAuth
                 formData={formData}
@@ -187,12 +191,12 @@ export const DeleteClusterDialog: FC<Props> = ({
               >
                 REMOVE CLUSTERS FROM THE MCCP
               </Button>
-            </FormWrapper>
+            </>
           ) : (
             <Loader />
           )}
         </DialogContent>
       </div>
-    </Dialog>
+    </DeleteClusterWrapper>
   );
 };
