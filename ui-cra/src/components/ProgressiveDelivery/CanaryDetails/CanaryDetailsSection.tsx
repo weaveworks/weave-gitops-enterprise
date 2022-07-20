@@ -5,7 +5,12 @@ import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { useCanaryStyle } from '../CanaryStyles';
 import { Table, TableBody } from '@material-ui/core';
 import styled from 'styled-components';
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import {
+  RouterTab,
+  SubRouterTabs,
+  Link,
+  formatURL,
+} from '@weaveworks/weave-gitops';
 
 import {
   getDeploymentStrategyIcon,
@@ -20,6 +25,7 @@ import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
+import { getKindRoute } from '../../../utils/nav';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -74,7 +80,19 @@ function CanaryDetailsSection({
             />
             <CanaryRowHeader
               rowkey="Application"
-              value={automation?.kind && automation?.name ? `${automation?.kind}/${automation?.name}` : '--'}
+              value={
+                automation?.kind && automation?.name
+                  ? <Link
+                      to={formatURL(getKindRoute(automation?.kind), {
+                        name: automation?.name,
+                        namespace: automation?.namespace,
+                        clusterName: canary.clusterName,
+                      })}
+                    >
+                      {automation?.kind}/{automation?.name}
+                    </Link>
+                  : ''
+              }
             />
             <CanaryRowHeader
               rowkey="Deployment Strategy"

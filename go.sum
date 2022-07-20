@@ -1006,8 +1006,6 @@ github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQ
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/policy-agent/api v1.0.3 h1:gq+YXSyFZdcYtVZoqa4awrMBYXUofsCFh/R0Fb4BE2Q=
 github.com/weaveworks/policy-agent/api v1.0.3/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
-github.com/weaveworks/progressive-delivery v0.0.0-20220701153224-9d580bffeec3 h1:T1qPbwiIBkW5umDDBr+ABlawBQMUnGSVJNVdeVlIFKo=
-github.com/weaveworks/progressive-delivery v0.0.0-20220701153224-9d580bffeec3/go.mod h1:V/JF+61q3yBObG4jrUOAAZObO2rBQoxEZd6FYqhATjE=
 github.com/weaveworks/progressive-delivery v0.0.0-20220712154727-5d3f94dacc7d h1:uQ4HF8SiVvfK0zPr98p+/g7ScE4FqqfAG4LQyLaKMpU=
 github.com/weaveworks/progressive-delivery v0.0.0-20220712154727-5d3f94dacc7d/go.mod h1:V/JF+61q3yBObG4jrUOAAZObO2rBQoxEZd6FYqhATjE=
 github.com/weaveworks/weave-gitops v0.9.1-rc.1 h1:jYZysrZiz9kO4Y7VYHMSK8Frj/bjVWYXIXO9XRV+9Zs=

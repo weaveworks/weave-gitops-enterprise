@@ -31,7 +31,7 @@ function CanaryRowHeader({
 }: {
   children?: any;
   rowkey: string;
-  value: string | undefined;
+  value: any;
 }) {
   const classes = useCanaryStyle();
   return (
