@@ -113,6 +113,13 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       fontWeight: 600,
       whiteSpace: 'pre-line',
     },
+    canaryLink: {
+      color: theme.colors.primary,
+      fontWeight: 600,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     code: {
       wordBreak: 'break-word',
     },
@@ -123,7 +130,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       paddingLeft: wtheme.spacing(1),
     },
     messageWrape: {
-      whiteSpace:'normal'
-    }
+      whiteSpace: 'normal',
+    },
   }),
 );
