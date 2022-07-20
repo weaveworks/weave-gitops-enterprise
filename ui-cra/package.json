@@ -24,7 +24,7 @@
     "@types/react-router-dom": "^5.1.7",
     "@types/react-syntax-highlighter": "^13.5.2",
     "@types/styled-components": "^5.1.9",
-    "@weaveworks/progressive-delivery": "0.0.0-rc9",
+    "@weaveworks/progressive-delivery": "0.0.0-rc12",
     "@weaveworks/weave-gitops": "0.9.1-rc.1",
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
