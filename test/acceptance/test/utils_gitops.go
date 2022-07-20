@@ -347,10 +347,16 @@ func deleteNamespace(namespaces []string) {
 	}
 }
 
+func getApplicationCount() int {
+	stdOut, _ := runCommandAndReturnStringOutput("kubectl get Kustomization -A --output name | wc -l")
+	aCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+	return aCount
+}
+
 func getClustersCount() int {
 	stdOut, _ := runCommandAndReturnStringOutput("kubectl get GitopsCluster --output name | wc -l")
 	cCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
-	return cCount + 1 // management cluster is always available
+	return cCount + 1 // management cluster is a pseudo cluster
 }
 
 func getPoliciesCount() int {

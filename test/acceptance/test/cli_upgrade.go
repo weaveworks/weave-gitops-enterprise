@@ -256,8 +256,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				controlPlaneMachineCount := "3"
 				workerMachineCount := "3"
 
-				paramSection := make(map[string][]TemplateField)
-				paramSection["1.GitopsCluster"] = []TemplateField{
+				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -268,8 +267,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						Value:  namespace,
 						Option: "",
 					},
-				}
-				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "",
@@ -280,8 +277,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						Value:  "",
 						Option: k8Version,
 					},
-				}
-				paramSection["8.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
@@ -289,7 +284,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				setParameterValues(createPage, paramSection)
+				setParameterValues(createPage, parameters)
+
 				pages.ScrollWindow(webDriver, 0, 4000)
 				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
 
@@ -319,7 +315,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
+					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))

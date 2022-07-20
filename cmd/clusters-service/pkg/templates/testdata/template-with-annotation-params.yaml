@@ -1,7 +1,9 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: cluster-template1
+  name: cluster-template
+  annotations:
+    capi.weave.works/profile-0: '{"name": "prometheus", "version": "0.0.8", "values": "testing:\n ${TEST_PARAMETER}"}'
 spec:
   description: this is test template 1
   params:

@@ -1,37 +1,21 @@
-import React, {
-  FC,
-  useMemo,
-  useState,
-  Dispatch,
-  useEffect,
-  useCallback,
-} from 'react';
-import { theme as weaveTheme, Button } from '@weaveworks/weave-gitops';
-import { ObjectFieldTemplateProps } from '@rjsf/core';
-import { JSONSchema7 } from 'json-schema';
-import Form from '@rjsf/material-ui';
-import * as UiTemplate from '../UITemplate';
-import FormSteps from '../Steps';
+import React, { FC, Dispatch } from 'react';
+import { Button } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import ObjectFieldTemplate from '../GroupedSchema';
-import {
-  Template,
-  TemplateObject,
-} from '../../../../../cluster-services/cluster_services.pb';
+import { Template } from '../../../../../cluster-services/cluster_services.pb';
+import { Input, Select, validateFormData } from '../../../../../utils/form';
 
-const base = weaveTheme.spacing.base;
-const small = weaveTheme.spacing.small;
-
-const FormWrapper = styled(Form)`
-  .form-group {
-    padding-top: ${base};
+const FormWrapper = styled.form`
+  .form-section {
+    width: 50%;
   }
-
-  .previewCTA {
+  .preview-cta {
     display: flex;
     justify-content: flex-end;
-    padding-top: ${small};
-    padding-bottom: ${base};
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
   }
 `;
 
@@ -41,129 +25,52 @@ const TemplateFields: FC<{
   onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
-  clickedStep: string;
-}> = ({
-  activeTemplate,
-  onPRPreview,
-  formData,
-  setFormData,
-  setActiveStep,
-  clickedStep,
-}) => {
-  const [userSelectedFields, setUserSelectedFields] = useState<string[]>([]);
-  const [formContextId, setFormContextId] = useState<number>(0);
-  const [uiSchema, setuiSchema] = useState<any>({});
-
-  const objectTitle = (object: TemplateObject, index: number) => {
-    if (object.displayName && object.displayName !== '') {
-      return `${index + 1}.${object.kind} (${object.displayName})`;
-    }
-    return `${index + 1}.${object.kind}`;
+}> = ({ activeTemplate, onPRPreview, formData, setFormData }) => {
+  const handleFormData = (
+    event:
+      | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+      | React.ChangeEvent<{ name?: string; value: unknown }>,
+    fieldName?: string,
+  ) => {
+    const { name, value } = event?.target;
+    setFormData({ ...formData, [(name || fieldName) as string]: value });
   };
 
-  const required = useMemo(() => {
-    return activeTemplate?.parameters?.map(param => param.name as string);
-  }, [activeTemplate]);
-
-  const parameters = useMemo(() => {
-    return (
-      activeTemplate?.parameters?.map(param => {
-        const { options } = param;
-        const name = param.name as string;
-        if (options?.length !== 0) {
-          return {
-            [name]: {
-              type: 'string',
-              title: `${name}`,
-              enum: options,
-            },
-          };
-        } else {
-          return {
-            [name]: {
-              type: 'string',
-              title: `${name}`,
-            },
-          };
-        }
-      }) || []
-    );
-  }, [activeTemplate]);
-
-  const properties = useMemo(() => {
-    return Object.assign({}, ...parameters);
-  }, [parameters]);
-
-  const schema: JSONSchema7 = useMemo(() => {
-    return {
-      type: 'object',
-      properties,
-      required,
-    };
-  }, [properties, required]);
-
-  // Adapted from : https://codesandbox.io/s/0y7787xp0l?file=/src/index.js:1507-1521
-  const sections = useMemo(() => {
-    const excludeObjectsWithoutParams = activeTemplate?.objects?.filter(
-      object => object.parameters?.length !== 0,
-    );
-    const groups =
-      excludeObjectsWithoutParams?.reduce(
-        (accumulator, item, index) =>
-          Object.assign(accumulator, {
-            [objectTitle(item, index)]: item.parameters,
-          }),
-        {},
-      ) || {};
-    Object.assign(groups, { 'ui:template': 'Box' });
-    return [groups];
-  }, [activeTemplate]);
-
-  const addUserSelectedFields = useCallback(
-    (name: string) => {
-      if (userSelectedFields.includes(name)) {
-        setUserSelectedFields(userSelectedFields.filter(el => el !== name));
-      } else {
-        setUserSelectedFields([...userSelectedFields, name]);
-      }
-    },
-    [userSelectedFields],
-  );
-
-  useEffect(() => {
-    setFormContextId((prevState: number) => prevState + 1);
-
-    setuiSchema({
-      'ui:groups': sections,
-      'ui:template': (props: ObjectFieldTemplateProps) => (
-        <ObjectFieldTemplate
-          {...props}
-          userSelectedFields={userSelectedFields}
-          addUserSelectedFields={addUserSelectedFields}
-        />
-      ),
-    });
-  }, [sections, addUserSelectedFields, userSelectedFields]);
-
   return (
-    <FormWrapper
-      schema={schema as JSONSchema7}
-      onChange={({ formData }) => setFormData(formData)}
-      formData={formData}
-      onSubmit={onPRPreview}
-      onError={() => console.log('errors')}
-      uiSchema={uiSchema}
-      formContext={{
-        formContextId,
-        templates: FormSteps,
-        clickedStep,
-        setActiveStep,
-      }}
-      {...UiTemplate}
-    >
-      <div className="previewCTA">
-        <Button type="submit">PREVIEW PR</Button>
+    <FormWrapper>
+      {activeTemplate?.parameters?.map(param => {
+        const name = param.name || '';
+        const options = param?.options || [];
+        if (options.length > 0) {
+          return (
+            <Select
+              className="form-section"
+              name={name}
+              required={param.required}
+              label={name}
+              value={formData[name]}
+              onChange={event => handleFormData(event, name)}
+              items={options}
+              description={param.description}
+            />
+          );
+        } else
+          return (
+            <Input
+              className="form-section"
+              required={param.required}
+              name={name}
+              label={name}
+              value={formData[name]}
+              onChange={handleFormData}
+              description={param.description}
+            />
+          );
+      })}
+      <div className="preview-cta">
+        <Button onClick={event => validateFormData(event, onPRPreview)}>
+          PREVIEW PR
+        </Button>
       </div>
     </FormWrapper>
   );

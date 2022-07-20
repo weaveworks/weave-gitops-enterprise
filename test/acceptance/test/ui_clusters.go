@@ -1,7 +1,9 @@
 package acceptance
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"strconv"
 
@@ -48,8 +50,10 @@ func createLeafClusterKubeconfig(leafClusterContext string, leafClusterName stri
 		caCertificate := "/tmp/ca.crt"
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`docker cp %s:/etc/kubernetes/pki/ca.crt %s`, containerID, caCertificate))
 		Expect(err).ShouldNot(HaveOccurred(), "Failed to get CA certificate of kind cluster")
-		caAuthority, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf(`cat %s | base64`, caCertificate))
-		Expect(stdErr).Should(BeEmpty(), "Failed to get CA Authority of kind cluster")
+
+		contents, err := ioutil.ReadFile(caCertificate)
+		Expect(err).Should(BeNil(), fmt.Sprintf("Failed to read CA Certificate for %s cluster", leafClusterName))
+		caAuthority := base64.StdEncoding.EncodeToString([]byte(contents))
 
 		controlPlane, stdErr := runCommandAndReturnStringOutput(`kubectl get nodes | grep control-plane | tr -s ' '|cut -f1 -d ' '`)
 		Expect(stdErr).Should(BeEmpty(), "Failed to get control plane of kind cluster")

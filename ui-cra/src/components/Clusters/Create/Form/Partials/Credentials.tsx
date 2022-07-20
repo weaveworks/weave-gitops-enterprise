@@ -46,10 +46,10 @@ const Credentials: FC<{
       <span>Infrastructure provider credentials:</span>
       <FormControl>
         <Select
+          style={{ width: '200px' }}
           disabled={isLoading}
           value={infraCredential?.name || 'None'}
           onChange={handleSelectCredentials}
-          autoWidth
           label="Credentials"
         >
           {credentialsItems}

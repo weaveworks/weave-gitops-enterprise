@@ -48,17 +48,18 @@ function CanaryStatus({
               </>
             );
           case CanaryDeploymentStatus.Progressing:
+            const current = value.current > value.total ? value.total : value.current;
             return (
               <>
                 <LinearProgress
                   variant="determinate"
-                  value={(value.current / value.total) * 100}
+                  value={(current / value.total) * 100}
                   classes={{
                     barColorPrimary: classes.barroot,
                   }}
-                  className={classes.root}
+                  className={classes.statusProcessing}
                 />
-                <span>{`${value.current} / ${value.total}`}</span>
+                <span className={classes.statusProcessingText}>{`${current} / ${value.total}`}</span>
               </>
             );
           case CanaryDeploymentStatus.Failed:
