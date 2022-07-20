@@ -55,12 +55,15 @@ export const useCanaryStyle = makeStyles(() =>
     barroot: {
       backgroundColor: theme.colors.success,
     },
-    root: {
+    statusProcessing: {
       backgroundColor: theme.colors.neutral20,
       width: '100%',
       height: 8,
-      marginRight: '4px',
       borderRadius: 5,
+      minWidth: '75px',
+    },
+    statusProcessingText: {
+      minWidth: 'fit-content',
     },
     code: {
       wordBreak: 'break-word',
