@@ -5,6 +5,7 @@ import {
   DialogTitle,
   Typography,
 } from '@material-ui/core';
+import styled from 'styled-components';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
@@ -23,6 +24,18 @@ import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
 import { PRdefaults } from '.';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+
+const DeleteClusterWrapper = styled(Dialog)`
+  #delete-popup {
+    padding: 0 0 0 ${({ theme }) => theme.spacing.base};
+  }
+  h5 {
+    padding-bottom: ${({ theme }) => theme.spacing.base};
+  }
+  .form-section {
+    width: 100%;
+  }
+`;
 
 interface Props {
   formData: any;
@@ -129,7 +142,7 @@ export const DeleteClusterDialog: FC<Props> = ({
   }, [setSelectedClusters, setFormData, setOpenDeletePR]);
 
   return (
-    <Dialog open maxWidth="md" fullWidth onClose={cleanUp}>
+    <DeleteClusterWrapper open maxWidth="md" fullWidth onClose={cleanUp}>
       <div id="delete-popup">
         <DialogTitle disableTypography>
           <Typography variant="h5">Create PR to remove clusters</Typography>
@@ -139,26 +152,28 @@ export const DeleteClusterDialog: FC<Props> = ({
           {!loading ? (
             <>
               <Input
-                label="Create branch"
+                className="form-section"
+                label="CREATE BRANCH"
                 placeholder={formData.branchName}
                 onChange={handleChangeBranchName}
               />
               <Input
-                label="Pull request title"
+                className="form-section"
+                label="PULL REQUEST TITLE"
                 placeholder={formData.pullRequestTitle}
                 onChange={handleChangePullRequestTitle}
               />
               <Input
-                label="Commit message"
+                className="form-section"
+                label="COMMIT MESSAGE"
                 placeholder={formData.commitMessage}
                 onChange={handleChangeCommitMessage}
               />
               <Input
-                label="Pull request description"
+                className="form-section"
+                label="PULL REQUEST DESCRIPTION"
                 placeholder={formData.pullRequestDescription}
                 onChange={handleChangePRDescription}
-                multiline
-                rows={4}
               />
               <GitAuth
                 formData={formData}
@@ -182,6 +197,6 @@ export const DeleteClusterDialog: FC<Props> = ({
           )}
         </DialogContent>
       </div>
-    </Dialog>
+    </DeleteClusterWrapper>
   );
 };
