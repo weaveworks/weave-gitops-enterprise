@@ -55,6 +55,7 @@ export const useListCanaries = () => {
   return useQuery<ListCanariesResponse, Error>(
     [PD_QUERY_KEY, CANARIES_KEY],
     () => pd.ListCanaries({}),
+    { refetchInterval: 10000 },
   );
 };
 
@@ -87,9 +88,12 @@ const CANARY_OBJS_KEY = 'canary_objects';
 export const useListFlaggerObjects = (params: CanaryParams) => {
   const pd = useProgressiveDelivery();
 
-  return useQuery<ListCanaryObjectsResponse, Error>([PD_QUERY_KEY, CANARY_OBJS_KEY, params], () => {
-    return pd.ListCanaryObjects(params)
-  });
+  return useQuery<ListCanaryObjectsResponse, Error>(
+    [PD_QUERY_KEY, CANARY_OBJS_KEY, params],
+    () => {
+      return pd.ListCanaryObjects(params);
+    },
+  );
 };
 
 const EVENTS_QUERY_KEY = 'events';
