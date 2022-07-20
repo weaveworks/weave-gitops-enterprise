@@ -21,6 +21,7 @@ import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
 import ListManagedObjects from './ListManagedObjects';
+import {CanaryMetricsTable} from "./Analysis/CanaryMetricsTable";
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -134,6 +135,11 @@ function CanaryDetailsSection({
                 namespace: canary?.namespace,
               }}
             />
+          </CanaryDetailsWrapper>
+        </RouterTab>
+        <RouterTab name="Analysis" path={`${path}/analysis`}>
+          <CanaryDetailsWrapper>
+            <CanaryMetricsTable metrics={canary.analysis?.metrics || []}></CanaryMetricsTable>
           </CanaryDetailsWrapper>
         </RouterTab>
         <RouterTab name="yaml" path={`${path}/yaml`}>

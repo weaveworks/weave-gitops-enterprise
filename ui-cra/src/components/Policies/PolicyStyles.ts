@@ -123,7 +123,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       paddingLeft: wtheme.spacing(1),
     },
     messageWrape: {
-      whiteSpace:'normal'
-    }
+      whiteSpace: 'normal',
+    },
   }),
 );
