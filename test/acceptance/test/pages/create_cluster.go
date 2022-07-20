@@ -13,11 +13,11 @@ import (
 type CreateCluster struct {
 	CreateHeader *agouti.Selection
 	// TemplateName   *agouti.Selection
-	Credentials        *agouti.Selection
-	TemplateSection    *agouti.MultiSelection
-	ProfileSelect      *agouti.Selection
-	ProfileSelectPopup *agouti.MultiSelection
-	PreviewPR          *agouti.Selection
+	Credentials     *agouti.Selection
+	TemplateSection *agouti.MultiSelection
+	ProfileList     *agouti.Selection
+	ProfileSelect   *agouti.MultiSelection
+	PreviewPR       *agouti.Selection
 }
 
 type FormField struct {
@@ -66,11 +66,11 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
-		Credentials:        webDriver.Find(`.credentials [role="button"]`),
-		TemplateSection:    webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
-		ProfileSelect:      webDriver.Find(`div.profiles-select > div`),
-		ProfileSelectPopup: webDriver.All(`ul[role="listbox"] li`),
-		PreviewPR:          webDriver.FindByButton("PREVIEW PR"),
+		Credentials:     webDriver.Find(`.credentials [role="button"]`),
+		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
+		ProfileList:     webDriver.Find(`.profiles-table`),
+		ProfileSelect:   webDriver.All(`.profiles-table tr`),
+		PreviewPR:       webDriver.FindByButton("PREVIEW PR"),
 	}
 
 	return &clusterPage
@@ -122,7 +122,7 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 }
 
 func GetProfile(webDriver *agouti.Page, profileName string) Profile {
-	p := webDriver.Find(fmt.Sprintf(`.profiles-list [data-profile-name="%s"]`, profileName))
+	p := webDriver.Find(fmt.Sprintf(`.profiles-table [data-profile-name="%s"]`, profileName))
 	return Profile{
 		Name:    p.Find(`.profile-name`),
 		Version: p.Find(`.profile-version`),
@@ -141,14 +141,20 @@ func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 	}
 }
 
+func (c CreateCluster) CountProfiles() int {
+	profiles := c.ProfileList.All("[data-profile-name]")
+	count, _ := profiles.Count()
+	return count
+}
+
 func (c CreateCluster) SelectProfile(profileName string) *agouti.Selection {
 	time.Sleep(2 * time.Second)
-	pCount, _ := c.ProfileSelectPopup.Count()
+	pCount := c.CountProfiles()
 
 	for i := 0; i < pCount; i++ {
-		pName, _ := c.ProfileSelectPopup.At(i).Text()
+		pName, _ := c.ProfileSelect.At(i).Text()
 		if profileName == pName {
-			return c.ProfileSelectPopup.At(i)
+			return c.ProfileSelect.At(i)
 		}
 	}
 	return nil
