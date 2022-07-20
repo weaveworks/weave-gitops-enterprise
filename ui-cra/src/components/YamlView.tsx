@@ -112,16 +112,15 @@ export default styled(YamlView).attrs({
     text-align: right;
   }
 
-  ${CopyButton} {
-    .MuiButton-root {
-      border-radius: 50%;
-      min-width: 48px;
-      height: 48px;
-      padding: 0;
-    }
+  button {
+    border: 0px;
+    border-radius: 50%;
+    min-width: 30px;
+    height: 30px;
+    padding: 0;
 
-    .MuiButton-text {
-      padding: 0;
+    &:hover {
+      border: 1px solid #d8d8d8;
     }
   }
 `;
