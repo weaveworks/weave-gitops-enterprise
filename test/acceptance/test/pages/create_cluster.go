@@ -152,7 +152,7 @@ func (c CreateCluster) SelectProfile(profileName string) *agouti.Selection {
 	pCount := c.CountProfiles()
 
 	for i := 0; i < pCount; i++ {
-		pName,_ := c.ProfileSelect.At(i).Find("[data-profile-name]").Text()
+		pName, _ := c.ProfileSelect.At(i).Find("[data-profile-name]").Text()
 		if profileName == pName {
 			return c.ProfileSelect.At(i)
 		}
