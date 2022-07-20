@@ -1609,6 +1609,9 @@
         },
         "version": {
           "type": "string"
+        },
+        "editableValues": {
+          "type": "boolean"
         }
       }
     }
