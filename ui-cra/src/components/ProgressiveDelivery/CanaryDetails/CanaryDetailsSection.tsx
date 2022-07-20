@@ -20,7 +20,6 @@ import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useState } from 'react';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import ListEvents from '../Events/ListEvents';
-import { ManagedObjectsTable } from './ManagedObjectsTable';
 import ListManagedObjects from './ListManagedObjects';
 
 const TitleWrapper = styled.h2`

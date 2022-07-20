@@ -1,5 +1,5 @@
 import { filterConfig, theme, FilterableTable } from '@weaveworks/weave-gitops';
-import { ThemeProvider } from 'styled-components';
+import styled, { ThemeProvider } from 'styled-components';
 import { UnstructuredObject } from '@weaveworks/progressive-delivery';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
 import { TableWrapper } from '../CanaryStyles';
@@ -10,14 +10,18 @@ export const ManagedObjectsTable = ({ objects }: { objects: UnstructuredObject[]
   const initialFilterState = {
     ...filterConfig(objects, 'component'),
   };
+  const CustomFilterableTable = styled(FilterableTable)`
+  thead > tr {
+    background: ${theme.colors.neutral10};
+  }
+`;
 
   return (
     <div className={classes.root}>
       <ThemeProvider theme={theme}>
         {objects.length > 0 ? (
           <TableWrapper id="objects-list">
-            <FilterableTable
-              key={objects?.length}
+            <CustomFilterableTable
               filters={initialFilterState}
               rows={objects}
               fields={[
