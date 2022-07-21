@@ -16,8 +16,16 @@ type CreateCluster struct {
 	Credentials     *agouti.Selection
 	TemplateSection *agouti.MultiSelection
 	ProfileList     *agouti.Selection
-	ProfileSelect   *agouti.MultiSelection
 	PreviewPR       *agouti.Selection
+}
+
+type ProfileInformation struct {
+	Checkbox  *agouti.Selection
+	Name      *agouti.Selection
+	Layer     *agouti.Selection
+	Version   *agouti.Selection
+	Namespace *agouti.Selection
+	Values    *agouti.Selection
 }
 
 type FormField struct {
@@ -68,8 +76,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
 		Credentials:     webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
-		ProfileList:     webDriver.Find(`.profiles-table`),
-		ProfileSelect:   webDriver.All(`.profiles-table tr`),
+		ProfileList:     webDriver.Find(`.profiles-table table tbody`),
 		PreviewPR:       webDriver.FindByButton("PREVIEW PR"),
 	}
 
@@ -141,27 +148,21 @@ func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 	}
 }
 
-func (c CreateCluster) CountProfiles() int {
-	profiles := c.ProfileList.All("[data-profile-name]")
-	count, _ := profiles.Count()
-	return count
-}
-
-func (c CreateCluster) SelectProfile(profileName string) *agouti.Selection {
-	time.Sleep(2 * time.Second)
-	pCount := c.CountProfiles()
-
-	for i := 0; i < pCount; i++ {
-		pName, _ := c.ProfileSelect.At(i).Find("[data-profile-name]").Text()
-		if profileName == pName {
-			return c.ProfileSelect.At(i)
-		}
+// FindProfileInList finds the profile with given name
+func (c CreateCluster) FindProfileInList(profileName string) *ProfileInformation {
+	cluster := c.ProfileList.FindByXPath(fmt.Sprintf(`//span[@data-profile-name="%s"]/ancestor::tr`, profileName))
+	return &ProfileInformation{
+		Checkbox:  cluster.FindByXPath(`td[1]`).Find("input"),
+		Name:      cluster.FindByXPath(`td[2]`),
+		Layer:     cluster.FindByXPath(`td[3]`),
+		Version:   cluster.FindByXPath(`td[4]//div[contains(@class, "profile-version")]`),
+		Namespace: cluster.FindByXPath(`td[4]//div[contains(@class, "profile-namespace")]`),
+		Values:    cluster.FindByXPath(`td[4]//button`),
 	}
-	return nil
 }
 
 func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
-	return webDriver.All(`li[class*=MuiListItem-root]`)
+	return webDriver.All(`div[role*=presentation] li[class*=MuiListItem-root]`)
 }
 
 func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
@@ -173,7 +174,6 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
-	Eventually(webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]`), 30*time.Second).Should(BeVisible())
 	return Preview{
 		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
 		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  textarea:first-child`),

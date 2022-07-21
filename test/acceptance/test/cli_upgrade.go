@@ -287,31 +287,31 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				pages.ScrollWindow(webDriver, 0, 4000)
-				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
 
 				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 				pages.ScrollWindow(webDriver, 0, 4000)
 
-				By("And select the podinfo profile to install", func() {
-					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
-					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
-				})
+				// Temporaroary FIX - The last WGE release doesn't have new UI changes hence skipping them
+				// By("And select the podinfo profile to install", func() {
+				// 	Eventually(createPage.ProfileSelect.Click).Should(Succeed())
+				// 	Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
+				// })
 
-				By("And verify selected podinfo profile values.yaml", func() {
-					profile := pages.GetProfile(webDriver, "podinfo")
+				// By("And verify selected podinfo profile values.yaml", func() {
+				// 	profile := pages.GetProfile(webDriver, "podinfo")
 
-					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "6.0.0").Click).Should(Succeed())
+				// 	Eventually(profile.Version.Click).Should(Succeed())
+				// 	Eventually(pages.GetOption(webDriver, "6.0.0").Click).Should(Succeed())
 
-					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
+				// 	Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
 
-					Eventually(profile.Values.Click).Should(Succeed())
-					valuesYaml := pages.GetValuesYaml(webDriver)
+				// 	Eventually(profile.Values.Click).Should(Succeed())
+				// 	valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
-					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
-				})
+				// 	Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
+				// 	Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
+				// 	Eventually(valuesYaml.Cancel.Click).Should(Succeed())
+				// })
 
 				By("Then I should preview the PR", func() {
 					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())

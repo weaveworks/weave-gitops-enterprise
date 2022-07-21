@@ -97,6 +97,16 @@ function formatPromoted(target?: CanaryTargetDeployment): any {
   // Remove trainling comma
   return out;
 }
+function getTime(date: string): number {
+  return new Date(date).getTime();
+}
+function sortCanariesByDate(canaries: Canary[]): Canary[] {
+  return canaries.sort(
+    (pre, curr) =>
+      getTime(curr?.status?.conditions![0].lastUpdateTime || '') -
+      getTime(pre?.status?.conditions![0].lastUpdateTime || ''),
+  );
+}
 
 export const CanaryTable: FC<Props> = ({ canaries }) => {
   const classes = usePolicyStyle();
@@ -107,30 +117,30 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
   };
 
   return (
-    <div className={classes.root}>
       <ThemeProvider theme={theme}>
         {canaries.length > 0 ? (
           <TableWrapper id="canaries-list">
             <FilterableTable
-              key={canaries?.length}
               filters={initialFilterState}
-              rows={canaries}
+              rows={sortCanariesByDate(canaries)}
               fields={[
                 {
                   label: 'Name',
                   value: (c: Canary) => (
                     <Link
                       to={`/applications/delivery/${c.targetDeployment?.uid}?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
-                      className={classes.link}
+                      className={classes.canaryLink}
                     >
                       {c.name}
+                      <span
+                        style={{
+                          marginLeft: theme.spacing.xs,
+                        }}
+                      >
+                        {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
+                      </span>
                     </Link>
                   ),
-                },
-                {
-                  label: '',
-                  value: (c: Canary) =>
-                    getDeploymentStrategyIcon(c.deploymentStrategy || ''),
                 },
                 {
                   label: 'Status',
@@ -188,6 +198,5 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
           <p>No data to display</p>
         )}
       </ThemeProvider>
-    </div>
   );
 };
