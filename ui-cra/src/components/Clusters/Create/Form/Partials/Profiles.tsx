@@ -26,9 +26,10 @@ const ProfilesWrapper = styled.div`
     }
     .profile-details {
       display: flex;
+      width: 700px;
       gap: 21.5%;
-      h2:first-of-type {
-        margin-left: ${({ theme }) => theme.spacing.small};
+      h2 {
+        margin-left: ${({ theme }) => theme.spacing.xs};
       }
     }
   }
