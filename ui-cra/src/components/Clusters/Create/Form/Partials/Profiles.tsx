@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, useCallback, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useEffect, useState } from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
 import useProfiles from '../../../../../contexts/Profiles';
 import styled from 'styled-components';
@@ -65,12 +65,6 @@ const Profiles: FC<{
     setSelectedProfiles([]);
   };
 
-  // handleSelectedProfiles wraps setSelectedProfiles as adding this directly to useEffect causes an infinite loop
-  const handleSelectedProfiles = useCallback(
-    profiles => setSelectedProfiles(profiles),
-    [setSelectedProfiles],
-  );
-
   const onlyRequiredItems =
     profiles.filter(item => item.required === true).length === profiles.length;
   const isAllSelected =
@@ -82,9 +76,9 @@ const Profiles: FC<{
     if (selectedProfiles.length === 0) {
       requiredProfiles = profiles.filter(profile => profile.required);
       setSelected(getNamesFromProfiles(requiredProfiles));
-      handleSelectedProfiles(requiredProfiles);
+      setSelectedProfiles(requiredProfiles);
     }
-  }, [profiles, handleSelectedProfiles, selectedProfiles.length]);
+  }, [profiles, setSelectedProfiles, selectedProfiles.length]);
 
   return isLoading ? (
     <Loader />
@@ -150,7 +144,7 @@ const Profiles: FC<{
               <ProfilesListItem
                 profile={p}
                 selectedProfiles={selectedProfiles}
-                setSelectedProfiles={handleSelectedProfiles}
+                setSelectedProfiles={setSelectedProfiles}
               />
             ),
           },
