@@ -72,11 +72,9 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error
 	}
 
 	for _, resource := range resources {
-		obj := convertToResource(resource)
-
-		err = createObject(ctx, c, obj)
+		err = createObject(ctx, c, resource)
 		if err != nil {
-			return fmt.Errorf("failed to create resource %s: %w", obj.GetName(), err)
+			return fmt.Errorf("failed to create resource %s: %w", resource.GetName(), err)
 		}
 	}
 
@@ -85,26 +83,6 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error
 
 func createObject(ctx context.Context, c client.Client, obj client.Object) error {
 	return c.Create(ctx, obj)
-}
-
-func convertToResource(resource runtime.Object) client.Object {
-	if resource.GetObjectKind().GroupVersionKind().Kind == "Namespace" {
-		return resource.(*corev1.Namespace)
-	}
-
-	if resource.GetObjectKind().GroupVersionKind().Kind == "ServiceAccount" {
-		return resource.(*corev1.ServiceAccount)
-	}
-
-	if resource.GetObjectKind().GroupVersionKind().Kind == "RoleBinding" {
-		return resource.(*rbacv1.RoleBinding)
-	}
-
-	if resource.GetObjectKind().GroupVersionKind().Kind == "Policy" {
-		return resource.(*pacv2beta1.Policy)
-	}
-
-	return nil
 }
 
 // ExportTenants exports all the tenants to a file.
@@ -131,7 +109,7 @@ func marshalOutput(out io.Writer, output runtime.Object) error {
 	return nil
 }
 
-func outputResources(out io.Writer, resources []runtime.Object) error {
+func outputResources(out io.Writer, resources []client.Object) error {
 	for _, v := range resources {
 		if err := marshalOutput(out, v); err != nil {
 			return fmt.Errorf("failed outputting tenant: %w", err)
@@ -146,8 +124,8 @@ func outputResources(out io.Writer, resources []runtime.Object) error {
 }
 
 // GenerateTenantResources creates all the resources for tenants.
-func GenerateTenantResources(tenants ...Tenant) ([]runtime.Object, error) {
-	generated := []runtime.Object{}
+func GenerateTenantResources(tenants ...Tenant) ([]client.Object, error) {
+	generated := []client.Object{}
 
 	for _, tenant := range tenants {
 		if err := tenant.Validate(); err != nil {
