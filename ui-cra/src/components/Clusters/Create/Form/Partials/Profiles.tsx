@@ -1,4 +1,4 @@
-import React, { Component, Dispatch, FC, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useEffect, useState } from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
 import useProfiles from '../../../../../contexts/Profiles';
 import styled from 'styled-components';
