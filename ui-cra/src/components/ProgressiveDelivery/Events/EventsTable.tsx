@@ -15,40 +15,36 @@ export const EventsTable = ({ events }: { events: Event[] }) => {
   return (
     <div className={classes.root}>
       <ThemeProvider theme={theme}>
-        {events.length > 0 ? (
-          <TableWrapper id="events-list">
-            <FilterableTable
-              key={events?.length}
-              filters={initialFilterState}
-              rows={events}
-              fields={[
-                {
-                  label: 'Reason',
-                  value: 'reason',
-                  textSearchable: true,
-                },
-                {
-                  label: 'Message',
-                  value: (e: Event) => (
-                    <span className={classes.messageWrape}>{e.message}</span>
-                  ),
-                  maxWidth: 600,
-                },
-                {
-                  label: 'From',
-                  value: 'component',
-                },
-                {
-                  label: 'Last Updated',
-                  value: (e: Event) => moment(e.timestamp).fromNow() || '--',
-                  sortValue: (e: Event) => e.timestamp,
-                },
-              ]}
-            />
-          </TableWrapper>
-        ) : (
-          <p>No data to display</p>
-        )}
+        <TableWrapper id="events-list">
+          <FilterableTable
+            key={events?.length}
+            filters={initialFilterState}
+            rows={events}
+            fields={[
+              {
+                label: 'Reason',
+                value: 'reason',
+                textSearchable: true,
+              },
+              {
+                label: 'Message',
+                value: (e: Event) => (
+                  <span className={classes.messageWrape}>{e.message}</span>
+                ),
+                maxWidth: 600,
+              },
+              {
+                label: 'From',
+                value: 'component',
+              },
+              {
+                label: 'Last Updated',
+                value: (e: Event) => moment(e.timestamp).fromNow() || '--',
+                sortValue: (e: Event) => e.timestamp,
+              },
+            ]}
+          />
+        </TableWrapper>
       </ThemeProvider>
     </div>
   );
