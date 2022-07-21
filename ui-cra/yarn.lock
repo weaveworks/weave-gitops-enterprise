@@ -2337,10 +2337,10 @@
     "@typescript-eslint/types" "5.13.0"
     eslint-visitor-keys "^3.0.0"
 
-"@weaveworks/progressive-delivery@0.0.0-rc9":
-  version "0.0.0-rc9"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc9/a9cd9a4e8ae5ecdd712c0ccb8cb83a79556bf7cb811b64e53208e5ec9226d4cc#01be0b64139832aee06599aa46bbb5090b13c4be"
-  integrity sha512-feapUQKwlpxfSGVR9r/65+wKb/xeGJQQWSTjTtErPUovNqwlSqj1QkwIXabd/QnbyU8Oa8BhNdQieC67XK0trQ==
+"@weaveworks/progressive-delivery@0.0.0-rc12":
+  version "0.0.0-rc12"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc12/319a8703bc7963de038f79806b6220ba1f821c4218b10658dbeb00f901345846#01afa880f4248d626c8491372f6eba615c105fff"
+  integrity sha512-YrT+JrOXFGNsclQVPmG85uLKsoDiVlYZqF++nryt2zEsNTreLu0RvXt0FjKsFWl3EaD2XGJvkLYDOglxUs2fYg==
 
 "@weaveworks/weave-gitops@0.9.1-rc.1":
   version "0.9.1-rc.1"

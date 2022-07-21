@@ -13,9 +13,9 @@ require (
 	github.com/prometheus/client_golang v1.12.2 // indirect
 	github.com/sclevine/agouti v3.0.0+incompatible
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.7.2
-	github.com/weaveworks/weave-gitops v0.9.1-rc.1
+	github.com/weaveworks/weave-gitops v0.9.1-rc.1.0.20220720151155-47b9020ad0eb
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -38,14 +38,15 @@ require (
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.2
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.11.0
+	github.com/spf13/viper v1.12.0
 	github.com/weaveworks/cluster-controller v1.2.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
-	github.com/weaveworks/policy-agent/api v1.0.3
-	github.com/weaveworks/progressive-delivery v0.0.0-20220712154727-5d3f94dacc7d
+	github.com/weaveworks/policy-agent/api v1.0.4
+	github.com/weaveworks/progressive-delivery v0.0.0-20220719161717-3318c52a96f8
 	github.com/xanzy/go-gitlab v0.58.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
@@ -63,7 +64,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.5.0 // indirect
+	cloud.google.com/go/compute v1.6.1 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.24 // indirect
@@ -141,6 +142,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -181,7 +183,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
@@ -197,7 +199,7 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/src-d/gcfg v1.4.0 // indirect
-	github.com/subosito/gotenv v1.2.0 // indirect
+	github.com/subosito/gotenv v1.3.0 // indirect
 	github.com/tomwright/dasel v1.22.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
@@ -243,5 +245,6 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
+
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 )

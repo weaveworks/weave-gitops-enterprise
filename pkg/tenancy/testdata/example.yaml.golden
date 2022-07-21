@@ -1,0 +1,172 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-ns
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant
+  namespace: foo-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant
+  namespace: foo-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: gotk:foo-ns:reconciler
+- kind: ServiceAccount
+  name: foo-tenant
+  namespace: foo-ns
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-ns
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: bar-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: bar-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: gotk:bar-ns:reconciler
+- kind: ServiceAccount
+  name: bar-tenant
+  namespace: bar-ns
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: foobar-ns
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: foobar-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: foobar-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: gotk:foobar-ns:reconciler
+- kind: ServiceAccount
+  name: bar-tenant
+  namespace: foobar-ns
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  creationTimestamp: null
+  name: weave.policies.tenancy.bar-tenant-allowed-repositories
+spec:
+  category: weave.categories.tenancy
+  code: "\npackage weave.tenancy.allowed_repositories\n\ncontroller_input := input.review.object\nnamespace
+    := controller_input.metadata.namespace\nviolation[result] {\n\tcontroller_input.kind
+    == \"GitRepository\"\n\turls := input.parameters.git_urls\n\turl := controller_input.spec.url\n\tnot
+    contains_array(url, urls)\n\tresult = {\t\n\t\"issue detected\": true,\n\t\"msg\":
+    sprintf(\"Git repository url %v is not allowed for namespace %v\", [url, namespace]),\n\t}\n}\nviolation[result]
+    {\n\tcontroller_input.kind == \"Bucket\"\n\turls := input.parameters.bucket_endpoints\n\turl
+    := controller_input.spec.endpoint\n\tnot contains_array(url, urls)\n\tresult =
+    {\t\n\t\"issue detected\": true,\n\t\"msg\": sprintf(\"Bucket endpoint %v is not
+    allowed for namespace %v\", [url, namespace]),\n\t}\n}\nviolation[result] {\n\tcontroller_input.kind
+    == \"HelmRepository\"\n\turls := input.parameters.helm_urls\n\turl := controller_input.spec.url\n\tnot
+    contains_array(url, urls)\n\tresult = {\t\n\t\"issue detected\": true,\n\t\"msg\":
+    sprintf(\"Helm repository url %v is not allowed for namespace %v\", [url, namespace]),\n\t}\n}\ncontains_array(item,
+    items) {\n\titems[_] = item\n}\n"
+  description: Controls the allowed repositories to be used as sources
+  how_to_solve: ""
+  id: weave.policies.tenancy.bar-tenant-allowed-repositories
+  name: bar-tenant allowed repositories
+  parameters:
+  - name: git_urls
+    required: false
+    type: array
+    value:
+    - https://github.com/testorg/testrepo
+    - https://github.com/testorg/testinfo
+  - name: bucket_endpoints
+    required: false
+    type: array
+    value:
+    - minio.example.com
+  - name: helm_urls
+    required: false
+    type: array
+    value:
+    - https://testorg.github.io/testrepo
+  severity: high
+  standards: null
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - GitRepository
+    - Bucket
+    - HelmRepository
+    labels: null
+    namespaces:
+    - bar-ns
+    - foobar-ns
+---
