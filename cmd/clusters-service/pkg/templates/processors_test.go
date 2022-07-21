@@ -86,6 +86,13 @@ func TestProcessor_AllParamNames(t *testing.T) {
 				"WORKER_MACHINE_COUNT",
 			},
 		},
+		{
+			filename: "testdata/template-with-annotation-params.yaml",
+			want: []string{
+				"CLUSTER_NAME",
+				"TEST_PARAMETER",
+			},
+		},
 	}
 
 	for _, tt := range paramTests {
