@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/any"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -21,7 +21,7 @@ import (
 
 var requiredClusterNameErr = errors.New("`clusterName` param is required")
 
-func getPolicyParamValue(param pacv1.PolicyParameters, policyID string) (*anypb.Any, error) {
+func getPolicyParamValue(param pacv2beta1.PolicyParameters, policyID string) (*anypb.Any, error) {
 	if param.Value == nil {
 		return nil, nil
 	}
@@ -73,7 +73,7 @@ func getPolicyParamValue(param pacv1.PolicyParameters, policyID string) (*anypb.
 	return anyValue, nil
 }
 
-func toPolicyResponse(policyCRD pacv1.Policy, clusterName string) (*capiv1_proto.Policy, error) {
+func toPolicyResponse(policyCRD pacv2beta1.Policy, clusterName string) (*capiv1_proto.Policy, error) {
 	policySpec := policyCRD.Spec
 
 	var policyLabels []*capiv1_proto.PolicyTargetLabel
@@ -134,7 +134,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
-		return &pacv1.PolicyList{}
+		return &pacv2beta1.PolicyList{}
 	})
 	opts := []client.ListOption{}
 	if m.Pagination != nil {
@@ -160,7 +160,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 			continue
 		}
 		for _, l := range lists {
-			list, ok := l.(*pacv1.PolicyList)
+			list, ok := l.(*pacv2beta1.PolicyList)
 			if !ok {
 				continue
 			}
@@ -190,7 +190,7 @@ func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest
 	if m.ClusterName == "" {
 		return nil, requiredClusterNameErr
 	}
-	policyCR := pacv1.Policy{}
+	policyCR := pacv2beta1.Policy{}
 	err = clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCR)
 	if err != nil {
 		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.PolicyName, m.ClusterName, err)
