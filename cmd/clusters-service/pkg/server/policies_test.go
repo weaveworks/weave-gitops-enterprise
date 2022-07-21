@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -247,9 +248,32 @@ func TestListPolicies(t *testing.T) {
 				makePolicy(t),
 			},
 			expected: &capiv1_proto.ListPoliciesResponse{
-				Policies: []*capiv1_proto.Policy{},
-				Total:    int32(0),
+				Policies: []*capiv1_proto.Policy{
+					{
+						Name:      "Missing Owner Label",
+						Severity:  "high",
+						Code:      "foo",
+						CreatedAt: "0001-01-01T00:00:00Z",
+						Targets: &capiv1_proto.PolicyTargets{
+							Labels: []*capiv1_proto.PolicyTargetLabel{
+								{
+									Values: map[string]string{"my-label": "my-value"},
+								},
+							},
+						},
+						ClusterName: "Default",
+					},
+				},
+				Total: int32(1),
 			},
+			clusterName: "Default",
+		},
+		{
+			name: "list policies with invalid cluster filtering",
+			clusterState: []runtime.Object{
+				makePolicy(t),
+			},
+			err:         errors.New("error while listing policies for cluster wrong: cluster wrong not found"),
 			clusterName: "wrong",
 		},
 		{
@@ -274,8 +298,16 @@ func TestListPolicies(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			clientsPool := &clustersmngrfakes.FakeClientsPool{}
 			fakeCl := createClient(t, tt.clusterState...)
-			clientsPool.ClientsReturns(map[string]client.Client{"Default": fakeCl})
+			clients := map[string]client.Client{"Default": fakeCl}
+			clientsPool.ClientsReturns(clients)
 			clientsPool.ClientReturns(fakeCl, nil)
+			clientsPool.ClientStub = func(name string) (client.Client, error) {
+				if c, found := clients[name]; found && c != nil {
+					return c, nil
+				}
+
+				return nil, fmt.Errorf("cluster %s not found", name)
+			}
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
 
 			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
