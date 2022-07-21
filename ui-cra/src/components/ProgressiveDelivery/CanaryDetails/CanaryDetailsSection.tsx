@@ -42,7 +42,9 @@ function CanaryDetailsSection({
   const [open, setOpen] = useState(true);
 
   const { conditions, ...restStatus } = canary?.status || { conditions: [] };
-  const { lastTransitionTime, ...restConditionObj } = conditions![0] || { lastTransitionTime: '' };
+  const { lastTransitionTime, ...restConditionObj } = conditions![0] || {
+    lastTransitionTime: '',
+  };
 
   const toggleCollapse = () => {
     setOpen(!open);
@@ -76,7 +78,11 @@ function CanaryDetailsSection({
             />
             <CanaryRowHeader
               rowkey="Application"
-              value={automation?.kind && automation?.name ? `${automation?.kind}/${automation?.name}` : '--'}
+              value={
+                automation?.kind && automation?.name
+                  ? `${automation?.kind}/${automation?.name}`
+                  : '--'
+              }
             />
             <CanaryRowHeader
               rowkey="Deployment Strategy"
@@ -88,7 +94,9 @@ function CanaryDetailsSection({
             </CanaryRowHeader>
             <CanaryRowHeader rowkey="Provider" value={canary.provider} />
 
-            <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
+            <div
+              className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}
+            >
               Status
             </div>
 
@@ -117,7 +125,11 @@ function CanaryDetailsSection({
                 ))}
               </TableBody>
             </Table>
+          </CanaryDetailsWrapper>
+        </RouterTab>
 
+        <RouterTab name="Objects" path={`${path}/objects`}>
+          <CanaryDetailsWrapper>
             <ListManagedObjects
               clusterName={canary.clusterName || ''}
               name={canary.name || ''}
