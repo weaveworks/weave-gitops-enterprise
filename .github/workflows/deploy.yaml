@@ -91,7 +91,7 @@ jobs:
       management-cluster-kind: kind
       capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
-      artifacts-base-dir: "/tmp/smoke-test-github"
+      test-artifact-name: smoke-tests-github
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -119,7 +119,7 @@ jobs:
       management-cluster-kind: kind
       capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
-      artifacts-base-dir: "/tmp/smoke-test-gitlab"
+      test-artifact-name: smoke-tests-gitlab
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -149,7 +149,7 @@ jobs:
       management-cluster-kind: kind
       capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
-      artifacts-base-dir: "/tmp/smoke-test-gitlab-on-prem"
+      test-artifact-name: smoke-tests-gitlab-on-prem
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -162,6 +162,17 @@ jobs:
       WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
       WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
+
+  smoke-test-results:
+    needs: [smoke-tests-github, smoke-tests-gitlab, smoke-tests-gitlab-on-prem]
+    uses: ./.github/workflows/publish-test-results.yaml
+    with:
+      runs-on: ubuntu-latest
+      junit-results-glob-pattern: "*smoke-tests*.xml"
+      check-name: "Smoke Tests"
+      slack-notification: false
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   snyk-monitor:
     runs-on: ubuntu-latest
