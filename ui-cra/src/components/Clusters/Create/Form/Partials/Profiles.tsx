@@ -31,14 +31,16 @@ const Profiles: FC<{
   selectedProfiles: UpdatedProfile[];
   setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
 }> = ({ selectedProfiles, setSelectedProfiles }) => {
+  const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
+    profiles.map(p => p.name);
+
   const { profiles, isLoading } = useProfiles();
-  const [selected, setSelected] = useState<UpdatedProfile['name'][]>([]);
+  const [selected, setSelected] = useState<UpdatedProfile['name'][]>(
+    getNamesFromProfiles(selectedProfiles),
+  );
 
   const getProfilesFromNames = (names: string[]) =>
     profiles.filter(profile => names.find(name => profile.name === name));
-
-  const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
-    profiles.map(p => p.name);
 
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -82,8 +84,7 @@ const Profiles: FC<{
       setSelected(getNamesFromProfiles(requiredProfiles));
       handleSelectedProfiles(requiredProfiles);
     }
-    setSelected(getNamesFromProfiles(selectedProfiles));
-  }, [selectedProfiles, profiles, handleSelectedProfiles]);
+  }, [profiles, handleSelectedProfiles, selectedProfiles.length]);
 
   return isLoading ? (
     <Loader />
