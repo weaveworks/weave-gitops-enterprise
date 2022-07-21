@@ -76,11 +76,6 @@ export const useGetCanaryDetails = (params: CanaryParams) => {
 
 export const useCanariesCount = () => {
   const { data } = useListCanaries();
-
-  if (!data) {
-    return 0;
-  }
-
   return data?.canaries?.length;
 };
 
