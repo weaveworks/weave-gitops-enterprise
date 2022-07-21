@@ -19,7 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
@@ -39,7 +39,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1.AddToScheme,
-		pacv1.AddToScheme,
+		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 	}
@@ -235,9 +235,9 @@ func rawExtension(s string) runtime.RawExtension {
 	}
 }
 
-func makePolicy(t *testing.T, opts ...func(p *pacv1.Policy)) *pacv1.Policy {
+func makePolicy(t *testing.T, opts ...func(p *pacv2beta1.Policy)) *pacv2beta1.Policy {
 	t.Helper()
-	policy := &pacv1.Policy{
+	policy := &pacv2beta1.Policy{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Policy",
 			APIVersion: "v1",
@@ -245,16 +245,16 @@ func makePolicy(t *testing.T, opts ...func(p *pacv1.Policy)) *pacv1.Policy {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "weave.policies.missing-owner-label",
 		},
-		Spec: pacv1.PolicySpec{
+		Spec: pacv2beta1.PolicySpec{
 			Name:     "Missing Owner Label",
 			Severity: "high",
 			Code:     "foo",
-			Targets: pacv1.PolicyTargets{
+			Targets: pacv2beta1.PolicyTargets{
 				Labels:     []map[string]string{{"my-label": "my-value"}},
 				Kinds:      []string{},
 				Namespaces: []string{},
 			},
-			Standards: []pacv1.PolicyStandard{},
+			Standards: []pacv2beta1.PolicyStandard{},
 		},
 	}
 	for _, o := range opts {

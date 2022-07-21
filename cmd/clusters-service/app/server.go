@@ -34,7 +34,7 @@ import (
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -328,7 +328,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
-		pacv1.AddToScheme,
+		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
@@ -345,7 +345,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}
 
 	clientsFactoryScheme := kube.CreateScheme()
-	_ = pacv1.AddToScheme(clientsFactoryScheme)
+	_ = pacv2beta1.AddToScheme(clientsFactoryScheme)
 	_ = flaggerv1beta1.AddToScheme(clientsFactoryScheme)
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
