@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, useEffect, useState } from 'react';
+import React, { Component, Dispatch, FC, useEffect, useState } from 'react';
 import { UpdatedProfile } from '../../../../../types/custom';
 import useProfiles from '../../../../../contexts/Profiles';
 import styled from 'styled-components';
@@ -24,8 +24,23 @@ const ProfilesWrapper = styled.div`
     a {
       color: ${({ theme }) => theme.colors.primary};
     }
+    .profile-details {
+      display: flex;
+      gap: 21.5%;
+      h2:first-of-type {
+        margin-left: ${({ theme }) => theme.spacing.small};
+      }
+    }
   }
 `;
+
+const ProfileDetailsLabelRenderer = () => (
+  <div className="profile-details">
+    <h2>Version</h2>
+    <h2>Namespace</h2>
+    <h2>Yaml</h2>
+  </div>
+);
 
 const Profiles: FC<{
   selectedProfiles: UpdatedProfile[];
@@ -140,6 +155,7 @@ const Profiles: FC<{
           },
           {
             label: 'Version',
+            labelRenderer: () => <ProfileDetailsLabelRenderer />,
             value: (p: UpdatedProfile) => (
               <ProfilesListItem
                 profile={p}
