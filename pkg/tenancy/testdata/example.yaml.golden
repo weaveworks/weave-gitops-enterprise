@@ -133,9 +133,9 @@ spec:
     allowed for namespace %v\", [url, namespace]),\n\t}\n}\nviolation[result] {\n\tcontroller_input.kind
     == \"HelmRepository\"\n\turls := input.parameters.helm_urls\n\turl := controller_input.spec.url\n\tnot
     contains_array(url, urls)\n\tresult = {\t\n\t\"issue detected\": true,\n\t\"msg\":
-    sprintf(\"Helm erpository url %v is not allowed for namespace %v\", [url, namespace]),\n\t}\n}\ncontains_array(item,
+    sprintf(\"Helm repository url %v is not allowed for namespace %v\", [url, namespace]),\n\t}\n}\ncontains_array(item,
     items) {\n\titems[_] = item\n}\n"
-  description: ""
+  description: Controls the allowed repositories to be used as sources
   how_to_solve: ""
   id: weave.policies.tenancy.bar-tenant-allowed-repositories
   name: bar-tenant allowed repositories

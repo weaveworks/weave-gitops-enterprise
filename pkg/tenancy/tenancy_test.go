@@ -205,7 +205,7 @@ func TestGenerateTenantResources_WithErrors(t *testing.T) {
 				Name:       "test-tenant",
 				Namespaces: []string{},
 			},
-			errorMessages: []string{"namespaces required"},
+			errorMessages: []string{"must provide at least one namespace"},
 		},
 		{
 			name: "tenant with no name",
@@ -221,7 +221,7 @@ func TestGenerateTenantResources_WithErrors(t *testing.T) {
 			tenant: Tenant{
 				Namespaces: []string{},
 			},
-			errorMessages: []string{"invalid tenant name", "namespaces required"},
+			errorMessages: []string{"invalid tenant name", "must provide at least one namespace"},
 		},
 	}
 
