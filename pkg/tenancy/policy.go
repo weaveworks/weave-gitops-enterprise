@@ -8,7 +8,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
-var (
+const (
 	policyRepoGitKind    = "GitRepository"
 	policyRepoBucketKind = "Bucket"
 	policyRepoHelmKind   = "HelmRepository"
@@ -29,8 +29,8 @@ func validatePolicyRepoKind(kind string) error {
 	return fmt.Errorf("invalid repository kind: %s", kind)
 }
 
-func generatePolicyRepoParams(gitUrls, bucketEndpoints, hemlUrls []string) ([]pacv2beta1.PolicyParameters, error) {
-	gitBytes, err := json.Marshal(gitUrls)
+func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs []string) ([]pacv2beta1.PolicyParameters, error) {
+	gitBytes, err := json.Marshal(gitURLs)
 	if err != nil {
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
 	}
@@ -40,7 +40,7 @@ func generatePolicyRepoParams(gitUrls, bucketEndpoints, hemlUrls []string) ([]pa
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
 	}
 
-	helmBytes, err := json.Marshal(hemlUrls)
+	helmBytes, err := json.Marshal(helmURLs)
 	if err != nil {
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
 	}
@@ -101,7 +101,7 @@ violation[result] {
 	not contains_array(url, urls)
 	result = {	
 	"issue detected": true,
-	"msg": sprintf("Helm erpository url %v is not allowed for namespace %v", [url, namespace]),
+	"msg": sprintf("Helm repository url %v is not allowed for namespace %v", [url, namespace]),
 	}
 }
 contains_array(item, items) {

@@ -52,7 +52,7 @@ func (t Tenant) Validate() error {
 	}
 
 	if len(t.Namespaces) == 0 {
-		result = multierror.Append(result, errors.New("namespaces required"))
+		result = multierror.Append(result, errors.New("must provide at least one namespace"))
 	}
 
 	for _, allowedRepository := range t.AllowedRepositories {
@@ -240,10 +240,11 @@ func newPolicy(tenantName string, namespaces []string, allowedRepositories []All
 			Labels: labels,
 		},
 		Spec: pacv2beta1.PolicySpec{
-			ID:       policyName,
-			Name:     fmt.Sprintf("%s allowed repositories", tenantName),
-			Category: "weave.categories.tenancy",
-			Severity: "high",
+			ID:          policyName,
+			Name:        fmt.Sprintf("%s allowed repositories", tenantName),
+			Category:    "weave.categories.tenancy",
+			Severity:    "high",
+			Description: "Controls the allowed repositories to be used as sources",
 			Targets: pacv2beta1.PolicyTargets{
 				Kinds:      policyRepoKinds,
 				Namespaces: namespaces,
@@ -252,19 +253,19 @@ func newPolicy(tenantName string, namespaces []string, allowedRepositories []All
 			Tags: []string{"tenancy"},
 		},
 	}
-	var gitUrls, bucketEndpoints, hemlUrls []string
+	var gitURLs, bucketEndpoints, helmURLs []string
 	for _, allowedRepository := range allowedRepositories {
 		switch allowedRepository.Kind {
 		case policyRepoGitKind:
-			gitUrls = append(gitUrls, allowedRepository.URL)
+			gitURLs = append(gitURLs, allowedRepository.URL)
 		case policyRepoBucketKind:
 			bucketEndpoints = append(bucketEndpoints, allowedRepository.URL)
 		case policyRepoHelmKind:
-			hemlUrls = append(hemlUrls, allowedRepository.URL)
+			helmURLs = append(helmURLs, allowedRepository.URL)
 		}
 	}
 
-	policyParams, err := generatePolicyRepoParams(gitUrls, bucketEndpoints, hemlUrls)
+	policyParams, err := generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs)
 	if err != nil {
 		return nil, err
 	}

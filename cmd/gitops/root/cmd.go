@@ -1,7 +1,6 @@
 package root
 
 import (
-	"log"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -19,7 +18,8 @@ func init() {
 	viper.AutomaticEnv()
 }
 
-func RootCmd() *cobra.Command {
+// NewRootCmd returns a new gitops cmd instance
+func NewRootCmd() *cobra.Command {
 	var rootCmd = &cobra.Command{
 		Use:           "gitops",
 		SilenceUsage:  true,
@@ -28,10 +28,7 @@ func RootCmd() *cobra.Command {
 		Long:          "Command line utility for managing Kubernetes applications via GitOps.",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Sync flag values and env vars.
-			err := viper.BindPFlags(cmd.Flags())
-			if err != nil {
-				log.Fatalf("Error binding viper to flags: %v", err)
-			}
+			cobra.CheckErr(viper.BindPFlags(cmd.Flags()))
 		},
 	}
 
