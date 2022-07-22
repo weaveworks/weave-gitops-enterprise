@@ -439,7 +439,7 @@ message Parameter {
 message TemplateProfile {
   string name = 1;
   string version = 2;
-  bool editableValues = 3;
+  bool editable = 3;
 }
 
 message TemplateObject {

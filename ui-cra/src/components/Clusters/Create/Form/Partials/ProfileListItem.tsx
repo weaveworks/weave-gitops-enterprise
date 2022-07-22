@@ -176,11 +176,7 @@ const ProfilesListItem: FC<{
             <span>Version</span>
             <FormControl>
               <Select
-                disabled={
-                  profile.required &&
-                  (profile.editableValues === false ||
-                    profile.editableValues === undefined)
-                }
+                disabled={profile.required}
                 value={version}
                 onChange={handleSelectVersion}
                 autoWidth
@@ -247,8 +243,7 @@ const ProfilesListItem: FC<{
             onClick={handleUpdateProfiles}
             disabled={
               profile.required &&
-              (profile.editableValues === false ||
-                profile.editableValues === undefined)
+              (!profile.editable || profile.editable === undefined)
             }
           >
             SAVE CHANGES

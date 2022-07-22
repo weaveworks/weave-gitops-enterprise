@@ -290,7 +290,7 @@ export type Parameter = {
 export type TemplateProfile = {
   name?: string
   version?: string
-  editableValues?: boolean
+  editable?: boolean
 }
 
 export type TemplateObject = {
