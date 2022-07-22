@@ -1,12 +1,16 @@
 import { Table, TableBody } from '@material-ui/core';
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import {
+  RouterTab,
+  SubRouterTabs,
+  Link,
+  formatURL,
+} from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useCanaryStyle } from '../CanaryStyles';
 import CanaryRowHeader, {
   KeyValueRow,
 } from '../SharedComponent/CanaryRowHeader';
 import CanaryStatus from '../SharedComponent/CanaryStatus';
-
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import {
   Automation,
@@ -20,7 +24,8 @@ import {
   getProgressValue,
 } from '../ListCanaries/Table';
 import ListManagedObjects from './ListManagedObjects';
-import {CanaryMetricsTable} from "./Analysis/CanaryMetricsTable";
+import { CanaryMetricsTable } from "./Analysis/CanaryMetricsTable";
+import { getKindRoute } from '../../../utils/nav';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -79,8 +84,16 @@ function CanaryDetailsSection({
               rowkey="Application"
               value={
                 automation?.kind && automation?.name
-                  ? `${automation?.kind}/${automation?.name}`
-                  : '--'
+                  ? <Link
+                      to={formatURL(getKindRoute(automation?.kind), {
+                        name: automation?.name,
+                        namespace: automation?.namespace,
+                        clusterName: canary.clusterName,
+                      })}
+                    >
+                      {automation?.kind}/{automation?.name}
+                    </Link>
+                  : ''
               }
             />
             <CanaryRowHeader
