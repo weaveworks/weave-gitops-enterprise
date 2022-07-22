@@ -6,9 +6,8 @@ import React, { Dispatch, FC } from 'react';
 
 import { DialogContent, DialogTitle } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { darcula } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
+import YamlView from '../../../YamlView';
 
 type Props = {
   open: boolean;
@@ -39,20 +38,11 @@ export const MetricTemplateModal: FC<Props> = ({
         </DialogTitle>
 
         <DialogContent>
-          <SyntaxHighlighter
-            language="yaml"
-            style={darcula}
-            wrapLongLines="pre-wrap"
-            showLineNumbers={true}
-            codeTagProps={{
-              className: classes.code,
-            }}
-            customStyle={{
-              height: '450px',
-            }}
-          >
-            {metricTemplate.yaml}
-          </SyntaxHighlighter>
+          <YamlView
+            yaml={metricTemplate.yaml || ''}
+            kind="MetricTemplate"
+            object={metricTemplate}
+          />
         </DialogContent>
       </Dialog>
     </div>
