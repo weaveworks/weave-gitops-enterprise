@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/hashicorp/go-multierror"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -75,7 +76,7 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error
 	}
 
 	for _, resource := range resources {
-		err = upsert(ctx, c, resource)
+		err := upsert(ctx, c, resource)
 		if err != nil {
 			return fmt.Errorf("failed to create resource %s: %w", resource.GetName(), err)
 		}
@@ -88,6 +89,7 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error
 // patching them with type specific elements.
 func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) error {
 	existing := runtimeObjectFromObject(obj)
+
 	err := kubeClient.Get(ctx, client.ObjectKeyFromObject(obj), existing)
 	if err != nil {
 		if errs.IsNotFound(err) {
@@ -96,6 +98,11 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			}
 			return nil
 		}
+		return err
+	}
+
+	patchHelper, err := patch.NewHelper(existing, kubeClient)
+	if err != nil {
 		return err
 	}
 
@@ -112,12 +119,28 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 				return err
 			}
 		}
+	case *pacv2beta1.Policy:
+		existingPolicy := existing.(*pacv2beta1.Policy)
+		var changed bool
+		if !equality.Semantic.DeepDerivative(to.GetLabels(), existingPolicy.GetLabels()) {
+			existingPolicy.SetLabels(to.GetLabels())
+			changed = true
+		}
+		if !equality.Semantic.DeepDerivative(to.Spec, existingPolicy.Spec) {
+			existingPolicy.Spec = to.Spec
+			changed = true
+		}
+		if changed {
+			if err := patchHelper.Patch(ctx, existing); err != nil {
+				return fmt.Errorf("failed to patch existing policy: %w", err)
+			}
+		}
 	default:
 		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
 			existing.SetLabels(obj.GetLabels())
-			if err := kubeClient.Update(ctx, existing); err != nil {
-				return err
-			}
+		}
+		if err := kubeClient.Update(ctx, existing); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -187,7 +210,7 @@ func GenerateTenantResources(tenants ...Tenant) ([]client.Object, error) {
 			generated = append(generated, newRoleBinding(tenant.Name, namespace, tenant.ClusterRole, tenantLabels))
 		}
 		if len(tenant.AllowedRepositories) != 0 {
-			policy, err := newPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenant.Labels)
+			policy, err := newPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
 			if err != nil {
 				return nil, err
 			}
