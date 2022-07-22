@@ -176,7 +176,11 @@ const ProfilesListItem: FC<{
             <span>Version</span>
             <FormControl>
               <Select
-                disabled={profile.required}
+                disabled={
+                  profile.required &&
+                  (profile.editableValues === false ||
+                    profile.editableValues === undefined)
+                }
                 value={version}
                 onChange={handleSelectVersion}
                 autoWidth
@@ -241,7 +245,11 @@ const ProfilesListItem: FC<{
             id="edit-yaml"
             startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
             onClick={handleUpdateProfiles}
-            disabled={profile.required}
+            disabled={
+              profile.required &&
+              (profile.editableValues === false ||
+                profile.editableValues === undefined)
+            }
           >
             SAVE CHANGES
           </Button>

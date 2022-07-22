@@ -46,10 +46,11 @@ const ProfilesProvider: FC = ({ children }) => {
         const defaultProfiles: UpdatedProfile[] = [];
         for (const [key, value] of annotations) {
           if (key.includes('capi.weave.works/profile')) {
-            const { name, version, values } = JSON.parse(value);
+            const { name, version, values, editableValues } = JSON.parse(value);
             if (values !== undefined) {
               defaultProfiles.push({
                 name,
+                editableValues,
                 values: [{ version, yaml: values, selected: false }],
                 required: true,
                 layer: getProfileLayer(name),
@@ -57,6 +58,7 @@ const ProfilesProvider: FC = ({ children }) => {
             } else {
               defaultProfiles.push({
                 name,
+                editableValues,
                 values: [
                   {
                     version,
