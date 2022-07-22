@@ -185,6 +185,7 @@ export const validateFormData = (event: any, onSubmit: any) => {
   event.preventDefault();
   event.stopPropagation();
   if (isValid) {
+    console.log(isValid);
     onSubmit();
   } else {
     const invalid: HTMLElement | null = form.querySelector(':invalid');

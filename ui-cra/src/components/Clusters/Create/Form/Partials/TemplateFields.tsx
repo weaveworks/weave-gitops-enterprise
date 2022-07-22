@@ -1,5 +1,5 @@
 import React, { FC, Dispatch } from 'react';
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Template } from '../../../../../cluster-services/cluster_services.pb';
 import { Input, Select, validateFormData } from '../../../../../utils/form';
@@ -25,7 +25,14 @@ const TemplateFields: FC<{
   onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-}> = ({ activeTemplate, onPRPreview, formData, setFormData }) => {
+  previewLoading: boolean;
+}> = ({
+  activeTemplate,
+  onPRPreview,
+  formData,
+  setFormData,
+  previewLoading,
+}) => {
   const handleFormData = (
     event:
       | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
@@ -69,11 +76,15 @@ const TemplateFields: FC<{
             />
           );
       })}
-      <div className="preview-cta">
-        <Button onClick={event => validateFormData(event, onPRPreview)}>
-          PREVIEW PR
-        </Button>
-      </div>
+      {previewLoading ? (
+        <LoadingPage />
+      ) : (
+        <div className="preview-cta">
+          <Button onClick={event => validateFormData(event, onPRPreview)}>
+            PREVIEW PR
+          </Button>
+        </div>
+      )}
     </FormWrapper>
   );
 };
