@@ -85,7 +85,7 @@ metadata:
   name: gitops-canaries-reader
 rules:
   - apiGroups: ["flagger.app"]
-    resources: ["canaries"]
+    resources: ["canaries","metrictemplates"]
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["events"]
