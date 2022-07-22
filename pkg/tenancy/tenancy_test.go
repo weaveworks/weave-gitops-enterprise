@@ -53,6 +53,98 @@ func Test_CreateTenants(t *testing.T) {
 	assert.Equal(t, expected, accounts.Items)
 }
 
+func Test_CreateTenants_ExistingNamespace(t *testing.T) {
+	fc := newFakeClient(t)
+
+	// Create a namespace
+	ns := &corev1.Namespace{
+		TypeMeta: namespaceTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "foo-ns",
+			Labels: map[string]string{
+				"toolkit.fluxcd.io/tenant": "foo-tenant",
+			},
+		},
+	}
+
+	err := fc.Create(context.TODO(), ns)
+	assert.NoError(t, err)
+
+	tenants, err := Parse("testdata/example.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create the tenants with an already existing namespace
+	err = CreateTenants(context.TODO(), tenants, fc)
+	assert.NoError(t, err)
+
+	namespaces := corev1.NamespaceList{}
+	if err := fc.List(context.TODO(), &namespaces); err != nil {
+		t.Fatal(err)
+	}
+
+	expected := corev1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Namespace",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "foo-ns",
+			ResourceVersion: "1",
+			Labels: map[string]string{
+				"toolkit.fluxcd.io/tenant": "foo-tenant",
+			},
+		},
+	}
+	assert.Equal(t, expected, namespaces.Items[1])
+}
+
+func Test_CreateTenants_ExistingPolicy(t *testing.T) {
+	fc := newFakeClient(t)
+
+	// Create a policy
+	policyName := "weave.policies.tenancy.foo-tenant-allowed-repositories"
+	pol := &pacv2beta1.Policy{
+		TypeMeta: policyTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: policyName,
+			Labels: map[string]string{
+				"toolkit.fluxcd.io/tenant": "foo-tenant",
+			},
+		},
+	}
+
+	err := fc.Create(context.TODO(), pol)
+	assert.NoError(t, err)
+
+	tenants, err := Parse("testdata/example.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create the tenants with an already existing policy
+	err = CreateTenants(context.TODO(), tenants, fc)
+	assert.NoError(t, err)
+
+	policies := pacv2beta1.PolicyList{}
+	if err := fc.List(context.TODO(), &policies); err != nil {
+		t.Fatal(err)
+	}
+
+	expected := pacv2beta1.Policy{
+		TypeMeta: policyTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            policyName,
+			ResourceVersion: "1",
+			Labels: map[string]string{
+				"toolkit.fluxcd.io/tenant": "foo-tenant",
+			},
+		},
+	}
+	assert.Equal(t, expected, policies.Items[1])
+}
+
 func Test_ExportTenants(t *testing.T) {
 	out := &bytes.Buffer{}
 
