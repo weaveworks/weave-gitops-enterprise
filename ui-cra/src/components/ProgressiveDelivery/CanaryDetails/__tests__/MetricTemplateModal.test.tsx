@@ -86,6 +86,11 @@ describe('MetricTemplateModal', () => {
     const metricTemplateDialog = document.querySelector(
       '#metric-template-dialog',
     );
+    // the expected object is rendered
     expect(metricTemplateDialog?.textContent).toContain('2022-07-15T16:26:57Z');
+    // using a consistent yaml view
+    expect(metricTemplateDialog?.textContent).toContain(
+      'kubectl get metrictemplate not-found-percentage -n canary -o yaml',
+    );
   });
 });
