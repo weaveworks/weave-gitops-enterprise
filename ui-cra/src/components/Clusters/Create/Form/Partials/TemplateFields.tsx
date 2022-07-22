@@ -17,6 +17,9 @@ const FormWrapper = styled.form`
       width: 200px;
     }
   }
+  .preview-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
 `;
 
 const TemplateFields: FC<{
@@ -77,7 +80,7 @@ const TemplateFields: FC<{
           );
       })}
       {previewLoading ? (
-        <LoadingPage />
+        <LoadingPage className="preview-loading" />
       ) : (
         <div className="preview-cta">
           <Button onClick={event => validateFormData(event, onPRPreview)}>

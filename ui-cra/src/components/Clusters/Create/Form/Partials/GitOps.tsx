@@ -17,6 +17,9 @@ const GitOpsWrapper = styled.form`
       width: 200px;
     }
   }
+  .create-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
 `;
 
 const GitOps: FC<{
@@ -116,7 +119,7 @@ const GitOps: FC<{
       />
 
       {loading ? (
-        <LoadingPage />
+        <LoadingPage className="create-loading" />
       ) : (
         <div className="create-cta">
           <Button
