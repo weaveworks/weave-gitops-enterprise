@@ -119,7 +119,7 @@ func Test_CreateTenants_ExistingNamespace(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            "foo-ns",
-			ResourceVersion: "1",
+			ResourceVersion: "2",
 			Labels: map[string]string{
 				"toolkit.fluxcd.io/tenant": "foo-tenant",
 			},
@@ -129,17 +129,12 @@ func Test_CreateTenants_ExistingNamespace(t *testing.T) {
 }
 
 func Test_CreateTenants_ExistingPolicy(t *testing.T) {
-	fc := newFakeClient(t)
-
 	// Create a policy
 	policyName := "weave.policies.tenancy.bar-tenant-allowed-repositories"
 	pol := &pacv2beta1.Policy{
 		TypeMeta: policyTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
 			Name: policyName,
-			Labels: map[string]string{
-				"toolkit.fluxcd.io/tenant": "bar-tenant",
-			},
 		},
 		Spec: pacv2beta1.PolicySpec{
 			ID:          policyName,
@@ -149,13 +144,14 @@ func Test_CreateTenants_ExistingPolicy(t *testing.T) {
 			Description: "Controls the allowed repositories to be used as sources",
 			Targets: pacv2beta1.PolicyTargets{
 				Kinds:      policyRepoKinds,
-				Namespaces: []string{"bar-ns", "foobar-ns"},
+				Namespaces: []string{"bar-ns", "bar"},
 			},
 			Code: policyCode,
 			Tags: []string{"tenancy"},
 		},
 	}
 
+	fc := newFakeClient(t)
 	err := fc.Create(context.TODO(), pol)
 	assert.NoError(t, err)
 
@@ -173,32 +169,19 @@ func Test_CreateTenants_ExistingPolicy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := []pacv2beta1.Policy{
-		{
-			TypeMeta: policyTypeMeta,
-			ObjectMeta: metav1.ObjectMeta{
-				Name: policyName,
-				Labels: map[string]string{
-					"toolkit.fluxcd.io/tenant": "bar-tenant",
-				},
-				ResourceVersion: "1",
-			},
-			Spec: pacv2beta1.PolicySpec{
-				ID:          policyName,
-				Name:        "bar-tenant allowed repositories",
-				Category:    "weave.categories.tenancy",
-				Severity:    "high",
-				Description: "Controls the allowed repositories to be used as sources",
-				Targets: pacv2beta1.PolicyTargets{
-					Kinds:      policyRepoKinds,
-					Namespaces: []string{"bar-ns", "foobar-ns"},
-				},
-				Code: policyCode,
-				Tags: []string{"tenancy"},
-			},
-		},
-	}
-	assert.Equal(t, expected, policies.Items)
+	assert.Equal(t, 1, len(policies.Items))
+	// This doesn't compare the entirety of the spec, because it contains the
+	// complete text of the policy.
+	policy := policies.Items[0]
+	assert.Equal(t, map[string]string{
+		"toolkit.fluxcd.io/tenant": "bar-tenant",
+	}, policy.GetLabels())
+	assert.Equal(t, "git_urls", policy.Spec.Parameters[0].Name)
+	assert.Equal(t, pacv2beta1.PolicyTargets{
+		Kinds:      policyRepoKinds,
+		Namespaces: []string{"bar-ns", "foobar-ns"},
+	}, policy.Spec.Targets)
+
 }
 
 func Test_ExportTenants(t *testing.T) {
