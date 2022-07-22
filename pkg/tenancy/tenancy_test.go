@@ -18,6 +18,34 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
+// func Test_CreateTenants(t *testing.T) {
+// 	testCases := []struct {
+// 		name         string
+// 		clusterState []runtime.Object
+// 		expected     []client.Object
+// 	}{
+// 		{
+// 			name:         "create tenant with new resources",
+// 			clusterState: []runtime.Object{},
+// 		},
+// 	}
+
+// 	for _, tt := range testCases {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			fc := newFakeClient(t)
+
+// 			tenants, err := Parse("testdata/example.yaml")
+// 			if err != nil {
+// 				t.Fatal(err)
+// 			}
+
+// 			err = CreateTenants(context.TODO(), tenants, fc)
+// 			assert.NoError(t, err)
+
+// 		})
+// 	}
+// }
+
 func Test_CreateTenants(t *testing.T) {
 	fc := newFakeClient(t)
 
@@ -104,14 +132,27 @@ func Test_CreateTenants_ExistingPolicy(t *testing.T) {
 	fc := newFakeClient(t)
 
 	// Create a policy
-	policyName := "weave.policies.tenancy.foo-tenant-allowed-repositories"
+	policyName := "weave.policies.tenancy.bar-tenant-allowed-repositories"
 	pol := &pacv2beta1.Policy{
 		TypeMeta: policyTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
 			Name: policyName,
 			Labels: map[string]string{
-				"toolkit.fluxcd.io/tenant": "foo-tenant",
+				"toolkit.fluxcd.io/tenant": "bar-tenant",
 			},
+		},
+		Spec: pacv2beta1.PolicySpec{
+			ID:          policyName,
+			Name:        "bar-tenant allowed repositories",
+			Category:    "weave.categories.tenancy",
+			Severity:    "high",
+			Description: "Controls the allowed repositories to be used as sources",
+			Targets: pacv2beta1.PolicyTargets{
+				Kinds:      policyRepoKinds,
+				Namespaces: []string{"bar-ns", "foobar-ns"},
+			},
+			Code: policyCode,
+			Tags: []string{"tenancy"},
 		},
 	}
 
@@ -132,17 +173,32 @@ func Test_CreateTenants_ExistingPolicy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := pacv2beta1.Policy{
-		TypeMeta: policyTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:            policyName,
-			ResourceVersion: "1",
-			Labels: map[string]string{
-				"toolkit.fluxcd.io/tenant": "foo-tenant",
+	expected := []pacv2beta1.Policy{
+		{
+			TypeMeta: policyTypeMeta,
+			ObjectMeta: metav1.ObjectMeta{
+				Name: policyName,
+				Labels: map[string]string{
+					"toolkit.fluxcd.io/tenant": "bar-tenant",
+				},
+				ResourceVersion: "1",
+			},
+			Spec: pacv2beta1.PolicySpec{
+				ID:          policyName,
+				Name:        "bar-tenant allowed repositories",
+				Category:    "weave.categories.tenancy",
+				Severity:    "high",
+				Description: "Controls the allowed repositories to be used as sources",
+				Targets: pacv2beta1.PolicyTargets{
+					Kinds:      policyRepoKinds,
+					Namespaces: []string{"bar-ns", "foobar-ns"},
+				},
+				Code: policyCode,
+				Tags: []string{"tenancy"},
 			},
 		},
 	}
-	assert.Equal(t, expected, policies.Items[1])
+	assert.Equal(t, expected, policies.Items)
 }
 
 func Test_ExportTenants(t *testing.T) {
