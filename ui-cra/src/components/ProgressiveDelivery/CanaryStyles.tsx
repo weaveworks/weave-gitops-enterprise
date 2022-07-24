@@ -1,5 +1,5 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
+import { DataTable, theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 export const useCanaryStyle = makeStyles(() =>
@@ -141,4 +141,10 @@ export const FlexCenter = styled.div`
 
 export const LinkTag = styled.a`
   color: ${theme.colors.primary};
+`;
+
+export const CustomDataTable = styled(DataTable)`
+thead > tr {
+  background: ${theme.colors.neutral10};
+}
 `;
