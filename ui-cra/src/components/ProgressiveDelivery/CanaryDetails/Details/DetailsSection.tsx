@@ -3,9 +3,8 @@ import {
   Automation,
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { formatURL } from '@weaveworks/weave-gitops';
+import { formatURL, Link } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { getKindRoute } from '../../../../utils/nav';
 import { useCanaryStyle } from '../../CanaryStyles';
 import { getDeploymentStrategyIcon } from '../../ListCanaries/Table';
