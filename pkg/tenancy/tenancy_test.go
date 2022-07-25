@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -18,170 +19,273 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-// func Test_CreateTenants(t *testing.T) {
-// 	testCases := []struct {
-// 		name         string
-// 		clusterState []runtime.Object
-// 		expected     []client.Object
-// 	}{
-// 		{
-// 			name:         "create tenant with new resources",
-// 			clusterState: []runtime.Object{},
-// 		},
-// 	}
-
-// 	for _, tt := range testCases {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			fc := newFakeClient(t)
-
-// 			tenants, err := Parse("testdata/example.yaml")
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			}
-
-// 			err = CreateTenants(context.TODO(), tenants, fc)
-// 			assert.NoError(t, err)
-
-// 		})
-// 	}
-// }
-
 func Test_CreateTenants(t *testing.T) {
-	fc := newFakeClient(t)
-
-	tenants, err := Parse("testdata/example.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = CreateTenants(context.TODO(), tenants, fc)
-	assert.NoError(t, err)
-
-	accounts := corev1.ServiceAccountList{}
-	if err := fc.List(context.TODO(), &accounts, client.InNamespace("foo-ns")); err != nil {
-		t.Fatal(err)
-	}
-
-	expected := []corev1.ServiceAccount{
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		expected     []client.Object
+	}{
 		{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "v1",
-				Kind:       "ServiceAccount",
+			name:         "create tenant with new resources",
+			clusterState: []runtime.Object{},
+			expected: []client.Object{
+				&corev1.ServiceAccount{
+					TypeMeta: metav1.TypeMeta{
+						APIVersion: "v1",
+						Kind:       "ServiceAccount",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "foo-tenant",
+						Namespace:       "foo-ns",
+						ResourceVersion: "1",
+						Labels: map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
+						},
+					},
+				},
 			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:            "foo-tenant",
-				Namespace:       "foo-ns",
-				ResourceVersion: "1",
-				Labels: map[string]string{
-					"toolkit.fluxcd.io/tenant": "foo-tenant",
+		},
+		{
+			name: "create tenant with an existing namespace",
+			clusterState: []runtime.Object{
+				&corev1.Namespace{
+					TypeMeta: namespaceTypeMeta,
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "foo-ns",
+						Labels: map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
+						},
+					},
+				},
+			},
+			expected: []client.Object{
+				&corev1.Namespace{
+					TypeMeta: metav1.TypeMeta{
+						APIVersion: "v1",
+						Kind:       "Namespace",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "foo-ns",
+						ResourceVersion: "1000",
+						Labels: map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "create tenant with an existing service account",
+			clusterState: []runtime.Object{
+				&corev1.ServiceAccount{
+					TypeMeta: serviceAccountTypeMeta,
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "foo-tenant",
+						Namespace: "foo-ns",
+						Labels: map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
+						},
+					},
+				},
+			},
+			expected: []client.Object{
+				&corev1.ServiceAccount{
+					TypeMeta: metav1.TypeMeta{
+						APIVersion: "v1",
+						Kind:       "ServiceAccount",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "foo-tenant",
+						Namespace:       "foo-ns",
+						ResourceVersion: "1000",
+						Labels: map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "create tenant with an existing RoleBinding",
+			clusterState: []runtime.Object{
+				&rbacv1.RoleBinding{
+					TypeMeta: roleBindingTypeMeta,
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "foo-tenant",
+						Namespace: "foo-ns",
+						Labels: map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
+						},
+					},
+					RoleRef: rbacv1.RoleRef{
+						APIGroup: "rbac.authorization.k8s.io",
+						Kind:     "ClusterRole",
+						Name:     "cluster-admin",
+					},
+					Subjects: []rbacv1.Subject{
+						{
+							APIGroup: "rbac.authorization.k8s.io",
+							Kind:     "User",
+							Name:     "gotk:foo-tenant:reconciler",
+						},
+						{
+							Kind:      "ServiceAccount",
+							Name:      "foo-tenant",
+							Namespace: "foo-ns",
+						},
+					},
+				},
+			},
+			expected: []client.Object{
+				&rbacv1.RoleBinding{
+					TypeMeta: roleBindingTypeMeta,
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "foo-tenant",
+						Namespace:       "foo-ns",
+						ResourceVersion: "1",
+						Labels: map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
+						},
+					},
+					RoleRef: rbacv1.RoleRef{
+						APIGroup: "rbac.authorization.k8s.io",
+						Kind:     "ClusterRole",
+						Name:     "cluster-admin",
+					},
+					Subjects: []rbacv1.Subject{
+						{
+							APIGroup: "rbac.authorization.k8s.io",
+							Kind:     "User",
+							Name:     "gotk:foo-ns:reconciler",
+						},
+						{
+							Kind:      "ServiceAccount",
+							Name:      "foo-tenant",
+							Namespace: "foo-ns",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "create tenant with an existing policy",
+			clusterState: []runtime.Object{
+				&pacv2beta1.Policy{
+					TypeMeta: policyTypeMeta,
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "weave.policies.tenancy.bar-tenant-allowed-repositories",
+					},
+					Spec: pacv2beta1.PolicySpec{
+						ID:          "weave.policies.tenancy.bar-tenant-allowed-repositories",
+						Name:        "bar-tenant allowed repositories",
+						Category:    "weave.categories.tenancy",
+						Severity:    "high",
+						Description: "Controls the allowed repositories to be used as sources",
+						Targets: pacv2beta1.PolicyTargets{
+							Kinds:      policyRepoKinds,
+							Namespaces: []string{"bar-ns", "bar"},
+						},
+						Code: policyCode,
+						Tags: []string{"tenancy"},
+					},
+				},
+			},
+			expected: []client.Object{
+				&pacv2beta1.Policy{
+					TypeMeta: policyTypeMeta,
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "weave.policies.tenancy.bar-tenant-allowed-repositories",
+						Labels: map[string]string{
+							"toolkit.fluxcd.io/tenant": "bar-tenant",
+						},
+					},
+					Spec: pacv2beta1.PolicySpec{
+						Parameters: []pacv2beta1.PolicyParameters{
+							{
+								Name: "git_urls",
+							},
+						},
+						Targets: pacv2beta1.PolicyTargets{
+							Kinds:      policyRepoKinds,
+							Namespaces: []string{"bar-ns", "foobar-ns"},
+						},
+						Code: policyCode,
+						Tags: []string{"tenancy"},
+					},
 				},
 			},
 		},
 	}
-	assert.Equal(t, expected, accounts.Items)
-}
 
-func Test_CreateTenants_ExistingNamespace(t *testing.T) {
-	fc := newFakeClient(t)
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			fc := newFakeClient(t, tt.clusterState...)
 
-	// Create a namespace
-	ns := &corev1.Namespace{
-		TypeMeta: namespaceTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "foo-ns",
-			Labels: map[string]string{
-				"toolkit.fluxcd.io/tenant": "foo-tenant",
-			},
-		},
+			tenants, err := Parse("testdata/example.yaml")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = CreateTenants(context.TODO(), tenants, fc)
+			assert.NoError(t, err)
+
+			expectedObj := tt.expected[0]
+
+			if expectedObj.GetObjectKind().GroupVersionKind().Kind == "Namespace" {
+				namespaces := corev1.NamespaceList{}
+				if err := fc.List(context.TODO(), &namespaces); err != nil {
+					t.Fatal(err)
+				}
+
+				assert.Equal(t, 3, len(namespaces.Items))
+
+				namespace := namespaces.Items[1]
+				expectedNamespace := expectedObj.(*corev1.Namespace)
+
+				assert.Equal(t, expectedNamespace, &namespace)
+			} else if expectedObj.GetObjectKind().GroupVersionKind().Kind == "ServiceAccount" {
+
+				accounts := corev1.ServiceAccountList{}
+				if err := fc.List(context.TODO(), &accounts, client.InNamespace("foo-ns")); err != nil {
+					t.Fatal(err)
+				}
+
+				assert.Equal(t, 1, len(accounts.Items))
+
+				account := accounts.Items[0]
+				expectedAccount := expectedObj.(*corev1.ServiceAccount)
+
+				assert.Equal(t, expectedAccount, &account)
+			} else if expectedObj.GetObjectKind().GroupVersionKind().Kind == "RoleBinding" {
+				roleBindings := rbacv1.RoleBindingList{}
+				if err := fc.List(context.TODO(), &roleBindings, client.InNamespace("foo-ns")); err != nil {
+					t.Fatal(err)
+				}
+
+				assert.Equal(t, 1, len(roleBindings.Items))
+
+				roleBinding := roleBindings.Items[0]
+				expectedRoleBinding := expectedObj.(*rbacv1.RoleBinding)
+
+				assert.Equal(t, expectedRoleBinding, &roleBinding)
+			} else if expectedObj.GetObjectKind().GroupVersionKind().Kind == pacv2beta1.PolicyKind {
+				policies := pacv2beta1.PolicyList{}
+				if err := fc.List(context.TODO(), &policies); err != nil {
+					t.Fatal(err)
+				}
+
+				assert.Equal(t, 1, len(policies.Items))
+				// This doesn't compare the entirety of the spec, because it contains the
+				// complete text of the policy.
+				policy := policies.Items[0]
+				expectedPolicy := expectedObj.(*pacv2beta1.Policy)
+
+				assert.Equal(t, expectedPolicy.GetLabels(), policy.GetLabels())
+				assert.Equal(t, expectedPolicy.Spec.Parameters[0].Name, policy.Spec.Parameters[0].Name)
+				assert.Equal(t, expectedPolicy.Spec.Targets, policy.Spec.Targets)
+			}
+		})
 	}
-
-	err := fc.Create(context.TODO(), ns)
-	assert.NoError(t, err)
-
-	tenants, err := Parse("testdata/example.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create the tenants with an already existing namespace
-	err = CreateTenants(context.TODO(), tenants, fc)
-	assert.NoError(t, err)
-
-	namespaces := corev1.NamespaceList{}
-	if err := fc.List(context.TODO(), &namespaces); err != nil {
-		t.Fatal(err)
-	}
-
-	expected := corev1.Namespace{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Namespace",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:            "foo-ns",
-			ResourceVersion: "2",
-			Labels: map[string]string{
-				"toolkit.fluxcd.io/tenant": "foo-tenant",
-			},
-		},
-	}
-	assert.Equal(t, expected, namespaces.Items[1])
-}
-
-func Test_CreateTenants_ExistingPolicy(t *testing.T) {
-	// Create a policy
-	policyName := "weave.policies.tenancy.bar-tenant-allowed-repositories"
-	pol := &pacv2beta1.Policy{
-		TypeMeta: policyTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name: policyName,
-		},
-		Spec: pacv2beta1.PolicySpec{
-			ID:          policyName,
-			Name:        "bar-tenant allowed repositories",
-			Category:    "weave.categories.tenancy",
-			Severity:    "high",
-			Description: "Controls the allowed repositories to be used as sources",
-			Targets: pacv2beta1.PolicyTargets{
-				Kinds:      policyRepoKinds,
-				Namespaces: []string{"bar-ns", "bar"},
-			},
-			Code: policyCode,
-			Tags: []string{"tenancy"},
-		},
-	}
-
-	fc := newFakeClient(t)
-	err := fc.Create(context.TODO(), pol)
-	assert.NoError(t, err)
-
-	tenants, err := Parse("testdata/example.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create the tenants with an already existing policy
-	err = CreateTenants(context.TODO(), tenants, fc)
-	assert.NoError(t, err)
-
-	policies := pacv2beta1.PolicyList{}
-	if err := fc.List(context.TODO(), &policies); err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, 1, len(policies.Items))
-	// This doesn't compare the entirety of the spec, because it contains the
-	// complete text of the policy.
-	policy := policies.Items[0]
-	assert.Equal(t, map[string]string{
-		"toolkit.fluxcd.io/tenant": "bar-tenant",
-	}, policy.GetLabels())
-	assert.Equal(t, "git_urls", policy.Spec.Parameters[0].Name)
-	assert.Equal(t, pacv2beta1.PolicyTargets{
-		Kinds:      policyRepoKinds,
-		Namespaces: []string{"bar-ns", "foobar-ns"},
-	}, policy.Spec.Targets)
-
 }
 
 func Test_ExportTenants(t *testing.T) {
