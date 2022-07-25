@@ -65,7 +65,7 @@ const DetailsSection = ({
       <CanaryRowHeader rowkey="Provider" value={canary.provider} />
 
       <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
-        Status
+        STATUS
       </div>
       <DynamicTable obj={restStatus || {}} />
       <div
@@ -73,7 +73,7 @@ const DetailsSection = ({
         onClick={toggleCollapse}
       >
         {!open ? <ExpandLess /> : <ChevronRight />}
-        <span className={classes.expandableSpacing}> Conditions</span>
+        <span className={classes.expandableSpacing}> CONDITIONS</span>
       </div>
       <DynamicTable
         obj={restConditionObj || {}}
