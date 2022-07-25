@@ -1,6 +1,6 @@
 import moment from 'moment';
-import { Event } from '../../../cluster-services/cluster_services.pb';
-import { CustomDataTable, TableWrapper } from '../CanaryStyles';
+import { Event } from '../../../../cluster-services/cluster_services.pb';
+import { CustomDataTable, TableWrapper } from '../../CanaryStyles';
 
 export const EventsTable = ({ events }: { events: Event[] }) => {
   return (

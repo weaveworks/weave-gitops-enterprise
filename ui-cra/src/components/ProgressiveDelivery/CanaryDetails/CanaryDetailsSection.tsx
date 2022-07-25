@@ -8,7 +8,7 @@ import {
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import YamlView from '../../YamlView';
-import ListEvents from '../Events/ListEvents';
+import ListEvents from './Events/ListEvents';
 import { getProgressValue } from '../ListCanaries/Table';
 import ListManagedObjects from './ManagedObjects/ListManagedObjects';
 import { CanaryMetricsTable } from './Analysis/CanaryMetricsTable';
