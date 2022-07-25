@@ -73,7 +73,7 @@ export const useCanaryStyle = makeStyles(() =>
       justifyContent: 'start',
       alignItems: 'center',
       padding: theme.spacing.small,
-      marginTop: theme.spacing.xs,
+      marginTop: theme.spacing.medium,
       cursor: 'pointer',
     },
     expandableSpacing: {

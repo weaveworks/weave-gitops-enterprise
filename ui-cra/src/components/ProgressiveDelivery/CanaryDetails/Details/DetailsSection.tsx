@@ -1,18 +1,16 @@
-import { Table, TableBody } from '@material-ui/core';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import { ExpandLess, ChevronRight } from '@material-ui/icons';
 import {
   Automation,
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { formatURL } from '@weaveworks/weave-gitops';
-import  { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getKindRoute } from '../../../../utils/nav';
 import { useCanaryStyle } from '../../CanaryStyles';
 import { getDeploymentStrategyIcon } from '../../ListCanaries/Table';
-import CanaryRowHeader, {
-  KeyValueRow,
-} from '../../SharedComponent/CanaryRowHeader';
+import CanaryRowHeader from '../../SharedComponent/CanaryRowHeader';
+import DynamicTable from '../../SharedComponent/DynamicTable';
 
 const DetailsSection = ({
   canary,
@@ -69,28 +67,18 @@ const DetailsSection = ({
       <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
         Status
       </div>
-      <Table size="small">
-        <TableBody>
-          {Object.entries(restStatus || {}).map((entry, index) => (
-            <KeyValueRow entryObj={entry} key={index} />
-          ))}
-        </TableBody>
-      </Table>
-
+      <DynamicTable obj={restStatus || {}} />
       <div
         className={` ${classes.cardTitle} ${classes.expandableCondition}`}
         onClick={toggleCollapse}
       >
-        {!open ? <ExpandLess /> : <ExpandMore />}
+        {!open ? <ExpandLess /> : <ChevronRight />}
         <span className={classes.expandableSpacing}> Conditions</span>
       </div>
-      <Table size="small" className={open ? classes.fadeIn : classes.fadeOut}>
-        <TableBody>
-          {Object.entries(restConditionObj).map((entry, index) => (
-            <KeyValueRow entryObj={entry} key={index}></KeyValueRow>
-          ))}
-        </TableBody>
-      </Table>
+      <DynamicTable
+        obj={restConditionObj || {}}
+        classes={open ? classes.fadeIn : classes.fadeOut}
+      />
     </>
   );
 };
