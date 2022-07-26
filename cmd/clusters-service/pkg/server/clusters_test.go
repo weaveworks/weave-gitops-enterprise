@@ -1501,18 +1501,16 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 					{
 						Name:      "billing",
 						Namespace: "dev",
-						Kustomizations: []*capiv1_protos.Kustomization{
-							{
-								Metadata: &capiv1_protos.Metadata{
-									Name:      "apps-billing",
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
 									Namespace: "flux-system",
-								},
-								Spec: &capiv1_protos.Spec{
-									Path: "./apps/billing",
-									SourceRef: &capiv1_protos.SourceRef{
-										Name:      "flux-system",
-										Namespace: "flux-system",
-									},
 								},
 							},
 						},
@@ -1535,18 +1533,16 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 						Name:           "management",
 						Namespace:      "default",
 						IsControlPlane: true,
-						Kustomizations: []*capiv1_protos.Kustomization{
-							{
-								Metadata: &capiv1_protos.Metadata{
-									Name:      "apps-capi",
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-capi",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/capi",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
 									Namespace: "flux-system",
-								},
-								Spec: &capiv1_protos.Spec{
-									Path: "./apps/capi",
-									SourceRef: &capiv1_protos.SourceRef{
-										Name:      "flux-system",
-										Namespace: "flux-system",
-									},
 								},
 							},
 						},
@@ -1554,18 +1550,16 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 					{
 						Name:      "billing",
 						Namespace: "dev",
-						Kustomizations: []*capiv1_protos.Kustomization{
-							{
-								Metadata: &capiv1_protos.Metadata{
-									Name:      "apps-billing",
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
 									Namespace: "flux-system",
-								},
-								Spec: &capiv1_protos.Spec{
-									Path: "./apps/billing",
-									SourceRef: &capiv1_protos.SourceRef{
-										Name:      "flux-system",
-										Namespace: "flux-system",
-									},
 								},
 							},
 						},
@@ -1591,18 +1585,16 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 						Name:           "management",
 						Namespace:      "default",
 						IsControlPlane: true,
-						Kustomizations: []*capiv1_protos.Kustomization{
-							{
-								Metadata: &capiv1_protos.Metadata{
-									Name:      "apps-capi",
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-capi",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/capi",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
 									Namespace: "flux-system",
-								},
-								Spec: &capiv1_protos.Spec{
-									Path: "./apps/capi",
-									SourceRef: &capiv1_protos.SourceRef{
-										Name:      "flux-system",
-										Namespace: "flux-system",
-									},
 								},
 							},
 						},
@@ -1610,18 +1602,16 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 					{
 						Name:      "billing",
 						Namespace: "dev",
-						Kustomizations: []*capiv1_protos.Kustomization{
-							{
-								Metadata: &capiv1_protos.Metadata{
-									Name:      "apps-billing",
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
 									Namespace: "flux-system",
-								},
-								Spec: &capiv1_protos.Spec{
-									Path: "./apps/billing",
-									SourceRef: &capiv1_protos.SourceRef{
-										Name:      "flux-system",
-										Namespace: "flux-system",
-									},
 								},
 							},
 						},

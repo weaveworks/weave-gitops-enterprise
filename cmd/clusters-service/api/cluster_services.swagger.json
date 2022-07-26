@@ -815,11 +815,8 @@
         "isControlPlane": {
           "type": "boolean"
         },
-        "kustomizations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Kustomization"
-          }
+        "kustomization": {
+          "$ref": "#/definitions/v1Kustomization"
         }
       }
     },

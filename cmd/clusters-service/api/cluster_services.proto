@@ -509,7 +509,7 @@ message ClusterKustomization {
   string name = 1;
   string namespace = 2;
   bool is_control_plane = 3;
-  repeated Kustomization kustomizations = 4;
+  Kustomization kustomization = 4;
 }
 
 message CreateKustomizationsPullRequestResponse {
