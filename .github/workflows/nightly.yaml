@@ -8,7 +8,7 @@ jobs:
   build:
     uses: ./.github/workflows/build.yaml
     with:
-      helmrepo: "nightly/charts-v3"
+      helmrepo: "charts-v3"
     secrets:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
@@ -23,6 +23,36 @@ jobs:
       runs-on: ubuntu-latest
       ref: main
 
+  acceptance-tests-kind-gitlab-on-prem:
+    needs: [build, gitops-binary-ubuntu]
+    uses: ./.github/workflows/acceptance-test.yaml
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 90
+      label-filter: "-ginkgo.label-filter='!(smoke, upgrade)'"
+      kubectl-version: "v1.23.3"
+      login_user_type: "cluster-user"
+      git-provider: gitlab
+      git-provider_hostname: gitlab.git.dev.weave.works
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      capi_provider: capd
+      gitops-bin-path: /usr/local/bin/gitops      
+      test-artifact-name: acceptance-tests-kind-gitlab-on-prem
+    secrets:
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
+      WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
+      WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
+      WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
+      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
+      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
+      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
+
   acceptance-tests-eks-github:
     needs: [build, gitops-binary-ubuntu]
     uses: ./.github/workflows/acceptance-test.yaml
@@ -30,7 +60,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(capd, kind-gitops-cluster, leaf-policy, leaf-violation)'"
+      label-filter: "-ginkgo.label-filter='!(capd, upgrade, kind-gitops-cluster, leaf-policy, leaf-violation)'"
       kubectl-version: "v1.23.6"
       login_user_type: "oidc"
       git-provider: github
@@ -38,8 +68,8 @@ jobs:
       cluster_resource_set: false
       management-cluster-kind: eks
       capi_provider: capa
-      gitops-bin-path: /usr/local/bin/gitops
-      artifacts-base-dir: "/tmp/acceptance-test-eks-github"
+      gitops-bin-path: /usr/local/bin/gitops      
+      test-artifact-name: acceptance-tests-eks-github
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -75,7 +105,7 @@ jobs:
       management-cluster-kind: gke
       capi_provider: capg
       gitops-bin-path: /usr/local/bin/gitops
-      artifacts-base-dir: "/tmp/acceptance-test-gke-gitlab"
+      test-artifact-name: acceptance-tests-gke-gitlab
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -90,3 +120,14 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_SAS_GITLAB_CLIENT_SECRET }}
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+
+  acceptance-test-results:
+    needs: [acceptance-tests-kind-gitlab-on-prem, acceptance-tests-eks-github, acceptance-tests-gke-gitlab]
+    uses: ./.github/workflows/publish-test-results.yaml
+    with:
+      runs-on: ubuntu-latest
+      junit-results-glob-pattern: "*acceptance-tests*.xml"
+      check-name: "Acceptance Tests"
+      slack-notification: true
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 

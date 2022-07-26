@@ -4,7 +4,9 @@ import { useCanaryStyle } from '../CanaryStyles';
 export function KeyValueRow({ entryObj }: { entryObj: Array<any> }): JSX.Element {
   const [key, val] = entryObj;
   return (
-    <TableRow key={key} data-testid={key}>
+    <TableRow key={key} data-testid={key} style={{
+      height:'40px'
+    }}>
       <TableCell
         style={{
           textTransform: 'capitalize',
