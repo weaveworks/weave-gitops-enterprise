@@ -1,6 +1,6 @@
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';
-import { useListFlaggerObjects, CanaryParams } from '../../../contexts/ProgressiveDelivery';
+import { useListFlaggerObjects, CanaryParams } from '../../../../contexts/ProgressiveDelivery';
 import { ManagedObjectsTable } from './ManagedObjectsTable';
 
 type Props = CanaryParams;
