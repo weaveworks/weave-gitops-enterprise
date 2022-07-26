@@ -43,6 +43,7 @@ type ApplicationDetail struct {
 	Path            *agouti.Selection
 	Interval        *agouti.Selection
 	LastUpdated     *agouti.Selection
+	Metadata        *agouti.Selection
 	Name            *agouti.Selection
 	Type            *agouti.Selection
 	Namespace       *agouti.Selection
@@ -68,7 +69,7 @@ type ApplicationGraph struct {
 func (a ApplicationsPage) FindApplicationInList(applicationName string) *ApplicationInformation {
 	application := a.ApplicationsList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, applicationName))
 	return &ApplicationInformation{
-		Name:        application.FindByXPath(`td[1]`),
+		Name:        application.FindByXPath(`td[1]//a`),
 		Type:        application.FindByXPath(`td[2]`),
 		Namespace:   application.FindByXPath(`td[3]`),
 		Cluster:     application.FindByXPath(`td[4]`),
@@ -119,12 +120,17 @@ func GetApplicationDetail(webDriver *agouti.Page) *ApplicationDetail {
 		Path:            autoDetails.FindByXPath(`tr[4]/td[2]`),
 		Interval:        autoDetails.FindByXPath(`tr[5]/td[2]`),
 		LastUpdated:     autoDetails.FindByXPath(`tr[6]/td[2]`),
+		Metadata:        webDriver.Find(`div[class*=Metadata] table tbody`),
 		Name:            reconcileDetails.FindByXPath(`td[1]`),
 		Type:            reconcileDetails.FindByXPath(`td[2]`),
 		Namespace:       reconcileDetails.FindByXPath(`td[3]`),
 		Status:          reconcileDetails.FindByXPath(`td[4]`),
 		Message:         reconcileDetails.FindByXPath(`td[5]`),
 	}
+}
+
+func (a ApplicationDetail) GetMetadata(name string) *agouti.Selection {
+	return a.Metadata.FindByXPath(fmt.Sprintf(`tr/td[.="%s:"]/following-sibling::td`, name))
 }
 
 func GetApplicationEvent(webDriver *agouti.Page, reason string) *ApplicationEvent {
