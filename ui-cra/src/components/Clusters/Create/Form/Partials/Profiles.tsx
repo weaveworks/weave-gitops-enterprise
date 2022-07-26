@@ -75,17 +75,16 @@ const Profiles: FC<{
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
+      setSelected(getNamesFromProfiles(profiles));
       setSelectedProfiles(profiles);
       return;
     }
+    setSelected([]);
     setSelectedProfiles([]);
   };
 
-  const onlyRequiredItems =
-    profiles.filter(item => item.required === true).length === profiles.length;
-  const isAllSelected =
-    profiles.length > 0 &&
-    (selected.length === profiles.length || onlyRequiredItems);
+  const numSelected = selectedProfiles.length;
+  const rowCount = profiles.length || 0;
 
   useEffect(() => {
     let requiredProfiles: UpdatedProfile[] = [];
@@ -117,10 +116,8 @@ const Profiles: FC<{
             labelRenderer: () => (
               <Checkbox
                 onChange={handleSelectAllClick}
-                checked={isAllSelected}
-                indeterminate={
-                  selected.length > 0 && selected.length < profiles.length
-                }
+                checked={rowCount > 0 && numSelected === rowCount}
+                indeterminate={numSelected > 0 && numSelected < rowCount}
                 style={{
                   color: weaveTheme.colors.primary,
                 }}
