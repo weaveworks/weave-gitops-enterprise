@@ -243,7 +243,7 @@ const ProfilesListItem: FC<{
             onClick={handleUpdateProfiles}
             disabled={
               profile.required &&
-              (!profile.editable || profile.editable === undefined)
+              (profile.editable !== true)
             }
           >
             SAVE CHANGES
