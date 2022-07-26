@@ -87,7 +87,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Clusters", func() {
 
 		Context("[UI] When no leaf cluster is connected", func() {
-			It("Verify connected cluster dashboard shows only management cluster", Label("integration"), func() {
+			It("Verify connected cluster dashboard shows only management cluster", Label("integration", "saeed"), func() {
 				pages.NavigateToPage(webDriver, "Clusters")
 				clustersPage := pages.GetClustersPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)

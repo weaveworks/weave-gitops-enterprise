@@ -5,7 +5,7 @@ metadata:
   name: gitops-apps-reader
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "pods" ]
+    resources: ["secrets", "pods", "services"]
     verbs: [ "get", "list" ]
   - apiGroups: ["apps"]
     resources: [ "deployments", "replicasets"]
@@ -21,6 +21,9 @@ rules:
     verbs: [ "get", "list", "patch" ]
   - apiGroups: [""]
     resources: ["events"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
     verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -85,7 +88,7 @@ metadata:
   name: gitops-canaries-reader
 rules:
   - apiGroups: ["flagger.app"]
-    resources: ["canaries"]
+    resources: ["canaries","metrictemplates"]
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["events"]

@@ -1,26 +1,18 @@
-import CanaryRowHeader, {
-  KeyValueRow,
-} from '../SharedComponent/CanaryRowHeader';
-import CanaryStatus from '../SharedComponent/CanaryStatus';
-import { useCanaryStyle } from '../CanaryStyles';
-import { Table, TableBody } from '@material-ui/core';
-import styled from 'styled-components';
 import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
+import { useCanaryStyle } from '../CanaryStyles';
 
+import CanaryStatus from '../SharedComponent/CanaryStatus';
 import {
-  getDeploymentStrategyIcon,
-  getProgressValue,
-} from '../ListCanaries/Table';
-import {
-  Canary,
   Automation,
+  Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { useState } from 'react';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
-import ListEvents from '../Events/ListEvents';
-import ListManagedObjects from './ListManagedObjects';
+import YamlView from '../../YamlView';
+import ListEvents from './Events/ListEvents';
+import { getProgressValue } from '../ListCanaries/Table';
+import ListManagedObjects from './ManagedObjects/ListManagedObjects';
+import { CanaryMetricsTable } from './Analysis/CanaryMetricsTable';
+import DetailsSection from './Details/DetailsSection';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -38,16 +30,6 @@ function CanaryDetailsSection({
 }) {
   const classes = useCanaryStyle();
   const path = `/applications/delivery/${canary.targetDeployment?.uid}`;
-  const [open, setOpen] = useState(true);
-
-  const { conditions, ...restStatus } = canary?.status || { conditions: [] };
-  const { lastTransitionTime, ...restConditionObj } = conditions![0] || {
-    lastTransitionTime: '',
-  };
-
-  const toggleCollapse = () => {
-    setOpen(!open);
-  };
 
   return (
     <>
@@ -69,61 +51,7 @@ function CanaryDetailsSection({
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>
           <CanaryDetailsWrapper>
-            <CanaryRowHeader rowkey="Cluster" value={canary.clusterName} />
-            <CanaryRowHeader rowkey="Namespace" value={canary.namespace} />
-            <CanaryRowHeader
-              rowkey="Target"
-              value={`${canary.targetReference?.kind}/${canary.targetReference?.name}`}
-            />
-            <CanaryRowHeader
-              rowkey="Application"
-              value={
-                automation?.kind && automation?.name
-                  ? `${automation?.kind}/${automation?.name}`
-                  : '--'
-              }
-            />
-            <CanaryRowHeader
-              rowkey="Deployment Strategy"
-              value={canary.deploymentStrategy}
-            >
-              <span className={classes.straegyIcon}>
-                {getDeploymentStrategyIcon(canary.deploymentStrategy || '')}
-              </span>
-            </CanaryRowHeader>
-            <CanaryRowHeader rowkey="Provider" value={canary.provider} />
-
-            <div
-              className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}
-            >
-              Status
-            </div>
-
-            <Table size="small">
-              <TableBody>
-                {Object.entries(restStatus || {}).map((entry, index) => (
-                  <KeyValueRow entryObj={entry} key={index} />
-                ))}
-              </TableBody>
-            </Table>
-
-            <div
-              className={` ${classes.cardTitle} ${classes.expandableCondition}`}
-              onClick={toggleCollapse}
-            >
-              {!open ? <ExpandLess /> : <ExpandMore />}
-              <span className={classes.expandableSpacing}> Conditions</span>
-            </div>
-            <Table
-              size="small"
-              className={open ? classes.fadeIn : classes.fadeOut}
-            >
-              <TableBody>
-                {Object.entries(restConditionObj).map((entry, index) => (
-                  <KeyValueRow entryObj={entry} key={index}></KeyValueRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DetailsSection canary={canary} automation={automation} />
           </CanaryDetailsWrapper>
         </RouterTab>
 
@@ -148,22 +76,16 @@ function CanaryDetailsSection({
             />
           </CanaryDetailsWrapper>
         </RouterTab>
+        <RouterTab name="Analysis" path={`${path}/analysis`}>
+          <CanaryDetailsWrapper>
+            <CanaryMetricsTable
+              metrics={canary.analysis?.metrics || []}
+            ></CanaryMetricsTable>
+          </CanaryDetailsWrapper>
+        </RouterTab>
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <CanaryDetailsWrapper>
-            <SyntaxHighlighter
-              language="yaml"
-              style={github}
-              wrapLongLines="pre-wrap"
-              showLineNumbers={true}
-              codeTagProps={{
-                className: classes.code,
-              }}
-              customStyle={{
-                height: '450px',
-              }}
-            >
-              {canary.yaml}
-            </SyntaxHighlighter>
+            <YamlView yaml={canary.yaml || ''} kind="Canary" object={canary} />
           </CanaryDetailsWrapper>
         </RouterTab>
       </SubRouterTabs>

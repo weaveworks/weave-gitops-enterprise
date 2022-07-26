@@ -117,12 +117,13 @@ export class CoreClientMock {
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   constructor() {
     this.ListCanaries = this.ListCanaries.bind(this);
+    this.GetCanary = this.GetCanary.bind(this);
     this.IsFlaggerAvailable = this.IsFlaggerAvailable.bind(this);
     this.GetCanary = this.GetCanary.bind(this);
   }
   ListCanariesReturns: ListCanariesResponse = {};
-  IsFlaggerAvailableReturns: IsFlaggerAvailableResponse = {};
   GetCanaryReturns: GetCanaryResponse = {};
+  IsFlaggerAvailableReturns: IsFlaggerAvailableResponse = {};
 
   ListCanaries() {
     return promisify(this.ListCanariesReturns);
@@ -135,4 +136,47 @@ export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   GetCanary() {
     return promisify(this.GetCanaryReturns);
   }
+}
+
+export function findCellInCol(cell: string, tableSelector: string) {
+  const tbl = document.querySelector(tableSelector);
+
+  const cols = tbl?.querySelectorAll('thead th');
+  const idx = findColByHeading(cols, cell) as number;
+
+  const rows = tbl?.querySelectorAll('tbody tr');
+
+  const promotedCell = rows?.item(0).childNodes.item(idx);
+
+  return promotedCell;
+}
+
+export function findTextByHeading(
+  table: Element,
+  row: Element,
+  headingName: string,
+) {
+  const cols = table?.querySelectorAll('thead th');
+  const index = findColByHeading(cols, headingName) as number;
+  return row.childNodes.item(index).textContent;
+}
+
+// Helper to ensure that tests still pass if columns get re-ordered
+function findColByHeading(
+  cols: NodeListOf<Element> | undefined,
+  heading: string,
+): null | number {
+  if (!cols) {
+    return null;
+  }
+
+  let idx = null;
+  cols?.forEach((e, i) => {
+    //TODO: look for a better matching
+    if (e.innerHTML.match('(>' + heading + '<)')) {
+      idx = i;
+    }
+  });
+
+  return idx;
 }

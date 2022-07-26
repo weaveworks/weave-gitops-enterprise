@@ -22,7 +22,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Applications", func() {
 
 		Context("[UI] When no applications are installed", func() {
-			It("Verify management cluster dashboard shows only bootstrap 'flux-system' application", Label("integration"), func() {
+			It("Verify management cluster dashboard shows bootstrap 'flux-system' application", Label("integration"), func() {
 				existingAppCount := getApplicationCount()
 
 				pages.NavigateToPage(webDriver, "Applications")
