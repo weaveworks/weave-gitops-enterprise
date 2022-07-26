@@ -621,7 +621,7 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "get kubeconfig as JSON",
 			clusterState: []runtime.Object{
-				makeSecret("dev-kubeconfig", "default", "value", "foo"),
+				makeSecret("dev-kubeconfig", "default", "value.yaml", "foo"),
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{

@@ -50,6 +50,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
+	authv1 "k8s.io/api/authentication/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
@@ -263,6 +264,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
+		authv1.AddToScheme,
 	}
 
 	err := schemeBuilder.AddToScheme(scheme)
