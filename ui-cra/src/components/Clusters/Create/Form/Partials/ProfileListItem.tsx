@@ -12,7 +12,6 @@ import {
   ListProfileValuesResponse,
   UpdatedProfile,
 } from '../../../../../types/custom';
-import ListItem from '@material-ui/core/ListItem';
 import {
   Dialog,
   DialogContent,
@@ -46,7 +45,8 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const ListItemWrapper = styled.div`
+const ProfileWrapper = styled.div`
+  display: flex;
   & .profile-version,
   .profile-layer,
   .profile-namespace {
@@ -177,44 +177,39 @@ const ProfilesListItem: FC<{
 
   return (
     <>
-      <ListItemWrapper>
-        <ListItem
-          data-profile-name={profile.name}
-          style={{ paddingLeft: '0px' }}
+      <ProfileWrapper data-profile-name={profile.name}>
+        <div className="profile-version">
+          <FormControl>
+            <Select
+              disabled={profile.required}
+              value={version}
+              onChange={handleSelectVersion}
+              autoWidth
+              label="Versions"
+            >
+              {profileVersions(profile)}
+            </Select>
+          </FormControl>
+        </div>
+        <div className="profile-namespace">
+          <FormControl>
+            <Input
+              id="profile-namespace"
+              value={namespace}
+              placeholder="flux-system"
+              onChange={handleChangeNamespace}
+              error={!isNamespaceValid}
+            />
+          </FormControl>
+        </div>
+        <Button
+          style={{ marginLeft: medium }}
+          variant="text"
+          onClick={handleYamlPreview}
         >
-          <div className="profile-version">
-            <FormControl>
-              <Select
-                disabled={profile.required}
-                value={version}
-                onChange={handleSelectVersion}
-                autoWidth
-                label="Versions"
-              >
-                {profileVersions(profile)}
-              </Select>
-            </FormControl>
-          </div>
-          <div className="profile-namespace">
-            <FormControl>
-              <Input
-                id="profile-namespace"
-                value={namespace}
-                placeholder="flux-system"
-                onChange={handleChangeNamespace}
-                error={!isNamespaceValid}
-              />
-            </FormControl>
-          </div>
-          <Button
-            style={{ marginLeft: medium }}
-            variant="text"
-            onClick={handleYamlPreview}
-          >
-            Values.yaml
-          </Button>
-        </ListItem>
-      </ListItemWrapper>
+          Values.yaml
+        </Button>
+      </ProfileWrapper>
 
       <Dialog
         open={openYamlPreview}
