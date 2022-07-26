@@ -508,8 +508,23 @@ func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, clust
 
 	var installs []charts.ChartInstall
 	for _, v := range args.profileValues {
-		// Check the values and if empty use profile defaults. This should happen before parsing.
-		if v.Values == "" {
+		// Check the values and if not editable in the Template Profiles or empty, replace with default values. This should happen before parsing.
+		if v.Values != "" {
+			defaultProfiles, err := getProfilesFromTemplate(tmpl.Annotations)
+			if err != nil {
+				return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
+			}
+			for _, dp := range defaultProfiles {
+				if dp.Version == v.Version && dp.Name == v.Name {
+					if !dp.Editable {
+						v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
+						if err != nil {
+							return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
+						}
+					}
+				}
+			}
+		} else {
 			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
