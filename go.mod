@@ -106,7 +106,7 @@ require (
 	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46 // indirect
-	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
+	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
@@ -245,6 +245,7 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
-
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
+	// Fix for CVE-2022-1996
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
 )
