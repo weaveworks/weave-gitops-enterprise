@@ -76,7 +76,7 @@ func createLeafClusterSecret(leafClusterNamespace string, leafClusterkubeconfig 
 }
 
 func verifyDashboard(dashboard *agouti.Selection, clusterName string, dashboardName string) {
-	By(fmt.Sprintf("And verify %s GitopsCluster dashboard: %s)", clusterName, dashboardName), func() {
+	By(fmt.Sprintf("And verify %s Cluster dashboard/metada link: %s)", clusterName, dashboardName), func() {
 		Eventually(dashboard).Should(BeFound(), fmt.Sprintf("Failed to have expected '%s' dashboard for GitopsCluster", dashboardName))
 		Expect(dashboard.Click()).To(Succeed(), fmt.Sprintf("Failed to navigate to '%s' dashboard", dashboardName)) // opens dashboard in a new tab/window
 		Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to switch to '%s' window", dashboardName))
@@ -229,6 +229,10 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 					Eventually(clusterDetailPage.Namespace.Text).Should(MatchRegexp(leafClusterNamespace), "Failed to verify leaf cluster namespace on cluster page")
 					verifyDashboard(clusterDetailPage.GetDashboard("prometheus"), leafClusterName, "Prometheus")
+
+					Expect(clusterDetailPage.GetDashboard("javascript")).ShouldNot(BeFound(), "XXSVulnerable link shound not be found")
+					Expect(clusterDetailPage.Dashboards.FindByXPath(fmt.Sprintf(`//li[.="%s"]`, "javascript"))).Should(BeFound(), "Failed to find static Vulnerable label")
+
 					Expect(clusterDetailPage.GetLabels()).Should(ConsistOf(ClusterLables), "Failed to verify cluster labels on cluster page")
 				})
 

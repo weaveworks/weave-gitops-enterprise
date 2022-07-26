@@ -122,6 +122,7 @@ jobs:
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
 
   acceptance-test-results:
+    if: ${{ always() }}
     needs: [acceptance-tests-kind-gitlab-on-prem, acceptance-tests-eks-github, acceptance-tests-gke-gitlab]
     uses: ./.github/workflows/publish-test-results.yaml
     with:
