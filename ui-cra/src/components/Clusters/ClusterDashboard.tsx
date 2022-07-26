@@ -85,8 +85,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
               <ClusterDashbordWrapper>
-                {currentCluster?.conditions &&
-                currentCluster?.conditions[0].message ? (
+                {currentCluster?.conditions?.[0]?.message ? (
                   <div style={{ paddingBottom: theme.spacing.small }}>
                     <KubeStatusIndicator
                       conditions={currentCluster.conditions}

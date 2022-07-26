@@ -434,7 +434,7 @@ const MCCP: FC = () => {
                     {
                       label: 'Message',
                       value: (c: GitopsClusterEnriched) =>
-                        (c.conditions && c.conditions[0].message) || null,
+                        c?.conditions?.[0]?.message || null,
                       sortType: SortType.string,
                       sortValue: ({ conditions }) => computeMessage(conditions),
                       maxWidth: 600,
