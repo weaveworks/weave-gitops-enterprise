@@ -291,10 +291,31 @@ message CreatePullRequestRequest {
   // The repo api url.
   string repository_api_url = 11;
   string cluster_namespace = 12;
+  repeated Kustomization kustomizations = 13;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
+}
+
+message Kustomization {
+  Metadata metadata = 1;
+  Spec spec = 2;
+}
+
+message Metadata {
+  string name = 1;
+  string namespace = 2;
+}
+
+message Spec {
+  string path = 1;
+  SourceRef source_ref = 2;
+}
+
+message SourceRef {
+  string name = 1;
+  string namespace = 2;
 }
 
 message CreateTfControllerPullRequestRequest {
