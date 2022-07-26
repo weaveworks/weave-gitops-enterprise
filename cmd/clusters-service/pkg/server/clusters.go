@@ -615,15 +615,18 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 	}
 
 	for _, k := range msg.Kustomizations {
-		if k.Metadata.Name == "" {
-			err = multierror.Append(err, errors.New("kustomization name must be specified"))
-		}
+		if k.Metadata == nil {
+			err = multierror.Append(err, errors.New("kustomization metadata must be specified"))
+		} else {
+			if k.Metadata.Name == "" {
+				err = multierror.Append(err, errors.New("kustomization name must be specified"))
+			}
 
-		invalidNamespaceErr := validateNamespace(k.Metadata.Namespace)
-		if invalidNamespaceErr != nil {
-			err = multierror.Append(err, invalidNamespaceErr)
+			invalidNamespaceErr := validateNamespace(k.Metadata.Namespace)
+			if invalidNamespaceErr != nil {
+				err = multierror.Append(err, invalidNamespaceErr)
+			}
 		}
-
 		if k.Spec.SourceRef != nil {
 			if k.Spec.SourceRef.Name == "" {
 				err = multierror.Append(err, fmt.Errorf("sourceRef name must be specified in Kustomization %s", k.Metadata.Name))

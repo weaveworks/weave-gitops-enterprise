@@ -708,6 +708,38 @@ status: {}
 			},
 			err: errors.New("3 errors occurred:\nkustomization name must be specified\ninvalid namespace: @kustomization, a lowercase RFC 1123 label must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?')\nsourceRef name must be specified in Kustomization apps-capi"),
 		},
+		{
+			name: "kustomization with metadata is nil",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+				Kustomizations: []*capiv1_protos.Kustomization{
+					{
+						Spec: &capiv1_protos.Spec{
+							Path: "./apps/capi",
+							SourceRef: &capiv1_protos.SourceRef{
+								Name:      "flux-system",
+								Namespace: "flux-system",
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("kustomization metadata must be specified"),
+		},
 	}
 
 	for _, tt := range testCases {
