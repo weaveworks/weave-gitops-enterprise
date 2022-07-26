@@ -352,7 +352,7 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
 	}
 
-	val, ok := sec.Data["value"]
+	val, ok := kubeConfigFromSecret(sec)
 	if !ok {
 		return nil, fmt.Errorf("secret %q was found but is missing key %q", key, "value")
 	}
@@ -750,4 +750,16 @@ func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
 	}
 
 	return cluster, nil
+}
+
+func kubeConfigFromSecret(s corev1.Secret) ([]byte, bool) {
+	val, ok := s.Data["value.yaml"]
+	if ok {
+		return val, true
+	}
+	val, ok = s.Data["value"]
+	if ok {
+		return val, true
+	}
+	return nil, false
 }
