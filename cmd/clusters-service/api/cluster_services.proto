@@ -308,10 +308,18 @@ message CreatePullRequestResponse {
 }
 
 message Kustomization {
+  Metadata metadata = 1;
+  Spec spec = 2;
+}
+
+message Metadata {
   string name = 1;
   string namespace = 2;
-  string path = 3;
-  SourceRef source_ref = 4;
+}
+
+message Spec {
+  string path = 1;
+  SourceRef source_ref = 2;
 }
 
 message SourceRef {

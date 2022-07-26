@@ -74,7 +74,7 @@ func TestGenerateTenantResources(t *testing.T) {
 	generationTests := []struct {
 		name   string
 		tenant Tenant
-		want   []runtime.Object
+		want   []client.Object
 	}{
 		{
 			name: "simple tenant with one namespace",
@@ -84,7 +84,7 @@ func TestGenerateTenantResources(t *testing.T) {
 					"foo-ns",
 				},
 			},
-			want: []runtime.Object{
+			want: []client.Object{
 				newNamespace("foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
@@ -105,7 +105,7 @@ func TestGenerateTenantResources(t *testing.T) {
 					"bar-ns",
 				},
 			},
-			want: []runtime.Object{
+			want: []client.Object{
 				newNamespace("foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
@@ -135,7 +135,7 @@ func TestGenerateTenantResources(t *testing.T) {
 				},
 				ClusterRole: "demo-cluster-role",
 			},
-			want: []runtime.Object{
+			want: []client.Object{
 				newNamespace("foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
@@ -159,7 +159,7 @@ func TestGenerateTenantResources(t *testing.T) {
 					"provisioner": "gitops",
 				},
 			},
-			want: []runtime.Object{
+			want: []client.Object{
 				newNamespace("foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 					"environment":              "dev",

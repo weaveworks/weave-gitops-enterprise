@@ -1,0 +1,50 @@
+name: "Test result summary"
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: "The type of machine to run the job on e.g macOS-latest or ubuntu-latest"
+        required: true
+        type: string      
+      junit-results-glob-pattern:
+        description: "Glob expression to junit report paths"
+        required: true
+        type: string
+      check-name:
+        description: "Check run name"
+        required: true
+        type: string
+      slack-notification:
+        description: "Enable slack push notification for test results"
+        default: false
+        required: false
+        type: boolean 
+    secrets:
+      SLACK_BOT_TOKEN:
+        description: "Slack bot secret for push notification"
+        required: false
+env:
+  TEST_RESULTS_PATH: "/tmp/test-results"
+jobs:
+  tests:
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Download test artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ${{ env.TEST_RESULTS_PATH }}
+      - name: Publish Test Report      
+        id: test-report
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          report_paths: ${{ env.TEST_RESULTS_PATH }}/**/${{ inputs.junit-results-glob-pattern }}
+          check_name: ${{ inputs.check-name }}
+      - name: Notify slack of test results
+        if: ${{ (inputs.slack-notification) && (github.event_name != 'workflow_dispatch') }}
+        uses: skarlso/slack-notification-action@28f5c1166e2fba7ed5a1d9ceaeb4f2c89a4e5bc5
+        with:
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel: C03FDNVE7RC
+          message: "*Smoke Tests*\n>Tests :test_tube:\t\t\tPassed :check:\t\t\tSkipped :arrow_right_hook:\t\t\tFailed :x:\n>${{steps.test-report.outputs.total}} runs\t\t\t ${{steps.test-report.outputs.passed}} passed\t\t\t ${{steps.test-report.outputs.skipped}} skipped\t\t\t  ${{steps.test-report.outputs.failed}} failed"
+
