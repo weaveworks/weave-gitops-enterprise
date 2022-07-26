@@ -231,7 +231,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		kustomizationFiles := []gitprovider.CommitFile{}
 
 		for _, k := range msg.Kustomizations {
-			kustomization, err := generateKustomizationFiles(ctx, false, cluster, client, k)
+			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k)
 			if err != nil {
 				return nil, err
 			}
@@ -402,6 +402,9 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	}, nil
 }
 
+// CreateKustomizationsPullRequest receives a list of {kustomization, cluster}
+// generates a kustomization file for each provided cluster in the list
+// and creates a pull request for the generated files
 func (s *server) CreateKustomizationsPullRequest(ctx context.Context, msg *capiv1_proto.CreateKustomizationsPullRequestRequest) (*capiv1_proto.CreateKustomizationsPullRequestResponse, error) {
 	gp, err := getGitProvider(ctx)
 	if err != nil {
@@ -434,7 +437,7 @@ func (s *server) CreateKustomizationsPullRequest(ctx context.Context, msg *capiv
 			Name:      c.Name,
 			Namespace: c.Namespace,
 		}
-		kustomization, err := generateKustomizationFiles(ctx, c.IsControlPlane, cluster, client, c.Kustomization)
+		kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization)
 
 		if err != nil {
 			return nil, err
@@ -904,7 +907,12 @@ func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
 	return cluster, nil
 }
 
-func generateKustomizationFiles(ctx context.Context, isControlPlane bool, cluster types.NamespacedName, kubeClient client.Client, kustomization *capiv1_proto.Kustomization) (gitprovider.CommitFile, error) {
+func generateKustomizationFile(
+	ctx context.Context,
+	isControlPlane bool,
+	cluster types.NamespacedName,
+	kubeClient client.Client,
+	kustomization *capiv1_proto.Kustomization) (gitprovider.CommitFile, error) {
 	kustomizationYAML := createKustomizationObject(kustomization)
 
 	b, err := yaml.Marshal(kustomizationYAML)
