@@ -10,6 +10,7 @@ import ProfilesListItem from './ProfileListItem';
 import _ from 'lodash';
 
 const ProfilesWrapper = styled.div`
+  width: 80%;
   padding-bottom: ${({ theme }) => theme.spacing.xl};
   table {
     thead {
@@ -26,8 +27,7 @@ const ProfilesWrapper = styled.div`
     }
     .profile-details {
       display: flex;
-      width: 700px;
-      gap: 21.5%;
+      gap: 33%;
       h2 {
         margin-left: ${({ theme }) => theme.spacing.xs};
       }

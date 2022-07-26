@@ -331,6 +331,7 @@ const AddCluster: FC = () => {
                     setInfraCredential={setInfraCredential}
                   />
                 </CredentialsWrapper>
+
                 <Divider
                   className={
                     !isLargeScreen ? classes.divider : classes.largeDivider
@@ -348,19 +349,21 @@ const AddCluster: FC = () => {
                 ) : (
                   <Loader />
                 )}
-                {profiles.length > 0 && (
-                  <Profiles
-                    selectedProfiles={selectedProfiles}
-                    setSelectedProfiles={setSelectedProfiles}
-                  />
-                )}
-                {openPreview && PRPreview ? (
-                  <Preview
-                    openPreview={openPreview}
-                    setOpenPreview={setOpenPreview}
-                    PRPreview={PRPreview}
-                  />
-                ) : null}
+              </Grid>
+              {profiles.length > 0 && (
+                <Profiles
+                  selectedProfiles={selectedProfiles}
+                  setSelectedProfiles={setSelectedProfiles}
+                />
+              )}
+              {openPreview && PRPreview ? (
+                <Preview
+                  openPreview={openPreview}
+                  setOpenPreview={setOpenPreview}
+                  PRPreview={PRPreview}
+                />
+              ) : null}
+              <Grid item xs={12} sm={10} md={10} lg={8}>
                 <GitOps
                   loading={loading}
                   formData={formData}

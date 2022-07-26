@@ -47,22 +47,8 @@ const useStyles = makeStyles(() => ({
 
 const ProfileWrapper = styled.div`
   display: flex;
-  & .profile-version,
-  .profile-layer,
-  .profile-namespace {
-    display: flex;
-    align-items: center;
-  }
-  ,
-  & .profile-name,
-  .profile-layer {
-    min-width: 120px;
-  }
-  & .profile-version {
-    .MuiSelect-root {
-      min-width: 75px;
-    }
-  }
+  // justify-content: space-between;
+  gap: 21.5%;
 `;
 
 const ProfilesListItem: FC<{
