@@ -15,15 +15,15 @@ enum CanaryDeploymentStatus {
   Failed = 'Failed',
   Terminating = 'Terminating',
   Terminated = 'Terminated',
-  Ready = 'Succeeded',
+  Ready = 'Ready',
 }
 
 function CanaryStatus({
   status,
-  value,
+  value = { current: 0, total: 0 },
 }: {
   status: string;
-  value: { current: number; total: number };
+  value?: { current: number; total: number };
 }) {
   const classes = useCanaryStyle();
 
@@ -41,6 +41,7 @@ function CanaryStatus({
             );
           case CanaryDeploymentStatus.Succeeded:
           case CanaryDeploymentStatus.Initialized:
+          case CanaryDeploymentStatus.Ready:
             return (
               <>
                 <CheckCircle className={`${classes.statusReady}`} />
@@ -48,7 +49,8 @@ function CanaryStatus({
               </>
             );
           case CanaryDeploymentStatus.Progressing:
-            const current = value.current > value.total ? value.total : value.current;
+            const current =
+              value.current > value.total ? value.total : value.current;
             return (
               <>
                 <LinearProgress
@@ -59,7 +61,9 @@ function CanaryStatus({
                   }}
                   className={classes.statusProcessing}
                 />
-                <span className={classes.statusProcessingText}>{`${current} / ${value.total}`}</span>
+                <span
+                  className={classes.statusProcessingText}
+                >{`${current} / ${value.total}`}</span>
               </>
             );
           case CanaryDeploymentStatus.Failed:
