@@ -97,8 +97,6 @@ const AddCluster: FC = () => {
     activeTemplate,
     setActiveTemplate,
     renderTemplate,
-    PRPreview,
-    setPRPreview,
     addCluster,
   } = useTemplates();
   const clustersCount = useClusters().count;
@@ -150,15 +148,34 @@ const AddCluster: FC = () => {
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
   const authRedirectPage = `/clusters/templates/${activeTemplate?.name}/create`;
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  const [PRPreview, setPRPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handlePRPreview = useCallback(() => {
-    setOpenPreview(true);
     const { url, provider, ...templateFields } = formData;
-    renderTemplate({
+    setPreviewLoading(true);
+    return renderTemplate({
       values: templateFields,
       credentials: infraCredential,
-    });
-  }, [formData, setOpenPreview, renderTemplate, infraCredential]);
+    })
+      .then(data => {
+        setOpenPreview(true);
+        setPRPreview(data.renderedTemplate);
+      })
+      .catch(err =>
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
+      )
+      .finally(() => setPreviewLoading(false));
+  }, [
+    formData,
+    setOpenPreview,
+    renderTemplate,
+    infraCredential,
+    setNotifications,
+  ]);
 
   const encodedProfiles = useCallback(
     (profiles: UpdatedProfile[]) =>
@@ -204,6 +221,7 @@ const AddCluster: FC = () => {
       },
       values: encodedProfiles(selectedProfiles),
     };
+    setLoading(true);
     return addCluster(
       payload,
       getProviderToken(formData.provider as GitProvider),
@@ -237,7 +255,8 @@ const AddCluster: FC = () => {
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }
-      });
+      })
+      .finally(() => setLoading(false));
   }, [
     selectedProfiles,
     addCluster,
@@ -321,6 +340,7 @@ const AddCluster: FC = () => {
                     setInfraCredential={setInfraCredential}
                   />
                 </CredentialsWrapper>
+
                 <Divider
                   className={
                     !isLargeScreen ? classes.divider : classes.largeDivider
@@ -333,24 +353,28 @@ const AddCluster: FC = () => {
                     setFormData={setFormData}
                     onFormDataUpdate={setFormData}
                     onPRPreview={handlePRPreview}
+                    previewLoading={previewLoading}
                   />
                 ) : (
                   <Loader />
                 )}
-                {profiles.length > 0 && (
-                  <Profiles
-                    selectedProfiles={selectedProfiles}
-                    setSelectedProfiles={setSelectedProfiles}
-                  />
-                )}
-                {openPreview && PRPreview ? (
-                  <Preview
-                    openPreview={openPreview}
-                    setOpenPreview={setOpenPreview}
-                    PRPreview={PRPreview}
-                  />
-                ) : null}
+              </Grid>
+              {profiles.length > 0 && (
+                <Profiles
+                  selectedProfiles={selectedProfiles}
+                  setSelectedProfiles={setSelectedProfiles}
+                />
+              )}
+              {openPreview && PRPreview ? (
+                <Preview
+                  openPreview={openPreview}
+                  setOpenPreview={setOpenPreview}
+                  PRPreview={PRPreview}
+                />
+              ) : null}
+              <Grid item xs={12} sm={10} md={10} lg={8}>
                 <GitOps
+                  loading={loading}
                   formData={formData}
                   setFormData={setFormData}
                   onSubmit={handleAddCluster}
@@ -378,6 +402,8 @@ const AddCluster: FC = () => {
     handlePRPreview,
     handleAddCluster,
     selectedProfiles,
+    previewLoading,
+    loading,
   ]);
 };
 
