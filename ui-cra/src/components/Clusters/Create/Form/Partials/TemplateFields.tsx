@@ -1,5 +1,5 @@
 import React, { FC, Dispatch } from 'react';
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Template } from '../../../../../cluster-services/cluster_services.pb';
 import { Input, Select, validateFormData } from '../../../../../utils/form';
@@ -17,6 +17,9 @@ const FormWrapper = styled.form`
       width: 200px;
     }
   }
+  .preview-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
 `;
 
 const TemplateFields: FC<{
@@ -25,7 +28,14 @@ const TemplateFields: FC<{
   onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-}> = ({ activeTemplate, onPRPreview, formData, setFormData }) => {
+  previewLoading: boolean;
+}> = ({
+  activeTemplate,
+  onPRPreview,
+  formData,
+  setFormData,
+  previewLoading,
+}) => {
   const handleFormData = (
     event:
       | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
@@ -38,12 +48,13 @@ const TemplateFields: FC<{
 
   return (
     <FormWrapper>
-      {activeTemplate?.parameters?.map(param => {
+      {activeTemplate?.parameters?.map((param, index) => {
         const name = param.name || '';
         const options = param?.options || [];
         if (options.length > 0) {
           return (
             <Select
+              key={index}
               className="form-section"
               name={name}
               required={param.required}
@@ -57,6 +68,7 @@ const TemplateFields: FC<{
         } else
           return (
             <Input
+              key={index}
               className="form-section"
               required={param.required}
               name={name}
@@ -67,11 +79,15 @@ const TemplateFields: FC<{
             />
           );
       })}
-      <div className="preview-cta">
-        <Button onClick={event => validateFormData(event, onPRPreview)}>
-          PREVIEW PR
-        </Button>
-      </div>
+      {previewLoading ? (
+        <LoadingPage className="preview-loading" />
+      ) : (
+        <div className="preview-cta">
+          <Button onClick={event => validateFormData(event, onPRPreview)}>
+            PREVIEW PR
+          </Button>
+        </div>
+      )}
     </FormWrapper>
   );
 };

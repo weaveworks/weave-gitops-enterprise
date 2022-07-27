@@ -413,10 +413,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				By("Then I should preview the PR", func() {
-					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
 
-					Eventually(preview.Title).Should(MatchText("PR Preview"))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 
 					Eventually(preview.Text).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
 					Eventually(preview.Text).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
@@ -494,14 +496,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				// Delete authenticating once the form reset issue is fixed
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-
 				setParameterValues(createPage, parameters)
 
 				By("Then I should preview the PR", func() {
-					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
 
@@ -792,8 +795,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				By("Then I should see PR preview containing identity reference added in the template", func() {
-					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
@@ -888,8 +895,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				By("Then I should see PR preview without identity reference added to the template", func() {
-					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
@@ -999,23 +1010,18 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				// Delete authenticating once the form reset issue is fixed
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-
 				setParameterValues(createPage, parameters)
-				pages.ScrollWindow(webDriver, 0, 4000)
 
 				By("And select the podinfo profile to install", func() {
-					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
-					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
-					pages.DissmissProfilePopup(webDriver)
+					profile := createPage.FindProfileInList("podinfo")
+					Eventually(profile.Checkbox.Click).Should(Succeed(), "Failed to select the podinfo profile")
 				})
 
 				By("And verify selected podinfo profile values.yaml", func() {
-					profile := pages.GetProfile(webDriver, "podinfo")
+					profile := createPage.FindProfileInList("podinfo")
 
 					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "6.0.1").Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "6.0.1").Click).Should(Succeed(), "Failed to select podinfo version: 6.0.1")
 
 					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
 
@@ -1028,7 +1034,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And verify default observability profile values.yaml", func() {
-					profile := pages.GetProfile(webDriver, "observability")
+					profile := createPage.FindProfileInList("observability")
 					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-0"))
 
 					Eventually(profile.Values.Click).Should(Succeed())
@@ -1040,14 +1046,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I should preview the PR", func() {
-					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
 
-					Eventually(preview.Title).Should(MatchText("PR Preview"))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 
 					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
 					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
-
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
 
