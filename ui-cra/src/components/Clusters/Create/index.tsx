@@ -111,7 +111,7 @@ const AddCluster: FC = () => {
     url: '',
     provider: '',
     branchName: `create-clusters-branch-${random}`,
-    pullRequestTitle: 'Creates capi cluster',
+    pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
   };
@@ -269,6 +269,15 @@ const AddCluster: FC = () => {
     history,
     setPRPreview,
   ]);
+
+  useEffect(() => {
+    if (formData.CLUSTER_NAME) {
+      setFormData((prevState: any) => ({
+        ...prevState,
+        pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
+      }));
+    }
+  }, [formData.CLUSTER_NAME]);
 
   useEffect(() => {
     if (!callbackState) {
