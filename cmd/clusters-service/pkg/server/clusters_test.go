@@ -1022,7 +1022,7 @@ status: {}
 	assert.Equal(t, expected, *file.Content)
 }
 
-func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
+func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
@@ -1091,6 +1091,74 @@ status: {}
 	assert.Equal(t, expected, *file.Content)
 }
 
+func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
+	c := createClient(t, makeTestHelmRepository("base"))
+	file, err := generateProfileFiles(
+		context.TODO(),
+		makeTestTemplateWithProfileAnnotation(
+			templatesv1.RenderTypeEnvsubst,
+			"capi.weave.works/profile-0",
+			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\", \"editable\": true }",
+		),
+		types.NamespacedName{
+			Name:      "cluster-foo",
+			Namespace: "ns-foo",
+		},
+		c,
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
+			},
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
+			},
+			parameterValues: map[string]string{},
+		},
+	)
+	require.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cluster-foo-foo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+status: {}
+`
+	assert.Equal(t, expected, *file.Content)
+}
 func TestGenerateProfileFiles_with_templates(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	params := map[string]string{
