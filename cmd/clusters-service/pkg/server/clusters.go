@@ -518,7 +518,7 @@ func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, clust
 				if rp.Version == v.Version && rp.Name == v.Name {
 					if !rp.Editable {
 						if rp.Values != "" {
-							v.Values = rp.Values
+							v.Values = base64.StdEncoding.EncodeToString([]byte(rp.Values))
 						} else {
 							v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
 							if err != nil {

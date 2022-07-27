@@ -19,6 +19,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/chart"
@@ -955,6 +956,7 @@ func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
 	}
 	return ri
 }
+
 func TestGenerateProfileFiles(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
@@ -1015,6 +1017,75 @@ spec:
     crds: CreateReplace
   values:
     foo: bar
+status: {}
+`
+	assert.Equal(t, expected, *file.Content)
+}
+
+func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
+	c := createClient(t, makeTestHelmRepository("base"))
+	file, err := generateProfileFiles(
+		context.TODO(),
+		makeTestTemplateWithProfileAnnotation(
+			templatesv1.RenderTypeEnvsubst,
+			"capi.weave.works/profile-0",
+			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\" }",
+		),
+		types.NamespacedName{
+			Name:      "cluster-foo",
+			Namespace: "ns-foo",
+		},
+		c,
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
+			},
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
+			},
+			parameterValues: map[string]string{},
+		},
+	)
+	require.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cluster-foo-foo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: defaultFoo
 status: {}
 `
 	assert.Equal(t, expected, *file.Content)
@@ -1263,6 +1334,19 @@ status: {}
 
 func makeTestTemplate(renderType string) *templatesv1.Template {
 	return &templatesv1.Template{
+		Spec: templatesv1.TemplateSpec{
+			RenderType: renderType,
+		},
+	}
+}
+
+func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotationValue string) *templatesv1.Template {
+	return &templatesv1.Template{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotationName: annotationValue,
+			},
+		},
 		Spec: templatesv1.TemplateSpec{
 			RenderType: renderType,
 		},
