@@ -1,5 +1,11 @@
+import { UnstructuredObject } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { CustomDataTable, TableWrapper } from '../../CanaryStyles';
-export const ManagedObjectsTable = ({ objects }: { objects: any[] }) => {
+import CanaryStatus from '../../SharedComponent/CanaryStatus';
+export const ManagedObjectsTable = ({
+  objects,
+}: {
+  objects: UnstructuredObject[];
+}) => {
   return (
     <TableWrapper id="objects-list">
       <CustomDataTable
@@ -11,8 +17,7 @@ export const ManagedObjectsTable = ({ objects }: { objects: any[] }) => {
           },
           {
             label: 'Type',
-            value: object =>
-              `${object.groupVersionKind.version}/${object.groupVersionKind.kind}`,
+            value: object => `${object.groupVersionKind.kind}`,
           },
           {
             label: 'Namespace',
@@ -20,11 +25,41 @@ export const ManagedObjectsTable = ({ objects }: { objects: any[] }) => {
           },
           {
             label: 'Status',
-            value: 'status',
+            value: ({ conditions }: UnstructuredObject) =>
+              !!conditions && conditions.length > 0 ? (
+                <CanaryStatus status={conditions[0].type || ''} />
+              ) : (
+                '--'
+              ),
+          },
+          {
+            label: 'Message',
+            value: ({ conditions }: UnstructuredObject) =>
+              !!conditions && conditions.length > 0
+                ? `${conditions[0].message}`
+                : '--',
           },
           {
             label: 'Images',
-            value: 'images',
+            value: ({ images }: UnstructuredObject) => (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                {images?.map((image, indx) => (
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    href={`https://${image}`}
+                    key={indx}
+                  >
+                    {image}
+                  </a>
+                ))}
+              </div>
+            ),
           },
         ]}
       />
