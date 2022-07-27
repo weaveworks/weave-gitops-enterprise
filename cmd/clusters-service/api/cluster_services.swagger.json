@@ -1612,6 +1612,9 @@
         },
         "editable": {
           "type": "boolean"
+        },
+        "values": {
+          "type": "string"
         }
       }
     }
