@@ -10,7 +10,7 @@ import ProfilesListItem from './ProfileListItem';
 import _ from 'lodash';
 
 const ProfilesWrapper = styled.div`
-  width: 80%;
+  width: 85%;
   padding-bottom: ${({ theme }) => theme.spacing.xl};
   table {
     thead {
@@ -27,10 +27,7 @@ const ProfilesWrapper = styled.div`
     }
     .profile-details {
       display: flex;
-      gap: 33%;
-      h2 {
-        margin-left: ${({ theme }) => theme.spacing.xs};
-      }
+      justify-content: space-around;
     }
   }
 `;
@@ -140,7 +137,7 @@ const Profiles: FC<{
               <span data-profile-name={p.name}>{p.name}</span>
             ),
             sortValue: ({ name }) => name,
-            maxWidth: 275,
+            maxWidth: 220,
           },
           {
             label: 'Layer',

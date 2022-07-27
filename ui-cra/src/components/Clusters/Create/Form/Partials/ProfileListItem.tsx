@@ -34,7 +34,6 @@ import {
 import useProfiles from './../../../../../contexts/Profiles';
 import { Loader } from '../../../../Loader';
 
-const medium = weaveTheme.spacing.medium;
 const xs = weaveTheme.spacing.xs;
 
 const useStyles = makeStyles(() => ({
@@ -47,8 +46,7 @@ const useStyles = makeStyles(() => ({
 
 const ProfileWrapper = styled.div`
   display: flex;
-  // justify-content: space-between;
-  gap: 21.5%;
+  justify-content: space-around;
 `;
 
 const ProfilesListItem: FC<{
@@ -188,13 +186,15 @@ const ProfilesListItem: FC<{
             />
           </FormControl>
         </div>
+        {/* <div> */}
         <Button
-          style={{ marginLeft: medium }}
+          // style={{ minWidth: '155px' }}
           variant="text"
           onClick={handleYamlPreview}
         >
           Values.yaml
         </Button>
+        {/* </div> */}
       </ProfileWrapper>
 
       <Dialog
