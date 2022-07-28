@@ -17,6 +17,7 @@ import (
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -617,6 +618,36 @@ func TestRenderTemplate(t *testing.T) {
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
+			name:             "render template with optional value",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("capi-templates", "template1",
+					makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+						ct.Template.Spec.Params = append(ct.Template.Spec.Params, apitemplates.TemplateParam{
+							Name:     "OPTIONAL_PARAM",
+							Required: false,
+						})
+						ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+							{
+								RawExtension: rawExtension(`{
+							"apiVersion":"fooversion",
+							"kind":"fookind",
+							"metadata":{
+								"name":"${CLUSTER_NAME}",
+								"namespace":"${NAMESPACE}",
+								"annotations":{
+									"capi.weave.works/display-name":"ClusterName"
+								}
+							}
+						}`),
+							},
+						}
+					})),
 			},
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},

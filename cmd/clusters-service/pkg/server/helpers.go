@@ -23,6 +23,22 @@ func renderTemplateWithValues(t *apitemplates.Template, name, namespace string, 
 		return nil, err
 	}
 
+	params, err := processor.Params()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, param := range params {
+		_, ok := values[param.Name]
+		if !ok && values != nil {
+			if param.Required {
+				return nil, fmt.Errorf("missing required parameter: %s", param.Name)
+			}
+
+			values[param.Name] = ""
+		}
+	}
+
 	templateBits, err := processor.RenderTemplates(values, opts...)
 	if err != nil {
 		if missing, ok := isMissingVariableError(err); ok {
