@@ -51,6 +51,10 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
 
+
+cmd/cli/gitops: cmd/cli/main.go $(shell find cmd/cli -name "*.go")
+	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
+
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
 ui-cra/.uptodate: ui-cra/*
 	$(SUDO) docker build \
