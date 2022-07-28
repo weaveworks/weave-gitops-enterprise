@@ -84,6 +84,26 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 
 // RenderTemplates renders all the resourceTemplates in the template.
 func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
+	params, err := p.Params()
+	if err != nil {
+		return nil, err
+	}
+
+	if vars == nil {
+		vars = map[string]string{}
+	}
+
+	for _, param := range params {
+		_, ok := vars[param.Name]
+		if !ok {
+			if param.Required {
+				return nil, fmt.Errorf("missing required parameter: %s", param.Name)
+			}
+
+			vars[param.Name] = ""
+		}
+	}
+
 	var processed [][]byte
 	for _, v := range p.Template.Spec.ResourceTemplates {
 		b, err := yaml.JSONToYAML(v.RawExtension.Raw)

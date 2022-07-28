@@ -749,7 +749,15 @@ func TestRenderTemplate(t *testing.T) {
 
 func TestRenderTemplate_MissingVariables(t *testing.T) {
 	clusterState := []runtime.Object{
-		makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+		makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+			ct.Template.Spec.Params = []apitemplates.TemplateParam{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
+				},
+			}
+		})),
 	}
 	s := createServer(t, serverOptions{
 		clusterState:  clusterState,
@@ -769,7 +777,7 @@ func TestRenderTemplate_MissingVariables(t *testing.T) {
 	}
 
 	_, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
-	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1, processing template: failed to process template values: value for variables [CLUSTER_NAME] is not set. Please set the value using os environment variables or the clusterctl config file"); diff != "" {
+	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1, missing required parameter: CLUSTER_NAME"); diff != "" {
 		t.Fatalf("got the wrong error:\n%s", diff)
 	}
 }
