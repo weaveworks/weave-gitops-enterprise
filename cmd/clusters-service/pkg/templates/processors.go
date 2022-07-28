@@ -61,7 +61,7 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 
 	paramsMeta := map[string]Param{}
 	for _, v := range paramNames.List() {
-		paramsMeta[v] = Param{Name: v}
+		paramsMeta[v] = Param{Name: v, Required: true}
 	}
 
 	for _, v := range p.Template.Spec.Params {
