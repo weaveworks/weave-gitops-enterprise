@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
 import styled from 'styled-components';
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
 import { Input, validateFormData } from '../../../../../utils/form';
 
@@ -12,20 +12,25 @@ const GitOpsWrapper = styled.form`
   .create-cta {
     display: flex;
     justify-content: end;
-    padding: ${({ theme }) => theme.spacing.base};
+    padding: ${({ theme }) => theme.spacing.small};
     button {
       width: 200px;
     }
   }
+  .create-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
 `;
 
 const GitOps: FC<{
+  loading: boolean;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
   onSubmit: () => Promise<void>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
+  loading,
   formData,
   setFormData,
   onSubmit,
@@ -112,14 +117,19 @@ const GitOps: FC<{
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
       />
-      <div className="create-cta">
-        <Button
-          onClick={event => validateFormData(event, onSubmit)}
-          disabled={!enableCreatePR}
-        >
-          CREATE PULL REQUEST
-        </Button>
-      </div>
+
+      {loading ? (
+        <LoadingPage className="create-loading" />
+      ) : (
+        <div className="create-cta">
+          <Button
+            onClick={event => validateFormData(event, onSubmit)}
+            disabled={!enableCreatePR}
+          >
+            CREATE PULL REQUEST
+          </Button>
+        </div>
+      )}
     </GitOpsWrapper>
   );
 };

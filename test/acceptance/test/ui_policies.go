@@ -43,7 +43,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 		Context("[UI] Policies can be installed", func() {
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
-			policyName := "Container Image Pull Policy acceptance-test"
+			policyName := "Container Image Pull Policy acceptance test"
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
 			policyClusterName := "management"
 			policySeverity := "Medium"
@@ -66,7 +66,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 					Eventually(policiesPage.PolicyHeader).Should(BeVisible())
 
-					totalPolicyCount := existingPoliciesCount + 3
+					totalPolicyCount := existingPoliciesCount + 4
 					Eventually(func(g Gomega) string {
 						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
@@ -163,6 +163,10 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			var mgmtClusterContext string
 			var leafClusterContext string
 			var leafClusterkubeconfig string
+			var clusterBootstrapCopnfig string
+			var gitopsCluster string
+			patSecret := "policy-pat"
+			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-policy-kind"
 			leafClusterNamespace := "default"
 
@@ -184,11 +188,11 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			JustAfterEach(func() {
 				useClusterContext(mgmtClusterContext)
 
-				deleteKubeconfigSecret([]string{leafClusterkubeconfig}, leafClusterNamespace)
-				deleteGitopsCluster([]string{leafClusterName}, leafClusterNamespace)
+				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafClusterNamespace)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName})
-
+				deleteClusters("kind", []string{leafClusterName}, "")
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 
 			})
@@ -201,7 +205,9 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				installTestPolicies(leafClusterName, policiesYaml)
 
 				useClusterContext(mgmtClusterContext)
-				connectGitopsCuster(leafClusterName, leafClusterNamespace, leafClusterkubeconfig)
+				createPATSecret(leafClusterNamespace, patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafClusterName, leafClusterNamespace, bootstrapLabel, patSecret)
+				gitopsCluster = connectGitopsCuster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafClusterNamespace, leafClusterkubeconfig)
 
 				By("Verify GitopsCluster status after creating kubeconfig secret", func() {
@@ -214,7 +220,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And add kustomization bases for common resources for leaf cluster)", func() {
-					addKustomizationBases(leafClusterName)
+					addKustomizationBases(leafClusterName, leafClusterNamespace)
 				})
 
 				installTestPolicies("management", policiesYaml)
@@ -226,7 +232,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
 					Eventually(policiesPage.PolicyHeader).Should(BeVisible())
 
-					totalPolicyCount := existingPoliciesCount + 6 // 3 management and 3 leaf policies
+					totalPolicyCount := existingPoliciesCount + 8 // 4 management and 4 leaf policies
 
 					Eventually(func(g Gomega) string {
 						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
