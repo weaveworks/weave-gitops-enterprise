@@ -159,10 +159,31 @@ export type CreatePullRequestRequest = {
   values?: ProfileValues[]
   repositoryApiUrl?: string
   clusterNamespace?: string
+  kustomizations?: Kustomization[]
 }
 
 export type CreatePullRequestResponse = {
   webUrl?: string
+}
+
+export type Kustomization = {
+  metadata?: Metadata
+  spec?: Spec
+}
+
+export type Metadata = {
+  name?: string
+  namespace?: string
+}
+
+export type Spec = {
+  path?: string
+  sourceRef?: SourceRef
+}
+
+export type SourceRef = {
+  name?: string
+  namespace?: string
 }
 
 export type CreateTfControllerPullRequestRequest = {
