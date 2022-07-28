@@ -199,7 +199,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And add kustomization bases for common resources for leaf cluster)", func() {
-					addKustomizationBases(leafClusterName, leafClusterNamespace)
+					addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 				})
 
 				By(fmt.Sprintf("And I verify %s GitopsCluster is bootstraped)", leafClusterName), func() {
