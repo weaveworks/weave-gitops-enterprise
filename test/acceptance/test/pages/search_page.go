@@ -10,16 +10,15 @@ import (
 
 type SearchPage struct {
 	SearchBtn    *agouti.Selection
-	SearchForm   *agouti.Selection
+	Search       *agouti.Selection
 	FilterBtn    *agouti.Selection
 	FilterDialog *agouti.Selection
-	Filters      *agouti.MultiSelection
 }
 
 func GetSearchPage(webDriver *agouti.Page) *SearchPage {
 	return &SearchPage{
-		SearchForm:   webDriver.FindByXPath(`//input[@placeholder="Search"]`),
 		SearchBtn:    webDriver.AllByXPath(`//input[@placeholder="Search"]/ancestor::div/button`).At(0),
+		Search:       webDriver.FindByID(`table-search`),
 		FilterBtn:    webDriver.AllByXPath(`//input[@placeholder="Search"]/ancestor::div/button`).At(1),
 		FilterDialog: webDriver.Find(`div[class*="FilterDialog"].open`),
 	}
