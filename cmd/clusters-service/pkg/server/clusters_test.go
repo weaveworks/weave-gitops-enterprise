@@ -1267,7 +1267,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: cluster-foo-foo
+  name: foo
   namespace: flux-system
 spec:
   chart:
@@ -1336,7 +1336,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: cluster-foo-foo
+  name: foo
   namespace: flux-system
 spec:
   chart:
