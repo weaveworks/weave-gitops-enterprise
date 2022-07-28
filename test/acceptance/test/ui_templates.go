@@ -1148,7 +1148,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
 					// List of Profiles in order of layering
 					profiles := []string{"observability", "podinfo"}
-					verifyCapiClusterHealth(downloadedKubeconfigPath, clusterName, profiles, GITOPS_DEFAULT_NAMESPACE)
+					verifyCapiClusterHealth(downloadedKubeconfigPath, profiles, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				By("Then I should select the cluster to create the delete pull request", func() {

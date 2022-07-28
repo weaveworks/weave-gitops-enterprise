@@ -443,7 +443,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(kubeconfigPath, clusterName, []string{}, GITOPS_DEFAULT_NAMESPACE)
+					verifyCapiClusterHealth(kubeconfigPath, []string{}, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				clusterName2 := capdClusterNames[1]

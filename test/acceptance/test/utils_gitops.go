@@ -246,7 +246,7 @@ func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
 	}
 }
 
-func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string, profiles []string, namespace string) {
+func verifyCapiClusterHealth(kubeconfigPath string, profiles []string, namespace string) {
 
 	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 	waitForResourceState("Ready", "true", "nodes", "default", "", kubeconfigPath, ASSERTION_5MINUTE_TIME_OUT)
@@ -258,12 +258,12 @@ func verifyCapiClusterHealth(kubeconfigPath string, capiCluster string, profiles
 		// Check all profiles are installed in layering order
 		switch profile {
 		case "observability":
-			Expect(waitForResource("deploy", capiCluster+"-observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			Expect(waitForResource("deploy", capiCluster+"-observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			waitForResourceState("Ready", "true", "pods", namespace, "release="+capiCluster+"-observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			Expect(waitForResource("deploy", "observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			Expect(waitForResource("deploy", "observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", namespace, "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "podinfo":
-			Expect(waitForResource("deploy", capiCluster+"-podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			waitForResourceState("Ready", "true", "pods", namespace, "app.kubernetes.io/name="+capiCluster+"-podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			Expect(waitForResource("deploy", "podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", namespace, "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
 	}
 }
