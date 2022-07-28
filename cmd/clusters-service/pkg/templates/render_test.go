@@ -503,7 +503,7 @@ func TestRender_unknown_parameter(t *testing.T) {
 	}
 
 	_, err = processor.RenderTemplates(map[string]string{})
-	assert.ErrorContains(t, err, "value for variables [CLUSTER_NAME] is not set")
+	assert.ErrorContains(t, err, "missing required parameter: CLUSTER_NAME")
 }
 
 func writeMultiDoc(t *testing.T, objs [][]byte) string {
