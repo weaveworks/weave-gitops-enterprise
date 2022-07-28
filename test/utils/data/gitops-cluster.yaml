@@ -6,6 +6,12 @@ metadata:
   namespace: "{{.NameSpace}}"
   labels:
     weave.works/flux: "{{.Bootstrap}}"
+    weave.works/apps: "backup"
+  annotations:
+    metadata.weave.works/dashboard.grafana: https://grafana.com/
+    metadata.weave.works/dashboard.prometheus: https://prometheus.io/
+    metadata.weave.works/dashboard.javascript: "javascript:alert('hello there ' + window.localStorage.getItem('name'));"
+
 spec:
   secretRef:
     name: "{{.KubeconfigSecret}}"

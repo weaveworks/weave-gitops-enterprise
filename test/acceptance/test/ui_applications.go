@@ -184,7 +184,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(appDetailPage.Details.Click()).Should(Succeed(), fmt.Sprintf("Failed to click %s Details tab button", appName))
 					pages.WaitForPageToLoad(webDriver)
 
-					details := pages.GetApplicationDetail(webDriver, deploymentName)
+					details := pages.GetApplicationDetail(webDriver)
 
 					Eventually(details.Source.Text).Should(MatchRegexp("GitRepository/"+appName), fmt.Sprintf("Failed to verify %s Source", appName))
 					Eventually(details.AppliedRevision.Text).Should(MatchRegexp("master"), fmt.Sprintf("Failed to verify %s AppliedRevision", appName))

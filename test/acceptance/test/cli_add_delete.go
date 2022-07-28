@@ -352,7 +352,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(appName)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters(capdClusterNames)
+				removeGitopsCapiClusters(capdClusterNames, clusterNamespace[gitProviderEnv.Type])
 			})
 
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("capd", "git"), func() {
@@ -443,7 +443,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(kubeconfigPath, clusterName, []string{}, GITOPS_DEFAULT_NAMESPACE)
+					verifyCapiClusterHealth(kubeconfigPath, []string{}, GITOPS_DEFAULT_NAMESPACE)
 				})
 
 				clusterName2 := capdClusterNames[1]

@@ -5,15 +5,15 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
 )
 
 type ClusterInformation struct {
-	Checkbox  *agouti.Selection
-	Name      *agouti.Selection
-	Type      *agouti.Selection
-	Namespace *agouti.Selection
-	Status    *agouti.Selection
+	Checkbox   *agouti.Selection
+	Name       *agouti.Selection
+	Dashboards *agouti.Selection
+	Type       *agouti.Selection
+	Namespace  *agouti.Selection
+	Status     *agouti.Selection
 }
 
 type ClusterStatus struct {
@@ -44,22 +44,43 @@ type ClustersPage struct {
 	Version               *agouti.Selection
 }
 
+type ClusterDetailPage struct {
+	Header       *agouti.Selection
+	Applications *agouti.Selection
+	Kubeconfig   *agouti.Selection
+	Namespace    *agouti.Selection
+	Dashboards   *agouti.Selection
+	Labels       *agouti.MultiSelection
+}
+
 // This function waits for progressbar circle to disappear
 func WaitForPageToLoad(webDriver *agouti.Page) {
-	Eventually(webDriver.Find(`[class^=MuiCircularProgress]`)).ShouldNot(BeFound())
+	// Eventually(webDriver.Find(`[class^=MuiCircularProgress]`)).ShouldNot(BeFound())
+	Eventually(func(g Gomega) bool {
+		if pCount, _ := webDriver.All(`[class^=MuiCircularProgress]`).Count(); pCount > 0 {
+			return true
+		}
+		return false
+	}).Should(BeFalse(), "Page took too long to load")
 }
 
 // FindClusterInList finds the cluster with given name
 func (c ClustersPage) FindClusterInList(clusterName string) *ClusterInformation {
 	cluster := c.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
 	return &ClusterInformation{
-		Checkbox:  cluster.FindByXPath(`td[1]`).Find("input"),
-		Name:      cluster.FindByXPath(`td[2]`),
-		Type:      cluster.FindByXPath(`td[4]`),
-		Namespace: cluster.FindByXPath(`td[5]`),
-		Status:    cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
+		Checkbox:   cluster.FindByXPath(`td[1]`).Find("input"),
+		Name:       cluster.FindByXPath(`td[2]//a`),
+		Dashboards: cluster.FindByXPath(`td[3]`),
+		Type:       cluster.FindByXPath(`td[4]`),
+		Namespace:  cluster.FindByXPath(`td[5]`),
+		Status:     cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
 	}
 }
+
+func (c ClusterInformation) GetDashboard(dashboard string) *agouti.Selection {
+	return c.Dashboards.FindByXPath(fmt.Sprintf(`//li/a[.="%s"]`, dashboard))
+}
+
 func (c ClustersPage) CountClusters() int {
 	clusters := c.ClustersList.All("[data-cluster-name]")
 	count, _ := clusters.Count()
@@ -104,4 +125,31 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	}
 
 	return &clustersPage
+}
+
+func GetClusterDetailPage(webDriver *agouti.Page) *ClusterDetailPage {
+	infoList := webDriver.Find(`table[class*="InfoList"]`)
+	return &ClusterDetailPage{
+		Header:       webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/clusters"]/parent::node()/parent::node()/following-sibling::div`),
+		Applications: infoList.FindByButton(`GO TO APPLICATIONS`),
+		Kubeconfig:   infoList.FindByXPath(`//td[.="kubeconfig:"]/following-sibling::td`),
+		Namespace:    webDriver.FindByXPath(`//td[.="Namespace:"]/following-sibling::td`),
+		Dashboards:   webDriver.FindByXPath(`//div[.="Dashboards"]//following-sibling::ul`),
+		Labels:       webDriver.AllByXPath(`//div[.="Labels"]//following-sibling::div`),
+	}
+}
+
+func (c ClusterDetailPage) GetDashboard(dashboard string) *agouti.Selection {
+	return c.Dashboards.FindByXPath(fmt.Sprintf(`//li/a[.="%s"]`, dashboard))
+}
+
+func (c ClusterDetailPage) GetLabels() []string {
+	labels := []string{}
+	tCount, _ := c.Labels.Count()
+
+	for i := 0; i < tCount; i++ {
+		label, _ := c.Labels.At(i).Text()
+		labels = append(labels, label)
+	}
+	return labels
 }
