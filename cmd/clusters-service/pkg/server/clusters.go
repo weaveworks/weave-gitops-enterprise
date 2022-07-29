@@ -512,31 +512,27 @@ func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, clust
 	}
 
 	var installs []charts.ChartInstall
+
+	requiredProfiles, err := getProfilesFromTemplate(tmpl.Annotations)
+
 	for _, v := range args.profileValues {
+		var requiredProfile *capiv1_proto.TemplateProfile
+		for _, rp := range requiredProfiles {
+			if rp.Version == v.Version && rp.Name == v.Name {
+				requiredProfile = rp
+			}
+		}
+
+		editable := (requiredProfile == nil || requiredProfile.Editable)
 		// Check the values and if not editable in the Template Profiles or empty, replace with default values. This should happen before parsing.
-		if v.Values != "" {
-			requiredProfiles, err := getProfilesFromTemplate(tmpl.Annotations)
-			if err != nil {
-				return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
-			}
-			for _, rp := range requiredProfiles {
-				if rp.Version == v.Version && rp.Name == v.Name {
-					if !rp.Editable {
-						if rp.Values != "" {
-							v.Values = base64.StdEncoding.EncodeToString([]byte(rp.Values))
-						} else {
-							v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
-							if err != nil {
-								return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
-							}
-						}
-					}
+		if !editable || v.Values == "" {
+			if requiredProfile != nil && requiredProfile.Values != "" {
+				v.Values = base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values))
+			} else {
+				v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
+				if err != nil {
+					return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
 				}
-			}
-		} else {
-			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
-			if err != nil {
-				return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
 			}
 		}
 
@@ -576,7 +572,10 @@ func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, clust
 			Values:    parsed,
 			Namespace: v.Namespace,
 		})
+	}
 
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
 
 	helmReleases, err := charts.MakeHelmReleasesInLayers(cluster.Name, HelmReleaseNamespace, installs)
