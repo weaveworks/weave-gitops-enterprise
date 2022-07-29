@@ -515,6 +515,10 @@ func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, clust
 
 	requiredProfiles, err := getProfilesFromTemplate(tmpl.Annotations)
 
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
+	}
+
 	for _, v := range args.profileValues {
 		var requiredProfile *capiv1_proto.TemplateProfile
 		for _, rp := range requiredProfiles {
@@ -572,10 +576,6 @@ func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, clust
 			Values:    parsed,
 			Namespace: v.Namespace,
 		})
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
 
 	helmReleases, err := charts.MakeHelmReleasesInLayers(cluster.Name, HelmReleaseNamespace, installs)
