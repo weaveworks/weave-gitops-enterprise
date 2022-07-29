@@ -16,6 +16,10 @@ type CAPITemplate struct {
 	Spec templates.TemplateSpec `json:"spec,omitempty"`
 }
 
+func (t CAPITemplate) GetSpec() templates.TemplateSpec {
+	return t.Spec
+}
+
 // CAPITemplateList contains a list of CAPITemplate
 // +kubebuilder:object:root=true
 type CAPITemplateList struct {

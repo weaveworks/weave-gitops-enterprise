@@ -17,23 +17,23 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
-const testdata1 = `
+var testdata1 = []byte(`
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
   name: cluster-template
 spec:
   description: this is test template 1
-`
+`)
 
-const testdata2 = `
+var testdata2 = []byte(`
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
   name: cluster-template2
 spec:
   description: this is test template 2
-`
+`)
 
 func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
@@ -54,40 +54,31 @@ func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 }
 
 func TestGetTemplateFromCAPICRDs(t *testing.T) {
-	t1 := mustParseCAPITemplate(t, testdata1)
-	t2 := mustParseCAPITemplate(t, testdata2)
+	t1 := parseCAPITemplateFromBytes(t, testdata1)
+	t2 := parseCAPITemplateFromBytes(t, testdata2)
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, t1, t2))}
 	result, err := lib.Get(context.Background(), "cluster-template2", capiv1.Kind)
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
-	if diff := cmp.Diff(&t2.Template, result); diff != "" {
+	if diff := cmp.Diff(t2, result); diff != "" {
 		t.Fatalf("On no, diff templates: %v", diff)
 	}
 }
 
 func TestListTemplateFromCAPICRDs(t *testing.T) {
-	t1 := mustParseCAPITemplate(t, testdata1)
-	t2 := mustParseCAPITemplate(t, testdata2)
+	t1 := parseCAPITemplateFromBytes(t, testdata1)
+	t2 := parseCAPITemplateFromBytes(t, testdata2)
 	lib := CRDLibrary{Log: logr.Discard(), ClientGetter: kubefakes.NewFakeClientGetter(makeClient(t, t1, t2))}
 	result, err := lib.List(context.Background(), capiv1.Kind)
 	if err != nil {
 		t.Fatalf("On no, error: %v", err)
 	}
-	want := map[string]*templates.Template{
-		"cluster-template":  &t1.Template,
-		"cluster-template2": &t2.Template,
+	want := map[string]templates.Template{
+		"cluster-template":  t1,
+		"cluster-template2": t2,
 	}
 	if diff := cmp.Diff(want, result); diff != "" {
 		t.Fatalf("On no, diff templates: %v", diff)
 	}
-}
-
-func mustParseCAPITemplate(t *testing.T, data string) *capiv1.CAPITemplate {
-	t.Helper()
-	parsed, err := ParseBytes([]byte(data), "a-key")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return &capiv1.CAPITemplate{Template: *parsed}
 }

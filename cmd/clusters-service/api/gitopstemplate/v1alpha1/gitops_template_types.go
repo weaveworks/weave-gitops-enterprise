@@ -17,6 +17,10 @@ type GitOpsTemplate struct {
 	Spec templates.TemplateSpec `json:"spec,omitempty"`
 }
 
+func (t GitOpsTemplate) GetSpec() templates.TemplateSpec {
+	return t.Spec
+}
+
 // GitOpsTemplateList contains a list of GitOpsTemplate
 // +kubebuilder:object:root=true
 type GitOpsTemplateList struct {

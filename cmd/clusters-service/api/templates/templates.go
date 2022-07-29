@@ -2,7 +2,17 @@ package templates
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
+
+// Template implementations provide access to key fields for different
+// templates.
+type Template interface {
+	GetName() string
+	GetSpec() TemplateSpec
+	GetAnnotations() map[string]string
+	GetObjectKind() schema.ObjectKind
+}
 
 // These are the options for rendering templates using different "languages"
 // e.g. envsubst or Go templating.
