@@ -164,6 +164,7 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
   smoke-test-results:
+    if: ${{ always() }}
     needs: [smoke-tests-github, smoke-tests-gitlab, smoke-tests-gitlab-on-prem]
     uses: ./.github/workflows/publish-test-results.yaml
     with:

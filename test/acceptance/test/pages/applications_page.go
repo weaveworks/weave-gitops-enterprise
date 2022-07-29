@@ -43,6 +43,7 @@ type ApplicationDetail struct {
 	Path            *agouti.Selection
 	Interval        *agouti.Selection
 	LastUpdated     *agouti.Selection
+	Metadata        *agouti.Selection
 	Name            *agouti.Selection
 	Type            *agouti.Selection
 	Namespace       *agouti.Selection
@@ -62,13 +63,13 @@ type ApplicationGraph struct {
 	Kustomization *agouti.Selection
 	Deployment    *agouti.Selection
 	ReplicaSet    *agouti.Selection
-	Pod           *agouti.MultiSelection
+	Pod           *agouti.Selection
 }
 
 func (a ApplicationsPage) FindApplicationInList(applicationName string) *ApplicationInformation {
 	application := a.ApplicationsList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, applicationName))
 	return &ApplicationInformation{
-		Name:        application.FindByXPath(`td[1]`),
+		Name:        application.FindByXPath(`td[1]//a`),
 		Type:        application.FindByXPath(`td[2]`),
 		Namespace:   application.FindByXPath(`td[3]`),
 		Cluster:     application.FindByXPath(`td[4]`),
@@ -119,12 +120,17 @@ func GetApplicationDetail(webDriver *agouti.Page) *ApplicationDetail {
 		Path:            autoDetails.FindByXPath(`tr[4]/td[2]`),
 		Interval:        autoDetails.FindByXPath(`tr[5]/td[2]`),
 		LastUpdated:     autoDetails.FindByXPath(`tr[6]/td[2]`),
+		Metadata:        webDriver.Find(`div[class*=Metadata] table tbody`),
 		Name:            reconcileDetails.FindByXPath(`td[1]`),
 		Type:            reconcileDetails.FindByXPath(`td[2]`),
 		Namespace:       reconcileDetails.FindByXPath(`td[3]`),
 		Status:          reconcileDetails.FindByXPath(`td[4]`),
 		Message:         reconcileDetails.FindByXPath(`td[5]`),
 	}
+}
+
+func (a ApplicationDetail) GetMetadata(name string) *agouti.Selection {
+	return a.Metadata.FindByXPath(fmt.Sprintf(`tr/td[.="%s:"]/following-sibling::td`, name))
 }
 
 func GetApplicationEvent(webDriver *agouti.Page, reason string) *ApplicationEvent {
@@ -138,12 +144,12 @@ func GetApplicationEvent(webDriver *agouti.Page, reason string) *ApplicationEven
 	}
 }
 
-func GetApplicationGraph(webDriver *agouti.Page, namespace string, targetNamespace string) *ApplicationGraph {
+func GetApplicationGraph(webDriver *agouti.Page, deploymentName string, appName string, namespace string, targetNamespace string) *ApplicationGraph {
 	return &ApplicationGraph{
-		SourceGit:     webDriver.FindByXPath(fmt.Sprintf(`//div[@class="kind-text"][.="GitRepository"]/parent::node()/following-sibling::div/div[@class="kind-text"][.="%s"]`, namespace)),
-		Kustomization: webDriver.FindByXPath(fmt.Sprintf(`//div[@class="kind-text"][.="Kustomization"]/parent::node()/following-sibling::div/div[@class="kind-text"][.="%s"]`, namespace)),
-		Deployment:    webDriver.FindByXPath(fmt.Sprintf(`//div[@class="kind-text"][.="Deployment"]/parent::node()/following-sibling::div/div[@class="kind-text"][.="%s"]`, targetNamespace)),
-		ReplicaSet:    webDriver.FindByXPath(fmt.Sprintf(`//div[@class="kind-text"][.="ReplicaSet"]/parent::node()/following-sibling::div/div[@class="kind-text"][.="%s"]`, targetNamespace)),
-		Pod:           webDriver.AllByXPath(fmt.Sprintf(`//div[@class="kind-text"][.="Pod"]/parent::node()/following-sibling::div/div[@class="kind-text"][.="%s"]`, targetNamespace)),
+		SourceGit:     webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][.="%s"]/following-sibling::div[contains(@class, "GraphNode")][.="GitRepository"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, appName, namespace)),
+		Kustomization: webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][.="%s"]/following-sibling::div[contains(@class, "GraphNode")][.="Kustomization"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, appName, namespace)),
+		Deployment:    webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][.="%s"]/following-sibling::div[contains(@class, "GraphNode")][.="Deployment"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, deploymentName, targetNamespace)),
+		ReplicaSet:    webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][contains(., "%s")]/following-sibling::div[contains(@class, "GraphNode")][.="Kustomization"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, appName, namespace)),
+		Pod:           webDriver.FirstByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][contains(., "%s")]/following-sibling::div[contains(@class, "GraphNode")][.="Kustomization"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, appName, namespace)),
 	}
 }
