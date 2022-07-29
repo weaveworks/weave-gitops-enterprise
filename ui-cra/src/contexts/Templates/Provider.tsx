@@ -10,10 +10,9 @@ import {
 } from '../../cluster-services/cluster_services.pb';
 
 const TemplatesProvider: FC = ({ children }) => {
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [templates, setTemplates] = useState<Template[] | undefined>([]);
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
-  const [PRPreview, setPRPreview] = useState<string | null>(null);
   const { setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
@@ -24,19 +23,11 @@ const TemplatesProvider: FC = ({ children }) => {
 
   const renderTemplate = useCallback(
     data => {
-      setLoading(true);
-      request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
+      return request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
         body: JSON.stringify(data),
-      })
-        .then(data => setPRPreview(data.renderedTemplate))
-        .catch(err =>
-          setNotifications([
-            { message: { text: err.message }, variant: 'danger' },
-          ]),
-        )
-        .finally(() => setLoading(false));
+      });
     },
-    [activeTemplate, setNotifications],
+    [activeTemplate],
   );
 
   const addCluster = useCallback(
@@ -83,8 +74,8 @@ const TemplatesProvider: FC = ({ children }) => {
         getTemplate,
         addCluster,
         renderTemplate,
-        PRPreview,
-        setPRPreview,
+        // PRPreview,
+        // setPRPreview,
       }}
     >
       {children}

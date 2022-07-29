@@ -413,7 +413,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: dev-demo-profile
+  name: demo-profile
   namespace: flux-system
 spec:
   chart:
@@ -513,7 +513,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: dev-demo-profile
+  name: demo-profile
   namespace: flux-system
 spec:
   chart:
@@ -1196,7 +1196,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: cluster-foo-foo
+  name: foo
   namespace: flux-system
 spec:
   chart:
@@ -1266,7 +1266,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: cluster-foo-foo
+  name: foo
   namespace: flux-system
 spec:
   chart:
@@ -1339,7 +1339,7 @@ metadata:
   creationTimestamp: null
   labels:
     weave.works/applied-layer: testing
-  name: cluster-foo-bar
+  name: bar
   namespace: flux-system
 spec:
   chart:
@@ -1364,7 +1364,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: cluster-foo-foo
+  name: foo
   namespace: flux-system
 spec:
   chart:
@@ -1377,7 +1377,7 @@ spec:
         namespace: test-ns
       version: 0.0.1
   dependsOn:
-  - name: cluster-foo-bar
+  - name: bar
   install:
     crds: CreateReplace
   interval: 1m0s
@@ -1437,7 +1437,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: cluster-foo-foo
+  name: foo
   namespace: flux-system
 spec:
   chart:
