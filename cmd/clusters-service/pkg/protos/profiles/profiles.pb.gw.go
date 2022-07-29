@@ -133,7 +133,7 @@ func RegisterProfilesHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfiles", runtime.WithHTTPPathPattern("/v1/profiles"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_ee_profiles.v1.Profiles/GetProfiles", runtime.WithHTTPPathPattern("/v1/profiles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -156,7 +156,7 @@ func RegisterProfilesHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profile_name}/{profile_version}/values"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_ee_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profile_name}/{profile_version}/values"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -218,7 +218,7 @@ func RegisterProfilesHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfiles", runtime.WithHTTPPathPattern("/v1/profiles"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_ee_profiles.v1.Profiles/GetProfiles", runtime.WithHTTPPathPattern("/v1/profiles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -238,7 +238,7 @@ func RegisterProfilesHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profile_name}/{profile_version}/values"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_ee_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profile_name}/{profile_version}/values"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

@@ -61,7 +61,7 @@ func NewApplicationsClient(cc grpc.ClientConnInterface) ApplicationsClient {
 
 func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	out := new(AuthenticateResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/Authenticate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_applications_server.v1.Applications/Authenticate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateR
 
 func (c *applicationsClient) GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error) {
 	out := new(GetGithubDeviceCodeResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetGithubDeviceCode", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_applications_server.v1.Applications/GetGithubDeviceCode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (c *applicationsClient) GetGithubDeviceCode(ctx context.Context, in *GetGit
 
 func (c *applicationsClient) GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error) {
 	out := new(GetGithubAuthStatusResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetGithubAuthStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_applications_server.v1.Applications/GetGithubAuthStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (c *applicationsClient) GetGithubAuthStatus(ctx context.Context, in *GetGit
 
 func (c *applicationsClient) GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error) {
 	out := new(GetGitlabAuthURLResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetGitlabAuthURL", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_applications_server.v1.Applications/GetGitlabAuthURL", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (c *applicationsClient) GetGitlabAuthURL(ctx context.Context, in *GetGitlab
 
 func (c *applicationsClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error) {
 	out := new(AuthorizeGitlabResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/AuthorizeGitlab", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_applications_server.v1.Applications/AuthorizeGitlab", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (c *applicationsClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeG
 
 func (c *applicationsClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error) {
 	out := new(ParseRepoURLResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ParseRepoURL", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_applications_server.v1.Applications/ParseRepoURL", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *applicationsClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLR
 
 func (c *applicationsClient) ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error) {
 	out := new(ValidateProviderTokenResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ValidateProviderToken", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_applications_server.v1.Applications/ValidateProviderToken", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func _Applications_Authenticate_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/Authenticate",
+		FullMethod: "/wego_applications_server.v1.Applications/Authenticate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).Authenticate(ctx, req.(*AuthenticateRequest))
@@ -226,7 +226,7 @@ func _Applications_GetGithubDeviceCode_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/GetGithubDeviceCode",
+		FullMethod: "/wego_applications_server.v1.Applications/GetGithubDeviceCode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).GetGithubDeviceCode(ctx, req.(*GetGithubDeviceCodeRequest))
@@ -244,7 +244,7 @@ func _Applications_GetGithubAuthStatus_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/GetGithubAuthStatus",
+		FullMethod: "/wego_applications_server.v1.Applications/GetGithubAuthStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).GetGithubAuthStatus(ctx, req.(*GetGithubAuthStatusRequest))
@@ -262,7 +262,7 @@ func _Applications_GetGitlabAuthURL_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/GetGitlabAuthURL",
+		FullMethod: "/wego_applications_server.v1.Applications/GetGitlabAuthURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).GetGitlabAuthURL(ctx, req.(*GetGitlabAuthURLRequest))
@@ -280,7 +280,7 @@ func _Applications_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/AuthorizeGitlab",
+		FullMethod: "/wego_applications_server.v1.Applications/AuthorizeGitlab",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).AuthorizeGitlab(ctx, req.(*AuthorizeGitlabRequest))
@@ -298,7 +298,7 @@ func _Applications_ParseRepoURL_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/ParseRepoURL",
+		FullMethod: "/wego_applications_server.v1.Applications/ParseRepoURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).ParseRepoURL(ctx, req.(*ParseRepoURLRequest))
@@ -316,7 +316,7 @@ func _Applications_ValidateProviderToken_Handler(srv interface{}, ctx context.Co
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/ValidateProviderToken",
+		FullMethod: "/wego_applications_server.v1.Applications/ValidateProviderToken",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).ValidateProviderToken(ctx, req.(*ValidateProviderTokenRequest))
@@ -328,7 +328,7 @@ func _Applications_ValidateProviderToken_Handler(srv interface{}, ctx context.Co
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Applications_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "wego_server.v1.Applications",
+	ServiceName: "wego_applications_server.v1.Applications",
 	HandlerType: (*ApplicationsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

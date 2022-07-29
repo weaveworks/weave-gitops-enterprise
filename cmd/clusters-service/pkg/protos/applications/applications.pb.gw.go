@@ -303,7 +303,7 @@ func RegisterApplicationsHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/Authenticate", runtime.WithHTTPPathPattern("/v1/authenticate/{provider_name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_applications_server.v1.Applications/Authenticate", runtime.WithHTTPPathPattern("/v1/authenticate/{provider_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -326,7 +326,7 @@ func RegisterApplicationsHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/GetGithubDeviceCode", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/github"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_applications_server.v1.Applications/GetGithubDeviceCode", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/github"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -349,7 +349,7 @@ func RegisterApplicationsHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/GetGithubAuthStatus", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/github/status"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_applications_server.v1.Applications/GetGithubAuthStatus", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/github/status"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -372,7 +372,7 @@ func RegisterApplicationsHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/GetGitlabAuthURL", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/gitlab"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_applications_server.v1.Applications/GetGitlabAuthURL", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/gitlab"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -395,7 +395,7 @@ func RegisterApplicationsHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/AuthorizeGitlab", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/gitlab/authorize"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_applications_server.v1.Applications/AuthorizeGitlab", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/gitlab/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -418,7 +418,7 @@ func RegisterApplicationsHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/ParseRepoURL", runtime.WithHTTPPathPattern("/v1/applications/parse_repo_url"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_applications_server.v1.Applications/ParseRepoURL", runtime.WithHTTPPathPattern("/v1/applications/parse_repo_url"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -441,7 +441,7 @@ func RegisterApplicationsHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/ValidateProviderToken", runtime.WithHTTPPathPattern("/v1/applications/validate_token"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_applications_server.v1.Applications/ValidateProviderToken", runtime.WithHTTPPathPattern("/v1/applications/validate_token"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -503,7 +503,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/Authenticate", runtime.WithHTTPPathPattern("/v1/authenticate/{provider_name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_applications_server.v1.Applications/Authenticate", runtime.WithHTTPPathPattern("/v1/authenticate/{provider_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -523,7 +523,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/GetGithubDeviceCode", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/github"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_applications_server.v1.Applications/GetGithubDeviceCode", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/github"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -543,7 +543,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/GetGithubAuthStatus", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/github/status"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_applications_server.v1.Applications/GetGithubAuthStatus", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/github/status"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -563,7 +563,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/GetGitlabAuthURL", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/gitlab"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_applications_server.v1.Applications/GetGitlabAuthURL", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/gitlab"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -583,7 +583,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/AuthorizeGitlab", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/gitlab/authorize"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_applications_server.v1.Applications/AuthorizeGitlab", runtime.WithHTTPPathPattern("/v1/applications/auth_providers/gitlab/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -603,7 +603,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/ParseRepoURL", runtime.WithHTTPPathPattern("/v1/applications/parse_repo_url"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_applications_server.v1.Applications/ParseRepoURL", runtime.WithHTTPPathPattern("/v1/applications/parse_repo_url"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -623,7 +623,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/ValidateProviderToken", runtime.WithHTTPPathPattern("/v1/applications/validate_token"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_applications_server.v1.Applications/ValidateProviderToken", runtime.WithHTTPPathPattern("/v1/applications/validate_token"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

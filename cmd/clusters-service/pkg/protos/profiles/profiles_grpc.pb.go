@@ -35,7 +35,7 @@ func NewProfilesClient(cc grpc.ClientConnInterface) ProfilesClient {
 
 func (c *profilesClient) GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error) {
 	out := new(GetProfilesResponse)
-	err := c.cc.Invoke(ctx, "/wego_profiles.v1.Profiles/GetProfiles", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_ee_profiles.v1.Profiles/GetProfiles", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (c *profilesClient) GetProfiles(ctx context.Context, in *GetProfilesRequest
 
 func (c *profilesClient) GetProfileValues(ctx context.Context, in *GetProfileValuesRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
 	out := new(httpbody.HttpBody)
-	err := c.cc.Invoke(ctx, "/wego_profiles.v1.Profiles/GetProfileValues", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wego_ee_profiles.v1.Profiles/GetProfileValues", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func _Profiles_GetProfiles_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_profiles.v1.Profiles/GetProfiles",
+		FullMethod: "/wego_ee_profiles.v1.Profiles/GetProfiles",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfilesServer).GetProfiles(ctx, req.(*GetProfilesRequest))
@@ -113,7 +113,7 @@ func _Profiles_GetProfileValues_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/wego_profiles.v1.Profiles/GetProfileValues",
+		FullMethod: "/wego_ee_profiles.v1.Profiles/GetProfileValues",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfilesServer).GetProfileValues(ctx, req.(*GetProfileValuesRequest))
@@ -125,7 +125,7 @@ func _Profiles_GetProfileValues_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Profiles_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "wego_profiles.v1.Profiles",
+	ServiceName: "wego_ee_profiles.v1.Profiles",
 	HandlerType: (*ProfilesServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
