@@ -1619,6 +1619,7 @@ func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotatio
 			RenderType: renderType,
 		},
 	}
+}
 
 func TestCreateKustomizationsPullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
