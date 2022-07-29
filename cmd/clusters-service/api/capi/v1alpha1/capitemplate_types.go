@@ -10,7 +10,10 @@ const Kind = "CAPITemplate"
 // CAPITemplate is the Schema for the capitemplates API
 // +kubebuilder:object:root=true
 type CAPITemplate struct {
-	templates.Template `json:",inline"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec templates.TemplateSpec `json:"spec,omitempty"`
 }
 
 // CAPITemplateList contains a list of CAPITemplate

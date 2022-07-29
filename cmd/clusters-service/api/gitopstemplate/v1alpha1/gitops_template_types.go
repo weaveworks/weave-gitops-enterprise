@@ -11,7 +11,10 @@ const Kind = "GitOpsTemplate"
 // GitOpsTemplate is the Schema for the GitOpsTemplate API
 // +kubebuilder:object:root=true
 type GitOpsTemplate struct {
-	templates.Template `json:",inline"`
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec templates.TemplateSpec `json:"spec,omitempty"`
 }
 
 // GitOpsTemplateList contains a list of GitOpsTemplate

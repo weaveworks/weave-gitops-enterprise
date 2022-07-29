@@ -1,7 +1,6 @@
 package templates
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -13,15 +12,6 @@ const (
 	// RenderTypeTemplating use text/templating for rendering
 	RenderTypeTemplating = "templating"
 )
-
-// Template defines a template which can be either a CAPI or a Terraform Template.
-// +kubebuilder:object:generate=true
-type Template struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec TemplateSpec `json:"spec,omitempty"`
-}
 
 // TemplateSpec defines the base template spec needs for CAPI or Terraform Templates.
 // +kubebuilder:object:generate=true
