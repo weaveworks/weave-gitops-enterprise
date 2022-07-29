@@ -340,8 +340,7 @@ export type CreateKustomizationsPullRequestRequest = {
 }
 
 export type ClusterKustomization = {
-  name?: string
-  namespace?: string
+  cluster?: ClusterNamespacedName
   isControlPlane?: boolean
   kustomization?: Kustomization
 }

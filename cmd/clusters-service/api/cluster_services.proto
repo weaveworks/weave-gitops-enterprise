@@ -506,10 +506,9 @@ message CreateKustomizationsPullRequestRequest {
 }
 
 message ClusterKustomization {
-  string name = 1;
-  string namespace = 2;
-  bool is_control_plane = 3;
-  Kustomization kustomization = 4;
+  ClusterNamespacedName cluster = 1;
+  bool is_control_plane = 2;
+  Kustomization kustomization = 3;
 }
 
 message CreateKustomizationsPullRequestResponse {

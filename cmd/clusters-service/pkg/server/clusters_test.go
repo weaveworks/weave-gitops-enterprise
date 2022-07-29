@@ -1499,8 +1499,10 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
 					{
-						Name:      "billing",
-						Namespace: "dev",
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: &capiv1_protos.Metadata{
 								Name:      "apps-billing",
@@ -1530,8 +1532,10 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
 					{
-						Name:           "management",
-						Namespace:      "default",
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
 						IsControlPlane: true,
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: &capiv1_protos.Metadata{
@@ -1548,8 +1552,10 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 						},
 					},
 					{
-						Name:      "billing",
-						Namespace: "dev",
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: &capiv1_protos.Metadata{
 								Name:      "apps-billing",
@@ -1582,8 +1588,10 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 				Description:   "Creates cluster Kustomizations",
 				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
 					{
-						Name:           "management",
-						Namespace:      "default",
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
 						IsControlPlane: true,
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: &capiv1_protos.Metadata{
@@ -1600,8 +1608,10 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 						},
 					},
 					{
-						Name:      "billing",
-						Namespace: "dev",
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: &capiv1_protos.Metadata{
 								Name:      "apps-billing",

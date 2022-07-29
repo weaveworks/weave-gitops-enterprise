@@ -228,18 +228,14 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	if len(msg.Kustomizations) > 0 {
-		kustomizationFiles := []gitprovider.CommitFile{}
-
 		for _, k := range msg.Kustomizations {
 			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k)
 			if err != nil {
 				return nil, err
 			}
 
-			kustomizationFiles = append(kustomizationFiles, kustomization)
+			files = append(files, kustomization)
 		}
-
-		files = append(files, kustomizationFiles...)
 	}
 
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
@@ -434,8 +430,8 @@ func (s *server) CreateKustomizationsPullRequest(ctx context.Context, msg *capiv
 	var files []gitprovider.CommitFile
 	for _, c := range msg.ClusterKustomizations {
 		cluster := types.NamespacedName{
-			Name:      c.Name,
-			Namespace: c.Namespace,
+			Name:      c.Cluster.Name,
+			Namespace: c.Cluster.Namespace,
 		}
 		kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization)
 
@@ -443,7 +439,7 @@ func (s *server) CreateKustomizationsPullRequest(ctx context.Context, msg *capiv
 			return nil, err
 		}
 		files = append(files, kustomization)
-		clusters = append(clusters, c.Name)
+		clusters = append(clusters, c.Cluster.Name)
 	}
 
 	if msg.HeadBranch == "" {
@@ -729,11 +725,11 @@ func validateCreateKustomizationsPR(msg *capiv1_proto.CreateKustomizationsPullRe
 	}
 
 	for _, c := range msg.ClusterKustomizations {
-		if c.Name == "" {
+		if c.Cluster.Name == "" {
 			err = multierror.Append(err, fmt.Errorf("cluster name must be specified"))
 		}
 
-		invalidNamespaceErr := validateNamespace(c.Namespace)
+		invalidNamespaceErr := validateNamespace(c.Cluster.Namespace)
 		if invalidNamespaceErr != nil {
 			err = multierror.Append(err, invalidNamespaceErr)
 		}

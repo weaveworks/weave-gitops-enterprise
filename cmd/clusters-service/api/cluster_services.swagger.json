@@ -806,11 +806,8 @@
     "v1ClusterKustomization": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
+        "cluster": {
+          "$ref": "#/definitions/v1ClusterNamespacedName"
         },
         "isControlPlane": {
           "type": "boolean"
