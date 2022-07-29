@@ -45,7 +45,7 @@ type PolicyParametersDetail struct {
 func (p PoliciesPage) FindPolicyInList(policyName string) *PolicyInformation {
 	policy := p.PoliciesList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, policyName))
 	return &PolicyInformation{
-		Name:     policy.FindByXPath(`td[1]`),
+		Name:     policy.FindByXPath(`td[1]//a`),
 		Category: policy.FindByXPath(`td[2]`),
 		Severity: policy.FindByXPath(`td[3]`),
 		Cluster:  policy.FindByXPath(`td[4]`),
