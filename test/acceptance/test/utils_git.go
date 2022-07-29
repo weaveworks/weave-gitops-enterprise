@@ -16,9 +16,9 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/viper"
-	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git/wrapper"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
 )
 
 const (
