@@ -69,7 +69,7 @@ func (c ClustersPage) FindClusterInList(clusterName string) *ClusterInformation 
 	cluster := c.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
 	return &ClusterInformation{
 		Checkbox:   cluster.FindByXPath(`td[1]`).Find("input"),
-		Name:       cluster.FindByXPath(`td[2]//a`),
+		Name:       cluster.FindByXPath(`td[2]`),
 		Dashboards: cluster.FindByXPath(`td[3]`),
 		Type:       cluster.FindByXPath(`td[4]`),
 		Namespace:  cluster.FindByXPath(`td[5]`),
