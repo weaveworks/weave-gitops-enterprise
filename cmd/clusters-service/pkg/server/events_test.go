@@ -6,19 +6,28 @@ package server_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/entesting"
 	"github.com/weaveworks/weave-gitops-enterprise/test"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestListEvents(t *testing.T) {
+	RegisterFailHandler(Fail)
 	ctx := context.Background()
 
-	k8sEnv := test.StartTestEnv(t)
+	os.Setenv("KUBEBUILDER_ASSETS", "../../../../tools/bin/envtest")
+	k8sEnv, err := testutils.StartK8sTestEnvironment([]string{
+		"../../../../tools/testcrds",
+	})
+	Expect(err).NotTo(HaveOccurred())
 
 	c := entesting.MakeGRPCServer(t, k8sEnv.Rest, k8sEnv)
 

@@ -30,7 +30,6 @@ import (
 
 func TestServer(t *testing.T) {
 	RegisterFailHandler(Fail)
-	os.Setenv("KUBEBUILDER_ASSETS", "../../../../tools/bin/envtest")
 
 	RunSpecs(t, "Server")
 }
@@ -62,8 +61,8 @@ var _ = BeforeSuite(func() {
 	scheme, err = kube.CreateScheme()
 	Expect(err).To(BeNil())
 
+	os.Setenv("KUBEBUILDER_ASSETS", "../../../../tools/bin/envtest")
 	env, err = testutils.StartK8sTestEnvironment([]string{
-		"../../../../manifests/crds",
 		"../../../../tools/testcrds",
 	})
 	Expect(err).NotTo(HaveOccurred())
