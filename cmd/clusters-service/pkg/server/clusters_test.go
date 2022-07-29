@@ -1619,4 +1619,248 @@ func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotatio
 			RenderType: renderType,
 		},
 	}
+
+func TestCreateKustomizationsPullRequest(t *testing.T) {
+	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
+	viper.SetDefault("capi-repository-clusters-path", "clusters")
+	viper.SetDefault("add-bases-kustomization", "enabled")
+	testCases := []struct {
+		name           string
+		clusterState   []runtime.Object
+		provider       git.Provider
+		pruneEnvVar    string
+		req            *capiv1_protos.CreateKustomizationsPullRequestRequest
+		expected       string
+		committedFiles []CommittedFile
+		err            error
+	}{
+		{
+			name: "validation errors",
+			req:  &capiv1_protos.CreateKustomizationsPullRequestRequest{},
+			err:  errors.New("at least one cluster kustomization must be specified"),
+		},
+		{
+			name:     "pull request failed",
+			provider: NewFakeGitProvider("", nil, errors.New("oops")),
+			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
+		},
+		{
+			name:     "create pull request",
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
+						IsControlPlane: true,
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-capi",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/capi",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "committed files",
+			clusterState: []runtime.Object{
+				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster Kustomization",
+				Description:   "Creates cluster Kustomizations",
+				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
+						IsControlPlane: true,
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-capi",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/capi",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []CommittedFile{
+				{
+					Path: "clusters/management/flux-system/apps-capi-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-capi
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/capi
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+				{
+					Path: "clusters/dev/billing/flux-system/apps-billing-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-billing
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/billing
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.SetDefault("runtime-namespace", "default")
+			// setup
+			ts := httptest.NewServer(makeServeMux(t))
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+				hr.Name = "weaveworks-charts"
+				hr.Namespace = "default"
+			})
+			tt.clusterState = append(tt.clusterState, hr)
+			s := createServer(t, serverOptions{
+				clusterState:  tt.clusterState,
+				configMapName: "capi-templates",
+				namespace:     "default",
+				provider:      tt.provider,
+				hr:            hr,
+			})
+
+			// request
+			createPullRequestResponse, err := s.CreateKustomizationsPullRequest(context.Background(), tt.req)
+
+			// Check the response looks good
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to create a pull request:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
+					t.Fatalf("pull request url didn't match expected:\n%s", diff)
+				}
+				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
+					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
+				}
+			}
+		})
+	}
 }

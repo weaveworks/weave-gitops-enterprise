@@ -257,6 +257,39 @@
         ]
       }
     },
+    "/v1/enterprise/kustomizations": {
+      "post": {
+        "summary": "Creates a pull request for the given list of Kustomizations.",
+        "operationId": "ClustersService_CreateKustomizationsPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateKustomizationsPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateKustomizationsPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/enterprise/version": {
       "get": {
         "summary": "GetEnterpriseVersion returns the WeGO Enterprise version",
@@ -770,6 +803,20 @@
         }
       }
     },
+    "v1ClusterKustomization": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v1ClusterNamespacedName"
+        },
+        "isControlPlane": {
+          "type": "boolean"
+        },
+        "kustomization": {
+          "$ref": "#/definitions/v1Kustomization"
+        }
+      }
+    },
     "v1ClusterNamespacedName": {
       "type": "object",
       "properties": {
@@ -801,6 +848,55 @@
         }
       },
       "title": "kubernetes status condition field\nXXX: is dup'd in core, can we share?"
+    },
+    "v1CreateKustomizationsPullRequestRequest": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "The repository to use."
+        },
+        "headBranch": {
+          "type": "string",
+          "description": "The new branch that will be created."
+        },
+        "baseBranch": {
+          "type": "string",
+          "description": "The target branch."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pull request."
+        },
+        "description": {
+          "type": "string",
+          "title": "The description of the pull request"
+        },
+        "commitMessage": {
+          "type": "string",
+          "title": "The commit message"
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "The repo api url."
+        },
+        "clusterKustomizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterKustomization"
+          },
+          "title": "A list of cluster and kustomization"
+        }
+      }
+    },
+    "v1CreateKustomizationsPullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
     },
     "v1CreatePullRequestRequest": {
       "type": "object",

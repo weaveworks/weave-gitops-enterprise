@@ -99,6 +99,15 @@ service ClustersService {
     };
   }
 
+  // Creates a pull request for the given list of Kustomizations.
+  rpc CreateKustomizationsPullRequest(CreateKustomizationsPullRequestRequest)
+      returns (CreateKustomizationsPullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/enterprise/kustomizations"
+      body : "*"
+    };
+  }
+
   rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
     option (google.api.http) = {
       get : "/v1/config"
@@ -477,6 +486,36 @@ message GetEnterpriseVersionRequest {}
 message GetEnterpriseVersionResponse {
   // The version of WeGO Enterprise
   string version = 1;
+}
+
+message CreateKustomizationsPullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The commit message
+  string commit_message = 6;
+  // The repo api url.
+  string repository_api_url = 7;
+  // A list of cluster and kustomization
+  repeated ClusterKustomization cluster_kustomizations = 8;
+}
+
+message ClusterKustomization {
+  ClusterNamespacedName cluster = 1;
+  bool is_control_plane = 2;
+  Kustomization kustomization = 3;
+}
+
+message CreateKustomizationsPullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
 }
 
 message Maintainer {
