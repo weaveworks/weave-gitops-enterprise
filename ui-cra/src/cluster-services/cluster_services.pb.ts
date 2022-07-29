@@ -328,6 +328,27 @@ export type GetEnterpriseVersionResponse = {
   version?: string
 }
 
+export type CreateKustomizationsPullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  commitMessage?: string
+  repositoryApiUrl?: string
+  clusterKustomizations?: ClusterKustomization[]
+}
+
+export type ClusterKustomization = {
+  cluster?: ClusterNamespacedName
+  isControlPlane?: boolean
+  kustomization?: Kustomization
+}
+
+export type CreateKustomizationsPullRequestResponse = {
+  webUrl?: string
+}
+
 export type Maintainer = {
   name?: string
   email?: string
@@ -472,6 +493,9 @@ export class ClustersService {
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static CreateKustomizationsPullRequest(req: CreateKustomizationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateKustomizationsPullRequestResponse> {
+    return fm.fetchReq<CreateKustomizationsPullRequestRequest, CreateKustomizationsPullRequestResponse>(`/v1/enterprise/kustomizations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
